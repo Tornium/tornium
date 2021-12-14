@@ -1,0 +1,7 @@
+*.sql
+*.log
+*.log.*
+settings.json
+venv/
+.idea
+huey.*

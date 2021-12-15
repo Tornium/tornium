@@ -7,8 +7,11 @@ from mongoengine import DynamicDocument, IntField, ListField, FloatField
 
 
 class AStatModel(DynamicDocument):
-    tid = IntField(primary_key=True)
+    sid = IntField(primary_key=True)
+    tid = IntField()
     timeadded = IntField()
+    addedid = IntField()
+    factiontid = IntField()
     str0 = FloatField(default=0)
     str1 = FloatField(default=0)
     def0 = FloatField(default=0)

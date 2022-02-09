@@ -1,14 +1,24 @@
-# Copyright (C) tiksan - All Rights Reserved
-# Unauthorized copying of this file, via any medium is strictly prohibited
-# Proprietary and confidential
-# Written by tiksan <webmaster@deek.sh>
-
+# This file is part of Tornium.
+#
+# Tornium is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Tornium is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Tornium.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
 
 from flask_login import UserMixin, current_user
 
 from models.usermodel import UserModel
+import tasks
 import utils
 
 
@@ -65,7 +75,7 @@ class User(UserMixin):
 
     def refresh(self, key=None, force=False):
         now = utils.now()
-
+        
         if force or (now - self.last_refresh) > 1800:
             if self.key != "":
                 key = self.key
@@ -75,9 +85,9 @@ class User(UserMixin):
                     raise Exception  # TODO: Make exception more descriptive
 
             if key == self.key:
-                user_data = utils.tornget(f'user/?selections=profile,battlestats,discord', key)
+                user_data = tasks.tornget(f'user/?selections=profile,battlestats,discord', key)
             else:
-                user_data = utils.tornget(f'user/{self.tid}?selections=profile,discord', key)
+                user_data = tasks.tornget(f'user/{self.tid}?selections=profile,discord', key)
 
             user = utils.first(UserModel.objects(tid=self.tid))
             user.factionid = user_data['faction']['faction_id']
@@ -109,7 +119,7 @@ class User(UserMixin):
         user = utils.first(UserModel.objects(tid=self.tid))
 
         try:
-            utils.tornget(f'faction/?selections=positions', self.key)
+            tasks.tornget(f'faction/?selections=positions', self.key)
         except:
             self.aa = False
             user.factionaa = False
@@ -122,7 +132,7 @@ class User(UserMixin):
 
     def get_id(self):
         return self.tid
-
+    
     def is_aa(self):
         return self.aa
 

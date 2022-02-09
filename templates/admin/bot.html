@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot Admin
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'admin/navbar.html' %}
+
+<div class="py-3 px-3">
+    <div class="card min-w-25 max-w-50">
+        <div class="card-body">
+            <h5 class="card-title">Bot Token</h5>
+            <p class="card-text">
+                The Bot Token of the Discord bot. Can be found under the application of the bot at
+                <a href="https://discord.com/developers/applications">Discord Applications</a>.
+            </p>
+            <form class="form-floating" method="POST" action="/admin/bot">
+                <input class="form-control" id="bottoken" name="bottoken" value="{{ bottoken }}">
+                <label for="bottoken">Bot Token</label>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

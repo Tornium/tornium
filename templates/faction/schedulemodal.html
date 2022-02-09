@@ -1,0 +1,165 @@
+<div class="modal fade" id="schedule-modal" tabindex="-1" aria-labelledby="schedule-modal" aria-hidden="true" data-uuid="{{ sid }}">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">Chain Watching Schedule - {{ sid }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <table id="possible-watchers-table" class="table table-striped table-bordered responsive" style="width:100%">
+                    <caption>Possible Chain Watchers</caption>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Availability</th>
+                            <th>Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+                <div class="px-3 py-3 accordion mr-3">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="add-user">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-add-user" aria-expanded="true" aria-controls="collapseAddUser">
+                                Add Possible Chain Watcher
+                            </button>
+                        </h2>
+                        <div class="accordion-collapse collapse" id="collapse-add-user" aria-labelledby="Add User">
+                            <div class="accordion-body">
+                                <form id="form-add-user">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" id="tid" name="tid" placeholder="Enter the Torn User ID">
+                                        <label for="tid" class="form-label">Torn ID</label>
+                                    </div>
+
+                                    <div class="form-floating my-3">
+                                        <label for="weight" class="form-label">
+                                            Weight of User in Scheduling
+                                            <span class="badge rounded-pill bg-danger">
+                                                <span id="weightvalue">1</span>
+                                            </span>
+                                        </label>
+                                        <input type="range" class="form-range" id="weight" min="1" max="5" step="0.1" value="1" onInput="$('#weightvalue').html($(this).val())">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="remove-user">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-remove-user" aria-expanded="true" aria-controls="collapseRemoveUser">
+                                Remove Possible Chain Watcher
+                            </button>
+                        </h2>
+                        <div class="accordion-collapse collapse" id="collapse-remove-user" aria-labelledby="Remove User">
+                            <div class="accordion-body">
+                                <form id="form-remove-user">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" id="tid" name="tid" placeholder="Enter the Torn User ID">
+                                        <label for="tid" class="form-label">Torn ID</label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="add-activity">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-add-activity" aria-expanded="true" aria-controls="collapseAddActivity">
+                                Add User Availability
+                            </button>
+                        </h2>
+                        <div class="accordion-collapse collapse" id="collapse-add-activity" aria-labelledby="Add User Activity">
+                            <div class="accordion-body">
+                                <form id="form-add-activity">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" id="tid" name="tid" placeholder="Enter the Torn User ID">
+                                        <label for="tid" class="form-label">Torn ID</label>
+                                    </div>
+
+                                    <div class="row my-3">
+                                        <div class="col-sm-12 col-md-8 col-lg-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control flatpickr flatpickr-input active" id="fromdatepicker" name="fromdatepicker" readonly="readonly">
+                                                <label for="fromdatepicker" class="form-label">Select from datetime in TCT</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12 col-md-8 col-lg-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control flatpickr flatpickr-input active" id="todatepicker" name="todatepicker" readonly="readonly">
+                                                <label for="todatepicker" class="form-label">Select to datetime in TCT</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="schedule-setup">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-schedule-setup" aria-expanded="true" aria-controls="collapseGenerateSchedule">
+                                Generate Schedule
+                            </button>
+                        </h2>
+                        <div class="accordion-collapse collapse" id="collapse-schedule-setup" aria-labelledby="Generate Schedule">
+                            <div class="accordion-body">
+                                <form id="form-schedule-setup">
+                                    <div class="row my-3">
+                                        <div class="col-sm-12 col-md-8 col-lg-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control flatpickr flatpickr-input active" id="fromts" name="fromts" readonly="readonly">
+                                                <label for="fromts" class="form-label">Select from datetime in TCT</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12 col-md-8 col-lg-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control flatpickr flatpickr-input active" id="tots" name="tots" readonly="readonly">
+                                                <label for="tots" class="form-label">Select to datetime in TCT</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="watcher-timeline">
+
+                </div>
+
+                <button type="button" class="btn btn-danger mt-3" id="delete-schedule" onclick="deleteSchedule()">
+                    <i class="fas fa-trash-alt"></i>
+                    Remove
+                </button>
+                <button type="button" class="btn btn-primary mt-3" id="export-schedule" onclick="exportSchedule()">
+                    <i class="fas fa-file-export"></i>
+                    Export
+                </button>
+                <button type="button" class="btn btn-primary mt-3" id="run-scheduler" onclick="runScheduler()">
+                    <i class="fas fa-play"></i>
+                    Run Scheduler
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

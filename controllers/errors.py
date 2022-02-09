@@ -1,8 +1,17 @@
-# Copyright (C) tiksan - All Rights Reserved
-# Unauthorized copying of this file, via any medium is strictly prohibited
-# Proprietary and confidential
-# Written by tiksan <webmaster@deek.sh>
-
+# This file is part of Tornium.
+#
+# Tornium is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Tornium is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Tornium.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, render_template, request, jsonify
 
@@ -19,6 +28,17 @@ def error400(e):
     """
 
     return render_template('/errors/400.html'), 400
+
+
+@mod.app_errorhandler(402)
+def error402(e):
+    """
+    Returns the 402 error page
+
+    :param e: HTTP eror
+    """
+
+    return render_template('/errors/402.html'), 402
 
 
 @mod.app_errorhandler(403)
@@ -69,7 +89,7 @@ def error500(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/500.html'), 500
+    return render_template('/errors/500.html', error=e), 500
 
 
 @mod.app_errorhandler(501)
@@ -92,4 +112,3 @@ def error503(e):
     """
 
     return render_template('/errors/503.html'), 503
-

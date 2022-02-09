@@ -1,0 +1,45 @@
+<nav class="navbar navbar-scroll navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#factionnav"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span id="collapse-section-name>">Faction Categories</span>
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="factionnav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/chain">
+                        <i class="fas fa-link"></i>
+                        Chains
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/banking">
+                        <i class="fas fa-money-check-alt"></i>
+                        Banking
+                    </a>
+                </li>
+                {% if current_user.is_authenticated and current_user.is_aa() %}
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/bankingaa">
+                        <i class="fas fa-money-check-alt"></i>
+                        Banking AA
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/bot">
+                        <i class="fab fa-discord"></i>
+                        Bot Configuration
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/groups">
+                        <i class="fas fa-users"></i>
+                        Faction Groups
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

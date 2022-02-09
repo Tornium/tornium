@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction Banking AA
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'faction/navbar.html' %}
+
+<div class="row px-3 py-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Setup Instructions</h5>
+                <p class="card-text">
+                    In order to utilize faction banking, please contact an administrator on the faction Discord server and
+                    request that the faction is added to the list of the server's factions (at
+                    <a href="/bot/dashboard">the Bot Dashboard</a>). Then, a faction member with AA (API Access) will need to
+                    setup the faction's Discord banking setup at <a href="/faction/bot">the Faction Bot Dashboard</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row px-3">
+    <div class="col-xs-12 col-lg-6 col-xl-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">List of Bankers</h5>
+                <p class="card-text">NYI</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-lg-6 col-xl-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">All Withdrawals</h5>
+                <table id="banking-table" class="table table-striped table-bordered responsive">
+                    <thead>
+                       <tr>
+                            <th>Request ID</th>
+                            <th>Amount Requested</th>
+                            <th>Requester</th>
+                            <th>Time Requested</th>
+                            <th>Fulfiller</th>
+                            <th>Time Fulfilled</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/faction/bankingaa.js">
+{% endblock %}

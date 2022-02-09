@@ -1,0 +1,45 @@
+<div class="modal fade" id="user-modal" tabindex="-1" aria-labelledby="user-modal" aria-hidden="true" data-id="{{ tid }}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">{{ user }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                Last update: {{ lastupdate }}
+
+                <div class="list-group mt-3">
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="level" aria-label="Level" {% if 'level' in keys %} checked {% endif %}>
+                        Level
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="status" aria-label="Status" {% if 'status' in keys %} checked {% endif %}>
+                        Status
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="flyingstatus" aria-label="Flying Status" {% if 'flyingstatus' in keys %} checked {% endif %}>
+                        Flying Status
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="online" aria-label="Online" {% if 'online' in keys %} checked {% endif %}>
+                        Online
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="offline" aria-label="Offline" {% if 'offline' in keys %} checked {% endif %}>
+                        Offline
+                    </label>
+                </div>
+
+                <button type="button" class="btn btn-danger mt-3">
+                    <a href="/bot/stakeouts/{{ guildid }}/update?action=remove&user={{ tid }}" style="color: white; width: 100%;">Remove</a>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

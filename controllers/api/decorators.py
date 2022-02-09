@@ -1,7 +1,17 @@
-# Copyright (C) tiksan - All Rights Reserved
-# Unauthorized copying of this file, via any medium is strictly prohibited
-# Proprietary and confidential
-# Written by tiksan <webmaster@deek.sh>
+# This file is part of Tornium.
+#
+# Tornium is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Tornium is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Tornium.  If not, see <https://www.gnu.org/licenses/>.
 
 import base64
 import datetime
@@ -19,7 +29,7 @@ def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         client = redisdb.get_redis()
-        key = kwargs['user'].tid
+        key = f'tornium:ratelimit:{kwargs["user"].tid}'
         limit = 250 if kwargs['user'].pro else 150
 
         if client.setnx(key, limit):
@@ -39,8 +49,8 @@ def ratelimit(func):
                 'message': 'Server failed to respond to request. Too many requests were received.'
             }), 429, {
                 'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
-                'X-RateLimit-Remaining': client.get(kwargs['user'].tid),
-                'X-RateLimit-Reset': client.ttl(kwargs['user'].tid)
+                'X-RateLimit-Remaining': client.get(key),
+                'X-RateLimit-Reset': client.ttl(key)
             }
 
         return func(*args, **kwargs)
@@ -54,9 +64,10 @@ def requires_scopes(func=None, scopes=None):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if kwargs['keytype'] == 'Tornium' and not set(utils.first(KeyModel.objects(key=kwargs['key'])).scopes) & scopes:
-            client = redisdb.get_redis()
+        client = redisdb.get_redis()
+        key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
+        if kwargs['keytype'] == 'Tornium' and not set(utils.first(KeyModel.objects(key=kwargs['key'])).scopes) & scopes:
             return jsonify({
                 'code': 4004,
                 'name': 'InsufficientPermissions',
@@ -64,8 +75,8 @@ def requires_scopes(func=None, scopes=None):
                            'sufficient for the request.'
             }), 403, {
                 'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
-                'X-RateLimit-Remaining': client.get(kwargs['user'].tid),
-                'X-RateLimit-Reset': client.ttl(kwargs['user'].tid)
+                'X-RateLimit-Remaining': client.get(key),
+                'X-RateLimit-Reset': client.ttl(key)
             }
 
         return func(*args, **kwargs)
@@ -215,6 +226,7 @@ def pro_required(func):
     def wrapper(*args, **kwargs):
         if not kwargs['user'].pro:
             client = redisdb.get_redis()
+            key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
             return jsonify({
                 'code': 4011,
@@ -222,9 +234,9 @@ def pro_required(func):
                 'message': 'Server failed to fulfill the request. The provided authentication code was not sufficient '
                            'for a pro level request.'
             }), 401, {
-                'X-RateLimit-Limit': 150,  # TODO: Update based on per-user quota
-                'X-RateLimit-Remaining': client.get(kwargs['user'].tid),
-                'X-RateLimit-Reset': client.ttl(kwargs['user'].tid)
+                'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+                'X-RateLimit-Remaining': client.get(key),
+                'X-RateLimit-Reset': client.ttl(key)
             }
 
         return func(*args, **kwargs)

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot Hosting
+{% endblock %}
+
+{% block content %}
+{% include 'navbar.html' %}
+{% include 'bot/navbar.html' %}
+
+<div class="px-3 py-3 accordion mr-3" id="accordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-basic">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-basic" aria-expanded="true" aria-controls="collapseBasic">
+                Basic Hosting Instructions
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="collapse-basic" aria-labelledby="Basic Hosting Instructions" data-bs-example="accordion">
+            <div class="accordion-body">
+                <p>
+                    In order to host the Tornium Bot on your Discord server, first invite the bot to your server through
+                    <a href="https://discord.com/api/oauth2/authorize?client_id=862748725574762526&permissions=201337904&scope=bot">this link</a>
+                    (or <a href="https://discord.com/api/oauth2/authorize?client_id=862748725574762526&permissions=8&scope=bot">this link</a>
+                    for administrator permissions). If the first link is chosen, there may be issues in the future with
+                    additional permission needing to be given to the bot.
+                </p>
+
+                <p>
+                    For a full list of commands and instructions, please check out
+                    <a href="/bot/documentation">the documentation</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-faction">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-faction" aria-expanded="true" aria-controls="collapseFaction">
+                Faction Hosting Instructions
+            </button>
+        </h2>
+
+        <div class="accordion-collapse collapse" id="collapse-faction" aria-labelledby="Faction Hosting Instructions" data-bs-example="accordion">
+            <div class="accordion-body">
+                <p>
+                    To setup the Tornium Bot's faction features, go to the <a href="/bot/dashboard">bot dashboard</a> and
+                    select the Discord server which you are setting up (if the Discord server does not show up, please try
+                    logging out and logging back in or check back in a couple minutes). Once you access the bot dashboard
+                    for the server, add the faction ID for a Torn faction that'll be in the Discord server. The Torn
+                    faction ID can be found by accessing the faction via the Torn search bar. Once the
+                    faction has been added, initially there will be an <i class="far fa-times-circle"></i> next no the
+                    faction's name; this indicates that the faction has not set up your Discord server as the location
+                    of the faction's Discord features (there can be more than one faction in a server). A faction AA
+                    member will be required to visit the <a href="/faction/bot">faction's bot dashboard</a> and add
+                    the Discord server's ID to the faction. Once this is done, under the server's bot dashboard,
+                    the faction will have a <i class="far fa-check-circle"></i> next to the name indicating that the
+                    faction has been added.
+                </p>
+
+                <p>
+                    NOTE: The API keys of logged-in AA members of a faction are used for private faction data (data
+                    only accessible through AA keys).
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-stakeouts">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-stakeout" aria-expanded="true" aria-controls="collapseStakeout">
+                Stakeout Hosting Instructions
+            </button>
+        </h2>
+
+        <div class="accordion-collapse collapse" id="collapse-stakeout" aria-labelledby="Stakeout Hosting Instructions" data-bs-example="accordion">
+            <div class="accordion-body">
+                <p>
+                    For stakeouts to be run (and to be able to create stakeouts), the stakeout feature needs to be
+                    enabled in the <a href="/bot/dashboard">bot dashboard</a> by a logged-in server administrator. A
+                    stakeout category can also be added (optionally) to set the Discord category that stakeout categories
+                    are created under. At this time, stakeouts follow the base category permissions. If a category is
+                    not set by a server administrator, the stakeout channels will be created at the top of the server
+                    under no category.
+                </p>
+                <p>
+                    Once stakeouts have been enabled and set up in the <a href="/bot/dashboard">bot dashboard</a>, a
+                    server administrator can enter the server stakeouts page by the clicking on the "Go to
+                    Guild Stakeouts" button at the top of the bot dashboard. Once at the server stakeouts page, a server
+                    administrator can create a faction or user stakeout by going to the respective section and entering the
+                    respective faction or user they wish to be staked out. If the stakeout has been successfully created, a
+                    channel in your Discord server beginning "faction-" or "user-" will be created in the specified category
+                    from above. By default, all stakeouts are created with no stakeout keys (the changes that can be watched
+                    for by the stakeouts); stakeout keys can be added by clicking on the respective faction or user and
+                    selecting the keys (that are described below) that are wanted. To remove the stakeout, click the remove
+                    button after the list of stakeout keys to be selected, and the stakeout will be removed and the stakeout
+                    channel in the server will be deleted.
+                </p>
+
+                <p>
+                    <b>NOTE:</b> The stakeout will not be created if the bot lacks the necessary permissions, if the stakeout
+                    is not valid, et al. Please contact tiksan [2383326] on
+                    <a href="https://www.torn.com/profiles.php?XID=2383326">Torn</a> or on
+                    <a href="https://discordapp.com/users/695828257949352028">Discord</a> if you have any questions.
+                </p>
+            
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Faction Stakeout Keys
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            Territory - gains or losses of a territory by a faction in addition to a racket changing, leveling,
+                            downgrading, or appearing on a territory
+                        </li>
+                        <li class="list-group-item">
+                            Members - members leaving or joining a faction
+                        </li>
+                        <li class="list-group-item">
+                            Member Status - members of faction leaving or entering the hospital, flying, landing, or entering
+                            the jail
+                        </li>
+                        <li class="list-group-item">
+                            Member Activity - members of a faction coming online or going offline (idle counts for both depending
+                            on last activity time)
+                        </li>
+                        <li class="list-group-item">
+                            Assault - an assault upon a faction's territories (does not include raids upon a faction currently)
+                        </li>
+                        <li class="list-group-item">
+                            Armory - withdrawals, returnals, and retrievals of armor, weapons, and temporaries from a faction's armory
+                            <br />
+                            <b>NOTE:</b> The stakeouted out faction must have set their current server to the server with this stakeout
+                            for this stakeout to work.
+                        </li>
+                        <li class="list-group-item">
+                            Armory Deposit - deposits of weapons, armor, temporaries, boosters, et al. to the the faction's armory
+                            <br />
+                            <b>NOTE:</b> The stakeouted out faction must have set their current server to the server with this stakeout
+                            for this stakeout to work.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        User Stakeout Keys
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            Level - increases (or decreases for the rare occasion) of a user's level
+                        </li>
+                        <li class="list-group-item">
+                            Status - changes in a user's in-game status (in hospital, in jail, et al.)
+                            <br />
+                            <b>NOTE:</b> Does not include flying status changes such as flying and landed. Those changes are watched
+                            with the below Flying Status stakeout key.
+                        </li>
+                        <li class="list-group-item">
+                            Flying Status - changes in a user's in-game flying status (i.e. landed or flying)
+                        </li>
+                        <li class="list-group-item">
+                            Online - a user coming online
+                        </li>
+                        <li class="list-group-item">
+                            Offline - a user going offline
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-assists">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-assists" aria-expanded="true" aria-controls="collapseAssists">
+                Assists Hosting Instructions
+            </button>
+        </h2>
+
+        <div class="accordion-collapse collapse" id="collapse-assists" aria-labelledby="Stakeout Hosting Instructions" data-bs-example="accordion">
+            <div class="accordion-body">
+                <p>
+                    For assists to be sent out to all enabled servers, a Discord channel must first be added by a
+                    logged-in server administrator and the ID must be entered under assist channel. Once the assists
+                    channel has been added to the server, enable the assists requester (if the enable button is
+                    enabled upon first setup, press disabled and then enabled). Assist requests are forwarded to all
+                    servers with the assist request feature enabled. In order to request an assist, past the attack
+                    link into the assist channel. Valid attack links must follow the format of
+                    <u>https://www.torn.com/loader2.php?sid=getInAttack&user2ID=1</u> or
+                    <u>https://www.torn.com/loader.php?sid=attack&user2ID=1</u>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

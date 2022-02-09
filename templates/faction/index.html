@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'faction/navbar.html' %}
+
+<div class="container h-100">
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list-ul"></i>
+                Features
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            OD Watcher - a faction utility that reports overdoses in a specified Discord channel when enabled
+                        </li>
+                        <li class="list-group-item">
+                            Banking - a faction utility for requesting money from the faction vault
+                        </li>
+                        <li class="list-group-item">
+                            Faction Groups - a faction utility to group factions together in order to share data securely
+                        </li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

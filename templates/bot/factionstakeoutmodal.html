@@ -1,0 +1,57 @@
+<div class="modal fade" id="faction-modal" tabindex="-1" aria-labelledby="faction-modal" aria-hidden="true" data-id="{{ tid }}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">{{ faction }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                Last update: {{ lastupdate }}
+
+                <div class="list-group mt-3">
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="territory" aria-label="Territory" {% if 'territory' in keys %} checked {% endif %}>
+                        Territory
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="members" aria-label="Members" {% if 'members' in keys %} checked {% endif %}>
+                        Members
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="memberstatus" aria-label="Member Status" {% if 'memberstatus' in keys %} checked {% endif %}>
+                        Member Status
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="memberactivity" aria-label="Member Activity" {% if 'memberactivity' in keys %} checked {% endif %}>
+                        Member Activity
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="assault" aria-label="Assault" {% if 'assault' in keys %} checked {% endif %}>
+                        Assault
+                    </label>
+
+                    {% if armory %}
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="armory" aria-label="Armory" {%  if 'armory' in keys %} checked {% endif %}>
+                        Armory
+                    </label>
+
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" value="" id="armorydeposit" aria-label="Armory Deposit" {%  if 'armorydeposit' in keys %} checked {% endif %}>
+                        Armory Deposit
+                    </label>
+                    {% endif %}
+                </div>
+
+                <button type="button" class="btn btn-danger mt-3">
+                    <a href="/bot/stakeouts/{{ guildid }}/update?action=remove&faction={{ tid }}" style="color: white; width: 100%;">Remove</a>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

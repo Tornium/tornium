@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction Bot Dashboard
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'faction/navbar.html' %}
+
+<div class="py-3 px-3">
+    <div class="card min-w-25 max-w-50">
+        <div class="card-body">
+            <h5 class="card-title">{{ faction.name }}'s Chains</h5>
+            <p class="card-text">
+                Not yet implemented.
+            </p>
+        </div>
+    </div>
+
+    {% if guildid != 0 and current_user.aa %}
+    <div class="card min-w-25 max-w-50 my-3">
+        <div class="card-body">
+            <h5 class="card-title">Chain OD Watcher</h5>
+            <p class="card-text">
+                The chain OD watcher reports overdoses of faction members in the specified channel when enabled.
+
+                <form class="form-floating my-3" method="POST" action="/faction/chain">
+                    <input class="form-control" id="odchannel" name="odchannel" value="{{ faction.chain_config['odchannel'] }}">
+                    <label for="odchannel">Overdose Channel</label>
+                </form>
+
+                <form class="form-floating" method="POST" action="/faction/chain">
+                    {% if faction.chain_config['od'] == 0 %}
+                    <input type="submit" class="btn btn-primary" id="odenabled" name="odenabled" value="Enabled">
+                    <input type="submit" class="btn btn-primary active" disabled id="oddisabled" name="oddisabled" value="Disabled">
+                    {% else %}
+                    <input type="submit" class="btn btn-primary active" disabled id="odenabled" name="odenabled" value="Enabled">
+                    <input type="submit" class="btn btn-primary" id="oddisabled" name="oddisabled" value="Disabled">
+                    {% endif %}
+                </form>
+            </p>
+        </div>
+    </div>
+    {% elif guildid == 0 and current_user.aa %}
+    <div class="card min-2-25 max-w-50 my-3">
+        <div class="card-body">
+            <h5 class="card-title">Chain OD Watcher</h5>
+            <p class="card-text text-danger">
+                <b>
+                    The faction's guild ID is required to be set up in the faction's
+                    <a href="/faction/bot" class="text-danger" style="text-decoration: underline">bot dashboard</a> before the OD Watcher can be set up.
+                </b>
+            </p>
+
+            <p class="card-text">
+                The chain OD watcher reports overdoses of faction members in the specified channel when enabled.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

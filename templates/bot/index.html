@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'bot/navbar.html' %}
+
+<div class="container h-100">
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-robot"></i>
+                Tornium Bot
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    The Tornium bot is a Discord Bot made with <a href="">Discord.py</a> for Torn City.
+                </p>
+
+                <p class="card-text">
+                    For more information, check out the <a href="/bot/documentation">documentation</a> or contact
+                    <a href="https://discordapp.com/users/695828257949352028">tiksan</a> on Discord. If you want to host this bot
+                    on your own server, please follow these the steps listed <a href="/bot/host">here</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list-ul"></i>
+                Features
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-user-check"></i>
+                            Verification (Requires Implementation) - a verification utility to give user's their Torn name and ID along with faction role and/or position roles
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-money-check-alt"></i>
+                            Banking - a faction utility for requesting money from the faction vault
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-binoculars"></i>
+                            Stakeouts - a utility to watch factions, users, and companies for changes in specified triggers
+                        </li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-code"></i>
+                Source Code
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    The Tornium bot is open sourced under the <a href="https://www.gnu.org/licenses">AGPLv3</a> license. If
+                    you decide to fork the bot, you are required to keep the bot under this license. The original source code is
+                    developed by <a href="https://www.torn.com/profiles.php?XID=2383326">tiksan [2383326]</a> and is available on
+                    <a href="https://github.com/dssecret/torn-bot">GitHub</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Admin Faction Database
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'admin/navbar.html' %}
+
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Faction Database</h5>
+
+            <table id="faction-table" class="table table-striped table-bordered responsive">
+                <thead>
+                    <tr>
+                        <th>Faction ID</th>
+                        <th>Faction Name</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/admin/database/faction.js"></script>
+{% endblock %}

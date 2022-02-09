@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot Dashboard
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'bot/navbar.html' %}
+
+<div class="container h-100">
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto justify-content-center">
+        <main class="px-4 py-5 my-5 text-center">
+            <div class="container h-100">
+                <div class="cover-container d-flex w-100 h-100 p-3 mx-auto justify-content-center">
+                    <main class="px-4 py-5 my-5 text-center">
+                        <div class="card min-w-25 max-w-50">
+                            <div class="card-body">
+                                <h5 class="card-title">Server Selector</h5>
+
+                                {% for server in servers %}
+                                <button type="button" class="btn btn-primary btn-lg btn-block">
+                                    <a href="/bot/dashboard/{{ server.sid }}" style="color: white">{{ server.name }}</a>
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction Group Dashboard
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'faction/navbar.html' %}
+
+<div class="container h-100">
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto justify-content-center">
+        <main class="px-4 py-5 my-5 text-center">
+            <div class="container h-100">
+                <div class="cover-container d-flex w-100 h-100 p-3 mx-auto justify-content-center">
+                    <main class="px-4 py-5 my-5 text-center">
+                        <div class="card min-w-25 max-w-50">
+                            <div class="card-body">
+                                <h5 class="card-title">Group Selector</h5>
+
+                                {% for group in groups %}
+                                <button type="button" class="btn btn-primary btn-lg btn-block my-1">
+                                    <a href="/faction/group/{{ group.tid }}" style="color: white">{{ group.name }}</a>
+                                </button>
+                                <br />
+                                {% endfor %}
+
+                                <button type="button" class="btn btn-primary btn-lg btn-block mt-2">
+                                    <a href="/faction/groups/create" style="color: white">Create Group</a>
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot Dashboard
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'bot/navbar.html' %}
+
+<div class="row">
+    <div class="py-3 px-3 col text-end">
+        {% if server.config['stakeouts'] == 0 %}
+        <button type="button" class="btn btn-primary" disabled>
+            <a href="#" style="color: white">Go to Guild Stakeouts</a>
+        </button>
+        {% else %}
+        <button type="button" class="btn btn-primary">
+            <a href="/bot/stakeouts/{{ guildid }}" style="color: white">Go to Guild Stakeouts</a>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="pb-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Basic Setup</h5>
+            <p class="card-text">
+                Various basic settings (such as the prefix) that can be changed for this particular Discord guild. Only single character prefixes are accepted.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-lg-4">
+                <form class="form-floating" method="POST" action="/bot/dashboard/{{ server.sid }}">
+                    <input class="form-control" id="prefix" name="prefix" value="{{ server.prefix }}">
+                    <label for="prefix">Prefix</label>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Factions</h5>
+            <p class="card-text">
+                The factions located in the particular Discord guild.
+                Add the faction to the server to indicate the the server administration accepts the faction in the server; however, for any features to be run by the faction in the server, the server ID will need to be added in the <a href="/faction/bot">faction bot dashboard</a>.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-lg-4">
+                <form class="form-floating" method="POST" action="/bot/dashboard/{{ server.sid }}">
+                    <input class="form-control" id="factionid" name="factionid" placeholder="Enter the Torn Faction ID">
+                    <label for="factionid">Faction ID</label>
+                    <button class="btn btn-primary my-2" type="submit">Add</button>
+                </form>
+            </div>
+
+            <div class="col-sm-12 col-md-8 col-lg-4">
+                <ul class="list-group">
+                    {% for faction in factions %}
+                    <li class="list-group-item d-flex">
+                        <p class="px-1 my-2">
+                            {{ faction.name }}
+
+                            {% if server.sid | int == faction.guild | int %}
+                            <i class="far fa-check-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
+                            {% else %}
+                            <i class="far fa-times-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
+                            {% endif %}
+                        </p>
+                        <div class="px-5 float-end">
+                            <form method="POST" action="/bot/dashboard/{{ server.sid }}/{{ faction.tid }}">
+                                <button type="submit" class="btn btn-outline-danger">Remove</button>
+                                {% if current_user.factiontid == faction.tid %}
+                                <div class="px-2 float-end">
+                                    <a href="/faction/bot">
+                                        <button type="button" class="btn btn-outline-success">Edit</button>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Stakeouts</h5>
+            <p class="card-text">
+                The stakeouts that are run in the particular Discord guild.
+                The stakeout category is the category in which the stakeout channels are automatically created in the server. By default, the stakeout channels are created at the top of the server without a category (but can be moved or renamed).
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-lg-4 mb-3">
+                <div class="form-floating">
+                    <input class="form-control" id="stakeoutcategory" name="stakeoutcategory" value="{{ server.stakeout_config['category'] }}">
+                    <label for="stakeoutcategory">Stakeout Category</label>
+                </div>
+            </div>
+
+            {% if server.config['stakeouts'] == 0 %}
+            <button type="button" class="btn btn-primary">
+                <a href="/bot/stakeouts/{{ guildid }}/update?action=enable" style="color: white;">Enabled</a>
+            </button>
+            <button type="button" class="btn btn-primary" disabled>
+                <a href="#" style="color: white;">Disabled</a>
+            </button>
+            {% else %}
+            <button type="button" class="btn btn-primary" disabled>
+                <a href="#" style="color: white;">Enabled</a>
+            </button>
+            <button type="button" class="btn btn-primary">
+                <a href="/bot/stakeouts/{{ guildid }}/update?action=disable" style="color: white;">Disabled</a>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Assist Requests</h5>
+            <p class="card-text">
+                The attack assist requests that are sent to all servers.
+                The assists channel is the Discord channel in which assist requests will be sent to and from.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-lg-4 mb-3">
+                <div class="form-floating">
+                    <input class="form-control" id="assistchannel" name="assistchannel" value="{{ server.assistschannel }}">
+                    <label for="assistchannel">Assist Channel</label>
+                </div>
+            </div>
+
+            {% if server.config['assists'] == 0 %}
+            <button type="button" class="btn btn-primary">
+                <a href="/bot/assists/{{ guildid }}/update?action=enable" style="color: white;">Enabled</a>
+            </button>
+            <button type="button" class="btn btn-primary" disabled>
+                <a href="#" style="color: white;">Disabled</a>
+            </button>
+            {% else %}
+            <button type="button" class="btn btn-primary" disabled>
+                <a href="#" style="color: white;">Enabled</a>
+            </button>
+            <button type="button" class="btn btn-primary">
+                <a href="/bot/assists/{{ guildid }}/update?action=disable" style="color: white;">Disabled</a>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/bot/guild.js" data-guildid="{{ guildid }}">
+{% endblock %}

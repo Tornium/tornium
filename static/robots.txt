@@ -1,2 +1,9 @@
 User-agent: *
+Allow: /index
+Allow: /faction
+Allow: /bot
+Allow: /bot/documentation
+Allow: /bot/host
+Allow: /stats
+Allow: /api
 Disallow: *

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Chain Generator
+{% endblock %}
+
+{% block content %}
+{% include 'navbar.html' %}
+{% include 'stats/navbar.html' %}
+
+<div class="px-3 py-3 accordion mr-3" id="accordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-basic">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-basic" aria-expanded="true" aria-controls="collapseBasic">
+                Chain List Generator
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="collapse-basic" aria-labelledby="Chain List Generator" data-bs-example="accordion">
+            <div class="accordion-body">
+                <p class="card-text">
+                    This utility returns a chain list based on fair fight with a default of 3x FF (this can be
+                    adjusted if you're on war perks, xan debuff, et al). Move the slider below to maximize the respect
+                    earned and minimize the potential health lost. It is not recommended to move the slider above 1x
+                    since at that point, targets will be as strong or stronger than you are.
+                </p>
+                <p class="card-text">
+                    Note: Please minimize the number of generations per minute since this utility makes a call to the
+                    Torn API for each user.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-options">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-options" aria-expanded="false" aria-controls="collapseOptions">
+                Chain List Generator Options
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse" id="collapse-options" aria-labelledby="Chain List Generator Options" data-bs-example="accordion">
+            <div class="accordion-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                        <form class="form-floating" id="chainform">
+                            <label for="chainff" class="form-label">
+                                Chain List Strength
+                                <span class="badge rounded-pill bg-danger">
+                                    <span id="strength">0.75</span>
+                                </span>
+                            </label>
+                            <input type="range" class="form-range mb-3" id="chainff" min="0.1" max="1.5" step="0.01" Value="0.75" onInput="$('#strength').html($(this).val())">
+
+                            <div class="form-text">
+                                Adjust the slider above in order to increase or decrease the difficulty of the target.
+                                As the slider moves to the left, the difficulty decreases; as the slider moves to the
+                                right, the difficulty increases. A value of around 0.75 will give maximum fair fight
+                                and a value of around 1 will give a list of users with similar stats.
+                            </div>
+
+                            <button type="submit" class="btn btn-primary my-3">Generate</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="header-results">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-results" aria-expanded="false" aria-controls="collapseResults">
+                Chain List Generator Results
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse" id="collapse-results" aria-labelledby="Chain List Generator Results" data-bs-example="accordion">
+            <div class="accordion-body">
+                <div class="col-sm-12 col-md-12 col-lg-8">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">User</th>
+                                <th scope="col">Estimated Fair Fight</th>
+                                <th scope="col">Estimated Respect</th>
+                                <th scope="col">Time Added</th>
+                                <th scope="col">Last Action</th>
+                                <th scope="col">Options</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chain-table-body">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/stats/list.js" data-key="{{ key }}"></script>
+{% endblock %}

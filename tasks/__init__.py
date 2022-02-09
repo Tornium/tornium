@@ -64,6 +64,15 @@ if celery_app is None:
                     'minute': '*',
                     'hour': '*'
                 }
+            },
+            'pro-refresh': {
+                'task': 'tasks.pro_refresh',
+                'enabled': True,
+                'schedule': {
+                    'type': 'cron',
+                    'minute': '*',
+                    'hour': '*'
+                }
             },  # Faction tasks
             'refresh-factions': {
                 'task': 'tasks.faction.refresh_factions',
@@ -497,3 +506,25 @@ def honeybadger_site_checkin():
         return
 
     requests.get(redis.get('tornium:settings:honeysitecheckin'))
+
+
+@celery_app.task
+def pro_refresh():
+    faction: FactionModel
+    for faction in FactionModel.objects():
+        if (faction.pro_expiration > utils.now() or faction.pro_expiration == -1) and not faction.pro:
+            faction.pro = True
+            faction.save()
+        elif (faction.pro_expiration <= utils.now() and faction.pro_expiration != -1) and faction.pro:
+            faction.pro = False
+            faction.save()
+
+    user: UserModel
+    for user in UserModel().objects():
+        if (user.pro_expiration > utils.now() or user.pro_expiration == -1) and not user.pro:
+            user.pro = True
+            user.save()
+        elif (user.pro_expiration <= utils.now() and user.pro_expiration != -1 and user.pro_expiration != -2) and user.pro:
+            user.pro = False
+            user.pro_expiration = 0
+            user.save()

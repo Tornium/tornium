@@ -52,7 +52,10 @@ class Faction:
                 vaultconfig={'banking': 0, 'banker': 0, 'withdrawal': 0},
                 statconfig={'global': 0},
                 chainconfig={'od': 0, 'odchannel': 0},
-                chainod={}
+                chainod={},
+                groups=[],
+                pro=False,
+                pro_expiration=0
             )
 
             try:
@@ -84,6 +87,9 @@ class Faction:
         self.chain_od = faction.chainod
 
         self.groups = faction.groups
+
+        self.pro = faction.pro
+        self.pro_expiration = faction.pro_expiration
 
     def rand_key(self):
         return random.choice(self.keys)

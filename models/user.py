@@ -47,7 +47,9 @@ class User(UserMixin):
                 factionaa=False,
                 chain_hits=0,
                 status='',
-                last_action=0
+                last_action=0,
+                pro=False,
+                pro_expiration=0
             )
             user.save()
 

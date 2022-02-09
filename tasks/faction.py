@@ -125,7 +125,9 @@ def refresh_factions():
                     factionaa=False,
                     chain_hits=0,
                     status=member['last_action']['status'],
-                    last_action=member['last_action']['timestamp']
+                    last_action=member['last_action']['timestamp'],
+                    pro=False,
+                    pro_expiration=0
                 )
                 user.save()
 
@@ -262,7 +264,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                         last_refresh=utils.now(),
                         chain_hits=0,
                         status=user_data['last_action']['status'],
-                        last_action=user_data['last_action']['timestamp']
+                        last_action=user_data['last_action']['timestamp'],
+                        pro=False,
+                        pro_expiration=0
                     )
                     user.save()
                 except Exception as e:

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Tornium.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import DynamicDocument, IntField, StringField, DictField, ListField
+from mongoengine import DynamicDocument, IntField, StringField, DictField, ListField, BooleanField
 
 
 class FactionModel(DynamicDocument):
@@ -38,3 +38,6 @@ class FactionModel(DynamicDocument):
     chainod = DictField(default={})  # Dictionary of faction member overdoses
 
     groups = ListField(default=[])
+
+    pro = BooleanField(default=False)
+    pro_expiration = IntField(default=0)

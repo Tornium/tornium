@@ -1,7 +1,7 @@
 # Copyright (C) tiksan - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
-# Written by tiksan <webmaster.deeksh@gmail.com>
+# Written by tiksan <webmaster@deek.sh>
 
 import logging
 
@@ -10,8 +10,10 @@ from flask_login import LoginManager
 from mongoengine import connect
 
 from controllers import mod as base_mod
-from controllers.stat import mod as stat_mod
 from controllers.api import mod as api_mod
+from controllers.auth import mod as auth_mod
+from controllers.errors import mod as errors_mod
+from controllers.stat import mod as stat_mod
 from redisdb import get_redis
 import utils
 
@@ -44,17 +46,21 @@ login_manager.session_protection = 'basic'
 @login_manager.user_loader
 def load_user(user_id):
     from models.user import User
-    return utils.first(User.objects(tid=user_id))
+    return User(user_id)
 
 
 if redis.get("dev") == "True" and __name__ == "__main__":
-    app.register_blueprint(base_mod)
-    app.register_blueprint(stat_mod)
     app.register_blueprint(api_mod)
+    app.register_blueprint(auth_mod)
+    app.register_blueprint(base_mod)
+    app.register_blueprint(errors_mod)
+    app.register_blueprint(stat_mod)
 
     app.run('localhost', 8080, debug=True)
 
 if redis.get("dev") == "False":
-    app.register_blueprint(base_mod)
-    app.register_blueprint(stat_mod)
     app.register_blueprint(api_mod)
+    app.register_blueprint(auth_mod)
+    app.register_blueprint(base_mod)
+    app.register_blueprint(errors_mod)
+    app.register_blueprint(stat_mod)

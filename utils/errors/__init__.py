@@ -80,6 +80,7 @@ _httperrors = {
     599: 'Network Connect Timeout Error'
 }
 
+
 class NetworkingError(Exception):
     def __init__(self, code: int):
         super().__init__()

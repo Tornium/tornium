@@ -500,6 +500,8 @@ def honeybadger_site_checkin():
 
 @celery_app.task
 def pro_refresh():
+    factions = {}
+
     faction: FactionModel
     for faction in FactionModel.objects():
         if (faction.pro_expiration > utils.now() or faction.pro_expiration == -1) and not faction.pro:
@@ -508,6 +510,8 @@ def pro_refresh():
         elif (faction.pro_expiration <= utils.now() and faction.pro_expiration != -1) and faction.pro:
             faction.pro = False
             faction.save()
+        
+        factions[faction.tid] = faction
 
     user: UserModel
     for user in UserModel().objects():
@@ -518,3 +522,14 @@ def pro_refresh():
             user.pro = False
             user.pro_expiration = 0
             user.save()
+        else:
+            if user.factionid != 0 and user.factionid in factions:
+                faction = factions.get(user.factionid)
+
+                if faction is None:
+                    continue
+
+                user.pro = faction.pro
+                user.pro_expiration = 0
+                user.save()
+

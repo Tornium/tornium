@@ -8,34 +8,33 @@
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <i class="fa-solid fa-had-fist"></i>
                     <a class="nav-link" aria-current="page" href="/faction">
-                        <i class="fas fa-fist-raised"></i>
+                        <i class="fa-solid fa-hand-fist"></i>
                         Faction
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/bot">
-                        <i class="fab fa-discord"></i>
+                        <i class="fa-brands fa-discord"></i>
                         Discord Bot
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/stats">
-                        <i class="fas fa-database"></i>
+                        <i class="fa-solid fa-database"></i>
                         Stat DB
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/api">
-                        <i class="fas fa-code"></i>
+                        <i class="fa-solid fa-code"></i>
                         API
                     </a>
                 </li>
                 {% if current_user.is_authenticated and current_user.admin %}
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/admin">
-                        <i class="fas fa-user-shield"></i>
+                        <i class="fa-solid fa-user-tie"></i>
                         Admin
                     </a>
                 </li>
@@ -46,14 +45,14 @@
             <form class="d-flex" method="POST" action="/login">
                 <input class="form-control" type="password" aria-label="Key" id="key" name="key" placeholder="Enter your Torn API key">
                 <button class="btn btn-outline-success" type="submit">
-                    <i class="fas fa-sign-in-alt"></i>
+                    <i class="fa-solid fa-right-to-bracket"></i>
                     Submit
                 </button>
             </form>
             {% else %}
             <form class="d-flex" method="POST" action="/logout">
                 <button class="btn btn-outline-success" type="submit">
-                    <i class="fas fa-sign-out-alt"></i>
+                    <i class="fa-solid fa-right-from-bracket"></i>
                     Logout
                 </button>
             </form>

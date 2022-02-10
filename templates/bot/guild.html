@@ -64,10 +64,10 @@ Tornium - Bot Dashboard
                             {{ faction.name }}
 
                             {% if server.sid | int == faction.guild | int %}
-                            <i class="far fa-check-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                            <i class="fa-solid fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
                             {% else %}
-                            <i class="far fa-times-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                            <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
                             {% endif %}
                         </p>

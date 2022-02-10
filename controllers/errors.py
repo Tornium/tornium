@@ -20,17 +20,6 @@ def error400(e):
     return render_template('/errors/400.html'), 400
 
 
-@mod.app_errorhandler(402)
-def error402(e):
-    """
-    Returns the 402 error page
-
-    :param e: HTTP eror
-    """
-
-    return render_template('/errors/402.html'), 402
-
-
 @mod.app_errorhandler(403)
 def error403(e):
     """

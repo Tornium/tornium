@@ -35,6 +35,7 @@ class User(UserMixin):
                 servers=[],
                 factionid=0,
                 factionaa=False,
+                recruiter=False,
                 chain_hits=0,
                 status='',
                 last_action=0,
@@ -57,6 +58,7 @@ class User(UserMixin):
 
         self.factiontid = user.factionid
         self.aa = user.factionaa
+        self.recruiter = user.recruiter
         self.chain_hits = user.chain_hits
 
         self.status = user.status

@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, StringField, DictField, ListField, BooleanField, FloatField
+from mongoengine import DynamicDocument, IntField, StringField, ListField, BooleanField, FloatField
 
 
 class UserModel(DynamicDocument):
@@ -25,6 +25,7 @@ class UserModel(DynamicDocument):
 
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)
+    recruiter = BooleanField(default=False)
     chain_hits = IntField(default=0)
 
     status = StringField(default='')

@@ -4,10 +4,8 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from flask import Blueprint, render_template
-from flask_login import login_required, current_user
 
-from controllers.faction import banking, bot, chain, groups, schedule
-from models.usermodel import UserModel
+from controllers.faction import banking, bot, chain, groups, recruitment, schedule
 
 mod = Blueprint('factionroutes', __name__)
 
@@ -28,6 +26,9 @@ mod.add_url_rule('/faction/groups', view_func=groups.groups, methods=['GET'])
 mod.add_url_rule('/faction/groups/create', view_func=groups.create_group, methods=['GET'])
 mod.add_url_rule('/faction/group/<int:tid>', view_func=groups.group, methods=['GET'])
 mod.add_url_rule('/faction/group/invite/<string:invite>', view_func=groups.group_invite, methods=['GET'])
+
+# Recruitment Routes
+mod.add_url_rule('/faction/recruitment', view_func=recruitment.dashboard, methods=['GET'])
 
 # Schedule Routes
 mod.add_url_rule('/faction/schedule', view_func=schedule.schedule, methods=['GET'])

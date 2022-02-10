@@ -19,6 +19,14 @@
                         Banking
                     </a>
                 </li>
+                {% if current_user.is_authenticated and (current_user.is_aa() or current_user.is_recruitment()) %}
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/recruitment">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Recruitment
+                    </a>
+                </li>
+                {% endif %}
                 {% if current_user.is_authenticated and current_user.is_aa() %}
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/faction/bankingaa">

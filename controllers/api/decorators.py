@@ -223,7 +223,7 @@ def pro_required(func):
                 'name': 'InsufficientUserType',
                 'message': 'Server failed to fulfill the request. The provided authentication code was not sufficient '
                            'for a pro level request.'
-            }), 401, {
+            }), 402, {
                 'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
                 'X-RateLimit-Remaining': client.get(key),
                 'X-RateLimit-Reset': client.ttl(key)

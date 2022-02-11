@@ -15,7 +15,7 @@ Tornium - Faction Recruitment
             <h5 class="card-title">Faction Recruitment (In-Dev)</h5>
             <h6>
                 <b>WARNING:</b> This feature is currently in development, therefore certain sub-features may not be fully
-                operational. Cotact tiksan for more details.
+                operational. Contact tiksan for more details.
             </h6>
 
             <p class="card-text">
@@ -25,8 +25,7 @@ Tornium - Faction Recruitment
         </div>
     </div>
 
-    {# {% if current_user.recruitment %} #}
-    {% if current_user.is_aa() %}
+    {% if current_user.recruitment %}
     <div class="card mt-3">
         <div class="card-body">
             <h5 class="card-title">Recruiter Information</h5>
@@ -76,9 +75,6 @@ Tornium - Faction Recruitment
                         <th>Members Joined</th>
                         <th>Members Retained (1 Week)</th>
                         <th>Members Retained (1 Month)</th>
-                        {% if current_user.is_aa() %}
-                        <th></th>
-                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -90,11 +86,6 @@ Tornium - Faction Recruitment
                         <th>{{ recruiter["joined"] }}</th>
                         <th>{{ recruiter["retainedweek"] }}</th>
                         <th>{{ recruiter["retainedmonth"] }}</th>
-                        {% if current_user.is_aa() %}
-                        <th>
-                            <i class="fa-solid fa-user-slash" id="remove-{{ recruiter["tid"] }}"></i>
-                        </th>
-                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -109,6 +100,17 @@ Tornium - Faction Recruitment
                         <div class="form-text">
                             Please enter the Torn ID of the user you wish to add as a faction recruiter. They must be
                             a signed-in member of your current faction to be added.
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <form class="form-floating" id="recruiter-remove-form">
+                        <input class="form-control" id="recruiter-remove-tid" name="recruiter-remove-tid">
+                        <label for="recruiter-remove-tid">Recruiter To Be Removed</label>
+                        <div class="form-text">
+                            Please enter the Torn ID of the user you wish to remove as a faction recruiter. They must
+                            be a signed-in member of your current faction to be added.
                         </div>
                     </form>
                 </div>
@@ -138,4 +140,8 @@ Tornium - Faction Recruitment
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="/faction/recruitment.js" data-key="{{ current_user.key }}"></script>
 {% endblock %}

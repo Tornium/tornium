@@ -25,6 +25,7 @@ def index():
 @mod.route('/faction/banking.js')
 @mod.route('/faction/bankingaa.js')
 @mod.route('/faction/group.js')
+@mod.route('/faction/recruitment.js')
 @mod.route('/faction/schedule.js')
 @mod.route('/faction/schedulechart.js')
 @mod.route('/stats/db.js')

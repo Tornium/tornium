@@ -3,7 +3,6 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from email import message
 from flask import render_template, request
 from flask_login import login_required
 from mongoengine.queryset.visitor import Q
@@ -11,6 +10,7 @@ from mongoengine.queryset.visitor import Q
 from controllers.faction.decorators import *
 from models.recruitmodel import RecruitModel
 from models.usermodel import UserModel
+import utils
 
 
 @login_required
@@ -63,7 +63,7 @@ def recruiters():
         
         recruiters.append([
             f'{recruiter.name} [{recruiter.tid}]',
-            'N/I',
+            messages_sent,
             'N/I',
             'N/I',
             'N/I',
@@ -90,7 +90,7 @@ def recruits():
         recruiter: UserModel = utils.first(UserModel.objects(tid=recruit.recruiter))
         
         recruits.append([
-            uuid,
+            recruit.uuid,
             f'{utils.first(UserModel.objects(tid=recruit.tid)).name} [{recruit.tid}]',
             f'{recruiter.name} [{recruiter.tid}]',
             recruit.messages_received,

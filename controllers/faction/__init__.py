@@ -29,6 +29,8 @@ mod.add_url_rule('/faction/group/invite/<string:invite>', view_func=groups.group
 
 # Recruitment Routes
 mod.add_url_rule('/faction/recruitment', view_func=recruitment.dashboard, methods=['GET'])
+mod.add_url_rule('/faction/recruits', view_func=recruitment.recruits, methods=['GET'])
+mod.add_url_rule('/faction/recruiters', view_func=recruitment.recruiters, methods=['GET'])
 
 # Schedule Routes
 mod.add_url_rule('/faction/schedule', view_func=schedule.schedule, methods=['GET'])

@@ -71,7 +71,6 @@ Tornium - Faction Recruitment
                 <thead>
                     <tr>
                         <th>Recruiter</th>
-                        <th>Status</th>
                         <th>Messages Sent</th>
                         <th>Members Invited</th>
                         <th>Members Joined</th>
@@ -86,7 +85,6 @@ Tornium - Faction Recruitment
                     {% for recruiter in recruiters %}
                     <tr>
                         <th>{{ recruiter["name"] }} [{{ recruiter["tid"] }}]</th>
-                        <th>{{ recruiter["status"] }}</th>
                         <th>{{ recruiter["sent"] }}</th>
                         <th>{{ recruiter["invited"] }}</th>
                         <th>{{ recruiter["joined"] }}</th>

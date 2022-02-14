@@ -26,6 +26,7 @@ class UserModel(DynamicDocument):
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)
     recruiter = BooleanField(default=False)
+    recruiter_code = StringField(default='')
     chain_hits = IntField(default=0)
 
     status = StringField(default='')

@@ -171,3 +171,25 @@ def remove_recruiter(*args, **kwargs):
         'X-RateLimit-Remaining': client.get(key),
         'X-RateLimit-Reset': client.ttl(key)
     }
+
+
+@key_required
+@ratelimit
+@pro_required
+@requires_scopes(scopes={'admin', 'faction:admin'})
+def refresh_code(*args, **kwargs):
+    client = redisdb.get_redis()
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+
+    if not kwargs['user'].recruiter:
+        return jsonify({
+            'code': 0,
+            'name': 'GeneralError',
+            'message': 'Server failed to fulfill the request. The user is not currently a recruiter.'
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+
+    kwargs['user']

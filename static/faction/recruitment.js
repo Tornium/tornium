@@ -39,7 +39,6 @@ $(document).ready(function() {
             var response = xhttp.response
 
             if(response.code === 1) {
-                generateToast("Request Successfully Sent", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
                 recruitersTable.ajax.reload();
             } else {
                 generateToast("Request Failed", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
@@ -66,7 +65,6 @@ $(document).ready(function() {
             var response = xhttp.response
 
             if(response.code === 1) {
-                generateToast("Request Successfully Sent", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
                 recruitersTable.ajax.reload();
             } else {
                 generateToast("Request Failed", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);

@@ -8,5 +8,5 @@ flask-login == 0.5.0
 honeybadger == 0.8.0
 is-safe-url == 1.0
 mongoengine == 0.23.1
-redis == 4.1.3
+redis == 4.1.4
 requests == 2.27.1

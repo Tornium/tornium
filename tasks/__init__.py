@@ -33,8 +33,11 @@ connect(
 )
 
 celery_app: Celery = None
-logger: logging.Logger = logging.getLogger('celery')
-logger.setLevel(logging.DEBUG)
+logger: logging.Logger = logging.getLogger('celeryerrors')
+if get_redis().get('dev'):
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.WARNING)
 handler = logging.FileHandler(filename='celeryerrors.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -203,7 +206,7 @@ if celery_app is None:
 
 
 @celery_app.task
-def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=False):
+def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=True):
     url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}' \
           f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'
     logger.info(f'The API call has been made to {url}).')
@@ -218,6 +221,8 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Fa
         redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
     if redis.ttl(redis_key) < 0:
         redis.expire(redis_key, 1)
+        redis.set(redis_key, 100)
+        redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
     
     try:
         if redis.get(redis_key) is not None and int(redis.get(redis_key)) > 0:
@@ -226,10 +231,13 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Fa
             if autosleep:
                 time.sleep(60 - datetime.datetime.utcnow().second)
             else:
-                raise RatelimitError
+                if redis.get(redis_key) is None:
+                    redis.set(redis_key, 100)
+                    redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
+                else:
+                    raise RatelimitError
     except TypeError as e:
-        logger.warning(f'Error raised on API key {key}')
-        raise e
+        logger.warning(f'Error raised on API key {key} with redis return value {redis.get(redis_key)} and redis key {redis_key}')
     
     if session is None:
         request = requests.get(url)
@@ -336,7 +344,7 @@ def discordget(endpoint, session=None):
         )
     elif request.status_code // 100 != 2:
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
             code=request.status_code
@@ -387,7 +395,7 @@ def discordpost(endpoint, payload, session=None):
         )
     elif request.status_code // 100 != 2:
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
             code=request.status_code
@@ -438,7 +446,7 @@ def discorddelete(endpoint, session=None):
         )
     elif request.status_code // 100 != 2:
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
             code=request.status_code
@@ -473,7 +481,7 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
     else:
         request = session.get(url)
     
-    if request.status_code // 100 != 200:
+    if request.status_code // 100 != 2:
         logger.warning(f'The Torn Stats API has responded with HTTP status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code)
     

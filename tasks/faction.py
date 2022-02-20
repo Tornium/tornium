@@ -73,7 +73,7 @@ def refresh_factions():
             if not user_ts_data['status']:
                 return
 
-            for user_id, user_data in user_ts_data['faction']['members']:
+            for user_id, user_data in user_ts_data['faction']['members'].items():
                 if 'spy' not in user_data:
                     continue
 
@@ -220,7 +220,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             honeybadger.notify(e)
             continue
 
-        for attack in faction_data['attakcs'].values():
+        for attack in faction_data['attacks'].values():
             if attack['defender_faction'] == faction_data['ID']:
                 continue
             elif attack['result'] in ['Assist', 'Lost', 'Stalemate', 'Escape']:

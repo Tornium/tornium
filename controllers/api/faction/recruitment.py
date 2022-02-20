@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import json
+import uuid
 
 from controllers.api.decorators import *
 import redisdb
@@ -192,4 +193,41 @@ def refresh_code(*args, **kwargs):
             'X-RateLimit-Reset': client.ttl(key)
         }
 
-    kwargs['user']
+    code = uuid.uuid4().hex[:8]
+
+    if utils.first(UserModel.objects(recruiter_code=code)) is not None:
+        return jsonify({
+            'code': 0,
+            'name': 'GeneralError',
+            'message': 'Server failed to fulfill the request. The generated recruiter code was already found. '
+                       'Please try again.'
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+
+    user: UserModel = utils.first(UserModel.objects(tid=kwargs['user'].tid))
+
+    if user is None:
+        return jsonify({
+            'code': 0,
+            'name': 'GeneralError',
+            'message': 'Server failed to fulfill the request. The current user could not be found in the database.'
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+
+    user.recruiter_code = code
+    user.save()
+
+    return jsonify({
+        'user': user.tid,
+        'recruiter_code': user.recruiter_code
+    }), 200, {
+        'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+        'X-RateLimit-Remaining': client.get(key),
+        'X-RateLimit-Reset': client.ttl(key)
+    }

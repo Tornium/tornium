@@ -33,7 +33,7 @@ def dashboard():
     return render_template(
         'faction/recruitment.html',
         recruiters=recruiters,
-        recruiter_code='N/I',
+        recruiter_code=current_user.recruiter_code,
         recruiter_sent='N/I',
         recruiter_invited='N/I',
         recruiter_joined='N/I',

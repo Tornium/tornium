@@ -24,6 +24,7 @@ mod.add_url_rule('/api/faction/banking', view_func=banking.banking_request, meth
 mod.add_url_rule('/api/faction/group', view_func=group.group_modify, methods=['POST'])
 mod.add_url_rule('/api/faction/recruitment/recruiter', view_func=recruitment.remove_recruiter, methods=['DELETE'])
 mod.add_url_rule('/api/faction/recruitment/recruiter', view_func=recruitment.add_recruiter, methods=['POST'])
+mod.add_url_rule('/api/faction/recruitment/recruiter/code', view_func=recruitment.refresh_code, methods=['POST'])
 mod.add_url_rule('/api/faction/schedule', view_func=schedule.create_schedule, methods=['POST'])
 mod.add_url_rule('/api/faction/schedule', view_func=schedule.delete_schedule, methods=['DELETE'])
 mod.add_url_rule('/api/faction/schedule/setup', view_func=schedule.schedule_setup, methods=['POST'])

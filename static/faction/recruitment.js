@@ -36,7 +36,7 @@ $(document).ready(function() {
         value = Number(value);
 
         xhttp.onload = function() {
-            var response = xhttp.response
+            var response = xhttp.response;
 
             if(response.code === 1) {
                 recruitersTable.ajax.reload();
@@ -62,7 +62,7 @@ $(document).ready(function() {
         value = Number(value);
 
         xhttp.onload = function() {
-            var response = xhttp.response
+            var response = xhttp.response;
 
             if(response.code === 1) {
                 recruitersTable.ajax.reload();
@@ -79,4 +79,24 @@ $(document).ready(function() {
             'user': value,
         }));
     });
+
+    $("#recruiter-refresh-code").click(function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            var response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Request Failed", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
+            } else {
+                $("#recruiter-code").text(response["recruiter_code"]);
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/faction/recruitment/recruiter/code")
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send();
+    })
 });

@@ -7,6 +7,6 @@ flask-cors == 3.0.10
 flask-login == 0.5.0
 honeybadger == 0.8.0
 is-safe-url == 1.0
-mongoengine == 0.23.1
+mongoengine == 0.24.0
 redis == 4.1.4
 requests == 2.27.1

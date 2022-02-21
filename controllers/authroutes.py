@@ -42,7 +42,7 @@ def login():
     except Exception as e:
         return render_template('errors/error.html', title='Error', message=str(e))
 
-    user = User(torn_user['player_id'])
+    user = User(torn_user['player_id'], access=key_info['access_level'])
 
     if user.key != request.form['key']:
         user.set_key(request.form['key'])

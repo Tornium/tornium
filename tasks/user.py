@@ -6,6 +6,7 @@
 import math
 
 from honeybadger import honeybadger
+from mongoengine.queryset.visitor import Q
 import requests
 
 from models.usermodel import UserModel
@@ -75,3 +76,25 @@ def refresh_users():
 
         user.factionaa = True
         user.save()
+
+
+@celery_app.task
+def mail_check():
+    requests_session = requests.Session()
+
+    user: UserModel
+    for user in UserModel.objects(Q(key__ne='') & Q(pro=1) & Q(keyaccess=1)):
+        if user.key == '' or not user.pro or not user.keyaccess:
+            continue
+
+        try:
+            mail_data = tornget(f'user/?selections=messages', user.key, session=requests_session)
+        except Exception as e:
+            logger.exception(e)
+            honeybadger.notify(e)
+            continue
+
+        for mailid, mail in mail_data.items():
+            if mail['type'] != 'User message':
+                continue
+

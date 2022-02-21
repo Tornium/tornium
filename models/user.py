@@ -13,7 +13,7 @@ import utils
 
 
 class User(UserMixin):
-    def __init__(self, tid, key=''):
+    def __init__(self, tid, key='', access=3):
         """
         Retrieves the user from the database.
 
@@ -29,6 +29,7 @@ class User(UserMixin):
                 last_refresh=0,
                 admin=False,
                 key=key,
+                keyaccess=True if access == 4 else False,
                 battlescore=0,
                 battlescore_update=0,
                 discord_id=0,
@@ -51,6 +52,7 @@ class User(UserMixin):
         self.last_refresh = user.last_refresh
         self.admin = user.admin
         self.key = user.key
+        self.key_access = user.keyaccess
         self.battlescore = user.battlescore
         self.battlescore_update = user.battlescore_update
 
@@ -110,6 +112,8 @@ class User(UserMixin):
             self.battlescore = user.battlescore
             self.battlescore_update = now
             self.discord_id = user.discord_id
+
+        return self
 
     def faction_refresh(self):
         user = utils.first(UserModel.objects(tid=self.tid))

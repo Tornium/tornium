@@ -267,7 +267,7 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
                 user.key = ''
                 user.save()
 
-                for server in user.servers():
+                for server in user.servers:
                     server = utils.first(ServerModel.objects(sid=server))
 
                     if server is not None and user.tid in server.admins:

@@ -14,7 +14,6 @@ from mongoengine.queryset.visitor import Q
 import utils
 from controllers.faction.decorators import aa_required
 from models.faction import Faction
-from models.factiongroupmodel import FactionGroupModel
 from models.factionmodel import FactionModel
 from models.statmodel import StatModel
 from models.user import User

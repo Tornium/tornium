@@ -1,0 +1,83 @@
+<div class="modal fade" id="stats-modal" tabindex="-1" aria-labelledby="stats-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">{{ user.name }} [{{ user.tid }}]</h5>
+                <button class="btn">
+                    <a href="https://www.torn.com/loader.php?sid=attack&user2ID={{ user.tid }}">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </a>
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Current level:
+                        </div>
+                        <div class="col-sm-4">
+                            {{ user.level }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Faction:
+                        </div>
+                        <div class="col-sm-4">
+                            {{ faction.name if faction is not none else "None" }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Last Action:
+                        </div>
+                        <div class="col-sm-4">
+                            {{ user.last_action|tcttime }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Estimated Fair Fight Multiplier:
+                        </div>
+                        <div class="col-sm-4">
+                            {{ ff }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Estimated Respect:
+                        </div>
+                        <div class="col-sm-4">
+                            {{ respect }}
+                        </div>
+                    </div>
+                </div>
+
+                <table id="user-table" class="table table-striped table-bordered responsive mt-3">
+                    <thead>
+                        <tr>
+                            <th>Stat ID</th>
+                            <th>Battlescore</th>
+                            <th>Time Added</th>
+                            <th>Added User</th>
+                            <th>Added Faction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in stats %}
+                            <tr>
+                                <th>{{ stat["statid"] }}</th>
+                                <th>{{ stat["battlescore"] }}</th>
+                                <th>{{ stat["timeadded"]|reltime }}</th>
+                                <th>{{ stat["addedid"].name }} [{{ stat["addedid"].tid }}]</th>
+                                <th>{{ stat["addedfactiontid"].name }} [{{ stat["addedfactiontid"].tid }}]</th>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

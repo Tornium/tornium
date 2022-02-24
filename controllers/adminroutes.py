@@ -8,9 +8,10 @@ from functools import wraps
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
 
-from redisdb import get_redis
+from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
+from redisdb import get_redis
 from tasks import faction as factiontasks
 from tasks import guild as guildtasks
 from tasks import stakeouts as stakeouttasks
@@ -19,17 +20,6 @@ import utils
 
 
 mod = Blueprint('adminroutes', __name__)
-
-
-def admin_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.admin:
-            return abort(403)
-        else:
-            return f(*args, **kwargs)
-
-    return wrapper
 
 
 @mod.route('/admin')

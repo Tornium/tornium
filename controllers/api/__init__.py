@@ -5,6 +5,7 @@
 
 from flask import Blueprint, render_template
 
+from controllers.api import astat
 from controllers.api import key
 from controllers.api import stakeout
 from controllers.api import stat
@@ -39,6 +40,10 @@ mod.add_url_rule('/api/stakeout/<string:stype>', view_func=stakeout.create_stake
 # /api/stat
 mod.add_url_rule('/api/stat', view_func=stat.generate_chain_list, methods=['GET'])
 mod.add_url_rule('/api/stat/<int:tid>', view_func=stat.get_stat_user, methods=['GET'])
+
+# /api/astat
+mod.add_url_rule('/api/astat/attack/started', view_func=astat.attack_start, methods=['POST'])
+mod.add_url_rule('/api/astat/attack/finished', view_func=astat.attack_end, methods=['POST'])
 
 # /api/user
 mod.add_url_rule('/api/user', view_func=user.get_user, methods=['GET'])

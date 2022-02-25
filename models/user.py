@@ -38,6 +38,7 @@ class User(UserMixin):
                 factionaa=False,
                 recruiter=False,
                 recruiter_code='',
+                recruiter_mail_update=0,
                 chain_hits=0,
                 status='',
                 last_action=0,
@@ -62,6 +63,7 @@ class User(UserMixin):
         self.aa = user.factionaa
         self.recruiter = user.recruiter
         self.recruiter_code = user.recruiter_code
+        self.recruiter_mail_update = user.recruit_mail_update
         self.chain_hits = user.chain_hits
 
         self.status = user.status

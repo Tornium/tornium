@@ -6,6 +6,7 @@
 import math
 
 from honeybadger import honeybadger
+from models.recruitmodel import RecruitModel
 from mongoengine.queryset.visitor import Q
 import requests
 
@@ -83,12 +84,17 @@ def mail_check():
     requests_session = requests.Session()
 
     user: UserModel
-    for user in UserModel.objects(Q(key__ne='') & Q(pro=1) & Q(keyaccess=1)):
+    for user in UserModel.objects(Q(key__ne='') & Q(pro=1)):
         if user.key == '' or not user.pro:
             continue
 
         try:
-            mail_data = tornget(f'user/?selections=messages', user.key, session=requests_session)
+            mail_data = tornget(
+                f'user/?selections=messages',
+                user.key,
+                session=requests_session, 
+                fromts=user.recruit_mail_update
+            )
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -97,4 +103,18 @@ def mail_check():
         for mailid, mail in mail_data.items():
             if mail['type'] != 'User message':
                 continue
+            elif user.recruiter_code not in mail['title']:
+                continue
+            
+            recruit: RecruitModel = utils.last(RecruitModel.objects(Q(tid=mail["ID"]) & Q(recruiter=user.tid)))
 
+            if recruit is None:
+                continue
+            if recruit.status == 2:
+                continue
+
+            recruit.messages_received += 1
+            recruit.save()
+
+        user.recruit_mail_update = utils.now()
+        user.save()

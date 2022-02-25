@@ -9,10 +9,12 @@ import math
 import random
 
 from honeybadger import honeybadger
+from mongoengine.queryset.visitor import Q
 import requests
-from models.factiongroupmodel import FactionGroupModel
 
+from models.factiongroupmodel import FactionGroupModel
 from models.factionmodel import FactionModel
+from models.recruitmodel import RecruitModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
@@ -129,6 +131,12 @@ def refresh_factions():
             user.status = member['last_action']['status']
             user.last_action = member['last_action']['timestamp']
             user.save()
+
+            recruit: RecruitModel = utils.last(RecruitModel.objects(Q(tid=user.tid) & Q(factionid=faction.tid)))
+            
+            if recruit is not None:
+                recruit.tif = member['days_in_faction']
+                recruit.save()
 
         for user in UserModel.objects(factionid=faction.tid):
             if user.tid in users:

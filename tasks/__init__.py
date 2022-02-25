@@ -111,9 +111,20 @@ if celery_app is None:
                     'minute': '*',
                     'hour': '*'
                 }
-            },
+            },  # User tasks
             'refresh-users': {
                 'task': 'tasks.user.refresh_users',
+                'enabled': True,
+                'schedule': {
+                    'type': {
+                        'type': 'cron',
+                        'minute': '*/5',
+                        'hour': '*'
+                    }
+                }
+            },
+            'mail-check': {
+                'task': 'tasks.user.mail_check',
                 'enabled': True,
                 'schedule': {
                     'type': {
@@ -199,6 +210,14 @@ if celery_app is None:
             'schedule': crontab(
                 minute=data['refresh-users']['schedule']['minute'],
                 hour=data['refresh-users']['schedule']['hour']
+            )
+        }
+    if data['mail-check']['enabled']:
+        schedule['mail-check'] = {
+            'task': data['mail-check']['task'],
+            'schedule': crontab(
+                minute=data['mail-check']['schedule']['minute'],
+                hour=data['mail-check']['schedule']['hour']
             )
         }
 

@@ -22,6 +22,13 @@ Tornium - Faction Recruitment
                 This feature will track recruiters added to the list of recruitment people for recruitment messages
                 sent, members invited, members joined, members retained, and more.
             </p>
+
+            <p class="card-text">
+                <b>NOTE:</b> This feature requires the
+                <a href="https://gist.github.com/dssecret/a953233fc3e3870312e93577601faf88">
+                    Tornium Recruitment userscript
+                </a> to be installed.
+            </p>
         </div>
     </div>
 
@@ -38,19 +45,19 @@ Tornium - Faction Recruitment
                                 Code: <span id="recruiter-code">{{ recruiter_code }}</span>
                             </li>
                             <li class="list-group-item">
-                                Messages Sent: {{ recruiter_sent }}
+                                Messages Sent: {{ recruiter_sent }} message(s)
                             </li>
                             <li class="list-group-item">
-                                Members Invited: {{ recruiter_invited }}
+                                Members Invited: {{ recruiter_invited }} member(s)
                             </li>
                             <li class="list-group-item">
-                                Members Joined: {{ recruiter_joined }}
+                                Members Joined: {{ recruiter_joined }} member(s)
                             </li>
                             <li class="list-group-item">
-                                Members Retained (1 Week): {{ recruiter_retainedweek }}
+                                Members Retained (1 Week): {{ recruiter_retainedweek }} member(s)
                             </li>
                             <li class="list-group-item">
-                                Members Retained (1 Month): {{ recruiter_retainedmonth }}
+                                Members Retained (1 Month): {{ recruiter_retainedmonth }} member(s)
                             </li>
                         </ul>
                     </div>
@@ -78,16 +85,7 @@ Tornium - Faction Recruitment
                     </tr>
                 </thead>
                 <tbody>
-                    {% for recruiter in recruiters %}
-                    <tr>
-                        <th>{{ recruiter["name"] }} [{{ recruiter["tid"] }}]</th>
-                        <th>{{ recruiter["sent"] }}</th>
-                        <th>{{ recruiter["invited"] }}</th>
-                        <th>{{ recruiter["joined"] }}</th>
-                        <th>{{ recruiter["retainedweek"] }}</th>
-                        <th>{{ recruiter["retainedmonth"] }}</th>
-                    </tr>
-                    {% endfor %}
+
                 </tbody>
             </table>
 
@@ -129,6 +127,7 @@ Tornium - Faction Recruitment
                         <th>Recruit ID</th>
                         <th>Recruit</th>
                         <th>Recruited By</th>
+                        <th>Status</th>
                         <th>Messages Received</th>
                         <th>Time in Faction</th>
                     </tr>
@@ -137,6 +136,30 @@ Tornium - Faction Recruitment
 
                 </tbody>
             </table>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <form class="form-floating" id="recruit-invite-form">
+                        <input class="form-control" id="recruit-tid" name="recruit-tid">
+                        <label for="recruit-tid">Recruit To Be Invited</label>
+                        <div class="form-text">
+                            Please enter the Torn ID of the user you wish to invite to the faction. You must be the
+                            user's recruiter to be invite the user.
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <form class="form-floating" id="recruit-remove-form">
+                        <input class="form-control" id="recruit-remove-tid" name="recruit-remove-tid">
+                        <label for="recruit-remove-tid">Recruit To Be Removed</label>
+                        <div class="form-text">
+                            Please enter the Torn ID of the user from whom you wish to remove the invite. You must be
+                            the user's recruiter to be invite the user.
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

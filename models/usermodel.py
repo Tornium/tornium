@@ -13,7 +13,6 @@ class UserModel(DynamicDocument):
     last_refresh = IntField(default=0)
     admin = BooleanField(default=False)
     key = StringField(default='')
-    keyaccess = BooleanField(default=False)  # False is limited; true is full
     battlescore = FloatField(default=0.0)
     battlescore_update = IntField(default=0)
     strength = FloatField(default=0.0)

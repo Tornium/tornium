@@ -84,7 +84,7 @@ def mail_check():
 
     user: UserModel
     for user in UserModel.objects(Q(key__ne='') & Q(pro=1) & Q(keyaccess=1)):
-        if user.key == '' or not user.pro or not user.keyaccess:
+        if user.key == '' or not user.pro:
             continue
 
         try:

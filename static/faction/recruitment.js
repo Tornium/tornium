@@ -98,5 +98,57 @@ $(document).ready(function() {
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
-    })
+    });
+
+    $("#recruit-invite-form").submit(function(e) {
+        e.preventDefault();
+
+        const xhttp = new XMLHttpRequest();
+        var value = $("#recruit-tid").val();
+        value = Number(value);
+
+        xhttp.onload = function() {
+            var response = xhttp.response;
+
+            if(response.code === 1) {
+                recruitersTable.ajax.reload();
+            } else {
+                generateToast("Request Failed", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/faction/recruitment/recruit");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            'user': value,
+        }));
+    });
+
+    $("#recruit-remove-form").submit(function(e) {
+        e.preventDefault();
+
+        const xhttp = new XMLHttpRequest();
+        var value = $("#recruit-remove-tid").val();
+        value = Number(value);
+
+        xhttp.onload = function() {
+            var response = xhttp.response;
+
+            if(response.code === 1) {
+                recruitersTable.ajax.reload();
+            } else {
+                generateToast("Request Failed", `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`);
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", "/api/faction/recruitment/recruit");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            'user': value,
+        }));
+    });
 });

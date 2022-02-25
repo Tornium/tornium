@@ -52,7 +52,6 @@ class User(UserMixin):
         self.last_refresh = user.last_refresh
         self.admin = user.admin
         self.key = user.key
-        self.key_access = user.keyaccess
         self.battlescore = user.battlescore
         self.battlescore_update = user.battlescore_update
 

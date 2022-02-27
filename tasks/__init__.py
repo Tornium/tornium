@@ -545,14 +545,14 @@ def pro_refresh():
             user.pro = False
             user.pro_expiration = 0
             user.save()
-        else:
-            if user.factionid != 0 and user.factionid in factions:
-                faction = factions.get(user.factionid)
 
-                if faction is None:
-                    continue
+        if user.factionid != 0 and user.factionid in factions:
+            faction = factions.get(user.factionid)
 
-                user.pro = faction.pro
-                user.pro_expiration = 0
-                user.save()
+            if faction is None:
+                continue
+
+            user.pro = faction.pro
+            user.pro_expiration = 0
+            user.save()
 

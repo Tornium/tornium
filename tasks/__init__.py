@@ -546,7 +546,7 @@ def pro_refresh():
             user.pro_expiration = 0
             user.save()
 
-        if user.factionid != 0 and user.factionid in factions:
+        if user.factionid != 0 and user.factionid in factions and user.pro_expiration == 0:
             faction = factions.get(user.factionid)
 
             if faction is None:

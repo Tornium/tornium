@@ -12,6 +12,7 @@ from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
 from redisdb import get_redis
+import tasks
 from tasks import faction as factiontasks
 from tasks import guild as guildtasks
 from tasks import stakeouts as stakeouttasks
@@ -46,6 +47,10 @@ def dashboard():
             stakeouttasks.user_stakeouts.delay()
         elif request.form.get('refreshfactionstakeouts') is not None:
             stakeouttasks.faction_stakeouts.delay()
+        elif request.form.get('refreshpro') is not None:
+            tasks.pro_refresh()
+        elif request.form.get('mailcheck') is not None:
+            usertasks.mail_check.delay()
 
     return render_template('admin/dashboard.html')
 

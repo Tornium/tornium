@@ -537,7 +537,7 @@ def pro_refresh():
         factions[faction.tid] = faction
 
     user: UserModel
-    for user in UserModel().objects():
+    for user in UserModel.objects():
         if (user.pro_expiration > utils.now() or user.pro_expiration == -1) and not user.pro:
             user.pro = True
             user.save()

@@ -116,22 +116,18 @@ if celery_app is None:
                 'task': 'tasks.user.refresh_users',
                 'enabled': True,
                 'schedule': {
-                    'type': {
-                        'type': 'cron',
-                        'minute': '*/5',
-                        'hour': '*'
-                    }
+                    'type': 'cron',
+                    'minute': '*/5',
+                    'hour': '*'
                 }
             },
             'mail-check': {
                 'task': 'tasks.user.mail_check',
                 'enabled': True,
                 'schedule': {
-                    'type': {
-                        'type': 'cron',
-                        'minute': '*/5',
-                        'hour': '*'
-                    }
+                    'type': 'cron',
+                    'minute': '*/5',
+                    'hour': '*'
                 }
             }
         }

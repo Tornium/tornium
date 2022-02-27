@@ -5,7 +5,6 @@
 
 from flask import render_template, request
 from flask_login import current_user, login_required
-from huey.exceptions import TaskException
 
 from models.faction import Faction
 from models.factionmodel import FactionModel

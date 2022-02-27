@@ -527,10 +527,10 @@ def pro_refresh():
 
     faction: FactionModel
     for faction in FactionModel.objects():
-        if (faction.pro_expiration > utils.now() or faction.pro_expiration == -1) and not faction.pro:
+        if faction.pro_expiration > utils.now() or faction.pro_expiration == -1:
             faction.pro = True
             faction.save()
-        elif (faction.pro_expiration <= utils.now() and faction.pro_expiration != -1) and faction.pro:
+        elif faction.pro_expiration <= utils.now() and faction.pro_expiration != -1:
             faction.pro = False
             faction.save()
         
@@ -538,10 +538,10 @@ def pro_refresh():
 
     user: UserModel
     for user in UserModel.objects():
-        if (user.pro_expiration > utils.now() or user.pro_expiration == -1) and not user.pro:
+        if user.pro_expiration > utils.now() or user.pro_expiration == -1:
             user.pro = True
             user.save()
-        elif (user.pro_expiration <= utils.now() and user.pro_expiration != -1 and user.pro_expiration != -2) and user.pro:
+        elif user.pro_expiration <= utils.now() and user.pro_expiration != -1:
             user.pro = False
             user.pro_expiration = 0
             user.save()

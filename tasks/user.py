@@ -63,7 +63,6 @@ def refresh_users():
                     continue
                 else:
                     logger.exception(e)
-                    honeybadger.notify(e)
                     continue
         except Exception as e:
             logger.exception(e)

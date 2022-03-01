@@ -197,7 +197,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
     statid = utils.last(StatModel.objects()).statid  # Current last stat ID
 
     try:
-        last_timestamp = utils.first(StatModel.objects(statid=statid)).timeadded
+        last_timestamp = utils.last(StatModel.objects()).timeadded
     except AttributeError:
         last_timestamp = 0
 

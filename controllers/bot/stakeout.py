@@ -63,7 +63,7 @@ def stakeouts_dashboard(guildid: str):
                 channel = tasks.discordpost(f'guilds/{guildid}/channels', payload=payload)
 
                 db_stakeout = utils.first(FactionStakeoutModel.objects(tid=request.form.get('factionid')))
-                db_stakeout.guilds[guildid]['channel'] = int(channel['id'])
+                db_stakeout.guilds[str(guildid)]['channel'] = int(channel['id'])
                 db_stakeout.save()
 
                 message_payload = {
@@ -108,7 +108,7 @@ def stakeouts_dashboard(guildid: str):
                 channel = tasks.discordpost(f'guilds/{guildid}/channels', payload=payload)
 
                 db_stakeout = utils.first(UserStakeoutModel.objects(tid=request.form.get('userid')))
-                db_stakeout.guilds[guildid]['channel'] = int(channel['id'])
+                db_stakeout.guilds[str(guildid)]['channel'] = int(channel['id'])
                 db_stakeout.save()
 
                 message_payload = {
@@ -242,7 +242,7 @@ def stakeout_data(guildid: str):
         return render_template('bot/factionstakeoutmodal.html',
                                faction=f'{Faction(int(faction), key=current_user.key).name} [{faction}]',
                                lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
-                               keys=stakeout.guilds[guildid]['keys'],
+                               keys=stakeout.guilds[str(guildid)]['keys'],
                                guildid=guildid,
                                tid=faction,
                                armory=(int(faction) not in Server(guildid).factions or
@@ -255,7 +255,7 @@ def stakeout_data(guildid: str):
         return render_template('bot/userstakeoutmodal.html',
                                user=f'{User(int(user), key=current_user.key).name} [{user}]',
                                lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
-                               keys=stakeout.guilds[guildid]['keys'],
+                               keys=stakeout.guilds[str(guildid)]['keys'],
                                guildid=guildid,
                                tid=user)
 
@@ -298,7 +298,7 @@ def stakeout_update(guildid):
             else:
                 stakeout.save()
 
-            tasks.discorddelete(f'channels/{stakeout.guilds[guildid]["channel"]}')
+            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
         elif user is not None:
             server.userstakeouts.remove(int(user))
 
@@ -310,7 +310,7 @@ def stakeout_update(guildid):
             else:
                 stakeout.save()
 
-            tasks.discorddelete(f'channels/{stakeout.guilds[guildid]["channel"]}')
+            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
 
         server.save()
     elif action == 'addkey':
@@ -330,10 +330,10 @@ def stakeout_update(guildid):
         else:
             stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
 
-        if value in stakeout.guilds[guildid]['keys']:
+        if value in stakeout.guilds[str(guildid)]['keys']:
             return jsonify({'error': f'Value {value} is already in {guildid}\'s list of keys.'}), 400
 
-        stakeout.guilds[guildid]['keys'].append(value)
+        stakeout.guilds[str(guildid)]['keys'].append(value)
         stakeout.save()
     elif action == 'removekey':
         if faction is not None and value not in ['territory', 'members', 'memberstatus', 'memberactivity', 'armory',
@@ -349,10 +349,10 @@ def stakeout_update(guildid):
         else:
             stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
 
-        if value not in stakeout.guilds[guildid]['keys']:
+        if value not in stakeout.guilds[str(guildid)]['keys']:
             return jsonify({'error': f'Value {value} is not in {guildid}\'s list of keys.'}), 400
 
-        stakeout.guilds[guildid]['keys'].remove(value)
+        stakeout.guilds[str(guildid)]['keys'].remove(value)
         stakeout.save()
     elif action == 'enable':
         server = utils.first(ServerModel.objects(sid=guildid))

@@ -165,8 +165,11 @@ def stakeouts(guildid: str, stype: int):
                         'tid': stakeout.tid
                     }
                 )
-                stakeout: UserStakeoutModel = utils.first(UserStakeoutModel.objects(tid=stakeout.tid))
-                stakeout.delete()
+
+                user_stakeouts = server.userstakeouts
+                user_stakeouts.remove(stakeout)
+                server.userstakeouts = user_stakeouts
+                server.save()
                 continue
 
             stakeouts.append(
@@ -187,8 +190,10 @@ def stakeouts(guildid: str, stype: int):
                         'tid': stakeout.tid
                     }
                 )
-                stakeout: FactionStakeoutModel = utils.first(FactionStakeoutModel.objects(tid=stakeout.tid))
-                stakeout.delete()
+                faction_stakeouts = server.factionstakeouts
+                faction_stakeouts.remove(stakeout)
+                server.factionstakeouts = faction_stakeouts
+                server.save()
                 continue
 
             stakeouts.append(

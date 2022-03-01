@@ -151,8 +151,10 @@ def stakeouts(guildid: str, stype: int):
 
     if stype == 0:  # user
         filtered = len(server.userstakeouts)
+
+        stakeout: int
         for stakeout in server.userstakeouts:
-            stakeout = Stakeout(int(stakeout), key=current_user.key)
+            stakeout: Stakeout = Stakeout(int(stakeout), key=current_user.key)
 
             if str(guildid) not in stakeout.guilds:
                 honeybadger.honeybadger.notify(
@@ -163,6 +165,8 @@ def stakeouts(guildid: str, stype: int):
                         'tid': stakeout.tid
                     }
                 )
+                stakeout: UserStakeoutModel = utils.first(UserStakeoutModel.objects(tid=stakeout.tid))
+                stakeout.delete()
                 continue
 
             stakeouts.append(
@@ -172,7 +176,7 @@ def stakeouts(guildid: str, stype: int):
     elif stype == 1:  # faction
         filtered = len(server.factionstakeouts)
         for stakeout in server.factionstakeouts:
-            stakeout = Stakeout(int(stakeout), user=False, key=current_user.key)
+            stakeout: Stakeout = Stakeout(int(stakeout), user=False, key=current_user.key)
 
             if str(guildid) not in stakeout.guilds:
                 honeybadger.honeybadger.notify(
@@ -183,6 +187,8 @@ def stakeouts(guildid: str, stype: int):
                         'tid': stakeout.tid
                     }
                 )
+                stakeout: FactionStakeoutModel = utils.first(FactionStakeoutModel.objects(tid=stakeout.tid))
+                stakeout.delete()
                 continue
 
             stakeouts.append(

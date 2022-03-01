@@ -167,7 +167,7 @@ def stakeouts(guildid: str, stype: int):
                 )
 
                 user_stakeouts = server.userstakeouts
-                user_stakeouts.remove(stakeout)
+                user_stakeouts.remove(int(stakeout))
                 server.userstakeouts = user_stakeouts
                 server.save()
                 continue
@@ -191,7 +191,7 @@ def stakeouts(guildid: str, stype: int):
                     }
                 )
                 faction_stakeouts = server.factionstakeouts
-                faction_stakeouts.remove(stakeout)
+                faction_stakeouts.remove(int(stakeout))
                 server.factionstakeouts = faction_stakeouts
                 server.save()
                 continue

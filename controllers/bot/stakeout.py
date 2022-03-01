@@ -245,8 +245,8 @@ def stakeout_data(guildid: str):
                                keys=stakeout.guilds[str(guildid)]['keys'],
                                guildid=guildid,
                                tid=faction,
-                               armory=(int(faction) not in Server(guildid).factions or
-                                       Faction(faction).guild != int(guildid)))
+                               armory=(int(faction) in Server(guildid).factions or
+                                       Faction(faction).guild == int(guildid)))
     elif user:
         if int(user) not in server.userstakeouts:
             raise Exception

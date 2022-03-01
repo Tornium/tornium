@@ -291,26 +291,24 @@ def stakeout_update(guildid):
             server.factionstakeouts.remove(int(faction))
 
             stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
+            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
             stakeout.guilds.pop(str(guildid))
 
             if len(stakeout.guilds) == 0:
                 stakeout.delete()
             else:
                 stakeout.save()
-
-            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
         elif user is not None:
             server.userstakeouts.remove(int(user))
 
             stakeout = utils.first(UserStakeoutModel.objects(tid=user))
+            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
             stakeout.guilds.pop(str(guildid))
 
             if len(stakeout.guilds) == 0:
                 stakeout.delete()
             else:
                 stakeout.save()
-
-            tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
 
         server.save()
     elif action == 'addkey':

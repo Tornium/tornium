@@ -6,6 +6,7 @@
 import datetime
 import json
 
+import honeybadger
 from flask import request, jsonify, render_template, redirect, flash
 from flask_login import login_required, current_user
 
@@ -152,16 +153,40 @@ def stakeouts(guildid: str, stype: int):
         filtered = len(server.userstakeouts)
         for stakeout in server.userstakeouts:
             stakeout = Stakeout(int(stakeout), key=current_user.key)
+
+            if str(guildid) not in stakeout.guilds:
+                honeybadger.honeybadger.notify(
+                    error_class='Exception',
+                    error_message=f'{guildid} not in the guilds of {stakeout.tid}',
+                    context={
+                        'guildid': guildid,
+                        'tid': stakeout.tid
+                    }
+                )
+                continue
+
             stakeouts.append(
-                [stakeout.tid, stakeout.guilds[guildid]['keys'],
+                [stakeout.tid, stakeout.guilds[str(guildid)]['keys'],
                  utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update))]
             )
     elif stype == 1:  # faction
         filtered = len(server.factionstakeouts)
         for stakeout in server.factionstakeouts:
             stakeout = Stakeout(int(stakeout), user=False, key=current_user.key)
+
+            if str(guildid) not in stakeout.guilds:
+                honeybadger.honeybadger.notify(
+                    error_class='Exception',
+                    error_message=f'{guildid} not in the guilds of {stakeout.tid}',
+                    context={
+                        'guildid': guildid,
+                        'tid': stakeout.tid
+                    }
+                )
+                continue
+
             stakeouts.append(
-                [stakeout.tid, stakeout.guilds[guildid]['keys'],
+                [stakeout.tid, stakeout.guilds[str(guildid)]['keys'],
                  utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update))]
             )
     else:

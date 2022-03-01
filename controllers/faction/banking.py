@@ -25,7 +25,7 @@ def bankingdata():
     length = int(request.args.get('length'))
     withdrawals = []
 
-    for withdrawal in WithdrawalModel.objects(factiontid=current_user.factiontid):
+    for withdrawal in WithdrawalModel.objects(factiontid=current_user.factiontid)[start:start+length]:
         requester = f'{User(withdrawal.requester).name} [{withdrawal.requester}]'
         fulfiller = f'{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]' if withdrawal.fulfiller != 0 else ''
         timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ''
@@ -33,7 +33,6 @@ def bankingdata():
         withdrawals.append([withdrawal.wid, f'${withdrawal.amount:,}', requester,
                             utils.torn_timestamp(withdrawal.time_requested), fulfiller, timefulfilled])
 
-    withdrawals = withdrawals[start:start+length]
     data = {
         'draw': request.args.get('draw'),
         'recordsTotal': WithdrawalModel.objects().count(),
@@ -54,14 +53,13 @@ def userbankingdata():
     length = int(request.args.get('length'))
     withdrawals = []
 
-    for withdrawal in WithdrawalModel.objects(requester=current_user.tid):
+    for withdrawal in WithdrawalModel.objects(requester=current_user.tid)[start:start+length]:
         fulfiller = f'{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]' if withdrawal.fulfiller != 0 else ''
         timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ''
 
         withdrawals.append([withdrawal.wid, f'${withdrawal.amount:,}', utils.torn_timestamp(withdrawal.time_requested),
                             fulfiller, timefulfilled])
 
-    withdrawals = withdrawals[start:start+length]
     data = {
         'draw': request.args.get('draw'),
         'recordsTotal': WithdrawalModel.objects().count(),

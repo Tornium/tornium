@@ -70,10 +70,10 @@ def refresh_factions():
                 user_ts_data = torn_stats_get(f'spy/faction/{faction.tid}', random.choice(keys))
             except Exception as e:
                 logger.exception(e)
-                return
+                continue
 
             if not user_ts_data['status']:
-                return
+                continue
 
             for user_id, user_data in user_ts_data['faction']['members'].items():
                 if 'spy' not in user_data:

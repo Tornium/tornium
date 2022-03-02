@@ -30,8 +30,8 @@ def get_torn_name(name):
     return re.sub("[[].*?[]]", "", name).replace(' ', '')
 
 
-def handle_torn_error(error: str):
-    error = remove_str(error)
+def handle_torn_error(error):
+    error = error.code
 
     if error == 0:
         return render_template('/errors/error.html', title='Unknown Error',
@@ -72,8 +72,8 @@ def handle_torn_error(error: str):
                                error=f'The Torn API has responded with error code {error}')
 
 
-def handle_discord_error(error: str):
-    error = remove_str(error)
+def handle_discord_error(error):
+    error = error.code
 
     if error == 0:
         return render_template('/errors/error.html', title='General Error',

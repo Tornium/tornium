@@ -23,16 +23,14 @@ def chain():
             try:
                 channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
                 channel = channel(blocking=True)
-            except TaskException as e:
-                e = str(e)
-                if 'DiscordError' in e:
-                    return utils.handle_discord_error(e)
-                elif 'NetworkingError' in e:
-                    return render_template('errors/error.html', title='Discord Networking Error',
-                                           error=f'The Discord API has responded with HTTP error code '
-                                                 f'{utils.remove_str(e)}.')
-                else:
-                    raise e
+            except utils.DiscordError as e:
+                return utils.handle_discord_error(e)
+            except utils.NetworkingError as e:
+                return render_template('errors/error.html', title='Discord Networking Error',
+                                       error=f'The Discord API has responded with HTTP error code '
+                                             f'{e.code}.')
+            except Exception as e:
+                raise e
 
             config = faction_model.chainconfig
             config['odchannel'] = int(channel['id'])

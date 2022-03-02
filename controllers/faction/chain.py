@@ -22,7 +22,6 @@ def chain():
         if request.form.get('odchannel') is not None:
             try:
                 channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
-                channel = channel(blocking=True)
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

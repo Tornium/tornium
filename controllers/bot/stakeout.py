@@ -43,6 +43,7 @@ def stakeouts_dashboard(guildid: str):
                 stakeouts = server.factionstakeouts
                 stakeouts.append(int(request.form.get('factionid')))
                 server.factionstakeouts = list(set(stakeouts))
+                server.save()
 
                 if server.stakeoutconfig['category'] != 0:
                     payload = {

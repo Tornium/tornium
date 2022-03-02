@@ -193,7 +193,11 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
 
             if faction is None:
                 globalstat = 1
-                allowed_factions = []
+
+                if user.factionid == 0:
+                    allowed_factions = []
+                else:
+                    allowed_factions = [user.factionid]
             else:
                 globalstat = faction.statconfig['global']
                 allowed_factions = [faction.tid]
@@ -204,7 +208,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                 allowed_factions = list(set(allowed_factions))
 
             stat_entry = StatModel(
-                statid=utils.last(StatModel.objects()).statid,
+                statid=utils.last(StatModel.objects()).statid + 1,
                 tid=attack['defender_id'],
                 battlescore=defender_score,
                 timeadded=utils.now(),

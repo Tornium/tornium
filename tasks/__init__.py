@@ -81,7 +81,7 @@ if celery_app is None:
                 'enabled': True,
                 'schedule': {
                     'type': 'cron',
-                    'minute': '0',
+                    'minute': '*',
                     'hour': '*'
                 }
             },  # Guild tasks
@@ -127,6 +127,15 @@ if celery_app is None:
                 'schedule': {
                     'type': 'cron',
                     'minute': '*/5',
+                    'hour': '*'
+                }
+            },
+            'fetch-attacks-users': {
+                'task': 'tasks.user.fetch_attacks_users',
+                'enabled': True,
+                'schedule': {
+                    'type': 'cron',
+                    'minute': '*',
                     'hour': '*'
                 }
             }
@@ -214,6 +223,14 @@ if celery_app is None:
             'schedule': crontab(
                 minute=data['mail-check']['schedule']['minute'],
                 hour=data['mail-check']['schedule']['hour']
+            )
+        }
+    if data['fetch-attacks-users']['enabled']:
+        schedule['fetch-attacks-users'] = {
+            'task': data['fetch-attacks-users']['task'],
+            'schedule': crontab(
+                minute=data['fetch-attacks-users']['schedule']['minute'],
+                hour=data['fetch-attacks-users']['schedule']['hour']
             )
         }
 

@@ -172,3 +172,7 @@ def last(array):
         return array[0]
     else:
         return array[len(array) - 1]
+
+
+def commas(number):
+    return "{:,}".format(number)

@@ -78,6 +78,11 @@ def tct_time(s):
     return utils.torn_timestamp(int(s))
 
 
+@app.template_filter('commas')
+def commas(s):
+    return utils.commas(int(s))
+
+
 if redis.get('tornium:settings:dev') == 'True' and __name__ == "__main__":
     app.register_blueprint(base_mod)
     app.register_blueprint(auth_mod)

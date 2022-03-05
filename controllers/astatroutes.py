@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
+import math
 
 from flask import Blueprint, request
 from flask_login import login_required
@@ -107,6 +108,14 @@ def user_data():
             'globalstat': stat_entry.globalstat
         })
 
+        for step in stat_entry.dbs:
+            print(step['attacking'].get('defender'))
+            if 'defender' in step['attacking']:
+                try:
+                    print(math.pow(10, ((-27 + math.sqrt(28 * step['attacking']['defender']['damageDealed']['value'] - 111)) / 14) + 1))
+                except:
+                    pass
+
     user = User(tid=tid)
 
     # If user's last action was over a month ago and last refresh was over a week ago
@@ -119,8 +128,6 @@ def user_data():
         faction = Faction(tid=user.factiontid)
     else:
         faction = None
-
-
 
     respect = 0
     ff = 0

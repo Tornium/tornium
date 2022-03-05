@@ -24,11 +24,11 @@ Tornium - Advanced Stat DB
                     Your Battlestats
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Strength: {{ current_user.strength }}</li>
-                    <li class="list-group-item">Defense: {{ current_user.defense }}</li>
-                    <li class="list-group-item">Speed: {{ current_user.speed }}</li>
-                    <li class="list-group-item">Dexterity: {{ current_user.dexterity }}</li>
-                    <li class="list-group-item">Battlescore: {{ current_user.battlescore|round|int }}</li>
+                    <li class="list-group-item">Strength: {{ current_user.strength|round|int|commas }}</li>
+                    <li class="list-group-item">Defense: {{ current_user.defense|round|int|commas }}</li>
+                    <li class="list-group-item">Speed: {{ current_user.speed|round|int|commas }}</li>
+                    <li class="list-group-item">Dexterity: {{ current_user.dexterity|round|int|commas }}</li>
+                    <li class="list-group-item">Battlescore: {{ current_user.battlescore|round|int|commas }}</li>
                 </ul>
             </div>
 

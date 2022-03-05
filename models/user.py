@@ -55,6 +55,10 @@ class User(UserMixin):
         self.key = user.key
         self.battlescore = user.battlescore
         self.battlescore_update = user.battlescore_update
+        self.strength = user.strength
+        self.defense = user.defense
+        self.speed = user.speed
+        self.dexterity = user.dexterity
 
         self.discord_id = user.discord_id
         self.servers = user.servers

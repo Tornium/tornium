@@ -208,7 +208,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                 allowed_factions = list(set(allowed_factions))
 
             stat_entry = StatModel(
-                statid=utils.last(StatModel.objects()).statid + 1,
+                statid=utils.last(StatModel.objects()).statid + 1 if StatModel.objects().count() != 0 else 0,
                 tid=attack['defender_id'],
                 battlescore=defender_score,
                 timeadded=utils.now(),

@@ -35,12 +35,64 @@ class Vault(commands.Cog):
         user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
 
         if user is None:
-            embed = discord.Embed()
-            embed.title = 'Requires Verification'
-            embed.description = 'NYI. Please wait until the top of the hour for the faction refresh task to execute ' \
-                                'or log into Tornium with your API key'
-            await ctx.send(embed=embed)
-            return None
+            if len(server.admins) == 0:
+                embed = discord.Embed()
+                embed.title = 'No Admins'
+                embed.description = 'There are no admins currently signed into Tornium.'
+                await ctx.send(embed=embed)
+                return None
+            
+            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            
+            if admin is None:
+                embed = discord.Embed()
+                embed.title = 'Admin Not Found'
+                embed.description = 'Admin not found in the database. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            elif admin.key == '':
+                embed = discord.Embed()
+                embed.title = ' Admin Key Not Found'
+                embed.description = 'Admin located in the database, but no key was found. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            
+            user_data = await botutils.tornget(ctx, self.logger, f'user/{ctx.message.author.id}?selections=', admin.key)
+            
+            user = UserModel(
+                tid=user_data['player_id'],
+                name=user_data['name'],
+                level=user_data['level'],
+                last_refresh=utils.now(),
+                admin=False,
+                key='',
+                keyaccess=False,
+                battlescore=0,
+                battlescore_update=0,
+                discord_id=user_data['discord']['discordID'] if user_data['discord']['discordID'] != '' else 0,
+                servers=[],
+                factionid=user_data['faction']['faction_id'],
+                factionaa=False,
+                recruiter=False,
+                recruiter_code='',
+                recruiter_mail_update=0,
+                chain_hits=0,
+                status=user_data['last_action']['status'],
+                last_action=user_data['last_action']['timestamp'],
+                pro=False,
+                pro_expiration=0
+            )
+            user.save()
+            
+            if user.discord_id == 0:
+                embed = discord.Embed()
+                embed.title = 'Requires Verification'
+                embed.description = 'You are required to be verified officially through the ' \
+                                    '[official Torn Discord server](https://www.torn.com/discord) before being able to ' \
+                                    'utilize the banking features of this bot. If you have recently verified, please ' \
+                                    'wait for a minute or two before trying again.'
+                await ctx.send(embed=embed)
+                return None
         elif user.tid == 0:
             embed = discord.Embed()
             embed.title = 'Requires Verification'
@@ -162,12 +214,64 @@ class Vault(commands.Cog):
         user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
 
         if user is None:
-            embed = discord.Embed()
-            embed.title = 'Requires Verification'
-            embed.description = 'NYI. Please wait until the top of the hour for the faction refresh task to execute ' \
-                                'or log into Tornium with your API key'
-            await ctx.send(embed=embed)
-            return None
+            if len(server.admins) == 0:
+                embed = discord.Embed()
+                embed.title = 'No Admins'
+                embed.description = 'There are no admins currently signed into Tornium.'
+                await ctx.send(embed=embed)
+                return None
+            
+            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            
+            if admin is None:
+                embed = discord.Embed()
+                embed.title = 'Admin Not Found'
+                embed.description = 'Admin not found in the database. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            elif admin.key == '':
+                embed = discord.Embed()
+                embed.title = ' Admin Key Not Found'
+                embed.description = 'Admin located in the database, but no key was found. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            
+            user_data = await botutils.tornget(ctx, self.logger, f'user/{ctx.message.author.id}?selections=', admin.key)
+            
+            user = UserModel(
+                tid=user_data['player_id'],
+                name=user_data['name'],
+                level=user_data['level'],
+                last_refresh=utils.now(),
+                admin=False,
+                key='',
+                keyaccess=False,
+                battlescore=0,
+                battlescore_update=0,
+                discord_id=user_data['discord']['discordID'] if user_data['discord']['discordID'] != '' else 0,
+                servers=[],
+                factionid=user_data['faction']['faction_id'],
+                factionaa=False,
+                recruiter=False,
+                recruiter_code='',
+                recruiter_mail_update=0,
+                chain_hits=0,
+                status=user_data['last_action']['status'],
+                last_action=user_data['last_action']['timestamp'],
+                pro=False,
+                pro_expiration=0
+            )
+            user.save()
+            
+            if user.discord_id == 0:
+                embed = discord.Embed()
+                embed.title = 'Requires Verification'
+                embed.description = 'You are required to be verified officially through the ' \
+                                    '[official Torn Discord server](https://www.torn.com/discord) before being able to ' \
+                                    'utilize the banking features of this bot. If you have recently verified, please ' \
+                                    'wait for a minute or two before trying again.'
+                await ctx.send(embed=embed)
+                return None
         elif user.tid == 0:
             embed = discord.Embed()
             embed.title = 'Requires Verification'
@@ -256,12 +360,64 @@ class Vault(commands.Cog):
         user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
 
         if user is None:
-            embed = discord.Embed()
-            embed.title = 'Requires Verification'
-            embed.description = 'NYI. Please wait until the top of the hour for the faction refresh task to execute ' \
-                                'or log into Tornium with your API key'
-            await ctx.send(embed=embed)
-            return None
+            if len(server.admins) == 0:
+                embed = discord.Embed()
+                embed.title = 'No Admins'
+                embed.description = 'There are no admins currently signed into Tornium.'
+                await ctx.send(embed=embed)
+                return None
+            
+            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            
+            if admin is None:
+                embed = discord.Embed()
+                embed.title = 'Admin Not Found'
+                embed.description = 'Admin not found in the database. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            elif admin.key == '':
+                embed = discord.Embed()
+                embed.title = ' Admin Key Not Found'
+                embed.description = 'Admin located in the database, but no key was found. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            
+            user_data = await botutils.tornget(ctx, self.logger, f'user/{ctx.message.author.id}?selections=', admin.key)
+            
+            user = UserModel(
+                tid=user_data['player_id'],
+                name=user_data['name'],
+                level=user_data['level'],
+                last_refresh=utils.now(),
+                admin=False,
+                key='',
+                keyaccess=False,
+                battlescore=0,
+                battlescore_update=0,
+                discord_id=user_data['discord']['discordID'] if user_data['discord']['discordID'] != '' else 0,
+                servers=[],
+                factionid=user_data['faction']['faction_id'],
+                factionaa=False,
+                recruiter=False,
+                recruiter_code='',
+                recruiter_mail_update=0,
+                chain_hits=0,
+                status=user_data['last_action']['status'],
+                last_action=user_data['last_action']['timestamp'],
+                pro=False,
+                pro_expiration=0
+            )
+            user.save()
+            
+            if user.discord_id == 0:
+                embed = discord.Embed()
+                embed.title = 'Requires Verification'
+                embed.description = 'You are required to be verified officially through the ' \
+                                    '[official Torn Discord server](https://www.torn.com/discord) before being able to ' \
+                                    'utilize the banking features of this bot. If you have recently verified, please ' \
+                                    'wait for a minute or two before trying again.'
+                await ctx.send(embed=embed)
+                return None
         elif user.tid == 0:
             embed = discord.Embed()
             embed.title = 'Requires Verification'
@@ -271,7 +427,7 @@ class Vault(commands.Cog):
                                 'wait for a minute or two before trying again.'
             await ctx.send(embed=embed)
             return None
-
+        
         user = User(user.tid)
         user.refresh(key=User(random.choice(server.admins)).key)
 
@@ -337,12 +493,64 @@ class Vault(commands.Cog):
         user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
 
         if user is None:
-            embed = discord.Embed()
-            embed.title = 'Requires Verification'
-            embed.description = 'NYI. Please wait until the top of the hour for the faction refresh task to execute ' \
-                                'or log into Tornium with your API key'
-            await ctx.send(embed=embed)
-            return None
+            if len(server.admins) == 0:
+                embed = discord.Embed()
+                embed.title = 'No Admins'
+                embed.description = 'There are no admins currently signed into Tornium.'
+                await ctx.send(embed=embed)
+                return None
+            
+            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            
+            if admin is None:
+                embed = discord.Embed()
+                embed.title = 'Admin Not Found'
+                embed.description = 'Admin not found in the database. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            elif admin.key == '':
+                embed = discord.Embed()
+                embed.title = ' Admin Key Not Found'
+                embed.description = 'Admin located in the database, but no key was found. Please try again.'
+                await ctx.send(embed=embed)
+                return None
+            
+            user_data = await botutils.tornget(ctx, self.logger, f'user/{ctx.message.author.id}?selections=', admin.key)
+            
+            user = UserModel(
+                tid=user_data['player_id'],
+                name=user_data['name'],
+                level=user_data['level'],
+                last_refresh=utils.now(),
+                admin=False,
+                key='',
+                keyaccess=False,
+                battlescore=0,
+                battlescore_update=0,
+                discord_id=user_data['discord']['discordID'] if user_data['discord']['discordID'] != '' else 0,
+                servers=[],
+                factionid=user_data['faction']['faction_id'],
+                factionaa=False,
+                recruiter=False,
+                recruiter_code='',
+                recruiter_mail_update=0,
+                chain_hits=0,
+                status=user_data['last_action']['status'],
+                last_action=user_data['last_action']['timestamp'],
+                pro=False,
+                pro_expiration=0
+            )
+            user.save()
+            
+            if user.discord_id == 0:
+                embed = discord.Embed()
+                embed.title = 'Requires Verification'
+                embed.description = 'You are required to be verified officially through the ' \
+                                    '[official Torn Discord server](https://www.torn.com/discord) before being able to ' \
+                                    'utilize the banking features of this bot. If you have recently verified, please ' \
+                                    'wait for a minute or two before trying again.'
+                await ctx.send(embed=embed)
+                return None
         elif user.tid == 0:
             embed = discord.Embed()
             embed.title = 'Requires Verification'

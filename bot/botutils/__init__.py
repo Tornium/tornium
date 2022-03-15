@@ -100,7 +100,8 @@ async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=Fa
         await ctx.send(embed=embed)
         logger.error(f'The Torn API has responded with HTTP status code {request.status_code}.')
         return NetworkingError(
-            code=request.status_code
+            code=request.status_code,
+            url=url
         )
     
     request = request.json()

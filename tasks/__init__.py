@@ -283,7 +283,8 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
     if request.status_code != 200:
         logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(
-            code=request.status_code
+            code=request.status_code,
+            url=url
         )
     
     request = request.json()
@@ -369,7 +370,8 @@ def discordget(endpoint, session=None):
                 f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
             )
             raise NetworkingError(
-                code=request.status_code
+                code=request.status_code,
+                url=url
             )
         else:
             raise e
@@ -391,7 +393,8 @@ def discordget(endpoint, session=None):
             f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
-            code=request.status_code
+            code=request.status_code,
+            url=url
         )
     
     return request_json
@@ -420,7 +423,8 @@ def discordpost(endpoint, payload, session=None):
                 f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
             )
             raise NetworkingError(
-                code=request.status_code
+                code=request.status_code,
+                url=url
             )
         else:
             raise e
@@ -442,7 +446,8 @@ def discordpost(endpoint, payload, session=None):
             f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
-            code=request.status_code
+            code=request.status_code,
+            url=url
         )
     
     return request_json
@@ -471,7 +476,8 @@ def discorddelete(endpoint, session=None):
                 f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
             )
             raise NetworkingError(
-                code=request.status_code
+                code=request.status_code,
+                url=url
             )
         else:
             raise e
@@ -493,7 +499,8 @@ def discorddelete(endpoint, session=None):
             f'The Discord API has responded with HTTP {request.status_code} to {url}).'
         )
         raise NetworkingError(
-            code=request.status_code
+            code=request.status_code,
+            url=url
         )
     
     return request_json
@@ -527,7 +534,10 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
     
     if request.status_code // 100 != 2:
         logger.warning(f'The Torn Stats API has responded with HTTP status code {request.status_code} to endpoint "{endpoint}".')
-        raise NetworkingError(code=request.status_code)
+        raise NetworkingError(
+            code=request.status_code,
+            url=url
+        )
     
     request = request.json()
     return request

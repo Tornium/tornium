@@ -242,7 +242,6 @@ if celery_app is None:
 def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=True, cache=30, nocache=False):
     url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}' \
           f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'
-    logger.info(f'The API call has been made to {url}).')
 
     if key is None or key == '':
         raise MissingKeyError

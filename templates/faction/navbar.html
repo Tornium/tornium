@@ -19,6 +19,12 @@
                         Banking
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/faction/armory">
+                        <i class="fa-solid fa-gun"></i>
+                        Armory
+                    </a>
+                </li>
                 {% if current_user.is_authenticated and current_user.pro and (current_user.is_aa() or current_user.recruiter) %}
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/faction/recruitment">

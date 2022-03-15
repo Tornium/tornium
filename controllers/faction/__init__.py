@@ -5,9 +5,13 @@
 
 from flask import Blueprint, render_template
 
-from controllers.faction import banking, bot, chain, groups, recruitment, schedule
+from controllers.faction import armory, banking, bot, chain, groups, recruitment, schedule
 
 mod = Blueprint('factionroutes', __name__)
+
+# Armory Routes
+mod.add_url_rule('/faction/armory', view_func=armory.armory, methods=['GET'])
+mod.add_url_rule('/faction/armoryitemdata', view_func=armory.armoryitemdata, methods=['GET'])
 
 # Banking Routes
 mod.add_url_rule('/faction/bankingaa', view_func=banking.bankingaa, methods=['GET'])

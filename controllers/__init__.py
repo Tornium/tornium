@@ -23,6 +23,7 @@ def index():
 @mod.route('/login.css')
 @mod.route('/bot/stakeouts.js')
 @mod.route('/bot/guild.js')
+@mod.route('/faction/armory.js')
 @mod.route('/faction/banking.js')
 @mod.route('/faction/bankingaa.js')
 @mod.route('/faction/group.js')

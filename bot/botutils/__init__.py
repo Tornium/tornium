@@ -11,6 +11,9 @@ import sys
 import discord
 import requests
 
+from redisdb import get_redis
+from utils.errors import *
+
 sys.path.append('..')
 
 
@@ -46,8 +49,47 @@ def commas(number):
     return "{:,}".format(number)
 
 
-async def tornget(ctx, logger, endpoint, key):
-    request = requests.get(f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium')
+async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=False):
+    url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium'
+
+    if key is None or key == '':
+        embed = discord.Embed()
+        embed.title = 'Missing API Key'
+        embed.description = 'No API key was passed to the API call.'
+        await ctx.send(embed=embed)
+        logger.error('No API key passed.')
+        return MissingKeyError
+    
+    redis = get_redis()
+    
+    if redis.exists(f'tornium:torn-cache:{url}') and not nocache:
+        return redis.get(f'tornium:torn-cache:{url}')
+
+    redis_key = f'tornium:torn-ratelimit:{key}'
+
+    if redis.setnx(redis_key, 100):
+        redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
+    if redis.ttl(redis_key) < 0:
+        redis.expire(redis_key, 1)
+        redis.set(redis_key, 100)
+        redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
+    
+    try:
+        if redis.get(redis_key) is not None and int(redis.get(redis_key)) > 0:
+            redis.decrby(redis_key, 1)
+        else:
+            if redis.get(redis_key) is None:
+                redis.set(redis_key, 100)
+                redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
+            else:
+                raise RatelimitError
+    except TypeError as e:
+        logger.warning(f'Error raised on API key {key} with redis return value {redis.get(redis_key)} and redis key {redis_key}')
+    
+    if session is None:
+        request = requests.get(url)
+    else:
+        request = session.get(url)
 
     if request.status_code != 200:
         embed = discord.Embed()
@@ -57,10 +99,14 @@ async def tornget(ctx, logger, endpoint, key):
                             f'{datetime.datetime.now()}.'
         await ctx.send(embed=embed)
         logger.error(f'The Torn API has responded with HTTP status code {request.status_code}.')
-        return Exception
+        return NetworkingError(
+            code=request.status_code
+        )
+    
+    request = request.json()
 
-    if 'error' in request.json():
-        error = request.json()['error']
+    if 'error' in request:
+        error = request['error']
         embed = discord.Embed()
         embed.title = "Error"
         embed.description = f'Something has gone wrong with the request to the Torn API with error code ' \
@@ -70,4 +116,12 @@ async def tornget(ctx, logger, endpoint, key):
         logger.error(f'The Torn API has responded with error code {error["code"]}.')
         raise Exception
 
-    return request.json()
+    if cache <= 0 or cache >= 60:
+        return request
+    elif sys.getsizeof(request) >= 500000:  # Half a megabyte
+        return request
+    
+    redis.setnx(f'tornium:torn-cache:{url}', request)
+    redis.expire(f'tornium:torn-cache:{url}', cache)
+    
+    return request

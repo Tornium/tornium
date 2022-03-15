@@ -26,9 +26,9 @@ def armoryitemdata():
         faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
         if faction is None:
-            return
+            return {}
         elif len(faction.keys) == 0:
-            return
+            return {}
 
         key = random.choice(faction.keys)
 

@@ -61,9 +61,6 @@ async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=Fa
         return MissingKeyError
     
     redis = get_redis()
-    
-    if redis.exists(f'tornium:torn-cache:{url}') and not nocache:
-        return redis.get(f'tornium:torn-cache:{url}')
 
     redis_key = f'tornium:torn-ratelimit:{key}'
 
@@ -116,13 +113,5 @@ async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=Fa
         await ctx.send(embed=embed)
         logger.error(f'The Torn API has responded with error code {error["code"]}.')
         raise Exception
-
-    if cache <= 0 or cache >= 60:
-        return request
-    elif sys.getsizeof(request) >= 500000:  # Half a megabyte
-        return request
-    
-    redis.setnx(f'tornium:torn-cache:{url}', request)
-    redis.expire(f'tornium:torn-cache:{url}', cache)
     
     return request

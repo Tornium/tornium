@@ -80,6 +80,15 @@ def refresh_users():
         user.factionaa = True
         user.save()
 
+        faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
+
+        if faction is None and user.factionid != 0:
+            faction = FactionModel(
+                tid=user.factionid,
+                name=user_data['faction']['faction_name']
+            )
+            faction.save()
+
 
 @celery_app.task
 def mail_check():

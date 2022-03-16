@@ -49,7 +49,7 @@ def commas(number):
     return "{:,}".format(number)
 
 
-async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=False):
+async def tornget(ctx, logger, endpoint, key, session=None):
     url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium'
 
     if key is None or key == '':

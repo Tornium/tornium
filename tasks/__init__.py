@@ -6,7 +6,6 @@
 import datetime
 import logging
 import json
-import sys
 import time
 
 from celery import Celery
@@ -247,7 +246,6 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
         raise MissingKeyError
     
     redis = get_redis()
-
     redis_key = f'tornium:torn-ratelimit:{key}'
 
     if redis.setnx(redis_key, 100):

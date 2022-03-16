@@ -192,7 +192,7 @@ def servers():
         for server in ServerModel.objects().all()[start:start+length]:
             servers.append([server.sid, server.name, server.prefix])
     else:
-        for server in ServerModel.objects(name__startswith=search).all()[start:start+length]:
+        for server in ServerModel.objects(name__startswith=search_value).all()[start:start+length]:
             servers.append([server.sid, server.name, server.prefix])
     
     return {

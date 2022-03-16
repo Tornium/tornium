@@ -116,6 +116,9 @@ async def on_guild_remove(guild):
 async def on_message(message):
     if message.author.bot:
         return None
+    elif type(message.channel) == discord.DMChannel:
+        await bot.process_commands(message)
+        return
 
     server = Server(message.guild.id)
 
@@ -188,6 +191,7 @@ async def on_message(message):
 
     if len(server.admins) == 0:
         await bot.process_commands(message)
+        return
 
     for faction in server.factions:
         faction = utils.first(FactionModel.objects(tid=int(faction)))

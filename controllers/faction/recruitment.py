@@ -15,6 +15,7 @@ import utils
 
 
 @login_required
+@fac_required
 @aa_recruitment_required
 def dashboard():
     messages_sent = 0
@@ -50,6 +51,7 @@ def dashboard():
 
 
 @login_required
+@fac_required
 @aa_recruitment_required
 def recruiters():
     start = int(request.args.get('start'))
@@ -96,6 +98,7 @@ def recruiters():
 
 
 @login_required
+@fac_required
 @aa_recruitment_required
 def recruits():
     start = int(request.args.get('start'))

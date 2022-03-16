@@ -7,19 +7,20 @@ from flask import render_template, request
 from flask_login import login_required
 
 from controllers.faction.decorators import *
+from models.factionmodel import FactionModel
 from models.user import User
 from models.withdrawalmodel import WithdrawalModel
 import utils
 
 
-@aa_required
 @login_required
+@aa_required
 def bankingaa():
     return render_template('faction/bankingaa.html')
 
 
-@aa_required
 @login_required
+@aa_required
 def bankingdata():
     start = int(request.args.get('start'))
     length = int(request.args.get('length'))
@@ -44,7 +45,20 @@ def bankingdata():
 
 @login_required
 def banking():
-    return render_template('faction/banking.html', key=current_user.key)
+    faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
+
+    if faction is None:
+        return render_template(
+            'faction/banking.html',
+            bankingenabled=False,
+            key=current_user.key
+        )
+
+    return render_template(
+        'faction/banking.html',
+        bankingenabled=faction.vaultconfig['banking'] != 0 and faction.vaultconfig['banker'] != 0 and faction.vaultconfig['withdrawal'] != 0,
+        key=current_user.key
+    )
 
 
 @login_required

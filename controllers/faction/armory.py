@@ -8,22 +8,24 @@ import random
 from flask import render_template, request
 from flask_login import login_required, current_user
 
+from controllers.faction.decorators import fac_required
 from models.factionmodel import FactionModel
 from tasks import tornget
-import utils
 
 
 @login_required
-def armory():
+@fac_required
+def armory(*args, **kwargs):
     return render_template('faction/armory.html')
 
 
 @login_required
-def armoryitemdata():
+@fac_required
+def armoryitemdata(*args, **kwargs):
     if current_user.aa:
         key = current_user.key
     else:
-        faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        faction: FactionModel = kwargs['faction']
 
         if faction is None:
             return {}

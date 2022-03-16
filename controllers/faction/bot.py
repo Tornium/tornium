@@ -14,8 +14,9 @@ import tasks
 import utils
 
 
-@aa_required
 @login_required
+@fac_required
+@aa_required
 def bot():
     faction = Faction(current_user.factiontid)
 

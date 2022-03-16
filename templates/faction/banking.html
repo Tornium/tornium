@@ -9,8 +9,8 @@ Tornium - Faction Banking
 {% include 'navbar.html' %}
 {% include 'faction/navbar.html' %}
 
-{% if current_user.factiontid != 0 %}
-<div class="row px-3 py-3">
+{% if current_user.factiontid != 0 and bankingenabled %}
+<div class="row px-3 pt-3">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
@@ -42,7 +42,7 @@ Tornium - Faction Banking
 </div>
 {% endif %}
 
-<div class="row px-3">
+<div class="row px-3 pt-3">
     <div class="col-12">
         <div class="card">
             <div class="card-body">

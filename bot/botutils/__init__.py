@@ -7,7 +7,6 @@ import datetime
 from decimal import Decimal
 import re
 import sys
-from tkinter import W
 
 import discord
 import requests

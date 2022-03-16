@@ -17,7 +17,7 @@ import utils
 @login_required
 @fac_required
 @aa_recruitment_required
-def dashboard():
+def dashboard(*args, **kwargs):
     messages_sent = 0
     members_invited = 0
     members_joined = 0

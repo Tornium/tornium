@@ -20,7 +20,7 @@ import utils
 
 @celery_app.task
 def refresh_users():
-    reqeusts_session = requests.Session()
+    requests_session = requests.Session()
 
     user: UserModel
     for user in UserModel.objects(key__ne=''):
@@ -28,7 +28,7 @@ def refresh_users():
             continue
 
         try:
-            user_data = tornget(f'user/?selections=profile,battlestats,discord', user.key, session=reqeusts_session)
+            user_data = tornget(f'user/?selections=profile,battlestats,discord', user.key, session=requests_session)
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -53,7 +53,7 @@ def refresh_users():
         user.save()
 
         try:
-            tornget(f'faction/?selections=positions', user.key, session=reqeusts_session)
+            tornget(f'faction/?selections=positions', user.key, session=requests_session)
         except utils.TornError as e:
             if e.code != 7:
                 logger.exception(e)
@@ -79,6 +79,15 @@ def refresh_users():
 
         user.factionaa = True
         user.save()
+
+        faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
+
+        if faction is None and user.factionid != 0:
+            faction = FactionModel(
+                tid=user.factionid,
+                name=user_data['faction']['faction_name']
+            )
+            faction.save()
 
 
 @celery_app.task

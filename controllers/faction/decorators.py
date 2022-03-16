@@ -8,6 +8,9 @@ from functools import wraps
 from flask import abort
 from flask_login import current_user
 
+from models.factionmodel import FactionModel
+import utils
+
 
 def aa_required(f):
     @wraps(f)
@@ -27,5 +30,22 @@ def aa_recruitment_required(f):
             return abort(403)
         else:
             return f(*args, **kwargs)
+
+    return wrapper
+
+
+def fac_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if current_user.factiontid == 0:
+            return abort(403, 'User is not in a faction.')
+
+        faction = utils.first(FactionModel.objects(tid=current_user.factiontid))
+
+        if faction is None:
+            return abort(403, 'User is not in a faction stored in the database.')
+
+        kwargs['faction'] = faction
+        return f(*args, **kwargs)
 
     return wrapper

@@ -3,9 +3,10 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request
+from flask import render_template, request, abort
 from flask_login import current_user, login_required
 
+from controllers.faction.decorators import fac_required
 from models.faction import Faction
 from models.factionmodel import FactionModel
 import tasks
@@ -13,10 +14,14 @@ import utils
 
 
 @login_required
-def chain():
+@fac_required
+def chain(*args, **kwargs):
     faction = Faction(current_user.factiontid)
 
     if request.method == 'POST':
+        if not current_user.aa:
+            abort(403)
+
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
         if request.form.get('odchannel') is not None:

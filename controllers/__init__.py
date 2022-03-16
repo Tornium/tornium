@@ -44,6 +44,7 @@ def static_pro():
 
 
 @mod.route('/admin/database/faction.js')
+@mod.route('/admin/database/server.js')
 @mod.route('/admin/database/user.js')
 @login_required
 @admin_required

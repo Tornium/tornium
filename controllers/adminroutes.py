@@ -4,12 +4,16 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from functools import wraps
+from re import search
+from xmlrpc.client import Server
+from controllers.authroutes import login
 
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
 
 from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
+from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from redisdb import get_redis
 import tasks
@@ -154,4 +158,46 @@ def users():
         'recordsTotal': UserModel.objects.count(),
         'recordsFiltered': UserModel.objects.count(),
         'data': users
+    }
+
+
+@mod.route('/admin/database/server')
+@login_required
+@admin_required
+def server_database():
+    return render_template('admin/serverdb.html')
+
+
+@mod.route('/admin/database/server/<int:did>')
+@login_required
+@admin_required
+def server(did: int):
+    server = utils.first(ServerModel.objects(sid=did))
+
+    return render_template('admin/server.html', server=server)
+
+
+@mod.route('/admin/database/servers')
+@login_required
+@admin_required
+def servers():
+    start = int(request.args.get('start'))
+    length = int(request.args.get('length'))
+    search_value = request.args.get('search[value]')
+
+    servers = []
+    server: ServerModel
+
+    if search_value is None:
+        for server in ServerModel.objects().all()[start:start+length]:
+            servers.append([server.sid, server.name, server.prefix])
+    else:
+        for server in ServerModel.objects(name__startswith=search).all()[start:start+length]:
+            servers.append([server.sid, server.name, server.prefix])
+    
+    return {
+        'draw': request.args.get('draw'),
+        'recordsTotal': ServerModel.objects.count(),
+        'recordsFiltered': ServerModel.objects.count(),
+        'data': servers
     }

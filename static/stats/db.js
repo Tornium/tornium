@@ -7,7 +7,7 @@ $(document).ready(function() {
     var table = $('#stats-table').DataTable({
         "processing": true,
         "serverSide": true,
-        "ordering": false,
+        "ordering": true,
         "responsive": true,
         "ajax": {
             url: "/stats/dbdata"

@@ -201,7 +201,9 @@ async def on_message(message):
         elif faction.vaultconfig['withdrawal'] == 0:
             continue
 
-        if message.channel.id == faction.vaultconfig['withdrawal'] and message.clean_content[0] != server.prefix:
+        ctx = await bot.get_context(message)
+
+        if message.channel.id == faction.vaultconfig['withdrawal'] and not ctx.valid:
             await message.delete()
             embed = discord.Embed()
             embed.title = "Bot Channel"

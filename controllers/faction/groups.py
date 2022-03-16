@@ -17,7 +17,7 @@ import utils
 @login_required
 @fac_required
 @aa_required
-def groups():
+def groups(*args, **kwargs):
     return render_template('faction/groups.html',
                            groups=[utils.first(FactionGroupModel.objects(tid=group)) for group in
                                    utils.first(FactionModel.objects(tid=current_user.factiontid)).groups])
@@ -26,7 +26,7 @@ def groups():
 @login_required
 @fac_required
 @aa_required
-def create_group():
+def create_group(*args, **kwargs):
     faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
     if faction is None:
@@ -51,7 +51,7 @@ def create_group():
 @login_required
 @fac_required
 @aa_required
-def group_invite(invite: str):
+def group_invite(invite: str, *args, **kwargs):
     dbgroup: FactionGroupModel = utils.first(FactionGroupModel.objects(invite=invite))
     faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
@@ -76,7 +76,7 @@ def group_invite(invite: str):
 @login_required
 @fac_required
 @aa_required
-def group(tid: int):
+def group(tid: int, *args, **kwargs):
     dbgroup: FactionGroupModel = utils.first(FactionGroupModel.objects(tid=tid))
     faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
 

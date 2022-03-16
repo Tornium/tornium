@@ -53,7 +53,7 @@ def dashboard():
 @login_required
 @fac_required
 @aa_recruitment_required
-def recruiters():
+def recruiters(*args, **kwargs):
     start = int(request.args.get('start'))
     length = int(request.args.get('length'))
     recruiters = []
@@ -100,7 +100,7 @@ def recruiters():
 @login_required
 @fac_required
 @aa_recruitment_required
-def recruits():
+def recruits(*args, **kwargs):
     start = int(request.args.get('start'))
     length = int(request.args.get('length'))
     recruits = []

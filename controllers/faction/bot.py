@@ -17,7 +17,7 @@ import utils
 @login_required
 @fac_required
 @aa_required
-def bot():
+def bot(*args, **kwargs):
     faction = Faction(current_user.factiontid)
 
     if faction.guild == 0:

@@ -24,4 +24,21 @@ $(document).ready(function() {
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
+
+    $('#armory-items-table').on('click', 'tr', function() {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#item-modal'));
+            $("#item-table").DataTable({
+                "processing": false,
+                "serverSide": false,
+                "ordering": true,
+                "responsive": false
+            })
+            modal.show();
+        }
+        xhttp.open('GET', '/faction/armoryitem?tid=' + getTID(itemTable.row(this).data()[0]));
+        xhttp.send();
+    });
 });

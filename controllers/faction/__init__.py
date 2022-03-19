@@ -11,6 +11,7 @@ mod = Blueprint('factionroutes', __name__)
 
 # Armory Routes
 mod.add_url_rule('/faction/armory', view_func=armory.armory, methods=['GET'])
+mod.add_url_rule('/faction/armoryitem', view_func=armory.item_modal, methods=['GET'])
 mod.add_url_rule('/faction/armoryitemdata', view_func=armory.armoryitemdata, methods=['GET'])
 
 # Banking Routes

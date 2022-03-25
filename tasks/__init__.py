@@ -6,12 +6,14 @@
 import datetime
 import logging
 import json
+import sys
 import time
 
 from celery import Celery
 from celery.schedules import crontab
 import honeybadger
 from mongoengine import connect
+from redis.commands.json.path import Path
 import requests
 
 import settings  # Do not remove - initializes redis values
@@ -238,7 +240,7 @@ if celery_app is None:
 
 
 @celery_app.task
-def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=True):
+def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=True, cache=30, nocache=False):
     url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}' \
           f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'
 
@@ -246,6 +248,10 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
         raise MissingKeyError
     
     redis = get_redis()
+
+    if redis.exists(f'tornium:torn-cache:{url}') and not nocache:
+        return redis.json().get(f'tornium:torn-cache:{url}')
+
     redis_key = f'tornium:torn-ratelimit:{key}'
 
     if redis.setnx(redis_key, 50):
@@ -331,6 +337,14 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
         raise TornError(
             code=request["error"]["code"]
         )
+
+    if cache <= 0 or cache >= 60:
+        return request
+    elif sys.getsizeof(request) >= 500000:  # Half a megabyte
+        return request
+
+    redis.json().set(f'tornium:torn-cache:{url}', Path.rootPath(), request)
+    redis.expire(f'tornium:torn-cache:{url}', cache)
     
     return request
 

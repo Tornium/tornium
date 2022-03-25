@@ -55,6 +55,11 @@ def dashboard():
             tasks.pro_refresh()
         elif request.form.get('mailcheck') is not None:
             usertasks.mail_check.delay()
+        elif request.form.get('purgecache') is not None:
+            redis = get_redis()
+
+            for key in redis.keys('tornium:torn-cache:*'):
+                redis.delete(key)
 
     return render_template('admin/dashboard.html')
 

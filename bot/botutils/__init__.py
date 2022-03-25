@@ -9,6 +9,7 @@ import re
 import sys
 
 import discord
+from redis.commands.json.path import Path
 import requests
 
 from redisdb import get_redis
@@ -52,7 +53,7 @@ def commas(number):
     return "{:,}".format(number)
 
 
-async def tornget(ctx, logger, endpoint, key, session=None):
+async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=False):
     url = f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium'
 
     if key is None or key == '':
@@ -64,6 +65,9 @@ async def tornget(ctx, logger, endpoint, key, session=None):
         return MissingKeyError
     
     redis = get_redis()
+
+    if redis.exists(f'tornium:torn-cache:{url}') and not nocache:
+        return redis.json().get(f'tornium:torn-cache:{url}')
 
     redis_key = f'tornium:torn-ratelimit:{key}'
 
@@ -116,5 +120,14 @@ async def tornget(ctx, logger, endpoint, key, session=None):
         await ctx.send(embed=embed)
         logger.error(f'The Torn API has responded with error code {error["code"]}.')
         raise Exception
+
+
+    if cache <= 0 or cache >= 60:
+        return request
+    elif sys.getsizeof(request) >= 500000:  # Half a megabyte
+        return request
+
+    redis.json().set(f'tornium:torn-cache:{url}', Path.rootPath(), request)
+    redis.expire(f'tornium:torn-cache:{url}', cache)
     
     return request

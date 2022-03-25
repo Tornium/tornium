@@ -248,11 +248,11 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
     redis = get_redis()
     redis_key = f'tornium:torn-ratelimit:{key}'
 
-    if redis.setnx(redis_key, 100):
+    if redis.setnx(redis_key, 50):
         redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
     if redis.ttl(redis_key) < 0:
         redis.expire(redis_key, 1)
-        redis.set(redis_key, 100)
+        redis.set(redis_key, 50)
         redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
     
     try:
@@ -263,7 +263,7 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
                 time.sleep(60 - datetime.datetime.utcnow().second)
             else:
                 if redis.get(redis_key) is None:
-                    redis.set(redis_key, 100)
+                    redis.set(redis_key, 50)
                     redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
                 else:
                     raise RatelimitError

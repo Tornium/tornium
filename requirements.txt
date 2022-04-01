@@ -2,11 +2,11 @@ blinker == 1.4
 celery[redis] == 5.2.3
 cryptography == 36.0.2
 discord.py == 1.7.3
-flask == 2.0.3
+flask == 2.1.1
 flask-cors == 3.0.10
-flask-login == 0.5.0
+flask-login == 0.6.0
 honeybadger == 0.8.0
 is-safe-url == 1.0
-mongoengine == 0.23.1
-redis == 4.1.4
+mongoengine == 0.24.1
+redis == 4.2.1
 requests == 2.27.1

@@ -22,13 +22,13 @@ $(document).ready(function() {
             $('#stats-modal').remove();
             modalOpen = false;
         }
+        modalOpen = true;
         
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#stats-modal'));
             modal.show();
-            modalOpen = true;
         }
         xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
         xhttp.send();

@@ -20,7 +20,7 @@ $(document).ready(function() {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             if($('#stats-modal').length) {
-                var modal = new bootstrap.Modal($('#stats-modal'));
+                var modal = new bootstrap.Modal.getInstance($('#stats-modal'));
                 modal.dispose();
             }
             

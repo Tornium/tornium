@@ -347,7 +347,7 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
     elif sys.getsizeof(request) >= 500000:  # Half a megabyte
         return request
 
-    redis.json().set(f'tornium:torn-cache:{url}', Path.rootPath(), request)
+    redis.json().set(f'tornium:torn-cache:{url}', Path.root_path(), request)
     redis.expire(f'tornium:torn-cache:{url}', cache)
     
     return request

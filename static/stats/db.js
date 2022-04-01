@@ -10,7 +10,11 @@ $(document).ready(function() {
         "ordering": true,
         "responsive": true,
         "ajax": {
-            url: "/stats/dbdata"
+            url: "/stats/dbdata",
+            data: function(d) {
+                d.minBS = $('#min-bs').val();
+                d.maxBS = $('#max-bs').val();
+            }
         }
     });
 
@@ -30,5 +34,13 @@ $(document).ready(function() {
         }
         xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
         xhttp.send();
+    });
+
+    $('#min-bs').on('change', function() {
+        table.ajax.reload();
+    });
+
+    $('#max-bs').on('change', function() {
+        table.ajax.reload();
     });
 });

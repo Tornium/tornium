@@ -63,10 +63,8 @@ def refresh_users():
                 if user.factionaa:
                     user.factionaa = False
                     user.save()
-                    continue
-                else:
-                    logger.exception(e)
-                    continue
+
+                continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)

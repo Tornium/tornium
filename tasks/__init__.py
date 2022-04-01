@@ -331,12 +331,16 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
             for faction in FactionModel.objects(keys=key):
                 faction.keys.remove(key)
                 faction.save()
-        
-        logger.info(f'The Torn API has responded with error code {request["error"]["code"]} '
-                    f'({request["error"]["error"]}) to {url}).')
-        raise TornError(
-            code=request["error"]["code"]
-        )
+
+            raise TornError(
+                code=request["error"]["code"]
+            )
+        else:
+            logger.info(f'The Torn API has responded with error code {request["error"]["code"]} '
+                        f'({request["error"]["error"]}) to {url}).')
+            raise TornError(
+                code=request["error"]["code"]
+            )
 
     if cache <= 0 or cache >= 60:
         return request

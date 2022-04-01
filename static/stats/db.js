@@ -15,28 +15,20 @@ $(document).ready(function() {
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
-    var modalOpen = false;
 
     $('#stats-table tbody').on('click', 'tr', function() {
-        if(modalOpen) {
-            $('#stats-modal').remove();
-            modalOpen = false;
-        }
-        modalOpen = true;
-        
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
+            if($('#stats-modal').length) {
+                var modal = new bootstrap.Modal($('#stats-modal'));
+                modal.dispose();
+            }
+            
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#stats-modal'));
             modal.show();
         }
         xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
         xhttp.send();
-    });
-    
-    $('.btn-close').on('click', function() {
-        if(modalOpen) {
-            modalOpen = false;
-        }
     });
 });

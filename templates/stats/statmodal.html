@@ -20,7 +20,7 @@
                         <div class="col-sm-4">
                             Current level:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ user.level }}
                         </div>
                     </div>
@@ -28,7 +28,7 @@
                         <div class="col-sm-4">
                             Faction:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ faction.name if faction is not none else "None" }}
                         </div>
                     </div>
@@ -36,15 +36,15 @@
                         <div class="col-sm-4">
                             Last Action:
                         </div>
-                        <div class="col-sm-4">
-                            {{ user.last_action|tcttime }}
+                        <div class="col-sm-6">
+                            {{ user.last_action|tcttime }} (Relative: {{ user.last_action|reltime }})
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-4">
                             Estimated Fair Fight Multiplier:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ ff }}
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                         <div class="col-sm-4">
                             Estimated Respect:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ respect }}
                         </div>
                     </div>

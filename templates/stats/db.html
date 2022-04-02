@@ -13,8 +13,14 @@ Tornium - Stat DB
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Battle Stat Database</h5>
-            <p class="card-text">For information on how the battle stats of these users are calculated,
-                please take a look at
+            <p class="card-text">
+                For best targets, find users between 75% to 100% of your battlescore (listed below) for 3x FF. Since
+                Torn uses a natural logarithmic scale for base respect, it is recommended to find targets with high
+                level and FF for high respect gained from the target. Since some of these users are active, older
+                stat estimates may no longer be accurate.
+            </p>
+            <p class="card-text">
+                For information on how the battle stats of these users are calculated, please take a look at
                 <a href="https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0">
                     Fr00t's forums thread
                 </a>
@@ -25,8 +31,13 @@ Tornium - Stat DB
                 Your current battlescore is {{ battlescore|round|int }}.
             </p>
 
-            <input type="number" id="min-bs" value="0">
-            <input type="number" id="max-bs">
+            <div class="col-sm-12 col-md-8 col-lg-4">
+                <div class="input-group my-3">
+                    <input type="number" class="form-control" id="min-bs" placeholder="Minimum Battlescore">
+                    <input type="number" class="form-control" id="max-bs" placeholder="Maximum Battlescore">
+                </div>
+            </div>
+
             <table id="stats-table" class="table table-striped table-bordered responsive">
                 <thead>
                     <tr>

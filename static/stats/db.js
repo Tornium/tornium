@@ -30,6 +30,11 @@ $(document).ready(function() {
             
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#stats-modal'));
+            var stat-table = $('#user-table').DataTable({
+                "paging": true,
+                "ordering": true,
+                "responsive": true
+            });
             modal.show();
         }
         xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);

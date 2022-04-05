@@ -49,7 +49,7 @@ def login():
 
     user.refresh()
     user.faction_refresh()
-    login_user(user)
+    login_user(user, remember=True)
     next = request.args.get('next')
 
     if next is None or next == 'None':

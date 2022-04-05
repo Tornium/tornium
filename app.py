@@ -83,6 +83,12 @@ def commas(s):
     return utils.commas(int(s))
 
 
+@app.before_request
+def before_request():
+    flask.session.permanent = True
+    app.permanent_session_lifetime = datetime.timedelta(days=31)
+
+
 if redis.get('tornium:settings:dev') == 'True' and __name__ == "__main__":
     app.register_blueprint(base_mod)
     app.register_blueprint(auth_mod)

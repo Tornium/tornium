@@ -52,40 +52,44 @@ def refresh_users():
         user.battlescore_update = utils.now()
         user.save()
 
-        try:
-            tornget(f'faction/?selections=positions', user.key, session=requests_session)
-        except utils.TornError as e:
-            if e.code != 7:
+        if user.factionid == 0:
+            faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
+
+            if faction is None:
+                faction = FactionModel(
+                    tid=user.factionid,
+                    name=user_data['faction']['faction_name']
+                )
+                faction.save()
+
+            try:
+                tornget(f'faction/?selections=positions', user.key, session=requests_session)
+            except utils.TornError as e:
+                if e.code != 7:
+                    logger.exception(e)
+                    honeybadger.notify(e)
+                    continue
+                else:
+                    if user.factionaa:
+                        user.factionaa = False
+                        user.save()
+
+                    continue
+            except Exception as e:
                 logger.exception(e)
                 honeybadger.notify(e)
-                continue
-            else:
+
                 if user.factionaa:
                     user.factionaa = False
                     user.save()
 
                 continue
-        except Exception as e:
-            logger.exception(e)
-            honeybadger.notify(e)
 
-            if user.factionaa:
-                user.factionaa = False
-                user.save()
-
-            continue
-
-        user.factionaa = True
-        user.save()
-
-        faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
-
-        if faction is None and user.factionid != 0:
-            faction = FactionModel(
-                tid=user.factionid,
-                name=user_data['faction']['faction_name']
-            )
-            faction.save()
+            user.factionaa = True
+            user.save()
+        else:
+            user.factionaa = False
+            user.save()
 
 
 @celery_app.task

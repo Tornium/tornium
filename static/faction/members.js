@@ -8,12 +8,13 @@ $(document).ready(function() {
         html: true
     });
 
-    var table = $('#members-table').DataTable({
+    $('#members-table').DataTable({
         "paging": true,
         "ordering": true,
         "responsive": true,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "displayLength": 25
+        "displayLength": 25,
+        "order": [[2, "desc"], [1, "desc"]]
     })
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

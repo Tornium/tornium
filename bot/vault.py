@@ -19,6 +19,7 @@ from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
+from redisdb import get_redis
 import utils
 
 
@@ -102,6 +103,19 @@ class Vault(commands.Cog):
                                 'wait for a minute or two before trying again.'
             await ctx.send(embed=embed)
             return None
+
+        client = get_redis()
+
+        if client.get(f'tornium:banking-ratelimit:{user.tid}') is not None:
+            embed = discord.Embed()
+            embed.title = 'Ratelimit Reached'
+            embed.description = f'You have reached the ratelimit on banking requests (once every minute). Please try ' \
+                                f'again in {client.ttl(f"tornium:banking-ratelimit:{user.tid}")} seconds.'
+            await ctx.send(embed=embed)
+            return None
+        else:
+            client.set(f'tornium:banking-ratelimit:{user.tid}', 1)
+            client.expire(f'tornium:banking-ratelimit:{user.tid}', 60)
 
         if arg.lower() == 'all':
             cash = 'all'

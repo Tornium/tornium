@@ -171,7 +171,7 @@ def refresh_factions():
 
             if len(faction.chainod) > 0:
                 for tid, user_od in faction_od['contributors']['drugoverdoses'].items():
-                    if user_od != faction.chainod.get(tid):
+                    if user_od['contributed'] != faction.chainod.get(tid).get('contributed'):
                         overdosed_user = utils.first(UserModel.objects(tid=tid))
                         payload = {
                             'embeds': [

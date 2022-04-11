@@ -29,25 +29,25 @@ def refresh_factions():
 
     faction: FactionModel
     for faction in FactionModel.objects():
-        keys_aa = []
+        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+        keys = []
 
-        member_aa: UserModel
-        for member_aa in UserModel.objects(Q(factionid=faction.tid) & Q(factionaa=True) & Q(key__ne='')):
-            if member_aa.key == '':
+        user: UserModel
+        for user in aa_users:
+            if user.key == '':
                 continue
 
-            keys_aa.append(member_aa.key)
+            keys.append(user.key)
 
-        faction.keys = list(set(keys_aa))
-        faction.save()
+        keys = list(set(keys))
 
-        if len(faction.keys) == 0:
+        if len(keys) == 0:
             continue
 
         try:
             faction_data = tornget(
                 'faction/?selections=',
-                key=random.choice(faction.keys),
+                key=random.choice(keys),
                 session=requests_session
             )
         except Exception as e:
@@ -162,7 +162,7 @@ def refresh_factions():
                 faction_od = tornget(
                     'faction/?selections=contributors',
                     stat='drugoverdoses',
-                    key=random.choice(faction.keys),
+                    key=random.choice(keys),
                     session=requests_session
                 )
             except Exception as e:
@@ -225,13 +225,25 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         faction_shares[factiontid] = list(set(shares))
 
     for faction in FactionModel.objects():
-        if len(faction.keys) == 0:
+        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+        keys = []
+
+        user: UserModel
+        for user in aa_users:
+            if user.key == '':
+                continue
+
+            keys.append(user.key)
+
+        keys = list(set(keys))
+
+        if len(keys) == 0:
             continue
         elif faction.config['stats'] == 0:
             continue
 
         try:
-            faction_data = tornget('faction/?selections=basic,attacks', key=random.choice(faction.keys),
+            faction_data = tornget('faction/?selections=basic,attacks', key=random.choice(keys),
                                    session=requests_session)
         except Exception as e:
             logger.exception(e)
@@ -255,7 +267,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             if user is None:
                 try:
                     user_data = tornget(f'user/{attack["attacker_id"]}/?selections=profile,discord',
-                                        random.choice(faction.keys),
+                                        random.choice(keys),
                                         session=requests_session)
 
                     user = UserModel(

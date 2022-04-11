@@ -14,8 +14,6 @@ class FactionModel(DynamicDocument):
     leader = IntField(default=0)
     coleader = IntField(default=0)
 
-    keys = ListField(default=[])  # String of list of keys
-
     last_members = IntField(default=0)  # Time of last members update
 
     guild = IntField(default=0)  # Guild ID of the faction's guild

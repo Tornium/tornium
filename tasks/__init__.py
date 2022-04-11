@@ -295,13 +295,6 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
             user = utils.first(UserModel.objects(key=key))
             
             if user is not None:
-                factions = FactionModel.objects(keys=key)
-
-                faction: FactionModel
-                for faction in factions:
-                    faction.keys.remove(key)
-                    faction.save()
-
                 user.key = ''
                 user.save()
 
@@ -315,22 +308,10 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
                 for server in ServerModel.objects(admins=user.tid):
                     server.admins.remove(user.tid)
                     server.save()
-            else:
-                factions = FactionModel.objects(keys=key)
-
-                faction: FactionModel
-                for faction in factions:
-                    faction.keys.remove(key)
-                    faction.save()
         elif request['error']['code'] == 7:
             user: UserModel = utils.first(UserModel.objects(key=key))
             user.factionaa = False
             user.save()
-
-            faction: FactionModel
-            for faction in FactionModel.objects(keys=key):
-                faction.keys.remove(key)
-                faction.save()
 
             raise TornError(
                 code=request["error"]["code"]

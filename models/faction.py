@@ -9,7 +9,7 @@ from flask_login import current_user
 
 from models.factionmodel import FactionModel
 from models.server import Server
-from models.user import User
+from models.usermodel import UserModel
 import tasks
 import utils
 
@@ -63,8 +63,6 @@ class Faction:
         self.leader = faction.leader
         self.coleader = faction.coleader
 
-        self.keys = faction.keys
-
         self.last_members = faction.last_members
 
         self.guild = faction.guild
@@ -82,27 +80,7 @@ class Faction:
         self.pro_expiration = faction.pro_expiration
 
     def rand_key(self):
-        return random.choice(self.keys)
-
-    def update_members(self, force=False, key=None):
-        now = utils.now()
-
-        if not force and (now - self.last_members) < 1800:
-            utils.get_logger().info(f'Update members skipped since last update was at {self.last_members} and update '
-                                    f'was not forced.')
-            return
-
-        if key is None:
-            key = random.choice(self.keys)
-
-        factionmembers = tasks.tornget('faction/?selections=', key)
-
-        for memberid, member in factionmembers['members'].values():
-            user = User(memberid)
-
-            if key is None:
-                key = random.choice(self.keys)
-            user.refresh(key, force)
+        user: UserModel
 
     def get_config(self):
         if self.guild == 0:

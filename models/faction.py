@@ -6,6 +6,7 @@
 import random
 
 from flask_login import current_user
+from mongoengine.queryset.visitor import Q
 
 from models.factionmodel import FactionModel
 from models.server import Server
@@ -35,7 +36,6 @@ class Faction:
                 capacity=faction_data['capacity'],
                 leader=faction_data['leader'],
                 coleader=faction_data['co-leader'],
-                keys=[],
                 last_members=now,
                 guild=0,
                 config={'vault': 0, 'stats': 1},
@@ -50,7 +50,6 @@ class Faction:
 
             try:
                 tasks.tornget(f'faction/{tid}?selections=positions', key if key != "" else current_user.key)
-                faction.keys.append(key if key != "" else current_user.key)
             except:
                 pass
 
@@ -80,7 +79,17 @@ class Faction:
         self.pro_expiration = faction.pro_expiration
 
     def rand_key(self):
-        user: UserModel
+        users = UserModel.objects(Q(factionaa=True) & Q(factionid=self.tid) & Q(key__ne=''))
+        keys = []
+
+        for user in users:
+            if user.key == '':
+                continue
+
+            keys.append(user.key)
+
+        keys = list(set(keys))
+        return random.choice(keys)
 
     def get_config(self):
         if self.guild == 0:

@@ -6,7 +6,7 @@ Written by tiksan <webmaster@deek.sh> */
 const key = document.currentScript.getAttribute('data-key')
 
 $(document).ready(function() {
-    var recruitTable = $("#recruits-table").DataTable({
+    $("#recruits-table").DataTable({
         "processing": true,
         "serverSide": true,
         "ordering": false,

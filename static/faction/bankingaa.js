@@ -4,7 +4,7 @@ Proprietary and confidential
 Written by tiksan <webmaster@deek.sh> */
 
 $(document).ready(function() {
-    var table = $('#banking-table').DataTable({
+    $('#banking-table').DataTable({
         "processing": true,
         "serverSide": true,
         "ordering": false,

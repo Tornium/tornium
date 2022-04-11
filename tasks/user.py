@@ -52,7 +52,7 @@ def refresh_users():
         user.battlescore_update = utils.now()
         user.save()
 
-        if user.factionid == 0:
+        if user.factionid != 0:
             faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
 
             if faction is None:

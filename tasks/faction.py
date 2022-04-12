@@ -171,31 +171,36 @@ def refresh_factions():
 
             if len(faction.chainod) > 0:
                 for tid, user_od in faction_od['contributors']['drugoverdoses'].items():
-                    if user_od['contributed'] != faction.chainod.get(tid).get('contributed'):
-                        overdosed_user = utils.first(UserModel.objects(tid=tid))
-                        payload = {
-                            'embeds': [
-                                {
-                                    'title': 'User Overdose',
-                                    'description': f'User {tid if overdosed_user is None else overdosed_user.name} of '
-                                                   f'faction {faction.name} has overdosed.',
-                                    'timestamp': datetime.datetime.utcnow().isoformat(),
-                                    'footer': {
-                                        'text': utils.torn_timestamp()
+                    try:
+                        if user_od['contributed'] != faction.chainod.get(tid).get('contributed'):
+                            overdosed_user = utils.first(UserModel.objects(tid=tid))
+                            payload = {
+                                'embeds': [
+                                    {
+                                        'title': 'User Overdose',
+                                        'description': f'User {tid if overdosed_user is None else overdosed_user.name} of '
+                                                       f'faction {faction.name} has overdosed.',
+                                        'timestamp': datetime.datetime.utcnow().isoformat(),
+                                        'footer': {
+                                            'text': utils.torn_timestamp()
+                                        }
                                     }
-                                }
-                            ]
-                        }
+                                ]
+                            }
 
-                        try:
-                            discordpost.delay(
-                                f'channels/{faction.chainconfig["odchannel"]}/messages',
-                                payload=payload
-                            )
-                        except Exception as e:
-                            logger.exception(e)
-                            honeybadger.notify(e)
-                            continue
+                            try:
+                                discordpost.delay(
+                                    f'channels/{faction.chainconfig["odchannel"]}/messages',
+                                    payload=payload
+                                )
+                            except Exception as e:
+                                logger.exception(e)
+                                honeybadger.notify(e)
+                                continue
+                    except Exception as e:
+                        logger.exception(e)
+                        honeybadger.notify(e)
+                        continue
 
             faction.chainod = faction_od['contributors']['drugoverdoses']
 

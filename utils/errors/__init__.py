@@ -84,10 +84,11 @@ class NetworkingError(Exception):
 
 
 class TornError(Exception):
-    def __init__(self, code: int):
+    def __init__(self, code: int, endpoint: str):
         super().__init__()
 
         self.code = code
+        self.endpoint = endpoint
 
         if self.code == 0:
             self.error = 'Unknown error'

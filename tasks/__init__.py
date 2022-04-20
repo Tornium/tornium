@@ -314,13 +314,15 @@ def tornget(endpoint, key, tots=0, fromts=0, stat='', session=None, autosleep=Tr
             user.save()
 
             raise TornError(
-                code=request["error"]["code"]
+                code=request["error"]["code"],
+                endpoint=url
             )
         else:
             logger.info(f'The Torn API has responded with error code {request["error"]["code"]} '
                         f'({request["error"]["error"]}) to {url}).')
             raise TornError(
-                code=request["error"]["code"]
+                code=request["error"]["code"],
+                endpoint=url
             )
 
     if cache <= 0 or cache >= 60:

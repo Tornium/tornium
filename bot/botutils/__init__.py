@@ -119,7 +119,10 @@ async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=Fa
                             f'(https://api.torn.com/) to see why the error was raised.'
         await ctx.send(embed=embed)
         logger.error(f'The Torn API has responded with error code {error["code"]}.')
-        raise Exception
+        raise TornError(
+            code=request["error"]["code"],
+            endpoint=url
+        )
 
 
     if cache <= 0 or cache >= 60:

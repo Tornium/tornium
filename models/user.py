@@ -6,6 +6,7 @@
 import math
 
 from flask_login import UserMixin, current_user
+from honeybadger import honeybadger
 
 from models.usermodel import UserModel
 import tasks
@@ -87,10 +88,18 @@ class User(UserMixin):
                 if key == '':
                     raise Exception  # TODO: Make exception more descriptive
 
-            if key == self.key:
-                user_data = tasks.tornget(f'user/?selections=profile,battlestats,discord', key)
-            else:
-                user_data = tasks.tornget(f'user/{self.tid}?selections=profile,discord', key)
+            try:
+                if key == self.key:
+                    user_data = tasks.tornget(f'user/?selections=profile,battlestats,discord', key)
+                else:
+                    user_data = tasks.tornget(f'user/{self.tid}?selections=profile,discord', key)
+            except utils.TornError as e:
+                utils.get_logger().exception(e)
+                honeybadger.notify(e, context={
+                    'code': e.code,
+                    'endpoint': e.endpoint
+                })
+                raise e
 
             user = utils.first(UserModel.objects(tid=self.tid))
             user.factionid = user_data['faction']['faction_id']

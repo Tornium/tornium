@@ -29,6 +29,13 @@ def refresh_users():
 
         try:
             user_data = tornget(f'user/?selections=profile,battlestats,discord', user.key, session=requests_session)
+        except utils.TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={
+                'code': e.code,
+                'endpoint': e.endpoint
+            })
+            continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -67,7 +74,10 @@ def refresh_users():
             except utils.TornError as e:
                 if e.code != 7:
                     logger.exception(e)
-                    honeybadger.notify(e)
+                    honeybadger.notify(e, context={
+                        'code': e.code,
+                        'endpoint': e.endpoint
+                    })
                     continue
                 else:
                     if user.factionaa:
@@ -108,6 +118,13 @@ def mail_check():
                 session=requests_session, 
                 fromts=user.recruit_mail_update
             )
+        except utils.TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={
+                'code': e.code,
+                'endpoint': e.endpoint
+            })
+            continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -169,6 +186,13 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
 
         try:
             user_data = tornget('user/?selections=basic,attacks', key=user.key, session=requests_session)
+        except utils.TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={
+                'code': e.code,
+                'endpoint': e.endpoint
+            })
+            continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)

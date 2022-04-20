@@ -19,6 +19,7 @@ from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
 import utils
+from utils.errors import TornError
 
 logger: logging.Logger
 
@@ -50,6 +51,13 @@ def refresh_factions():
                 key=random.choice(keys),
                 session=requests_session
             )
+        except TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={
+                'code': e.code,
+                'endpoint': e.endpoint
+            })
+            continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -165,6 +173,13 @@ def refresh_factions():
                     key=random.choice(keys),
                     session=requests_session
                 )
+            except TornError as e:
+                logger.exception(e)
+                honeybadger.notify(e, context={
+                    'code': e.code,
+                    'endpoint': e.endpoint
+                })
+                continue
             except Exception as e:
                 logger.exception(e)
                 continue
@@ -250,6 +265,13 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         try:
             faction_data = tornget('faction/?selections=basic,attacks', key=random.choice(keys),
                                    session=requests_session)
+        except TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={
+                'code': e.code,
+                'endpoint': e.endpoint
+            })
+            continue
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
@@ -296,6 +318,13 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                         pro_expiration=0
                     )
                     user.save()
+                except TornError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e, context={
+                        'code': e.code,
+                        'endpoint': e.endpoint
+                    })
+                    continue
                 except Exception as e:
                     logger.exception(e)
                     continue

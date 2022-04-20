@@ -69,6 +69,13 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
 
             admin: UserModel = utils.first(UserModel.objects(tid=random.choice(guild.admins)))
             data = tornget(f'user/{stakeout.tid}?selections=', key=admin.key, session=requests_session)
+    except utils.TornError as e:
+        logger.exception(e)
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+        return
     except Exception as e:
         logger.exception(e)
         honeybadger.notify(e)
@@ -234,14 +241,15 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                 return
 
             admin: UserModel = utils.first(UserModel.objects(tid=random.choice(guild.admins)))
-
-            try:
-                data = tornget(f'faction/{stakeout.tid}?selections=basic,territory', key=admin.key,
-                               session=requests_session)
-            except Exception as e:
-                logger.exception(e)
-                honeybadger.notify(e)
-                return
+            data = tornget(f'faction/{stakeout.tid}?selections=basic,territory', key=admin.key,
+                            session=requests_session)
+    except utils.TornError as e:
+        logger.exception(e)
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+        return
     except Exception as e:
         logger.exception(e)
         honeybadger.notify(e)
@@ -613,6 +621,13 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                        key=random.choice(faction.keys),
                                        session=requests_session,
                                        fromts=utils.now() - 60)
+                except utils.TornError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e, context={
+                        'code': e.code,
+                        'endpoint': e.endpoint
+                    })
+                    return
                 except Exception as e:
                     logger.exception(e)
                     honeybadger.notify(e)
@@ -662,6 +677,13 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                        key=random.choice(faction.keys),
                                        session=requests_session,
                                        fromts=utils.now() - 60)
+                except utils.TornError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e, context={
+                        'code': e.code,
+                        'endpoint': e.endpoint
+                    })
+                    return
                 except Exception as e:
                     logger.exception(e)
                     honeybadger.notify(e)

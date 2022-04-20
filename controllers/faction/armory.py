@@ -7,12 +7,14 @@ import random
 
 from flask import render_template, request, abort
 from flask_login import login_required, current_user
+from honeybadger import honeybadger
 
 from controllers.faction.decorators import fac_required
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
 from tasks import tornget
 import utils
+from utils.errors import TornError
 
 
 @login_required
@@ -36,7 +38,16 @@ def armoryitemdata(*args, **kwargs):
 
         key = random.choice(faction.keys)
 
-    armorydata = tornget('faction/?selections=armor,temporary,weapons', key=key)
+    try:
+        armorydata = tornget('faction/?selections=armor,temporary,weapons', key=key)
+    except TornError as e:
+        utils.get_logger().exception(e)
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+        abort(400)
+
     data = []
 
     for armor in armorydata['armor']:
@@ -89,7 +100,16 @@ def item_modal(*args, **kwargs):
     if request.args.get('tid') is None:
         abort(400)
 
-    armorydata = tornget('faction/?selections=armor,temporary,weapons', key=key)
+    try:
+        armorydata = tornget('faction/?selections=armor,temporary,weapons', key=key)
+    except TornError as e:
+        utils.get_logger().exception(e)
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+        abort(400)
+    
     item = {}
 
     for armor in armorydata['armor']:

@@ -5,6 +5,8 @@
 
 import json
 
+from honeybadger import honeybadger
+
 from controllers.api.decorators import *
 from models.faction import Faction
 from models.server import Server
@@ -116,7 +118,29 @@ def banking_request(*args, **kwargs):
             'X-RateLimit-Reset': client.ttl(key)
         }
 
-    vault_balances = tasks.tornget(f'faction/?selections=donations', faction.rand_key())
+    try:
+        vault_balances = tasks.tornget(f'faction/?selections=donations', faction.rand_key())
+    except utils.TornError as e:
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+
+        return jsonify({
+            'code': 4100,
+            'name': 'TornError',
+            'message': 'Server failed to fulfill the request. The Torn API has returned an error.',
+            'error': {
+                'code': e.code,
+                'error': e.error,
+                'message': e.message
+            }
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+        
 
     if str(user.tid) in vault_balances['donations']:
         if amount_requested != 'all' and amount_requested > vault_balances['donations'][str(user.tid)]['money_balance']:

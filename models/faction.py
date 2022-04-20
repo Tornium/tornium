@@ -50,7 +50,7 @@ class Faction:
 
             try:
                 tasks.tornget(f'faction/{tid}?selections=positions', key if key != "" else current_user.key)
-            except:
+            except utils.TornError:
                 pass
 
             faction.save()

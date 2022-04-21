@@ -115,6 +115,11 @@ def user_data():
             print(step['attacking'].get('defender'))
 
             # https://www.torn.com/forums.php#/p=threads&f=3&t=16186737&b=0&a=0&start=0&to=0
+            # https://www.torn.com/forums.php#/p=threads&f=1&t=16246989&b=0&a=0&start=0&to=0
+            # https://wiki.torn.com/wiki/Damage_Revamp_(2021)#Minor_Changes
+            # https://www.torn.com/forums.php#/p=threads&f=61&t=16180034&b=0&a=0
+            # https://www.torn.com/forums.php#/p=threads&f=61&t=16211026&b=0&a=0
+            # https://www.torn.com/forums.php#/p=threads&f=61&t=16025224&b=0&a=0
 
             # Damage displayed value of weapon = damage multiplier
             # Base damage for headshot
@@ -122,6 +127,14 @@ def user_data():
             # Dmg mult for chest/stomach/groin = 0.5714
             # Dmg mult for arm/leg = 0.2857
             # Dmg mult for hand/foot = 0.2
+
+            # Name: -sparkle - [173159]
+            # Level: 82
+            # results: Strength: 8, 961, 357
+            # Speed: 8, 963, 117
+            # Dexterity: N / A
+            # Defense: 8, 958, 706
+            # Total: N / A
 
             if 'defender' in step['attacking']:
                 try:

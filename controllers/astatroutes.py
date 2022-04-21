@@ -87,6 +87,9 @@ def user_data():
         if stat_entry.tid != tid:
             continue
 
+        user: UserModel
+        faction: FactionModel
+
         if str(stat_entry.addedid) in users:
             user = users[str(stat_entry.addedid)]
         else:
@@ -110,13 +113,39 @@ def user_data():
 
         for step in stat_entry.dbs:
             print(step['attacking'].get('defender'))
+
+            # https://www.torn.com/forums.php#/p=threads&f=3&t=16186737&b=0&a=0&start=0&to=0
+
+            # Damage displayed value of weapon = damage multiplier
+            # Base damage for headshot
+            # Dmg mult for head/throat (with edu)/heart = 1
+            # Dmg mult for chest/stomach/groin = 0.5714
+            # Dmg mult for arm/leg = 0.2857
+            # Dmg mult for hand/foot = 0.2
+
             if 'defender' in step['attacking']:
                 try:
-                    print(math.pow(10, ((-27 + math.sqrt(28 * step['attacking']['defender']['damageDealed']['value'] - 111)) / 14) + 1))
+                    base = 7 * math.pow(math.log(user.strength / 10), 2) + 27 * math.log(user.strength / 10) + 30
+                    print(f'Base damage: {base}')
+
+                    region_multiplier = 1
+
+                    if step["attacking"]["attacker"]["result"] == "HIT":
+                        if any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('hand', 'foot')):
+                            region_multiplier = 0.2
+                        elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('arm', 'leg')):
+                            region_multiplier = 0.2857
+                        elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('chest', 'stomach', 'groin')):
+                            region_multiplier = 0.5714
+                    else:
+                        region_multiplier = 0
+
+                    print(f'Damage w/ multiplier: {base * region_multiplier}')
+                    print(f'Damage dealt: {step["attacking"]["attacker"]["damageDealed"]["value"]}')
                 except:
                     pass
 
-    user = User(tid=tid)
+    user: User = User(tid=tid)
 
     # If user's last action was over a month ago and last refresh was over a week ago
     if utils.now() - user.last_action > 30 * 24 * 60 * 60 and utils.now() - user.last_refresh > 604800:
@@ -125,7 +154,7 @@ def user_data():
         user.refresh(key=current_user.key)
 
     if user.factiontid != 0:
-        faction = Faction(tid=user.factiontid)
+        faction: Faction = Faction(tid=user.factiontid)
     else:
         faction = None
 

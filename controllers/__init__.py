@@ -31,6 +31,8 @@ def index():
 @mod.route('/faction/members.js')
 @mod.route('/stats/db.js')
 @mod.route('/stats/list.js')
+@mod.route('/torn/factions.js')
+@mod.route('/torn/users.js')
 def static():
     return send_from_directory('static', request.path[1:])
 

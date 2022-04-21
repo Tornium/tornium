@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Torn
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'torn/navbar.html' %}
+
+<div class="container h-100">
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-list"></i>
+                Features
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-person-military-rifle"></i>
+                            Factions DB - a utility to search for and show factions
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-person-rifle"></i>
+                            Users DB - a utility to search for and list users
+                        </li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

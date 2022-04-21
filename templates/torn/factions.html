@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Factions DB
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'torn/navbar.html' %}
+
+<div class="px-3 py-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Show Faction</h5>
+            <p class="card-text">Show a specific faction by faction ID.</p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Factions Database</h5>
+            <p class="card-text">
+                The below table shows all factions that are currently loaded into Tornium's databases. As API calls are
+                made, the table will further populate. If you're searching for a faction that isn't in the below table,
+                take a look at the above search field which will open the faction from the faction ID.
+            </p>
+
+            <table id="factions-table" class="table table-striped table-bordered responsive">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Respect</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="modal">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/torn/factions.js"></script>
+{% endblock %}

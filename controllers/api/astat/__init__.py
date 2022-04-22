@@ -72,7 +72,7 @@ def attack_start(*args, **kwargs):
             timeadded=utils.now(),
             addedid=kwargs['user'].tid,
             addedfactionid=kwargs['user'].factionid,
-            attackstr=kwargs['user'].strength,
+            attackerstr=kwargs['user'].strength,
             attackerdef=kwargs['user'].defense,
             attackerspd=kwargs['user'].speed,
             attackerdex=kwargs['user'].dexterity

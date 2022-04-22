@@ -6,9 +6,11 @@
 import datetime
 import math
 
+import numpy as np
 from flask import Blueprint, request
 from flask_login import login_required
 from mongoengine.queryset.visitor import Q
+from scipy import optimize
 
 from controllers.decorators import *
 from models.astatmodel import AStatModel
@@ -84,6 +86,8 @@ def user_data():
 
     stat_entry: AStatModel
     for stat_entry in stat_entries:
+        stat_entry = utils.last(stat_entries)
+
         if stat_entry.tid != tid:
             continue
 
@@ -112,7 +116,7 @@ def user_data():
         })
 
         for step in stat_entry.dbs:
-            print(step['attacking'].get('defender'))
+            print(step['attacking'].get('attacker'))
 
             # https://www.torn.com/forums.php#/p=threads&f=3&t=16186737&b=0&a=0&start=0&to=0
             # https://www.torn.com/forums.php#/p=threads&f=1&t=16246989&b=0&a=0&start=0&to=0
@@ -137,13 +141,16 @@ def user_data():
             # Total: N / A
 
             if 'defender' in step['attacking']:
+                if step['attacking']['attacker']['result'] in ('RELOAD', 'MISS'):
+                    continue
+
                 try:
-                    base = 7 * math.pow(math.log(user.strength / 10), 2) + 27 * math.log(user.strength / 10) + 30
+                    base = 7 * math.pow(math.log(stat_entry.attackerstr / 10), 2) + 27 * math.log(stat_entry.attackerstr / 10) + 30
                     print(f'Base damage: {base}')
 
                     region_multiplier = 1
 
-                    if step["attacking"]["attacker"]["result"] == "HIT":
+                    if step["attacking"]["attacker"]["result"] in ("HIT", "TEMP", "CRITICAL"):
                         if any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('hand', 'foot')):
                             region_multiplier = 0.2
                         elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('arm', 'leg')):
@@ -153,10 +160,22 @@ def user_data():
                     else:
                         region_multiplier = 0
 
-                    print(f'Damage w/ multiplier: {base * region_multiplier}')
+                    print(f'Damage w/ area multiplier: {base * region_multiplier}')
+                    print(f'Damage w/ multipliers: {base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
                     print(f'Damage dealt: {step["attacking"]["attacker"]["damageDealed"]["value"]}')
-                except:
-                    pass
+
+                    dmg_diff = step["attacking"]["attacker"]["damageDealed"]["value"] - base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)
+                    print(f'Damage difference: {dmg_diff}')
+                    print(f'Actual ratio: {8958706/stat_entry.attackerstr}')
+
+                    def defense(x):
+                        # print(50 / abs(dmg_diff) * pow(x, 0.3537365235 / pow(x, 0.1187762685)) - 1)
+                        return 50 / abs(dmg_diff) * pow(x, 0.3537365235 / pow(x, 0.1187762685)) - 1
+
+                    print(optimize.fmin(defense, 1))
+                except Exception as e:
+                    raise e
+        break
 
     user: User = User(tid=tid)
 

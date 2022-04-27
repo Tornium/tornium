@@ -22,6 +22,106 @@ import utils
 
 mod = Blueprint('astatroutes', __name__)
 
+# Parts of the Body
+# 1 - Head
+# 2 - Throat
+# 3 - Heart
+# 4 - Chest
+# 5 - Stomach
+# 6 - Left Arm
+# 7 - Right Arm
+# 8 - Left Hand
+# 9 - Right Hand
+# 10 - Groin
+# 11 - Left Leg
+# 12 - Right Leg
+# 13 - Left Foot
+# 14 - Right Foot
+
+
+armor = {
+    334: {
+        1: 0,
+        2: 0,
+        3: 100,
+        4: 95.73,
+        5: 96.57,
+        6: 36.16,
+        7: 36.16,
+        8: 0,
+        9: 0,
+        10: 11.88,
+        11: 0.51,
+        12: 0.51,
+        13: 0,
+        14: 0
+    },
+    642: {
+        1: 85.35,
+        2: 23.19,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0
+    },
+    652: {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 7.62,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 100,
+        11: 100,
+        12: 100,
+        13: 16.28,
+        14: 16.28
+    },
+    653: {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 7.92,
+        12: 7.92,
+        13: 100,
+        14: 100
+    },
+    654: {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0.32,
+        7: 0.32,
+        8: 100,
+        9: 100,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0
+    }
+}
+
 
 @mod.route('/astats')
 @login_required
@@ -116,7 +216,7 @@ def user_data():
         })
 
         for step in stat_entry.dbs:
-            print(step['attacking'].get('attacker'))
+            # print(step['attackerItems'])
 
             # https://www.torn.com/forums.php#/p=threads&f=3&t=16186737&b=0&a=0&start=0&to=0
             # https://www.torn.com/forums.php#/p=threads&f=1&t=16246989&b=0&a=0&start=0&to=0
@@ -132,6 +232,8 @@ def user_data():
             # Dmg mult for arm/leg = 0.2857
             # Dmg mult for hand/foot = 0.2
 
+            # Damage value = damage pure + damage mitigated
+
             # Name: -sparkle - [173159]
             # Level: 82
             # results: Strength: 8, 961, 357
@@ -140,41 +242,94 @@ def user_data():
             # Defense: 8, 958, 706
             # Total: N / A
 
-            if 'defender' in step['attacking']:
+            # ---- Armor ----
+            # Body armor - slot 4
+            # Helmet - slot 6
+            # Pants - slot 7
+            # Boots - slot 8
+            # Gloves - slot 9
+
+            if 'attacker' in step['attacking']:
                 if step['attacking']['attacker']['result'] in ('RELOAD', 'MISS'):
                     continue
 
-                try:
-                    base = 7 * math.pow(math.log(stat_entry.attackerstr / 10), 2) + 27 * math.log(stat_entry.attackerstr / 10) + 30
-                    print(f'Base damage: {base}')
+                base = 7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2) + 27 * math.log10(stat_entry.attackerstr / 10) + 30
+                print(f'---- Attacker ----')
+                print(step['attacking'].get('attacker'))
+                print(f'Base damage: {base}')
 
-                    region_multiplier = 1
+                region_multiplier = 1
 
-                    if step["attacking"]["attacker"]["result"] in ("HIT", "TEMP", "CRITICAL"):
-                        if any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('hand', 'foot')):
-                            region_multiplier = 0.2
-                        elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('arm', 'leg')):
-                            region_multiplier = 0.2857
-                        elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('chest', 'stomach', 'groin')):
-                            region_multiplier = 0.5714
-                    else:
-                        region_multiplier = 0
+                if step["attacking"]["attacker"]["result"] in ("HIT", "TEMP", "CRITICAL"):
+                    if any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('hand', 'foot')):
+                        region_multiplier = 0.2
+                    elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('arm', 'leg')):
+                        region_multiplier = 0.2857
+                    elif any(part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower() for part in ('chest', 'stomach', 'groin')):
+                        region_multiplier = 0.5714
+                else:
+                    region_multiplier = 0
 
-                    print(f'Damage w/ area multiplier: {base * region_multiplier}')
-                    print(f'Damage w/ multipliers: {base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
-                    print(f'Damage dealt: {step["attacking"]["attacker"]["damageDealed"]["value"]}')
+                print(f'Area multiplier: {region_multiplier}')
+                print(f'Damage w/ area multiplier: {base * region_multiplier}')
+                print(f'Multipliers: {(1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
+                print(f'Damage w/ multipliers: {base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
+                print(f'Damage dealt: {step["attacking"]["attacker"]["damageDealed"]["value"]}')
+                print(f'Pure damage dealt: {step["attacking"]["attacker"]["damageDealed"]["damagePure"]}')
 
-                    dmg_diff = step["attacking"]["attacker"]["damageDealed"]["value"] - base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)
-                    print(f'Damage difference: {dmg_diff}')
-                    print(f'Actual ratio: {8958706/stat_entry.attackerstr}')
+                # dmg_diff = step["attacking"]["attacker"]["damageDealed"]["damagePure"] - base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)
+                dmg_diff = step["attacking"]["attacker"]["damageDealed"]["damageMitigated"]
+                print(f'Damage difference: {dmg_diff}')
 
-                    def defense(x):
-                        # print(50 / abs(dmg_diff) * pow(x, 0.3537365235 / pow(x, 0.1187762685)) - 1)
-                        return 50 / abs(dmg_diff) * pow(x, 0.3537365235 / pow(x, 0.1187762685)) - 1
+                print(f'Defense (from internal API): {step["attacking"]["attacker"]["damageDealed"]["defence"]}%')
+                print(f'Remaining damage difference: {dmg_diff * 100 /(1 - step["attacking"]["attacker"]["damageDealed"]["defence"])}')
 
-                    print(optimize.fmin(defense, 1))
-                except Exception as e:
-                    raise e
+                dmg_mit = abs(dmg_diff * 100 / (step["attacking"]["attacker"]["damageDealed"]["value"]))
+                print(f'Damage mitigation (%): {dmg_mit}%')
+
+                if dmg_mit == 0:
+                    def_str = 'Less than 1/64x'
+                elif dmg_mit < 50:
+                    def_str = math.pow(math.e, (dmg_mit - 50) * math.log2(32) / 50)
+                elif dmg_mit < 100:
+                    def_str = math.pow(math.e, (dmg_mit - 50) * math.log2(14) / 50)
+                else:
+                    def_str = 'Greater than 64x'
+
+                print(f'Def/Str Ratio: {def_str}')
+            if 'defender' in step['attacking']:
+                if step['attacking']['defender']['result'] in ('RELOAD', 'MISS'):
+                    continue
+
+                print(f'---- Defender ----')
+                print(step['attacking'].get('defender'))
+                print(f'Damage received: {step["attacking"]["defender"]["damageDealed"]["value"]}')
+                print(f'Pure damage received: {step["attacking"]["defender"]["damageDealed"]["damagePure"]}')
+
+                region_multiplier = 1
+
+                if step["attacking"]["defender"]["result"] in ("HIT", "TEMP", "CRITICAL", "MITIGATED"):
+                    if any(part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower() for part in
+                           ('hand', 'foot')):
+                        region_multiplier = 0.2
+                    elif any(part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower() for part in
+                             ('arm', 'leg')):
+                        region_multiplier = 0.2857
+                    elif any(part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower() for part in
+                             ('chest', 'stomach', 'groin')):
+                        region_multiplier = 0.5714
+                else:
+                    region_multiplier = 0
+
+                base_dmg = step["attacking"]["defender"]["damageDealed"]["damagePure"] / (1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100) / region_multiplier
+                print(f'Area multiplier: {region_multiplier}')
+                print(f'Multipliers: {(1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
+                print(f'Base damage: {base_dmg}')
+                print(f'Log str/10 (plus): {(-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14}')
+                strength = math.pow(10, ((-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14) + 1)
+                print(f'Strength: {utils.commas(round(strength))}')
+                print('')
+
         break
 
     user: User = User(tid=tid)

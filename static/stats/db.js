@@ -15,7 +15,8 @@ $(document).ready(function() {
                 d.minBS = $('#min-bs').val();
                 d.maxBS = $('#max-bs').val();
             }
-        }
+        },
+        "order": [[2, "desc"], [1, "desc"]]
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
@@ -34,7 +35,8 @@ $(document).ready(function() {
                 "paging": true,
                 "ordering": true,
                 "responsive": true,
-                "autoWidth": false
+                "autoWidth": false,
+                "order": [[0, "desc"]]
             });
             modal.show();
         }

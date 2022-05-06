@@ -18,9 +18,29 @@ $(document).ready(function() {
 
     $.fn.dataTable.ext.pager.numbers_length = 5;
 
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function() {
+        var response = xhttp.response;
+
+        if("code" in response) {
+            generateToast("Balance Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
+            $('#money-balance').val("ERROR");
+            $('#points-balance').val("ERROR");
+        } else {
+            $('#money-balance').val(commas(response["money_balance"]));
+            $('#points-balance').val(commas(response["points_balance"]));
+        }
+    }
+
+    xhttp.responseType = "json";
+    xhttp.open("GET", "/api/faction/banking/vault");
+    xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send()
+
+
     $("#requestform").submit(function(e) {
         e.preventDefault();
-        const xhttp = new XMLHttpRequest();
         var value = $("#requestamount").val();
         value = value.toLowerCase();
 

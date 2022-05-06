@@ -57,7 +57,8 @@ def banking():
     return render_template(
         'faction/banking.html',
         bankingenabled=faction.vaultconfig['banking'] != 0 and faction.vaultconfig['banker'] != 0 and faction.vaultconfig['withdrawal'] != 0,
-        key=current_user.key
+        key=current_user.key,
+        faction=faction
     )
 
 

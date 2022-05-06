@@ -12,3 +12,8 @@ function getTID(string) {
         return 0;
     }
 }
+
+
+function commas(number) {
+    return number.toLocaleString('en-US');
+}

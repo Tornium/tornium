@@ -193,7 +193,7 @@ class Vault(commands.Cog):
                                     f'enter `?f {request_id}` in this channel.'
             else:
                 embed.description = f'{user.name if user.name != "" else ctx.message.author.nick} is requesting ' \
-                                    f'{vault_balances["donations"][str(user.tid)]["money_balance"]} ' \
+                                    f'{utils.commas(vault_balances["donations"][str(user.tid)]["money_balance"])} ' \
                                     f'from the faction vault. To fulfill this request, ' \
                                     f'enter `?f {request_id}` in this channel.'
             message = await channel.send(f'<@&{vault_config["banker"]}>', embed=embed)

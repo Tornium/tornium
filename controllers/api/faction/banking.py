@@ -18,6 +18,77 @@ import utils
 
 @key_required
 @ratelimit
+@requires_scopes(scopes={'admin', 'read:banking', 'read:faction', 'faction:admin'})
+def vault_balance(*args, **kwargs):
+    client = redisdb.get_redis()
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    user = User(kwargs['user'].tid)
+
+    if user.factiontid == 0:
+        user.refresh(force=True)
+
+        if user.factiontid == 0:
+            return jsonify({
+                'code': 0,
+                'name': 'GeneralError',
+                'message': 'Server failed to fulfill the request. The API key\'s user is required to be in a Torn '
+                           'faction.'
+            }), 400, {
+                'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+                'X-RateLimit-Remaining': client.get(key),
+                'X-RateLimit-Reset': client.ttl(key)
+            }
+    
+    faction = Faction(user.factiontid, key=user.key)
+
+    try:
+        vault_balances = tasks.tornget(f'faction/?selections=donations', faction.rand_key())
+    except utils.TornError as e:
+        honeybadger.notify(e, context={
+            'code': e.code,
+            'endpoint': e.endpoint
+        })
+
+        return jsonify({
+            'code': 4100,
+            'name': 'TornError',
+            'message': 'Server failed to fulfill the request. The Torn API has returned an error.',
+            'error': {
+                'code': e.code,
+                'error': e.error,
+                'message': e.message
+            }
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+    
+    if str(user.tid) in vault_balances['donations']:
+        return jsonify({
+            'player_id': user.tid,
+            'faction_id': faction.tid,
+            'money_balance': vault_balances['donations'][str(user.tid)]['money_balance'],
+            'points_balance': vault_balances['donations'][str(user.tid)]['points_balance']
+        }), 200, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+    else:
+        return jsonify({
+            'code': 0,
+            'name': 'UnknownUser',
+            'message': 'Server failed to fulfill the request. The user was not found in the faction\'s vault records.'
+        }), 400, {
+            'X-RateLimit-Limit': 250 if kwargs['user'].pro else 150,
+            'X-RateLimit-Remaining': client.get(key),
+            'X-RateLimit-Reset': client.ttl(key)
+        }
+
+
+@key_required
+@ratelimit
 @requires_scopes(scopes={'admin', 'write:banking', 'write:faction', 'faction:admin'})
 def banking_request(*args, **kwargs):
     data = json.loads(request.get_data().decode('utf-8'))
@@ -174,7 +245,7 @@ def banking_request(*args, **kwargs):
                 'embeds': [
                     {
                         'title': f'Vault Request #{request_id}',
-                        'description': f'{user.name} [{user.tid}] is requesting {amount_requested} from the '
+                        'description': f'{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} from the '
                                        f'faction vault. '
                                        f'To fulfill this request, enter `?f {request_id}` in this channel.',
                         'timestamp': datetime.datetime.utcnow().isoformat()

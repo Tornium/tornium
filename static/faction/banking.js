@@ -18,7 +18,7 @@ $(document).ready(function() {
 
     $.fn.dataTable.ext.pager.numbers_length = 5;
 
-    const xhttp = new XMLHttpRequest();
+    var xhttp = new XMLHttpRequest();
     xhttp.onload = function() {
         var response = xhttp.response;
 
@@ -41,6 +41,7 @@ $(document).ready(function() {
 
     $("#requestform").submit(function(e) {
         e.preventDefault();
+        xhttp = new XMLHttpRequest();
         var value = $("#requestamount").val();
         value = value.toLowerCase();
 

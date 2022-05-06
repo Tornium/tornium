@@ -27,8 +27,8 @@ $(document).ready(function() {
             $('#money-balance').val("ERROR");
             $('#points-balance').val("ERROR");
         } else {
-            $('#money-balance').val(commas(response["money_balance"]));
-            $('#points-balance').val(commas(response["points_balance"]));
+            $('#money-balance').text(commas(response["money_balance"]));
+            $('#points-balance').text(commas(response["points_balance"]));
         }
     }
 

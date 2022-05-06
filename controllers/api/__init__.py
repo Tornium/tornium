@@ -22,7 +22,7 @@ mod.add_url_rule('/api/key', view_func=key.remove_key, methods=['DELETE'])
 
 # /api/faction
 mod.add_url_rule('/api/faction/banking', view_func=banking.banking_request, methods=['POST'])
-mod.add_ulr_rule('/api/faction/banking/vault', view_func=banking.vault_balance, methods=['GET'])
+mod.add_url_rule('/api/faction/banking/vault', view_func=banking.vault_balance, methods=['GET'])
 mod.add_url_rule('/api/faction/group', view_func=group.group_modify, methods=['POST'])
 mod.add_url_rule('/api/faction/recruitment/message', view_func=recruitment.message_send, methods=['POST'])
 mod.add_url_rule('/api/faction/recruitment/recruit', view_func=recruitment.invite_recruit, methods=['POST'])

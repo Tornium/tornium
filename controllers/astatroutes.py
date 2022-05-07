@@ -6,11 +6,10 @@
 import datetime
 import math
 
-import numpy as np
 from flask import Blueprint, request
 from flask_login import login_required
 from mongoengine.queryset.visitor import Q
-from scipy import optimize
+import numpy as np
 
 from controllers.decorators import *
 from models.astatmodel import AStatModel
@@ -186,10 +185,10 @@ def user_data():
 
     stat_entry: AStatModel
     for stat_entry in stat_entries:
-        stat_entry = utils.last(stat_entries)
-
         if stat_entry.tid != tid:
             continue
+
+        print(f'---- BEGIN Attack [{stat_entry.tid}] ----')
 
         user: UserModel
         faction: FactionModel
@@ -214,6 +213,8 @@ def user_data():
             'addedfactiontid': faction,
             'globalstat': stat_entry.globalstat
         })
+
+        defender_base_dmg = []
 
         for step in stat_entry.dbs:
             # print(step['attackerItems'])
@@ -249,10 +250,7 @@ def user_data():
             # Boots - slot 8
             # Gloves - slot 9
 
-            if 'attacker' in step['attacking']:
-                if step['attacking']['attacker']['result'] in ('RELOAD', 'MISS'):
-                    continue
-
+            if 'attacker' in step['attacking'] and step['attacking']['attacker']['result'] not in ('RELOAD', 'MISS'):
                 base = 7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2) + 27 * math.log10(stat_entry.attackerstr / 10) + 30
                 print(f'---- Attacker ----')
                 print(step['attacking'].get('attacker'))
@@ -297,10 +295,8 @@ def user_data():
                     def_str = 'Greater than 64x'
 
                 print(f'Def/Str Ratio: {def_str}')
-            if 'defender' in step['attacking']:
-                if step['attacking']['defender']['result'] in ('RELOAD', 'MISS'):
-                    continue
-
+                print(f'Actual Def/Str Ratio: {8958706/stat_entry.attackerstr}')
+            if 'defender' in step['attacking'] and step['attacking']['defender']['result'] not in ('RELOAD', 'MISS'):
                 print(f'---- Defender ----')
                 print(step['attacking'].get('defender'))
                 print(f'Damage received: {step["attacking"]["defender"]["damageDealed"]["value"]}')
@@ -322,6 +318,7 @@ def user_data():
                     region_multiplier = 0
 
                 base_dmg = step["attacking"]["defender"]["damageDealed"]["damagePure"] / (1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100) / region_multiplier
+                defender_base_dmg.append(base_dmg)
                 print(f'Area multiplier: {region_multiplier}')
                 print(f'Multipliers: {(1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100)}')
                 print(f'Base damage: {base_dmg}')
@@ -330,7 +327,23 @@ def user_data():
                 print(f'Strength: {utils.commas(round(strength))}')
                 print('')
 
-        break
+        print('')
+        defender_base_dmg_std = np.array(defender_base_dmg).std()
+        defender_base_dmg_median = np.median(np.array(defender_base_dmg))
+        print(f'Defender base damage STD: {round(defender_base_dmg_std, 2)}')
+        print(f'Defender base damage median: {defender_base_dmg_median}')
+        normalized_defender_base_dmg = []
+
+        for base_dmg in defender_base_dmg:
+            if base_dmg >= defender_base_dmg_median - defender_base_dmg_std and base_dmg <= defender_base_dmg_median + defender_base_dmg_std:
+                normalized_defender_base_dmg.append(base_dmg)
+
+        defender_base_dmg_normalized_median = np.median(np.array(normalized_defender_base_dmg))
+        print(f'Defender base damage normalized median: {defender_base_dmg_normalized_median}')
+        strength = math.pow(10, ((-27 + math.sqrt(729 - 28 * (30 - defender_base_dmg_normalized_median))) / 14) + 1)
+        print(f'Defender normalized median strength: {utils.commas(round(strength))}')
+        print(f'---- END Attack [{stat_entry.tid}] ----')
+        print('')
 
     user: User = User(tid=tid)
 

@@ -4,10 +4,12 @@
 #  Written by tiksan <webmaster@deek.sh>
 
 from flask import render_template, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 from mongoengine.queryset.visitor import Q
 
+from models.faction import Faction
 from models.factionmodel import FactionModel
+from models.usermodel import UserModel
 import utils
 
 
@@ -58,3 +60,16 @@ def factions_data():
     }
 
     return data
+
+
+@login_required
+def faction_data(tid: int):
+    Faction(tid).refresh(key=current_user.key, force=True)
+    faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+
+    members = []
+
+    for member in UserModel.objects(factionid=tid):
+        members.append(member)
+
+    return render_template('torn/factionmodal.html', faction=faction, members=members)

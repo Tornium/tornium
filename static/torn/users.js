@@ -16,7 +16,7 @@ $(document).ready(function() {
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    $('#user-table tbody').on('click', 'tr', function() {
+    $('#users-table tbody').on('click', 'tr', function() {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             if($('#user-modal').length) {
@@ -31,4 +31,22 @@ $(document).ready(function() {
         xhttp.open('GET', '/torn/user/' + table.row(this).data()[0]);
         xhttp.send();
     });
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if(urlParams.get('tid') !== null) {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            if($('#user-modal').length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+                modal.dispose();
+            }
+
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#user-modal'));
+            modal.show();
+        }
+        xhttp.open('GET', '/torn/user/' + urlParams.get('tid'));
+        xhttp.send();
+    }
 });

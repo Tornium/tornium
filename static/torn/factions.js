@@ -16,7 +16,7 @@ $(document).ready(function() {
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    $('#faction-table tbody').on('click', 'tr', function() {
+    $('#factions-table tbody').on('click', 'tr', function() {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             if($('#faction-modal').length) {
@@ -31,4 +31,22 @@ $(document).ready(function() {
         xhttp.open('GET', '/torn/faction/' + table.row(this).data()[0]);
         xhttp.send();
     });
+    
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if(urlParams.get('tid') !== null) {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            if($('#faction-modal').length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('faction-modal'));
+                modal.dispose();
+            }
+
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#faction-modal'));
+            modal.show();
+        }
+        xhttp.open('GET', '/torn/faction/' + urlParams.get('tid'));
+        xhttp.send();
+    }
 });

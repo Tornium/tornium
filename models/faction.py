@@ -7,6 +7,7 @@ import random
 
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
+from honeybadger import honeybadger
 
 from models.factionmodel import FactionModel
 from models.server import Server
@@ -61,6 +62,24 @@ class Faction:
 
             faction.save()
 
+            for member_id, member_data in faction_data["members"].items():
+                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
+
+                if user is None:
+                    UserModel(
+                        tid=int(member_id),
+                        name=member_data['name'],
+                        level=member_data['level'],
+                        last_action=member_data['last_action']['timestamp'],
+                        status=member_data['last_action']['status']
+                    ).save()
+                else:
+                    user.name = member_data['name']
+                    user.level = member_data['level']
+                    user.last_action = member_data['last_action']['timestamp']
+                    user.status = member_data['last_action']['status']
+                    user.save()
+
         self.tid = tid
         self.name = faction.name
         self.respect = faction.respect
@@ -108,3 +127,51 @@ class Faction:
             raise Exception  # TODO: Make exception more descriptive
 
         return self.config
+
+    def refresh(self, key=None, force=False):
+        now = utils.now()
+
+        if force or (now - self.last_members) > 1800:
+            if key is None:
+                key = current_user.key
+
+                if key == '':
+                    raise Exception  # TODO: Make exception more descriptive
+
+            try:
+                faction_data = tasks.tornget(
+                    f'faction/{self.tid}?selections=basic', key
+                )
+            except utils.TornError as e:
+                utils.get_logger().exception(e)
+                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+                raise e
+
+            faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
+            faction.name = faction_data['name']
+            faction.respect = faction_data['respect']
+            faction.capacity = faction_data['capacity']
+            faction.leader = faction_data['leader']
+            faction.coleader = faction_data['co-leader']
+            faction.last_members = now
+            faction.save()
+
+            for member_id, member_data in faction_data["members"].items():
+                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
+
+                if user is None:
+                    UserModel(
+                        tid=int(member_id),
+                        name=member_data['name'],
+                        level=member_data['level'],
+                        last_action=member_data['last_action']['timestamp'],
+                        status=member_data['last_action']['status'],
+                        factionid=self.tid
+                    ).save()
+                else:
+                    user.name = member_data['name']
+                    user.level = member_data['level']
+                    user.last_action = member_data['last_action']['timestamp']
+                    user.status = member_data['last_action']['status']
+                    user.factionid = self.tid
+                    user.save()

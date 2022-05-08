@@ -1,0 +1,43 @@
+<div class="modal fade" id="faction-modal" tabindex="-1" aria-labelledby="faction-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">{{ faction.name }} [{{ faction.tid }}]</h5>
+                <button class="btn">
+                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">
+                        <i class="fa-solid fa-id-card"></i>
+                    </a>
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Faction Stats
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Name: {{ faction.name }}</li>
+                        <li class="list-group-item">ID: {{ faction.tid }}</li>
+                        <li class="list-group-item">Respect: {{ faction.respect }}</li>
+                        <li class="list-group-item">Leader: <a href="/torn/users?tid={{ faction.leader }}">{{ faction.leader }}</a></li>
+                        <li class="list-group-item">Co-Leader: <a href="/torn/users?tid={{ faction.coleader }}">{{ faction.coleader }}</a></li>
+                    </ul>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Members
+                        <h6 class="card-subtitle mt-1 mb-2 text-muted">Last Updated: {{ faction.last_members|reltime }}</h6>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        {% for member in members %}
+                        <li class="list-group-item"><a href="/torn/users?tid={{ member.tid }}">{{ member.name }} [{{ member.tid }}]</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

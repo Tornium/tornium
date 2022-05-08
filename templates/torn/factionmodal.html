@@ -19,7 +19,7 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">Name: {{ faction.name }}</li>
                         <li class="list-group-item">ID: {{ faction.tid }}</li>
-                        <li class="list-group-item">Respect: {{ faction.respect }}</li>
+                        <li class="list-group-item">Respect: {{ faction.respect|commas }}</li>
                         <li class="list-group-item">Leader: <a href="/torn/users?tid={{ faction.leader }}">{{ faction.leader }}</a></li>
                         <li class="list-group-item">Co-Leader: <a href="/torn/users?tid={{ faction.coleader }}">{{ faction.coleader }}</a></li>
                     </ul>

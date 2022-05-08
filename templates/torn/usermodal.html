@@ -31,6 +31,7 @@
                         <li class="list-group-item">Status: {{ user.status }}</li>
                         <li class="list-group-item">Last Action: {{ user.last_action|tcttime }}</li>
                         <li class="list-group-item">Last Update: {{ user.last_refresh|reltime }}</li>
+                        <li class="list-group-item">Discord: <a href="https://discordapp.com/users/{{ user.discord_id }}">{{ user.discord_id }}</a></li>
                     </ul>
                 </div>
             </div>

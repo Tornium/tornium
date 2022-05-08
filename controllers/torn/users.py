@@ -42,7 +42,7 @@ def users_data():
     elif ordering == 1:
         users_db = users_db.order_by(f"{ordering_direction}name")
     else:
-        users_db = users_db.order_by(f"{ordering_direction}capacity")
+        users_db = users_db.order_by(f"{ordering_direction}level")
 
     count = users_db.count()
     users_db = users_db[start : start + length]

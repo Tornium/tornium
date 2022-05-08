@@ -43,7 +43,7 @@ def factions_data():
     elif ordering == 1:
         factions_db = factions_db.order_by(f"{ordering_direction}name")
     else:
-        factions_db = factions_db.order_by(f"{ordering_direction}capacity")
+        factions_db = factions_db.order_by(f"{ordering_direction}respect")
 
     count = factions_db.count()
     factions_db = factions_db[start : start + length]

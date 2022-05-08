@@ -12,7 +12,7 @@ import utils
 
 
 class Stakeout:
-    def __init__(self, tid, guild=None, user=True, key=''):
+    def __init__(self, tid, guild=None, user=True, key=""):
         if user:
             stakeout = utils.first(UserStakeoutModel.objects(tid=tid))
         else:
@@ -20,40 +20,37 @@ class Stakeout:
 
         if stakeout is None:
             now = utils.now()
-            guilds = {} if guild is None else {str(guild): {'keys': [], 'channel': 0}}
+            guilds = {} if guild is None else {str(guild): {"keys": [], "channel": 0}}
 
             if user:
                 try:
-                    data = tasks.tornget(f'user/{tid}?selections=', key if key != '' else current_user.key)
+                    data = tasks.tornget(
+                        f"user/{tid}?selections=",
+                        key if key != "" else current_user.key,
+                    )
                 except:
                     data = {}
 
                 stakeout = UserStakeoutModel(
-                    tid=tid,
-                    data=data,
-                    guilds=guilds,
-                    last_update=now
+                    tid=tid, data=data, guilds=guilds, last_update=now
                 )
 
             else:
                 try:
-                    data = tasks.tornget(f'faction/{tid}?selections=', key if key != '' else current_user.key)
+                    data = tasks.tornget(
+                        f"faction/{tid}?selections=",
+                        key if key != "" else current_user.key,
+                    )
                 except:
                     data = {}
 
                 stakeout = FactionStakeoutModel(
-                    tid=tid,
-                    data=data,
-                    guilds=guilds,
-                    last_update=now
+                    tid=tid, data=data, guilds=guilds, last_update=now
                 )
 
             stakeout.save()
         elif guild not in stakeout.guilds and guild is not None:
-            stakeout.guilds[str(guild)] = {
-                'keys': [],
-                'channel': 0
-            }
+            stakeout.guilds[str(guild)] = {"keys": [], "channel": 0}
             stakeout.save()
 
         self.tid = tid

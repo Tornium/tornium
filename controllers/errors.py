@@ -6,7 +6,7 @@
 from flask import Blueprint, render_template, request, jsonify
 
 
-mod = Blueprint('errors', __name__)
+mod = Blueprint("errors", __name__)
 
 
 @mod.app_errorhandler(400)
@@ -17,7 +17,7 @@ def error400(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/400.html'), 400
+    return render_template("/errors/400.html"), 400
 
 
 @mod.app_errorhandler(403)
@@ -28,7 +28,7 @@ def error403(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/403.html'), 403
+    return render_template("/errors/403.html"), 403
 
 
 @mod.app_errorhandler(404)
@@ -39,14 +39,22 @@ def error404(e):
     :param e: HTTP error
     """
 
-    if not request.path.startswith('/api') or request.path in ['/api', '/api/documentation']:
-        return render_template('/errors/404.html'), 404
+    if not request.path.startswith("/api") or request.path in [
+        "/api",
+        "/api/documentation",
+    ]:
+        return render_template("/errors/404.html"), 404
     else:
-        return jsonify({
-            'code': 4010,  # TODO: Update code once determined
-            'name': 'EndpointNotFound',
-            'message': 'Server failed to find the requested endpoint'
-        }), 404
+        return (
+            jsonify(
+                {
+                    "code": 4010,  # TODO: Update code once determined
+                    "name": "EndpointNotFound",
+                    "message": "Server failed to find the requested endpoint",
+                }
+            ),
+            404,
+        )
 
 
 @mod.app_errorhandler(422)
@@ -57,7 +65,7 @@ def error422(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/422.html'), 422
+    return render_template("/errors/422.html"), 422
 
 
 @mod.app_errorhandler(500)
@@ -68,7 +76,7 @@ def error500(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/500.html', error=e), 500
+    return render_template("/errors/500.html", error=e), 500
 
 
 @mod.app_errorhandler(501)
@@ -79,7 +87,7 @@ def error501(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/501.html'), 501
+    return render_template("/errors/501.html"), 501
 
 
 @mod.app_errorhandler(503)
@@ -90,4 +98,4 @@ def error503(e):
     :param e: HTTP error
     """
 
-    return render_template('/errors/503.html'), 503
+    return render_template("/errors/503.html"), 503

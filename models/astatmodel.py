@@ -3,7 +3,14 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, ListField, StringField, FloatField, BooleanField
+from mongoengine import (
+    DynamicDocument,
+    IntField,
+    ListField,
+    StringField,
+    FloatField,
+    BooleanField,
+)
 
 
 class AStatModel(DynamicDocument):
@@ -13,7 +20,7 @@ class AStatModel(DynamicDocument):
     timeadded = IntField()
     addedid = IntField()
     addedfactiontid = IntField()
-    status = StringField(default='notStarted')
+    status = StringField(default="notStarted")
     dbs = ListField(default=[])
     attackerstr = FloatField()
     attackerdef = FloatField()

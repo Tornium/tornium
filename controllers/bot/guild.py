@@ -5,7 +5,7 @@
 
 import json
 
-from flask import render_template, abort, request, flash,redirect
+from flask import render_template, abort, request, flash, redirect
 from flask_login import login_required, current_user
 
 from models.faction import Faction
@@ -21,7 +21,7 @@ def dashboard():
     for server in current_user.servers:
         servers.append(Server(int(server)))
 
-    return render_template('bot/dashboard.html', servers=servers)
+    return render_template("bot/dashboard.html", servers=servers)
 
 
 @login_required
@@ -32,26 +32,32 @@ def guild_dashboard(guildid: str):
     server = Server(guildid)
     factions = []
 
-    if request.method == 'POST':
-        if request.form.get('factionid') is not None:
+    if request.method == "POST":
+        if request.form.get("factionid") is not None:
             server_model = utils.first(ServerModel.objects(sid=guildid))
-            server_model.factions.append(int(request.form.get('factionid')))
+            server_model.factions.append(int(request.form.get("factionid")))
             server_model.factions = list(set(server_model.factions))
             server_model.save()
-        elif request.form.get('prefix') is not None:  # TODO: Check if prefix is valid character
-            if len(request.form.get('prefix')) != 1:
-                flash('The length of the bot prefix must be one character long.')
-                return render_template('bot/guild.html', server=server, factions=factions)
+        elif (
+            request.form.get("prefix") is not None
+        ):  # TODO: Check if prefix is valid character
+            if len(request.form.get("prefix")) != 1:
+                flash("The length of the bot prefix must be one character long.")
+                return render_template(
+                    "bot/guild.html", server=server, factions=factions
+                )
 
-            server.prefix = request.form.get('prefix')
+            server.prefix = request.form.get("prefix")
             server_model = utils.first(ServerModel.objects(sid=guildid))
-            server_model.prefix = request.form.get('prefix')
+            server_model.prefix = request.form.get("prefix")
             server_model.save()
 
     for faction in server.factions:
         factions.append(Faction(faction))
 
-    return render_template('bot/guild.html', server=server, factions=factions, guildid=guildid)
+    return render_template(
+        "bot/guild.html", server=server, factions=factions, guildid=guildid
+    )
 
 
 @login_required
@@ -63,4 +69,4 @@ def update_guild(guildid: str, factiontid: int):
     server_model.factions.remove(factiontid)
     server_model.save()
 
-    return redirect(f'/bot/dashboard/{guildid}')
+    return redirect(f"/bot/dashboard/{guildid}")

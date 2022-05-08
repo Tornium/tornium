@@ -18,35 +18,40 @@ import utils
 def chain(*args, **kwargs):
     faction = Faction(current_user.factiontid)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         if not current_user.aa:
             abort(403)
 
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
-        if request.form.get('odchannel') is not None:
+        if request.form.get("odchannel") is not None:
             try:
                 channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
-                return render_template('errors/error.html', title='Discord Networking Error',
-                                       error=f'The Discord API has responded with HTTP error code '
-                                             f'{e.code}.')
+                return render_template(
+                    "errors/error.html",
+                    title="Discord Networking Error",
+                    error=f"The Discord API has responded with HTTP error code "
+                    f"{e.code}.",
+                )
             except Exception as e:
                 raise e
 
             config = faction_model.chainconfig
-            config['odchannel'] = int(channel['id'])
+            config["odchannel"] = int(channel["id"])
             faction_model.save()
-        elif (request.form.get('odenabled') is not None) ^ (request.form.get('oddisabled') is not None):
+        elif (request.form.get("odenabled") is not None) ^ (
+            request.form.get("oddisabled") is not None
+        ):
             config = faction_model.chainconfig
 
-            if request.form.get('odenabled') is not None:
-                config['od'] = 1
+            if request.form.get("odenabled") is not None:
+                config["od"] = 1
                 faction_model.save()
-            if request.form.get('oddisabled') is not None:
-                config['od'] = 0
+            if request.form.get("oddisabled") is not None:
+                config["od"] = 0
                 faction_model.save()
 
-    return render_template('faction/chain.html', faction=faction)
+    return render_template("faction/chain.html", faction=faction)

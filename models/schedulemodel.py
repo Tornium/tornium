@@ -9,7 +9,7 @@ from mongoengine import DynamicDocument, IntField, UUIDField, StringField, DictF
 class ScheduleModel(DynamicDocument):
     uuid = UUIDField(primary_key=True)
     factiontid = IntField(default=0)
-    name = StringField(default='')
+    name = StringField(default="")
     timecreated = IntField(default=0)
     timeupdated = IntField(default=0)
     activity = DictField(default={})

@@ -18,19 +18,19 @@ class Server:
 
         server = utils.first(ServerModel.objects(sid=sid))
         if server is None:
-            guild = tasks.discordget(f'guilds/{sid}')
+            guild = tasks.discordget(f"guilds/{sid}")
 
             server = ServerModel(
                 sid=sid,
-                name=guild['name'],
+                name=guild["name"],
                 admins=[],
-                prefix='?',
-                config={'stakeouts': 0, 'assists': 0},
+                prefix="?",
+                config={"stakeouts": 0, "assists": 0},
                 factions=[],
-                stakeoutconfig={'category': 0},
+                stakeoutconfig={"category": 0},
                 userstakeouts=[],
                 factionstakeouts=[],
-                assistschannel=0
+                assistschannel=0,
             )
             server.save()
 

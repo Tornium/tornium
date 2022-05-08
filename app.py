@@ -18,14 +18,14 @@ from redisdb import get_redis
 
 
 redis = get_redis()
-honeybadger.honeybadger.configure(api_key=redis.get('tornium:settings:honeykey'))
+honeybadger.honeybadger.configure(api_key=redis.get("tornium:settings:honeykey"))
 
 connect(
-    db='Tornium',
-    username=redis.get('tornium:settings:username'),
-    password=redis.get('tornium:settings:password'),
+    db="Tornium",
+    username=redis.get("tornium:settings:username"),
+    password=redis.get("tornium:settings:password"),
     host=f'mongodb://{redis.get("tornium:settings:host")}',
-    connect=False
+    connect=False,
 )
 
 from controllers import mod as base_mod
@@ -40,46 +40,49 @@ from controllers.astatroutes import mod as astat_mod
 from controllers.torn import mod as torn_mod
 import utils
 
-logger = logging.getLogger('server')
+logger = logging.getLogger("server")
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='server.log', encoding='utf-8', mode='a')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
+handler.setFormatter(
+    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
 logger.addHandler(handler)
 
 app = flask.Flask(__name__)
-app.secret_key = redis.get('tornium:settings:secret')
-app.config['HONEYBADGER_ENVIRONMENT'] = redis.get('tornium:settings:honeyenv')
-app.config['HONEYBADGER_API_KEY'] = redis.get('tornium:settings:honeykey')
-app.config['HONEYBADGER_PARAMS_FILTERS'] = 'password, secret, credit-card'
-app.config['REMEMBER_COOKIE_DURATION'] = 604800
+app.secret_key = redis.get("tornium:settings:secret")
+app.config["HONEYBADGER_ENVIRONMENT"] = redis.get("tornium:settings:honeyenv")
+app.config["HONEYBADGER_API_KEY"] = redis.get("tornium:settings:honeykey")
+app.config["HONEYBADGER_PARAMS_FILTERS"] = "password, secret, credit-card"
+app.config["REMEMBER_COOKIE_DURATION"] = 604800
 FlaskHoneybadger(app, report_exceptions=True)
 
-cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'authroutes.login'
-login_manager.refresh_view = 'authroutes.login'
-login_manager.session_protection = 'strong'
+login_manager.login_view = "authroutes.login"
+login_manager.refresh_view = "authroutes.login"
+login_manager.session_protection = "strong"
 
 
 @login_manager.user_loader
 def load_user(user_id):
     from models.user import User
+
     return User(user_id)
 
 
-@app.template_filter('reltime')
+@app.template_filter("reltime")
 def relative_time(s):
     return utils.rel_time(datetime.datetime.fromtimestamp(s))
 
 
-@app.template_filter('tcttime')
+@app.template_filter("tcttime")
 def tct_time(s):
     return utils.torn_timestamp(int(s))
 
 
-@app.template_filter('commas')
+@app.template_filter("commas")
 def commas(s):
     return utils.commas(int(s))
 
@@ -90,7 +93,7 @@ def before_request():
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
 
-if redis.get('tornium:settings:dev') == 'True' and __name__ == "__main__":
+if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":
     app.register_blueprint(base_mod)
     app.register_blueprint(auth_mod)
     app.register_blueprint(faction_mod)
@@ -102,9 +105,9 @@ if redis.get('tornium:settings:dev') == 'True' and __name__ == "__main__":
     app.register_blueprint(astat_mod)
     app.register_blueprint(torn_mod)
 
-    app.run('localhost', 8000, debug=True)
+    app.run("localhost", 8000, debug=True)
 
-if redis.get('tornium:settings:dev') == 'False':
+if redis.get("tornium:settings:dev") == "False":
     app.register_blueprint(base_mod)
     app.register_blueprint(auth_mod)
     app.register_blueprint(faction_mod)

@@ -26,7 +26,9 @@ def aa_required(f):
 def aa_recruitment_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or (not current_user.aa and not current_user.recruiter):
+        if not current_user.is_authenticated or (
+            not current_user.aa and not current_user.recruiter
+        ):
             return abort(403)
         else:
             return f(*args, **kwargs)
@@ -38,14 +40,14 @@ def fac_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if current_user.factiontid == 0:
-            return abort(403, 'User is not in a faction.')
+            return abort(403, "User is not in a faction.")
 
         faction = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
         if faction is None:
-            return abort(403, 'User is not in a faction stored in the database.')
+            return abort(403, "User is not in a faction stored in the database.")
 
-        kwargs['faction'] = faction
+        kwargs["faction"] = faction
         return f(*args, **kwargs)
 
     return wrapper

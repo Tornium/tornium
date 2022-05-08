@@ -26,30 +26,36 @@ class Faction:
 
         faction = utils.first(FactionModel.objects(tid=tid))
         if faction is None:
-            faction_data = tasks.tornget(f'faction/{tid}?selections=basic', key if key != "" else current_user.key)
+            faction_data = tasks.tornget(
+                f"faction/{tid}?selections=basic",
+                key if key != "" else current_user.key,
+            )
             now = utils.now()
 
             faction = FactionModel(
                 tid=tid,
-                name=faction_data['name'],
-                respect=faction_data['respect'],
-                capacity=faction_data['capacity'],
-                leader=faction_data['leader'],
-                coleader=faction_data['co-leader'],
+                name=faction_data["name"],
+                respect=faction_data["respect"],
+                capacity=faction_data["capacity"],
+                leader=faction_data["leader"],
+                coleader=faction_data["co-leader"],
                 last_members=now,
                 guild=0,
-                config={'vault': 0, 'stats': 1},
-                vaultconfig={'banking': 0, 'banker': 0, 'withdrawal': 0},
-                statconfig={'global': 0},
-                chainconfig={'od': 0, 'odchannel': 0},
+                config={"vault": 0, "stats": 1},
+                vaultconfig={"banking": 0, "banker": 0, "withdrawal": 0},
+                statconfig={"global": 0},
+                chainconfig={"od": 0, "odchannel": 0},
                 chainod={},
                 groups=[],
                 pro=False,
-                pro_expiration=0
+                pro_expiration=0,
             )
 
             try:
-                tasks.tornget(f'faction/{tid}?selections=positions', key if key != "" else current_user.key)
+                tasks.tornget(
+                    f"faction/{tid}?selections=positions",
+                    key if key != "" else current_user.key,
+                )
             except utils.TornError:
                 pass
 
@@ -79,11 +85,13 @@ class Faction:
         self.pro_expiration = faction.pro_expiration
 
     def rand_key(self):
-        users = UserModel.objects(Q(factionaa=True) & Q(factionid=self.tid) & Q(key__ne=''))
+        users = UserModel.objects(
+            Q(factionaa=True) & Q(factionid=self.tid) & Q(key__ne="")
+        )
         keys = []
 
         for user in users:
-            if user.key == '':
+            if user.key == "":
                 continue
 
             keys.append(user.key)
@@ -93,7 +101,7 @@ class Faction:
 
     def get_config(self):
         if self.guild == 0:
-            return {'vault': 0, 'stats': 1}
+            return {"vault": 0, "stats": 1}
 
         server = Server(self.guild)
         if self.tid not in server.factions:

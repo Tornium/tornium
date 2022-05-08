@@ -17,10 +17,11 @@ import utils
 
 # 10-12 refers to starting at 10 ending at 12 or [10, 12) mathematically
 
+
 class Schedule:
     def __init__(self, uuid, factiontid=None):
         schedule = utils.first(ScheduleModel.objects(uuid=uuid))
-        
+
         if schedule is None and factiontid is None:
             raise Exception
         elif schedule is None:
@@ -34,10 +35,10 @@ class Schedule:
                 weight={},
                 schedule={},
                 fromts=0,
-                tots=0
+                tots=0,
             )
             schedule.save()
-        
+
         self.uuid = uuid
         self.factiontid = schedule.factiontid
 
@@ -96,20 +97,23 @@ class Schedule:
                 user = User(tid)
                 users[tid] = user
 
-            return math.log10(user.chain_hits) * self.weight[tid] * math.pow(math.e, (
-                - ((tots - fromts) / 3600 - 2) ** 2) / (2 * 0.5 ** 2)) / (0.5 * math.sqrt(2 * math.pi))
+            return (
+                math.log10(user.chain_hits)
+                * self.weight[tid]
+                * math.pow(
+                    math.e, (-(((tots - fromts) / 3600 - 2) ** 2)) / (2 * 0.5**2)
+                )
+                / (0.5 * math.sqrt(2 * math.pi))
+            )
 
         intervals = []
-        temp_schedule = {
-            'primary': {},
-            'backup': {}
-        }
+        temp_schedule = {"primary": {}, "backup": {}}
         temperature = 0
 
         for tid, user_intervals in self.activity.items():
             for interval in user_intervals:
-                fromts = int(interval.split('-')[0])
-                tots = int(interval.split('-')[1])
+                fromts = int(interval.split("-")[0])
+                tots = int(interval.split("-")[1])
 
                 if fromts < self.fromts or tots > self.tots:
                     continue
@@ -137,31 +141,40 @@ class Schedule:
                 midpoint = start + size - 1
                 end = min((start + size * 2 - 1), (len(intervals) - 1))
 
-                if len(intervals[start:midpoint + 1]) == 0:
-                    merged_array = intervals[midpoint + 1:end + 1]
-                elif len(intervals[midpoint + 1:end + 1]) == 0:
-                    merged_array = intervals[start:midpoint + 1]
+                if len(intervals[start : midpoint + 1]) == 0:
+                    merged_array = intervals[midpoint + 1 : end + 1]
+                elif len(intervals[midpoint + 1 : end + 1]) == 0:
+                    merged_array = intervals[start : midpoint + 1]
                 else:
                     merged_array = []
                     index_left = 0
                     index_right = 0
 
-                    while len(merged_array) < len(intervals[start:midpoint + 1]):
-                        if intervals[start:midpoint + 1][index_left] <= intervals[midpoint + 1:end + 1][index_right]:
-                            merged_array.append(intervals[start:midpoint + 1][index_left])
+                    while len(merged_array) < len(intervals[start : midpoint + 1]):
+                        if (
+                            intervals[start : midpoint + 1][index_left]
+                            <= intervals[midpoint + 1 : end + 1][index_right]
+                        ):
+                            merged_array.append(
+                                intervals[start : midpoint + 1][index_left]
+                            )
                             index_left += 1
                         else:
-                            merged_array.append(intervals[midpoint + 1:end + 1][index_right])
+                            merged_array.append(
+                                intervals[midpoint + 1 : end + 1][index_right]
+                            )
                             index_right += 1
 
-                        if index_right == len(intervals[midpoint + 1:end + 1]):
-                            merged_array += intervals[start:midpoint + 1][index_left:]
+                        if index_right == len(intervals[midpoint + 1 : end + 1]):
+                            merged_array += intervals[start : midpoint + 1][index_left:]
                             break
-                        elif index_left == len(intervals[start:midpoint + 1]):
-                            merged_array += intervals[midpoint + 1:end + 1][index_right:]
+                        elif index_left == len(intervals[start : midpoint + 1]):
+                            merged_array += intervals[midpoint + 1 : end + 1][
+                                index_right:
+                            ]
                             break
 
-                intervals[start:start + len(merged_array)] = merged_array
+                intervals[start : start + len(merged_array)] = merged_array
 
             size *= 2
 

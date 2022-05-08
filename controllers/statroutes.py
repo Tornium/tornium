@@ -20,76 +20,104 @@ from models.statmodel import StatModel
 from models.user import User
 from models.usermodel import UserModel
 
-mod = Blueprint('statroutes', __name__)
+mod = Blueprint("statroutes", __name__)
 
 
-@mod.route('/stats')
+@mod.route("/stats")
 def index():
-    return render_template('stats/index.html')
+    return render_template("stats/index.html")
 
 
-@mod.route('/stats/db')
+@mod.route("/stats/db")
 @login_required
 def stats():
-    return render_template('stats/db.html', battlescore=current_user.battlescore)
+    return render_template("stats/db.html", battlescore=current_user.battlescore)
 
 
-@mod.route('/stats/dbdata')
+@mod.route("/stats/dbdata")
 @login_required
 def stats_data():
-    start = int(request.args.get('start'))
-    length = int(request.args.get('length'))
-    search_value = request.args.get('search[value]')
-    ordering = int(request.args.get('order[0][column]'))
-    ordering_direction = request.args.get('order[0][dir]')
-    min_bs = request.args.get('minBS')
-    max_bs = request.args.get('maxBS')
+    start = int(request.args.get("start"))
+    length = int(request.args.get("length"))
+    search_value = request.args.get("search[value]")
+    ordering = int(request.args.get("order[0][column]"))
+    ordering_direction = request.args.get("order[0][dir]")
+    min_bs = request.args.get("minBS")
+    max_bs = request.args.get("maxBS")
 
     stats = []
 
     if utils.get_tid(search_value):
-        stat_entries = StatModel.objects(Q(tid__startswith=utils.get_tid(search_value)) & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid) | Q(allowedfactions=current_user.factiontid)))
+        stat_entries = StatModel.objects(
+            Q(tid__startswith=utils.get_tid(search_value))
+            & (
+                Q(globalstat=True)
+                | Q(addedid=current_user.tid)
+                | Q(addedfactiontid=current_user.factiontid)
+                | Q(allowedfactions=current_user.factiontid)
+            )
+        )
     else:
-        stat_entries = StatModel.objects(Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid) | Q(allowedfactions=current_user.factiontid))
+        stat_entries = StatModel.objects(
+            Q(globalstat=True)
+            | Q(addedid=current_user.tid)
+            | Q(addedfactiontid=current_user.factiontid)
+            | Q(allowedfactions=current_user.factiontid)
+        )
 
-    if min_bs != '' and max_bs != '':
-        stat_entries = stat_entries.filter(Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs)))
+    if min_bs != "" and max_bs != "":
+        stat_entries = stat_entries.filter(
+            Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs))
+        )
 
-    if ordering_direction == 'asc':
-        ordering_direction = '+'
+    if ordering_direction == "asc":
+        ordering_direction = "+"
     else:
-        ordering_direction = '-'
+        ordering_direction = "-"
 
     if ordering == 0:
-        stat_entries = stat_entries.order_by(f'{ordering_direction}tid')
+        stat_entries = stat_entries.order_by(f"{ordering_direction}tid")
     elif ordering == 1:
-        stat_entries = stat_entries.order_by(f'{ordering_direction}battlescore')
+        stat_entries = stat_entries.order_by(f"{ordering_direction}battlescore")
     else:
-        stat_entries = stat_entries.order_by(f'{ordering_direction}timeadded')
+        stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
     count = stat_entries.count()
-    stat_entries = stat_entries[start:start+length]
+    stat_entries = stat_entries[start : start + length]
 
     for stat_entry in stat_entries:
-        stats.append([stat_entry.tid, int(stat_entry.battlescore),
-                      utils.rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded))])
+        stats.append(
+            [
+                stat_entry.tid,
+                int(stat_entry.battlescore),
+                utils.rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
+            ]
+        )
 
     data = {
-        'draw': request.args.get('draw'),
-        'recordsTotal': StatModel.objects().count(),
-        'recordsFiltered': count,
-        'data': stats
+        "draw": request.args.get("draw"),
+        "recordsTotal": StatModel.objects().count(),
+        "recordsFiltered": count,
+        "data": stats,
     }
 
     return data
 
 
-@mod.route('/stats/userdata')
+@mod.route("/stats/userdata")
 @login_required
 def user_data():
-    tid = int(request.args.get('user'))
+    tid = int(request.args.get("user"))
     stats = []
-    stat_entries = StatModel.objects(Q(tid=tid) & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid) | Q(allowedfactions=current_user.factiontid)))
+    stat_entries = StatModel.objects(
+        Q(tid=tid)
+        & (
+            Q(globalstat=True)
+            | Q(addedid=current_user.tid)
+            | Q(addedfactiontid=current_user.factiontid)
+            | Q(allowedfactions=current_user.factiontid)
+        )
+    )
 
     factions = {}
     users = {}
@@ -110,20 +138,25 @@ def user_data():
             faction = utils.first(FactionModel.objects(tid=stat_entry.addedfactiontid))
             factions[str(stat_entry.addedfactiontid)] = faction
 
-        stats.append({
-            'statid': stat_entry.statid,
-            'tid': stat_entry.tid,
-            'battlescore': stat_entry.battlescore,
-            'timeadded': stat_entry.timeadded,
-            'addedid': user,
-            'addedfactiontid': faction,
-            'globalstat': stat_entry.globalstat
-        })
+        stats.append(
+            {
+                "statid": stat_entry.statid,
+                "tid": stat_entry.tid,
+                "battlescore": stat_entry.battlescore,
+                "timeadded": stat_entry.timeadded,
+                "addedid": user,
+                "addedfactiontid": faction,
+                "globalstat": stat_entry.globalstat,
+            }
+        )
 
     user = User(tid=tid)
-    
+
     # If user's last action was over a month ago and last refresh was over a week ago
-    if utils.now() - user.last_action > 30 * 24 * 60 * 60 and utils.now() - user.last_refresh > 604800:
+    if (
+        utils.now() - user.last_action > 30 * 24 * 60 * 60
+        and utils.now() - user.last_refresh > 604800
+    ):
         user.refresh(key=current_user.key)
     elif utils.now() - user.last_action <= 30 * 24 * 60 * 60:
         user.refresh(key=current_user.key)
@@ -133,39 +166,47 @@ def user_data():
     else:
         faction = None
 
-    ff = 1 + (8 / 3 * stats[-1]['battlescore'] / current_user.battlescore)
+    ff = 1 + (8 / 3 * stats[-1]["battlescore"] / current_user.battlescore)
     ff = ff if ff <= 3 else 3
     respect = math.log(user.level + 1) / 4 * ff
 
-    return render_template('stats/statmodal.html', user=user, faction=faction, stats=stats, ff=round(ff, 2),
-                           respect=round(respect, 2))
+    return render_template(
+        "stats/statmodal.html",
+        user=user,
+        faction=faction,
+        stats=stats,
+        ff=round(ff, 2),
+        respect=round(respect, 2),
+    )
 
 
-@mod.route('/stats/chain')
+@mod.route("/stats/chain")
 @login_required
 def chain():
-    return render_template('stats/chain.html', key=current_user.key)
+    return render_template("stats/chain.html", key=current_user.key)
 
 
-@mod.route('/stats/config', methods=['GET', 'POST'])
+@mod.route("/stats/config", methods=["GET", "POST"])
 @login_required
 @aa_required
 def config():
     faction = Faction(current_user.factiontid)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
-        if (request.form.get('enabled') is not None) ^ (request.form.get('disabled') is not None):
+        if (request.form.get("enabled") is not None) ^ (
+            request.form.get("disabled") is not None
+        ):
             config = faction.stat_config
 
-            if request.form.get('enabled') is not None:
-                config['global'] = 1
+            if request.form.get("enabled") is not None:
+                config["global"] = 1
                 faction_model.statconfig = json.dumps(config)
             else:
-                config['global'] = 0
+                config["global"] = 0
                 faction_model.statconfig = json.dumps(config)
 
             faction_model.save()
 
-    return render_template('stats/config.html', config=faction.stat_config)
+    return render_template("stats/config.html", config=faction.stat_config)

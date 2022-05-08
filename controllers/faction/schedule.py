@@ -18,50 +18,61 @@ import utils
 
 @login_required
 def schedule():
-    if request.args.get('uuid') is not None and request.args.get('watchers') is None:
-        schedule = Schedule(request.args.get('uuid'), factiontid=current_user.factiontid)
-        return render_template('faction/schedulemodal.html', sid=schedule.name)
-    elif request.args.get('uuid') is not None and request.args.get('watchers') is not None:
-        schedule = Schedule(request.args.get('uuid'), factiontid=current_user.factiontid)
+    if request.args.get("uuid") is not None and request.args.get("watchers") is None:
+        schedule = Schedule(
+            request.args.get("uuid"), factiontid=current_user.factiontid
+        )
+        return render_template("faction/schedulemodal.html", sid=schedule.name)
+    elif (
+        request.args.get("uuid") is not None
+        and request.args.get("watchers") is not None
+    ):
+        schedule = Schedule(
+            request.args.get("uuid"), factiontid=current_user.factiontid
+        )
         data = []
 
         for tid, userdata in schedule.activity.items():
             modified_userdata = []
 
             for activity in userdata:
-                activity = [int(activity.split('-')[0]), int(activity.split('-')[1])]
+                activity = [int(activity.split("-")[0]), int(activity.split("-")[1])]
                 activity[0] = utils.torn_timestamp(activity[0])
                 activity[1] = utils.torn_timestamp(activity[1])
-                modified_userdata.append(f'{activity[0]} to {activity[1]}')
+                modified_userdata.append(f"{activity[0]} to {activity[1]}")
 
-            data.append([f'{User(tid).name} [{tid}]', modified_userdata, schedule.weight[tid]])
+            data.append(
+                [f"{User(tid).name} [{tid}]", modified_userdata, schedule.weight[tid]]
+            )
 
         return jsonify(data)
 
-    return render_template('faction/schedule.html', key=current_user.key)
+    return render_template("faction/schedule.html", key=current_user.key)
 
 
 @login_required
 def schedule_data():
-    start = int(request.args.get('start'))
-    length = int(request.args.get('length'))
+    start = int(request.args.get("start"))
+    length = int(request.args.get("length"))
     faction = Faction(current_user.factiontid)
     schedules = []
 
     for schedule in ScheduleModel.objects(factiontid=faction.tid):
-        with open(f'{os.getcwd()}/schedule/{schedule.uuid}.json') as file:
+        with open(f"{os.getcwd()}/schedule/{schedule.uuid}.json") as file:
             data = json.load(file)
-            schedules.append([
-                schedule.uuid,
-                data['name'],
-                utils.torn_timestamp(data['timecreated']),
-                utils.torn_timestamp(data['timeupdated'])
-            ])
+            schedules.append(
+                [
+                    schedule.uuid,
+                    data["name"],
+                    utils.torn_timestamp(data["timecreated"]),
+                    utils.torn_timestamp(data["timeupdated"]),
+                ]
+            )
 
     data = {
-        'draw': request.args.get('draw'),
-        'recordsTotal': ScheduleModel.objects().count(),
-        'recordsFiltered': len(schedules),
-        'data': schedules[start:start + length]
+        "draw": request.args.get("draw"),
+        "recordsTotal": ScheduleModel.objects().count(),
+        "recordsFiltered": len(schedules),
+        "data": schedules[start : start + length],
     }
     return data

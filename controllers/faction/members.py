@@ -13,5 +13,5 @@ from models.usermodel import UserModel
 @login_required
 @fac_required
 def members(*args, **kwargs):
-    fac_members = UserModel.objects(factionid=kwargs['faction'].tid)
-    return render_template('faction/members.html', members=fac_members)
+    fac_members = UserModel.objects(factionid=kwargs["faction"].tid)
+    return render_template("faction/members.html", members=fac_members)

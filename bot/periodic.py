@@ -8,7 +8,7 @@ import sys
 from discord.ext import commands, tasks
 import requests
 
-sys.path.append('..')
+sys.path.append("..")
 
 from redisdb import get_redis
 
@@ -18,15 +18,18 @@ class Periodic(commands.Cog):
         self.bot = bot
         self.logger = logger
         self.honeybadger.start()
-        
+
     def cog_unload(self):
         self.honeybadger.cancel()
-        
+
     @tasks.loop(minutes=1)
     async def honeybadger(self):
         redis = get_redis()
 
-        if redis.get('tornium:settings:honeybotcheckin') is None or redis.get('tornium:settings:honeybotcheckin') == '':
+        if (
+            redis.get("tornium:settings:honeybotcheckin") is None
+            or redis.get("tornium:settings:honeybotcheckin") == ""
+        ):
             return
 
-        requests.get(redis.get('tornium:settings:honeybotcheckin'))
+        requests.get(redis.get("tornium:settings:honeybotcheckin"))

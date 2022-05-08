@@ -3,16 +3,23 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, StringField, ListField, BooleanField, FloatField
+from mongoengine import (
+    DynamicDocument,
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    FloatField,
+)
 
 
 class UserModel(DynamicDocument):
     tid = IntField(primary_key=True)
-    name = StringField(default='')
+    name = StringField(default="")
     level = IntField(default=0)
     last_refresh = IntField(default=0)
     admin = BooleanField(default=False)
-    key = StringField(default='')
+    key = StringField(default="")
     battlescore = FloatField(default=0.0)
     battlescore_update = IntField(default=0)
     strength = FloatField(default=0.0)
@@ -26,11 +33,11 @@ class UserModel(DynamicDocument):
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)
     recruiter = BooleanField(default=False)
-    recruiter_code = StringField(default='')
+    recruiter_code = StringField(default="")
     recruit_mail_update = IntField(default=0)
     chain_hits = IntField(default=0)
 
-    status = StringField(default='')
+    status = StringField(default="")
     last_action = IntField(default=0)
 
     pro = BooleanField(default=False)

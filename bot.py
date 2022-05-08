@@ -19,14 +19,14 @@ import settings  # Do not remove - initializes redis values
 import utils
 
 redis = get_redis()
-honeybadger.honeybadger.configure(api_key=redis.get('tornium:settings:honeykey'))
+honeybadger.honeybadger.configure(api_key=redis.get("tornium:settings:honeykey"))
 
 connect(
-    db='Tornium',
-    username=redis.get('tornium:settings:username'),
-    password=redis.get('tornium:settings:password'),
+    db="Tornium",
+    username=redis.get("tornium:settings:username"),
+    password=redis.get("tornium:settings:password"),
     host=f'mongodb://{redis.get("tornium:settings:host")}',
-    connect=False
+    connect=False,
 )
 
 from bot import botutils
@@ -40,16 +40,20 @@ from models.usermodel import UserModel
 import tasks
 import utils
 
-botlogger = logging.getLogger('bot')
+botlogger = logging.getLogger("bot")
 botlogger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='a')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler = logging.FileHandler(filename="bot.log", encoding="utf-8", mode="a")
+handler.setFormatter(
+    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
 botlogger.addHandler(handler)
 
 client = discord.client.Client()
 intents = discord.Intents.all()
 
-bot = commands.Bot(command_prefix=botutils.get_prefix, help_command=None, intents=intents)
+bot = commands.Bot(
+    command_prefix=botutils.get_prefix, help_command=None, intents=intents
+)
 
 
 @bot.event
@@ -60,7 +64,7 @@ async def on_ready():
         print(f"- {guild.id} (name: {guild.name})")
         guild_count += 1
 
-    print(f'Bot is in {guild_count} guilds.')
+    print(f"Bot is in {guild_count} guilds.")
 
     bot.add_cog(Periodic(bot, botlogger))
     bot.add_cog(Vault(bot, botlogger))
@@ -72,18 +76,13 @@ async def on_guild_join(guild):
         sid=guild.id,
         name=guild.name,
         admins=[],
-        prefix='?',
-        config={
-            'stakeouts': 0,
-            'assists': 0
-        },
+        prefix="?",
+        config={"stakeouts": 0, "assists": 0},
         factions=[],
-        stakeoutconfig={
-            'category': 0
-        },
+        stakeoutconfig={"category": 0},
         userstakeouts=[],
         factionstakeouts=[],
-        assistschannel=0
+        assistschannel=0,
     )
 
     for member in guild.members:
@@ -123,24 +122,37 @@ async def on_message(message):
 
     server = Server(message.guild.id)
 
-    if 'assists' in server.config and server.config['assists'] == 1 and server.assistschannel == message.channel.id:
+    if (
+        "assists" in server.config
+        and server.config["assists"] == 1
+        and server.assistschannel == message.channel.id
+    ):
         await message.delete()
         messages = []
         content = message.content
 
         parsed_url = urlparse(content)
 
-        if parsed_url.hostname == 'www.torn.com' and parsed_url.path in ('/loader.php', '/loader2.php') and \
-                parse_qs(parsed_url.query)["sid"][0] in ('attack', 'getInAttack'):
+        if (
+            parsed_url.hostname == "www.torn.com"
+            and parsed_url.path in ("/loader.php", "/loader2.php")
+            and parse_qs(parsed_url.query)["sid"][0] in ("attack", "getInAttack")
+        ):
             embed = discord.Embed()
-            embed.title = f'{message.author.nick if message.author.nick is not None else message.author.name} has ' \
-                          f'requested an assist from {message.guild.name}:'
-            embed.description = f'[{content}]({content})'
+            embed.title = (
+                f"{message.author.nick if message.author.nick is not None else message.author.name} has "
+                f"requested an assist from {message.guild.name}:"
+            )
+            embed.description = f"[{content}]({content})"
             embed.timestamp = datetime.datetime.utcnow()
             embed.set_footer(text=utils.torn_timestamp())
 
             for server in ServerModel.objects(assistchannel__ne=0):
-                if 'assists' not in server.config or server.config['assists'] == 0 or server.assistschannel == 0:
+                if (
+                    "assists" not in server.config
+                    or server.config["assists"] == 0
+                    or server.assistschannel == 0
+                ):
                     continue
 
                 try:
@@ -163,13 +175,14 @@ async def on_message(message):
                 tid = parse_qs(urlparse(content).query)
 
                 try:
-                    user_data = tasks.tornget(f'user/{tid["user2ID"][0]}?selections=',
-                                              key=User(random.choice(server.admins)).key)
+                    user_data = tasks.tornget(
+                        f'user/{tid["user2ID"][0]}?selections=',
+                        key=User(random.choice(server.admins)).key,
+                    )
                 except utils.TornError as e:
-                    honeybadger.honeybadger.notify(e, context={
-                        'code': e.code,
-                        'endpoint': e.endpoint
-                    })
+                    honeybadger.honeybadger.notify(
+                        e, context={"code": e.code, "endpoint": e.endpoint}
+                    )
                     utils.get_logger().exception(e)
                     return None
                 except Exception as e:
@@ -177,17 +190,25 @@ async def on_message(message):
                     utils.get_logger().exception(e)
                     return None
 
-                embed.add_field(name='Target', value=f'{user_data["name"]} [{user_data["player_id"]}]')
-                embed.add_field(name='Level', value=user_data["level"])
+                embed.add_field(
+                    name="Target",
+                    value=f'{user_data["name"]} [{user_data["player_id"]}]',
+                )
+                embed.add_field(name="Level", value=user_data["level"])
 
                 if user_data["faction"]["faction_id"] == 0:
-                    faction = 'None'
+                    faction = "None"
                 else:
-                    faction = f'[{user_data["faction"]["faction_name"]}](https://www.torn.com/factions.php?step=' \
-                              f'profile&ID={user_data["faction"]["faction_id"]})'
+                    faction = (
+                        f'[{user_data["faction"]["faction_name"]}](https://www.torn.com/factions.php?step='
+                        f'profile&ID={user_data["faction"]["faction_id"]})'
+                    )
 
-                embed.add_field(name='Faction', value=faction)
-                embed.add_field(name='Life', value=f'{user_data["life"]["current"]}/{user_data["life"]["maximum"]}')
+                embed.add_field(name="Faction", value=faction)
+                embed.add_field(
+                    name="Life",
+                    value=f'{user_data["life"]["current"]}/{user_data["life"]["maximum"]}',
+                )
 
                 for message in messages:
                     await message.edit(embed=embed)
@@ -207,17 +228,19 @@ async def on_message(message):
 
         if faction is None:
             continue
-        elif faction.vaultconfig['withdrawal'] == 0:
+        elif faction.vaultconfig["withdrawal"] == 0:
             continue
 
         ctx = await bot.get_context(message)
 
-        if message.channel.id == faction.vaultconfig['withdrawal'] and not ctx.valid:
+        if message.channel.id == faction.vaultconfig["withdrawal"] and not ctx.valid:
             await message.delete()
             embed = discord.Embed()
             embed.title = "Bot Channel"
-            embed.description = "This channel is only for vault withdrawals. Please do not post any other messages in" \
-                                " this channel."
+            embed.description = (
+                "This channel is only for vault withdrawals. Please do not post any other messages in"
+                " this channel."
+            )
             message = await message.channel.send(embed=embed)
             await asyncio.sleep(30)
             await message.delete()
@@ -228,16 +251,16 @@ async def on_message(message):
 
 @bot.command()
 async def ping(ctx):
-    '''
+    """
     Shows the ping to the server
-    '''
+    """
 
     latency = bot.latency
-    botlogger.info(f'Latency: {latency}')
+    botlogger.info(f"Latency: {latency}")
 
     embed = discord.Embed()
     embed.title = "Latency"
-    embed.description = f'{latency} seconds'
+    embed.description = f"{latency} seconds"
     await ctx.send(embed=embed)
 
 
@@ -245,14 +268,22 @@ async def ping(ctx):
 async def help(ctx):
     embed = discord.Embed()
     embed.title = "Bot Help"
-    embed.description = "Take a look at the [documentation](https://torn.deek.sh/bot/documentation) if you need any " \
-                        "help."
-    embed.add_field(name="General Information", value="[Tornium](https://torn.deek.sh/) | "
-                                                      "[Tornium Bot](https://torn.deek.sh/bot)")
-    embed.add_field(name="Support Server", value="[tiksan](https://discordapp.com/users/695828257949352028)")
+    embed.description = (
+        "Take a look at the [documentation](https://torn.deek.sh/bot/documentation) if you need any "
+        "help."
+    )
+    embed.add_field(
+        name="General Information",
+        value="[Tornium](https://torn.deek.sh/) | "
+        "[Tornium Bot](https://torn.deek.sh/bot)",
+    )
+    embed.add_field(
+        name="Support Server",
+        value="[tiksan](https://discordapp.com/users/695828257949352028)",
+    )
     await ctx.send(embed=embed)
 
 
 if __name__ == "__main__":
     redis = get_redis()
-    bot.run(redis.get('tornium:settings:bottoken'))
+    bot.run(redis.get("tornium:settings:bottoken"))

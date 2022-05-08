@@ -14,7 +14,7 @@ import utils
 
 
 class User(UserMixin):
-    def __init__(self, tid, key='', access=3):
+    def __init__(self, tid, key="", access=3):
         """
         Retrieves the user from the database.
 
@@ -25,7 +25,7 @@ class User(UserMixin):
         if user is None:
             user = UserModel(
                 tid=tid,
-                name='',
+                name="",
                 level=0,
                 last_refresh=0,
                 admin=False,
@@ -38,13 +38,13 @@ class User(UserMixin):
                 factionid=0,
                 factionaa=False,
                 recruiter=False,
-                recruiter_code='',
+                recruiter_code="",
                 recruiter_mail_update=0,
                 chain_hits=0,
-                status='',
+                status="",
                 last_action=0,
                 pro=False,
-                pro_expiration=0
+                pro_expiration=0,
             )
             user.save()
 
@@ -79,50 +79,59 @@ class User(UserMixin):
 
     def refresh(self, key=None, force=False):
         now = utils.now()
-        
+
         if force or (now - self.last_refresh) > 1800:
             if self.key != "":
                 key = self.key
             elif key is None:
                 key = current_user.key
-                if key == '':
+                if key == "":
                     raise Exception  # TODO: Make exception more descriptive
 
             try:
                 if key == self.key:
-                    user_data = tasks.tornget(f'user/?selections=profile,battlestats,discord', key)
+                    user_data = tasks.tornget(
+                        f"user/?selections=profile,battlestats,discord", key
+                    )
                 else:
-                    user_data = tasks.tornget(f'user/{self.tid}?selections=profile,discord', key)
+                    user_data = tasks.tornget(
+                        f"user/{self.tid}?selections=profile,discord", key
+                    )
             except utils.TornError as e:
                 utils.get_logger().exception(e)
-                honeybadger.notify(e, context={
-                    'code': e.code,
-                    'endpoint': e.endpoint
-                })
+                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
             user = utils.first(UserModel.objects(tid=self.tid))
-            user.factionid = user_data['faction']['faction_id']
-            user.name = user_data['name']
+            user.factionid = user_data["faction"]["faction_id"]
+            user.name = user_data["name"]
             user.last_refresh = now
-            user.status = user_data['last_action']['status']
-            user.last_action = user_data['last_action']['timestamp']
-            user.level = user_data['level']
-            user.discord_id = user_data['discord']['discordID'] if user_data['discord']['discordID'] != '' else 0
+            user.status = user_data["last_action"]["status"]
+            user.last_action = user_data["last_action"]["timestamp"]
+            user.level = user_data["level"]
+            user.discord_id = (
+                user_data["discord"]["discordID"]
+                if user_data["discord"]["discordID"] != ""
+                else 0
+            )
 
             if key == self.key:
-                user.battlescore = math.sqrt(user_data['strength']) + math.sqrt(user_data['speed']) + \
-                                   math.sqrt(user_data['speed']) + math.sqrt(user_data['dexterity'])
+                user.battlescore = (
+                    math.sqrt(user_data["strength"])
+                    + math.sqrt(user_data["speed"])
+                    + math.sqrt(user_data["speed"])
+                    + math.sqrt(user_data["dexterity"])
+                )
                 user.battlescore_update = now
 
             user.save()
 
-            self.name = user_data['name']
-            self.factiontid = user_data['faction']['faction_id']
+            self.name = user_data["name"]
+            self.factiontid = user_data["faction"]["faction_id"]
             self.last_refresh = now
-            self.status = user_data['last_action']['status']
-            self.last_action = user_data['last_action']['timestamp']
-            self.level = user_data['level']
+            self.status = user_data["last_action"]["status"]
+            self.last_action = user_data["last_action"]["timestamp"]
+            self.level = user_data["level"]
             self.battlescore = user.battlescore
             self.battlescore_update = now
             self.discord_id = user.discord_id
@@ -133,7 +142,7 @@ class User(UserMixin):
         user = utils.first(UserModel.objects(tid=self.tid))
 
         try:
-            tasks.tornget(f'faction/?selections=positions', self.key)
+            tasks.tornget(f"faction/?selections=positions", self.key)
         except:
             self.aa = False
             user.factionaa = False
@@ -146,7 +155,7 @@ class User(UserMixin):
 
     def get_id(self):
         return self.tid
-    
+
     def is_aa(self):
         return self.aa
 

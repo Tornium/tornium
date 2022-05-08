@@ -21,89 +21,111 @@ def bot(*args, **kwargs):
     faction = Faction(current_user.factiontid)
 
     if faction.guild == 0:
-        vault_config = {'banking': 0, 'banker': 0, 'withdrawal': 0}
-        config = {'vault': 0, 'stats': 1}
-        flash('Remember to set the faction server before performing any other setup.')
+        vault_config = {"banking": 0, "banker": 0, "withdrawal": 0}
+        config = {"vault": 0, "stats": 1}
+        flash("Remember to set the faction server before performing any other setup.")
     else:
         server = Server(faction.guild)
 
         if faction.tid not in server.factions:
-            vault_config = {'banking': 0, 'banker': 0, 'withdrawal': 0}
-            config = {'vault': 0, 'stats': 1}
-            flash('Remember to add the faction to the server\'s list of factions before performing any other setup')
+            vault_config = {"banking": 0, "banker": 0, "withdrawal": 0}
+            config = {"vault": 0, "stats": 1}
+            flash(
+                "Remember to add the faction to the server's list of factions before performing any other setup"
+            )
         else:
             vault_config = faction.vault_config
             config = faction.config
 
-    if request.method == 'POST':
+    if request.method == "POST":
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
-        if request.form.get('guildid') is not None:
+        if request.form.get("guildid") is not None:
             try:
                 tasks.discordget(f'guilds/{request.form.get("guildid")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
-                return render_template('errors/error.html', title='Discord Networking Error',
-                                       error=f'The Discord API has responded with HTTP error code '
-                                             f'{utils.remove_str(str(e))}.')
+                return render_template(
+                    "errors/error.html",
+                    title="Discord Networking Error",
+                    error=f"The Discord API has responded with HTTP error code "
+                    f"{utils.remove_str(str(e))}.",
+                )
             except Exception as e:
-                return render_template('errors/error.html', title='Error', error=str(e))
+                return render_template("errors/error.html", title="Error", error=str(e))
 
-            faction.guild = request.form.get('guildid')
-            faction_model.guild = request.form.get('guildid')
+            faction.guild = request.form.get("guildid")
+            faction_model.guild = request.form.get("guildid")
             faction_model.save()
-        elif request.form.get('withdrawal') is not None:
+        elif request.form.get("withdrawal") is not None:
             try:
                 channel = tasks.discordget(f'channels/{request.form.get("withdrawal")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
-                return render_template('errors/error.html', title='Discord Networking Error',
-                                       error=f'The Discord API has responded with HTTP error code '
-                                             f'{utils.remove_str(str(e))}.')
+                return render_template(
+                    "errors/error.html",
+                    title="Discord Networking Error",
+                    error=f"The Discord API has responded with HTTP error code "
+                    f"{utils.remove_str(str(e))}.",
+                )
             except Exception as e:
-                return render_template('errors/error.html', title='Error', error=str(e))
+                return render_template("errors/error.html", title="Error", error=str(e))
 
-            faction_model.vaultconfig['withdrawal'] = int(channel['id'])
+            faction_model.vaultconfig["withdrawal"] = int(channel["id"])
             faction_model.save()
-        elif request.form.get('banking') is not None:
+        elif request.form.get("banking") is not None:
             try:
                 channel = tasks.discordget(f'channels/{request.form.get("banking")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
-                return render_template('errors/error.html', title='Discord Networking Error',
-                                       error=f'The Discord API has responded with HTTP error code '
-                                             f'{utils.remove_str(str(e))}.')
+                return render_template(
+                    "errors/error.html",
+                    title="Discord Networking Error",
+                    error=f"The Discord API has responded with HTTP error code "
+                    f"{utils.remove_str(str(e))}.",
+                )
             except Exception as e:
-                return render_template('errors/error.html', title='Error', error=str(e))
+                return render_template("errors/error.html", title="Error", error=str(e))
 
-            faction_model.vaultconfig['banking'] = int(channel['id'])
+            faction_model.vaultconfig["banking"] = int(channel["id"])
             faction_model.save()
-        elif request.form.get('banker') is not None:
+        elif request.form.get("banker") is not None:
             try:
-                roles = tasks.discordget(f'guilds/{faction.guild}/roles')
+                roles = tasks.discordget(f"guilds/{faction.guild}/roles")
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
-                return render_template('errors/error.html', title='Discord Networking Error',
-                                       error=f'The Discord API has responded with HTTP error code '
-                                             f'{utils.remove_str(str(e))}.')
+                return render_template(
+                    "errors/error.html",
+                    title="Discord Networking Error",
+                    error=f"The Discord API has responded with HTTP error code "
+                    f"{utils.remove_str(str(e))}.",
+                )
             except Exception as e:
-                return render_template('errors/error.html', title='Error', error=str(e))
+                return render_template("errors/error.html", title="Error", error=str(e))
 
             for role in roles:  # TODO: Add error message for role not found in server
-                if role['id'] == request.form.get('banker'):
-                    faction_model.vaultconfig['banker'] = int(request.form.get('banker'))
+                if role["id"] == request.form.get("banker"):
+                    faction_model.vaultconfig["banker"] = int(
+                        request.form.get("banker")
+                    )
                     faction_model.save()
-        elif (request.form.get('enabled') is not None) ^ (request.form.get('disabled') is not None):
-            if request.form.get('enabled') is not None:
-                faction_model.config['vault'] = 1
+        elif (request.form.get("enabled") is not None) ^ (
+            request.form.get("disabled") is not None
+        ):
+            if request.form.get("enabled") is not None:
+                faction_model.config["vault"] = 1
             else:
-                faction_model.config['vault'] = 0
+                faction_model.config["vault"] = 0
 
             faction_model.save()
 
-    return render_template('faction/bot.html', guildid=faction.guild, vault_config=vault_config,
-                           config=config)
+    return render_template(
+        "faction/bot.html",
+        guildid=faction.guild,
+        vault_config=vault_config,
+        config=config,
+    )

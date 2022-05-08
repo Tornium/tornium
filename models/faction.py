@@ -68,16 +68,16 @@ class Faction:
                 if user is None:
                     UserModel(
                         tid=int(member_id),
-                        name=member_data['name'],
-                        level=member_data['level'],
-                        last_action=member_data['last_action']['timestamp'],
-                        status=member_data['last_action']['status']
+                        name=member_data["name"],
+                        level=member_data["level"],
+                        last_action=member_data["last_action"]["timestamp"],
+                        status=member_data["last_action"]["status"],
                     ).save()
                 else:
-                    user.name = member_data['name']
-                    user.level = member_data['level']
-                    user.last_action = member_data['last_action']['timestamp']
-                    user.status = member_data['last_action']['status']
+                    user.name = member_data["name"]
+                    user.level = member_data["level"]
+                    user.last_action = member_data["last_action"]["timestamp"]
+                    user.status = member_data["last_action"]["status"]
                     user.save()
 
         self.tid = tid
@@ -135,12 +135,12 @@ class Faction:
             if key is None:
                 key = current_user.key
 
-                if key == '':
+                if key == "":
                     raise Exception  # TODO: Make exception more descriptive
 
             try:
                 faction_data = tasks.tornget(
-                    f'faction/{self.tid}?selections=basic', key
+                    f"faction/{self.tid}?selections=basic", key
                 )
             except utils.TornError as e:
                 utils.get_logger().exception(e)
@@ -148,11 +148,11 @@ class Faction:
                 raise e
 
             faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
-            faction.name = faction_data['name']
-            faction.respect = faction_data['respect']
-            faction.capacity = faction_data['capacity']
-            faction.leader = faction_data['leader']
-            faction.coleader = faction_data['co-leader']
+            faction.name = faction_data["name"]
+            faction.respect = faction_data["respect"]
+            faction.capacity = faction_data["capacity"]
+            faction.leader = faction_data["leader"]
+            faction.coleader = faction_data["co-leader"]
             faction.last_members = now
             faction.save()
 
@@ -162,16 +162,16 @@ class Faction:
                 if user is None:
                     UserModel(
                         tid=int(member_id),
-                        name=member_data['name'],
-                        level=member_data['level'],
-                        last_action=member_data['last_action']['timestamp'],
-                        status=member_data['last_action']['status'],
-                        factionid=self.tid
+                        name=member_data["name"],
+                        level=member_data["level"],
+                        last_action=member_data["last_action"]["timestamp"],
+                        status=member_data["last_action"]["status"],
+                        factionid=self.tid,
                     ).save()
                 else:
-                    user.name = member_data['name']
-                    user.level = member_data['level']
-                    user.last_action = member_data['last_action']['timestamp']
-                    user.status = member_data['last_action']['status']
+                    user.name = member_data["name"]
+                    user.level = member_data["level"]
+                    user.last_action = member_data["last_action"]["timestamp"]
+                    user.status = member_data["last_action"]["status"]
                     user.factionid = self.tid
                     user.save()

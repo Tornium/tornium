@@ -72,4 +72,4 @@ def faction_data(tid: int):
     for member in UserModel.objects(factionid=tid):
         members.append(member)
 
-    return render_template('torn/factionmodal.html', faction=faction, members=members)
+    return render_template("torn/factionmodal.html", faction=faction, members=members)

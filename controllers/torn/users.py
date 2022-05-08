@@ -66,4 +66,4 @@ def user_data(tid: int):
     User(tid).refresh(key=current_user.key, force=True)
     user: UserModel = utils.first(UserModel.objects(tid=tid))
 
-    return render_template('torn/usermodal.html', user=user)
+    return render_template("torn/usermodal.html", user=user)

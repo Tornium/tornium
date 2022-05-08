@@ -49,4 +49,20 @@ $(document).ready(function() {
         xhttp.open('GET', '/torn/faction/' + urlParams.get('tid'));
         xhttp.send();
     }
+
+    $('#factionid-button').on('click', function() {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            if($('#faction-modal').length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('faction-modal'));
+                modal.dispose();
+            }
+
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#faction-modal'));
+            modal.show();
+        }
+        xhttp.open('GET', '/torn/faction/' + $('#factionid-input').val());
+        xhttp.send();
+    });
 });

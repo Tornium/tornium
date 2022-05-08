@@ -49,4 +49,20 @@ $(document).ready(function() {
         xhttp.open('GET', '/torn/user/' + urlParams.get('tid'));
         xhttp.send();
     }
+
+    $('#userid-button').on('click', function() {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            if($('#user-modal').length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+                modal.dispose();
+            }
+
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#user-modal'));
+            modal.show();
+        }
+        xhttp.open('GET', '/torn/user/' + $('#userid-input').val());
+        xhttp.send();
+    });
 });

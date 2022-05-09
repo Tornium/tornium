@@ -20,22 +20,19 @@ function commas(number) {
 
 
 function reltime(timestamp) {
-    var now = new Date(),
-    secondsPast = (now.getTime() - timestamp) / 1000;
-    
-    if (secondsPast < 60) {
-        return parseInt(secondsPast) + 's';
-    }
-    if (secondsPast < 3600) {
-        return parseInt(secondsPast / 60) + 'm';
-    }
-    if (secondsPast <= 86400) {
-        return parseInt(secondsPast / 3600) + 'h';
-    }
-    if (secondsPast > 86400) {
-        day = timeStamp.getDate();
-        month = timeStamp.toDateString().match(/ [a-zA-Z]*/)[0].replace(" ", "");
-        year = timeStamp.getFullYear() == now.getFullYear() ? "" : " " + timeStamp.getFullYear();
-        return day + " " + month + year;
+    delta = new Date().getTime() - timestamp;
+
+    if(delta < 60) {  // One minute
+        return "Now";
+    } else if(delta < 3600) {  // Sixty minutes
+        return Number(delta/60) + " minutes ago";
+    } else if(delta < 86400) {  // One day
+        return Number(delta/3600) + " hours ago";
+    } else if(delta < 2592000) {  // Thirty days
+        return Number(delta/86400) + " days ago";
+    } else if(delta < 31104000) {  // Twleve months
+        return Number(delta/2592000) + " months ago";
+    } else {
+        return "A long time ago";
     }
 }

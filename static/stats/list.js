@@ -50,14 +50,48 @@ $(document).ready(function() {
                             <tr>
                                 <td>${counter}</td>
                                 <td>${user["user"]["username"]}</td>
+                                <td>${user["user"]["level"]}
                                 <td>${ff.toFixed(2)}</td>
                                 <td>${(ff * baseRespect).toFixed(2)}</td>
-                                <td>${formatTS(user["timeadded"])}</td>
-                                <td>${formatTS(user["user"]["last_action"])}</td>
+                                <td data-order="${user["timeadded"]}">${formatTS(user["timeadded"])}</td>
+                                <td data-order="${user["user"]["last_action"]}">${formatTS(user["user"]["last_action"])}</td>
                             </tr>
                             `;
                             tableBody.appendChild(newNode);
                             counter += 1;
+                        });
+
+                        $('#targets-table').DataTable({
+                            "processing": true,
+                            "serverSide": false,
+                            "ordering": true,
+                            "responsive": true,
+                            "paging": false,
+                            "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
+                        })
+
+                        $('#targets-table tbody').on('click', 'tr', function() {
+                            const xhttp = new XMLHttpRequest();
+                            xhttp.onload = function() {
+                                if($('#target-modal').length) {
+                                    var modal = bootstrap.Modal.getInstance(document.getElementById('target-modal'));
+                                    modal.dispose; 
+                                }
+
+                                document.getElementById('modal').innerHTML = this.responseText;
+                                var modal = new bootstrap.Modal($('#target-modal'));
+                                $('#user-table').DataTable({
+                                    "paging": true,
+                                    "ordering": true,
+                                    "responsive": true,
+                                    "autoWidth": false,
+                                    "order": [[0, "desc"]]
+                                });
+                                modal.show();
+
+                                xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
+                                xhttp.send();
+                            }
                         });
                     }
                 }

@@ -51,8 +51,8 @@ $(document).ready(function() {
                                 <td>${user["user"]["level"]}
                                 <td>${ff.toFixed(2)}</td>
                                 <td>${(ff * baseRespect).toFixed(2)}</td>
-                                <td data-order="${user["timeadded"]}">${formatTS(user["timeadded"])}</td>
-                                <td data-order="${user["user"]["last_action"]}">${formatTS(user["user"]["last_action"])}</td>
+                                <td data-order="${user["timeadded"]}">${reltime(user["timeadded"])}</td>
+                                <td data-order="${user["user"]["last_action"]}">${retltime(user["user"]["last_action"])}</td>
                             </tr>
                             `;
                             tableBody.appendChild(newNode);

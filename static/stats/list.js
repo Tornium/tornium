@@ -35,37 +35,11 @@ $(document).ready(function() {
                     var counter = 1
 
                     if ("code" in userResponse) {
-                        response["data"].forEach(function(user) {
-                            console.log(user)
-                            var tableBody = document.getElementById('chain-table-body');
-                            var newNode = document.createElement('tr');
-
-                            newNode.innerHTML = `
-                            <tr>
-                                <th scope="col">${counter}</th>
-                                <th scope="col">Error</th>
-                                <th scope="col">Error</th>
-                                <th scope="col">Error</th>
-                                <th scope="col">${formatTS(user["timeadded"])}</th>
-                                <th scope="col">${formatTS(user["user"]["last_action"])}</th>
-                                <th scope="col">
-                                    <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${user['tid']}">
-                                        <i class="fas fa-crosshairs"></i>
-                                    </a>
-                                    
-                                    <a href="https://www.torn.com/profiles.php?XID=${user['tid']}">
-                                        <i class="fas fa-id-card-alt"></i>
-                                    </a>
-                                </th>
-                            </tr>
-                            `;
-                            tableBody.appendChild(newNode);
-                            counter += 1;
-                        });
+                        generateToast("Chain List Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
                     } else {
                         response["data"].forEach(function(user) {
                             console.log(user)
-                            var tableBody = document.getElementById('chain-table-body');
+                            var tableBody = document.getElementById('targets-table-body');
                             var newNode = document.createElement('tr');
 
                             var ff = 1 + 8/3 * user["battlescore"] / userResponse["battlescore"];
@@ -74,21 +48,12 @@ $(document).ready(function() {
 
                             newNode.innerHTML = `
                             <tr>
-                                <th scope="col">${counter}</th>
-                                <th scope="col">${user["user"]["username"]}</th>
-                                <th scope="col">${ff.toFixed(2)}</th>
-                                <th scope="col">${(ff * baseRespect).toFixed(2)}</th>
-                                <th scope="col">${formatTS(user["timeadded"])}</th>
-                                <th scope="col">${formatTS(user["user"]["last_action"])}</th>
-                                <th scope="col">
-                                    <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${user['tid']}">
-                                        <i class="fas fa-crosshairs"></i>
-                                    </a>
-                                    
-                                    <a href="https://www.torn.com/profiles.php?XID=${user['tid']}">
-                                        <i class="fas fa-id-card-alt"></i>
-                                    </a>
-                                </th>
+                                <td>${counter}</td>
+                                <td>${user["user"]["username"]}</td>
+                                <td>${ff.toFixed(2)}</td>
+                                <td>${(ff * baseRespect).toFixed(2)}</td>
+                                <td>${formatTS(user["timeadded"])}</td>
+                                <td>${formatTS(user["user"]["last_action"])}</td>
                             </tr>
                             `;
                             tableBody.appendChild(newNode);

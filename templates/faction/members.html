@@ -47,26 +47,26 @@ Tornium - Faction Members
                                 <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit">{{ member.name }} [{{ member.tid }}]</a>
                             </td>
                             <td>{{ member.level }}</td>
-                            <td>
+                            <td data-order="{{ member.last_action }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action|tcttime }}">{{ member.last_action|reltime }}</span>
                             </td>
 
                             {% if current_user.aa or current_user.tid == member.tid %}
                                 <td>{{ member.factionaa }}</td>
                                 {% if member.battlescore == 0 %}
-                                    <td>
+                                    <td data-order="0">
                                         <i class="fa-solid fa-triangle-exclamation" data-bs-toggle="tooltip" data-bs-placement="right" title="Missing Battlestats. User is not signed into Tornium or TornStats."></i>
                                     </td>
                                 {% else %}
-                                    <td>
+                                    <td data-order="{{ member.battlescore }}">
                                         <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
                                     </td>
                                 {% endif %}
                             {% else %}
-                                <td>
+                                <td data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
                                 </td>
-                                <td>
+                                <td data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
                                 </td>
                             {% endif %}

@@ -3,7 +3,7 @@
 #  Proprietary and confidential
 #  Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request
+from flask import render_template, request, abort
 from flask_login import login_required, current_user
 from mongoengine.queryset.visitor import Q
 
@@ -64,6 +64,9 @@ def factions_data():
 
 @login_required
 def faction_data(tid: int):
+    if tid == 0:
+        abort(400)
+
     Faction(tid).refresh(key=current_user.key, force=True)
     faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
 

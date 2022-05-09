@@ -65,6 +65,9 @@ def users_data():
 
 @login_required
 def user_data(tid: int):
+    if tid == 0:
+        abort(400)
+
     User(tid).refresh(key=current_user.key, force=True)
     user: UserModel = utils.first(UserModel.objects(tid=tid))
     Faction(user.factionid).refresh(key=current_user.key)

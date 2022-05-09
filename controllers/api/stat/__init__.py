@@ -64,17 +64,31 @@ def generate_chain_list(*args, **kwargs):
                 kwargs["user"]["battlescore"] * (defender_stats + variance)
             )
         )
-        & Q(timeadded__gte=(utils.now() - 2678400))
-    )  # Thirty one days
+    )
     stat_entries = list(stat_entries.all().values_list("statid"))
     random.shuffle(stat_entries)
-    stat_entries = stat_entries[:10]
     jsonified_stat_entires = []
+    jsonified_stat_ids = []
 
     for stat_entry in stat_entries:
-        stat = StatModel.objects(statid=stat_entry).first()
+        if len(jsonified_stat_entires) >= 10:
+            break
+
+        stat: StatModel = StatModel.objects(statid=stat_entry).first()
+
+        if stat.tid in jsonified_stat_ids:
+            continue
+
         user = User(tid=stat.tid)
         user.refresh(key=kwargs["user"].key)
+
+        added_week = (stat.timeadded - utils.now()) <= 10080  # Stat was added in the last week
+        added_month = (stat.timeadded - utils.now()) <= 43200 and (user.last_action - utils.now()) >= 0.5 * (stat.timeadded - utils.now())  # Stat was added in the last 30 days and the user's last action was greater than 50% of the time between added and now
+        added_inactive = stat.timeadded >= user.last_action  # User was inactive before the stat was added
+
+        if not added_week and not added_month and not added_inactive:
+            continue
+
         jsonified_stat_entires.append(
             {
                 "statid": stat.statid,
@@ -93,6 +107,7 @@ def generate_chain_list(*args, **kwargs):
                 },
             }
         )
+        jsonified_stat_ids.append(stat.tid)
 
     return (
         jsonify(

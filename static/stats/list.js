@@ -30,8 +30,8 @@ $(document).ready(function() {
                 xhttp.send();
                 xhttp.onload = function() {
                     var userResponse = xhttp.response;
-                    const table = document.querySelector('#chain-table')
-                    document.getElementById('chain-table-body').innerHTML = "";
+                    const table = document.querySelector('#targets-table')
+                    document.getElementById('targets-table-body').innerHTML = "";
                     var counter = 1
 
                     if ("code" in userResponse) {

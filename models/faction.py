@@ -27,10 +27,16 @@ class Faction:
 
         faction = utils.first(FactionModel.objects(tid=tid))
         if faction is None:
-            faction_data = tasks.tornget(
-                f"faction/{tid}?selections=basic",
-                key if key != "" else current_user.key,
-            )
+            try:
+                faction_data = tasks.tornget(
+                    f"faction/{tid}?selections=basic",
+                    key if key != "" else current_user.key,
+                )
+            except utils.TornError as e:
+                utils.get_logger().exception(e)
+                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+                raise e
+
             now = utils.now()
 
             faction = FactionModel(

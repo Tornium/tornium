@@ -20,7 +20,7 @@ function commas(number) {
 
 
 function reltime(timestamp) {
-    delta = new Date().getTime() - timestamp;
+    delta = Date.now() / 1000 - timestamp;
 
     if(delta < 60) {  // One minute
         return "Now";

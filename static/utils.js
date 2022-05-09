@@ -25,13 +25,13 @@ function reltime(timestamp) {
     if(delta < 60) {  // One minute
         return "Now";
     } else if(delta < 3600) {  // Sixty minutes
-        return Number(delta/60) + " minutes ago";
+        return Math.round(delta/60) + " minutes ago";
     } else if(delta < 86400) {  // One day
-        return Number(delta/3600) + " hours ago";
+        return Math.round(delta/3600) + " hours ago";
     } else if(delta < 2592000) {  // Thirty days
-        return Number(delta/86400) + " days ago";
+        return Math.round(delta/86400) + " days ago";
     } else if(delta < 31104000) {  // Twleve months
-        return Number(delta/2592000) + " months ago";
+        return Math.round(delta/2592000) + " months ago";
     } else {
         return "A long time ago";
     }

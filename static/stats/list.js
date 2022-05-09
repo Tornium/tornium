@@ -32,7 +32,6 @@ $(document).ready(function() {
                     var userResponse = xhttp.response;
                     const table = document.querySelector('#targets-table')
                     document.getElementById('targets-table-body').innerHTML = "";
-                    var counter = 1
 
                     if ("code" in userResponse) {
                         generateToast("Chain List Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
@@ -48,7 +47,6 @@ $(document).ready(function() {
 
                             newNode.innerHTML = `
                             <tr>
-                                <td>${counter}</td>
                                 <td>${user["user"]["username"]}</td>
                                 <td>${user["user"]["level"]}
                                 <td>${ff.toFixed(2)}</td>
@@ -58,7 +56,6 @@ $(document).ready(function() {
                             </tr>
                             `;
                             tableBody.appendChild(newNode);
-                            counter += 1;
                         });
 
                         $('#targets-table').DataTable({

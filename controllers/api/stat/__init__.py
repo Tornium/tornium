@@ -82,13 +82,6 @@ def generate_chain_list(*args, **kwargs):
         user = User(tid=stat.tid)
         user.refresh(key=kwargs["user"].key)
 
-        added_week = (stat.timeadded - utils.now()) <= 10080  # Stat was added in the last week
-        added_month = (stat.timeadded - utils.now()) <= 43200 and (user.last_action - utils.now()) >= 0.5 * (stat.timeadded - utils.now())  # Stat was added in the last 30 days and the user's last action was greater than 50% of the time between added and now
-        added_inactive = stat.timeadded >= user.last_action  # User was inactive before the stat was added
-
-        if not added_week and not added_month and not added_inactive:
-            continue
-
         jsonified_stat_entires.append(
             {
                 "statid": stat.statid,

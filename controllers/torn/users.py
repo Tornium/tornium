@@ -7,6 +7,7 @@ from flask import render_template, request
 from flask_login import login_required, current_user
 from mongoengine.queryset.visitor import Q
 
+from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.user import User
 from models.usermodel import UserModel
@@ -66,8 +67,7 @@ def users_data():
 def user_data(tid: int):
     User(tid).refresh(key=current_user.key, force=True)
     user: UserModel = utils.first(UserModel.objects(tid=tid))
+    Faction(tid).refresh(key=current_user.key)
     faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
-
-    print(faction.name != '')
 
     return render_template("torn/usermodal.html", user=user, faction=faction)

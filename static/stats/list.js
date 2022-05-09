@@ -67,6 +67,10 @@ $(document).ready(function() {
                             "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
                         })
 
+                        $('[data-bs-toggle="tooltip"]').tooltip({
+                            html: true
+                        });                    
+
                         $('#targets-table tbody').on('click', 'tr', function() {
                             const xhttp = new XMLHttpRequest();
                             xhttp.onload = function() {

@@ -102,9 +102,9 @@ $(document).ready(function() {
                 "order": [[0, "desc"]]
             });
             modal.show();
-
-            xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
-            xhttp.send();
         }
+
+        xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
+        xhttp.send();
     });
 });

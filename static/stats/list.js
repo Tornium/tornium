@@ -11,7 +11,7 @@ $(document).ready(function() {
         "serverSide": false,
         "ordering": true,
         "responsive": true,
-        "paging": false,
+        "paging": true,
         "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
     });
 
@@ -55,10 +55,10 @@ $(document).ready(function() {
                                 (ff * baseRespect).toFixed(2),
                                 reltime(user["timeadded"]),
                                 reltime(user["user"]["last_action"])
-                            ])
+                            ]).draw();
                         });
 
-                        targetTable.order().draw();
+                        targetTable.sort();
 
                         $('#targets-table tbody').on('click', 'tr', function() {
                             const xhttp = new XMLHttpRequest();

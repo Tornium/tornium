@@ -70,13 +70,13 @@ $(document).ready(function() {
                         $('#targets-table tbody').on('click', 'tr', function() {
                             const xhttp = new XMLHttpRequest();
                             xhttp.onload = function() {
-                                if($('#target-modal').length) {
-                                    var modal = bootstrap.Modal.getInstance(document.getElementById('target-modal'));
+                                if($('#stats-modal').length) {
+                                    var modal = bootstrap.Modal.getInstance(document.getElementById('stats-modal'));
                                     modal.dispose;
                                 }
 
                                 document.getElementById('modal').innerHTML = this.responseText;
-                                var modal = new bootstrap.Modal($('#target-modal'));
+                                var modal = new bootstrap.Modal($('#stats-modal'));
                                 $('#user-table').DataTable({
                                     "paging": true,
                                     "ordering": true,

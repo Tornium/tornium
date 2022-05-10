@@ -36,3 +36,10 @@ function reltime(timestamp) {
         return "A long time ago";
     }
 }
+
+
+function tcttime(timestamp) {
+    var tsAdded = new Date(timestamp * 1000);
+    tsAdded = `${("0" + tsAdded.getHours()).slice(-2)}:${("0" + tsAdded.getMinutes()).slice(-2)}:${("0" + tsAdded.getSeconds()).slice(-2)} - ${("0" + tsAdded.getDate()).slice(-2)}/${("0" + tsAdded.getMonth()).slice(-2)}/${tsAdded.getUTCFullYear()}`;
+    return tsAdded
+}

@@ -24,13 +24,6 @@ $(document).ready(function() {
         xhttp.onload = function() {
             var response = xhttp.response;
 
-            function formatTS(timestamp) {
-                console.log(timestamp)
-                var tsAdded = new Date(timestamp * 1000);
-                tsAdded = `${("0" + tsAdded.getHours()).slice(-2)}:${("0" + tsAdded.getMinutes()).slice(-2)}:${("0" + tsAdded.getSeconds()).slice(-2)} - ${("0" + tsAdded.getDate()).slice(-2)}/${("0" + tsAdded.getMonth()).slice(-2)}/${tsAdded.getUTCFullYear()}`;
-                return tsAdded
-            }
-
             if("code" in response) {
                 generateToast("Chain List Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
             } else {
@@ -69,7 +62,7 @@ $(document).ready(function() {
                             xhttp.onload = function() {
                                 if($('#stats-modal').length) {
                                     var modal = bootstrap.Modal.getInstance(document.getElementById('stats-modal'));
-                                    modal.dispose;
+                                    modal.dispose();
                                 }
 
                                 document.getElementById('modal').innerHTML = this.responseText;

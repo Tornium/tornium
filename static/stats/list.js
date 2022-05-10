@@ -39,13 +39,15 @@ $(document).ready(function() {
                 xhttp.send();
                 xhttp.onload = function() {
                     var userResponse = xhttp.response;
-                    const table = document.querySelector('#targets-table')
-                    document.getElementById('targets-table-body').innerHTML = "";
 
                     if ("code" in userResponse) {
                         generateToast("Chain List Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
                     } else {
                         response["data"].forEach(function(user) {
+                            var ff = 1 + 8/3 * user["battlescore"] / userResponse["battlescore"];
+                            ff = Math.min(ff, 3);
+                            var baseRespect = ((Math.log(user["user"]["level"]) + 1)/4).toFixed(2);
+
                             targetTable.row.add([
                                 user["user"]["username"],
                                 user["user"]["level"],

@@ -14,6 +14,7 @@ $(document).ready(function() {
         "paging": true,
         "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
     });
+    var targets = []
 
     $("#chainform").submit(function(e) {
         e.preventDefault();
@@ -48,14 +49,17 @@ $(document).ready(function() {
                             ff = Math.min(ff, 3);
                             var baseRespect = ((Math.log(user["user"]["level"]) + 1)/4).toFixed(2);
 
-                            targetTable.row.add([
-                                user["user"]["username"],
-                                user["user"]["level"],
-                                ff.toFixed(2),
-                                (ff * baseRespect).toFixed(2),
-                                reltime(user["timeadded"]),
-                                reltime(user["user"]["last_action"])
-                            ]).draw();
+                            if(targets.includes(user["user"]["tid"])) {
+                                targetTable.row.add([
+                                    user["user"]["username"],
+                                    user["user"]["level"],
+                                    ff.toFixed(2),
+                                    (ff * baseRespect).toFixed(2),
+                                    reltime(user["timeadded"]),
+                                    reltime(user["user"]["last_action"])
+                                ]).draw();
+                                targets.push(user["user"]["tid"]);
+                            }
                         });
 
                         targetTable.sort();

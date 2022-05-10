@@ -58,14 +58,38 @@ $(document).ready(function() {
                             tableBody.appendChild(newNode);
                         });
 
-                        $('#targets-table').DataTable({
+                        var targetTable = $('#targets-table').DataTable({
                             "processing": true,
                             "serverSide": false,
                             "ordering": true,
                             "responsive": true,
                             "paging": false,
                             "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
-                        })
+                        });
+
+                        $('#targets-table tbody').on('click', 'tr', function() {
+                            const xhttp = new XMLHttpRequest();
+                            xhttp.onload = function() {
+                                if($('#target-modal').length) {
+                                    var modal = bootstrap.Modal.getInstance(document.getElementById('target-modal'));
+                                    modal.dispose;
+                                }
+
+                                document.getElementById('modal').innerHTML = this.responseText;
+                                var modal = new bootstrap.Modal($('#target-modal'));
+                                $('#user-table').DataTable({
+                                    "paging": true,
+                                    "ordering": true,
+                                    "responsive": true,
+                                    "autoWidth": false,
+                                    "order": [[0, "desc"]]
+                                });
+                                modal.show();
+                            }
+
+                            xhttp.open('GET', '/stats/userdata?user=' + targetTable.row(this).data()[0]);
+                            xhttp.send();
+                        });
 
                         $('[data-bs-toggle="tooltip"]').tooltip({
                             html: true
@@ -82,29 +106,5 @@ $(document).ready(function() {
         xhttp.send(JSON.stringify({
             'dstats': value
         }));
-    });
-
-    $('#targets-table tbody').on('click', 'tr', function() {
-        const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            if($('#target-modal').length) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('target-modal'));
-                modal.dispose;
-            }
-
-            document.getElementById('modal').innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($('#target-modal'));
-            $('#user-table').DataTable({
-                "paging": true,
-                "ordering": true,
-                "responsive": true,
-                "autoWidth": false,
-                "order": [[0, "desc"]]
-            });
-            modal.show();
-        }
-
-        xhttp.open('GET', '/stats/userdata?user=' + table.row(this).data()[0]);
-        xhttp.send();
     });
 });

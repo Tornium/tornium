@@ -430,6 +430,7 @@ class Vault(commands.Cog):
             name="Original Message", value=withdrawal_message.embeds[0].description
         )
         embed.description = f"This request has been fulfilled by {ctx.message.author.name} at {time.ctime()}."
+        embed.timestamp = withdrawal_message.embeds[0].timestamp
         await withdrawal_message.edit(embed=embed)
 
         withdrawal.fulfiller = user.tid

@@ -3,7 +3,7 @@
 #  Proprietary and confidential
 #  Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request
+from flask import render_template, request, abort
 from flask_login import login_required, current_user
 from mongoengine.queryset.visitor import Q
 

@@ -6,6 +6,15 @@ Written by tiksan <webmaster@deek.sh> */
 const key = document.currentScript.getAttribute('data-key');
 
 $(document).ready(function() {
+    var targetTable = $('#targets-table').DataTable({
+        "processing": true,
+        "serverSide": false,
+        "ordering": true,
+        "responsive": true,
+        "paging": false,
+        "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
+    });
+
     $("#chainform").submit(function(e) {
         e.preventDefault();
         const xhttp = new XMLHttpRequest();
@@ -37,36 +46,17 @@ $(document).ready(function() {
                         generateToast("Chain List Request Failed", `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`);
                     } else {
                         response["data"].forEach(function(user) {
-                            console.log(user)
-                            var tableBody = document.getElementById('targets-table-body');
-                            var newNode = document.createElement('tr');
-
-                            var ff = 1 + 8/3 * user["battlescore"] / userResponse["battlescore"];
-                            ff = Math.min(ff, 3);
-                            var baseRespect = ((Math.log(user["user"]["level"]) + 1)/4).toFixed(2);
-
-                            newNode.innerHTML = `
-                            <tr>
-                                <td>${user["user"]["username"]}</td>
-                                <td>${user["user"]["level"]}
-                                <td>${ff.toFixed(2)}</td>
-                                <td>${(ff * baseRespect).toFixed(2)}</td>
-                                <td data-order="${user["timeadded"]}"><span data-bs-toggle="tooltip" data-bs-placement="right" title="${formatTS(user["timeadded"])}">${reltime(user["timeadded"])}</span></td>
-                                <td data-order="${user["user"]["last_action"]}"><span data-bs-toggle="tooltip" data-bs-placement="right" title="${formatTS(user["user"]["last_action"])}">${reltime(user["user"]["last_action"])}</span></td>
-                            </tr>
-                            `;
-                            tableBody.appendChild(newNode);
+                            targetTable.row.add([
+                                user["user"]["username"],
+                                user["user"]["level"],
+                                ff.toFixed(2),
+                                (ff * baseRespect).toFixed(2),
+                                reltime(user["timeadded"]),
+                                reltime(user["user"]["last_action"])
+                            ])
                         });
 
-                        var targetTable = $('#targets-table').DataTable({
-                            "processing": true,
-                            "serverSide": false,
-                            "ordering": true,
-                            "responsive": true,
-                            "paging": false,
-                            "order": [[3, "desc"], [4, "desc"], [5, "desc"]],
-                            "retrieve": true
-                        });
+                        targetTable.order().draw();
 
                         $('#targets-table tbody').on('click', 'tr', function() {
                             const xhttp = new XMLHttpRequest();
@@ -90,10 +80,6 @@ $(document).ready(function() {
 
                             xhttp.open('GET', '/stats/userdata?user=' + targetTable.row(this).data()[0]);
                             xhttp.send();
-                        });
-
-                        $('[data-bs-toggle="tooltip"]').tooltip({
-                            html: true
                         });
                     }
                 }

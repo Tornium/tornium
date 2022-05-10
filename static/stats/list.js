@@ -65,7 +65,7 @@ $(document).ready(function() {
                             "responsive": true,
                             "paging": false,
                             "order": [[3, "desc"], [4, "desc"], [5, "desc"]],
-                            "destroy": true
+                            "retrieve": true
                         });
 
                         $('#targets-table tbody').on('click', 'tr', function() {

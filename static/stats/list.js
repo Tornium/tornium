@@ -49,7 +49,7 @@ $(document).ready(function() {
                             ff = Math.min(ff, 3);
                             var baseRespect = ((Math.log(user["user"]["level"]) + 1)/4).toFixed(2);
 
-                            if(targets.includes(user["user"]["tid"])) {
+                            if(!targets.includes(user["user"]["tid"])) {
                                 targetTable.row.add([
                                     user["user"]["username"],
                                     user["user"]["level"],

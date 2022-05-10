@@ -6,6 +6,15 @@ Written by tiksan <webmaster@deek.sh> */
 const key = document.currentScript.getAttribute('data-key');
 
 $(document).ready(function() {
+    var targetTable = $('#targets-table').DataTable({
+        "processing": true,
+        "serverSide": false,
+        "ordering": true,
+        "responsive": true,
+        "paging": false,
+        "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
+    });
+
     $("#chainform").submit(function(e) {
         e.preventDefault();
         const xhttp = new XMLHttpRequest();
@@ -56,15 +65,6 @@ $(document).ready(function() {
                             </tr>
                             `;
                             tableBody.appendChild(newNode);
-                        });
-
-                        var targetTable = $('#targets-table').DataTable({
-                            "processing": true,
-                            "serverSide": false,
-                            "ordering": true,
-                            "responsive": true,
-                            "paging": false,
-                            "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
                         });
 
                         $('#targets-table tbody').on('click', 'tr', function() {

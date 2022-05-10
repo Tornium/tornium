@@ -419,7 +419,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"Vault request #{request} has already been fulfilled by "
                 f"{User(withdrawal.fulfiller).name} at "
-                f"{withdrawal.time_fulfilled}."
+                f"{utils.torn_timestamp(withdrawal.time_fulfilled)}."
             )
             await ctx.send(embed=embed)
             return None

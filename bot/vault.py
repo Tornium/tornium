@@ -429,7 +429,7 @@ class Vault(commands.Cog):
         embed.add_field(
             name="Original Message", value=withdrawal_message.embeds[0].description
         )
-        embed.description = f"This request has been fulfilled by {ctx.message.author.name} at {time.ctime()}."
+        embed.description = f"This request has been fulfilled by {ctx.message.author.name} at {utils.torn_timestamp(time.ctime())}."
         embed.timestamp = withdrawal_message.embeds[0].timestamp
         await withdrawal_message.edit(embed=embed)
 

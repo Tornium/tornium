@@ -107,7 +107,7 @@ def stats_data():
 @mod.route("/stats/userdata")
 @login_required
 def user_data():
-    tid = int(request.args.get("user"))
+    tid = int(utils.get_tid(request.args.get("user")))
     stats = []
     stat_entries = StatModel.objects(
         Q(tid=tid)

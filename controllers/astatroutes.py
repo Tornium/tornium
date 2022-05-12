@@ -259,6 +259,7 @@ def user_data():
             # Dmg mult for hand/foot = 0.2
 
             # Damage value = damage pure + damage mitigated
+            # Defence appears to be percent mitigated
 
             # Name: -sparkle - [173159]
             # Level: 82
@@ -275,9 +276,8 @@ def user_data():
             # Boots - slot 8
             # Gloves - slot 9
 
-            if "attacker" in step["attacking"] and step["attacking"]["attacker"][
-                "result"
-            ] not in ("RELOAD", "MISS"):
+            if "attacker" in step["attacking"] and step["attacking"]["attacker"]["result"]\
+                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 base = (
                     7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2)
                     + 27 * math.log10(stat_entry.attackerstr / 10)
@@ -330,40 +330,29 @@ def user_data():
                     f'Pure damage dealt: {step["attacking"]["attacker"]["damageDealed"]["damagePure"]}'
                 )
 
-                # dmg_diff = step["attacking"]["attacker"]["damageDealed"]["damagePure"] - base * region_multiplier * (1 + step["attacking"]["attacker"]["damageDealed"]["damageModInfo"]["value"] / 100)
-                dmg_diff = step["attacking"]["attacker"]["damageDealed"][
-                    "damageMitigated"
-                ]
-                print(f"Damage difference: {dmg_diff}")
-
-                print(
-                    f'Defense (from internal API): {step["attacking"]["attacker"]["damageDealed"]["defence"]}%'
-                )
-                print(
-                    f'Remaining damage difference: {dmg_diff * 100 /(1 - step["attacking"]["attacker"]["damageDealed"]["defence"])}'
-                )
-
-                dmg_mit = abs(
-                    dmg_diff
-                    * 100
-                    / (step["attacking"]["attacker"]["damageDealed"]["value"])
-                )
+                dmg_mit = step["attacking"]["attacker"]["damageDealed"]["defence"]
                 print(f"Damage mitigation (%): {dmg_mit}%")
 
                 if dmg_mit == 0:
-                    def_str = "Less than 1/64x"
+                    def_str = -2
                 elif dmg_mit < 50:
                     def_str = math.pow(math.e, (dmg_mit - 50) * math.log2(32) / 50)
                 elif dmg_mit < 100:
                     def_str = math.pow(math.e, (dmg_mit - 50) * math.log2(14) / 50)
                 else:
-                    def_str = "Greater than 64x"
+                    def_str = -1
 
                 print(f"Def/Str Ratio: {def_str}")
-                print(f"Actual Def/Str Ratio: {8958706/stat_entry.attackerstr}")
-            if "defender" in step["attacking"] and step["attacking"]["defender"][
-                "result"
-            ] not in ("RELOAD", "MISS"):
+
+                if def_str == -2:
+                    print(f'Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}')
+                elif def_str == -1:
+                    print(f'Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}')
+                else:
+                    defender_defense = def_str * stat_entry.attackerstr
+                    print(f'Estimated attacker defense: {utils.commas(int(defender_defense))}')
+            if "defender" in step["attacking"] and step["attacking"]["defender"]["result"] \
+                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 print(f"---- Defender ----")
                 print(step["attacking"].get("defender"))
                 print(
@@ -456,6 +445,8 @@ def user_data():
             )
             + 1,
         )
+        print(f'Number of actions: {len(defender_base_dmg)}')
+        print(f'Number of normalized actions: {len(normalized_defender_base_dmg)}')
         print(f"Defender normalized median strength: {utils.commas(round(strength))}")
         print(f"---- END Attack [{stat_entry.tid}] ----")
         print("")

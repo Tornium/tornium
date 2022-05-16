@@ -228,17 +228,6 @@ def user_data():
             faction = utils.first(FactionModel.objects(tid=stat_entry.addedfactiontid))
             factions[str(stat_entry.addedfactiontid)] = faction
 
-        stats.append(
-            {
-                "statid": stat_entry.sid,
-                "tid": stat_entry.tid,
-                "timeadded": stat_entry.timeadded,
-                "addedid": stat_entry.addedid,
-                "addedfactiontid": faction,
-                "globalstat": stat_entry.globalstat,
-            }
-        )
-
         defender_base_dmg = []
 
         for step in stat_entry.dbs:
@@ -449,6 +438,18 @@ def user_data():
         print(f"---- END Attack [{stat_entry.tid}] ----")
         print("")
 
+        stats.append(
+            {
+                "statid": stat_entry.sid,
+                "tid": stat_entry.tid,
+                "timeadded": stat_entry.timeadded,
+                "addedid": stat_entry.addedid,
+                "addedfactiontid": faction,
+                "globalstat": stat_entry.globalstat,
+                "strength": strength
+            }
+        )
+
     user: User = User(tid=tid)
 
     # If user's last action was over a month ago and last refresh was over a week ago
@@ -475,5 +476,4 @@ def user_data():
         stats=stats,
         ff=round(ff, 2),
         respect=round(respect, 2),
-        strength=strength 
     )

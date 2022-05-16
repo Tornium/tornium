@@ -388,34 +388,32 @@ def user_data():
                         for part in ("chest", "stomach", "groin")
                     ):
                         region_multiplier = 0.5714
-                else:
-                    region_multiplier = 0
 
-                base_dmg = (
-                    step["attacking"]["defender"]["damageDealed"]["damagePure"]
-                    / (
-                        1
-                        + step["attacking"]["defender"]["damageDealed"][
-                            "damageModInfo"
-                        ]["value"]
-                        / 100
+                    base_dmg = (
+                        step["attacking"]["defender"]["damageDealed"]["damagePure"]
+                        / (
+                            1
+                            + step["attacking"]["defender"]["damageDealed"][
+                                "damageModInfo"
+                            ]["value"]
+                            / 100
+                        )
+                        / region_multiplier
                     )
-                    / region_multiplier
-                )
-                defender_base_dmg.append(base_dmg)
-                print(f"Area multiplier: {region_multiplier}")
-                print(
-                    f'Multipliers: {(1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100)}'
-                )
-                print(f"Base damage: {base_dmg}")
-                print(
-                    f"Log str/10 (plus): {(-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14}"
-                )
-                strength = math.pow(
-                    10, ((-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14) + 1
-                )
-                print(f"Strength: {utils.commas(round(strength))}")
-                print("")
+                    defender_base_dmg.append(base_dmg)
+                    print(f"Area multiplier: {region_multiplier}")
+                    print(
+                        f'Multipliers: {(1 + step["attacking"]["defender"]["damageDealed"]["damageModInfo"]["value"] / 100)}'
+                    )
+                    print(f"Base damage: {base_dmg}")
+                    print(
+                        f"Log str/10 (plus): {(-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14}"
+                    )
+                    strength = math.pow(
+                        10, ((-27 + math.sqrt(729 - 28 * (30 - base_dmg))) / 14) + 1
+                    )
+                    print(f"Strength: {utils.commas(round(strength))}")
+                    print("")
 
         print("")
         defender_base_dmg_std = np.array(defender_base_dmg).std()

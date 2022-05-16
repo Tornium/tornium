@@ -7,6 +7,9 @@
                     <a href="https://www.torn.com/loader.php?sid=attack&user2ID={{ user.tid }}">
                         <i class="fa-solid fa-crosshairs"></i>
                     </a>
+                    <a href="https://www.torn.com/profiles.php?XID={{ user.tid }}">
+                        <i class="fa-solid fa-id-card"></i>
+                    </a>
                 </button>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -17,7 +20,7 @@
                         <div class="col-sm-4">
                             Current level:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ user.level }}
                         </div>
                     </div>
@@ -25,7 +28,7 @@
                         <div class="col-sm-4">
                             Faction:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ faction.name if faction is not none else "None" }}
                         </div>
                     </div>
@@ -33,15 +36,15 @@
                         <div class="col-sm-4">
                             Last Action:
                         </div>
-                        <div class="col-sm-4">
-                            {{ user.last_action|tcttime }}
+                        <div class="col-sm-6">
+                            {{ user.last_action|tcttime }} (Relative: {{ user.last_action|reltime }})
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-4">
                             Estimated Fair Fight Multiplier:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ ff }}
                         </div>
                     </div>
@@ -49,7 +52,7 @@
                         <div class="col-sm-4">
                             Estimated Respect:
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ respect }}
                         </div>
                     </div>
@@ -63,6 +66,7 @@
                             <th>Time Added</th>
                             <th>Added User</th>
                             <th>Added Faction</th>
+                            <th>Estimated Strength</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,6 +77,7 @@
                                 <th>{{ stat["timeadded"]|reltime }}</th>
                                 <th>{{ stat["addedid"].name }} [{{ stat["addedid"].tid }}]</th>
                                 <th>{{ stat["addedfactiontid"].name }} [{{ stat["addedfactiontid"].tid }}]</th>
+                                <th>{{ stat["strength"] }}</th>
                             </tr>
                         {% endfor %}
                     </tbody>

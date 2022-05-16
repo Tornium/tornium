@@ -469,10 +469,11 @@ def user_data():
     ff = 0
 
     return render_template(
-        "stats/statmodal.html",
+        "astats/astatmodal.html",
         user=user,
         faction=faction,
         stats=stats,
         ff=round(ff, 2),
         respect=round(respect, 2),
+        strength=strength 
     )

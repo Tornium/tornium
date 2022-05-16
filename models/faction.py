@@ -122,6 +122,10 @@ class Faction:
             keys.append(user.key)
 
         keys = list(set(keys))
+
+        if len(keys) == 0:
+            return None
+
         return random.choice(keys)
 
     def get_config(self):

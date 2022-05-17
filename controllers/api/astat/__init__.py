@@ -252,8 +252,8 @@ def attack_log_stats(logID, *args, **kwargs):
             & (
                 Q(globalstat=True)
                 | Q(addedid=kwargs["user"].tid)
-                | Q(addedfactiontid=kwargs["user"].factiontid)
-                | Q(allowedfactions=kwargs["user"].factiontid)
+                | Q(addedfactiontid=kwargs["user"].factionid)
+                | Q(allowedfactions=kwargs["user"].factionid)
             )
         )
     )

@@ -105,7 +105,7 @@ mod.add_url_rule(
     "/api/astat/attack/finished", view_func=astat.attack_end, methods=["POST"]
 )
 mod.add_url_rule(
-    "/api/astat/stats/<str:logID>", view_func=astat.attack_log_stats, methods=["GET"]
+    "/api/astat/stats/<logID>", view_func=astat.attack_log_stats, methods=["GET"]
 )
 
 # /api/user

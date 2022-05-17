@@ -316,6 +316,7 @@ def attack_log_stats(logID, *args, **kwargs):
                 "HIT",
                 "TEMP",
                 "CRITICAL",
+                "WON"
             ):
                 if any(
                     part
@@ -392,6 +393,7 @@ def attack_log_stats(logID, *args, **kwargs):
                 "TEMP",
                 "CRITICAL",
                 "MITIGATED",
+                "WON"
             ):
                 if any(
                     part

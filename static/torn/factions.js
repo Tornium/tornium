@@ -14,6 +14,10 @@ $(document).ready(function() {
         }
     });
 
+    $('[data-bs-toggle="tooltip"]').tooltip({
+        container: '.list-group'
+    });
+
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
     $('#factions-table tbody').on('click', 'tr', function() {

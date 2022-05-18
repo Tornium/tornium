@@ -30,6 +30,14 @@ $(document).ready(function() {
 
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
+
+            var membersTable = $('#members-table').DataTable({
+                "processing": true,
+                "serverSide": false,
+                "ordering": true,
+                "responsive": true
+            });
+
             modal.show();
         }
         xhttp.open('GET', '/torn/faction/' + table.row(this).data()[0]);
@@ -48,6 +56,14 @@ $(document).ready(function() {
 
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
+
+            var membersTable = $('#members-table').DataTable({
+                "processing": true,
+                "serverSide": false,
+                "ordering": true,
+                "responsive": true
+            });
+
             modal.show();
         }
         xhttp.open('GET', '/torn/faction/' + urlParams.get('tid'));
@@ -68,6 +84,14 @@ $(document).ready(function() {
 
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
+
+            var membersTable = $('#members-table').DataTable({
+                "processing": true,
+                "serverSide": false,
+                "ordering": true,
+                "responsive": true
+            });
+
             modal.show();
         }
         xhttp.open('GET', '/torn/faction/' + $('#factionid-input').val());

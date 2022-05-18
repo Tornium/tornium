@@ -50,7 +50,6 @@
                                     <td>{{ member.level }}</td>
                                     <td><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></td>
                                     <td><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black">{{ member.discord_id }}</a></td>
-                                    <td>{{ stats[member.tid] }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

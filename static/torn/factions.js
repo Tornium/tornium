@@ -31,7 +31,7 @@ $(document).ready(function() {
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
 
-            var membersTable = $('#members-table').DataTable({
+            var membersTable = $('#member-table').DataTable({
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
@@ -57,7 +57,7 @@ $(document).ready(function() {
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
 
-            var membersTable = $('#members-table').DataTable({
+            var membersTable = $('#member-table').DataTable({
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
@@ -85,7 +85,7 @@ $(document).ready(function() {
             document.getElementById('modal').innerHTML = this.responseText;
             var modal = new bootstrap.Modal($('#faction-modal'));
 
-            var membersTable = $('#members-table').DataTable({
+            var membersTable = $('#member-table').DataTable({
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,

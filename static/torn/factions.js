@@ -35,7 +35,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
             modal.show();
@@ -61,7 +61,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
             modal.show();
@@ -89,7 +89,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
             modal.show();

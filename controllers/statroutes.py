@@ -86,10 +86,12 @@ def stats_data():
     stat_entries = stat_entries[start : start + length]
 
     for stat_entry in stat_entries:
+        user: UserModel = utils.first(UserModel.objects(_id=stat_entry.tid))
+
         stats.append(
             [
-                stat_entry.tid,
-                int(stat_entry.battlescore),
+                stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
+                utils.commas(int(stat_entry.battlescore)),
                 utils.rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
             ]
         )

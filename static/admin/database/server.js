@@ -16,7 +16,7 @@ $(document).ready(function() {
     
     $.fn.dataTable.ext.pager.numbers_length = 5;
     
-    $('#user-table tbody').on('click', 'tr', function() {
+    $('#server-table tbody').on('click', 'tr', function() {
         window.location.href = '/admin/database/server/' + table.row(this).data()[0];
     });
 });

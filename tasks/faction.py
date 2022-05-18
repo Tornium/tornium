@@ -114,7 +114,7 @@ def refresh_factions():
                 user.defense = user_data["spy"]["defense"]
                 user.speed = user_data["spy"]["speed"]
                 user.dexterity = user_data["spy"]["dexterity"]
-                user.battlescore_update = utils.now()
+                user.battlescore_update = user_data["spy"]["timestamp"]
                 user.save()
 
         users = []
@@ -345,7 +345,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     continue
 
             try:
-                if user.battlescore_update - utils.now() <= 10800000:  # Three hours
+                if user.battlescore_update - utils.now() <= 259200:  # Three days
                     attacker_score = user.battlescore
                 else:
                     continue

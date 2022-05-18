@@ -34,23 +34,23 @@
                     </div>
 
                     <table id="member-table" class="table table-striped mt-3">
-                        <thead>
+                        <tdead>
                             <tr>
-                                <th>Username</th>
-                                <th>Level</th>
-                                <th>Status</th>
-                                <th>Discord</th>
-                                <th>Battle Score</th>
+                                <td>Username</td>
+                                <td>Level</td>
+                                <td>Status</td>
+                                <td>Discord</td>
+                                <td>Battle Score</td>
                             </tr>
-                        </thead>
+                        </tdead>
                         <tbody>
                             {% for member in members %}
                                 <tr>
-                                    <th><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="color: black">{{ member.name }} [{{ member.tid }}]</a></th>
-                                    <th>{{ member.level }}</th>
-                                    <th><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></th>
-                                    <th><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black">{{ member.discord_id }}</a></th>
-                                    <th>{{ stats[member.tid] }}</th>
+                                    <td><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="color: black">{{ member.name }} [{{ member.tid }}]</a></td>
+                                    <td>{{ member.level }}</td>
+                                    <td><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></td>
+                                    <td><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black">{{ member.discord_id }}</a></td>
+                                    <td>{{ stats[member.tid] }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

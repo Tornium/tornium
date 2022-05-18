@@ -40,6 +40,7 @@
                                 <th>Level</th>
                                 <th>Status</th>
                                 <th>Discord</th>
+                                <th>Battle Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -49,6 +50,7 @@
                                     <th>{{ member.level }}</th>
                                     <th><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></th>
                                     <th><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black">{{ member.discord_id }}</a></th>
+                                    <th>{{ stats[member.tid] }}</th>
                                 </tr>
                             {% endfor %}
                         </tbody>

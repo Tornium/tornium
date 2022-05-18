@@ -9,6 +9,7 @@ from mongoengine.queryset.visitor import Q
 
 from models.faction import Faction
 from models.factionmodel import FactionModel
+from models.statmodel import StatModel
 from models.user import User
 from models.usermodel import UserModel
 import utils
@@ -72,9 +73,26 @@ def faction_data(tid: int):
     faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
 
     members = []
+    stats = {}
 
+    member: UserModel
     for member in UserModel.objects(factionid=tid):
         members.append(member)
+
+        stat_entries = StatModel.objects(
+            Q(tid=member.tid)
+            & (
+                Q(globalstat=True)
+                | Q(addedid=current_user.tid)
+                | Q(addedfactiontid=current_user.factiontid)
+                | Q(allowedfactions=current_user.factiontid)
+            )
+        )
+
+        if len(stat_entries) > 0:
+            stats[member.tid] = stat_entries.last().battlescore
+        else:
+            stats[member.tid] = "Not Found"
 
     leader = User(faction.leader).refresh(key=current_user.key)
     if faction.coleader != 0 :
@@ -83,4 +101,4 @@ def faction_data(tid: int):
     leader: UserModel = utils.first(UserModel.objects(tid=faction.leader))
     coleader: UserModel = utils.first(UserModel.objects(tid=faction.coleader))
 
-    return render_template("torn/factionmodal.html", faction=faction, members=members, leader=leader, coleader=coleader)
+    return render_template("torn/factionmodal.html", faction=faction, members=members, leader=leader, coleader=coleader, stats=stats)

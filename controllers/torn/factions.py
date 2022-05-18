@@ -90,7 +90,7 @@ def faction_data(tid: int):
         )
 
         if len(stat_entries) > 0:
-            stats[member.tid] = stat_entries.last().battlescore
+            stats[member.tid] = utils.last(stat_entries).battlescore
         else:
             stats[member.tid] = "Not Found"
 

@@ -9,6 +9,7 @@ from mongoengine.queryset.visitor import Q
 
 from models.faction import Faction
 from models.factionmodel import FactionModel
+from models.user import User
 from models.usermodel import UserModel
 import utils
 
@@ -75,4 +76,11 @@ def faction_data(tid: int):
     for member in UserModel.objects(factionid=tid):
         members.append(member)
 
-    return render_template("torn/factionmodal.html", faction=faction, members=members)
+    leader = User(faction.leader).refresh(key=current_user.key)
+    if faction.coleader != 0 :
+        coleader = User(faction.coleader).refresh(key=current_user.key)
+
+    leader: UserModel = utils.first(UserModel.objects(tid=faction.leader))
+    coleader: UserModel = utils.first(UserModel.objects(tid=faction.coleader))
+
+    return render_template("torn/factionmodal.html", faction=faction, members=members, leader=leader, coleader=coleader)

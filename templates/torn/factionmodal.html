@@ -43,10 +43,10 @@
                         <tbody>
                             {% for member in members %}
                                 <tr>
-                                    <th><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}">{{ member.name }} [{{ member.tid }}]</a></th>
+                                    <th><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none;">{{ member.name }} [{{ member.tid }}]</a></th>
                                     <th>{{ member.level }}</th>
                                     <th><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></th>
-                                    <th><a href="https://discordapp.com/users/{{ member.discord_id }}">{{ member.discord_id }}</a></th>
+                                    <th><a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none;">{{ member.discord_id }}</a></th>
                                 </tr>
                             {% endfor %}
                         </tbody>

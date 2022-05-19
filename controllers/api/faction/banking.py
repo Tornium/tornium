@@ -353,7 +353,7 @@ def banking_request(*args, **kwargs):
                                 "name": "Fulfill Link",
                                 "value": f"[Fulfill Here](https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={amount_requested})"
                             }
-                        ]
+                        ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],

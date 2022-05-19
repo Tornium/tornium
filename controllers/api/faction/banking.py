@@ -348,6 +348,12 @@ def banking_request(*args, **kwargs):
                         "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} from the "
                         f"faction vault. "
                         f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                        "fields": [
+                            {
+                                "name": "Fulfill Link",
+                                "value": f"[Fulfill Here](https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={amount_requested})"
+                            }
+                        ]
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
@@ -362,6 +368,12 @@ def banking_request(*args, **kwargs):
                         f'{vault_balances["donations"][str(user.tid)]["money_balance"]} from the '
                         f"faction vault. "
                         f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                        "fields": [
+                            {
+                                "name": "Fulfill Link",
+                                "value": f"[Fulfill Here](https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={vault_balances['donations'][str(user.tid)]['money_balance']})"
+                            }
+                        ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],

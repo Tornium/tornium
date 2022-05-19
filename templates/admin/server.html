@@ -28,12 +28,21 @@ Tornium - Admin Server
                     {% endfor %}
                 </ul>
             </li>
-            <li class="list-group-item">Prefix: {{server.prefix}} </li>
+            <li class="list-group-item">Prefix: {{ server.prefix }} </li>
             <li class="list-group-item">
                 Server Config:
                 <ul class="list-group">
-                    <li class="list-group-item">Stakeouts: {{ server.config["stakeouts"] }}</li>
-                    <li class="list-group-item">Assists: {{ server.config["assists"] }}</li>
+                    {% if "stakeouts" in server.config %}
+                        <li class="list-group-item">Stakeouts: {{ server.config["stakeouts"] }}</li>
+                    {% else %}
+                        <li class="list-group-item">Stakeouts: Not Found</li>
+                    {% endif %}
+
+                    {% if "assists" in server.config %}
+                        <li class="list-group-item">Assists: {{ server.config.get("assists") }}</li>
+                    {% else %}
+                        <li class="list-group-item">Assists: Not Found</li>
+                    {% endif %}
                 </ul>
             </li>
             <li class="list-group-item">

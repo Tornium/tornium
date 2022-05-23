@@ -8,8 +8,9 @@ import random
 
 from honeybadger import honeybadger
 import requests
-from models.factionmodel import FactionModel
+from mongoengine.queryset.visitor import Q
 
+from models.factionmodel import FactionModel
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
@@ -738,12 +739,15 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             session=requests_session,
                             fromts=utils.now() - 60,
                         )
-                    elif len(faction.keys) == 0:
-                        break
                     else:
+                        keys = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+
+                        if len(keys) == 0:
+                            break
+
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
-                            key=random.choice(faction.keys),
+                            key=random.choice(keys.key),
                             session=requests_session,
                             fromts=utils.now() - 60,
                         )
@@ -801,9 +805,12 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             session=requests_session,
                             fromts=utils.now() - 60,
                         )
-                    elif len(faction.keys) == 0:
-                        break
                     else:
+                        keys = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+
+                        if len(keys) == 0:
+                            break
+                        
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=random.choice(faction.keys),

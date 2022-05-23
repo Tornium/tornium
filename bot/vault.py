@@ -59,7 +59,7 @@ class Vault(commands.Cog):
                 return None
 
             user_data = await botutils.tornget(
-                ctx, self.logger, f"user/{ctx.message.author.id}?selections=", admin.key
+                ctx, self.logger, f"user/{ctx.message.author.id}?selections=profile,discord", admin.key
             )
 
             user = UserModel(

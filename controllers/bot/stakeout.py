@@ -32,7 +32,7 @@ def stakeouts_dashboard(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers:
+    elif str(server.sid) not in current_user.servers and not current_user.admin:
         return (
             render_template(
                 "errors/error.html",
@@ -175,7 +175,7 @@ def stakeouts(guildid: str, stype: int):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers:
+    elif str(server.sid) not in current_user.servers and not current_user.admin:
         return (
             render_template(
                 "errors/error.html",
@@ -271,7 +271,7 @@ def stakeout_data(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers:
+    elif str(server.sid) not in current_user.servers and not current_user.admin:
         return (
             render_template(
                 "errors/error.html",
@@ -336,7 +336,7 @@ def stakeout_update(guildid):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers:
+    elif str(server.sid) not in current_user.servers and not current_user.admin:
         return (
             render_template(
                 "errors/error.html",

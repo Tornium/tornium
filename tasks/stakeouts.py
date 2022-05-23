@@ -100,6 +100,8 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
     for guildid, guild_stakeout in stakeout.guilds.items():
         if len(guild_stakeout["keys"]) == 0:
             continue
+        elif guild_stakeout["channel"] == 0:
+            continue
 
         server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
 
@@ -309,6 +311,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
 
     for guildid, guild_stakeout in stakeout.guilds.items():
         if len(guild_stakeout["keys"]) == 0:
+            continue
+        elif guild_stakeout["channel"] == 0:
             continue
 
         server: ServerModel = utils.first(ServerModel.objects(sid=guildid))

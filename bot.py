@@ -109,6 +109,7 @@ async def on_guild_remove(guild):
             user = utils.first(UserModel.objects(tid=admin))
             if user is not None:
                 user.servers.remove(str(guild.id))
+                user.save()
         server.delete()
 
 

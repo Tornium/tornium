@@ -170,7 +170,7 @@ def refresh_factions():
             user.factionaa = False
             user.save()
 
-        if faction.chainconfig["od"] == 1:
+        if faction.chainconfig["od"] == 1 and len(keys) != 0:
             try:
                 faction_od = tornget(
                     "faction/?selections=contributors",

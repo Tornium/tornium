@@ -3,13 +3,14 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request
+from flask import render_template, request, redirect
 from flask_login import login_required
 
 from controllers.faction.decorators import *
 from models.factionmodel import FactionModel
 from models.user import User
 from models.withdrawalmodel import WithdrawalModel
+import tasks
 import utils
 
 
@@ -121,3 +122,34 @@ def userbankingdata():
         "data": withdrawals,
     }
     return data
+
+@login_required
+def fulfill(wid: int):
+    withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=wid))
+    send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
+
+    if withdrawal is None:
+        return render_template('errors/error.html', title='Unknown Withdrawal', error='The passed withdrawal could not be found in the database.'), 400
+    elif withdrawal.fulfiller != 0:
+        return redirect(send_link)
+    elif current_user.factiontid != withdrawal.factiontid:
+        return render_template("errors/error.html", title="Faction Mismatch", error="The faction of the fulfilling user does not match the originating faction of the request"), 400
+    
+    faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
+
+    if faction is None:
+        return render_template("errors/error.html", title="Faction Not Found", error="The fulfilling user's faction could not be located in the database."), 400
+    elif (
+        faction.vaultconfig.get("banking") in [0, None]
+        or faction.vaultconfig.get("banker") in [0, None]
+        or faction.config.get("vault") in [0, None]
+        or faction.guild == 0
+    ):
+        return render_template("errors/error.html", title="Missing Configuration", error="The server's vault configuration is not properly set. Please contact a server administrator or faction AA member to do so."), 400
+
+    channels = tasks.discordget(
+        f"guilds/{faction.guild}/channels"
+    )
+
+    print(channels)
+    return "Hello"

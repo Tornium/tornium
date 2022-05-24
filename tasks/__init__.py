@@ -358,6 +358,50 @@ def discordget(endpoint, session=None):
 
 
 @celery_app.task
+def discordpatch(endpoint, payload, session=None):
+    url = f"https://discord.com/api/v9/{endpoint}"
+    redis = get_redis()
+
+    headers = {
+        "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
+        "Content-Type": "application/json",
+    }
+
+    if session is None:
+        request = requests.patch(url, headers=headers, data=json.dumps(payload))
+    else:
+        request = session.patch(url, header=headers, data=json.dumps(payload))
+    
+    try:
+        request_json = request.json()
+    except Exception as e:
+        if request.status_code // 100 != 2:
+            logger.warning(
+                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
+            )
+            raise NetworkingError(code=request.status_code, url=url)
+        else:
+            raise e
+    
+    if "code" in request_json:
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # explanations
+
+        logger.warning(
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+        )
+        logger.debug(request_json)
+        raise DiscordError(code=request_json["code"], message=request_json["message"])
+    elif request.status_code // 100 != 2:
+        logger.warning(
+            f"The Discord API has responded with HTTP {request.status_code} to {url})."
+        )
+        raise NetworkingError(code=request.status_code, url=url)
+
+    return request_json
+
+
+@celery_app.task
 def discordpost(endpoint, payload, session=None):
     url = f"https://discord.com/api/v9/{endpoint}"
     redis = get_redis()

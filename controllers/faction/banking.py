@@ -150,6 +150,36 @@ def fulfill(wid: int):
     channels = tasks.discordget(
         f"guilds/{faction.guild}/channels"
     )
+    banking_channel = None
 
-    print(channels)
-    return "Hello"
+    for channel in channels:
+        if channel["id"] == faction.vaultconfig.get("banking"):
+            banking_channel = channel
+            break
+    
+    if banking_channel is None:
+        return render_template("errors/error.html", title="Unknown Channel", error="The banking channnel withdrawal requests are sent to could not be found."), 400
+    
+    message = tasks.discordget(
+        f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}"
+    )
+    embed = message["embeds"][0]
+
+    embed["fields"] = [
+        {
+            "name": "Original Message",
+            "value": embed["description"]
+        }
+    ]
+    embed["description"] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
+
+    message = tasks.discordpatch(
+        f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+        payload={
+            "embeds": [embed]
+        }
+    )
+
+    withdrawal.fulfiller = current_user.tid
+    withdrawal.time_fulfilled = utils.now()
+    withdrawal.save()

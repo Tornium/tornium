@@ -7,6 +7,7 @@ import asyncio
 import random
 import sys
 import time
+from urllib import request
 
 import discord
 from discord.ext import commands
@@ -220,9 +221,9 @@ class Vault(commands.Cog):
 
             embed = discord.Embed()
             embed.title = f"Vault Request #{request_id}"
+            send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
 
             if cash != "all":
-                send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={cash}"
                 embed.description = (
                     f"{user.name if user.name != '' else ctx.message.author.nick} is requesting {arg} "
                     f"from the faction vault. To fulfill this request, "
@@ -230,7 +231,6 @@ class Vault(commands.Cog):
                 )
                 embed.add_field(name="Fulfill Link", value=f"[Fulfill Here]({send_link})")
             else:
-                send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={vault_balances['donations'][str(user.tid)]['money_balance']}"
                 embed.description = (
                     f"{user.name if user.name != '' else ctx.message.author.nick} is requesting "
                     f'{utils.commas(vault_balances["donations"][str(user.tid)]["money_balance"])} '

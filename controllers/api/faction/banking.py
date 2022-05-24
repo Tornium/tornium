@@ -338,6 +338,7 @@ def banking_request(*args, **kwargs):
             )
 
         request_id = WithdrawalModel.objects().count()
+        send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
 
         if amount_requested != "all":
             message_payload = {
@@ -351,7 +352,7 @@ def banking_request(*args, **kwargs):
                         "fields": [
                             {
                                 "name": "Fulfill Link",
-                                "value": f"[Fulfill Here](https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={amount_requested})"
+                                "value": f"[Fulfill Here]({send_link})"
                             }
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -371,7 +372,7 @@ def banking_request(*args, **kwargs):
                         "fields": [
                             {
                                 "name": "Fulfill Link",
-                                "value": f"[Fulfill Here](https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={user.tid}&giveMoneyAmount={vault_balances['donations'][str(user.tid)]['money_balance']})"
+                                "value": f"[Fulfill Here]({send_link})"
                             }
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),

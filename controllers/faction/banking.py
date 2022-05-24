@@ -153,7 +153,7 @@ def fulfill(wid: int):
     banking_channel = None
 
     for channel in channels:
-        if channel["id"] == faction.vaultconfig.get("banking"):
+        if channel["id"] == str(faction.vaultconfig.get("banking")):
             banking_channel = channel
             break
     
@@ -183,3 +183,5 @@ def fulfill(wid: int):
     withdrawal.fulfiller = current_user.tid
     withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
+
+    return redirect(send_link)

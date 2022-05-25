@@ -1,0 +1,10 @@
+{
+    "active": [
+        "ping",
+        "faction/banking/balance.json",
+        "faction/banking/withdraw.json"
+    ],
+    "disabled": [
+
+    ]
+}

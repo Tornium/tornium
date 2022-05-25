@@ -27,6 +27,10 @@ except FileNotFoundError:
         "honeykey": "",
         "honeysitecheckin": "",
         "honeybotcheckin": "",
+        "skynet": {
+            "applicationid": "",
+            "applicationpublic": "",
+        }
     }
     with open(f"settings.json", "w") as file:
         json.dump(data, file, indent=4)
@@ -47,3 +51,5 @@ redis.set("tornium:settings:honeyenv", data.get("honeyenv"))
 redis.set("tornium:settings:honeykey", data.get("honeykey"))
 redis.set("tornium:settings:honeysitecheckin", data.get("honeysitecheckin"))
 redis.set("tornium:settings:honeybotcheckin", data.get("honeybotcheckin"))
+redis.set("tornium:settings:skynet:applicationid", data.get("skynet").get("applicationid") if "skynet" in data else None)
+redis.set("tornium:settings:skynet:applicationpublic", data.get("skynet").get("applicationpublic") if "skynet" in data else None)

@@ -30,6 +30,7 @@ except FileNotFoundError:
         "skynet": {
             "applicationid": "",
             "applicationpublic": "",
+            "bottoken": ""
         }
     }
     with open(f"settings.json", "w") as file:
@@ -53,3 +54,4 @@ redis.set("tornium:settings:honeysitecheckin", data.get("honeysitecheckin"))
 redis.set("tornium:settings:honeybotcheckin", data.get("honeybotcheckin"))
 redis.set("tornium:settings:skynet:applicationid", data.get("skynet").get("applicationid") if "skynet" in data else None)
 redis.set("tornium:settings:skynet:applicationpublic", data.get("skynet").get("applicationpublic") if "skynet" in data else None)
+redis.set("tornium:settings:skynet:bottoken", data.get("skynet").get("bottoken") if "skynet" in data else None)

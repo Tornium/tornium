@@ -75,7 +75,7 @@ mod = Blueprint("botinteractions", __name__)
 
 
 @mod.route("/skynet", methods=["POST"])
-def skynet():
+def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.utils.verify_header(request)
     except BadSignatureError as e:

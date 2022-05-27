@@ -49,7 +49,7 @@ for commandid in commands_list["active"]:
             dev=True
         )
     except utils.DiscordError as e:
-        honeybadger.notify(
+        honeybadger.honeybadger.notify(
             e,
             context={
                 "code": e.code,

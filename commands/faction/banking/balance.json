@@ -11,7 +11,7 @@
         },
         {
             "type": 6,
-            "name": "faction member",
+            "name": "member",
             "description": "Faction member whose vault balance is to be returned",
             "required": false
         }

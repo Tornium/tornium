@@ -92,3 +92,5 @@ def skynet():
 
     if command_name == "ping":
         return jsonify(skynet.commands.ping(request.json))
+    elif command_name == "balance":
+        return jsonify(skynet.commands.faction.balance.balance(request.json))

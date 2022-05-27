@@ -5,7 +5,7 @@
 
 import flask
 from nacl.signing import VerifyKey
-from nacl.exceptions import BadSignatureException
+from nacl.exceptions import BadSignatureError
 
 import redisdb
 

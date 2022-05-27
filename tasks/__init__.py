@@ -454,7 +454,7 @@ def discordpost(endpoint, payload, session=None, dev=False):
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
         )
         logger.debug(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])

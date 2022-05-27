@@ -1,5 +1,5 @@
 {
-    "name": "Balance",
+    "name": "balance",
     "type": 1,
     "description": "Returns the user's vault balance",
     "options": [

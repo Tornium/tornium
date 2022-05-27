@@ -13,7 +13,7 @@ import requests
 
 import redisdb
 import skynet.commands
-import skynet.utils
+import skynet.skyutils
 import tasks
 import utils
 
@@ -77,7 +77,7 @@ mod = Blueprint("botinteractions", __name__)
 @mod.route("/skynet", methods=["POST"])
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
-        skynet.utils.verify_headers(request)
+        skynet.skyutils.verify_headers(request)
     except BadSignatureError as e:
         abort(401, 'invalid request signature')
 

@@ -18,7 +18,7 @@ import tasks
 import utils
 
 botlogger = logging.getLogger("skynet")
-botlogger.setLevel(logging.debug)
+botlogger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(
     filename="skynet.log",
     encoding="utf-8",

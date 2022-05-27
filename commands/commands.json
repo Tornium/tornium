@@ -1,8 +1,8 @@
 {
     "active": [
         "ping",
-        "faction/banking/balance.json",
-        "faction/banking/withdraw.json"
+        "faction/banking/balance",
+        "faction/banking/withdraw"
     ],
     "disabled": [
 

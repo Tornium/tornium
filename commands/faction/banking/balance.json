@@ -5,13 +5,13 @@
     "options": [
         {
             "type": 5,
-            "name": "Simple value",
+            "name": "type",
             "description": "Returns the simplified value of the user's vault balance",
             "required": false
         },
         {
             "type": 6,
-            "name": "Faction Member",
+            "name": "faction member",
             "description": "Faction member whose vault balance is to be returned",
             "required": false
         }

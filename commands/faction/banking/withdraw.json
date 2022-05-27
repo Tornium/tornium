@@ -16,11 +16,11 @@
             "required": false,
             "choices": [
                 {
-                    "name": "Cash",
+                    "name": "cash",
                     "value": "Cash"
                 },
                 {
-                    "name": "Points",
+                    "name": "points",
                     "value": "Points"
                 }
             ]

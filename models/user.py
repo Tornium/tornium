@@ -86,7 +86,7 @@ class User(UserMixin):
             elif key is None:
                 key = current_user.key
                 if key == "":
-                    raise Exception  # TODO: Make exception more descriptive
+                    raise utils.MissingKeyError
 
             try:
                 if key == self.key:

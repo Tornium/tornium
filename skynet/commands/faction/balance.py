@@ -186,45 +186,49 @@ def balance(interaction):
                 ]
             }
         }
-    
-    user: User = User(user.tid)
-    user.refresh(key=User(random.choice(server.admins)).key)
 
-    if user.factiontid == 0:
-        user.refresh(key=User(random.choice(server.admins)).key, force=True)
+    try:
+        user: User = User(user.tid)
+        if server is None:
+            user.refresh()
+        else:
+            user.refresh(key=User(random.choice(server.admins)).key)
 
         if user.factiontid == 0:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Faction ID Error",
-                            "description": f"The faction ID of {interaction['message']['user']['username']} is not set "
-                                           f"regardless of a force refresh.",
-                            "color": 0xC83F49
-                        }
-                    ]
-                }
-            }
-        
-    faction = Faction(user.factiontid)
+            if server is None:
+                user.refresh(force=True)
+            else:
+                user.refresh(key=User(random.choice(server.admins)).key, force=True)
 
-    if user.factiontid not in server.factions:
+            if user.factiontid == 0:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Faction ID Error",
+                                "description": f"The faction ID of {interaction['message']['user']['username']} is not set "
+                                               f"regardless of a force refresh.",
+                                "color": 0xC83F49
+                            }
+                        ]
+                    }
+                }
+    except utils.MissingKeyError:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
-                                       f"server. Please contact the server administrators to do this via "
-                                       f"[the dashboard](https://torn.deek.sh).",
+                        "title": "No API Key Available",
+                        "description": "No Torn API key could be utilized for this request.",
                         "color": 0xC83F49
                     }
                 ]
             }
         }
+        
+    faction = Faction(user.factiontid)
     
     if faction.config.get("vault") in [0, None]:
         return {

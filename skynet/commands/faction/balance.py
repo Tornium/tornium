@@ -20,7 +20,10 @@ import utils
 
 def balance(interaction):
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
-    user: UserModel = utils.first(UserModel.objects(discord_id=interaction["member"]["user"]["id"]))
+    if "member" in interaction:
+        user: UserModel = utils.first(UserModel.objects(discord_id=interaction["member"]["user"]["id"]))
+    else:
+        user: UserModel = utils.first(UserModel.objects(discord_id=interaction["user"]["id"]))
 
     tasks.discorddelete.apply_async(
         f"webhooks/{redisdb.get_redis().get('tornium:settings:skynet:applicationid')}/{interaction['token']}/messages/@original",

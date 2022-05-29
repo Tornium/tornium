@@ -35,8 +35,6 @@ with open("commands/commands.json") as commands_file:
 session = requests.Session()
 application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid")
 
-redis = redisdb.get_redis()
-
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
         command_data = json.load(command_file)
@@ -66,12 +64,8 @@ for commandid in commands_list["active"]:
             }
         )
         continue
-
-    redis.set(f"tornium:skynet:commands:{command_data['name']}", command["id"])
     
     # TODO: Add permissions to certain commands (e.g. fulfill)
-
-redis.close()
 
 mod = Blueprint("botinteractions", __name__)
 
@@ -90,7 +84,9 @@ def skynet_interactions():
     elif "id" not in request.json:
         return jsonify({})
 
-    if redis.get("tornium:skynet:commands:ping") == request.json["id"]:
+    if request.json["data"]["name"] == "ping":
         return jsonify(skynet.commands.ping(request.json))
-    elif redis.get("tornium:skynet:commands:balance") == request.json["id"]:
+    elif request.json["data"]["name"] == "balance":
         return jsonify(skynet.commands.faction.balance.balance(request.json))
+
+    return {}

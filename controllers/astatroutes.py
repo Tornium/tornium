@@ -282,7 +282,8 @@ def user_data():
                     "HIT",
                     "TEMP",
                     "CRITICAL",
-                    "WON"
+                    "MITIGATED",
+                    "WON",
                 ):
                     if any(
                         part
@@ -335,22 +336,33 @@ def user_data():
                 print(f"Def/Str Ratio: {def_str}")
 
                 if def_str == -2:
-                    print(f'Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}')
+                    print(
+                        f"Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}"
+                    )
                 elif def_str == -1:
-                    print(f'Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}')
+                    print(
+                        f"Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}"
+                    )
                 else:
                     defender_defense = def_str * stat_entry.attackerstr
-                    print(f'Estimated attacker defense: {utils.commas(int(defender_defense))}')
-            if "defender" in step["attacking"] and step["attacking"]["defender"]["result"] \
-                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
+                    print(
+                        f"Estimated attacker defense: {utils.commas(int(defender_defense))}"
+                    )
+            if "defender" in step["attacking"] and step["attacking"]["defender"][
+                "result"
+            ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 print(f"---- Defender ----")
                 print(step["attacking"].get("defender"))
+                print(step.get("attackerUser").get("statsModifiers"))
+                print(step.get("defenderUser").get("statsModifiers"))
                 print(
                     f'Damage received: {step["attacking"]["defender"]["damageDealed"]["value"]}'
                 )
                 print(
                     f'Pure damage received: {step["attacking"]["defender"]["damageDealed"]["damagePure"]}'
                 )
+
+                print(f'Defender strength modifier: {step["defenderUser"]["statsModifiers"]["strength"]["value"]}%')
 
                 region_multiplier = 1
 
@@ -359,7 +371,6 @@ def user_data():
                     "TEMP",
                     "CRITICAL",
                     "MITIGATED",
-                    "WON"
                 ):
                     if any(
                         part

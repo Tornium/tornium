@@ -25,13 +25,6 @@ def balance(interaction):
     else:
         user: UserModel = utils.first(UserModel.objects(discord_id=interaction["user"]["id"]))
 
-    tasks.discorddelete.apply_async(
-        f"webhooks/{redisdb.get_redis().get('tornium:settings:skynet:applicationid')}/{interaction['token']}/messages/@original",
-        dev=True,
-        countdown=30,
-        expires=60
-    )
-
     if user is None:
         if server is None:
             return {

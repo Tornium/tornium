@@ -19,7 +19,7 @@ import utils
 
 
 def balance(interaction):
-    server = Server(interaction["guild_id"])
+    server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
     user: UserModel = utils.first(UserModel.objects(discord_id=interaction["member"]["user"]["id"]))
 
     tasks.discorddelete.apply_async(
@@ -30,7 +30,22 @@ def balance(interaction):
     )
 
     if user is None:
-        if len(server.admins) == 0:
+        if server is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Error",
+                            "description": "Your user could not be located in Tornium's databases. Please run this "
+                                           "command in a server with the Tornium bot or sign into "
+                                           "[Tornium](https://torn.deek.sh/login).",
+                            "color": 0xC83F49
+                        }
+                    ]
+                }
+            }
+        elif len(server.admins) == 0:
             return {
                 "type": 4,
                 "data": {
@@ -70,7 +85,8 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "Admin Key Not Found",
-                            "description": "Admin located in the database, but the admin's key was not found. Please try again.",
+                            "description": "Admin located in the database, but the admin's key was not found. Please "
+                                           "try again.",
                             "color": 0xC83F49,
                             "footer": {
                                 "text": f"Borked Admin ID: {admin_id}"
@@ -145,7 +161,12 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "User Requires Verification",
-                            "description": "You are required to be verified officially by Torn through the [official Torn Discord server](https://www.torn.com/discord] before being able to utilize the banking features of this bot. Alternatively, you can sign into [the web dashboard](https://torn.deek.sh/faction/banking) with your API key to send a request without verifying. If you have recently verified yourself, please wait a minute or two before trying again.",
+                            "description": "You are required to be verified officially by Torn through the "
+                                           "[official Torn Discord server](https://www.torn.com/discord] before being "
+                                           "able to utilize the banking features of this bot. Alternatively, you can "
+                                           "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                                           "your API key to send a request without verifying. If you have recently "
+                                           "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49
                         }
                     ]
@@ -158,14 +179,19 @@ def balance(interaction):
                 "embeds": [
                     {
                         "title": "User Requires Verification",
-                        "description": "You are required to be verified officially by Torn through the [official Torn Discord server](https://www.torn.com/discord] before being able to utilize the banking features of this bot. Alternatively, you can sign into [the web dashboard](https://torn.deek.sh/faction/banking) with your API key to send a request without verifying. If you have recently verified yourself, please wait a minute or two before trying again.",
+                        "description": "You are required to be verified officially by Torn through the "
+                                       "[official Torn Discord server](https://www.torn.com/discord] before being "
+                                       "able to utilize the banking features of this bot. Alternatively, you can "
+                                       "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                                       "your API key to send a request without verifying. If you have recently "
+                                       "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49
                     }
                 ]
             }
         }
     
-    user = User(user.tid)
+    user: User = User(user.tid)
     user.refresh(key=User(random.choice(server.admins)).key)
 
     if user.factiontid == 0:
@@ -178,7 +204,8 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "Faction ID Error",
-                            "description": f"The faction ID of {interaction['message']['user']['username']} is not set regardless of a force refresh.",
+                            "description": f"The faction ID of {interaction['message']['user']['username']} is not set "
+                                           f"regardless of a force refresh.",
                             "color": 0xC83F49
                         }
                     ]
@@ -194,7 +221,9 @@ def balance(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the server. Please contact the server administrators to do this via [the dashboard](https://torn.deek.sh).",
+                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                                       f"server. Please contact the server administrators to do this via "
+                                       f"[the dashboard](https://torn.deek.sh).",
                         "color": 0xC83F49
                     }
                 ]
@@ -208,7 +237,9 @@ def balance(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the server. Please contact the server administrators to do this via [the dashboard](https://torn.deek.sh).",
+                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                                       f"server. Please contact the server administrators to do this via "
+                                       f"[the dashboard](https://torn.deek.sh).",
                         "color": 0xC83F49
                     }
                 ]

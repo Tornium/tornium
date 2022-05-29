@@ -265,8 +265,9 @@ def user_data():
             # Boots - slot 8
             # Gloves - slot 9
 
-            if "attacker" in step["attacking"] and step["attacking"]["attacker"]["result"]\
-                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
+            if "attacker" in step["attacking"] and step["attacking"]["attacker"][
+                "result"
+            ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 base = (
                     7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2)
                     + 27 * math.log10(stat_entry.attackerstr / 10)
@@ -362,7 +363,9 @@ def user_data():
                     f'Pure damage received: {step["attacking"]["defender"]["damageDealed"]["damagePure"]}'
                 )
 
-                print(f'Defender strength modifier: {step["defenderUser"]["statsModifiers"]["strength"]["value"]}%')
+                print(
+                    f'Defender strength modifier: {step["defenderUser"]["statsModifiers"]["strength"]["value"]}%'
+                )
 
                 region_multiplier = 1
 
@@ -445,8 +448,8 @@ def user_data():
             )
             + 1,
         )
-        print(f'Number of actions: {len(defender_base_dmg)}')
-        print(f'Number of normalized actions: {len(normalized_defender_base_dmg)}')
+        print(f"Number of actions: {len(defender_base_dmg)}")
+        print(f"Number of normalized actions: {len(normalized_defender_base_dmg)}")
         print(f"Defender normalized median strength: {utils.commas(round(strength))}")
         print(f"---- END Attack [{stat_entry.tid}] ----")
         print("")
@@ -459,7 +462,7 @@ def user_data():
                 "addedid": stat_entry.addedid,
                 "addedfactiontid": faction,
                 "globalstat": stat_entry.globalstat,
-                "strength": strength
+                "strength": strength,
             }
         )
 

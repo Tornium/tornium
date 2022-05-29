@@ -371,7 +371,7 @@ def discordpatch(endpoint, payload, session=None):
         request = requests.patch(url, headers=headers, data=json.dumps(payload))
     else:
         request = session.patch(url, header=headers, data=json.dumps(payload))
-    
+
     try:
         request_json = request.json()
     except Exception as e:
@@ -382,7 +382,7 @@ def discordpatch(endpoint, payload, session=None):
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
-    
+
     if "code" in request_json:
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
         # explanations

@@ -60,7 +60,10 @@ class Vault(commands.Cog):
                 return None
 
             user_data = await botutils.tornget(
-                ctx, self.logger, f"user/{ctx.message.author.id}?selections=profile,discord", admin.key
+                ctx,
+                self.logger,
+                f"user/{ctx.message.author.id}?selections=profile,discord",
+                admin.key,
             )
 
             user = UserModel(
@@ -229,7 +232,9 @@ class Vault(commands.Cog):
                     f"from the faction vault. To fulfill this request, "
                     f"enter `?f {request_id}` in this channel."
                 )
-                embed.add_field(name="Fulfill Link", value=f"[Fulfill Here]({send_link})")
+                embed.add_field(
+                    name="Fulfill Link", value=f"[Fulfill Here]({send_link})"
+                )
             else:
                 embed.description = (
                     f"{user.name if user.name != '' else ctx.message.author.nick} is requesting "
@@ -237,7 +242,9 @@ class Vault(commands.Cog):
                     f"from the faction vault. To fulfill this request, "
                     f"enter `?f {request_id}` in this channel."
                 )
-                embed.add_field(name="Fulfill Link", value=f"[Fulfill Here]({send_link})")
+                embed.add_field(
+                    name="Fulfill Link", value=f"[Fulfill Here]({send_link})"
+                )
             message = await channel.send(f'<@&{vault_config["banker"]}>', embed=embed)
 
             withdrawal = WithdrawalModel(

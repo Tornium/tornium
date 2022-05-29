@@ -49,20 +49,18 @@ def vault_balance(*args, **kwargs):
     faction_key = faction.rand_key()
 
     if faction_key is None:
-        return(
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The user's faction does not have any signed in AA members."
-                },
-                400,
-                {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit_Reset": client.ttl(key)
-                }
-            )
+        return jsonify(
+            {
+                "code": 0,
+                "name": "GeneralError",
+                "message": "Server failed to fulfill the request. The user's faction does not have any signed in AA members.",
+            },
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit_Reset": client.ttl(key),
+            },
         )
 
     try:
@@ -352,7 +350,7 @@ def banking_request(*args, **kwargs):
                         "fields": [
                             {
                                 "name": "Fulfill Link",
-                                "value": f"[Fulfill Here]({send_link})"
+                                "value": f"[Fulfill Here]({send_link})",
                             }
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -372,7 +370,7 @@ def banking_request(*args, **kwargs):
                         "fields": [
                             {
                                 "name": "Fulfill Link",
-                                "value": f"[Fulfill Here]({send_link})"
+                                "value": f"[Fulfill Here]({send_link})",
                             }
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),

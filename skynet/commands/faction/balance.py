@@ -9,7 +9,6 @@ from models.faction import Faction
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-import redisdb
 import tasks
 import utils
 
@@ -311,7 +310,8 @@ def balance(interaction):
                             "name": "Points Balance",
                             "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}"
                         }
-                    ]
+                    ],
+                    "color": 0x32CD32
                 }
             ]
         }

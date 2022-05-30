@@ -122,13 +122,7 @@ def attack_start(*args, **kwargs):
         attack.save()
 
     return (
-        jsonify(
-            {
-                "code": 1,
-                "name": "OK",
-                "message": "Server request was successful."
-            }
-        ),
+        jsonify({"code": 1, "name": "OK", "message": "Server request was successful."}),
         200,
         {
             "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
@@ -295,12 +289,13 @@ def attack_log_stats(logID, *args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    
+
     defender_base_dmg = []
-    
+
     for step in stat_entry.dbs:
-        if "attacker" in step["attacking"] and step["attacking"]["attacker"]["result"]\
-                not in ("RELOAD", "MISS", "INEFFECTIVE"):
+        if "attacker" in step["attacking"] and step["attacking"]["attacker"][
+            "result"
+        ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
             base = (
                 7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2)
                 + 27 * math.log10(stat_entry.attackerstr / 10)
@@ -316,23 +311,20 @@ def attack_log_stats(logID, *args, **kwargs):
                 "HIT",
                 "TEMP",
                 "CRITICAL",
-                "WON"
+                "WON",
             ):
                 if any(
-                    part
-                    in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
                     for part in ("hand", "foot")
                 ):
                     region_multiplier = 0.2
                 elif any(
-                    part
-                    in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
                     for part in ("arm", "leg")
                 ):
                     region_multiplier = 0.2857
                 elif any(
-                    part
-                    in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["attacker"]["hitInfo"][0]["zone"].lower()
                     for part in ("chest", "stomach", "groin")
                 ):
                     region_multiplier = 0.5714
@@ -369,14 +361,21 @@ def attack_log_stats(logID, *args, **kwargs):
             print(f"Def/Str Ratio: {def_str}")
 
             if def_str == -2:
-                print(f'Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}')
+                print(
+                    f"Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}"
+                )
             elif def_str == -1:
-                print(f'Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}')
+                print(
+                    f"Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}"
+                )
             else:
                 defender_defense = def_str * stat_entry.attackerstr
-                print(f'Estimated attacker defense: {utils.commas(int(defender_defense))}')
-        if "defender" in step["attacking"] and step["attacking"]["defender"]["result"] \
-                not in ("RELOAD", "MISS", "INEFFECTIVE"):
+                print(
+                    f"Estimated attacker defense: {utils.commas(int(defender_defense))}"
+                )
+        if "defender" in step["attacking"] and step["attacking"]["defender"][
+            "result"
+        ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
             print(f"---- Defender ----")
             print(step["attacking"].get("defender"))
             print(
@@ -393,23 +392,20 @@ def attack_log_stats(logID, *args, **kwargs):
                 "TEMP",
                 "CRITICAL",
                 "MITIGATED",
-                "WON"
+                "WON",
             ):
                 if any(
-                    part
-                    in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
                     for part in ("hand", "foot")
                 ):
                     region_multiplier = 0.2
                 elif any(
-                    part
-                    in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
                     for part in ("arm", "leg")
                 ):
                     region_multiplier = 0.2857
                 elif any(
-                    part
-                    in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
+                    part in step["attacking"]["defender"]["hitInfo"][0]["zone"].lower()
                     for part in ("chest", "stomach", "groin")
                 ):
                     region_multiplier = 0.5714
@@ -462,14 +458,11 @@ def attack_log_stats(logID, *args, **kwargs):
     )
     strength = math.pow(
         10,
-        (
-            (-27 + math.sqrt(729 - 28 * (30 - defender_base_dmg_normalized_median)))
-            / 14
-        )
+        ((-27 + math.sqrt(729 - 28 * (30 - defender_base_dmg_normalized_median))) / 14)
         + 1,
     )
-    print(f'Number of actions: {len(defender_base_dmg)}')
-    print(f'Number of normalized actions: {len(normalized_defender_base_dmg)}')
+    print(f"Number of actions: {len(defender_base_dmg)}")
+    print(f"Number of normalized actions: {len(normalized_defender_base_dmg)}")
     print(f"Defender normalized median strength: {utils.commas(round(strength))}")
     print(f"---- END Attack [{stat_entry.tid}] ----")
     print("")
@@ -483,8 +476,8 @@ def attack_log_stats(logID, *args, **kwargs):
                 "strength": {
                     "median": strength,
                     "actions": len(defender_base_dmg),
-                    "normalized_actions": len(normalized_defender_base_dmg)
-                }
+                    "normalized_actions": len(normalized_defender_base_dmg),
+                },
             }
         ),
         200,

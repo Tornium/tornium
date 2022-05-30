@@ -265,8 +265,9 @@ def user_data():
             # Boots - slot 8
             # Gloves - slot 9
 
-            if "attacker" in step["attacking"] and step["attacking"]["attacker"]["result"]\
-                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
+            if "attacker" in step["attacking"] and step["attacking"]["attacker"][
+                "result"
+            ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 base = (
                     7 * math.pow(math.log10(stat_entry.attackerstr / 10), 2)
                     + 27 * math.log10(stat_entry.attackerstr / 10)
@@ -282,7 +283,7 @@ def user_data():
                     "HIT",
                     "TEMP",
                     "CRITICAL",
-                    "WON"
+                    "WON",
                 ):
                     if any(
                         part
@@ -335,14 +336,21 @@ def user_data():
                 print(f"Def/Str Ratio: {def_str}")
 
                 if def_str == -2:
-                    print(f'Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}')
+                    print(
+                        f"Estimated attacker defense: less than or equal to {utils.commas(int(stat_entry.attackerstr / 64))}"
+                    )
                 elif def_str == -1:
-                    print(f'Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}')
+                    print(
+                        f"Estimated attacker defense: greater than or equal to {utils.commas(int(stat_entry.attackerstr * 64))}"
+                    )
                 else:
                     defender_defense = def_str * stat_entry.attackerstr
-                    print(f'Estimated attacker defense: {utils.commas(int(defender_defense))}')
-            if "defender" in step["attacking"] and step["attacking"]["defender"]["result"] \
-                    not in ("RELOAD", "MISS", "INEFFECTIVE"):
+                    print(
+                        f"Estimated attacker defense: {utils.commas(int(defender_defense))}"
+                    )
+            if "defender" in step["attacking"] and step["attacking"]["defender"][
+                "result"
+            ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 print(f"---- Defender ----")
                 print(step["attacking"].get("defender"))
                 print(
@@ -359,7 +367,7 @@ def user_data():
                     "TEMP",
                     "CRITICAL",
                     "MITIGATED",
-                    "WON"
+                    "WON",
                 ):
                     if any(
                         part
@@ -434,8 +442,8 @@ def user_data():
             )
             + 1,
         )
-        print(f'Number of actions: {len(defender_base_dmg)}')
-        print(f'Number of normalized actions: {len(normalized_defender_base_dmg)}')
+        print(f"Number of actions: {len(defender_base_dmg)}")
+        print(f"Number of normalized actions: {len(normalized_defender_base_dmg)}")
         print(f"Defender normalized median strength: {utils.commas(round(strength))}")
         print(f"---- END Attack [{stat_entry.tid}] ----")
         print("")
@@ -448,7 +456,7 @@ def user_data():
                 "addedid": stat_entry.addedid,
                 "addedfactiontid": faction,
                 "globalstat": stat_entry.globalstat,
-                "strength": strength
+                "strength": strength,
             }
         )
 

@@ -16,8 +16,8 @@ def ping(interaction):
                     "image": {
                         "url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"
                     },
-                    "color": 0x7DF9FF
+                    "color": 0x7DF9FF,
                 }
             ]
-        }
+        },
     }

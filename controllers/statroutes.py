@@ -70,13 +70,9 @@ def stats_data():
             Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs))
         )
     elif min_bs == "" and max_bs != "":
-        stat_entries = stat_entries.filter(
-            battlescore__lt=int(max_bs)
-        )
+        stat_entries = stat_entries.filter(battlescore__lt=int(max_bs))
     elif min_bs != "" and max_bs == "":
-        stat_entries = stat_entries.filter(
-            battlescore__gt=int(min_bs)
-        )
+        stat_entries = stat_entries.filter(battlescore__gt=int(min_bs))
 
     if ordering_direction == "asc":
         ordering_direction = "+"

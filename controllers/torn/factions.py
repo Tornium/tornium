@@ -79,10 +79,16 @@ def faction_data(tid: int):
         members.append(member)
 
     leader = User(faction.leader).refresh(key=current_user.key)
-    if faction.coleader != 0 :
+    if faction.coleader != 0:
         coleader = User(faction.coleader).refresh(key=current_user.key)
 
     leader: UserModel = utils.first(UserModel.objects(tid=faction.leader))
     coleader: UserModel = utils.first(UserModel.objects(tid=faction.coleader))
 
-    return render_template("torn/factionmodal.html", faction=faction, members=members, leader=leader, coleader=coleader)
+    return render_template(
+        "torn/factionmodal.html",
+        faction=faction,
+        members=members,
+        leader=leader,
+        coleader=coleader,
+    )

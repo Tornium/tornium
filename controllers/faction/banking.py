@@ -123,61 +123,92 @@ def userbankingdata():
     }
     return data
 
+
 @login_required
 def fulfill(wid: int):
     withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=wid))
     send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
 
     if withdrawal is None:
-        return render_template('errors/error.html', title='Unknown Withdrawal', error='The passed withdrawal could not be found in the database.'), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unknown Withdrawal",
+                error="The passed withdrawal could not be found in the database.",
+            ),
+            400,
+        )
     elif withdrawal.fulfiller != 0:
         return redirect(send_link)
     elif current_user.factiontid != withdrawal.factiontid:
-        return render_template("errors/error.html", title="Faction Mismatch", error="The faction of the fulfilling user does not match the originating faction of the request"), 400
-    
-    faction: FactionModel = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        return (
+            render_template(
+                "errors/error.html",
+                title="Faction Mismatch",
+                error="The faction of the fulfilling user does not match the originating faction of the request",
+            ),
+            400,
+        )
+
+    faction: FactionModel = utils.first(
+        FactionModel.objects(tid=current_user.factiontid)
+    )
 
     if faction is None:
-        return render_template("errors/error.html", title="Faction Not Found", error="The fulfilling user's faction could not be located in the database."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Faction Not Found",
+                error="The fulfilling user's faction could not be located in the database.",
+            ),
+            400,
+        )
     elif (
         faction.vaultconfig.get("banking") in [0, None]
         or faction.vaultconfig.get("banker") in [0, None]
         or faction.config.get("vault") in [0, None]
         or faction.guild == 0
     ):
-        return render_template("errors/error.html", title="Missing Configuration", error="The server's vault configuration is not properly set. Please contact a server administrator or faction AA member to do so."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Missing Configuration",
+                error="The server's vault configuration is not properly set. Please contact a server administrator or faction AA member to do so.",
+            ),
+            400,
+        )
 
-    channels = tasks.discordget(
-        f"guilds/{faction.guild}/channels"
-    )
+    channels = tasks.discordget(f"guilds/{faction.guild}/channels")
     banking_channel = None
 
     for channel in channels:
         if channel["id"] == str(faction.vaultconfig.get("banking")):
             banking_channel = channel
             break
-    
+
     if banking_channel is None:
-        return render_template("errors/error.html", title="Unknown Channel", error="The banking channnel withdrawal requests are sent to could not be found."), 400
-    
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unknown Channel",
+                error="The banking channnel withdrawal requests are sent to could not be found.",
+            ),
+            400,
+        )
+
     message = tasks.discordget(
         f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}"
     )
     embed = message["embeds"][0]
 
-    embed["fields"] = [
-        {
-            "name": "Original Message",
-            "value": embed["description"]
-        }
-    ]
-    embed["description"] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
+    embed["fields"] = [{"name": "Original Message", "value": embed["description"]}]
+    embed[
+        "description"
+    ] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
 
     message = tasks.discordpatch(
         f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-        payload={
-            "embeds": [embed]
-        }
+        payload={"embeds": [embed]},
     )
 
     withdrawal.fulfiller = current_user.tid

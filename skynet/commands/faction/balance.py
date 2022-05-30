@@ -18,11 +18,16 @@ import utils
 
 
 def balance(interaction):
+    print(interaction)
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
     if "member" in interaction:
-        user: UserModel = utils.first(UserModel.objects(discord_id=interaction["member"]["user"]["id"]))
+        user: UserModel = utils.first(
+            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
+        )
     else:
-        user: UserModel = utils.first(UserModel.objects(discord_id=interaction["user"]["id"]))
+        user: UserModel = utils.first(
+            UserModel.objects(discord_id=interaction["user"]["id"])
+        )
 
     if user is None:
         if server is None:
@@ -33,12 +38,12 @@ def balance(interaction):
                         {
                             "title": "Error",
                             "description": "Your user could not be located in Tornium's databases. Please run this "
-                                           "command in a server with the Tornium bot or sign into "
-                                           "[Tornium](https://torn.deek.sh/login).",
-                            "color": 0xC83F49
+                            "command in a server with the Tornium bot or sign into "
+                            "[Tornium](https://torn.deek.sh/login).",
+                            "color": 0xC83F49,
                         }
                     ]
-                }
+                },
             }
         elif len(server.admins) == 0:
             return {
@@ -48,12 +53,12 @@ def balance(interaction):
                         {
                             "title": "No Admins",
                             "description": "There are no admins currently signed into Tornium.",
-                            "color": 0xC83F49
+                            "color": 0xC83F49,
                         }
                     ]
-                }
+                },
             }
-        
+
         admin_id = random.choice(server.admins)
         admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
 
@@ -66,12 +71,10 @@ def balance(interaction):
                             "title": "Admin Not Found",
                             "description": "Admin not found in the database. Please try again.",
                             "color": 0xC83F49,
-                            "footer": {
-                                "text": f"Unknown Admin ID: {admin_id}"
-                            }
+                            "footer": {"text": f"Unknown Admin ID: {admin_id}"},
                         }
                     ]
-                }
+                },
             }
         elif admin.key in ("", None):
             return {
@@ -81,16 +84,14 @@ def balance(interaction):
                         {
                             "title": "Admin Key Not Found",
                             "description": "Admin located in the database, but the admin's key was not found. Please "
-                                           "try again.",
+                            "try again.",
                             "color": 0xC83F49,
-                            "footer": {
-                                "text": f"Borked Admin ID: {admin_id}"
-                            }
+                            "footer": {"text": f"Borked Admin ID: {admin_id}"},
                         }
                     ]
-                }
+                },
             }
-        
+
         try:
             user_data = tasks.tornget(
                 f"user/{interaction['member']['user']['id']}?selections=", admin.key
@@ -102,11 +103,11 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "Torn API Error",
-                            "description": f"The Torn API has raised error code {e.code}: \"{e.message}\".",
-                            "color": 0xC83F49
+                            "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
                         }
                     ]
-                }
+                },
             }
         except utils.NetworkingError as e:
             return {
@@ -115,11 +116,11 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "HTTP Error",
-                            "description": f"The Torn API has returned an HTTP error {e.code}: \"{e.message}\".",
-                            "color": 0xC83F49
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
                         }
                     ]
-                }
+                },
             }
 
         user = UserModel(
@@ -157,15 +158,15 @@ def balance(interaction):
                         {
                             "title": "User Requires Verification",
                             "description": "You are required to be verified officially by Torn through the "
-                                           "[official Torn Discord server](https://www.torn.com/discord] before being "
-                                           "able to utilize the banking features of this bot. Alternatively, you can "
-                                           "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
-                                           "your API key to send a request without verifying. If you have recently "
-                                           "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49
+                            "[official Torn Discord server](https://www.torn.com/discord] before being "
+                            "able to utilize the banking features of this bot. Alternatively, you can "
+                            "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                            "your API key to send a request without verifying. If you have recently "
+                            "verified yourself, please wait a minute or two before trying again.",
+                            "color": 0xC83F49,
                         }
                     ]
-                }
+                },
             }
     elif user.tid == 0:
         return {
@@ -175,15 +176,15 @@ def balance(interaction):
                     {
                         "title": "User Requires Verification",
                         "description": "You are required to be verified officially by Torn through the "
-                                       "[official Torn Discord server](https://www.torn.com/discord] before being "
-                                       "able to utilize the banking features of this bot. Alternatively, you can "
-                                       "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
-                                       "your API key to send a request without verifying. If you have recently "
-                                       "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49
+                        "[official Torn Discord server](https://www.torn.com/discord] before being "
+                        "able to utilize the banking features of this bot. Alternatively, you can "
+                        "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                        "your API key to send a request without verifying. If you have recently "
+                        "verified yourself, please wait a minute or two before trying again.",
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
 
     try:
@@ -206,12 +207,12 @@ def balance(interaction):
                         "embeds": [
                             {
                                 "title": "Faction ID Error",
-                                "description": f"The faction ID of {interaction['message']['user']['username']} is not set "
-                                               f"regardless of a force refresh.",
-                                "color": 0xC83F49
+                                "description": f"The faction ID of {interaction['message']['user']['username']} is not "
+                                f"set regardless of a force refresh.",
+                                "color": 0xC83F49,
                             }
                         ]
-                    }
+                    },
                 }
     except utils.MissingKeyError:
         return {
@@ -221,14 +222,14 @@ def balance(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
-        
+
     faction = Faction(user.factiontid)
-    
+
     if faction.config.get("vault") in [0, None]:
         return {
             "type": 4,
@@ -237,14 +238,14 @@ def balance(interaction):
                     {
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
-                                       f"server. Please contact the server administrators to do this via "
-                                       f"[the dashboard](https://torn.deek.sh).",
-                        "color": 0xC83F49
+                        f"server. Please contact the server administrators to do this via "
+                        f"[the dashboard](https://torn.deek.sh).",
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
-    
+
     try:
         faction_balances = tasks.tornget(
             f"faction/?selections=donations", faction.rand_key()
@@ -256,11 +257,11 @@ def balance(interaction):
                 "embeds": [
                     {
                         "title": "Torn API Error",
-                        "description": f"The Torn API has raised error code {e.code}: \"{e.message}\".",
-                        "color": 0xC83F49
+                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
     except utils.NetworkingError as e:
         return {
@@ -269,13 +270,13 @@ def balance(interaction):
                 "embeds": [
                     {
                         "title": "HTTP Error",
-                        "description": f"The Torn API has returned an HTTP error {e.code}: \"{e.message}\".",
-                        "color": 0xC83F49
+                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
-    
+
     faction_balances = faction_balances["donations"]
 
     if str(user.tid) not in faction_balances:
@@ -289,12 +290,12 @@ def balance(interaction):
                             f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
                             f"If you think that this is an error, please report this to the developers of this bot."
                         ),
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
-        
+
     return {
         "type": 4,
         "data": {
@@ -304,15 +305,15 @@ def balance(interaction):
                     "fields": [
                         {
                             "name": "Cash Balance",
-                            "value": f"${utils.commas(faction_balances[str(user.tid)]['money_balance'])}"
+                            "value": f"${utils.commas(faction_balances[str(user.tid)]['money_balance'])}",
                         },
                         {
                             "name": "Points Balance",
-                            "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}"
-                        }
+                            "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}",
+                        },
                     ],
-                    "color": 0x32CD32
+                    "color": 0x32CD32,
                 }
             ]
-        }
+        },
     }

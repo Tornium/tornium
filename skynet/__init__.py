@@ -19,11 +19,7 @@ import utils
 
 botlogger = logging.getLogger("skynet")
 botlogger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(
-    filename="skynet.log",
-    encoding="utf-8",
-    mode="a"
-)
+handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
 handler.setFormatter(
     logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
 )
@@ -38,33 +34,23 @@ application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid"
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
         command_data = json.load(command_file)
-    
+
     try:
         command = tasks.discordpost(
             f"applications/{application_id}/commands",
             command_data,
             session=session,
-            dev=True
+            dev=True,
         )
     except utils.DiscordError as e:
         honeybadger.honeybadger.notify(
-            e,
-            context={
-                "code": e.code,
-                "message": e.message,
-                "command": commandid
-            }
+            e, context={"code": e.code, "message": e.message, "command": commandid}
         )
         continue
     except Exception as e:
-        honeybadger.honeybadger.notify(
-            e,
-            context={
-                "command": commandid
-            }
-        )
+        honeybadger.honeybadger.notify(e, context={"command": commandid})
         continue
-    
+
     # TODO: Add permissions to certain commands (e.g. fulfill)
 
 mod = Blueprint("botinteractions", __name__)
@@ -75,12 +61,10 @@ def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
     except BadSignatureError as e:
-        abort(401, 'invalid request signature')
+        abort(401, "invalid request signature")
 
     if request.json["type"] == 1:
-        return jsonify({
-            "type": 1
-        })
+        return jsonify({"type": 1})
     elif "id" not in request.json:
         return jsonify({})
 

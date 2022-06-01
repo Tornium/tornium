@@ -282,7 +282,7 @@ def withdraw(interaction):
                     {
                         "title": "Ratelimit Reached",
                         "description": f"You have reached the ratelimit on banking requests (once every minute). "
-                        "Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
+                        f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
                         "color": 0xC83F49
                     }
                 ]

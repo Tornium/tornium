@@ -3,24 +3,24 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import random
 
+from bot import botutils
 from models.faction import Faction
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
+from models.withdrawalmodel import WithdrawalModel
+import redisdb
 import tasks
 import utils
 
-# Red: C83F49
-# Lime: 32CD32
-# Blue: 7DF9FF
 
-
-def balance(interaction):
+def withdraw(interaction):
     print(interaction)
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
-    
+
     if "member" in interaction:
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["member"]["user"]["id"])
@@ -29,23 +29,50 @@ def balance(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
-        
-    if "options" in interaction["data"]:
-        member = utils.find_list(interaction["data"]["options"], "name", "member")
-
-        if member != -1:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Not Yet Implemented",
-                            "description": "The members option of balance has not yet been implemented."
-                        }
-                    ]
-                }
+    
+    if "options" not in interaction["data"]:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Withdrawal Request Failed",
+                        "description": "No options were passed with the "
+                        "request. The withdrawal amount option is required.",
+                        "color": 0xC83F49
+                    }
+                ]
             }
+        }
+    
+    # -1: default
+    # 0: cash (default)
+    # 1: points
+    withdrawal_option = utils.find_list(interaction["data"]["options"], "name", "option")
 
+    if withdrawal_option == -1:
+        withdrawal_option = 0
+    elif withdrawal_option["value"] == "cash":
+        withdrawal_option = 0
+    elif withdrawal_option["value"] == "points":
+        withdrawal_option = 1
+    else:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Withdrawal Request Failed",
+                        "description": "An incorrect withdrawal type was passed.",
+                        "color": 0xC83F49,
+                        "footer": {
+                            "text": f"Inputted withdrawal type: {withdrawal_option['value']}"
+                        }
+                    }
+                ]
+            }
+        }
+    
     if user is None:
         if server is None:
             return {
@@ -75,7 +102,7 @@ def balance(interaction):
                     ]
                 },
             }
-
+        
         admin_id = random.choice(server.admins)
         admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
 
@@ -244,10 +271,53 @@ def balance(interaction):
                 ]
             },
         }
+    
+    client = redisdb.get_redis()
 
+    if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Ratelimit Reached",
+                        "description": f"You have reached the ratelimit on banking requests (once every minute). "
+                        "Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
+                        "color": 0xC83F49
+                    }
+                ]
+            }
+        }
+    else:
+        client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
+        client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
+    
+    withdrawal_amount = utils.find_list(interaction["data"]["options"], "name", "amount")
+
+    if withdrawal_amount == -1:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Illegal Parameters Passed",
+                        "description": "No withdrawal amount was passed, but is required.",
+                        "color": 0xC83F49
+                    }
+                ]
+            }
+        }
+    
+    withdrawal_amount = withdrawal_amount[1]["value"]
+
+    if withdrawal_amount.lower() == "all":
+        withdrawal_amount = "all"
+    else:
+        withdrawal_amount = botutils.text_to_num(withdrawal_option)
+    
     faction = Faction(user.factiontid)
 
-    if faction.config.get("vault") in [0, None]:
+    if user.factionid not in server.factions:
         return {
             "type": 4,
             "data": {
@@ -263,6 +333,26 @@ def balance(interaction):
             },
         }
 
+    if (
+        faction.vault_config.get("banking") in [0, None]
+        or faction.vault_config.get("banker") in [0, None]
+        or faction.config.get("vault") in [0, None]
+    ):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Configuration Required",
+                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        f"server. Please contact the server administrators to do this via "
+                        f"[the dashboard](https://torn.deek.sh).",
+                        "color": 0xC83F49,
+                    }
+                ]
+            },
+        }
+    
     try:
         faction_balances = tasks.tornget(
             f"faction/?selections=donations", faction.rand_key()
@@ -312,38 +402,118 @@ def balance(interaction):
                 ]
             },
         }
+    
+    if withdrawal_option == 1:
+        withdrawal_option_str = "points_balance"
+    else:
+        withdrawal_option_str = "money_balance"
+    
+    if withdrawal_amount != "all" and withdrawal_amount > faction_balances["donations"][str(user.tid)][withdrawal_option_str]:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Not Enough",
+                        "description": "You do not have enough of the requested substance in the faction vault.",
+                        "fields": [
+                            {
+                                "name": "Amount Requested",
+                                "value": withdrawal_amount
+                            },
+                            {
+                                "name": "Amount Available",
+                                "value": faction_balances["donation"][str(user.tid)][withdrawal_option_str]
+                            }
+                        ],
+                        "color": 0xC83F49
+                    }
+                ]
+            }
+        }
+    elif withdrawal_amount == "all" and faction_balances["donations"][str(user.tid)][withdrawal_option_str] <= 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Not Enough",
+                        "description": "You have requested all of your substance, but have zero or a negative vault balance.",
+                        "color": 0xC83F49
+                    }
+                ]
+            }
+        }
+    
+    request_id = WithdrawalModel.objects().count()
+    send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
+    
+    if withdrawal_amount != "all":
+        message_payload = {
+            # "content": f'<@&{faction.vault_config["banker"]}>',
+            "embeds": [
+                {
+                    "title": f"Vault Request #{request_id}",
+                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} from the "
+                    f"faction vault. "
+                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                    "fields": [
+                        {
+                            "name": "Fulfill Link",
+                            "value": f"[Fulfill Here]({send_link})",
+                        }
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                }
+            ],
+        }
+    else:
+        message_payload = {
+            # "content": f'<@&{vault_config["banker"]}>',
+            "embeds": [
+                {
+                    "title": f"Vault Request #{request_id}",
+                    "description": f"{user.name} [{user.tid}] is requesting "
+                    f'{vault_balances["donations"][str(user.tid)]["money_balance"]} from the '
+                    f"faction vault. "
+                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                    "fields": [
+                        {
+                            "name": "Fulfill Link",
+                            "value": f"[Fulfill Here]({send_link})",
+                        }
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                }
+            ],
+        }
+    
+    message = tasks.discordpost(
+        f'channels/{faction.vault_config["banking"]}/messages', payload=message_payload
+    )
+
+    withdrawal = WithdrawalModel(
+        wid=request_id,
+        amount=withdrawal_amount
+        if withdrawal_amount != "all"
+        else faction_balances["donations"][str(user.tid)][withdrawal_option_str],
+        requester=user.tid,
+        factiontid=user.factiontid,
+        time_requested=utils.now(),
+        fulfiller=0,
+        time_fulfilled=0,
+        withdrawal_message=message["id"],
+    )
+    withdrawal.save()
 
     return {
         "type": 4,
         "data": {
             "embeds": [
                 {
-                    "title": f"Vault Balance of {user.name if user.name != '' else interaction['member']['user']['username']}",
-                    "fields": [
-                        {
-                            "name": "Cash Balance",
-                            "value": f"${utils.commas(faction_balances[str(user.tid)]['money_balance'])}",
-                        },
-                        {
-                            "name": "Points Balance",
-                            "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}",
-                        },
-                    ],
-                    "color": 0x32CD32,
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=armoury"
-                        }
-                    ]
+                    "title": f"Vault Request #{request_id}",
+                    "description": "Your vault request has been forwarded to the faction leadership."
                 }
             ]
-        },
+        }
     }

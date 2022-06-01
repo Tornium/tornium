@@ -314,6 +314,19 @@ def balance(interaction):
                     ],
                     "color": 0x32CD32,
                 }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=armoury"
+                        }
+                    ]
+                }
             ]
         },
     }

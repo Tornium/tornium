@@ -18,6 +18,7 @@ def ping(interaction):
                     },
                     "color": 0x7DF9FF,
                 }
-            ]
+            ],
+            "flags": 64  # Ephemeral
         },
     }

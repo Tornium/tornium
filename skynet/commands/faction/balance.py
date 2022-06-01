@@ -42,7 +42,8 @@ def balance(interaction):
                             "title": "Not Yet Implemented",
                             "description": "The members option of balance has not yet been implemented."
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 }
             }
 
@@ -59,7 +60,8 @@ def balance(interaction):
                             "[Tornium](https://torn.deek.sh/login).",
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
         elif len(server.admins) == 0:
@@ -123,7 +125,8 @@ def balance(interaction):
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -136,7 +139,8 @@ def balance(interaction):
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
 
@@ -182,7 +186,8 @@ def balance(interaction):
                             "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -200,7 +205,8 @@ def balance(interaction):
                         "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -228,7 +234,8 @@ def balance(interaction):
                                 f"set regardless of a force refresh.",
                                 "color": 0xC83F49,
                             }
-                        ]
+                        ],
+                        "flags": 64  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -241,7 +248,8 @@ def balance(interaction):
                         "description": "No Torn API key could be utilized for this request.",
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -277,7 +285,8 @@ def balance(interaction):
                         "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
     except utils.NetworkingError as e:
@@ -290,7 +299,8 @@ def balance(interaction):
                         "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -309,7 +319,8 @@ def balance(interaction):
                         ),
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -344,6 +355,7 @@ def balance(interaction):
                         }
                     ]
                 }
-            ]
+            ],
+            "flags": 64  # Ephemeral
         },
     }

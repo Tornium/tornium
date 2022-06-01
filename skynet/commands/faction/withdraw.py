@@ -29,7 +29,8 @@ def withdraw(interaction):
                         "description": "This command can not be run in a DM (for now).",
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
@@ -54,7 +55,8 @@ def withdraw(interaction):
                         "request. The withdrawal amount option is required.",
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     
@@ -82,7 +84,8 @@ def withdraw(interaction):
                             "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
                         }
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     
@@ -163,7 +166,8 @@ def withdraw(interaction):
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -176,7 +180,8 @@ def withdraw(interaction):
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
 
@@ -222,7 +227,8 @@ def withdraw(interaction):
                             "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
                         }
-                    ]
+                    ],
+                    "flags": 64  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -240,7 +246,8 @@ def withdraw(interaction):
                         "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -268,7 +275,8 @@ def withdraw(interaction):
                                 f"set regardless of a force refresh.",
                                 "color": 0xC83F49,
                             }
-                        ]
+                        ],
+                        "flags": 64  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -281,7 +289,8 @@ def withdraw(interaction):
                         "description": "No Torn API key could be utilized for this request.",
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
     
@@ -298,7 +307,8 @@ def withdraw(interaction):
                         f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     else:
@@ -317,7 +327,8 @@ def withdraw(interaction):
                         "description": "No withdrawal amount was passed, but is required.",
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     
@@ -381,7 +392,8 @@ def withdraw(interaction):
                         "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
     except utils.NetworkingError as e:
@@ -394,7 +406,8 @@ def withdraw(interaction):
                         "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
 
@@ -413,7 +426,8 @@ def withdraw(interaction):
                         ),
                         "color": 0xC83F49,
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             },
         }
     
@@ -429,7 +443,7 @@ def withdraw(interaction):
                 "embeds": [
                     {
                         "title": "Not Enough",
-                        "description": "You do not have enough of the requested substance in the faction vault.",
+                        "description": "You do not have enough of the requested currency in the faction vault.",
                         "fields": [
                             {
                                 "name": "Amount Requested",
@@ -442,7 +456,8 @@ def withdraw(interaction):
                         ],
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
@@ -452,10 +467,11 @@ def withdraw(interaction):
                 "embeds": [
                     {
                         "title": "Not Enough",
-                        "description": "You have requested all of your substance, but have zero or a negative vault balance.",
+                        "description": "You have requested all of your currency, but have zero or a negative vault balance.",
                         "color": 0xC83F49
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     
@@ -567,6 +583,7 @@ def withdraw(interaction):
                         }
                     ]
                 }
-            ]
+            ],
+            "flags": 64  # Ephemeral
         }
     }

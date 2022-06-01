@@ -477,16 +477,21 @@ def withdraw(interaction):
             ],
             "components": [
                 {
-                    "type": 2,
-                    "style": 5,
-                    "label": "Faction Vault",
-                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
-                },
-                {
-                    "type": 2,
-                    "style": 5,
-                    "label": "Fulfill",
-                    "url": send_link
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": send_link
+                        }
+                    ]
                 }
             ]
         }
@@ -506,16 +511,21 @@ def withdraw(interaction):
             ],
             "components": [
                 {
-                    "type": 2,
-                    "style": 5,
-                    "label": "Faction Vault",
-                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
-                },
-                {
-                    "type": 2,
-                    "style": 5,
-                    "label": "Fulfill",
-                    "url": send_link
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": send_link
+                        }
+                    ]
                 }
             ]
         }

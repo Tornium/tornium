@@ -72,5 +72,7 @@ def skynet_interactions():
         return jsonify(skynet.commands.ping(request.json))
     elif request.json["data"]["name"] == "balance":
         return jsonify(skynet.commands.faction.balance.balance(request.json))
+    elif request.json["data"]["name"] == "withdraw":
+        return jsonify(skynet.commands.faction.withdraw.withdraw(request.json))
 
     return {}

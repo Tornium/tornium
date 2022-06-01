@@ -318,7 +318,7 @@ def withdraw(interaction):
     
     faction = Faction(user.factiontid)
 
-    if user.factionid not in server.factions:
+    if user.factiontid not in server.factions:
         return {
             "type": 4,
             "data": {

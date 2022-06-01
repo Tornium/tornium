@@ -521,7 +521,7 @@ def withdraw(interaction):
         }
     
     message = tasks.discordpost(
-        f'channels/{faction.vault_config["banking"]}/messages', payload=message_payload
+        f'channels/{faction.vault_config["banking"]}/messages', payload=message_payload, dev=True
     )
 
     withdrawal = WithdrawalModel(

@@ -65,9 +65,9 @@ def withdraw(interaction):
 
     if withdrawal_option == -1:
         withdrawal_option = 0
-    elif withdrawal_option["value"] == "cash":
+    elif withdrawal_option[1]["value"] == "cash":
         withdrawal_option = 0
-    elif withdrawal_option["value"] == "points":
+    elif withdrawal_option[1]["value"] == "points":
         withdrawal_option = 1
     else:
         return {

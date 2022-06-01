@@ -4,12 +4,6 @@
     "description": "Returns the user's vault balance",
     "options": [
         {
-            "type": 5,
-            "name": "type",
-            "description": "Returns the simplified value of the user's vault balance",
-            "required": false
-        },
-        {
             "type": 6,
             "name": "member",
             "description": "Faction member whose vault balance is to be returned",

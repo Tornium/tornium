@@ -28,6 +28,22 @@ def balance(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
+        
+    if "options" in interaction["data"]:
+        member = utils.find_list(interaction["data"]["options"], "name", "member")
+
+        if member != -1:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Not Yet Implemented",
+                            "description": "The members option of balance has not yet been implemented."
+                        }
+                    ]
+                }
+            }
 
     if user is None:
         if server is None:

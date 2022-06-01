@@ -310,10 +310,11 @@ def withdraw(interaction):
     
     withdrawal_amount = withdrawal_amount[1]["value"]
 
-    if withdrawal_amount.lower() == "all":
-        withdrawal_amount = "all"
-    else:
-        withdrawal_amount = botutils.text_to_num(withdrawal_option)
+    if type(withdrawal_amount) == str:
+        if withdrawal_amount.lower() == "all":
+            withdrawal_amount = "all"
+        else:
+            withdrawal_amount = botutils.text_to_num(withdrawal_option)
     
     faction = Faction(user.factiontid)
 

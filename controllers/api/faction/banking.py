@@ -392,6 +392,7 @@ def banking_request(*args, **kwargs):
             fulfiller=0,
             time_fulfilled=0,
             withdrawal_message=message["id"],
+            wtype=0
         )
         withdrawal.save()
 

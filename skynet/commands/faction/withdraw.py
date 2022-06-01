@@ -468,18 +468,27 @@ def withdraw(interaction):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(withdrawal_amount)} from the "
-                    f"faction vault. "
+                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(withdrawal_amount)} "
+                    f"in {'points' if withdrawal_option == 1 else 'cash'}"
+                    f" from the faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                    "fields": [
-                        {
-                            "name": "Fulfill Link",
-                            "value": f"[Fulfill Here]({send_link})",
-                        }
-                    ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
+            "components": [
+                {
+                    "type": 2,
+                    "style": 5,
+                    "label": "Faction Vault",
+                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                },
+                {
+                    "type": 2,
+                    "style": 5,
+                    "label": "Fulfill",
+                    "url": send_link
+                }
+            ]
         }
     else:
         message_payload = {
@@ -488,18 +497,27 @@ def withdraw(interaction):
                 {
                     "title": f"Vault Request #{request_id}",
                     "description": f"{user.name} [{user.tid}] is requesting "
-                    f'{faction_balances[str(user.tid)]["money_balance"]} from the '
-                    f"faction vault. "
+                    f"{utils.commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
+                    f"{'points' if withdrawal_option == 1 else 'cash'}"
+                    f" from the faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                    "fields": [
-                        {
-                            "name": "Fulfill Link",
-                            "value": f"[Fulfill Here]({send_link})",
-                        }
-                    ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
+            "components": [
+                {
+                    "type": 2,
+                    "style": 5,
+                    "label": "Faction Vault",
+                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                },
+                {
+                    "type": 2,
+                    "style": 5,
+                    "label": "Fulfill",
+                    "url": send_link
+                }
+            ]
         }
     
     message = tasks.discordpost(
@@ -517,6 +535,7 @@ def withdraw(interaction):
         fulfiller=0,
         time_fulfilled=0,
         withdrawal_message=message["id"],
+        wtype=withdrawal_option
     )
     withdrawal.save()
 
@@ -526,7 +545,17 @@ def withdraw(interaction):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": "Your vault request has been forwarded to the faction leadership."
+                    "description": "Your vault request has been forwarded to the faction leadership.",
+                    "fields": [
+                        {
+                            "name": "Request Type",
+                            "value": "Cash" if withdrawal_option == 0 else "Points"
+                        },
+                        {
+                            "name": "Amount Requested",
+                            "value": withdrawal_amount
+                        }
+                    ]
                 }
             ]
         }

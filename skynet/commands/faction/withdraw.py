@@ -538,7 +538,7 @@ def withdraw(interaction):
         wid=request_id,
         amount=withdrawal_amount
         if withdrawal_amount != "all"
-        else faction_balances["donations"][str(user.tid)][withdrawal_option_str],
+        else faction_balances[str(user.tid)][withdrawal_option_str],
         requester=user.tid,
         factiontid=user.factiontid,
         time_requested=utils.now(),

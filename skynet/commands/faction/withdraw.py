@@ -422,7 +422,7 @@ def withdraw(interaction):
     else:
         withdrawal_option_str = "money_balance"
     
-    if withdrawal_amount != "all" and withdrawal_amount > faction_balances["donations"][str(user.tid)][withdrawal_option_str]:
+    if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
         return {
             "type": 4,
             "data": {
@@ -437,7 +437,7 @@ def withdraw(interaction):
                             },
                             {
                                 "name": "Amount Available",
-                                "value": faction_balances["donation"][str(user.tid)][withdrawal_option_str]
+                                "value": faction_balances[str(user.tid)][withdrawal_option_str]
                             }
                         ],
                         "color": 0xC83F49
@@ -445,7 +445,7 @@ def withdraw(interaction):
                 ]
             }
         }
-    elif withdrawal_amount == "all" and faction_balances["donations"][str(user.tid)][withdrawal_option_str] <= 0:
+    elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
         return {
             "type": 4,
             "data": {
@@ -468,7 +468,7 @@ def withdraw(interaction):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} from the "
+                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(withdrawal_amount)} from the "
                     f"faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
                     "fields": [
@@ -488,7 +488,7 @@ def withdraw(interaction):
                 {
                     "title": f"Vault Request #{request_id}",
                     "description": f"{user.name} [{user.tid}] is requesting "
-                    f'{vault_balances["donations"][str(user.tid)]["money_balance"]} from the '
+                    f'{faction_balances[str(user.tid)]["money_balance"]} from the '
                     f"faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
                     "fields": [

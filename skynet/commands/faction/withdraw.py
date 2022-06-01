@@ -19,6 +19,19 @@ import utils
 
 def withdraw(interaction):
     print(interaction)
+    if "guild_id" not in interaction:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Not Allowed",
+                        "description": "This command can not be run in a DM (for now).",
+                        "color": 0xC83F49
+                    }
+                ]
+            }
+        }
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
 
     if "member" in interaction:

@@ -65,9 +65,9 @@ def withdraw(interaction):
 
     if withdrawal_option == -1:
         withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "cash":
+    elif withdrawal_option[1]["value"] == "Cash":
         withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "points":
+    elif withdrawal_option[1]["value"] == "Points":
         withdrawal_option = 1
     else:
         return {
@@ -79,7 +79,7 @@ def withdraw(interaction):
                         "description": "An incorrect withdrawal type was passed.",
                         "color": 0xC83F49,
                         "footer": {
-                            "text": f"Inputted withdrawal type: {withdrawal_option['value']}"
+                            "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
                         }
                     }
                 ]

@@ -22,3 +22,20 @@ def ping(interaction):
             "flags": 64  # Ephemeral
         },
     }
+
+
+def sr(interaction):
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "SR",
+                    "video": {
+                        "url": "https://youtu.be/LDU_Txk06tM"
+                    },
+                    "color": 0x7DF9FF
+                }
+            ]
+        }
+    }

@@ -32,10 +32,11 @@ def sr(interaction):
                 {
                     "title": "SR",
                     "video": {
-                        "url": "https://youtu.be/LDU_Txk06tM"
+                        "url": "https://www.youtube.com/embed/LDU_Txk06tM"
                     },
                     "color": 0x7DF9FF
                 }
+                
             ]
         }
     }

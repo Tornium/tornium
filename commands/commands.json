@@ -2,7 +2,8 @@
     "active": [
         "ping",
         "faction/banking/balance",
-        "faction/banking/withdraw"
+        "faction/banking/withdraw",
+        "sr"
     ],
     "disabled": [
 

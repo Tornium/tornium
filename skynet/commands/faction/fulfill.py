@@ -430,7 +430,8 @@ def fulfill_command(interaction):
                             }
                         ]
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     except utils.NetworkingError as e:
@@ -452,7 +453,8 @@ def fulfill_command(interaction):
                             }
                         ]
                     }
-                ]
+                ],
+                "flags": 64  # Ephemeral
             }
         }
     

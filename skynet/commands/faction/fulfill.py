@@ -6,19 +6,18 @@
 import datetime
 import random
 
-from bot import botutils
 from models.faction import Faction
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-import redisdb
 import tasks
 import utils
 
 
-def withdraw(interaction):
+def fulfill_command(interaction):
     print(interaction)
+
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -54,35 +53,6 @@ def withdraw(interaction):
                         "description": "No options were passed with the "
                         "request. The withdrawal amount option is required.",
                         "color": 0xC83F49
-                    }
-                ],
-                "flags": 64  # Ephemeral
-            }
-        }
-    
-    # -1: default
-    # 0: cash (default)
-    # 1: points
-    withdrawal_option = utils.find_list(interaction["data"]["options"], "name", "option")
-
-    if withdrawal_option == -1:
-        withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "Cash":
-        withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "Points":
-        withdrawal_option = 1
-    else:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Withdrawal Request Failed",
-                        "description": "An incorrect withdrawal type was passed.",
-                        "color": 0xC83F49,
-                        "footer": {
-                            "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
-                        }
                     }
                 ],
                 "flags": 64  # Ephemeral
@@ -250,7 +220,7 @@ def withdraw(interaction):
                 "flags": 64  # Ephemeral
             },
         }
-
+    
     try:
         user: User = User(user.tid)
         if server is None:
@@ -294,54 +264,6 @@ def withdraw(interaction):
             },
         }
     
-    client = redisdb.get_redis()
-
-    if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Ratelimit Reached",
-                        "description": f"You have reached the ratelimit on banking requests (once every minute). "
-                        f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
-                        "color": 0xC83F49
-                    }
-                ],
-                "flags": 64  # Ephemeral
-            }
-        }
-    else:
-        client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
-        client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
-    
-    withdrawal_amount = utils.find_list(interaction["data"]["options"], "name", "amount")
-
-    if withdrawal_amount == -1:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Illegal Parameters Passed",
-                        "description": "No withdrawal amount was passed, but is required.",
-                        "color": 0xC83F49
-                    }
-                ],
-                "flags": 64  # Ephemeral
-            }
-        }
-    
-    withdrawal_amount = withdrawal_amount[1]["value"]
-
-    if type(withdrawal_amount) == str:
-        if withdrawal_amount.lower() == "all":
-            withdrawal_amount = "all"
-        else:
-            withdrawal_amount = botutils.text_to_num(withdrawal_amount)
-    
-    faction = Faction(user.factiontid)
-
     if user.factiontid not in server.factions:
         return {
             "type": 4,
@@ -357,6 +279,8 @@ def withdraw(interaction):
                 ]
             },
         }
+    
+    faction = Faction(user.factiontid)
 
     if (
         faction.vault_config.get("banking") in [0, None]
@@ -377,24 +301,137 @@ def withdraw(interaction):
                 ]
             },
         }
-    
-    try:
-        faction_balances = tasks.tornget(
-            f"faction/?selections=donations", faction.rand_key()
-        )
-    except utils.TornError as e:
+
+    withdrawal_id = utils.find_list(interaction["data"]["options"], "name", "id")
+
+    if withdrawal_id == -1:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "title": "Illegal Parameters Passed",
+                        "description": "No withdrawal ID was passed, but is required.",
+                        "color": 0xC83F49
                     }
                 ],
                 "flags": 64  # Ephemeral
+            }
+        }
+    
+    withdrawal_id = withdrawal_id[1]["value"]
+
+    if type(withdrawal_id) == str and not withdrawal_id.isdigit():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Illegal Parameter Value",
+                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
+                        "color": 0xC83F49
+                    }
+                ],
+                "flags": 64  # Ephemeral
+            }
+        }
+
+    withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=int(withdrawal_id)))
+
+    if withdrawal is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Does not Exist",
+                        "description": f"Vault Request #{withdrawal_id} does not currently exist.",
+                        "color": 0xC83F49
+                    }
+                ],
+                "flags": 64  # Ephemeral
+            }
+        }
+    elif withdrawal.fulfiller != 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Fulfilled",
+                        "description": f"Vault Request #{withdrawal_id} has already been fulfilled by "
+                            f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "color": 0xC83F49
+                    }
+                ],
+                "flags": 64  # Ephemeral
+            }
+        }
+    
+    try:
+        tasks.discordpatch(
+            f"channels/{faction.vault_config['banking']}/messages{withdrawal.withdrawal_message}",
+            {
+                "embeds": [
+                    {
+                        "title": f"Vault Request #{withdrawal_id}",
+                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
+                        "fields": [
+                            {
+                                "name": "Original Request Amount",
+                                "value": utils.commas(withdrawal.amount)
+                            },
+                            {
+                                "name": "Original Request Type",
+                                "value": "Points" if withdrawal.wtype == 1 else "Cash"
+                            }
+                        ],
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Faction Vault",
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                            },
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Fulfill",
+                                "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal_id}"
+                            }
+                        ]
+                    }
+                ]
             },
+            dev=True
+        )
+    except utils.DiscordError as e:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Discord API Error",
+                        "description": "The Discord API has returned an error.",
+                        "fields": [
+                            {
+                                "name": "Error Code",
+                                "value": e.code
+                            },
+                            {
+                                "name": "Error Message",
+                                "value": e.message
+                            }
+                        ]
+                    }
+                ]
+            }
         }
     except utils.NetworkingError as e:
         return {
@@ -402,167 +439,25 @@ def withdraw(interaction):
             "data": {
                 "embeds": [
                     {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64  # Ephemeral
-            },
-        }
-
-    faction_balances = faction_balances["donations"]
-
-    if str(user.tid) not in faction_balances:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Faction Error",
-                        "description": (
-                            f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
-                            f"If you think that this is an error, please report this to the developers of this bot."
-                        ),
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64  # Ephemeral
-            },
-        }
-    
-    if withdrawal_option == 1:
-        withdrawal_option_str = "points_balance"
-    else:
-        withdrawal_option_str = "money_balance"
-    
-    if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Enough",
-                        "description": "You do not have enough of the requested currency in the faction vault.",
+                        "title": "Discord Networking Error",
+                        "description": "The Discord API has returned an HTTP error.",
                         "fields": [
                             {
-                                "name": "Amount Requested",
-                                "value": withdrawal_amount
+                                "name": "HTTP Error Code",
+                                "value": e.code
                             },
                             {
-                                "name": "Amount Available",
-                                "value": faction_balances[str(user.tid)][withdrawal_option_str]
+                                "name": "HTTP Error Message",
+                                "value": e.message
                             }
-                        ],
-                        "color": 0xC83F49
+                        ]
                     }
-                ],
-                "flags": 64  # Ephemeral
-            }
-        }
-    elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Enough",
-                        "description": "You have requested all of your currency, but have zero or a negative vault balance.",
-                        "color": 0xC83F49
-                    }
-                ],
-                "flags": 64  # Ephemeral
+                ]
             }
         }
     
-    request_id = WithdrawalModel.objects().count()
-    send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
-    
-    if withdrawal_amount != "all":
-        message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
-            "embeds": [
-                {
-                    "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(withdrawal_amount)} "
-                    f"in {'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault. "
-                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        }
-                    ]
-                }
-            ]
-        }
-    else:
-        message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
-            "embeds": [
-                {
-                    "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting "
-                    f"{utils.commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
-                    f"{'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault. "
-                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        }
-                    ]
-                }
-            ]
-        }
-    
-    message = tasks.discordpost(
-        f'channels/{faction.vault_config["banking"]}/messages', payload=message_payload, dev=True
-    )
-
-    withdrawal = WithdrawalModel(
-        wid=request_id,
-        amount=withdrawal_amount
-        if withdrawal_amount != "all"
-        else faction_balances[str(user.tid)][withdrawal_option_str],
-        requester=user.tid,
-        factiontid=user.factiontid,
-        time_requested=utils.now(),
-        fulfiller=0,
-        time_fulfilled=0,
-        withdrawal_message=message["id"],
-        wtype=withdrawal_option
-    )
+    withdrawal.fulfiller = user.tid
+    withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
 
     return {
@@ -570,18 +465,9 @@ def withdraw(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"Vault Request #{request_id}",
-                    "description": "Your vault request has been forwarded to the faction leadership.",
-                    "fields": [
-                        {
-                            "name": "Request Type",
-                            "value": "Cash" if withdrawal_option == 0 else "Points"
-                        },
-                        {
-                            "name": "Amount Requested",
-                            "value": withdrawal_amount
-                        }
-                    ]
+                    "title": f"Banking Request {withdrawal_id} Fulfilled",
+                    "description": "You have fulfilled the banking request.",
+                    "color": 0x32CD32
                 }
             ],
             "flags": 64  # Ephemeral

@@ -415,7 +415,7 @@ class Vault(commands.Cog):
             embed.title = "Request Does not Exist"
             embed.description = (
                 f"Vault Request #{request} does not currently exist. Please verify that you entered "
-                f"the curred vault request ID."
+                f"the correct vault request ID."
             )
             await ctx.send(embed=embed)
             return None

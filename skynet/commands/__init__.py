@@ -28,15 +28,6 @@ def sr(interaction):
     return {
         "type": 4,
         "data": {
-            "embeds": [
-                {
-                    "title": "SR",
-                    "video": {
-                        "url": "https://www.youtube.com/embed/LDU_Txk06tM"
-                    },
-                    "color": 0x7DF9FF
-                }
-                
-            ]
+            "content": "https://www.youtube.com/watch?v=LDU_Txk06tM&ab_channel=MonstercatInstinct"
         }
     }

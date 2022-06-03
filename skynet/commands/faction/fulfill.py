@@ -370,7 +370,7 @@ def fulfill_command(interaction):
     
     try:
         tasks.discordpatch(
-            f"channels/{faction.vault_config['banking']}/messages{withdrawal.withdrawal_message}",
+            f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {

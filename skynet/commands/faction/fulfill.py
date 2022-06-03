@@ -264,6 +264,8 @@ def fulfill_command(interaction):
             },
         }
     
+    faction = Faction(user.factiontid)
+    
     if user.factiontid not in server.factions:
         return {
             "type": 4,
@@ -279,8 +281,6 @@ def fulfill_command(interaction):
                 ]
             },
         }
-    
-    faction = Faction(user.factiontid)
 
     if (
         faction.vault_config.get("banking") in [0, None]

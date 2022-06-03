@@ -540,6 +540,12 @@ def withdraw(interaction):
                             "style": 5,
                             "label": "Fulfill",
                             "url": send_link
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill"
                         }
                     ]
                 }

@@ -27,11 +27,11 @@ def withdraw(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     server = Server(interaction["guild_id"])
 
@@ -43,7 +43,7 @@ def withdraw(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
-    
+
     if "options" not in interaction["data"]:
         return {
             "type": 4,
@@ -53,17 +53,19 @@ def withdraw(interaction):
                         "title": "Withdrawal Request Failed",
                         "description": "No options were passed with the "
                         "request. The withdrawal amount option is required.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     # -1: default
     # 0: cash (default)
     # 1: points
-    withdrawal_option = utils.find_list(interaction["data"]["options"], "name", "option")
+    withdrawal_option = utils.find_list(
+        interaction["data"]["options"], "name", "option"
+    )
 
     if withdrawal_option == -1:
         withdrawal_option = 0
@@ -82,13 +84,13 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                         "footer": {
                             "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
-                        }
+                        },
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     if user is None:
         if server is None:
             return {
@@ -118,7 +120,7 @@ def withdraw(interaction):
                     ]
                 },
             }
-        
+
         admin_id = random.choice(server.admins)
         admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
 
@@ -167,7 +169,7 @@ def withdraw(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -181,7 +183,7 @@ def withdraw(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -228,7 +230,7 @@ def withdraw(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -247,7 +249,7 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -276,7 +278,7 @@ def withdraw(interaction):
                                 "color": 0xC83F49,
                             }
                         ],
-                        "flags": 64  # Ephemeral
+                        "flags": 64,  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -290,10 +292,10 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     client = redisdb.get_redis()
 
     if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
@@ -305,17 +307,19 @@ def withdraw(interaction):
                         "title": "Ratelimit Reached",
                         "description": f"You have reached the ratelimit on banking requests (once every minute). "
                         f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     else:
         client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
         client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
-    
-    withdrawal_amount = utils.find_list(interaction["data"]["options"], "name", "amount")
+
+    withdrawal_amount = utils.find_list(
+        interaction["data"]["options"], "name", "amount"
+    )
 
     if withdrawal_amount == -1:
         return {
@@ -325,13 +329,13 @@ def withdraw(interaction):
                     {
                         "title": "Illegal Parameters Passed",
                         "description": "No withdrawal amount was passed, but is required.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     withdrawal_amount = withdrawal_amount[1]["value"]
 
     if type(withdrawal_amount) == str:
@@ -339,7 +343,7 @@ def withdraw(interaction):
             withdrawal_amount = "all"
         else:
             withdrawal_amount = botutils.text_to_num(withdrawal_amount)
-    
+
     faction = Faction(user.factiontid)
 
     if user.factiontid not in server.factions:
@@ -377,7 +381,7 @@ def withdraw(interaction):
                 ]
             },
         }
-    
+
     try:
         faction_balances = tasks.tornget(
             f"faction/?selections=donations", faction.rand_key()
@@ -393,7 +397,7 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
     except utils.NetworkingError as e:
@@ -407,7 +411,7 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -427,16 +431,19 @@ def withdraw(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     if withdrawal_option == 1:
         withdrawal_option_str = "points_balance"
     else:
         withdrawal_option_str = "money_balance"
-    
-    if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
+
+    if (
+        withdrawal_amount != "all"
+        and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]
+    ):
         return {
             "type": 4,
             "data": {
@@ -445,22 +452,24 @@ def withdraw(interaction):
                         "title": "Not Enough",
                         "description": "You do not have enough of the requested currency in the faction vault.",
                         "fields": [
-                            {
-                                "name": "Amount Requested",
-                                "value": withdrawal_amount
-                            },
+                            {"name": "Amount Requested", "value": withdrawal_amount},
                             {
                                 "name": "Amount Available",
-                                "value": faction_balances[str(user.tid)][withdrawal_option_str]
-                            }
+                                "value": faction_balances[str(user.tid)][
+                                    withdrawal_option_str
+                                ],
+                            },
                         ],
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
+    elif (
+        withdrawal_amount == "all"
+        and faction_balances[str(user.tid)][withdrawal_option_str] <= 0
+    ):
         return {
             "type": 4,
             "data": {
@@ -468,16 +477,16 @@ def withdraw(interaction):
                     {
                         "title": "Not Enough",
                         "description": "You have requested all of your currency, but have zero or a negative vault balance.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     request_id = WithdrawalModel.objects().count()
     send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
-    
+
     if withdrawal_amount != "all":
         message_payload = {
             # "content": f'<@&{faction.vault_config["banker"]}>',
@@ -499,23 +508,18 @@ def withdraw(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        },
+                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
                         {
                             "type": 2,
                             "style": 3,
                             "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill"
-                        }
-                    ]
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                    ],
                 }
-            ]
+            ],
         }
     else:
         message_payload = {
@@ -539,27 +543,24 @@ def withdraw(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        },
+                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
                         {
                             "type": 2,
                             "style": 3,
                             "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill"
-                        }
-                    ]
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                    ],
                 }
-            ]
+            ],
         }
-    
+
     message = tasks.discordpost(
-        f'channels/{faction.vault_config["banking"]}/messages', payload=message_payload, dev=True
+        f'channels/{faction.vault_config["banking"]}/messages',
+        payload=message_payload,
+        dev=True,
     )
 
     withdrawal = WithdrawalModel(
@@ -573,7 +574,7 @@ def withdraw(interaction):
         fulfiller=0,
         time_fulfilled=0,
         withdrawal_message=message["id"],
-        wtype=withdrawal_option
+        wtype=withdrawal_option,
     )
     withdrawal.save()
 
@@ -587,15 +588,12 @@ def withdraw(interaction):
                     "fields": [
                         {
                             "name": "Request Type",
-                            "value": "Cash" if withdrawal_option == 0 else "Points"
+                            "value": "Cash" if withdrawal_option == 0 else "Points",
                         },
-                        {
-                            "name": "Amount Requested",
-                            "value": withdrawal_amount
-                        }
-                    ]
+                        {"name": "Amount Requested", "value": withdrawal_amount},
+                    ],
                 }
             ],
-            "flags": 64  # Ephemeral
-        }
+            "flags": 64,  # Ephemeral
+        },
     }

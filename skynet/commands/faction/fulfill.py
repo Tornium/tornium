@@ -26,11 +26,11 @@ def fulfill_command(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     server = Server(interaction["guild_id"])
 
@@ -42,7 +42,7 @@ def fulfill_command(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
-    
+
     if "options" not in interaction["data"]:
         return {
             "type": 4,
@@ -52,13 +52,13 @@ def fulfill_command(interaction):
                         "title": "Withdrawal Request Failed",
                         "description": "No options were passed with the "
                         "request. The withdrawal amount option is required.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     if user is None:
         if server is None:
             return {
@@ -88,7 +88,7 @@ def fulfill_command(interaction):
                     ]
                 },
             }
-        
+
         admin_id = random.choice(server.admins)
         admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
 
@@ -137,7 +137,7 @@ def fulfill_command(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -151,7 +151,7 @@ def fulfill_command(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -198,7 +198,7 @@ def fulfill_command(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -217,10 +217,10 @@ def fulfill_command(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     try:
         user: User = User(user.tid)
         if server is None:
@@ -246,7 +246,7 @@ def fulfill_command(interaction):
                                 "color": 0xC83F49,
                             }
                         ],
-                        "flags": 64  # Ephemeral
+                        "flags": 64,  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -260,12 +260,12 @@ def fulfill_command(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     faction = Faction(user.factiontid)
-    
+
     if user.factiontid not in server.factions:
         return {
             "type": 4,
@@ -312,13 +312,13 @@ def fulfill_command(interaction):
                     {
                         "title": "Illegal Parameters Passed",
                         "description": "No withdrawal ID was passed, but is required.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     withdrawal_id = withdrawal_id[1]["value"]
 
     if type(withdrawal_id) == str and not withdrawal_id.isdigit():
@@ -329,14 +329,16 @@ def fulfill_command(interaction):
                     {
                         "title": "Illegal Parameter Value",
                         "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
 
-    withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=int(withdrawal_id)))
+    withdrawal: WithdrawalModel = utils.first(
+        WithdrawalModel.objects(wid=int(withdrawal_id))
+    )
 
     if withdrawal is None:
         return {
@@ -346,11 +348,11 @@ def fulfill_command(interaction):
                     {
                         "title": "Request Does not Exist",
                         "description": f"Vault Request #{withdrawal_id} does not currently exist.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     elif withdrawal.fulfiller != 0:
         return {
@@ -360,14 +362,14 @@ def fulfill_command(interaction):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal_id} has already been fulfilled by "
-                            f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": 0xC83F49
+                        f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     try:
         tasks.discordpatch(
             f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
@@ -379,12 +381,12 @@ def fulfill_command(interaction):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": utils.commas(withdrawal.amount)
+                                "value": utils.commas(withdrawal.amount),
                             },
                             {
                                 "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash"
-                            }
+                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
@@ -397,19 +399,19 @@ def fulfill_command(interaction):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal_id}"
-                            }
-                        ]
+                                "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal_id}",
+                            },
+                        ],
                     }
-                ]
+                ],
             },
-            dev=True
+            dev=True,
         )
     except utils.DiscordError as e:
         return {
@@ -420,19 +422,13 @@ def fulfill_command(interaction):
                         "title": "Discord API Error",
                         "description": "The Discord API has returned an error.",
                         "fields": [
-                            {
-                                "name": "Error Code",
-                                "value": e.code
-                            },
-                            {
-                                "name": "Error Message",
-                                "value": e.message
-                            }
-                        ]
+                            {"name": "Error Code", "value": e.code},
+                            {"name": "Error Message", "value": e.message},
+                        ],
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     except utils.NetworkingError as e:
         return {
@@ -443,21 +439,15 @@ def fulfill_command(interaction):
                         "title": "Discord Networking Error",
                         "description": "The Discord API has returned an HTTP error.",
                         "fields": [
-                            {
-                                "name": "HTTP Error Code",
-                                "value": e.code
-                            },
-                            {
-                                "name": "HTTP Error Message",
-                                "value": e.message
-                            }
-                        ]
+                            {"name": "HTTP Error Code", "value": e.code},
+                            {"name": "HTTP Error Message", "value": e.message},
+                        ],
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     withdrawal.fulfiller = user.tid
     withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
@@ -469,11 +459,11 @@ def fulfill_command(interaction):
                 {
                     "title": f"Banking Request {withdrawal_id} Fulfilled",
                     "description": "You have fulfilled the banking request.",
-                    "color": 0x32CD32
+                    "color": 0x32CD32,
                 }
             ],
-            "flags": 64  # Ephemeral
-        }
+            "flags": 64,  # Ephemeral
+        },
     }
 
 
@@ -488,13 +478,13 @@ def fulfill_button(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
@@ -505,7 +495,7 @@ def fulfill_button(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
-    
+
     if user is None:
         if server is None:
             return {
@@ -535,7 +525,7 @@ def fulfill_button(interaction):
                     ]
                 },
             }
-        
+
         admin_id = random.choice(server.admins)
         admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
 
@@ -584,7 +574,7 @@ def fulfill_button(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -598,7 +588,7 @@ def fulfill_button(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -645,7 +635,7 @@ def fulfill_button(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -664,10 +654,10 @@ def fulfill_button(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     try:
         user: User = User(user.tid)
         if server is None:
@@ -693,7 +683,7 @@ def fulfill_button(interaction):
                                 "color": 0xC83F49,
                             }
                         ],
-                        "flags": 64  # Ephemeral
+                        "flags": 64,  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -707,12 +697,12 @@ def fulfill_button(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
-    
+
     faction = Faction(user.factiontid)
-    
+
     if user.factiontid not in server.factions:
         return {
             "type": 4,
@@ -728,7 +718,7 @@ def fulfill_button(interaction):
                 ]
             },
         }
-    
+
     if (
         faction.vault_config.get("banking") in [0, None]
         or faction.vault_config.get("banker") in [0, None]
@@ -748,7 +738,10 @@ def fulfill_button(interaction):
                 ]
             },
         }
-    elif interaction["data"]["custom_id"] != "faction:vault:fulfill" or interaction["data"]["component_type"] != 2:
+    elif (
+        interaction["data"]["custom_id"] != "faction:vault:fulfill"
+        or interaction["data"]["component_type"] != 2
+    ):
         return {
             "type": 4,
             "data": {
@@ -756,13 +749,15 @@ def fulfill_button(interaction):
                     {
                         "title": "Unknown Button Press",
                         "description": "The attributes of the button pressed does not match the attributes required.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ]
-            }
+            },
         }
-    
-    withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"]))
+
+    withdrawal: WithdrawalModel = utils.first(
+        WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"])
+    )
 
     if withdrawal is None:
         return {
@@ -775,11 +770,11 @@ def fulfill_button(interaction):
                         "color": 0xC83F49,
                         "footer": {
                             "text": f"Message ID: {interaction['message']['id']}"
-                        }
+                        },
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     elif withdrawal.fulfiller != 0:
         return {
@@ -789,14 +784,14 @@ def fulfill_button(interaction):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                            f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": 0xC83F49
+                        f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     try:
         tasks.discordpatch(
             f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
@@ -808,12 +803,12 @@ def fulfill_button(interaction):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": utils.commas(withdrawal.amount)
+                                "value": utils.commas(withdrawal.amount),
                             },
                             {
                                 "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash"
-                            }
+                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
@@ -826,19 +821,19 @@ def fulfill_button(interaction):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user"
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal.wid}"
-                            }
-                        ]
+                                "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal.wid}",
+                            },
+                        ],
                     }
-                ]
+                ],
             },
-            dev=True
+            dev=True,
         )
     except utils.DiscordError as e:
         return {
@@ -849,19 +844,13 @@ def fulfill_button(interaction):
                         "title": "Discord API Error",
                         "description": "The Discord API has returned an error.",
                         "fields": [
-                            {
-                                "name": "Error Code",
-                                "value": e.code
-                            },
-                            {
-                                "name": "Error Message",
-                                "value": e.message
-                            }
-                        ]
+                            {"name": "Error Code", "value": e.code},
+                            {"name": "Error Message", "value": e.message},
+                        ],
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     except utils.NetworkingError as e:
         return {
@@ -872,21 +861,15 @@ def fulfill_button(interaction):
                         "title": "Discord Networking Error",
                         "description": "The Discord API has returned an HTTP error.",
                         "fields": [
-                            {
-                                "name": "HTTP Error Code",
-                                "value": e.code
-                            },
-                            {
-                                "name": "HTTP Error Message",
-                                "value": e.message
-                            }
-                        ]
+                            {"name": "HTTP Error Code", "value": e.code},
+                            {"name": "HTTP Error Message", "value": e.message},
+                        ],
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
-    
+
     withdrawal.fulfiller = user.tid
     withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
@@ -898,9 +881,9 @@ def fulfill_button(interaction):
                 {
                     "title": f"Banking Request {withdrawal.wid} Fulfilled",
                     "description": "You have fulfilled the banking request.",
-                    "color": 0x32CD32
+                    "color": 0x32CD32,
                 }
             ],
-            "flags": 64  # Ephemeral
-        }
+            "flags": 64,  # Ephemeral
+        },
     }

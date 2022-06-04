@@ -258,7 +258,7 @@ class Vault(commands.Cog):
                 fulfiller=0,
                 time_fulfilled=0,
                 withdrawal_message=message.id,
-                wtype=0
+                wtype=0,
             )
             withdrawal.save()
             await asyncio.sleep(30)

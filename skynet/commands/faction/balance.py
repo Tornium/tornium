@@ -20,7 +20,7 @@ import utils
 def balance(interaction):
     print(interaction)
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
-    
+
     if "member" in interaction:
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["member"]["user"]["id"])
@@ -29,7 +29,7 @@ def balance(interaction):
         user: UserModel = utils.first(
             UserModel.objects(discord_id=interaction["user"]["id"])
         )
-        
+
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
 
@@ -40,11 +40,11 @@ def balance(interaction):
                     "embeds": [
                         {
                             "title": "Not Yet Implemented",
-                            "description": "The members option of balance has not yet been implemented."
+                            "description": "The members option of balance has not yet been implemented.",
                         }
                     ],
-                    "flags": 64  # Ephemeral
-                }
+                    "flags": 64,  # Ephemeral
+                },
             }
 
     if user is None:
@@ -61,7 +61,7 @@ def balance(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
         elif len(server.admins) == 0:
@@ -126,7 +126,7 @@ def balance(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
         except utils.NetworkingError as e:
@@ -140,7 +140,7 @@ def balance(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -187,7 +187,7 @@ def balance(interaction):
                             "color": 0xC83F49,
                         }
                     ],
-                    "flags": 64  # Ephemeral
+                    "flags": 64,  # Ephemeral
                 },
             }
     elif user.tid == 0:
@@ -206,7 +206,7 @@ def balance(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -235,7 +235,7 @@ def balance(interaction):
                                 "color": 0xC83F49,
                             }
                         ],
-                        "flags": 64  # Ephemeral
+                        "flags": 64,  # Ephemeral
                     },
                 }
     except utils.MissingKeyError:
@@ -249,7 +249,7 @@ def balance(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -286,7 +286,7 @@ def balance(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
     except utils.NetworkingError as e:
@@ -300,7 +300,7 @@ def balance(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -320,7 +320,7 @@ def balance(interaction):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -351,11 +351,11 @@ def balance(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=armoury"
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=armoury",
                         }
-                    ]
+                    ],
                 }
             ],
-            "flags": 64  # Ephemeral
+            "flags": 64,  # Ephemeral
         },
     }

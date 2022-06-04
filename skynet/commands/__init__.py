@@ -19,7 +19,7 @@ def ping(interaction):
                     "color": 0x7DF9FF,
                 }
             ],
-            "flags": 64  # Ephemeral
+            "flags": 64,  # Ephemeral
         },
     }
 
@@ -29,5 +29,5 @@ def sr(interaction):
         "type": 4,
         "data": {
             "content": "https://www.youtube.com/watch?v=LDU_Txk06tM&ab_channel=MonstercatInstinct"
-        }
+        },
     }

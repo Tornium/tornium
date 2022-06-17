@@ -67,7 +67,7 @@ def skynet_interactions():
         return jsonify({"type": 1})
     elif "id" not in request.json:
         return jsonify({})
-    
+
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] == "faction:vault:fulfill":
             return jsonify(skynet.commands.faction.fulfill.fulfill_button(request.json))

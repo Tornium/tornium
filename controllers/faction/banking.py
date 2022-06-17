@@ -218,10 +218,10 @@ def fulfill(wid: int):
     except DiscordError as e:
         if e.code == 50005:
             message = tasks.discordpatch(
-            f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-            payload={"embeds": [embed]},
-            dev=True
-        )
+                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+                payload={"embeds": [embed]},
+                dev=True,
+            )
 
     withdrawal.fulfiller = current_user.tid
     withdrawal.time_fulfilled = utils.now()

@@ -39,7 +39,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": false
+                "responsive": true
             });
 
             modal.show();

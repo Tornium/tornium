@@ -130,3 +130,4 @@ dmypy.json
 # Tornium Stuff
 settings.json
 celery.json
+wsgi.py

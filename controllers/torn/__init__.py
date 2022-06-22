@@ -14,7 +14,9 @@ mod.add_url_rule(
     "/torn/faction/<int:tid>", view_func=factions.faction_data, methods=["GET"]
 )
 mod.add_url_rule(
-    "/torn/faction/members/<int:tid>", view_func=factions.faction_members_data, methods=["GET"]
+    "/torn/faction/members/<int:tid>",
+    view_func=factions.faction_members_data,
+    methods=["GET"],
 )
 mod.add_url_rule("/torn/factions", view_func=factions.factions, methods=["GET"])
 mod.add_url_rule(

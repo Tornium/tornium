@@ -91,19 +91,21 @@ def faction_data(tid: int):
 def faction_members_data(tid: int):
     if tid == 0:
         abort(400)
-    
+
     faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
 
     members = []
 
     member: UserModel
     for member in UserModel.objects(factionid=tid):
-        members.append({
-            "username": f"{member.name} [{member.tid}]",
-            "level": member.level,
-            "last_action": member.last_action,
-            "status": member.status,
-            "discord_id": member.discord_id
-        })
-    
+        members.append(
+            {
+                "username": f"{member.name} [{member.tid}]",
+                "level": member.level,
+                "last_action": member.last_action,
+                "status": member.status,
+                "discord_id": member.discord_id,
+            }
+        )
+
     return jsonify(members)

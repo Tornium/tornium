@@ -50,7 +50,7 @@ $(document).ready(function() {
                     membersTable.row.add([
                         member["username"],
                         member["level"],
-                        `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}>${member["status"]}</span>`,
+                        `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}">${member["status"]}</span>`,
                         `<a href="https://discordapp.com/users/${member["discord_id"]} style="color: black" target="_blank" rel="noopener noreferer">${member["discord_id"]}</a>`
                     ]).draw();
                 });

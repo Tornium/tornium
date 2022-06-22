@@ -201,6 +201,19 @@ def refresh_factions():
                                         f"faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
                                         "footer": {"text": utils.torn_timestamp()},
+                                        "components": [
+                                            {
+                                                "type": 1,
+                                                "components": [
+                                                    {
+                                                        "type": 2,
+                                                        "style": 5,
+                                                        "label": "User",
+                                                        "url": f"https://www.torn.com/profiles.php?XID={tid}"
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     }
                                 ]
                             }

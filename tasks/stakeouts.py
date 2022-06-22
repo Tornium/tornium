@@ -121,6 +121,19 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                         f'{stakeout_data["level"]} to {data["level"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": utils.torn_timestamp()},
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "User",
+                                        "url": f"https://www.torn.com/profiles.php?XID={data['player_id']}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
@@ -144,6 +157,19 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                         f'{stakeout_data["status"]["state"]} to {data["status"]["state"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": utils.torn_timestamp()},
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "User",
+                                        "url": f"https://www.torn.com/profiles.php?XID={data['player_id']}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
@@ -171,6 +197,19 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                         f'{stakeout_data["status"]["state"]} to {data["status"]["state"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": utils.torn_timestamp()},
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "User",
+                                        "url": f"https://www.torn.com/profiles.php?XID={data['player_id']}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
@@ -195,6 +234,19 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                         f'{stakeout_data["last_action"]["status"]} to {data["last_action"]["status"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": utils.torn_timestamp()},
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "User",
+                                        "url": f"https://www.torn.com/profiles.php?XID={data['player_id']}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
@@ -233,6 +285,19 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                         f'{stakeout_data["last_action"]["status"]} to {data["last_action"]["status"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": utils.torn_timestamp()},
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "User",
+                                        "url": f"https://www.torn.com/profiles.php?XID={data['player_id']}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
@@ -338,6 +403,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f"been dropped.",
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -363,6 +448,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'and gave {territory["territory"]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -386,6 +491,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -412,6 +537,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'gives {data["territory"]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -438,6 +583,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{stakeout_data["territory"][territoryid]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -464,6 +629,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{stakeout_data["territory"][territoryid]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -489,6 +674,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 "description": f'Member {member["name"]} has left faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Member",
+                                                "url": f"https://www.torn.com/profiles.php?XID={memberid}"
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                                "disabled": True
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -511,6 +716,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 "description": f'Member {member["name"]} has joined faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Member",
+                                                "url": f"https://www.torn.com/profiles.php?XID={memberid}"
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                                "disabled": True
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -552,6 +777,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{"" if member["status"]["details"] == "" else " because " + utils.remove_html(member["status"]["details"])}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Member",
+                                                "url": f"https://www.torn.com/profiles.php?XID={memberid}"
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                                "disabled": True
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -593,6 +838,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{member["last_action"]["status"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Member",
+                                                "url": f"https://www.torn.com/profiles.php?XID={memberid}"
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                                "disabled": True
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -630,6 +895,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{member["last_action"]["status"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Member",
+                                                "url": f"https://www.torn.com/profiles.php?XID={memberid}"
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                                "disabled": True
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -676,6 +961,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 "footer": {
                                     "text": utils.torn_timestamp(war["start_time"])
                                 },
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -714,6 +1019,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f"has ended.",
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Territory",
+                                                "url": f"",
+                                                "disabled": True
+                                            },
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "Faction",
+                                                "url": f"https://www.torn.com/factions.php?step=profile&ID={data['ID']}",
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }

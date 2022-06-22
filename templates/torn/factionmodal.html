@@ -4,7 +4,7 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="modal-label">{{ faction.name }} [{{ faction.tid }}]</h5>
                 <button class="btn">
-                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">
+                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}" target="_blank" rel="noopener noreferrer">
                         <i class="fa-solid fa-id-card"></i>
                     </a>
                 </button>
@@ -45,10 +45,10 @@
                         <tbody>
                             {% for member in members %}
                                 <tr>
-                                    <td><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="color: black">{{ member.name }} [{{ member.tid }}]</a></td>
+                                    <td><a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="color: black" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a></td>
                                     <td>{{ member.level }}</td>
                                     <td><span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ member.last_action|reltime }}">{{ member.status }}</span></td>
-                                    <td><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black">{{ member.discord_id }}</a></td>
+                                    <td><a href="https://discordapp.com/users/{{ member.discord_id }}" style="color: black" target="_blank" rel="noopener noreferrer">{{ member.discord_id }}</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

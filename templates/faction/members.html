@@ -45,7 +45,7 @@ Tornium - Faction Members
                             {% endif %}
 
                             <td>
-                                <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit">{{ member.name }} [{{ member.tid }}]</a>
+                                <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
                             </td>
                             <td>{{ member.level }}</td>
                             <td data-order="{{ member.last_action }}">
@@ -82,7 +82,7 @@ Tornium - Faction Members
                                 </td>
                             {% else %}
                                 <td>
-                                    <a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none; color: inherit">{{ member.discord_id }}</a>
+                                    <a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.discord_id }}</a>
                                 </td>
                             {% endif %}
                         </tr>

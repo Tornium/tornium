@@ -209,11 +209,11 @@ def refresh_factions():
                                                         "type": 2,
                                                         "style": 5,
                                                         "label": "User",
-                                                        "url": f"https://www.torn.com/profiles.php?XID={tid}"
+                                                        "url": f"https://www.torn.com/profiles.php?XID={tid}",
                                                     }
-                                                ]
+                                                ],
                                             }
-                                        ]
+                                        ],
                                     }
                                 ]
                             }
@@ -293,9 +293,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             continue
 
         for attack in faction_data["attacks"].values():
-            if attack["defender_faction"] == faction_data["ID"]:
-                continue
-            elif attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+            if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
                 continue
             elif attack["defender_id"] in [
                 4,
@@ -314,18 +312,70 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             elif attack["timestamp_ended"] < last_timestamp:
                 continue
 
-            user = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+            if attack["defender_faction"] == faction_data["ID"]:
+                user = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                user_id = attack["defender_id"]
+
+                opponent = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                opponent_id = attack["attacker_id"]
+            else:
+                user = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                user_id = attack["attacker_id"]
+
+                opponent = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                opponent_id = attack["defender_id"]
 
             if user is None:
                 try:
                     user_data = tornget(
-                        f'user/{attack["attacker_id"]}/?selections=profile,discord',
+                        f"user/{user_id}/?selections=profile,discord",
                         random.choice(keys),
                         session=requests_session,
                     )
 
                     user = UserModel(
-                        tid=attack["attacker_id"],
+                        tid=user_id,
+                        name=user_data["name"],
+                        level=user_data["level"],
+                        admin=False,
+                        key="",
+                        battlescore=0,
+                        battlescore_update=utils.now(),
+                        discord_id=user_data["discord"]["discordID"]
+                        if user_data["discord"]["discordID"] != ""
+                        else 0,
+                        servers=[],
+                        factionid=user_data["faction"]["faction_id"],
+                        factionaa=False,
+                        recruiter=False,
+                        last_refresh=utils.now(),
+                        chain_hits=0,
+                        status=user_data["last_action"]["status"],
+                        last_action=user_data["last_action"]["timestamp"],
+                        pro=False,
+                        pro_expiration=0,
+                    )
+                    user.save()
+                except TornError as e:
+                    logger.exception(e)
+                    honeybadger.notify(
+                        e, context={"code": e.code, "endpoint": e.endpoint}
+                    )
+                    continue
+                except Exception as e:
+                    logger.exception(e)
+                    continue
+
+            if opponent is None:
+                try:
+                    user_data = tornget(
+                        f"user/{opponent_id}/?selections=profile,discord",
+                        random.choice(keys),
+                        session=requests_session,
+                    )
+
+                    user = UserModel(
+                        tid=opponent_id,
                         name=user_data["name"],
                         level=user_data["level"],
                         admin=False,
@@ -359,20 +409,25 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             try:
                 if user.battlescore_update - utils.now() <= 259200:  # Three days
-                    attacker_score = user.battlescore
+                    user_score = user.battlescore
                 else:
                     continue
             except IndexError:
                 continue
 
-            if attacker_score > 100000:
+            if user_score > 100000:
                 continue
 
-            defender_score = (
-                (attack["modifiers"]["fair_fight"] - 1) * 0.375 * attacker_score
-            )
+            if attack["defender_faction"] == faction_data["ID"]:
+                opponent_score = user_score / (
+                    (attack["modifiers"]["fair_fight"] - 1) * 0.375
+                )
+            else:
+                opponent_score = (
+                    (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
+                )
 
-            if defender_score == 0:
+            if opponent_score == 0:
                 continue
 
             stat_faction: FactionModel = utils.first(
@@ -395,10 +450,10 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 statid=utils.last(StatModel.objects()).statid + 1
                 if StatModel.objects().count() != 0
                 else 0,
-                tid=attack["defender_id"],
-                battlescore=defender_score,
+                tid=opponent_id,
+                battlescore=opponent_score,
                 timeadded=utils.now(),
-                addedid=attack["attacker_id"],
+                addedid=user_id,
                 addedfactiontid=user.factionid,
                 globalstat=globalstat,
                 allowedfactions=allowed_factions,

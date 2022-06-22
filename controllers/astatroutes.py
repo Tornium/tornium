@@ -283,6 +283,7 @@ def user_data():
                     "HIT",
                     "TEMP",
                     "CRITICAL",
+                    "MITIGATED",
                     "WON",
                 ):
                     if any(
@@ -353,11 +354,17 @@ def user_data():
             ] not in ("RELOAD", "MISS", "INEFFECTIVE"):
                 print(f"---- Defender ----")
                 print(step["attacking"].get("defender"))
+                print(step.get("attackerUser").get("statsModifiers"))
+                print(step.get("defenderUser").get("statsModifiers"))
                 print(
                     f'Damage received: {step["attacking"]["defender"]["damageDealed"]["value"]}'
                 )
                 print(
                     f'Pure damage received: {step["attacking"]["defender"]["damageDealed"]["damagePure"]}'
+                )
+
+                print(
+                    f'Defender strength modifier: {step["defenderUser"]["statsModifiers"]["strength"]["value"]}%'
                 )
 
                 region_multiplier = 1

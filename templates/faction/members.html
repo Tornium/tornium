@@ -21,69 +21,69 @@ Tornium - Faction Members
             <table id="members-table" class="table table-striped table-bordered responsive">
                 <thead>
                     <tr>
-                        <td></td>
-                        <td>Username</td>
-                        <td>Level</td>
-                        <td>Last Action</td>
-                        <td>Faction AA</td>
-                        <td>Battlescore</td>
-                        <td>Last Update</td>
-                        <td>Discord ID</td>
+                        <th></th>
+                        <th>Username</th>
+                        <th>Level</th>
+                        <th>Last Action</th>
+                        <th>Faction AA</th>
+                        <th>Battlescore</th>
+                        <th>Last Update</th>
+                        <th>Discord ID</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for member in members %}
                         <tr>
                             {% if member.key == "" %}
-                                <td>
+                                <th>
                                     <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="right" title="Not Signed In"></i>
-                                </td>
+                                </th>
                             {% else %}
-                                <td>
+                                <th>
                                     <i class="fa-solid fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="right" title="Signed In"></i>
-                                </td>
+                                </th>
                             {% endif %}
 
-                            <td>
+                            <th>
                                 <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
-                            </td>
-                            <td>{{ member.level }}</td>
+                            </th>
+                            <th>{{ member.level }}</th>
                             <td data-order="{{ member.last_action }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action|tcttime }}">{{ member.last_action|reltime }}</span>
-                            </td>
+                            </th>
 
                             {% if current_user.aa or current_user.tid == member.tid %}
-                                <td>{{ member.factionaa }}</td>
+                                <th>{{ member.factionaa }}</th>
                                 {% if member.battlescore == 0 %}
                                     <td data-order="0">
                                         <i class="fa-solid fa-triangle-exclamation" data-bs-toggle="tooltip" data-bs-placement="right" title="Missing Battlestats. User is not signed into Tornium or TornStats."></i>
-                                    </td>
+                                    </th>
                                 {% else %}
                                     <td data-order="{{ member.battlescore }}">
                                         <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
-                                    </td>
+                                    </th>
                                 {% endif %}
                             {% else %}
                                 <td data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
-                                </td>
+                                </th>
                                 <td data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
-                                </td>
+                                </th>
                             {% endif %}
 
-                            <td>
+                            <th>
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh|tcttime }}">{{ member.last_refresh|reltime }}</span>
-                            </td>
+                            </th>
 
                             {% if member.discord_id == 0 %}
-                                <td>
+                                <th>
                                     <i class="fa-solid fa-user-slash" data-bs-toggle="tooltip" data-bs-placement="right" title="Not verified by Torn"></i>
-                                </td>
+                                </th>
                             {% else %}
-                                <td>
+                                <th>
                                     <a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.discord_id }}</a>
-                                </td>
+                                </th>
                             {% endif %}
                         </tr>
                     {% endfor %}

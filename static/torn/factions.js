@@ -25,7 +25,7 @@ $(document).ready(function() {
             return;
         }
         
-        const xhttp = new XMLHttpRequest();
+        let xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             if($('#faction-modal').length) {
                 var modal = bootstrap.Modal.getInstance(document.getElementById('faction-modal'));
@@ -39,12 +39,31 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
-            modal.show();
+            xhttp = new XMLHttpRequest();
+            xhttp.onload = function() {
+                console.log(typeof(xhttp.response))
+
+                xhttp.response.forEach(function(member) {
+                    membersTable.row.add([
+                        member["username"],
+                        member["level"],
+                        `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}>${member["status"]}</span>`,
+                        `<a href="https://discordapp.com/users/${member["discord_id"]} style="color: black" target="_blank" rel="noopener noreferer">${member["discord_id"]}</a>`
+                    ]).draw();
+                });
+
+                modal.show();
+            }
+            xhttp.responseType = "json";
+            xhttp.open('GET', '/torn/faction/members/' + factionID)
+            xhttp.send();
         }
-        xhttp.open('GET', '/torn/faction/' + table.row(this).data()[0]);
+        const factionID = table.row(this).data()[0];
+
+        xhttp.open('GET', '/torn/faction/' + factionID);
         xhttp.send();
     });
     
@@ -65,7 +84,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": false
+                "responsive": true
             });
 
             modal.show();
@@ -93,7 +112,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": false
+                "responsive": true
             });
 
             modal.show();

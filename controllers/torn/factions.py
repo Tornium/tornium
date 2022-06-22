@@ -3,7 +3,7 @@
 #  Proprietary and confidential
 #  Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request, abort
+from flask import render_template, request, abort, jsonify
 from flask_login import login_required, current_user
 from mongoengine.queryset.visitor import Q
 
@@ -72,12 +72,6 @@ def faction_data(tid: int):
     Faction(tid).refresh(key=current_user.key, force=True)
     faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
 
-    members = []
-
-    member: UserModel
-    for member in UserModel.objects(factionid=tid):
-        members.append(member)
-
     leader = User(faction.leader).refresh(key=current_user.key)
     if faction.coleader != 0:
         coleader = User(faction.coleader).refresh(key=current_user.key)
@@ -88,7 +82,28 @@ def faction_data(tid: int):
     return render_template(
         "torn/factionmodal.html",
         faction=faction,
-        members=members,
         leader=leader,
         coleader=coleader,
     )
+
+
+@login_required
+def faction_members_data(tid: int):
+    if tid == 0:
+        abort(400)
+    
+    faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+
+    members = []
+
+    member: UserModel
+    for member in UserModel.objects(factionid=tid):
+        members.append({
+            "username": f"{member.name} [{member.tid}]",
+            "level": member.level,
+            "last_action": member.last_action,
+            "status": member.status,
+            "discord_id": member.discord_id
+        })
+    
+    return jsonify(members)

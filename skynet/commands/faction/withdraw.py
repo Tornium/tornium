@@ -489,7 +489,7 @@ def withdraw(interaction):
 
     if withdrawal_amount != "all":
         message_payload = {
-            # "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vault_config["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -523,7 +523,7 @@ def withdraw(interaction):
         }
     else:
         message_payload = {
-            # "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vault_config["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",

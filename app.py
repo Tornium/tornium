@@ -15,6 +15,7 @@ from mongoengine import connect
 
 import settings  # Do not remove - initializes redis values
 from redisdb import get_redis
+import skynet
 
 
 redis = get_redis()
@@ -38,6 +39,7 @@ from controllers.statroutes import mod as stat_mod
 from controllers.api import mod as api_mod
 from controllers.astatroutes import mod as astat_mod
 from controllers.torn import mod as torn_mod
+from skynet import mod as skynet_mod
 import utils
 
 logger = logging.getLogger("server")
@@ -104,6 +106,7 @@ if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":
     app.register_blueprint(api_mod)
     app.register_blueprint(astat_mod)
     app.register_blueprint(torn_mod)
+    app.register_blueprint(skynet_mod)
 
     app.run("localhost", 8000, debug=True)
 
@@ -118,3 +121,4 @@ if redis.get("tornium:settings:dev") == "False":
     app.register_blueprint(api_mod)
     app.register_blueprint(astat_mod)
     app.register_blueprint(torn_mod)
+    app.register_blueprint(skynet_mod)

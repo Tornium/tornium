@@ -238,3 +238,14 @@ def last(array):
 
 def commas(number):
     return "{:,}".format(number)
+
+
+def find_list(lst: list, key, value):
+    """
+    Find a dictionary in a list of dictionaries by a value in the dictionary
+    """
+
+    for i, dic in enumerate(lst):
+        if dic[key] == value:
+            return [i, dic]
+    return -1

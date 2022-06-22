@@ -1,0 +1,5 @@
+{
+    "name": "ping",
+    "type": 1,
+    "description": "Returns the server's response time"
+}

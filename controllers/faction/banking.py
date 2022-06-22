@@ -12,6 +12,7 @@ from models.user import User
 from models.withdrawalmodel import WithdrawalModel
 import tasks
 import utils
+from utils.errors import DiscordError
 
 
 @login_required
@@ -127,7 +128,10 @@ def userbankingdata():
 @login_required
 def fulfill(wid: int):
     withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=wid))
-    send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
+    if withdrawal.wtype in [0, None]:
+        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
+    else:
+        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo={withdrawal.requester}&givePointsAmount={withdrawal.amount}"
 
     if withdrawal is None:
         return (
@@ -206,10 +210,18 @@ def fulfill(wid: int):
         "description"
     ] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
 
-    message = tasks.discordpatch(
-        f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-        payload={"embeds": [embed]},
-    )
+    try:
+        message = tasks.discordpatch(
+            f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+            payload={"embeds": [embed]},
+        )
+    except DiscordError as e:
+        if e.code == 50005:
+            message = tasks.discordpatch(
+                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+                payload={"embeds": [embed]},
+                dev=True,
+            )
 
     withdrawal.fulfiller = current_user.tid
     withdrawal.time_fulfilled = utils.now()

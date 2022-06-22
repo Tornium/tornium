@@ -14,7 +14,8 @@ Tornium - Faction Members
         <div class="card-body">
             <h5 class="card-title">Faction Members</h5>
             <p class="card-text">
-
+                Average Battle Score: {{ average_stat|round(2, 'common')|commas }}<br />
+                Average Battle Score (top 80%): {{ average_stat_80|round(2, 'common')|commas }}
             </p>
 
             <table id="members-table" class="table table-striped table-bordered responsive">
@@ -44,7 +45,7 @@ Tornium - Faction Members
                             {% endif %}
 
                             <td>
-                                <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit">{{ member.name }} [{{ member.tid }}]</a>
+                                <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
                             </td>
                             <td>{{ member.level }}</td>
                             <td data-order="{{ member.last_action }}">
@@ -81,7 +82,7 @@ Tornium - Faction Members
                                 </td>
                             {% else %}
                                 <td>
-                                    <a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none; color: inherit">{{ member.discord_id }}</a>
+                                    <a href="https://discordapp.com/users/{{ member.discord_id }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.discord_id }}</a>
                                 </td>
                             {% endif %}
                         </tr>

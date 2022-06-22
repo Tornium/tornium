@@ -1,0 +1,12 @@
+{
+    "active": [
+        "ping",
+        "sr",
+        "faction/banking/balance",
+        "faction/banking/fulfill",
+        "faction/banking/withdraw"
+    ],
+    "disabled": [
+
+    ]
+}

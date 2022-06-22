@@ -15,3 +15,4 @@ class WithdrawalModel(DynamicDocument):
     fulfiller = IntField()
     time_fulfilled = IntField()
     withdrawal_message = IntField()
+    wtype = IntField(default=0)  # 0: cash; 1: points

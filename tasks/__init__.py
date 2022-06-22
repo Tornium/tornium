@@ -317,11 +317,17 @@ def tornget(
 
 
 @celery_app.task
-def discordget(endpoint, session=None):
-    url = f"https://discord.com/api/v9/{endpoint}"
+def discordget(endpoint, session=None, dev=False):
     redis = get_redis()
 
-    headers = {"Authorization": f'Bot {redis.get("tornium:settings:bottoken")}'}
+    if dev:
+        url = f"https://discord.com/api/v10/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}'
+        }
+    else:
+        url = f"https://discord.com/api/v9/{endpoint}"
+        headers = {"Authorization": f'Bot {redis.get("tornium:settings:bottoken")}'}
 
     if session is None:
         request = requests.get(url, headers=headers)
@@ -358,14 +364,21 @@ def discordget(endpoint, session=None):
 
 
 @celery_app.task
-def discordpatch(endpoint, payload, session=None):
-    url = f"https://discord.com/api/v9/{endpoint}"
+def discordpatch(endpoint, payload, session=None, dev=False):
     redis = get_redis()
 
-    headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
-        "Content-Type": "application/json",
-    }
+    if dev:
+        url = f"https://discord.com/api/v10/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+            "Content-Type": "application/json",
+        }
+    else:
+        url = f"https://discord.com/api/v9/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
+            "Content-Type": "application/json",
+        }
 
     if session is None:
         request = requests.patch(url, headers=headers, data=json.dumps(payload))
@@ -402,14 +415,21 @@ def discordpatch(endpoint, payload, session=None):
 
 
 @celery_app.task
-def discordpost(endpoint, payload, session=None):
-    url = f"https://discord.com/api/v9/{endpoint}"
+def discordpost(endpoint, payload, session=None, dev=False):
     redis = get_redis()
 
-    headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
-        "Content-Type": "application/json",
-    }
+    if dev:
+        url = f"https://discord.com/api/v10/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+            "Content-Type": "application/json",
+        }
+    else:
+        url = f"https://discord.com/api/v9/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
+            "Content-Type": "application/json",
+        }
 
     if session is None:
         request = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -432,7 +452,7 @@ def discordpost(endpoint, payload, session=None):
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
         )
         logger.debug(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
@@ -446,14 +466,21 @@ def discordpost(endpoint, payload, session=None):
 
 
 @celery_app.task
-def discorddelete(endpoint, session=None):
-    url = f"https://discord.com/api/v9/{endpoint}"
+def discorddelete(endpoint, session=None, dev=False):
     redis = get_redis()
 
-    headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
-        "Content-Type": "application/json",
-    }
+    if dev:
+        url = f"https://discord.com/api/v10/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+            "Content-Type": "application/json",
+        }
+    else:
+        url = f"https://discord.com/api/v9/{endpoint}"
+        headers = {
+            "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
+            "Content-Type": "application/json",
+        }
 
     if session is None:
         request = requests.delete(url, headers=headers)

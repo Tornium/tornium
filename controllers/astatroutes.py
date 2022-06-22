@@ -374,6 +374,7 @@ def user_data():
                     "TEMP",
                     "CRITICAL",
                     "MITIGATED",
+                    "WON",
                 ):
                     if any(
                         part

@@ -3,6 +3,8 @@
 #  Proprietary and confidential
 #  Written by tiksan <webmaster@deek.sh>
 
+import math
+
 from flask import render_template, request
 from flask_login import login_required
 
@@ -14,4 +16,13 @@ from models.usermodel import UserModel
 @fac_required
 def members(*args, **kwargs):
     fac_members = UserModel.objects(factionid=kwargs["faction"].tid)
-    return render_template("faction/members.html", members=fac_members)
+    stats = [member.battlescore for member in fac_members]
+    stats.sort(reverse=True)
+    stats = stats[: math.floor(0.8 * len(stats)) - 1]
+
+    return render_template(
+        "faction/members.html",
+        members=fac_members,
+        average_stat=fac_members.average("battlescore"),
+        average_stat_80=sum(stats) / len(stats),
+    )

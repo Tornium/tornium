@@ -21,9 +21,9 @@ Tornium - Admin Faction
             <li class="list-group-item">Respect: {{ faction.respect }}</li>
             <li class="list-group-item">Capacity: {{ faction.capacity }}</li>
             <li class="list-group-item">Leader ID: {{ faction.leader }}</li>
-            <li class="list-group-item">Leader: <a href="https://www.torn.com/profiles.php?XID={{ faction.leader }}">Link to {{ faction.leader }}</a></li>
+            <li class="list-group-item">Leader: <a href="https://www.torn.com/profiles.php?XID={{ faction.leader }}" target="_blank" rel="noopener noreferrer">Link to {{ faction.leader }}</a></li>
             <li class="list-group-item">CoLeader ID: {{ faction.coleader }}</li>
-            <li class="list-group-item">CoLeader: <a href="https://www.torn.com/profiles.php?XID={{ faction.coleader }}">Link to {{ faction.coleader }}</a></li>
+            <li class="list-group-item">CoLeader: <a href="https://www.torn.com/profiles.php?XID={{ faction.coleader }}" target="_blank" rel="noopener noreferrer">Link to {{ faction.coleader }}</a></li>
             <li class="list-group-item">Last Member Update: {{ faction.last_members | tcttime }}</li>
             <li class="list-group-item">Guild ID: {{ faction.guild }}</li>
             <li class="list-group-item">Guild: <a href="/admin/guild/{{ faction.guild }}">Link to {{ faction.guild }}</a></li>

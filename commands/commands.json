@@ -4,6 +4,7 @@
         "sr",
         "faction/banking/balance",
         "faction/banking/fulfill",
+        "faction/banking/transfer",
         "faction/banking/withdraw"
     ],
     "disabled": [

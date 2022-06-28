@@ -3,4 +3,4 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from skynet.commands.faction import balance, fulfill, withdraw
+from skynet.commands.faction import balance, fulfill, transfer, withdraw

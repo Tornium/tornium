@@ -45,7 +45,7 @@ logger: logging.Logger = logging.getLogger("celeryerrors")
 if get_redis().get("dev"):
     logger.setLevel(logging.DEBUG)
 else:
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="celeryerrors.log", encoding="utf-8", mode="a")
 handler.setFormatter(
     logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")

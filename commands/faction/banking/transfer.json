@@ -1,0 +1,35 @@
+{
+    "name": "transfer",
+    "type": 1,
+    "description": "Sends a request to faction bankers for a transfer from you to a specified member.",
+    "options": [
+        {
+            "type": 3,
+            "name": "amount",
+            "description": "The amount to be transferred from your faction vault balance",
+            "required": true
+        },
+        {
+            "type": 6,
+            "name": "recipient",
+            "description": "The faction member to receive the specified faction vault balance",
+            "required": true
+        },
+        {
+            "type": 3,
+            "name": "option",
+            "description": "Option to be withdrawn from the faction vault",
+            "required": false,
+            "choices": [
+                {
+                    "name": "cash",
+                    "value": "Cash"
+                },
+                {
+                    "name": "points",
+                    "value": "Points"
+                }
+            ]
+        }
+    ]
+}

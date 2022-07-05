@@ -1,13 +1,13 @@
 {
     "active": [
         "ping",
-        "sr",
+        "faction/assist/assist",
         "faction/banking/balance",
         "faction/banking/fulfill",
         "faction/banking/transfer",
         "faction/banking/withdraw"
     ],
     "disabled": [
-
+        "sr"
     ]
 }

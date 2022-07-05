@@ -31,6 +31,8 @@ class Server:
                 userstakeouts=[],
                 factionstakeouts=[],
                 assistschannel=0,
+                assist_factions=[],
+                assist_mod=0,
             )
             server.save()
 
@@ -47,3 +49,5 @@ class Server:
         self.faction_stakeouts = server.factionstakeouts
 
         self.assistschannel = server.assistschannel
+        self.assist_factions = server.assist_factions
+        self.assist_mod = server.assist_mod

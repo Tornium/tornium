@@ -86,7 +86,9 @@ def transfer(interaction):
             },
         }
 
-    recipient_data = utils.find_list(interaction["data"]["options"], "name", "recipient")
+    recipient_data = utils.find_list(
+        interaction["data"]["options"], "name", "recipient"
+    )
 
     if recipient_data == -1:
         return {
@@ -400,13 +402,13 @@ def transfer(interaction):
                             {
                                 "title": "Un-Verified User",
                                 "description": "The user mentioned is not a verified Torn user.",
-                                "color": 0xC83F49
+                                "color": 0xC83F49,
                             }
                         ],
                         "flags": 64,  # Ephemeral
-                    }
+                    },
                 }
-            
+
             return {
                 "type": 4,
                 "data": {
@@ -544,7 +546,7 @@ def transfer(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    
+
     if recipient.tid == user.tid:
         return {
             "type": 4,
@@ -553,11 +555,11 @@ def transfer(interaction):
                     {
                         "title": "Invalid Transfer Request",
                         "description": "The recipient of the transfer request is the same as the invoker.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
     elif recipient.factiontid != user.factiontid:
         return {
@@ -567,11 +569,11 @@ def transfer(interaction):
                     {
                         "title": "Invalid Transfer Request",
                         "description": "The recipient of the transfer request is not in the same faction as the invoker.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
-                "flags": 64  # Ephemeral
-            }
+                "flags": 64,  # Ephemeral
+            },
         }
 
     client = redisdb.get_redis()

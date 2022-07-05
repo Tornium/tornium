@@ -31,6 +31,7 @@ def guild_dashboard(guildid: str):
 
     server = Server(guildid)
     factions = []
+    assist_factions = []
 
     if request.method == "POST":
         if request.form.get("factionid") is not None:
@@ -55,8 +56,16 @@ def guild_dashboard(guildid: str):
     for faction in server.factions:
         factions.append(Faction(faction))
 
+    for faction in server.assist_factions:
+        assist_factions.append(Faction(faction))
+
     return render_template(
-        "bot/guild.html", server=server, factions=factions, guildid=guildid
+        "bot/guild.html",
+        server=server,
+        factions=factions,
+        guildid=guildid,
+        assist_factions=assist_factions,
+        assist_mod=server.assist_mod,
     )
 
 

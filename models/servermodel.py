@@ -31,3 +31,7 @@ class ServerModel(DynamicDocument):
     factionstakeouts = ListField(default=[])  # List of staked-out factions
 
     assistschannel = IntField(default=0)
+    assist_factions = ListField(
+        default=[]
+    )  # List of factions that can send assists to the server
+    assist_mod = IntField(default=0)  # 0: Everyone; 1: Whitelist; 2: Blacklist

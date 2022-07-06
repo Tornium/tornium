@@ -153,6 +153,22 @@ def banking_request(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
+    elif amount_requested <= 0:
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "GeneralError",
+                    "message": "Server failed to fulfill the request. The amount requested was less than zero, but must be greater than zero.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
 
     if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
         return (

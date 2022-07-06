@@ -191,7 +191,7 @@ def assist(interaction):
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {"text": f"{round(time.time() - start_time, 2)} seconds"},
+                    "footer": {"text": f"Latency: {round(time.time() - start_time, 2)} seconds"},
                 }
             ],
             "components": [

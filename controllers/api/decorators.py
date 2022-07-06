@@ -6,6 +6,7 @@
 import base64
 import datetime
 from functools import wraps, partial
+import time
 
 from flask import jsonify, request
 
@@ -93,6 +94,8 @@ def requires_scopes(func=None, scopes=None):
 def torn_key_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        start_time = time.time()
+
         if request.headers.get("Authorization") is None:
             return (
                 jsonify(
@@ -151,6 +154,7 @@ def torn_key_required(func):
         kwargs["user"] = user
         kwargs["keytype"] = "Torn"
         kwargs["key"] = authorization
+        kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
 
@@ -160,6 +164,8 @@ def torn_key_required(func):
 def tornium_key_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        start_time = time.time()
+
         if request.headers.get("Authorization") is None:
             return (
                 jsonify(
@@ -218,6 +224,7 @@ def tornium_key_required(func):
         kwargs["user"] = utils.first(UserModel.objects(tid=key.ownertid))
         kwargs["keytype"] = "Tornium"
         kwargs["key"] = authorization
+        kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
 
@@ -227,6 +234,8 @@ def tornium_key_required(func):
 def key_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        start_time = time.time()
+
         if request.headers.get("Authorization") is None:
             return (
                 jsonify(
@@ -275,10 +284,12 @@ def key_required(func):
             kwargs["user"] = user
             kwargs["keytype"] = "Torn"
             kwargs["key"] = authorization
+            kwargs["start_time"] = start_time
         elif key is not None:
             kwargs["user"] = utils.first(UserModel.objects(tid=key.ownertid))
             kwargs["keytype"] = "Tornium"
             kwargs["key"] = authorization
+            kwargs["start_time"] = start_time
         else:
             return (
                 jsonify(

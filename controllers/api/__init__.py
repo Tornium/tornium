@@ -10,7 +10,7 @@ from controllers.api import key
 from controllers.api import stakeout
 from controllers.api import stat
 from controllers.api import user
-from controllers.api.faction import banking, group, recruitment, schedule
+from controllers.api.faction import assist, banking, group, recruitment, schedule
 
 mod = Blueprint("apiroutes", __name__)
 
@@ -21,6 +21,9 @@ mod.add_url_rule("/api/key", view_func=key.create_key, methods=["POST"])
 mod.add_url_rule("/api/key", view_func=key.remove_key, methods=["DELETE"])
 
 # /api/faction
+mod.add_url_rule(
+    "/api/faction/assist", view_func=assist.forward_assist, methods=["POST"]
+)
 mod.add_url_rule(
     "/api/faction/banking", view_func=banking.banking_request, methods=["POST"]
 )

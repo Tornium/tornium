@@ -5,6 +5,7 @@
 
 import datetime
 import random
+import time
 from urllib.parse import urlparse, parse_qs
 
 from models.factionmodel import FactionModel
@@ -18,6 +19,8 @@ import utils
 
 def assist(interaction):
     print(interaction)
+
+    start_time = time.time()
 
     if "member" in interaction:
         user: UserModel = utils.first(
@@ -122,7 +125,7 @@ def assist(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    
+
     if target.tid == user.tid:
         return {
             "type": 4,
@@ -131,11 +134,11 @@ def assist(interaction):
                     {
                         "title": "Same User",
                         "description": "The user requested for the assist is the same as the requester.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     target_faction: FactionModel = utils.first(
@@ -165,6 +168,11 @@ def assist(interaction):
                             "inline": True,
                         },
                         {
+                            "name": "User Level",
+                            "value": f"Level {target.level}",
+                            "inline": True,
+                        },
+                        {
                             "name": "Faction",
                             "value": "Unknown"
                             if target_faction is None
@@ -183,7 +191,7 @@ def assist(interaction):
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {"text": utils.torn_timestamp()},
+                    "footer": {"text": f"{round(time.time() - start_time, 2)} seconds"},
                 }
             ],
             "components": [

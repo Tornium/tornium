@@ -13,6 +13,7 @@ from models.server import Server
 from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
+import redisdb
 import tasks
 import utils
 
@@ -125,6 +126,24 @@ def assist(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
+
+    if redisdb.get_redis().get(f"tornium:assist-ratelimit:{user.tid}") is not None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Ratelimit Reached",
+                        "description": "You have reached the ratelimit for assist requests (once every thirty seconds).",
+                        "color": 0xC83F49
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
+    else:
+        redisdb.get_redis().set(f"tornium:assist-ratelimit:{user.tid}", 1)
+        redisdb.get_redis().expire(f"tornium:assist-ratelimit:{user.tid}", 30)
 
     if target.tid == user.tid:
         return {

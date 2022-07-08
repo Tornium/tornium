@@ -19,6 +19,19 @@ Tornium - Faction Bot Dashboard
         </div>
     </div>
 
+    <div class="card min-w-25 max-w-50">
+        <div class="card-body">
+            <h5 class="card-title">Assists</h5>
+            <p class="card-text">
+                Assists can be forwarded to valid servers by either a Discord bot command or via the 
+                <a href="/userscripts/tornium-assists.user.js">userscript</a>. Server admins can set up the assist setting in the bot dashboard.
+                <br />
+                <b>NOTE:</b> This feature's current revision only works on servers with SkyNet (the new Discord bot) while servers with 
+                the original bot still utilize the server's assist channel but not the forwarding factions.
+            </p>
+        </div>
+    </div>
+
     {% if guildid != 0 and current_user.aa %}
     <div class="card min-w-25 max-w-50 my-3">
         <div class="card-body">

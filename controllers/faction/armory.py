@@ -8,6 +8,7 @@ import random
 from flask import render_template, request, abort
 from flask_login import login_required, current_user
 from honeybadger import honeybadger
+from mongoengine.queryset.visitor import Q
 
 from controllers.faction.decorators import fac_required
 from models.factionmodel import FactionModel
@@ -33,10 +34,25 @@ def armoryitemdata(*args, **kwargs):
 
         if faction is None:
             return {}
-        elif len(faction.keys) == 0:
+       
+        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+        keys = []
+
+        user: UserModel
+        for user in aa_users:
+            if user.key == "":
+                user.factionaa = False
+                user.save()
+                continue
+
+            keys.append(user.key)
+
+        keys = list(set(keys))
+
+        if len(keys) == 0:
             return {}
 
-        key = random.choice(faction.keys)
+        key = random.choice(keys)
 
     try:
         armorydata = tornget("faction/?selections=armor,temporary,weapons", key=key)
@@ -91,10 +107,25 @@ def item_modal(*args, **kwargs):
 
         if faction is None:
             return {}
-        elif len(faction.keys) == 0:
+        
+        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+        keys = []
+
+        user: UserModel
+        for user in aa_users:
+            if user.key == "":
+                user.factionaa = False
+                user.save()
+                continue
+
+            keys.append(user.key)
+
+        keys = list(set(keys))
+
+        if len(keys) == 0:
             return {}
 
-        key = random.choice(faction.keys)
+        key = random.choice(keys)
 
     if request.args.get("tid") is None:
         abort(400)

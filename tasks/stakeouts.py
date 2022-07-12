@@ -1133,16 +1133,26 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             fromts=utils.now() - 60,
                         )
                     else:
-                        keys = UserModel.objects(
-                            Q(factionaa=True) & Q(factionid=faction.tid)
-                        )
+                        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+                        keys = []
+
+                        user: UserModel
+                        for user in aa_users:
+                            if user.key == "":
+                                user.factionaa = False
+                                user.save()
+                                continue
+
+                            keys.append(user.key)
+
+                        keys = list(set(keys))
 
                         if len(keys) == 0:
                             break
 
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
-                            key=random.choice(faction.keys),
+                            key=random.choice(keys),
                             session=requests_session,
                             fromts=utils.now() - 60,
                         )

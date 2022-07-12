@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import math
+import time
 
 from honeybadger import honeybadger
 from models.recruitmodel import RecruitModel
@@ -191,7 +192,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
 
         faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
 
-        if faction is not None and len(faction.keys) != 0:
+        if faction is not None and time.time() - faction.last_members > 3600:
             continue
         elif faction is not None and faction.config["stats"] == 1:
             continue

@@ -7,6 +7,7 @@ import datetime
 import logging
 import math
 import random
+import time
 
 from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
@@ -26,16 +27,21 @@ logger: logging.Logger
 
 @celery_app.task
 def refresh_factions():
+    logger.debug("Started refresh_factions")
     requests_session = requests.Session()
 
     faction: FactionModel
     for faction in FactionModel.objects():
+        logger.debug(f"Started refresh of faction {faction.tid}")
         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
         keys = []
 
         user: UserModel
         for user in aa_users:
             if user.key == "":
+                logger.info(f"Removed AA from {user.tid} in refresh_factions")
+                user.factionaa = False
+                user.save()
                 continue
 
             keys.append(user.key)
@@ -277,6 +283,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         elif faction.config["stats"] == 0:
             continue
 
+        request_timestamp = time.time()
+
         try:
             faction_data = tornget(
                 "faction/?selections=basic,attacks",
@@ -452,7 +460,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 else 0,
                 tid=opponent_id,
                 battlescore=opponent_score,
-                timeadded=utils.now(),
+                timeadded=request_timestamp,
                 addedid=user_id,
                 addedfactiontid=user.factionid,
                 globalstat=globalstat,

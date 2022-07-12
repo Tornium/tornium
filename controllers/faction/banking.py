@@ -281,6 +281,7 @@ def fulfill(wid: int):
                         }
                     ],
                 },
+                dev=True
             )
     except DiscordError as e:
         return utils.handle_discord_error(e)

@@ -366,7 +366,8 @@ def stakeout_update(guildid):
             stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
             try:
                 tasks.discorddelete(
-                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}'
+                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
+                    dev=server.skynet,
                 )
             except utils.DiscordError as e:
                 if e.code == 10003:
@@ -385,7 +386,8 @@ def stakeout_update(guildid):
             stakeout = utils.first(UserStakeoutModel.objects(tid=user))
             try:
                 tasks.discorddelete(
-                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}'
+                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
+                    dev=server.skynet,
                 )
             except utils.DiscordError as e:
                 if e.code == 10003:

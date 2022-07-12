@@ -234,7 +234,7 @@ def refresh_factions():
                                 discordpost.delay(
                                     f'channels/{faction.chainconfig["odchannel"]}/messages',
                                     payload=payload,
-                                    dev=guild.skynet
+                                    dev=guild.skynet,
                                 )
                             except Exception as e:
                                 logger.exception(e)

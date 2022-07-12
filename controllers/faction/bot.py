@@ -10,6 +10,7 @@ from controllers.faction.decorators import *
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.server import Server
+from models.servermodel import ServerModel
 import tasks
 import utils
 
@@ -41,26 +42,33 @@ def bot(*args, **kwargs):
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
         if request.form.get("guildid") is not None:
-            try:
-                tasks.discordget(f'guilds/{request.form.get("guildid")}')
-            except utils.DiscordError as e:
-                return utils.handle_discord_error(e)
-            except utils.NetworkingError as e:
+            guild: ServerModel = utils.first(
+                ServerModel.objects(sid=request.form.get("guildid"))
+            )
+            if guild is None:
                 return render_template(
                     "errors/error.html",
-                    title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code "
-                    f"{utils.remove_str(str(e))}.",
+                    title="Unknown Guild",
+                    error=f"The Discord server with ID {request.form.get('guildid')} could not be found.",
                 )
-            except Exception as e:
-                return render_template("errors/error.html", title="Error", error=str(e))
 
             faction.guild = request.form.get("guildid")
             faction_model.guild = request.form.get("guildid")
             faction_model.save()
         elif request.form.get("withdrawal") is not None:
+            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
+            if guild is None:
+                return render_template(
+                    "errors/error.html",
+                    title="Unknown Guild",
+                    error=f"The Discord server with ID {faction.guild} could not be found.",
+                )
+
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("withdrawal")}')
+                channel = tasks.discordget(
+                    f'channels/{request.form.get("withdrawal")}', dev=guild.skynet
+                )
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
@@ -76,8 +84,19 @@ def bot(*args, **kwargs):
             faction_model.vaultconfig["withdrawal"] = int(channel["id"])
             faction_model.save()
         elif request.form.get("banking") is not None:
+            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
+            if guild is None:
+                return render_template(
+                    "errors/error.html",
+                    title="Unknown Guild",
+                    error=f"The Discord server with ID {faction.guild} could not be found.",
+                )
+
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("banking")}')
+                channel = tasks.discordget(
+                    f'channels/{request.form.get("banking")}', dev=guild.skynet
+                )
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
@@ -93,8 +112,19 @@ def bot(*args, **kwargs):
             faction_model.vaultconfig["banking"] = int(channel["id"])
             faction_model.save()
         elif request.form.get("banker") is not None:
+            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
+            if guild is None:
+                return render_template(
+                    "errors/error.html",
+                    title="Unknown Guild",
+                    error=f"The Discord server with ID {faction.guild} could not be found.",
+                )
+
             try:
-                roles = tasks.discordget(f"guilds/{faction.guild}/roles")
+                roles = tasks.discordget(
+                    f"guilds/{faction.guild}/roles", dev=guild.skynet
+                )
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

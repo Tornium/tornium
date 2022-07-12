@@ -6,6 +6,7 @@
 from models.servermodel import ServerModel
 import tasks
 import utils
+from utils.errors import DiscordError
 
 
 class Server:
@@ -18,7 +19,15 @@ class Server:
 
         server = utils.first(ServerModel.objects(sid=sid))
         if server is None:
-            guild = tasks.discordget(f"guilds/{sid}")
+            try:
+                guild = tasks.discordget(f"guilds/{sid}")
+                skynet = False
+            except DiscordError as e:
+                if e.code == 10004:
+                    guild = tasks.discordget(f"guilds/{sid}", dev=True)
+                    skynet = True
+                else:
+                    raise e
 
             server = ServerModel(
                 sid=sid,
@@ -33,7 +42,7 @@ class Server:
                 assistschannel=0,
                 assist_factions=[],
                 assist_mod=0,
-                skynet=False,
+                skynet=skynet,
             )
             server.save()
 

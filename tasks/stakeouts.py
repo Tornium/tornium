@@ -106,7 +106,9 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
 
         server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
 
-        if server.config["stakeouts"] == 0:
+        if server is None:
+            continue
+        elif server.config["stakeouts"] == 0:
             continue
 
         if (
@@ -138,8 +140,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ]
             }
             try:
-                discordpost(
-                    f'channels/{guild_stakeout["channel"]}/messages', payload=payload
+                discordpost.delay(
+                    f'channels/{guild_stakeout["channel"]}/messages',
+                    payload=payload,
+                    dev=server.skynet,
                 )
             except Exception as e:
                 logger.exception(e)
@@ -174,8 +178,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ]
             }
             try:
-                discordpost(
-                    f'channels/{guild_stakeout["channel"]}/messages', payload=payload
+                discordpost.delay(
+                    f'channels/{guild_stakeout["channel"]}/messages',
+                    payload=payload,
+                    dev=server.skynet,
                 )
             except Exception as e:
                 logger.exception(e)
@@ -214,8 +220,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ]
             }
             try:
-                discordpost(
-                    f'channels/{guild_stakeout["channel"]}/messages', payload=payload
+                discordpost.delay(
+                    f'channels/{guild_stakeout["channel"]}/messages',
+                    payload=payload,
+                    dev=server.skynet,
                 )
             except Exception as e:
                 logger.exception(e)
@@ -251,8 +259,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ]
             }
             try:
-                discordpost(
-                    f'channels/{guild_stakeout["channel"]}/messages', payload=payload
+                discordpost.delay(
+                    f'channels/{guild_stakeout["channel"]}/messages',
+                    payload=payload,
+                    dev=server.skynet,
                 )
             except Exception as e:
                 logger.exception(e)
@@ -302,8 +312,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ]
             }
             try:
-                discordpost(
-                    f'channels/{guild_stakeout["channel"]}/messages', payload=payload
+                discordpost.delay(
+                    f'channels/{guild_stakeout["channel"]}/messages',
+                    payload=payload,
+                    dev=server.skynet,
                 )
             except Exception as e:
                 logger.exception(e)
@@ -427,9 +439,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -472,9 +485,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -515,9 +529,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -561,9 +576,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -607,9 +623,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -653,9 +670,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -698,9 +716,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -740,9 +759,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -801,9 +821,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -862,9 +883,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -919,9 +941,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -985,9 +1008,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -1043,9 +1067,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         ]
                     }
                     try:
-                        discordpost(
+                        discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
+                            dev=server.skynet,
                         )
                     except Exception as e:
                         logger.exception(e)
@@ -1112,9 +1137,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         }
 
                         try:
-                            discordpost(
+                            discordpost.delay(
                                 f'channels/{guild_stakeout["channel"]}/messages',
                                 payload=payload,
+                                dev=server.skynet,
                             )
                         except Exception as e:
                             logger.exception(e)
@@ -1189,9 +1215,10 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         }
 
                         try:
-                            discordpost(
+                            discordpost.delay(
                                 f'channels/{guild_stakeout["channel"]}/messages',
                                 payload=payload,
+                                dev=server.skynet,
                             )
                         except Exception as e:
                             logger.exception(e)

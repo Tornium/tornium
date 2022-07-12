@@ -6,6 +6,7 @@
 from honeybadger import honeybadger
 import requests
 
+from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordget, logger
 import utils
@@ -23,6 +24,26 @@ def refresh_guilds():
         return
 
     for guild in guilds:
+        guild_db: ServerModel = utils.first(ServerModel.objects(sid=guild["id"]))
+
+        if guild_db is None:
+            guild_db = ServerModel(
+                sid=guild["id"],
+                name=guild["name"],
+                admins=[],
+                prefix="?",
+                config={"stakeouts": 0, "assists": 0},
+                factions=[],
+                stakeoutconfig={"category": 0},
+                userstakeouts=[],
+                factionstakeouts=[],
+                assistschannel=0,
+                assist_factions=[],
+                assist_mod=0,
+                skynet=False,
+            )
+            guild_db.save()
+
         try:
             members = discordget(
                 f'guilds/{guild["id"]}/members', session=requests_session
@@ -46,12 +67,16 @@ def refresh_guilds():
             honeybadger.notify(e)
             continue
 
+        admins = guild_db.admins
+
         owner: UserModel = utils.first(UserModel.objects(discord_id=guild["owner_id"]))
 
         if owner is not None and guild["id"] not in owner.servers:
             owner.servers.append(guild["id"])
             owner.servers = list(set(owner.servers))
             owner.save()
+        if owner is not None:
+            admins.append(owner.tid)
 
         for member in members:
             user: UserModel = utils.first(
@@ -70,8 +95,17 @@ def refresh_guilds():
                             user.servers.append(guild["id"])
                             user.servers = list(set(user.servers))
                             user.save()
+
+                            admins.append(user.tid)
                         else:
                             if guild["id"] in user.servers:
                                 user.servers.remove(guild["id"])
                                 user.servers = list(set(user.servers))
                                 user.save()
+
+                                if user.tid in admins:
+                                    admins.remove(user.tid)
+
+        admins = list(set(admins))
+        guild_db.admins = admins
+        guild_db.save()

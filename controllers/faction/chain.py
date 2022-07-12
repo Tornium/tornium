@@ -9,6 +9,7 @@ from flask_login import current_user, login_required
 from controllers.faction.decorators import fac_required
 from models.faction import Faction
 from models.factionmodel import FactionModel
+from models.servermodel import ServerModel
 import tasks
 import utils
 
@@ -25,8 +26,19 @@ def chain(*args, **kwargs):
         faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
 
         if request.form.get("odchannel") is not None:
+            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
+            if guild is None:
+                return render_template(
+                    "errors/error.html",
+                    title="Unknown Guild",
+                    error=f"The Discord server with ID {faction.guild} could not be found.",
+                )
+
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
+                channel = tasks.discordget(
+                    f'channels/{request.form.get("odchannel")}', dev=guild.skynet
+                )
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

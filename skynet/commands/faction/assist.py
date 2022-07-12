@@ -135,11 +135,11 @@ def assist(interaction):
                     {
                         "title": "Ratelimit Reached",
                         "description": "You have reached the ratelimit for assist requests (once every thirty seconds).",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
     else:
         redisdb.get_redis().set(f"tornium:assist-ratelimit:{user.tid}", 1)
@@ -210,7 +210,9 @@ def assist(interaction):
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {"text": f"Latency: {round(time.time() - start_time, 2)} seconds"},
+                    "footer": {
+                        "text": f"Latency: {round(time.time() - start_time, 2)} seconds"
+                    },
                 }
             ],
             "components": [

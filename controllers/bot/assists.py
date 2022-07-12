@@ -34,11 +34,18 @@ def assists_update(guildid):
         server.assistschannel = int(value)
         server.save()
     elif action == "faction":
-        factions = server.assist_factions
-        factions.append(int(value))
-        factions = list(set(factions))
-        server.assist_factions = factions
-        server.save()
+        if int(value) in server.assist_factions:
+            factions = server.assist_factions
+            factions.remove(int(value))
+            factions = list(set(factions))
+            server.assist_factions = factions
+            server.save()
+        else:
+            factions = server.assist_factions
+            factions.append(int(value))
+            factions = list(set(factions))
+            server.assist_factions = factions
+            server.save()
     elif action == "mod":
         if value.isdigit() and int(value) in (0, 1, 2):
             server.assist_mod = int(value)

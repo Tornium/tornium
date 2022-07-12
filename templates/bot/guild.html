@@ -61,7 +61,7 @@ Tornium - Bot Dashboard
                     {% for faction in factions %}
                     <li class="list-group-item d-flex">
                         <p class="px-1 my-2">
-                            {{ faction.name }}
+                            {{ faction.name }} [{{ faction.tid }}]
 
                             {% if server.sid | int == faction.guild | int %}
                             <i class="fa-solid fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -176,7 +176,7 @@ Tornium - Bot Dashboard
     
                             <div class="px-5 float-end">
                                 <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
-                                    Remove
+                                    <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">Remove</a>
                                 </button>
                             </div>
                         </li>

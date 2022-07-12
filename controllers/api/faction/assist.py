@@ -27,15 +27,21 @@ def forward_assist(*args, **kwargs):
     target = User(data.get("target_tid")).refresh(key=user.key)
 
     if client.get(assist_key) is not None:
-        return jsonify({
-            "code": 0,
-            "name": "GeneralError",
-            "message": "Server failed to fulfill the request. The user has reached their assist ratelimit.",
-        }), 429, {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        }
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "GeneralError",
+                    "message": "Server failed to fulfill the request. The user has reached their assist ratelimit.",
+                }
+            ),
+            429,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
     else:
         client.set(assist_key, 1)
         client.expire(assist_key, 30)

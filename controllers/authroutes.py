@@ -33,6 +33,9 @@ def login():
         return utils.handle_torn_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
+    
+    if "error" in key_info:
+        return utils.handle_torn_error(key_info["error"]["code"])
 
     if key_info["access_level"] < 3:
         return render_template(

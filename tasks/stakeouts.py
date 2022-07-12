@@ -1133,7 +1133,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             fromts=utils.now() - 60,
                         )
                     else:
-                        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+                        aa_users = UserModel.objects(
+                            Q(factionaa=True) & Q(factionid=faction.tid)
+                        )
                         keys = []
 
                         user: UserModel

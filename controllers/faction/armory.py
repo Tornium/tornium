@@ -34,7 +34,7 @@ def armoryitemdata(*args, **kwargs):
 
         if faction is None:
             return {}
-       
+
         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
         keys = []
 
@@ -107,7 +107,7 @@ def item_modal(*args, **kwargs):
 
         if faction is None:
             return {}
-        
+
         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
         keys = []
 

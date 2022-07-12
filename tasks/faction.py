@@ -16,6 +16,7 @@ import requests
 from models.factiongroupmodel import FactionGroupModel
 from models.factionmodel import FactionModel
 from models.recruitmodel import RecruitModel
+from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
@@ -193,7 +194,12 @@ def refresh_factions():
                 continue
 
             if len(faction.chainod) > 0:
+                guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
                 for tid, user_od in faction_od["contributors"]["drugoverdoses"].items():
+                    if guild is None:
+                        continue
+
                     try:
                         if user_od["contributed"] != faction.chainod.get(tid).get(
                             "contributed"
@@ -228,6 +234,7 @@ def refresh_factions():
                                 discordpost.delay(
                                     f'channels/{faction.chainconfig["odchannel"]}/messages',
                                     payload=payload,
+                                    dev=guild.skynet
                                 )
                             except Exception as e:
                                 logger.exception(e)

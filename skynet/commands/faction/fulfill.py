@@ -407,6 +407,12 @@ def fulfill_command(interaction):
                                 "label": "Fulfill",
                                 "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal_id}",
                             },
+                            {
+                                "type": 2,
+                                "style": 3,
+                                "label": "Fulfill Manually",
+                                "custom_id": "faction:vault:fulfill",
+                            },
                         ],
                     }
                 ],
@@ -828,6 +834,12 @@ def fulfill_button(interaction):
                                 "style": 5,
                                 "label": "Fulfill",
                                 "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal.wid}",
+                            },
+                            {
+                                "type": 2,
+                                "style": 3,
+                                "label": "Fulfill Manually",
+                                "custom_id": "faction:vault:fulfill",
                             },
                         ],
                     }

@@ -3,11 +3,14 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
+
 from flask import render_template, request, redirect
 from flask_login import login_required
 
 from controllers.faction.decorators import *
 from models.factionmodel import FactionModel
+from models.servermodel import ServerModel
 from models.user import User
 from models.withdrawalmodel import WithdrawalModel
 import tasks
@@ -182,7 +185,16 @@ def fulfill(wid: int):
             400,
         )
 
-    channels = tasks.discordget(f"guilds/{faction.guild}/channels")
+    guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+
+    if guild is None:
+        return render_template(
+            "errors/error.html",
+            title="Unknown Server",
+            error="The faction's Discord server could not be located in the database.",
+        )
+
+    channels = tasks.discordget(f"guilds/{faction.guild}/channels", dev=guild.skynet)
     banking_channel = None
 
     for channel in channels:
@@ -200,28 +212,78 @@ def fulfill(wid: int):
             400,
         )
 
-    message = tasks.discordget(
-        f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}"
-    )
-    embed = message["embeds"][0]
-
-    embed["fields"] = [{"name": "Original Message", "value": embed["description"]}]
-    embed[
-        "description"
-    ] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
-
     try:
-        message = tasks.discordpatch(
-            f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-            payload={"embeds": [embed]},
-        )
-    except DiscordError as e:
-        if e.code == 50005:
+        if guild.skynet:
+            message = tasks.discordget(
+                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+                dev=guild.skynet,
+            )
+            embed = message["embeds"][0]
+
+            embed["fields"] = [
+                {"name": "Original Message", "value": embed["description"]}
+            ]
+            embed[
+                "description"
+            ] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
+
             message = tasks.discordpatch(
                 f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
                 payload={"embeds": [embed]},
                 dev=True,
             )
+        else:
+            message = tasks.discordpatch(
+                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+                payload={
+                    "embeds": [
+                        {
+                            "title": f"Vault Request #{withdrawal.wid}",
+                            "description": f"This request has been fulfilled by {current_user.name} [{current_user.tid}].",
+                            "fields": [
+                                {
+                                    "name": "Original Request Amount",
+                                    "value": utils.commas(withdrawal.amount),
+                                },
+                                {
+                                    "name": "Original Request Type",
+                                    "value": "Points"
+                                    if withdrawal.wtype == 1
+                                    else "Cash",
+                                },
+                            ],
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                        }
+                    ],
+                    "components": [
+                        {
+                            "type": 1,
+                            "components": [
+                                {
+                                    "type": 2,
+                                    "style": 5,
+                                    "label": "Faction Vault",
+                                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                                },
+                                {
+                                    "type": 2,
+                                    "style": 5,
+                                    "label": "Fulfill",
+                                    "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal.wid}",
+                                },
+                                {
+                                    "type": 2,
+                                    "style": 3,
+                                    "label": "Fulfill Manually",
+                                    "custom_id": "faction:vault:fulfill",
+                                },
+                            ],
+                        }
+                    ],
+                },
+            )
+    except DiscordError as e:
+        return utils.handle_discord_error(e)
 
     withdrawal.fulfiller = current_user.tid
     withdrawal.time_fulfilled = utils.now()

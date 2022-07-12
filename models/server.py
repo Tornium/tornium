@@ -33,6 +33,7 @@ class Server:
                 assistschannel=0,
                 assist_factions=[],
                 assist_mod=0,
+                skynet=False,
             )
             server.save()
 
@@ -51,3 +52,5 @@ class Server:
         self.assistschannel = server.assistschannel
         self.assist_factions = server.assist_factions
         self.assist_mod = server.assist_mod
+
+        self.skynet = server.skynet

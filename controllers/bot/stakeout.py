@@ -74,7 +74,7 @@ def stakeouts_dashboard(guildid: str):
                     }  # TODO: Add permission overwrite: everyone write false
 
                 channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload
+                    f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
                 )
 
                 db_stakeout = utils.first(
@@ -96,7 +96,7 @@ def stakeouts_dashboard(guildid: str):
                     ]
                 }
                 tasks.discordpost(
-                    f'channels/{channel["id"]}/messages', payload=message_payload
+                    f'channels/{channel["id"]}/messages', payload=message_payload, dev=server.skynet
                 )
             else:
                 flash(
@@ -131,7 +131,7 @@ def stakeouts_dashboard(guildid: str):
                     }  # TODO: Add permission overwrite: everyone write false
 
                 channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload
+                    f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
                 )
 
                 db_stakeout = utils.first(
@@ -153,7 +153,7 @@ def stakeouts_dashboard(guildid: str):
                     ]
                 }
                 tasks.discordpost(
-                    f'channels/{channel["id"]}/messages', payload=message_payload
+                    f'channels/{channel["id"]}/messages', payload=message_payload, dev=server.skynet
                 )
             else:
                 flash(

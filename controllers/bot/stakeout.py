@@ -96,7 +96,9 @@ def stakeouts_dashboard(guildid: str):
                     ]
                 }
                 tasks.discordpost(
-                    f'channels/{channel["id"]}/messages', payload=message_payload, dev=server.skynet
+                    f'channels/{channel["id"]}/messages',
+                    payload=message_payload,
+                    dev=server.skynet,
                 )
             else:
                 flash(
@@ -153,7 +155,9 @@ def stakeouts_dashboard(guildid: str):
                     ]
                 }
                 tasks.discordpost(
-                    f'channels/{channel["id"]}/messages', payload=message_payload, dev=server.skynet
+                    f'channels/{channel["id"]}/messages',
+                    payload=message_payload,
+                    dev=server.skynet,
                 )
             else:
                 flash(

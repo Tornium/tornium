@@ -101,16 +101,16 @@ async def on_guild_join(guild):
     server.save()
 
 
-@bot.event
-async def on_guild_remove(guild):
-    server = utils.first(ServerModel.objects(sid=guild.id))
-    if server is not None:
-        for admin in server.admins:
-            user = utils.first(UserModel.objects(tid=admin))
-            if user is not None:
-                user.servers.remove(str(guild.id))
-                user.save()
-        server.delete()
+# @bot.event
+# async def on_guild_remove(guild):
+#     server = utils.first(ServerModel.objects(sid=guild.id))
+#     if server is not None:
+#         for admin in server.admins:
+#             user = utils.first(UserModel.objects(tid=admin))
+#             if user is not None:
+#                 user.servers.remove(str(guild.id))
+#                 user.save()
+#         server.delete()
 
 
 @bot.event

@@ -206,12 +206,12 @@ def servers():
 
     if search_value is None:
         for server in ServerModel.objects().all()[start : start + length]:
-            servers.append([server.sid, server.name, server.prefix])
+            servers.append([str(server.sid), server.name, server.prefix])
     else:
         for server in ServerModel.objects(name__startswith=search_value).all()[
             start : start + length
         ]:
-            servers.append([server.sid, server.name, server.prefix])
+            servers.append([str(server.sid), server.name, server.prefix])
 
     return {
         "draw": request.args.get("draw"),

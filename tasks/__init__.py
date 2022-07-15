@@ -3,6 +3,9 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+from ddtrace import patch_all
+patch_all()
+
 import datetime
 import logging
 import json

@@ -327,13 +327,16 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             elif attack["timestamp_ended"] < last_timestamp:
                 continue
 
-            if attack["defender_faction"] == faction_data["ID"]:
+            if attack["defender_faction"] == faction_data["ID"]:  # User is the defender
+                if attack["attacker_id"] in ("", 0):
+                    continue
+                
                 user = utils.first(UserModel.objects(tid=attack["defender_id"]))
                 user_id = attack["defender_id"]
 
                 opponent = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 opponent_id = attack["attacker_id"]
-            else:
+            else:  # User is the attacker
                 user = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 user_id = attack["attacker_id"]
 

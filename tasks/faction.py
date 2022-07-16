@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
+from decimal import DivisionByZero
 import logging
 import math
 import random
@@ -433,17 +434,22 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             except IndexError:
                 continue
 
-            if user_score > 100000:
+            if user_score > 100000 or user_score == 0:
+                continue
+            elif attack["modifiers"]["fair_fight"] == 1:
                 continue
 
-            if attack["defender_faction"] == faction_data["ID"]:
-                opponent_score = user_score / (
-                    (attack["modifiers"]["fair_fight"] - 1) * 0.375
-                )
-            else:
-                opponent_score = (
-                    (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
-                )
+            try:
+                if attack["defender_faction"] == faction_data["ID"]:
+                    opponent_score = user_score / (
+                        (attack["modifiers"]["fair_fight"] - 1) * 0.375
+                    )
+                else:
+                    opponent_score = (
+                        (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
+                    )
+            except DivisionByZero:
+                continue
 
             if opponent_score == 0:
                 continue

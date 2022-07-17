@@ -4,8 +4,8 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from ddtrace import patch_all
-
 patch_all()
+import ddtrace.profiling.auto
 
 import datetime
 import logging

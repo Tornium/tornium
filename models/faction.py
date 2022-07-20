@@ -46,7 +46,7 @@ class Faction:
                 capacity=faction_data["capacity"],
                 leader=faction_data["leader"],
                 coleader=faction_data["co-leader"],
-                aa_keys = [],
+                aa_keys=[],
                 last_members=now,
                 guild=0,
                 config={"vault": 0, "stats": 1},
@@ -124,14 +124,14 @@ class Faction:
             keys.append(user.key)
 
         keys = list(set(keys))
-        
+
         faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
         faction.aa_keys = keys
         faction.save()
         self.aa_keys = keys
 
         return keys
-    
+
     def rand_key(self):
         return random.choice(self.aa_keys)
 

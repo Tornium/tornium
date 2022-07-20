@@ -20,9 +20,10 @@ from models.recruitmodel import RecruitModel
 from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
+import redisdb
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
 import utils
-from utils.errors import TornError
+from utils.errors import RatelimitError, TornError
 
 logger: logging.Logger
 
@@ -255,6 +256,18 @@ def refresh_factions():
 
 @celery_app.task
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
+    redis = redisdb.get_redis()
+
+    if redis.exists("tornium:celery-lock:fetch-attacks"):  # Lock enabled
+        raise Exception(
+            f"Can not run task as task is already being run. Try again in {redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
+        )
+
+    if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
+        redis.expire("tornium:celery-lock:fetch-attacks", 55)  # Lock for 55 seconds
+    # if redis.ttl("torniusm:celery-lock:fetch-attacks") < 0:
+    #     redis.expire("tornium:celery-lock:fetch-attsacks", 1)
+
     requests_session = requests.Session()
 
     try:

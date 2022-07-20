@@ -46,6 +46,7 @@ class Faction:
                 capacity=faction_data["capacity"],
                 leader=faction_data["leader"],
                 coleader=faction_data["co-leader"],
+                aa_keys = [],
                 last_members=now,
                 guild=0,
                 config={"vault": 0, "stats": 1},
@@ -92,6 +93,7 @@ class Faction:
         self.capacity = faction.capacity
         self.leader = faction.leader
         self.coleader = faction.coleader
+        self.aa_keys = faction.aa_keys
 
         self.last_members = faction.last_members
 
@@ -109,7 +111,7 @@ class Faction:
         self.pro = faction.pro
         self.pro_expiration = faction.pro_expiration
 
-    def rand_key(self):
+    def refresh_keys(self):
         users = UserModel.objects(
             Q(factionaa=True) & Q(factionid=self.tid) & Q(key__ne="")
         )
@@ -122,11 +124,16 @@ class Faction:
             keys.append(user.key)
 
         keys = list(set(keys))
+        
+        faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+        faction.aa_keys = keys
+        faction.save()
+        self.aa_keys = keys
 
-        if len(keys) == 0:
-            return None
-
-        return random.choice(keys)
+        return keys
+    
+    def rand_key(self):
+        return random.choice(self.aa_keys)
 
     def get_config(self):
         if self.guild == 0:

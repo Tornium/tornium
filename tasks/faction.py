@@ -49,6 +49,8 @@ def refresh_factions():
             keys.append(user.key)
 
         keys = list(set(keys))
+        faction.aa_keys = keys
+        faction.save()
 
         if len(keys) == 0:
             continue
@@ -274,22 +276,26 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         faction_shares[factiontid] = list(set(shares))
 
     for faction in FactionModel.objects():
-        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
-        keys = []
+        if faction.config["stats"] == 0:
+            continue
 
-        user: UserModel
-        for user in aa_users:
-            if user.key == "":
+        if len(faction.aa_keys) == 0:
+            aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
+            keys = []
+
+            user: UserModel
+            for user in aa_users:
+                if user.key == "":
+                    continue
+
+                keys.append(user.key)
+
+            keys = list(set(keys))
+
+            if len(keys) == 0:
                 continue
-
-            keys.append(user.key)
-
-        keys = list(set(keys))
-
-        if len(keys) == 0:
-            continue
-        elif faction.config["stats"] == 0:
-            continue
+        else:
+            keys = faction.aa_keys
 
         request_timestamp = time.time()
 

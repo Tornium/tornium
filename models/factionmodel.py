@@ -20,6 +20,7 @@ class FactionModel(DynamicDocument):
     capacity = IntField(default=0)
     leader = IntField(default=0)
     coleader = IntField(default=0)
+    aa_keys = ListField(default=[])
 
     last_members = IntField(default=0)  # Time of last members update
 

@@ -254,7 +254,7 @@ def refresh_factions():
         faction.save()
 
 
-@celery_app.task
+@celery_app.task(time_limit=300)  # Prevents task for running for more than five minutes
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
     redis = redisdb.get_redis()
 
@@ -265,8 +265,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
     if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
         redis.expire("tornium:celery-lock:fetch-attacks", 55)  # Lock for 55 seconds
-    # if redis.ttl("torniusm:celery-lock:fetch-attacks") < 0:
-    #     redis.expire("tornium:celery-lock:fetch-attsacks", 1)
+    if redis.ttl("torniusm:celery-lock:fetch-attacks") < 0:
+        redis.expire("tornium:celery-lock:fetch-attsacks", 1)
 
     requests_session = requests.Session()
 

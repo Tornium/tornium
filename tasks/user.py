@@ -275,7 +275,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                 if attack["defender_id"] == user.tid
                 else attack["attacker_id"],
                 battlescore=opponent_score,
-                timeadded=utils.now(),
+                timeadded=attack["timestamp_ended"],
                 addedid=attack["attacker_id"]
                 if attack["defender_id"] == user.tid
                 else attack["defender_id"],

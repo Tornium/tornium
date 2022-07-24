@@ -256,9 +256,11 @@ def refresh_factions():
 
 @celery_app.task(time_limit=300)  # Prevents task for running for more than five minutes
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
+    logger.debug("Fetch attacks task initiated")
     redis = redisdb.get_redis()
 
     if redis.exists("tornium:celery-lock:fetch-attacks"):  # Lock enabled
+        logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in {redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
         )
@@ -288,8 +290,16 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
     for factiontid, shares in faction_shares.items():
         faction_shares[factiontid] = list(set(shares))
 
+    faction: FactionModel
     for faction in FactionModel.objects():
+        logger.debug(
+            f"Starting fetch attacks task on faction {faction.name} [{faction.tid}]"
+        )
+
         if faction.config["stats"] == 0:
+            logger.debug(
+                f"Skipping fetch attacks task on faction {faction.name} [{faction.tid}]"
+            )
             continue
 
         if len(faction.aa_keys) == 0:
@@ -309,8 +319,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 continue
         else:
             keys = faction.aa_keys
-
-        request_timestamp = time.time()
 
         try:
             faction_data = tornget(
@@ -495,7 +503,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 else 0,
                 tid=opponent_id,
                 battlescore=opponent_score,
-                timeadded=request_timestamp,
+                timeadded=attack["timestamp_ended"],
                 addedid=user_id,
                 addedfactiontid=user.factionid,
                 globalstat=globalstat,

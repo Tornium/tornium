@@ -47,6 +47,7 @@ def refresh_factions():
                 user.save()
                 continue
 
+            logger.info(f"Added AA of {user.tid} in refresh_factions")
             keys.append(user.key)
 
         keys = list(set(keys))

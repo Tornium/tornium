@@ -133,6 +133,8 @@ class Faction:
         return keys
 
     def rand_key(self):
+        if len(self.aa_keys) == 0:
+            return None
         return random.choice(self.aa_keys)
 
     def get_config(self):

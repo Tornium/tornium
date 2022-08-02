@@ -43,7 +43,14 @@ def refresh_users():
             honeybadger.notify(e)
             continue
 
-        user.factionid = user_data["faction"]["faction_id"]
+        try:  # Torn API debug
+            user.factionid = user_data["faction"]["faction_id"]
+        except KeyError:
+            logger.error(
+                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
+            )
+            logger.info(user_data)
+
         user.name = user_data["name"]
         user.last_refresh = utils.now()
         user.status = user_data["last_action"]["status"]

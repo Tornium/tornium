@@ -362,16 +362,16 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 if attack["attacker_id"] in ("", 0):
                     continue
 
-                user = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                user: UserModel = utils.first(UserModel.objects(tid=attack["defender_id"]))
                 user_id = attack["defender_id"]
 
-                opponent = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                opponent: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 opponent_id = attack["attacker_id"]
             else:  # User is the attacker
-                user = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                user: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 user_id = attack["attacker_id"]
 
-                opponent = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                opponent: UserModel = utils.first(UserModel.objects(tid=attack["defender_id"]))
                 opponent_id = attack["defender_id"]
 
             if user is None:
@@ -386,6 +386,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 except Exception as e:
                     logger.exception(e)
                     continue
+
+                user: UserModel = utils.first(UserModel.objects(tid=user_id))
 
             if opponent is None:
                 try:

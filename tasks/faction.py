@@ -375,19 +375,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent_id = attack["defender_id"]
 
             if user is None:
-                try:
-                    update_user.delay(tid=user_id, key=random.choice(keys))
-                except TornError as e:
-                    logger.exception(e)
-                    honeybadger.notify(
-                        e, context={"code": e.code, "endpoint": e.endpoint}
-                    )
-                    continue
-                except Exception as e:
-                    logger.exception(e)
-                    continue
-
-                user: UserModel = utils.first(UserModel.objects(tid=user_id))
+                continue
 
             if opponent is None:
                 try:
@@ -408,6 +396,10 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 else:
                     continue
             except IndexError:
+                continue
+            except AttributeError as e:
+                logger.exception(e)
+                honeybadger.notify(e)
                 continue
 
             if user_score > 100000 or user_score == 0:

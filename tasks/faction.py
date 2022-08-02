@@ -3,8 +3,6 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import ddtrace.profiling.auto
-
 import datetime
 from decimal import DivisionByZero
 import logging
@@ -318,7 +316,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 StatModel.objects(factiontid=faction.tid)
             ).timeadded
         except AttributeError:
+            logger.warning(f"AttributeError on {faction.tid}")
             last_timestamp = 0
+            return
 
         try:
             faction_data = tornget(

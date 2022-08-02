@@ -251,7 +251,7 @@ def refresh_factions():
         faction.save()
 
 
-@celery_app.task(time_limit=300)  # Prevents task for running for more than five minutes
+@celery_app.task(time_limit=600)  # Prevents task for running for more than ten minutes
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
     logger.debug("Fetch attacks task initiated")
     redis = redisdb.get_redis()
@@ -338,7 +338,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             logger.debug(f"START attack {attack['code']}")
 
             if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
-                logger.debug(f"SKIP attack {attack['code']} (result)")
+                # logger.debug(f"SKIP attack {attack['code']} (result: {attack['result']})")
                 continue
             elif attack["defender_id"] in [
                 4,
@@ -349,22 +349,22 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 20,
                 21,
             ]:  # Checks if NPC fight (and you defeated NPC)
-                logger.debug(f"SKIP attack {attack['code']} (NPC)")
+                # logger.debug(f"SKIP attack {attack['code']} (NPC)")
                 continue
             elif (
                 attack["modifiers"]["fair_fight"] in (1, 3)
             ):  # 3x FF can be greater than the defender battlescore indicated
-                logger.debug(f"SKIP attack {attack['code']} (FF)")
+                # logger.debug(f"SKIP attack {attack['code']} (FF)")
                 continue
             elif attack["timestamp_ended"] < last_timestamp:
-                logger.debug(f"SKIP attack {attack['code']} (timestamp_ended)")
+                # logger.debug(f"SKIP attack {attack['code']} (timestamp_ended)")
                 continue
 
             # User: faction member
             # Opponent: non-faction member regardless of attack or defend
 
             if attack["defender_faction"] == faction_data["ID"]:  # Defender fac is the fac making the call
-                logger.debug(f"INFO attack {attack['code']} (defend)")
+                # logger.debug(f"INFO attack {attack['code']} (defend)")
 
                 if attack["attacker_id"] in ("", 0):  # Attacker not stealthed
                     logger.debug(f"SKIP attack {attack['code']} (stealth)")
@@ -379,7 +379,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 opponent_id = attack["attacker_id"]
             else:  # User is the attacker
-                logger.debug(f"INFO attack {attack['code']} (attack)")
+                # logger.debug(f"INFO attack {attack['code']} (attack)")
 
                 user: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 user_id = attack["attacker_id"]
@@ -388,7 +388,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent_id = attack["defender_id"]
 
             if user is None:
-                logger.debug(f"SKIP attack {attack['code']} (unknown user)")
+                logger.debug(f"SKIP attack {attack['code']} (unknown user: {user_id})")
                 continue
 
             if opponent is None:

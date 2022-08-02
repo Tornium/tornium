@@ -339,7 +339,10 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             continue
 
         for attack in faction_data["attacks"].values():
+            logger.debug(f"START attack {attack['code']}")
+
             if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+                logger.debug(f"SKIP attack {attack['code']} (result)")
                 continue
             elif attack["defender_id"] in [
                 4,
@@ -350,16 +353,28 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 20,
                 21,
             ]:  # Checks if NPC fight (and you defeated NPC)
+                logger.debug(f"SKIP attack {attack['code']} (NPC)")
                 continue
             elif (
-                attack["modifiers"]["fair_fight"] == 3
+                attack["modifiers"]["fair_fight"] in (1, 3)
             ):  # 3x FF can be greater than the defender battlescore indicated
+                logger.debug(f"SKIP attack {attack['code']} (FF)")
                 continue
             elif attack["timestamp_ended"] < last_timestamp:
+                logger.debug(f"SKIP attack {attack['code']} (timestamp_ended)")
                 continue
 
-            if attack["defender_faction"] == faction_data["ID"]:  # User is the defender
-                if attack["attacker_id"] in ("", 0):
+            # User: faction member
+            # Opponent: non-faction member regardless of attack or defend
+
+            if attack["defender_faction"] == faction_data["ID"]:  # Defender fac is the fac making the call
+                logger.debug(f"INFO attack {attack['code']} (defend)")
+
+                if attack["attacker_id"] in ("", 0):  # Attacker not stealthed
+                    logger.debug(f"SKIP attack {attack['code']} (stealth)")
+                    continue
+                elif attack["respect"] == 0:  # Attack on fac member
+                    logger.debug(f"SKIP attack {attack['code']} (fac mem)")
                     continue
 
                 user: UserModel = utils.first(UserModel.objects(tid=attack["defender_id"]))
@@ -368,6 +383,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 opponent_id = attack["attacker_id"]
             else:  # User is the attacker
+                logger.debug(f"INFO attack {attack['code']} (attack)")
+
                 user: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
                 user_id = attack["attacker_id"]
 
@@ -375,6 +392,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent_id = attack["defender_id"]
 
             if user is None:
+                logger.debug(f"SKIP attack {attack['code']} (unknown user)")
                 continue
 
             if opponent is None:
@@ -396,15 +414,16 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 else:
                     continue
             except IndexError:
+                logger.debug(f"EXCEPTION attack {attack['code']} (IndexError)")
                 continue
             except AttributeError as e:
                 logger.exception(e)
                 honeybadger.notify(e)
                 continue
 
-            if user_score > 100000 or user_score == 0:
-                continue
-            elif attack["modifiers"]["fair_fight"] == 1:
+            # TODO: Update
+            if user_score > 100000 or user_score == 0:  # 100k old value
+                logger.debug(f"SKIP attack {attack['code']} (invalid user score)")
                 continue
 
             try:
@@ -417,9 +436,11 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                         (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
                     )
             except DivisionByZero:
+                logger.debug(f"EXCEPTION attack {attack['code']} (DivisionByZero)")
                 continue
 
             if opponent_score == 0:
+                logger.debug(f"SKIP attack {attack['code']} (zero opponent score)")
                 continue
 
             stat_faction: FactionModel = utils.first(
@@ -438,16 +459,23 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
                 allowed_factions = list(set(allowed_factions))
 
-            stat_entry = StatModel(
-                statid=utils.last(StatModel.objects()).statid + 1
-                if StatModel.objects().count() != 0
-                else 0,
-                tid=opponent_id,
-                battlescore=opponent_score,
-                timeadded=attack["timestamp_ended"],
-                addedid=user_id,
-                addedfactiontid=user.factionid,
-                globalstat=globalstat,
-                allowedfactions=allowed_factions,
-            )
-            stat_entry.save()
+            try:
+                stat_entry = StatModel(
+                    statid=utils.last(StatModel.objects()).statid + 1
+                    if StatModel.objects().count() != 0
+                    else 0,
+                    tid=opponent_id,
+                    battlescore=opponent_score,
+                    timeadded=attack["timestamp_ended"],
+                    addedid=user_id,
+                    addedfactiontid=user.factionid,
+                    globalstat=globalstat,
+                    allowedfactions=allowed_factions,
+                )
+                stat_entry.save()
+            except Exception as e:
+                logger.exception(e)
+                honeybadger.notify(e)
+                continue
+
+            logger.debug(f"SUCCESS attack {attack['code']}")

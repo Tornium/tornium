@@ -292,7 +292,7 @@ def tornget(
 
                     if server is not None and user.tid in server.admins:
                         server.admins.remove(user.tid)
-                    server.save()
+                        server.save()
 
                 for server in ServerModel.objects(admins=user.tid):
                     server.admins.remove(user.tid)

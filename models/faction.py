@@ -125,7 +125,7 @@ class Faction:
 
         keys = list(set(keys))
 
-        faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+        faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
         faction.aa_keys = keys
         faction.save()
         self.aa_keys = keys

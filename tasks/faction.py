@@ -272,12 +272,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         redis.expire("tornium:celery-lock:fetch-attsacks", 1)
 
     requests_session = requests.Session()
-
-    try:
-        last_timestamp = utils.last(StatModel.objects()).timeadded
-    except AttributeError:
-        last_timestamp = 0
-
     faction_shares = {}
 
     group: FactionGroupModel
@@ -322,8 +316,14 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             keys = faction.aa_keys
 
         try:
+            last_timestamp = utils.last(StatModel.objects(factiontid=faction.tid)).timeadded
+        except AttributeError:
+            last_timestamp = 0
+
+        try:
             faction_data = tornget(
                 "faction/?selections=basic,attacks",
+                fromts=last_timestamp + 1,  # Timestamp is inclusive
                 key=random.choice(keys),
                 session=requests_session,
             )

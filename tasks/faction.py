@@ -30,24 +30,20 @@ logger: logging.Logger
 
 @celery_app.task
 def refresh_factions():
-    logger.debug("Started refresh_factions")
     requests_session = requests.Session()
 
     faction: FactionModel
     for faction in FactionModel.objects():
-        logger.debug(f"Started refresh of faction {faction.tid}")
         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
         keys = []
 
         user: UserModel
         for user in aa_users:
             if user.key == "":
-                logger.info(f"Removed AA from {user.tid} in refresh_factions")
                 user.factionaa = False
                 user.save()
                 continue
 
-            logger.info(f"Added AA of {user.tid} in refresh_factions")
             keys.append(user.key)
 
         keys = list(set(keys))

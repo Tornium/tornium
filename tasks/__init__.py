@@ -64,11 +64,6 @@ if celery_app is None:
         file.close()
     except FileNotFoundError:
         data = {  # Miscellaneous tasks
-            "honeybadger-site-checkin": {
-                "task": "tasks.honeybadger_site_checkin",
-                "enabled": False,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },
             "pro-refresh": {
                 "task": "tasks.pro_refresh",
                 "enabled": True,
@@ -139,14 +134,6 @@ if celery_app is None:
 
     schedule = {}
 
-    if data["honeybadger-site-checkin"]["enabled"]:
-        schedule["honeybadger-site-checkin"] = {
-            "task": data["honeybadger-site-checkin"]["task"],
-            "schedule": crontab(
-                minute=data["honeybadger-site-checkin"]["schedule"]["minute"],
-                hour=data["honeybadger-site-checkin"]["schedule"]["hour"],
-            ),
-        }
     if data["refresh-factions"]["enabled"]:
         schedule["refresh-factions"] = {
             "task": data["refresh-factions"]["task"],
@@ -555,29 +542,6 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
 
     request = request.json()
     return request
-
-
-@celery_app.task
-def honeybadger_site_checkin():
-    redis = get_redis()
-
-    if (
-        redis.get("tornium:settings:honeysitecheckin") is None
-        or redis.get("tornium:settings:honeysitecheckin") == ""
-    ):
-        return
-    elif (
-        redis.get("tornium:settings:url") is None
-        or redis.get("tornium:settins:url") == ""
-    ):
-        return
-
-    site = requests.get(redis.get("tornium:settings:url"))
-
-    if site.status_code != requests.codes.ok:
-        return
-
-    requests.get(redis.get("tornium:settings:honeysitecheckin"))
 
 
 @celery_app.task

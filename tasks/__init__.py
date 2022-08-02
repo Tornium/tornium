@@ -215,7 +215,7 @@ if celery_app is None:
     celery_app.conf.beat_schedule = schedule
 
 
-@celery_app.task
+@celery_app.task(time_limit=5)  # Prevents task for running for more than five seconds
 def tornget(
     endpoint,
     key,

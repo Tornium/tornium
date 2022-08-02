@@ -316,7 +316,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             keys = faction.aa_keys
 
         try:
-            last_timestamp = utils.last(StatModel.objects(factiontid=faction.tid)).timeadded
+            last_timestamp = utils.last(
+                StatModel.objects(factiontid=faction.tid)
+            ).timeadded
         except AttributeError:
             last_timestamp = 0
 
@@ -374,9 +376,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             if user is None:
                 try:
-                    update_user.delay(
-                        tid=user_id, key=random.choice(keys), session=requests_session
-                    )
+                    update_user.delay(tid=user_id, key=random.choice(keys))
                 except TornError as e:
                     logger.exception(e)
                     honeybadger.notify(
@@ -389,11 +389,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             if opponent is None:
                 try:
-                    update_user.delay(
-                        tid=opponent_id,
-                        key=random.choice(keys),
-                        session=requests_session,
-                    )
+                    update_user.delay(tid=opponent_id, key=random.choice(keys))
                 except TornError as e:
                     logger.exception(e)
                     honeybadger.notify(

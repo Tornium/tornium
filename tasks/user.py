@@ -20,9 +20,7 @@ import utils
 
 
 @celery_app.task
-def update_user(
-    tid: int, key: str, session: requests.Session = None, refresh_existing=True
-):
+def update_user(tid: int, key: str, refresh_existing=True):
     if key in ("", None):
         return utils.MissingKeyError
 
@@ -32,13 +30,9 @@ def update_user(
         return
 
     if user is not None and user.key not in (None, ""):
-        user_data = tornget(
-            f"user/{tid}/?selections=profile,discord", user.key, session=session
-        )
+        user_data = tornget(f"user/{tid}/?selections=profile,discord", user.key)
     else:
-        user_data = tornget(
-            f"user/{tid}/?selections=profile,discord", key, session=session
-        )
+        user_data = tornget(f"user/{tid}/?selections=profile,discord", key)
 
     if user_data["player_id"] != tid:
         raise Exception("TID does not match returned player_ID")

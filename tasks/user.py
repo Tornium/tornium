@@ -20,6 +20,88 @@ import utils
 
 
 @celery_app.task
+def update_user(
+    tid: int, key: str, session: requests.Session = None, refresh_existing=True
+):
+    if key in ("", None):
+        return utils.MissingKeyError
+
+    user: UserModel = utils.first(UserModel.objects(tid=tid))
+
+    if user is not None and not refresh_existing:
+        return
+
+    if user is not None and user.key not in (None, ""):
+        user_data = tornget(
+            f"user/{tid}/?selections=profile,discord", user.key, session=session
+        )
+    else:
+        user_data = tornget(
+            f"user/{tid}/?selections=profile,discord", key, session=session
+        )
+
+    if user_data["player_id"] != tid:
+        raise Exception("TID does not match returned player_ID")
+
+    if user is None:
+        user: UserModel = UserModel(
+            tid=user_data["player_id"],
+            name=user_data["name"],
+            level=user_data["level"],
+            admin=False,
+            key="",
+            battlescore=0,
+            battlescore_update=utils.now(),
+            discord_id=user_data["discord"]["discordID"]
+            if user_data["discord"]["discordID"] != ""
+            else 0,
+            servers=[],
+            factionid=user_data["faction"]["faction_id"],
+            factionaa=False,
+            recruiter=False,
+            last_refresh=utils.now(),
+            chain_hits=0,
+            status=user_data["last_action"]["status"],
+            last_action=user_data["last_action"]["timestamp"],
+            pro=False,
+            pro_expiration=0,
+        )
+        user.save()
+    else:
+        user.name = user_data["name"]
+        user.level = user_data["level"]
+        user.discord_id = (
+            user_data["discord"]["discordID"]
+            if user_data["discord"]["discordID"] != ""
+            else 0
+        )
+
+        try:
+            user.factionid = user_data["faction"]["faction_id"]
+        except KeyError:
+            logger.error(
+                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
+            )
+            logger.info(user_data)
+
+        user.last_refresh = utils.now()
+        user.status = user_data["last_action"]["status"]
+        user.last_action = user_data["last_action"]["timestamp"]
+        user.save()
+
+    faction: FactionModel = utils.first(
+        FactionModel.objects(tid=user_data["faction"]["faction_id"])
+    )
+
+    if faction is None:
+        faction: FactionModel = FactionModel(
+            tid=user_data["faction"]["faction_id"],
+            name=user_data["faction"]["faction_name"],
+        )
+        faction.save()
+
+
+@celery_app.task
 def refresh_users():
     requests_session = requests.Session()
 

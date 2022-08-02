@@ -8,7 +8,6 @@ from decimal import DivisionByZero
 import logging
 import math
 import random
-import time
 
 from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
@@ -22,8 +21,9 @@ from models.statmodel import StatModel
 from models.usermodel import UserModel
 import redisdb
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
+from tasks.user import update_user
 import utils
-from utils.errors import RatelimitError, TornError
+from utils.errors import TornError
 
 logger: logging.Logger
 
@@ -374,35 +374,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             if user is None:
                 try:
-                    user_data = tornget(
-                        f"user/{user_id}/?selections=profile,discord",
-                        random.choice(keys),
-                        session=requests_session,
+                    update_user.delay(
+                        tid=user_id, key=random.choice(keys), session=requests_session
                     )
-
-                    user = UserModel(
-                        tid=user_id,
-                        name=user_data["name"],
-                        level=user_data["level"],
-                        admin=False,
-                        key="",
-                        battlescore=0,
-                        battlescore_update=utils.now(),
-                        discord_id=user_data["discord"]["discordID"]
-                        if user_data["discord"]["discordID"] != ""
-                        else 0,
-                        servers=[],
-                        factionid=user_data["faction"]["faction_id"],
-                        factionaa=False,
-                        recruiter=False,
-                        last_refresh=utils.now(),
-                        chain_hits=0,
-                        status=user_data["last_action"]["status"],
-                        last_action=user_data["last_action"]["timestamp"],
-                        pro=False,
-                        pro_expiration=0,
-                    )
-                    user.save()
                 except TornError as e:
                     logger.exception(e)
                     honeybadger.notify(
@@ -415,35 +389,11 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             if opponent is None:
                 try:
-                    user_data = tornget(
-                        f"user/{opponent_id}/?selections=profile,discord",
-                        random.choice(keys),
+                    update_user.delay(
+                        tid=opponent_id,
+                        key=random.choice(keys),
                         session=requests_session,
                     )
-
-                    user = UserModel(
-                        tid=opponent_id,
-                        name=user_data["name"],
-                        level=user_data["level"],
-                        admin=False,
-                        key="",
-                        battlescore=0,
-                        battlescore_update=utils.now(),
-                        discord_id=user_data["discord"]["discordID"]
-                        if user_data["discord"]["discordID"] != ""
-                        else 0,
-                        servers=[],
-                        factionid=user_data["faction"]["faction_id"],
-                        factionaa=False,
-                        recruiter=False,
-                        last_refresh=utils.now(),
-                        chain_hits=0,
-                        status=user_data["last_action"]["status"],
-                        last_action=user_data["last_action"]["timestamp"],
-                        pro=False,
-                        pro_expiration=0,
-                    )
-                    user.save()
                 except TornError as e:
                     logger.exception(e)
                     honeybadger.notify(

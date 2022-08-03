@@ -344,7 +344,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             logger.debug(f"START attack {attack['code']}")
 
             if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
-                logger.debug(f"SKIP attack {attack['code']} (result: {attack['result']})")
+                logger.debug(
+                    f"SKIP attack {attack['code']} (result: {attack['result']})"
+                )
                 continue
             elif attack["defender_id"] in [
                 4,
@@ -357,8 +359,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             ]:  # Checks if NPC fight (and you defeated NPC)
                 logger.debug(f"SKIP attack {attack['code']} (NPC)")
                 continue
-            elif (
-                attack["modifiers"]["fair_fight"] in (1, 3)
+            elif attack["modifiers"]["fair_fight"] in (
+                1,
+                3,
             ):  # 3x FF can be greater than the defender battlescore indicated
                 logger.debug(f"SKIP attack {attack['code']} (FF)")
                 continue
@@ -369,7 +372,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             # User: faction member
             # Opponent: non-faction member regardless of attack or defend
 
-            if attack["defender_faction"] == faction_data["ID"]:  # Defender fac is the fac making the call
+            if (
+                attack["defender_faction"] == faction_data["ID"]
+            ):  # Defender fac is the fac making the call
                 logger.debug(f"INFO attack {attack['code']} (defend)")
 
                 if attack["attacker_id"] in ("", 0):  # Attacker not stealthed
@@ -379,18 +384,26 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     logger.debug(f"SKIP attack {attack['code']} (fac mem)")
                     continue
 
-                user: UserModel = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                user: UserModel = utils.first(
+                    UserModel.objects(tid=attack["defender_id"])
+                )
                 user_id = attack["defender_id"]
 
-                opponent: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                opponent: UserModel = utils.first(
+                    UserModel.objects(tid=attack["attacker_id"])
+                )
                 opponent_id = attack["attacker_id"]
             else:  # User is the attacker
                 logger.debug(f"INFO attack {attack['code']} (attack)")
 
-                user: UserModel = utils.first(UserModel.objects(tid=attack["attacker_id"]))
+                user: UserModel = utils.first(
+                    UserModel.objects(tid=attack["attacker_id"])
+                )
                 user_id = attack["attacker_id"]
 
-                opponent: UserModel = utils.first(UserModel.objects(tid=attack["defender_id"]))
+                opponent: UserModel = utils.first(
+                    UserModel.objects(tid=attack["defender_id"])
+                )
                 opponent_id = attack["defender_id"]
 
             if user is None:

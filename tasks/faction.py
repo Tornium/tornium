@@ -311,14 +311,17 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         else:
             keys = faction.aa_keys
 
-        try:
-            last_timestamp = utils.last(
-                StatModel.objects(factiontid=faction.tid)
-            ).timeadded
-        except AttributeError:
-            logger.warning(f"AttributeError on {faction.tid}")
+        if StatModel.objects(addedfactiontid=faction.tid).count() == 0:
             last_timestamp = 0
-            return
+        else:
+            try:
+                last_timestamp = utils.last(
+                    StatModel.objects(addedfactiontid=faction.tid)
+                ).timeadded
+            except AttributeError as e:
+                logger.exception(e)
+                honeybadger.notify(e)
+                continue
 
         try:
             faction_data = tornget(
@@ -358,7 +361,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             ):  # 3x FF can be greater than the defender battlescore indicated
                 logger.debug(f"SKIP attack {attack['code']} (FF)")
                 continue
-            elif attack["timestamp_ended"] < last_timestamp:
+            elif attack["timestamp_ended"] <= last_timestamp:
                 logger.debug(f"SKIP attack {attack['code']} (timestamp_ended)")
                 continue
 

@@ -251,7 +251,8 @@ def refresh_factions():
         faction.save()
 
 
-@celery_app.task(time_limit=600)  # Prevents task for running for more than ten minutes
+# @celery_app.task(time_limit=600)  # Prevents task for running for more than ten minutes
+@celery_app.task
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
     logger.debug("Fetch attacks task initiated")
     redis = redisdb.get_redis()

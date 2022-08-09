@@ -24,6 +24,7 @@ def index():
 @mod.route("/utils.js")
 @mod.route("/bot/stakeouts.js")
 @mod.route("/bot/guild.js")
+@mod.route("/bot/verify.js")
 @mod.route("/faction/armory.js")
 @mod.route("/faction/banking.js")
 @mod.route("/faction/bankingaa.js")

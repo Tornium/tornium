@@ -47,8 +47,12 @@ Tornium - Verification
             <div class="row pt-3">
                 <div class="col-sm-2 col-md-8 col-lg-4 my-2">
                     <div class="form-floating">
+                        <div class="form-text">
+                            Select the channel to which welcome messages are forwarded to for new member joins.
+                        </div>
+
                         <select class="form-select" id="verification-welcome-channel" aria-label="Verification Welcome Channel Select">
-                            <option value="0">Select the verification welcome channel</option>
+                            <option value="0">Verification welcome channel</option>
                             {% for category in channels.values() %}
                                 {% if category["name"] == "" %}
                                 <optgroup label="No Category">
@@ -67,18 +71,18 @@ Tornium - Verification
                             {% endfor %}
                         </select>
                     </div>
-
-                    <div class="form-text">
-                        Select the channel to which welcome messages are forwarded to for new member joins.
-                    </div>
                 </div>
             </div>
 
             <div class="row pt-3">
                 <div class="col-sm-12 col-md-8 col-lg-4 my-2">
                     <div class="form-floating">
+                        <div class="form-text">
+                            Select the channel to which log messages regarding member verification are forwarded to.
+                        </div>
+
                         <select class="form-select" id="verification-log-channel" aria-label="Verification Log Channel Select"">
-                            <option value="0">Select the verification log channel</option>
+                            <option value="0">Verification log channel</option>
                             {% for category in channels.values() %}
                                 {% if category["name"] == "" %}
                                 <optgroup label="No Category">
@@ -96,10 +100,6 @@ Tornium - Verification
                                 </optgroup>
                             {% endfor %}
                         </select>
-                    </div>
-
-                    <div class="form-text">
-                        Select the channel to which log messages regarding member verification are forwarded to.
                     </div>
                 </div>
             </div>
@@ -157,17 +157,17 @@ Tornium - Verification
 
                             <div class="mt-1">
                                 {% if guild.faction_verify[faction]["enabled"] %}
-                                <button type="button" class="btn btn-primary verification-faction-enable" disabled>
+                                <button type="button" class="btn btn-primary verification-faction-enable" data-faction="{{ faction }}" disabled>
                                     Enable
                                 </button>
-                                <button type="button" class="btn btn-primary verification-faction-disable">
+                                <button type="button" class="btn btn-primary verification-faction-disable" data-faction="{{ faction }}">
                                     Disable
                                 </button>
                                 {% else %}
-                                <button type="button" class="btn btn-primary verification-faction-enable">
+                                <button type="button" class="btn btn-primary verification-faction-enable" data-faction="{{ faction }}">
                                     Enable
                                 </button>
-                                <button type="button" class="btn btn-primary verification-faction-disable" disabled>
+                                <button type="button" class="btn btn-primary verification-faction-disable" data-faction="{{ faction }}" disabled>
                                     Disable
                                 </button>
                                 {% endif %}

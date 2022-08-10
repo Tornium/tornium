@@ -131,4 +131,50 @@ $(document).ready(function() {
             "channel": this.options[this.selectedIndex].value
         }));
     });
+
+    $(".verification-faction-disable").on("click", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+
+            } else {
+                generateToast("Faction Disabled Successfully");
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", "/api/bot/verify/status");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factionid": this.getAttribute("data-faction")
+        }));
+    });
+
+    $(".verification-faction-enable").on("click", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+
+            } else {
+                generateToast("Faction Enabled Successfully");
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/status");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factionid": this.getAttribute("data-faction")
+        }));
+    });
 })

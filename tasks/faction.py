@@ -21,7 +21,6 @@ from models.statmodel import StatModel
 from models.usermodel import UserModel
 import redisdb
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
-from tasks.user import update_user
 import utils
 from utils.errors import TornError
 
@@ -283,7 +282,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         faction_shares[factiontid] = list(set(shares))
 
     faction: FactionModel
-    for faction in FactionModel.objects(Q(aa_keys__not_size=0) & Q(aa_keys__exists=True)):
+    for faction in FactionModel.objects(Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)):
         logger.debug(
             f"Starting fetch attacks task on faction {faction.name} [{faction.tid}]"
         )

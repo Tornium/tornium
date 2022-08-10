@@ -3,13 +3,13 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-# import ddtrace
-#
-# ddtrace.config.env = "prod"
-# ddtrace.tracer.configure(
-#     enabled=True,
-# )
-# ddtrace.patch_all(flask=True)
+import ddtrace
+
+ddtrace.config.env = "prod"
+ddtrace.tracer.configure(
+    enabled=True,
+)
+ddtrace.patch_all(flask=True)
 
 import datetime
 import logging

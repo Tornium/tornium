@@ -326,6 +326,11 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             honeybadger.notify(e)
             continue
 
+        logger.debug(
+            f"Faction refresh running on faction {faction.name} [{faction.tid}] with {len(faction_data['attacks'])} "
+            f"attacks"
+        )
+
         for attack in faction_data["attacks"].values():
             # logger.debug(f"START attack {attack['code']}")
 
@@ -516,3 +521,5 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 continue
 
             # logger.debug(f"SUCCESS attack {attack['code']}")
+
+        logger.debug(f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]")

@@ -307,6 +307,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 honeybadger.notify(e)
                 continue
 
+        if utils.now() - last_timestamp >= 259200:
+            last_timestamp = utils.now() - 259200
+
         try:
             faction_data = tornget(
                 "faction/?selections=basic,attacks",

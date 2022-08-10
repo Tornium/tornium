@@ -98,19 +98,19 @@ class Server:
                         "name": channel["name"] if "name" in channel else "",
                     }
                 elif channel["parent_id"] in channels:
-                    channels[channel["parent_id"]]["channels"].append({
+                    channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
-                    })
+                    }
                 else:
                     channels[channel["parent_id"]] = {
                         "name": None,
-                        "channels": [
-                            {
+                        "channels": {
+                            channel["id"]: {
                                 "id": channel["id"],
                                 "name": channel["name"] if "name" in channel else "",
                             }
-                        ],
+                        }
                     }
 
         return channels

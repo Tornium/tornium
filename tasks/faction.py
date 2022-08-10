@@ -389,6 +389,27 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 )
                 user_id = attack["defender_id"]
 
+                if user is None:
+                    continue
+
+                try:
+                    if user.battlescore_update - utils.now() <= 259200:  # Three days
+                        user_score = user.battlescore
+                    else:
+                        continue
+                except IndexError:
+                    # logger.debug(f"EXCEPTION attack {attack['code']} (IndexError)")
+                    continue
+                except AttributeError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e)
+                    continue
+
+                # TODO: Update
+                if user_score > 100000 or user_score == 0:  # 100k old value
+                    # logger.debug(f"SKIP attack {attack['code']} (invalid user score)")
+                    continue
+
                 opponent: UserModel = utils.first(
                     UserModel.objects(tid=attack["attacker_id"])
                 )
@@ -409,6 +430,27 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 )
                 user_id = attack["attacker_id"]
 
+                if user is None:
+                    continue
+
+                try:
+                    if user.battlescore_update - utils.now() <= 259200:  # Three days
+                        user_score = user.battlescore
+                    else:
+                        continue
+                except IndexError:
+                    # logger.debug(f"EXCEPTION attack {attack['code']} (IndexError)")
+                    continue
+                except AttributeError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e)
+                    continue
+
+                # TODO: Update
+                if user_score > 100000 or user_score == 0:  # 100k old value
+                    # logger.debug(f"SKIP attack {attack['code']} (invalid user score)")
+                    continue
+
                 opponent: UserModel = utils.first(
                     UserModel.objects(tid=attack["defender_id"])
                 )
@@ -422,10 +464,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     )
                     opponent.save()
 
-            if user is None:
-                # logger.debug(f"SKIP attack {attack['code']} (unknown user: {user_id})")
-                continue
-
             # if opponent is None:
             #     try:
             #         update_user.delay(tid=opponent_id, key=random.choice(keys))
@@ -438,24 +476,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             #     except Exception as e:
             #         logger.exception(e)
             #         continue
-
-            try:
-                if user.battlescore_update - utils.now() <= 259200:  # Three days
-                    user_score = user.battlescore
-                else:
-                    continue
-            except IndexError:
-                # logger.debug(f"EXCEPTION attack {attack['code']} (IndexError)")
-                continue
-            except AttributeError as e:
-                logger.exception(e)
-                honeybadger.notify(e)
-                continue
-
-            # TODO: Update
-            if user_score > 100000 or user_score == 0:  # 100k old value
-                # logger.debug(f"SKIP attack {attack['code']} (invalid user score)")
-                continue
 
             try:
                 if attack["defender_faction"] == faction_data["ID"]:

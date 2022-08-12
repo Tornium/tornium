@@ -560,7 +560,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
         if len(faction_data["attacks"].values()) > 0:
             try:
-                faction.last_attacks = faction_data["attacks"].values()[-1][
+                faction.last_attacks = list(faction_data["attacks"].values())[-1][
                     "timestamp_ended"
                 ]
                 faction.save()

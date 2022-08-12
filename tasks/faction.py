@@ -298,20 +298,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             continue
 
         if faction.last_attacks == 0:
-            if StatModel.objects(addedfactiontid=faction.tid).count() == 0:
-                faction.last_attacks = utils.now()
-                faction.save()
-                continue
-            else:
-                try:
-                    faction.last_attacks = utils.last(
-                        StatModel.objects(addedfactiontid=faction.tid)
-                    ).timeadded
-                    faction.save()
-                except AttributeError as e:
-                    logger.exception(e)
-                    honeybadger.notify(e)
-                    continue
+            faction.last_attacks = utils.now()
+            faction.save()
+            continue
 
         try:
             faction_data = tornget(

@@ -53,7 +53,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 ServerModel.objects(sid=int(random.choice(list(stakeout.guilds))))
             )
 
-            if guild is None and len(list(stakeout.guilds)) > 1:
+            if guild is None and len(list(stakeout.guilds)) == 1:
                 return
             elif guild is None and len(list(stakeout.guilds)) > 1:
                 guilds = random.sample(
@@ -87,6 +87,8 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
     except utils.TornError as e:
         logger.exception(e)
         honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+        return
+    except utils.MissingKeyError:
         return
     except Exception as e:
         logger.exception(e)
@@ -376,6 +378,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
     except utils.TornError as e:
         logger.exception(e)
         honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+        return
+    except utils.MissingKeyError:
         return
     except Exception as e:
         logger.exception(e)

@@ -67,7 +67,8 @@ def refresh_guilds():
             honeybadger.notify(e)
             continue
 
-        admins = guild_db.admins
+        # admins = guild_db.admins
+        admins = []
 
         owner: UserModel = utils.first(UserModel.objects(discord_id=guild["owner_id"]))
 
@@ -83,7 +84,7 @@ def refresh_guilds():
                 UserModel.objects(discord_id=member["user"]["id"])
             )
 
-            if user is not None:
+            if user is not None and user.key not in (None, ""):
                 for role in member["roles"]:
                     for guild_role in guild["roles"]:
                         # Checks if the user has the role and the role has the administrator permission

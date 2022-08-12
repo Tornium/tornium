@@ -558,11 +558,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             # logger.debug(f"SUCCESS attack {attack['code']}")
 
-        logger.debug(attack_status)
-        logger.debug(
-            f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]"
-        )
-
         if len(faction["attacks"].values()) > 0:
             try:
                 faction.last_attacks = faction_data["attacks"].values()[-1][
@@ -571,3 +566,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 faction.save()
             except Exception as e:
                 logger.exception(e)
+
+        logger.debug(attack_status)
+        logger.debug(
+            f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]"
+        )

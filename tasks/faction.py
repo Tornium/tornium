@@ -558,7 +558,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             # logger.debug(f"SUCCESS attack {attack['code']}")
 
-        if len(faction["attacks"].values()) > 0:
+        if len(faction_data["attacks"].values()) > 0:
             try:
                 faction.last_attacks = faction_data["attacks"].values()[-1][
                     "timestamp_ended"

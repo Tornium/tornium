@@ -295,25 +295,25 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             # )
             continue
 
-        if StatModel.objects(addedfactiontid=faction.tid).count() == 0:
-            last_timestamp = 0
-        else:
-            try:
-                last_timestamp = utils.last(
-                    StatModel.objects(addedfactiontid=faction.tid)
-                ).timeadded
-            except AttributeError as e:
-                logger.exception(e)
-                honeybadger.notify(e)
+        if faction.last_attacks == 0:
+            if StatModel.objects(addedfactiontid=faction.tid).count() == 0:
+                faction.last_attacks = utils.now()
+                faction.save()
                 continue
-
-        if utils.now() - last_timestamp >= 259200:
-            last_timestamp = utils.now() - 259200
+            else:
+                try:
+                    faction.last_attacks = utils.last(
+                        StatModel.objects(addedfactiontid=faction.tid)
+                    ).timeadded
+                except AttributeError as e:
+                    logger.exception(e)
+                    honeybadger.notify(e)
+                    continue
 
         try:
             faction_data = tornget(
                 "faction/?selections=basic,attacks",
-                fromts=last_timestamp + 1,  # Timestamp is inclusive
+                fromts=faction.last_attacks + 1,  # Timestamp is inclusive
                 key=random.choice(faction.aa_keys),
                 session=requests_session,
             )
@@ -551,7 +551,16 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 honeybadger.notify(e)
                 continue
 
+            attack_status["success"] += 1
+
             # logger.debug(f"SUCCESS attack {attack['code']}")
 
         logger.debug(attack_status)
         logger.debug(f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]")
+
+        if len(faction["attacks"].values()) > 0:
+            try:
+                faction.last_attacks = faction_data["attacks"].values()[-1]["timestamp_ended"]
+                faction.save()
+            except:
+                pass

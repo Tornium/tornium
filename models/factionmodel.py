@@ -23,6 +23,7 @@ class FactionModel(DynamicDocument):
     aa_keys = ListField(default=[])
 
     last_members = IntField(default=0)  # Time of last members update
+    last_attacks = IntField(default=0)
 
     guild = IntField(default=0)  # Guild ID of the faction's guild
     config = DictField(

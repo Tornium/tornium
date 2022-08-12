@@ -47,6 +47,7 @@ class Faction:
                 leader=faction_data["leader"],
                 coleader=faction_data["co-leader"],
                 aa_keys=[],
+                last_attacks=0,
                 last_members=now,
                 guild=0,
                 config={"vault": 0, "stats": 1},
@@ -96,6 +97,7 @@ class Faction:
         self.aa_keys = faction.aa_keys
 
         self.last_members = faction.last_members
+        self.last_attacks = faction.last_attacks
 
         self.guild = faction.guild
         self.config = faction.config

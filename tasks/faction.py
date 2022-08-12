@@ -307,6 +307,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     faction.last_attacks = utils.last(
                         StatModel.objects(addedfactiontid=faction.tid)
                     ).timeadded
+                    faction.save()
                 except AttributeError as e:
                     logger.exception(e)
                     honeybadger.notify(e)
@@ -568,5 +569,5 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     "timestamp_ended"
                 ]
                 faction.save()
-            except:
-                pass
+            except Exception as e:
+                logger.exception(e)

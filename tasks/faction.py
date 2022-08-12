@@ -282,7 +282,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         faction_shares[factiontid] = list(set(shares))
 
     faction: FactionModel
-    for faction in FactionModel.objects(Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)):
+    for faction in FactionModel.objects(
+        Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
+    ):
         logger.debug(
             f"Starting fetch attacks task on faction {faction.name} [{faction.tid}]"
         )
@@ -342,8 +344,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 "stealth": 0,
                 "battlescore": 0,
                 "battleupdate": 0,
-                "misc": 0
-            }
+                "misc": 0,
+            },
         }
 
         for attack in faction_data["attacks"].values():
@@ -556,11 +558,15 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             # logger.debug(f"SUCCESS attack {attack['code']}")
 
         logger.debug(attack_status)
-        logger.debug(f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]")
+        logger.debug(
+            f"Fetch attacks task has completed on faction {faction.name} [{faction.tid}]"
+        )
 
         if len(faction["attacks"].values()) > 0:
             try:
-                faction.last_attacks = faction_data["attacks"].values()[-1]["timestamp_ended"]
+                faction.last_attacks = faction_data["attacks"].values()[-1][
+                    "timestamp_ended"
+                ]
                 faction.save()
             except:
                 pass

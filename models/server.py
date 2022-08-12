@@ -110,7 +110,7 @@ class Server:
                                 "id": channel["id"],
                                 "name": channel["name"] if "name" in channel else "",
                             }
-                        }
+                        },
                     }
 
         return channels

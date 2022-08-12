@@ -281,14 +281,10 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
     for factiontid, shares in faction_shares.items():
         faction_shares[factiontid] = list(set(shares))
 
-    factions = FactionModel.objects(
-        Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
-    )
-
-    logger.debug(f"{len(factions)} located for fetch_attacks")
-
     faction: FactionModel
-    for faction in factions:
+    for faction in FactionModel.objects(
+        Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
+    ):
         logger.debug(
             f"Starting fetch attacks task on faction {faction.name} [{faction.tid}]"
         )

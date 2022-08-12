@@ -281,10 +281,14 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
     for factiontid, shares in faction_shares.items():
         faction_shares[factiontid] = list(set(shares))
 
-    faction: FactionModel
-    for faction in FactionModel.objects(
+    factions = FactionModel.objects(
         Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
-    ):
+    )
+
+    logger.debug(f"{len(factions)} located for fetch_attacks")
+
+    faction: FactionModel
+    for faction in factions:
         logger.debug(
             f"Starting fetch attacks task on faction {faction.name} [{faction.tid}]"
         )
@@ -376,7 +380,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 # logger.debug(f"SKIP attack {attack['code']} (FF)")
                 attack_status["skipped"]["ff"] += 1
                 continue
-            elif attack["timestamp_ended"] <= last_timestamp:
+            elif attack["timestamp_ended"] <= faction.last_attacks:
                 # logger.debug(f"SKIP attack {attack['code']} (timestamp_ended)")
                 attack_status["skipped"]["timestamp"] += 1
                 continue

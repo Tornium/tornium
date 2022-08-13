@@ -250,8 +250,8 @@ def refresh_factions():
         faction.save()
 
 
-# @celery_app.task(time_limit=600)  # Prevents task for running for more than ten minutes
-@celery_app.task
+@celery_app.task(time_limit=600)  # Prevents task for running for more than ten minutes
+# @celery_app.task
 def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
     logger.debug("Fetch attacks task initiated")
     redis = redisdb.get_redis()
@@ -339,7 +339,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
         }
 
         for attack in faction_data["attacks"].values():
-            # logger.debug(f"START attack {attack['code']}")
+            logger.debug(f"START attack {attack['code']}")
 
             if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
                 # logger.debug(
@@ -373,6 +373,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             # User: faction member
             # Opponent: non-faction member regardless of attack or defend
+
+            logger.debug(f"GET user and opponent of attack {attack['code']}")
 
             if (
                 attack["defender_faction"] == faction_data["ID"]
@@ -489,6 +491,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             #         logger.exception(e)
             #         continue
 
+            logger.debug(f"GET stat scores of attack {attack['code']}")
+
             try:
                 if attack["defender_faction"] == faction_data["ID"]:
                     opponent_score = user_score / (
@@ -524,6 +528,8 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
                 allowed_factions = list(set(allowed_factions))
 
+            logger.debug(f"SET stat entry of attack {attack['code']}")
+
             try:
                 stat_entry = StatModel(
                     statid=utils.last(StatModel.objects()).statid + 1
@@ -545,7 +551,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             attack_status["success"] += 1
 
-            # logger.debug(f"SUCCESS attack {attack['code']}")
+            logger.debug(f"SUCCESS attack {attack['code']}")
 
         if len(faction_data["attacks"].values()) > 0:
             try:

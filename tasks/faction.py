@@ -70,7 +70,7 @@ def refresh_factions():
         if faction_data is None:
             continue
 
-        faction = utils.first(FactionModel.objects(tid=faction.tid))
+        faction = FactionModel.objects(tid=faction.tid).first()
         faction.name = faction_data["name"]
         faction.respect = faction_data["respect"]
         faction.capacity = faction_data["capacity"]
@@ -80,8 +80,8 @@ def refresh_factions():
 
         keys = []
 
-        leader = utils.first(UserModel.objects(tid=faction.leader))
-        coleader = utils.first(UserModel.objects(tid=faction.coleader))
+        leader = UserModel.objects(tid=faction.leader).first()
+        coleader = UserModel.objects(tid=faction.coleader).first()
 
         if leader is not None and leader.key != "":
             keys.append(leader.key)
@@ -104,7 +104,7 @@ def refresh_factions():
                 if "spy" not in user_data:
                     continue
 
-                user: UserModel = utils.first(UserModel.objects(tid=int(user_id)))
+                user: UserModel = UserModel.objects(tid=int(user_id)).first()
 
                 if user is None:
                     continue
@@ -127,7 +127,7 @@ def refresh_factions():
         users = []
 
         for member_id, member in faction_data["members"].items():
-            user = utils.first(UserModel.objects(tid=int(member_id)))
+            user = UserModel.objects(tid=int(member_id)).first()
             users.append(int(member_id))
 
             if user is None:
@@ -161,8 +161,10 @@ def refresh_factions():
             user.last_action = member["last_action"]["timestamp"]
             user.save()
 
-            recruit: RecruitModel = utils.last(
+            recruit: RecruitModel = (
                 RecruitModel.objects(Q(tid=user.tid) & Q(factionid=faction.tid))
+                .order_by("-id")
+                .first()
             )
 
             if recruit is not None:
@@ -194,7 +196,7 @@ def refresh_factions():
                 continue
 
             if len(faction.chainod) > 0:
-                guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+                guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
                 for tid, user_od in faction_od["contributors"]["drugoverdoses"].items():
                     if guild is None:
@@ -204,7 +206,7 @@ def refresh_factions():
                         if user_od["contributed"] != faction.chainod.get(tid).get(
                             "contributed"
                         ):
-                            overdosed_user = utils.first(UserModel.objects(tid=tid))
+                            overdosed_user = UserModel.objects(tid=tid).first()
                             payload = {
                                 "embeds": [
                                     {
@@ -390,9 +392,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     attack_status["skipped"]["misc"] += 1
                     continue
 
-                user: UserModel = utils.first(
-                    UserModel.objects(tid=attack["defender_id"])
-                )
+                user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
                 user_id = attack["defender_id"]
 
                 if user is None:
@@ -420,9 +420,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     attack_status["skipped"]["battlescore"] += 1
                     continue
 
-                opponent: UserModel = utils.first(
-                    UserModel.objects(tid=attack["attacker_id"])
-                )
+                opponent: UserModel = UserModel.objects(
+                    tid=attack["attacker_id"]
+                ).first()
                 opponent_id = attack["attacker_id"]
 
                 if opponent is None:
@@ -435,9 +435,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
             else:  # User is the attacker
                 # logger.debug(f"INFO attack {attack['code']} (attack)")
 
-                user: UserModel = utils.first(
-                    UserModel.objects(tid=attack["attacker_id"])
-                )
+                user: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
                 user_id = attack["attacker_id"]
 
                 if user is None:
@@ -465,9 +463,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     attack_status["skipped"]["battlescore"] += 1
                     continue
 
-                opponent: UserModel = utils.first(
-                    UserModel.objects(tid=attack["defender_id"])
-                )
+                opponent: UserModel = UserModel.objects(
+                    tid=attack["defender_id"]
+                ).first()
                 opponent_id = attack["defender_id"]
 
                 if opponent is None:
@@ -512,9 +510,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 attack_status["skipped"]["misc"] += 1
                 continue
 
-            stat_faction: FactionModel = utils.first(
-                FactionModel.objects(tid=user.factionid)
-            )
+            stat_faction: FactionModel = FactionModel.objects(
+                tid=user.factionid
+            ).first()
 
             if stat_faction is None or user.factionid == 0:
                 globalstat = 1
@@ -532,7 +530,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             try:
                 stat_entry = StatModel(
-                    statid=utils.last(StatModel.objects()).statid + 1
+                    statid=StatModel.objects().order_by("-id").first()
                     if StatModel.objects().count() != 0
                     else 0,
                     tid=opponent_id,

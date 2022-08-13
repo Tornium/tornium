@@ -227,15 +227,6 @@ def first(array):
     return None if len(array) == 0 else array[0]
 
 
-def last(array):
-    if len(array) == 0:
-        return None
-    elif len(array) == 1:
-        return array[0]
-    else:
-        return array[len(array) - 1]
-
-
 def commas(number):
     return "{:,}".format(number)
 

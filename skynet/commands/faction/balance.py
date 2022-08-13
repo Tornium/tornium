@@ -22,13 +22,13 @@ def balance(interaction):
     server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -79,7 +79,7 @@ def balance(interaction):
             }
 
         admin_id = random.choice(server.admins)
-        admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
+        admin: UserModel = UserModel.objects(tid=admin_id).first()
 
         if admin is None:
             return {

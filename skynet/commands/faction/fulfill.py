@@ -35,13 +35,13 @@ def fulfill_command(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -90,7 +90,7 @@ def fulfill_command(interaction):
             }
 
         admin_id = random.choice(server.admins)
-        admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
+        admin: UserModel = UserModel.objects(tid=admin_id).first()
 
         if admin is None:
             return {
@@ -336,9 +336,9 @@ def fulfill_command(interaction):
             },
         }
 
-    withdrawal: WithdrawalModel = utils.first(
-        WithdrawalModel.objects(wid=int(withdrawal_id))
-    )
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(
+        wid=int(withdrawal_id)
+    ).first()
 
     if withdrawal is None:
         return {
@@ -494,13 +494,13 @@ def fulfill_button(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if user is None:
         if server is None:
@@ -533,7 +533,7 @@ def fulfill_button(interaction):
             }
 
         admin_id = random.choice(server.admins)
-        admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
+        admin: UserModel = UserModel.objects(tid=admin_id).first()
 
         if admin is None:
             return {
@@ -761,9 +761,9 @@ def fulfill_button(interaction):
             },
         }
 
-    withdrawal: WithdrawalModel = utils.first(
-        WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"])
-    )
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(
+        withdrawal_message=interaction["message"]["id"]
+    ).first()
 
     if withdrawal is None:
         return {

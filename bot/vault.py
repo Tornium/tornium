@@ -34,7 +34,7 @@ class Vault(commands.Cog):
         await ctx.message.delete()
 
         server = Server(ctx.message.guild.id)
-        user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
+        user = UserModel.objects(discord_id=ctx.message.author.id).first()
 
         if user is None:
             if len(server.admins) == 0:
@@ -44,7 +44,7 @@ class Vault(commands.Cog):
                 await ctx.send(embed=embed)
                 return None
 
-            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            admin = UserModel.objects(tid=random.choice(server.admins)).first()
 
             if admin is None:
                 embed = discord.Embed()
@@ -279,7 +279,7 @@ class Vault(commands.Cog):
         await ctx.message.delete()
 
         server = Server(ctx.message.guild.id)
-        user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
+        user = UserModel.objects(discord_id=ctx.message.author.id).first()
 
         if user is None:
             if len(server.admins) == 0:
@@ -289,7 +289,7 @@ class Vault(commands.Cog):
                 await ctx.send(embed=embed)
                 return None
 
-            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            admin = UserModel.objects(tid=random.choice(server.admins)).first()
 
             if admin is None:
                 embed = discord.Embed()
@@ -408,7 +408,7 @@ class Vault(commands.Cog):
         banking_channel = discord.utils.get(
             ctx.guild.channels, id=vault_config["banking"]
         )
-        withdrawal = utils.first(WithdrawalModel.objects(wid=int(request)))
+        withdrawal = WithdrawalModel.objects(wid=int(request)).first()
 
         if withdrawal is None:
             embed = discord.Embed()
@@ -454,7 +454,7 @@ class Vault(commands.Cog):
         await ctx.message.delete()
 
         server = Server(ctx.message.guild.id)
-        user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
+        user = UserModel.objects(discord_id=ctx.message.author.id).first()
 
         if user is None:
             if len(server.admins) == 0:
@@ -464,7 +464,7 @@ class Vault(commands.Cog):
                 await ctx.send(embed=embed)
                 return None
 
-            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            admin = UserModel.objects(tid=random.choice(server.admins)).first()
 
             if admin is None:
                 embed = discord.Embed()
@@ -607,7 +607,7 @@ class Vault(commands.Cog):
         await ctx.message.delete()
 
         server = Server(ctx.message.guild.id)
-        user = utils.first(UserModel.objects(discord_id=ctx.message.author.id))
+        user = UserModel.objects(discord_id=ctx.message.author.id).first()
 
         if user is None:
             if len(server.admins) == 0:
@@ -617,7 +617,7 @@ class Vault(commands.Cog):
                 await ctx.send(embed=embed)
                 return None
 
-            admin = utils.first(UserModel.objects(tid=random.choice(server.admins)))
+            admin = UserModel.objects(tid=random.choice(server.admins)).first()
 
             if admin is None:
                 embed = discord.Embed()

@@ -18,7 +18,7 @@ class Server:
         :param sid: Discord server ID
         """
 
-        server = utils.first(ServerModel.objects(sid=sid))
+        server = ServerModel.objects(sid=sid).first()
         if server is None:
             try:
                 guild = tasks.discordget(f"guilds/{sid}")

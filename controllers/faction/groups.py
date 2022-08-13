@@ -21,10 +21,10 @@ def groups(*args, **kwargs):
     return render_template(
         "faction/groups.html",
         groups=[
-            utils.first(FactionGroupModel.objects(tid=group))
-            for group in utils.first(
-                FactionModel.objects(tid=current_user.factiontid)
-            ).groups
+            FactionGroupModel.objects(tid=group).first()
+            for group in FactionModel.objects(tid=current_user.factiontid)
+            .first()
+            .groups
         ],
     )
 
@@ -33,9 +33,7 @@ def groups(*args, **kwargs):
 @fac_required
 @aa_required
 def create_group(*args, **kwargs):
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=current_user.factiontid)
-    )
+    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
         return render_template(
@@ -45,8 +43,8 @@ def create_group(*args, **kwargs):
         )
 
     group = FactionGroupModel(
-        tid=utils.last(FactionGroupModel.objects()).tid + 1,
-        name=str(utils.last(FactionGroupModel.objects()).tid + 1),
+        tid=FactionGroupModel.objects().order_by("-id").first().tid + 1,
+        name=str(FactionGroupModel.objects().order_by("-id").first().tid + 1),
         creator=current_user.factiontid,
         members=[faction.tid],
         invite=uuid.uuid4().hex,
@@ -63,10 +61,8 @@ def create_group(*args, **kwargs):
 @fac_required
 @aa_required
 def group_invite(invite: str, *args, **kwargs):
-    dbgroup: FactionGroupModel = utils.first(FactionGroupModel.objects(invite=invite))
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=current_user.factiontid)
-    )
+    dbgroup: FactionGroupModel = FactionGroupModel.objects(invite=invite).first()
+    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
         return render_template(
@@ -100,10 +96,8 @@ def group_invite(invite: str, *args, **kwargs):
 @fac_required
 @aa_required
 def group(tid: int, *args, **kwargs):
-    dbgroup: FactionGroupModel = utils.first(FactionGroupModel.objects(tid=tid))
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=current_user.factiontid)
-    )
+    dbgroup: FactionGroupModel = FactionGroupModel.objects(tid=tid).first()
+    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
         return render_template(
@@ -122,8 +116,7 @@ def group(tid: int, *args, **kwargs):
         "faction/group.html",
         group=dbgroup,
         members=[
-            utils.first(FactionModel.objects(tid=int(member)))
-            for member in dbgroup.members
+            FactionModel.objects(tid=int(member)).first() for member in dbgroup.members
         ],
         key=current_user.key,
         faction=faction,

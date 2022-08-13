@@ -43,7 +43,7 @@ def guild_verification(*args, **kwargs):
         )
 
     guildid = int(guildid)
-    guild: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
         return (
@@ -177,7 +177,7 @@ def guild_verification_log(*args, **kwargs):
 
     guildid = int(guildid)
     channelid = int(channelid)
-    guild: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
         return (
@@ -255,7 +255,7 @@ def guild_verification_welcome(*args, **kwargs):
 
     guildid = int(guildid)
     channelid = int(channelid)
-    guild: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
         return (
@@ -333,7 +333,7 @@ def faction_verification(*args, **kwargs):
 
     guildid = int(guildid)
     factiontid = int(factiontid)
-    guild: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
         return (

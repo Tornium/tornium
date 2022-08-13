@@ -69,8 +69,8 @@ def user_data(tid: int):
         abort(400)
 
     User(tid).refresh(key=current_user.key, force=True)
-    user: UserModel = utils.first(UserModel.objects(tid=tid))
+    user: UserModel = UserModel.objects(tid=tid).first()
     Faction(user.factionid).refresh(key=current_user.key)
-    faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
+    faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
 
     return render_template("torn/usermodal.html", user=user, faction=faction)

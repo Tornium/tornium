@@ -66,8 +66,7 @@ def requires_scopes(func=None, scopes=None):
 
         if (
             kwargs["keytype"] == "Tornium"
-            and not set(utils.first(KeyModel.objects(key=kwargs["key"])).scopes)
-            & scopes
+            and not set(KeyModel.objects(key=kwargs["key"]).first().scopes) & scopes
         ):
             return (
                 jsonify(
@@ -137,7 +136,7 @@ def torn_key_required(func):
                 401,
             )
 
-        user = utils.first(UserModel.objects(key=authorization))
+        user = UserModel.objects(key=authorization).first()
 
         if user is None:
             return (
@@ -207,7 +206,7 @@ def tornium_key_required(func):
                 401,
             )
 
-        key = utils.first(KeyModel.objects(key=authorization))
+        key = KeyModel.objects(key=authorization).first()
 
         if key is None:
             return (
@@ -221,7 +220,7 @@ def tornium_key_required(func):
                 401,
             )
 
-        kwargs["user"] = utils.first(UserModel.objects(tid=key.ownertid))
+        kwargs["user"] = UserModel.objects(tid=key.ownertid).first()
         kwargs["keytype"] = "Tornium"
         kwargs["key"] = authorization
         kwargs["start_time"] = start_time
@@ -277,8 +276,8 @@ def key_required(func):
                 401,
             )
 
-        key = utils.first(KeyModel.objects(key=authorization))
-        user = utils.first(UserModel.objects(key=authorization))
+        key = KeyModel.objects(key=authorization).first()
+        user = UserModel.objects(key=authorization).first()
 
         if user is not None:
             kwargs["user"] = user
@@ -286,7 +285,7 @@ def key_required(func):
             kwargs["key"] = authorization
             kwargs["start_time"] = start_time
         elif key is not None:
-            kwargs["user"] = utils.first(UserModel.objects(tid=key.ownertid))
+            kwargs["user"] = UserModel.objects(tid=key.ownertid).first()
             kwargs["keytype"] = "Tornium"
             kwargs["key"] = authorization
             kwargs["start_time"] = start_time

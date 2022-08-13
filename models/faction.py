@@ -25,7 +25,7 @@ class Faction:
         :param key: Torn API Key to be utilized (uses current user's key if not passed)
         """
 
-        faction = utils.first(FactionModel.objects(tid=tid))
+        faction = FactionModel.objects(tid=tid).first()
         if faction is None:
             try:
                 faction_data = tasks.tornget(
@@ -71,7 +71,7 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
+                user: UserModel = UserModel.objects(tid=int(member_id)).first()
 
                 if user is None:
                     UserModel(
@@ -127,7 +127,7 @@ class Faction:
 
         keys = list(set(keys))
 
-        faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
+        faction: FactionModel = FactionModel.objects(tid=self.tid).first()
         faction.aa_keys = keys
         faction.save()
         self.aa_keys = keys
@@ -168,7 +168,7 @@ class Faction:
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
+            faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]
             faction.respect = faction_data["respect"]
             faction.capacity = faction_data["capacity"]
@@ -178,7 +178,7 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
+                user: UserModel = UserModel.objects(tid=int(member_id)).first()
 
                 if user is None:
                     UserModel(

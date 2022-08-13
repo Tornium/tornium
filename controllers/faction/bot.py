@@ -39,12 +39,12 @@ def bot(*args, **kwargs):
             config = faction.config
 
     if request.method == "POST":
-        faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
         if request.form.get("guildid") is not None:
-            guild: ServerModel = utils.first(
-                ServerModel.objects(sid=request.form.get("guildid"))
-            )
+            guild: ServerModel = ServerModel.objects(
+                sid=request.form.get("guildid")
+            ).first()
             if guild is None:
                 return render_template(
                     "errors/error.html",
@@ -56,7 +56,7 @@ def bot(*args, **kwargs):
             faction_model.guild = request.form.get("guildid")
             faction_model.save()
         elif request.form.get("withdrawal") is not None:
-            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+            guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
             if guild is None:
                 return render_template(
@@ -84,7 +84,7 @@ def bot(*args, **kwargs):
             faction_model.vaultconfig["withdrawal"] = int(channel["id"])
             faction_model.save()
         elif request.form.get("banking") is not None:
-            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+            guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
             if guild is None:
                 return render_template(
@@ -112,7 +112,7 @@ def bot(*args, **kwargs):
             faction_model.vaultconfig["banking"] = int(channel["id"])
             faction_model.save()
         elif request.form.get("banker") is not None:
-            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+            guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
             if guild is None:
                 return render_template(

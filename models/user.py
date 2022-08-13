@@ -21,7 +21,7 @@ class User(UserMixin):
         :param tid: Torn user ID
         """
 
-        user = utils.first(UserModel.objects(_id=tid))
+        user = UserModel.objects(_id=tid).first()
         if user is None:
             user = UserModel(
                 tid=tid,
@@ -102,7 +102,7 @@ class User(UserMixin):
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            user = utils.first(UserModel.objects(tid=self.tid))
+            user = UserModel.objects(tid=self.tid).first()
             user.factionid = user_data["faction"]["faction_id"]
             user.name = user_data["name"]
             user.last_refresh = now
@@ -139,7 +139,7 @@ class User(UserMixin):
         return self
 
     def faction_refresh(self):
-        user = utils.first(UserModel.objects(tid=self.tid))
+        user = UserModel.objects(tid=self.tid).first()
 
         try:
             tasks.tornget(f"faction/?selections=positions", self.key)
@@ -160,7 +160,7 @@ class User(UserMixin):
         return self.aa
 
     def set_key(self, key: str):
-        user = utils.first(UserModel.objects(tid=self.tid))
+        user = UserModel.objects(tid=self.tid).first()
         user.key = key
         self.key = key
         user.save()

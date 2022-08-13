@@ -105,7 +105,7 @@ def forward_assist(*args, **kwargs):
                         },
                         {
                             "name": "Requesting Faction",
-                            "value": f"{utils.first(FactionModel.objects(tid=user.factiontid)).name} [{user.factiontid}]",
+                            "value": f"{FactionModel.objects(tid=user.factiontid).first().name} [{user.factiontid}]",
                             "inline": True,
                         },
                     ],

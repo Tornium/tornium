@@ -70,9 +70,7 @@ def bankingdata():
 
 @login_required
 def banking():
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=current_user.factiontid)
-    )
+    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
         return render_template(
@@ -130,7 +128,7 @@ def userbankingdata():
 
 @login_required
 def fulfill(wid: int):
-    withdrawal: WithdrawalModel = utils.first(WithdrawalModel.objects(wid=wid))
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=wid).first()
     if withdrawal.wtype in [0, None]:
         send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
     else:
@@ -157,9 +155,7 @@ def fulfill(wid: int):
             400,
         )
 
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=current_user.factiontid)
-    )
+    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
         return (
@@ -185,7 +181,7 @@ def fulfill(wid: int):
             400,
         )
 
-    guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+    guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
     if guild is None:
         return render_template(

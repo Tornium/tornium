@@ -24,13 +24,13 @@ def assist(interaction):
     start_time = time.time()
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -160,9 +160,7 @@ def assist(interaction):
             },
         }
 
-    target_faction: FactionModel = utils.first(
-        FactionModel.objects(tid=target.factiontid)
-    )
+    target_faction: FactionModel = FactionModel.objects(tid=target.factiontid).first()
 
     servers_forwarded = []
 
@@ -205,7 +203,7 @@ def assist(interaction):
                         },
                         {
                             "name": "Requesting Faction",
-                            "value": f"{utils.first(FactionModel.objects(tid=user.factionid)).name} [{user.factionid}]",
+                            "value": f"{FactionModel.objects(tid=user.factionid).first().name} [{user.factionid}]",
                             "inline": True,
                         },
                     ],

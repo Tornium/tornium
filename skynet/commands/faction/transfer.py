@@ -34,13 +34,13 @@ def transfer(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -105,9 +105,9 @@ def transfer(interaction):
             },
         }
     elif recipient_data[1]["value"].isdigit():
-        recipient: UserModel = utils.first(
-            UserModel.objects(discord_id=int(recipient_data[1]["value"]))
-        )
+        recipient: UserModel = UserModel.objects(
+            discord_id=int(recipient_data[1]["value"])
+        ).first()
     else:
         return {
             "type": 4,
@@ -154,7 +154,7 @@ def transfer(interaction):
             }
 
         admin_id = random.choice(server.admins)
-        admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
+        admin: UserModel = UserModel.objects(tid=admin_id).first()
 
         if admin is None:
             return {
@@ -358,7 +358,7 @@ def transfer(interaction):
             }
 
         admin_id = random.choice(server.admins)
-        admin: UserModel = utils.first(UserModel.objects(tid=admin_id))
+        admin: UserModel = UserModel.objects(tid=admin_id).first()
 
         if admin is None:
             return {

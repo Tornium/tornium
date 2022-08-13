@@ -188,7 +188,7 @@ def item_modal(*args, **kwargs):
                 print(f"Bad user: {user}")
                 continue
 
-            user_db: UserModel = utils.first(UserModel.objects(tid=int(user)))
+            user_db: UserModel = UserModel.objects(tid=int(user)).first()
 
             if user_db is None:
                 if f" [{user}]" in loaned_to:
@@ -205,7 +205,7 @@ def item_modal(*args, **kwargs):
     elif item["loaned_to"] is None:  # No one
         item["loaned_to"] = {}
     else:  # Only one person
-        user: UserModel = utils.first(UserModel.objects(tid=item["loaned_to"]))
+        user: UserModel = UserModel.objects(tid=item["loaned_to"]).first()
 
         if user is not None:
             item["loaned_to"] = {f"{user.name} [{user.tid}]": 1}

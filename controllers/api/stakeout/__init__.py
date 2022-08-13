@@ -67,7 +67,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     guildid = int(guildid)
     tid = int(tid)
-    guild: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if stype not in ["faction", "user"]:
         return (
@@ -88,7 +88,7 @@ def create_stakeout(stype, *args, **kwargs):
         )
     elif (
         str(guildid)
-        not in User(utils.first(KeyModel.objects(key=kwargs["key"])).ownertid).servers
+        not in User(KeyModel.objects(key=kwargs["key"]).first().ownertid).servers
     ):
         return (
             jsonify(
@@ -125,8 +125,8 @@ def create_stakeout(stype, *args, **kwargs):
         )
     elif (
         stype == "user"
-        and utils.first(UserStakeoutModel.objects(tid=tid)) is not None
-        and str(guildid) in utils.first(UserStakeoutModel.objects(tid=tid)).guilds
+        and UserStakeoutModel.objects(tid=tid).first() is not None
+        and str(guildid) in UserStakeoutModel.objects(tid=tid).first().guilds
     ):
         return (
             jsonify(
@@ -145,8 +145,8 @@ def create_stakeout(stype, *args, **kwargs):
         )
     elif (
         stype == "faction"
-        and utils.first(FactionStakeoutModel.objects(tid=tid)) is not None
-        and str(guildid) in utils.first(FactionStakeoutModel.objects(tid=tid)).guilds
+        and FactionStakeoutModel.objects(tid=tid).first() is not None
+        and str(guildid) in FactionStakeoutModel.objects(tid=tid).first().guilds
     ):
         return (
             jsonify(
@@ -247,7 +247,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
     if stype == "user":
-        db_stakeout = utils.first(UserStakeoutModel.objects(tid=tid))
+        db_stakeout = UserStakeoutModel.objects(tid=tid).first()
         message_payload = {
             "embeds": [
                 {
@@ -261,7 +261,7 @@ def create_stakeout(stype, *args, **kwargs):
             ]
         }
     elif stype == "faction":
-        db_stakeout = utils.first(FactionStakeoutModel.objects(tid=tid))
+        db_stakeout = FactionStakeoutModel.objects(tid=tid).first()
         message_payload = {
             "embeds": [
                 {

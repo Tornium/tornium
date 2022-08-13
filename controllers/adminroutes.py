@@ -98,9 +98,9 @@ def faction_database():
 @login_required
 @admin_required
 def faction(tid: int):
-    faction = utils.first(FactionModel.objects(tid=tid))
-
-    return render_template("admin/faction.html", faction=faction)
+    return render_template(
+        "admin/faction.html", faction=FactionModel.objects(tid=tid).first()
+    )
 
 
 @mod.route("/admin/database/factions")
@@ -141,9 +141,7 @@ def user_database():
 @login_required
 @admin_required
 def user(tid: int):
-    user = utils.first(UserModel.objects(tid=tid))
-
-    return render_template("admin/user.html", user=user)
+    return render_template("admin/user.html", user=UserModel.objects(tid=tid).first())
 
 
 @mod.route("/admin/database/users")
@@ -188,9 +186,9 @@ def server_database():
 @login_required
 @admin_required
 def server(did: int):
-    server = utils.first(ServerModel.objects(sid=did))
-
-    return render_template("admin/server.html", server=server)
+    return render_template(
+        "admin/server.html", server=ServerModel.objects(sid=did).first()
+    )
 
 
 @mod.route("/admin/database/servers")

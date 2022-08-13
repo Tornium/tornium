@@ -14,10 +14,10 @@ def who(interaction):
         member = utils.find_list(interaction["data"]["options"], "name", "member")
     else:
         if "member" in interaction:
-            user: UserModel = utils.first(
-                UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-            )
+            user: UserModel = UserModel.objects(
+                discord_id=interaction["member"]["user"]["id"]
+            ).first()
         else:
-            user: UserModel = utils.first(
-                UserModel.objects(discord_id=interaction["user"]["id"])
-            )
+            user: UserModel = UserModel.objects(
+                discord_id=interaction["user"]["id"]
+            ).first()

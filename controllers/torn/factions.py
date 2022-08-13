@@ -70,14 +70,14 @@ def faction_data(tid: int):
         abort(400)
 
     Faction(tid).refresh(key=current_user.key, force=True)
-    faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+    faction: FactionModel = FactionModel.objects(tid=tid).first()
 
     leader = User(faction.leader).refresh(key=current_user.key)
     if faction.coleader != 0:
         coleader = User(faction.coleader).refresh(key=current_user.key)
 
-    leader: UserModel = utils.first(UserModel.objects(tid=faction.leader))
-    coleader: UserModel = utils.first(UserModel.objects(tid=faction.coleader))
+    leader: UserModel = UserModel.objects(tid=faction.leader).first()
+    coleader: UserModel = UserModel.objects(tid=faction.coleader).first()
 
     return render_template(
         "torn/factionmodal.html",
@@ -92,7 +92,7 @@ def faction_members_data(tid: int):
     if tid == 0:
         abort(400)
 
-    faction: FactionModel = utils.first(FactionModel.objects(tid=tid))
+    faction: FactionModel = FactionModel.objects(tid=tid).first()
 
     members = []
 

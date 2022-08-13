@@ -35,7 +35,7 @@ def guild_dashboard(guildid: str):
 
     if request.method == "POST":
         if request.form.get("factionid") is not None:
-            server_model = utils.first(ServerModel.objects(sid=guildid))
+            server_model = ServerModel.objects(sid=guildid).first()
             server_model.factions.append(int(request.form.get("factionid")))
             server_model.factions = list(set(server_model.factions))
             server_model.save()
@@ -49,7 +49,7 @@ def guild_dashboard(guildid: str):
                 )
 
             server.prefix = request.form.get("prefix")
-            server_model = utils.first(ServerModel.objects(sid=guildid))
+            server_model = ServerModel.objects(sid=guildid).first()
             server_model.prefix = request.form.get("prefix")
             server_model.save()
 
@@ -74,7 +74,7 @@ def update_guild(guildid: str, factiontid: int):
     if guildid not in current_user.servers and not current_user.admin:
         abort(403)
 
-    server_model = utils.first(ServerModel.objects(sid=guildid))
+    server_model = ServerModel.objects(sid=guildid).first()
     server_model.factions.remove(factiontid)
     server_model.save()
 

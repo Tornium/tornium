@@ -35,7 +35,7 @@ def faction_stakeouts():
 
 @celery_app.task
 def user_stakeout(stakeout: int, requests_session=None, key=None):
-    stakeout: UserStakeoutModel = utils.first(UserStakeoutModel.objects(tid=stakeout))
+    stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
 
     if stakeout is None:
         return
@@ -49,9 +49,9 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
             if len(stakeout.guilds) == 0:
                 return
 
-            guild: ServerModel = utils.first(
-                ServerModel.objects(sid=int(random.choice(list(stakeout.guilds))))
-            )
+            guild: ServerModel = ServerModel.objects(
+                sid=int(random.choice(list(stakeout.guilds)))
+            ).first()
 
             if guild is None and len(list(stakeout.guilds)) == 1:
                 return
@@ -62,9 +62,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 guild_discovered = False
 
                 for guild_id in guilds:
-                    guild: ServerModel = utils.first(
-                        ServerModel.objects(sid=int(guild_id))
-                    )
+                    guild: ServerModel = ServerModel.objects(sid=int(guild_id)).first()
 
                     if guild is not None and len(guild.admins) != 0:
                         guild_discovered = True
@@ -76,9 +74,9 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
             if len(guild.admins) == 0:
                 return
 
-            admin: UserModel = utils.first(
-                UserModel.objects(tid=random.choice(guild.admins))
-            )
+            admin: UserModel = UserModel.objects(
+                tid=random.choice(guild.admins)
+            ).first()
             data = tornget(
                 f"user/{stakeout.tid}?selections=",
                 key=admin.key,
@@ -106,7 +104,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
         elif guild_stakeout["channel"] == 0:
             continue
 
-        server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+        server: ServerModel = ServerModel.objects(sid=guildid).first()
 
         if server is None:
             continue
@@ -326,9 +324,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
 
 @celery_app.task
 def faction_stakeout(stakeout: int, requests_session=None, key=None):
-    stakeout: FactionStakeoutModel = utils.first(
-        FactionStakeoutModel.objects(tid=stakeout)
-    )
+    stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
 
     if stakeout is None:
         return
@@ -344,9 +340,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
             if len(stakeout.guilds) == 0:
                 return
 
-            guild: ServerModel = utils.first(
-                ServerModel.objects(sid=int(random.choice(list(stakeout.guilds))))
-            )
+            guild: ServerModel = ServerModel.objects(
+                sid=int(random.choice(list(stakeout.guilds)))
+            ).first()
             if guild is None and len(list(stakeout.guilds)) == 1:
                 return
             elif guild is None and len(list(stakeout.guilds)) > 1:
@@ -355,9 +351,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                 )
                 guild_discorvered = False
                 for guild_id in guilds:
-                    guild: ServerModel = utils.first(
-                        ServerModel.objects(sid=int(guild_id))
-                    )
+                    guild: ServerModel = ServerModel.objects(sid=int(guild_id)).first()
                     if guild is not None and len(guild.admins) != 0:
                         guild_discorvered = True
                         break
@@ -367,9 +361,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
             if len(guild.admins) == 0:
                 return
 
-            admin: UserModel = utils.first(
-                UserModel.objects(tid=random.choice(guild.admins))
-            )
+            admin: UserModel = UserModel.objects(
+                tid=random.choice(guild.admins)
+            ).first()
             data = tornget(
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=admin.key,
@@ -397,7 +391,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
         elif guild_stakeout["channel"] == 0:
             continue
 
-        server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+        server: ServerModel = ServerModel.objects(sid=guildid).first()
 
         if server.config["stakeouts"] == 0:
             continue
@@ -967,12 +961,12 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         break
 
                 if not existing:
-                    defending = utils.first(
-                        FactionModel.objects(tid=war["defending_faction"])
-                    )
-                    assaulting = utils.first(
-                        FactionModel.objects(tid=war["assaulting_faction"])
-                    )
+                    defending = FactionModel.objects(
+                        tid=war["defending_faction"]
+                    ).first()
+                    assaulting = FactionModel.objects(
+                        tid=war["assaulting_faction"]
+                    ).first()
 
                     payload = {
                         "embeds": [
@@ -1030,12 +1024,12 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         break
 
                 if not existing:
-                    defending = utils.first(
-                        FactionModel.objects(tid=war["defending_faction"])
-                    )
-                    assaulting = utils.first(
-                        FactionModel.objects(tid=war["assaulting_faction"])
-                    )
+                    defending = FactionModel.objects(
+                        tid=war["defending_faction"]
+                    ).first()
+                    assaulting = FactionModel.objects(
+                        tid=war["assaulting_faction"]
+                    ).first()
                     payload = {
                         "embeds": [
                             {
@@ -1081,8 +1075,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         honeybadger.notify(e)
                         return
         if "armory" in guild_stakeout["keys"]:
-            server = utils.first(ServerModel.objects(sid=guildid))
-            faction = utils.first(FactionModel.objects(tid=stakeout.tid))
+            server = ServerModel.objects(sid=guildid).first()
+            faction = FactionModel.objects(tid=stakeout.tid).first()
 
             if stakeout.tid in server.factions and faction.guild == int(guildid):
                 try:
@@ -1151,8 +1145,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             honeybadger.notify(e)
                             return
         if "armorydeposit" in guild_stakeout["keys"]:
-            server = utils.first(ServerModel.objects(sid=guildid))
-            faction = utils.first(FactionModel.objects(tid=stakeout.tid))
+            server = ServerModel.objects(sid=guildid).first()
+            faction = FactionModel.objects(tid=stakeout.tid).first()
             if stakeout.tid in server.factions and faction.guild == int(guildid):
                 try:
                     if key is not None:

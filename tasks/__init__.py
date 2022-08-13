@@ -268,14 +268,14 @@ def tornget(
 
     if "error" in request:
         if request["error"]["code"] in (13, 10, 2):
-            user = utils.first(UserModel.objects(key=key))
+            user = UserModel.objects(key=key).first()
 
             if user is not None:
                 user.key = ""
                 user.save()
 
                 for server in user.servers:
-                    server = utils.first(ServerModel.objects(sid=server))
+                    server = ServerModel.objects(sid=server).first()
 
                     if server is not None and user.tid in server.admins:
                         server.admins.remove(user.tid)
@@ -285,7 +285,7 @@ def tornget(
                     server.admins.remove(user.tid)
                     server.save()
         elif request["error"]["code"] == 7:
-            user: UserModel = utils.first(UserModel.objects(key=key))
+            user: UserModel = UserModel.objects(key=key).first()
             user.factionaa = False
             user.save()
 

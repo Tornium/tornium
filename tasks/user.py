@@ -24,7 +24,7 @@ def update_user(tid: int, key: str, refresh_existing=True):
     if key in ("", None):
         return utils.MissingKeyError
 
-    user: UserModel = utils.first(UserModel.objects(tid=tid))
+    user: UserModel = UserModel.objects(tid=tid).first()
 
     if user is not None and not refresh_existing:
         return
@@ -83,9 +83,9 @@ def update_user(tid: int, key: str, refresh_existing=True):
         user.last_action = user_data["last_action"]["timestamp"]
         user.save()
 
-    faction: FactionModel = utils.first(
-        FactionModel.objects(tid=user_data["faction"]["faction_id"])
-    )
+    faction: FactionModel = FactionModel.objects(
+        tid=user_data["faction"]["faction_id"]
+    ).first()
 
     if faction is None:
         faction: FactionModel = FactionModel(
@@ -153,9 +153,7 @@ def refresh_users():
         user.save()
 
         if user.factionid != 0:
-            faction: FactionModel = utils.first(
-                FactionModel.objects(tid=user.factionid)
-            )
+            faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
 
             if faction is None:
                 faction = FactionModel(
@@ -228,8 +226,10 @@ def mail_check():
             elif user.recruiter_code not in mail["title"]:
                 continue
 
-            recruit: RecruitModel = utils.last(
+            recruit: RecruitModel = (
                 RecruitModel.objects(Q(tid=mail["ID"]) & Q(recruiter=user.tid))
+                .order_by("-id")
+                .first()
             )
 
             if recruit is None:
@@ -249,7 +249,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
     requests_session = requests.Session()
 
     try:
-        last_timestamp = utils.last(StatModel.objects()).timeadded
+        last_timestamp = StatModel.objects().order_by("-id").first().timeadded
     except AttributeError:
         last_timestamp = 0
 
@@ -273,7 +273,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
         elif user.factionid == 0:
             continue
 
-        faction: FactionModel = utils.first(FactionModel.objects(tid=user.factionid))
+        faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
 
         if faction is not None and time.time() - faction.last_members > 3600:
             continue
@@ -351,7 +351,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                 allowed_factions = list(set(allowed_factions))
 
             stat_entry = StatModel(
-                statid=utils.last(StatModel.objects()).statid + 1
+                statid=StatModel.objects().order_by("-id").first().statid + 1
                 if StatModel.objects().count() != 0
                 else 0,
                 tid=attack["defender_id"]
@@ -368,7 +368,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
             )
             stat_entry.save()
 
-            opponent = utils.first(UserModel.objects(tid=stat_entry.tid))
+            opponent = UserModel.objects(tid=stat_entry.tid).first()
 
             if opponent is None:
                 try:

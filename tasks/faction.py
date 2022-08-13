@@ -136,20 +136,9 @@ def refresh_factions():
                     name=member["name"],
                     level=member["level"],
                     last_refresh=utils.now(),
-                    admin=False,
-                    key="",
-                    battlescore=0,
-                    battlescore_update=utils.now(),
-                    discord_id=0,
-                    servers=[],
                     factionid=faction.tid,
-                    factionaa=False,
-                    recruiter=False,
-                    chain_hits=0,
                     status=member["last_action"]["status"],
                     last_action=member["last_action"]["timestamp"],
-                    pro=False,
-                    pro_expiration=0,
                 )
                 user.save()
 

@@ -160,25 +160,12 @@ def fulfill_command(interaction):
             name=user_data["name"],
             level=user_data["level"],
             last_refresh=utils.now(),
-            admin=False,
-            key="",
-            keyaccess=False,
-            battlescore=0,
-            battlescore_update=0,
             discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            servers=[],
             factionid=user_data["faction"]["faction_id"],
-            factionaa=False,
-            recruiter=False,
-            recruiter_code="",
-            recruiter_mail_update=0,
-            chain_hits=0,
             status=user_data["last_action"]["status"],
             last_action=user_data["last_action"]["timestamp"],
-            pro=False,
-            pro_expiration=0,
         )
         user.save()
 
@@ -603,25 +590,12 @@ def fulfill_button(interaction):
             name=user_data["name"],
             level=user_data["level"],
             last_refresh=utils.now(),
-            admin=False,
-            key="",
-            keyaccess=False,
-            battlescore=0,
-            battlescore_update=0,
             discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            servers=[],
             factionid=user_data["faction"]["faction_id"],
-            factionaa=False,
-            recruiter=False,
-            recruiter_code="",
-            recruiter_mail_update=0,
-            chain_hits=0,
             status=user_data["last_action"]["status"],
             last_action=user_data["last_action"]["timestamp"],
-            pro=False,
-            pro_expiration=0,
         )
         user.save()
 
@@ -772,7 +746,7 @@ def fulfill_button(interaction):
                 "embeds": [
                     {
                         "title": "Request Does not Exist",
-                        "description": f"Vault Request #{withdrawal.wid} does not currently exist.",
+                        "description": f"The Vault Request does not currently exist.",
                         "color": 0xC83F49,
                         "footer": {
                             "text": f"Message ID: {interaction['message']['id']}"

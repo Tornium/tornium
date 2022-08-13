@@ -42,23 +42,12 @@ def update_user(tid: int, key: str, refresh_existing=True):
             tid=user_data["player_id"],
             name=user_data["name"],
             level=user_data["level"],
-            admin=False,
-            key="",
-            battlescore=0,
-            battlescore_update=utils.now(),
             discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            servers=[],
             factionid=user_data["faction"]["faction_id"],
-            factionaa=False,
-            recruiter=False,
-            last_refresh=utils.now(),
-            chain_hits=0,
             status=user_data["last_action"]["status"],
             last_action=user_data["last_action"]["timestamp"],
-            pro=False,
-            pro_expiration=0,
         )
         user.save()
     else:
@@ -382,23 +371,12 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                         tid=stat_entry.tid,
                         name=user_data["name"],
                         level=user_data["level"],
-                        admin=False,
-                        key="",
-                        battlescore=0,
-                        battlescore_update=utils.now(),
                         discord_id=user_data["discord"]["discordID"]
                         if user_data["discord"]["discordID"] != ""
                         else 0,
-                        servers=[],
                         factionid=user_data["faction"]["faction_id"],
-                        factionaa=False,
-                        recruiter=False,
-                        last_refresh=utils.now(),
-                        chain_hits=0,
                         status=user_data["last_action"]["status"],
                         last_action=user_data["last_action"]["timestamp"],
-                        pro=False,
-                        pro_expiration=0,
                     )
                     user.save()
                 except utils.TornError as e:

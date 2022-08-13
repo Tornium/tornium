@@ -192,25 +192,12 @@ def withdraw(interaction):
             name=user_data["name"],
             level=user_data["level"],
             last_refresh=utils.now(),
-            admin=False,
-            key="",
-            keyaccess=False,
-            battlescore=0,
-            battlescore_update=0,
             discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            servers=[],
             factionid=user_data["faction"]["faction_id"],
-            factionaa=False,
-            recruiter=False,
-            recruiter_code="",
-            recruiter_mail_update=0,
-            chain_hits=0,
             status=user_data["last_action"]["status"],
             last_action=user_data["last_action"]["timestamp"],
-            pro=False,
-            pro_expiration=0,
         )
         user.save()
 

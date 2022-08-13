@@ -24,27 +24,7 @@ class User(UserMixin):
         user = UserModel.objects(_id=tid).first()
         if user is None:
             user = UserModel(
-                tid=tid,
-                name="",
-                level=0,
-                last_refresh=0,
-                admin=False,
-                key=key,
-                keyaccess=True if access == 4 else False,
-                battlescore=0,
-                battlescore_update=0,
-                discord_id=0,
-                servers=[],
-                factionid=0,
-                factionaa=False,
-                recruiter=False,
-                recruiter_code="",
-                recruiter_mail_update=0,
-                chain_hits=0,
-                status="",
-                last_action=0,
-                pro=False,
-                pro_expiration=0,
+                tid=tid
             )
             user.save()
 

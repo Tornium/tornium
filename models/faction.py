@@ -40,7 +40,7 @@ class Faction:
             now = utils.now()
 
             faction = FactionModel(
-                tid=faction["ID"],
+                tid=faction_data["ID"],
                 name=faction_data["name"],
                 respect=faction_data["respect"],
                 capacity=faction_data["capacity"],

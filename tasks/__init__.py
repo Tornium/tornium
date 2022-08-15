@@ -271,6 +271,7 @@ def tornget(
             user = UserModel.objects(key=key).first()
 
             if user is not None:
+                logger.info(f"API key of {user.name} [{user.tid}] has been removed due to API code {request['error']['code']}")
                 user.key = ""
                 user.save()
 

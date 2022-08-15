@@ -21,6 +21,7 @@ from models.statmodel import StatModel
 from models.usermodel import UserModel
 import redisdb
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
+from tasks.user import update_user
 import utils
 from utils.errors import TornError
 
@@ -446,8 +447,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     honeybadger.notify(e)
                     continue
 
-                # TODO: Update
-                if user_score > 100000 or user_score == 0:  # 100k old value
+                if user_score == 0:
                     # logger.debug(f"SKIP attack {attack['code']} (invalid user score)")
                     attack_status["skipped"]["battlescore"] += 1
                     continue
@@ -465,18 +465,18 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     )
                     opponent.save()
 
-            # if opponent is None:
-            #     try:
-            #         update_user.delay(tid=opponent_id, key=random.choice(keys))
-            #     except TornError as e:
-            #         logger.exception(e)
-            #         honeybadger.notify(
-            #             e, context={"code": e.code, "endpoint": e.endpoint}
-            #         )
-            #         continue
-            #     except Exception as e:
-            #         logger.exception(e)
-            #         continue
+            if opponent is None:
+                try:
+                    update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
+                except TornError as e:
+                    logger.exception(e)
+                    honeybadger.notify(
+                        e, context={"code": e.code, "endpoint": e.endpoint}
+                    )
+                    continue
+                except Exception as e:
+                    logger.exception(e)
+                    continue
 
             logger.debug(f"GET stat scores of attack {attack['code']}")
 

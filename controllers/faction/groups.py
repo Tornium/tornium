@@ -43,8 +43,8 @@ def create_group(*args, **kwargs):
         )
 
     group = FactionGroupModel(
-        tid=FactionGroupModel.objects().order_by("-id").first().tid + 1,
-        name=str(FactionGroupModel.objects().order_by("-id").first().tid + 1),
+        tid=FactionGroupModel.objects().order_by("-tid").first().tid + 1,
+        name=str(FactionGroupModel.objects().order_by("-tid").first().tid + 1),
         creator=current_user.factiontid,
         members=[faction.tid],
         invite=uuid.uuid4().hex,

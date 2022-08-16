@@ -519,7 +519,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             try:
                 stat_entry = StatModel(
-                    statid=StatModel.objects().order_by("-id").first().statid + 1
+                    statid=StatModel.objects().order_by("-statid").first().statid + 1
                     if StatModel.objects().count() != 0
                     else 0,
                     tid=opponent_id,

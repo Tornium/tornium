@@ -238,7 +238,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
     requests_session = requests.Session()
 
     try:
-        last_timestamp = StatModel.objects().order_by("-id").first().timeadded
+        last_timestamp = StatModel.objects().order_by("-statid").first().timeadded
     except AttributeError:
         last_timestamp = 0
 
@@ -340,7 +340,7 @@ def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=th
                 allowed_factions = list(set(allowed_factions))
 
             stat_entry = StatModel(
-                statid=StatModel.objects().order_by("-id").first().statid + 1
+                statid=StatModel.objects().order_by("-statid").first().statid + 1
                 if StatModel.objects().count() != 0
                 else 0,
                 tid=attack["defender_id"]

@@ -101,7 +101,7 @@ def attack_start(*args, **kwargs):
 
     if attack is None:
         attack = AStatModel(
-            sid=AStatModel.objects().order_by("-id").first() + 1
+            sid=AStatModel.objects().order_by("-sid").first() + 1
             if AStatModel.objects.count() != 0
             else 0,
             logid=network_attack["DB"]["logID"],

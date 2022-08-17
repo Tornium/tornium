@@ -124,7 +124,7 @@ def fulfill_command(interaction):
 
         try:
             user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=", admin.key
+                f"user/{interaction['member']['user']['id']}?selections=profile,discord", admin.key
             )
         except utils.TornError as e:
             return {
@@ -554,7 +554,7 @@ def fulfill_button(interaction):
 
         try:
             user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=", admin.key
+                f"user/{interaction['member']['user']['id']}?selections=profile,discord", admin.key
             )
         except utils.TornError as e:
             return {

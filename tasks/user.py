@@ -20,22 +20,29 @@ import utils
 
 
 @celery_app.task
-def update_user(tid: int, key: str, refresh_existing=True):
+def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key in ("", None):
-        return utils.MissingKeyError
+        raise utils.MissingKeyError
+    elif (tid == 0 and discordid == 0) or (tid != 0 and discordid != 0):
+        raise Exception("No valid user ID passed")
 
-    user: UserModel = UserModel.objects(tid=tid).first()
+    if tid != 0:
+        user: UserModel = UserModel.objects(tid=tid).first()
+    else:
+        user: UserModel = UserModel.objects(discord_id=discordid).first()
 
     if user is not None and not refresh_existing:
-        return
+        return user, {"refresh": False}
 
     if user is not None and user.key not in (None, ""):
         user_data = tornget(f"user/{tid}/?selections=profile,discord", user.key)
     else:
         user_data = tornget(f"user/{tid}/?selections=profile,discord", key)
 
-    if user_data["player_id"] != tid:
+    if user_data["player_id"] != tid and tid != 0:
         raise Exception("TID does not match returned player_ID")
+    elif user_data["discord"]["discordID"] != discordid and discordid != 0:
+        raise Exception("discordid does not match returned discordID")
 
     if user is None:
         user: UserModel = UserModel(
@@ -82,6 +89,11 @@ def update_user(tid: int, key: str, refresh_existing=True):
             name=user_data["faction"]["faction_name"],
         )
         faction.save()
+    elif faction.name != user_data["faction"]["faction_name"]:
+        faction.name = user_data["faction"]["faction_name"]
+        faction.save()
+
+    return user, user_data
 
 
 @celery_app.task

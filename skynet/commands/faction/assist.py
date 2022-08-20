@@ -56,8 +56,8 @@ def assist(interaction):
             "data": {
                 "embeds": [
                     {
-                        "title": "Illegal Paramters",
-                        "description": "The parameter passed must be either the torn ID or the URL.",
+                        "title": "Illegal Parameters",
+                        "description": "The parameter passed must be either the Torn ID or the URL.",
                         "color": 0xC83F49,
                     }
                 ],

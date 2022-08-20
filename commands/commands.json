@@ -5,11 +5,11 @@
         "faction/banking/balance",
         "faction/banking/fulfill",
         "faction/banking/transfer",
-        "faction/banking/withdraw"
+        "faction/banking/withdraw",
+        "user/who"
     ],
     "disabled": [
         "bot/verify/verify",
-        "bot/verify/verifyall",
-        "user/who"
+        "bot/verify/verifyall"
     ]
 }

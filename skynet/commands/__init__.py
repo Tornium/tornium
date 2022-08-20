@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from skynet.commands import faction
+from skynet.commands import faction, user
 
 
 def ping(interaction):

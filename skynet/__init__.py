@@ -96,6 +96,6 @@ def skynet_interactions():
 
     # User Commands
     elif request.json["data"]["name"] == "who":
-        return {}
+        return jsonify(skynet.commands.user.who.who(request.json))
 
     return {}

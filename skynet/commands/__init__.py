@@ -22,12 +22,3 @@ def ping(interaction):
             "flags": 64,  # Ephemeral
         },
     }
-
-
-def sr(interaction):
-    return {
-        "type": 4,
-        "data": {
-            "content": "https://www.youtube.com/watch?v=LDU_Txk06tM&ab_channel=MonstercatInstinct"
-        },
-    }

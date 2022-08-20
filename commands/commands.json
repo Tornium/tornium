@@ -8,6 +8,8 @@
         "faction/banking/withdraw"
     ],
     "disabled": [
-        "sr"
+        "bot/verify/verify",
+        "bot/verify/verifyall",
+        "user/who"
     ]
 }

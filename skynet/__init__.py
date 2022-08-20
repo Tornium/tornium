@@ -72,8 +72,11 @@ def skynet_interactions():
         if request.json["data"]["custom_id"] == "faction:vault:fulfill":
             return jsonify(skynet.commands.faction.fulfill.fulfill_button(request.json))
 
+    # General Commands
     if request.json["data"]["name"] == "ping":
         return jsonify(skynet.commands.ping(request.json))
+
+    # Faction Commands
     elif request.json["data"]["name"] == "assist":
         return jsonify(skynet.commands.faction.assist.assist(request.json))
     elif request.json["data"]["name"] == "balance":
@@ -84,7 +87,15 @@ def skynet_interactions():
         return jsonify(skynet.commands.faction.fulfill.fulfill_command(request.json))
     elif request.json["data"]["name"] == "transfer":
         return jsonify(skynet.commands.faction.transfer.transfer(request.json))
-    elif request.json["data"]["name"] == "sr":
-        return jsonify(skynet.commands.sr(request.json))
+
+    # Bot Commands
+    elif request.json["data"]["name"] == "verify":
+        return {}
+    elif request.json["data"]["name"] == "verifyall":
+        return {}
+
+    # User Commands
+    elif request.json["data"]["name"] == "who":
+        return {}
 
     return {}

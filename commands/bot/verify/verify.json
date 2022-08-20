@@ -1,0 +1,19 @@
+{
+    "name": "verify",
+    "type": 1,
+    "description": "Verifies the current user or the memtioned user within the server",
+    "options": [
+        {
+            "type": 6,
+            "name": "member",
+            "description": "The Discord member to be verified",
+            "required": false
+        },
+        {
+            "type": 1,
+            "name": "force",
+            "description": "Force verification of the member",
+            "required": false
+        }
+    ]
+}

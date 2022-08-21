@@ -31,16 +31,16 @@ with open("commands/commands.json") as commands_file:
 session = requests.Session()
 application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid")
 
-commands = []
+commands_data = []
 
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
-        commands.append(json.load(command_file))
+        commands_data.append(json.load(command_file))
 
 try:
     commands = tasks.discordput(
         f"applications/{application_id}/commands",
-        commands,
+        commands_data,
         session=session,
         dev=True
     )

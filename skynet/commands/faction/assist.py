@@ -14,6 +14,7 @@ from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
 import redisdb
+from skynet.skyutils import get_admin_keys
 import tasks
 import utils
 
@@ -105,13 +106,26 @@ def assist(interaction):
             },
         }
 
-    if target.key != "":
-        target.refresh()
-    elif user.key != "":
-        target.refresh(key=user.key)
-    elif "guild_id" in interaction:
-        server = Server(interaction["guild_id"])
-        target.refresh(key=User(random.choice(server.admins)).key)
+    if user.key != "" or "guild_id" in interaction:
+        keys = get_admin_keys(interaction)
+
+        if len(keys) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys were found to be run for this command. Please sign into "
+                                           "Tornium or run this command in a server with signed-in admins.",
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                }
+            }
+
+        target.refresh(key=random.choice(get_admin_keys(interaction)))
     else:
         return {
             "type": 4,

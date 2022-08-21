@@ -8,39 +8,13 @@ import random
 from models.factionmodel import FactionModel
 from models.server import Server
 from models.usermodel import UserModel
+from skynet.skyutils import get_admin_keys
 from tasks.user import update_user
 import utils
 
 
 def who(interaction):
     print(interaction)
-
-    if "guild_id" not in interaction:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Allowed",
-                        "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    server = Server(interaction["guild_id"])
-    admin_keys = []
-
-    for admin in server.admins:
-        admin_user: UserModel = UserModel.objects(tid=admin).first()
-
-        if admin_user is None:
-            continue
-        elif admin_user.key in ("", None):
-            continue
-
-        admin_keys.append(admin_user.key)
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -54,6 +28,24 @@ def who(interaction):
                         {
                             "title": "Illegal Parameters",
                             "description": "The parameter passed must be either the Torn ID or a member mention.",
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                }
+            }
+
+        admin_keys = get_admin_keys(interaction)
+
+        if len(admin_keys) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys were found to be run for this command. Please sign into "
+                                           "Tornium or run this command in a server with signed-in admins.",
                             "color": 0xC83F49,
                         }
                     ],

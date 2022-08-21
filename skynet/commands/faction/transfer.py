@@ -11,12 +11,14 @@ from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 import redisdb
+from skynet.skyutils import get_admin_keys, get_faction_keys
 import tasks
 import utils
 
 
 def transfer(interaction):
     print(interaction)
+
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -123,71 +125,28 @@ def transfer(interaction):
             },
         }
 
+    admin_keys = get_admin_keys(interaction)
+
+    if len(admin_keys) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No API Keys",
+                        "description": "No API keys were found to be run for this command. Please sign into "
+                                       "Tornium or run this command in a server with signed-in admins.",
+                        "color": 0xC83F49,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
+
     if user is None:
-        if server is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Error",
-                            "description": "Your user could not be located in Tornium's databases. Please run this "
-                            "command in a server with the Tornium bot or sign into "
-                            "[Tornium](https://torn.deek.sh/login).",
-                            "color": 0xC83F49,
-                        }
-                    ]
-                },
-            }
-        elif len(server.admins) == 0:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "No Admins",
-                            "description": "There are no admins currently signed into Tornium.",
-                            "color": 0xC83F49,
-                        }
-                    ]
-                },
-            }
-
-        admin_id = random.choice(server.admins)
-        admin: UserModel = UserModel.objects(tid=admin_id).first()
-
-        if admin is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Admin Not Found",
-                            "description": "Admin not found in the database. Please try again.",
-                            "color": 0xC83F49,
-                            "footer": {"text": f"Unknown Admin ID: {admin_id}"},
-                        }
-                    ]
-                },
-            }
-        elif admin.key in ("", None):
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Admin Key Not Found",
-                            "description": "Admin located in the database, but the admin's key was not found. Please "
-                            "try again.",
-                            "color": 0xC83F49,
-                            "footer": {"text": f"Borked Admin ID: {admin_id}"},
-                        }
-                    ]
-                },
-            }
         try:
             user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=profile,discord", admin.key
+                f"user/{interaction['member']['user']['id']}?selections=profile,discord", random.choice(admin_keys)
             )
         except utils.TornError as e:
             return {
@@ -273,16 +232,10 @@ def transfer(interaction):
 
     try:
         user: User = User(user.tid)
-        if server is None:
-            user.refresh()
-        else:
-            user.refresh(key=User(random.choice(server.admins)).key)
+        user.refresh(key=random.choice(admin_keys))
 
         if user.factiontid == 0:
-            if server is None:
-                user.refresh(force=True)
-            else:
-                user.refresh(key=User(random.choice(server.admins)).key, force=True)
+            user.refresh(key=random.choice(admin_keys), force=True)
 
             if user.factiontid == 0:
                 return {
@@ -292,7 +245,7 @@ def transfer(interaction):
                             {
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                f"set regardless of a force refresh.",
+                                               f"set regardless of a force refresh.",
                                 "color": 0xC83F49,
                             }
                         ],
@@ -315,70 +268,9 @@ def transfer(interaction):
         }
 
     if recipient is None:
-        if server is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Error",
-                            "description": "Your recipient could not be located in Tornium's databases. Please run this "
-                            "command in a server with the Tornium bot or sign into "
-                            "[Tornium](https://torn.deek.sh/login).",
-                            "color": 0xC83F49,
-                        }
-                    ]
-                },
-            }
-        elif len(server.admins) == 0:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "No Admins",
-                            "description": "There are no admins currently signed into Tornium.",
-                            "color": 0xC83F49,
-                        }
-                    ]
-                },
-            }
-
-        admin_id = random.choice(server.admins)
-        admin: UserModel = UserModel.objects(tid=admin_id).first()
-
-        if admin is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Admin Not Found",
-                            "description": "Admin not found in the database. Please try again.",
-                            "color": 0xC83F49,
-                            "footer": {"text": f"Unknown Admin ID: {admin_id}"},
-                        }
-                    ]
-                },
-            }
-        elif admin.key in ("", None):
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Admin Key Not Found",
-                            "description": "Admin located in the database, but the admin's key was not found. Please "
-                            "try again.",
-                            "color": 0xC83F49,
-                            "footer": {"text": f"Borked Admin ID: {admin_id}"},
-                        }
-                    ]
-                },
-            }
         try:
             user_data = tasks.tornget(
-                f"user/{recipient_data[1]['value']}?selections=", admin.key
+                f"user/{recipient_data[1]['value']}?selections=", random.choice(admin_keys)
             )
         except utils.TornError as e:
             if e.code == 6:
@@ -479,18 +371,10 @@ def transfer(interaction):
 
     try:
         recipient: User = User(recipient.tid)
-        if server is None:
-            recipient.refresh()
-        else:
-            recipient.refresh(key=User(random.choice(server.admins)).key)
+        recipient.refresh(key=random.choice(admin_keys))
 
         if recipient.factiontid == 0:
-            if server is None:
-                recipient.refresh(force=True)
-            else:
-                recipient.refresh(
-                    key=User(random.choice(server.admins)).key, force=True
-                )
+            recipient.refresh(key=random.choice(admin_keys), force=True)
 
             if recipient.factiontid == 0:
                 return {

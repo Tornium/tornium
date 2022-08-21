@@ -63,7 +63,7 @@ class User(UserMixin):
         if force or (now - self.last_refresh) > 1800:
             if self.key != "":
                 key = self.key
-            elif key is None:
+            elif key is None:  # TODO: Check if there is a session/current_user
                 key = current_user.key
                 if key == "":
                     raise utils.MissingKeyError

@@ -7,18 +7,20 @@ from skynet.commands import faction, user
 
 
 def ping(interaction):
-    return {
-        "type": 4,
-        "data": {
-            "embeds": [
-                {
-                    "title": "Pong",
-                    "image": {
-                        "url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"
-                    },
-                    "color": 0x7DF9FF,
-                }
-            ],
-            "flags": 64,  # Ephemeral
+    return (
+        {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Pong",
+                        "image": {
+                            "url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"
+                        },
+                        "color": 0x7DF9FF,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
         },
-    },
+    )

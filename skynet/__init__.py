@@ -42,12 +42,10 @@ try:
         f"applications/{application_id}/commands",
         commands_data,
         session=session,
-        dev=True
+        dev=True,
     )
 except utils.DiscordError as e:
-    honeybadger.honeybadger.notify(
-        e, context={"code": e.code, "message": e.message}
-    )
+    honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
     raise e
 except Exception as e:
     honeybadger.honeybadger.notify(e)

@@ -32,6 +32,8 @@ def members(*args, **kwargs):
     return render_template(
         "faction/members.html",
         members=fac_members,
-        average_stat=UserModel.objects(Q(factionid=kwargs["faction"].tid) & Q(battlescore__ne=0)).average("battlescore"),
+        average_stat=UserModel.objects(
+            Q(factionid=kwargs["faction"].tid) & Q(battlescore__ne=0)
+        ).average("battlescore"),
         average_stat_80=sum(stats) / len(stats),
     )

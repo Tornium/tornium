@@ -90,9 +90,7 @@ def get_faction_keys(interaction, faction=None):
         return tuple([invoker.key])
 
     if faction is None or type(faction) not in (Faction, FactionModel):
-        faction: FactionModel = FactionModel.objects(
-            tid=invoker.factionid
-        ).first()
+        faction: FactionModel = FactionModel.objects(tid=invoker.factionid).first()
 
     if faction is None:
         return ()

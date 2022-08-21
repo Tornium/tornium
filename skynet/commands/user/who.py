@@ -32,7 +32,7 @@ def who(interaction):
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         admin_keys = get_admin_keys(interaction)
@@ -45,12 +45,12 @@ def who(interaction):
                         {
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
-                                           "Tornium or run this command in a server with signed-in admins.",
+                            "Tornium or run this command in a server with signed-in admins.",
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         # TODO: Verify that mentioned user is not a bot
@@ -60,7 +60,7 @@ def who(interaction):
             user, user_data = update_user(
                 key=random.choice(admin_keys),
                 discordid=member[1]["value"] if member != 1 else tid[1]["value"],
-                refresh_existing=True
+                refresh_existing=True,
             )
         except utils.TornError as e:
             return {
@@ -69,12 +69,12 @@ def who(interaction):
                     "embeds": [
                         {
                             "title": f"Torn API Error #{e.code}",
-                            "description": f"The Torn API has responded to the API call with \"{e.message}\".",
+                            "description": f'The Torn API has responded to the API call with "{e.message}".',
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
         except utils.NetworkingError as e:
             return {
@@ -84,12 +84,12 @@ def who(interaction):
                         {
                             "title": f"HTTP Error Code {e.code}",
                             "description": f"The Torn API has responded to the API call with a networking error... "
-                                           f"\"{e.message}\".",
+                            f'"{e.message}".',
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
         except Exception as e:
             return {
@@ -103,13 +103,11 @@ def who(interaction):
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         if member != -1:
-            user: UserModel = UserModel.objects(
-                discord_id=member[1]["value"]
-            ).first()
+            user: UserModel = UserModel.objects(discord_id=member[1]["value"]).first()
 
             if user is None:
                 return {
@@ -119,17 +117,15 @@ def who(interaction):
                             {
                                 "title": "Unknown User",
                                 "description": "The mention Discord member could not be located. The user may not be "
-                                               "officially verified. Please try using their Torn ID if you know that.",
+                                "officially verified. Please try using their Torn ID if you know that.",
                                 "color": 0xC83F49,
                             }
                         ],
                         "flags": 64,  # Ephemeral
-                    }
+                    },
                 }
         else:
-            user: UserModel = UserModel.objects(
-                tid=tid[1]["value"]
-            ).first()
+            user: UserModel = UserModel.objects(tid=tid[1]["value"]).first()
 
             if user is None:
                 return {
@@ -143,7 +139,7 @@ def who(interaction):
                             }
                         ],
                         "flags": 64,  # Ephemeral
-                    }
+                    },
                 }
     else:
         if "member" in interaction:
@@ -163,15 +159,15 @@ def who(interaction):
                         {
                             "title": "Unverified Member",
                             "descriptions": "The command invoker is not stored in the database. Please wait for the "
-                                            "respective automated task to be run. Or alternatively, you can sign into "
-                                            "Tornium. However, please make sure that you are officially verified by "
-                                            "Torn; otherwise you'll need to verify on the "
-                                            "[official Discord server](https://www.torn.com/discord).",
+                            "respective automated task to be run. Or alternatively, you can sign into "
+                            "Tornium. However, please make sure that you are officially verified by "
+                            "Torn; otherwise you'll need to verify on the "
+                            "[official Discord server](https://www.torn.com/discord).",
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         if user.key in ("", None):
@@ -190,23 +186,21 @@ def who(interaction):
                                 {
                                     "name": "Faction",
                                     "value": f"Faction N/A [{user.factionid}]",
-                                    "inline": True
+                                    "inline": True,
                                 },
                             ],
                             "footer": {
                                 "text": "User data not refreshed. No available API keys."
-                            }
+                            },
                         }
                     ]
-                }
+                },
             }
 
         try:
             user: UserModel
             user, user_data = update_user(
-                key=user.key,
-                tid=user.tid,
-                refresh_existing=True
+                key=user.key, tid=user.tid, refresh_existing=True
             )
         except utils.TornError as e:
             return {
@@ -215,12 +209,12 @@ def who(interaction):
                     "embeds": [
                         {
                             "title": f"Torn API Error #{e.code}",
-                            "description": f"The Torn API has responded to the API call with \"{e.message}\".",
+                            "description": f'The Torn API has responded to the API call with "{e.message}".',
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
         except utils.NetworkingError as e:
             return {
@@ -230,12 +224,12 @@ def who(interaction):
                         {
                             "title": f"HTTP Error Code {e.code}",
                             "description": f"The Torn API has responded to the API call with a networking error... "
-                                           f"\"{e.message}\".",
+                            f'"{e.message}".',
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
         except Exception as e:
             return {
@@ -249,7 +243,7 @@ def who(interaction):
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
     if user.factionid != 0:
@@ -277,7 +271,7 @@ def who(interaction):
                         {
                             "name": "Life",
                             "value": f"NYI/NYI",  # TODO: Get current and max life from Torn API
-                            "inline": True
+                            "inline": True,
                         },
                         {
                             "name": "Faction",
@@ -287,7 +281,7 @@ def who(interaction):
                         {
                             "name": "Company",
                             "value": "NYI",  # TODO: Get value from Torn API
-                            "inline": True
+                            "inline": True,
                         },  # TODO: Add other fields from API data
                     ],
                     "color": 0x32CD32,
@@ -301,29 +295,29 @@ def who(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "User",
-                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}"
+                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "Attack Link",
-                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={user.tid}"  # TODO: Update link
+                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={user.tid}",  # TODO: Update link
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={user.factionid}#/"  # TODO: Update link
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={user.factionid}#/",  # TODO: Update link
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "Company",
-                            "url": f"https://www.torn.com"  # TODO: Update Link
-                        }
-                    ]
+                            "url": f"https://www.torn.com",  # TODO: Update Link
+                        },
+                    ],
                 }
             ],
             "flags": 64,  # Ephemeral
-        }
+        },
     }

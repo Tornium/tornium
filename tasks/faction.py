@@ -467,7 +467,9 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
             if opponent is None:
                 try:
-                    update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
+                    update_user.delay(
+                        tid=opponent_id, key=random.choice(faction.aa_keys)
+                    )
                 except TornError as e:
                     logger.exception(e)
                     honeybadger.notify(

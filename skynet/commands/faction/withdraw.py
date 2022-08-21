@@ -102,18 +102,19 @@ def withdraw(interaction):
                     {
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
-                                       "Tornium or run this command in a server with signed-in admins.",
+                        "Tornium or run this command in a server with signed-in admins.",
                         "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     if user is None:
         try:
             user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=profile,discord", random.choice(admin_keys)
+                f"user/{interaction['member']['user']['id']}?selections=profile,discord",
+                random.choice(admin_keys),
             )
         except utils.TornError as e:
             return {
@@ -212,7 +213,7 @@ def withdraw(interaction):
                             {
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                               f"set regardless of a force refresh.",
+                                f"set regardless of a force refresh.",
                                 "color": 0xC83F49,
                             }
                         ],
@@ -330,12 +331,12 @@ def withdraw(interaction):
                     {
                         "title": "No API Keys",
                         "description": "No AA API keys were found to be run for this command. Please sign into "
-                                       "Tornium or ask a faction AA member to sign into Tornium.",
+                        "Tornium or ask a faction AA member to sign into Tornium.",
                         "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     try:

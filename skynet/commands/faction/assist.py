@@ -117,12 +117,12 @@ def assist(interaction):
                         {
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
-                                           "Tornium or run this command in a server with signed-in admins.",
+                            "Tornium or run this command in a server with signed-in admins.",
                             "color": 0xC83F49,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         target.refresh(key=random.choice(get_admin_keys(interaction)))

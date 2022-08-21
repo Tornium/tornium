@@ -38,7 +38,7 @@ for commandid in commands_list["active"]:
         commands_data.append(json.load(command_file))
 
 try:
-    commands = tasks.discordput(
+    commands_data = tasks.discordput(
         f"applications/{application_id}/commands",
         commands_data,
         session=session,

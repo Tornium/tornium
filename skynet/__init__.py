@@ -31,25 +31,27 @@ with open("commands/commands.json") as commands_file:
 session = requests.Session()
 application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid")
 
+commands = []
+
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
-        command_data = json.load(command_file)
+        commands.append(json.load(command_file))
 
-    try:
-        command = tasks.discordpost(
-            f"applications/{application_id}/commands",
-            command_data,
-            session=session,
-            dev=True,
-        )
-    except utils.DiscordError as e:
-        honeybadger.honeybadger.notify(
-            e, context={"code": e.code, "message": e.message, "command": commandid}
-        )
-        continue
-    except Exception as e:
-        honeybadger.honeybadger.notify(e, context={"command": commandid})
-        continue
+try:
+    commands = tasks.discordput(
+        f"applications/{application_id}/commands",
+        commands,
+        session=session,
+        dev=True
+    )
+except utils.DiscordError as e:
+    honeybadger.honeybadger.notify(
+        e, context={"code": e.code, "message": e.message}
+    )
+    raise e
+except Exception as e:
+    honeybadger.honeybadger.notify(e)
+    raise e
 
     # TODO: Add permissions to certain commands (e.g. fulfill)
 

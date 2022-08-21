@@ -11,6 +11,7 @@
  - Migrate certain sections of the bot admin dashboard to use the channel selector
  - Create JS and Py util funcs (for both frontend and backend usage) to streamline channel selector
  - OC delay via bot with settings via bot admin dashboard
+ - Redo bot admin dashboard server selector (primarily DB-related)
 ### Frontend
  - Update faction documentation
  - Update bot documentation

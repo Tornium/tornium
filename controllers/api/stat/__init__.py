@@ -124,6 +124,7 @@ def generate_chain_list(*args, **kwargs):
 @requires_scopes(scopes={"admin", "read:stats"})
 def get_stat_user(tid, *args, **kwargs):
     client = redisdb.get_redis()
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
     limit = request.args.get("limit") if request.args.get("limit") is not None else 10
 
     stat_entries = (

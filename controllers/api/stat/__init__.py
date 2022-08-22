@@ -26,7 +26,7 @@ def generate_chain_list(*args, **kwargs):
     variance = (
         request.args.get("variance")
         if request.args.get("variance") is not None
-        else 0.05
+        else 0.01
     )
 
     if kwargs["user"].battlescore == 0:

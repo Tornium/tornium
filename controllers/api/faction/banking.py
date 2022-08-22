@@ -360,18 +360,35 @@ def banking_request(*args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Vault Request #{request_id}",
-                        "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} from the "
+                        "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} in cash from the "
                         f"faction vault. "
                         f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                        "fields": [
-                            {
-                                "name": "Fulfill Link",
-                                "value": f"[Fulfill Here]({send_link})",
-                            }
-                        ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
+                "components": {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": send_link
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill"
+                        }
+                    ]
+                }
             }
         else:
             message_payload = {
@@ -382,16 +399,33 @@ def banking_request(*args, **kwargs):
                         "description": f"{user.name} [{user.tid}] is requesting "
                         f'{vault_balances["donations"][str(user.tid)]["money_balance"]} from the '
                         f"faction vault. "
-                        f"To fulfill this request, enter `?f {request_id}` in this channel.",
-                        "fields": [
-                            {
-                                "name": "Fulfill Link",
-                                "value": f"[Fulfill Here]({send_link})",
-                            }
-                        ],
+                        f"To fulfill this request, enter `?f {request_id}` in this channel.",\
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
+                "components": {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": send_link
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill"
+                        }
+                    ]
+                }
             }
         message = tasks.discordpost(
             f'channels/{vault_config["banking"]}/messages',

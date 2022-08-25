@@ -21,8 +21,8 @@ $(document).ready(function() {
                 generateToast("Verification Enable Failed", `The Tornium API server has responded with \"${response["message"]}\".`)
             } else {
                 generateToast("Verification Enable Successful", "The Tornium API server has been successfully enabled.")
-                $("#verification-config-enable").prop("disabled", true)
-                $("#verification-config-disable").prop("disabled", false)
+                $("#verification-config-enable").prop("disabled", true);
+                $("#verification-config-disable").prop("disabled", false);
             }
         }
 
@@ -143,6 +143,7 @@ $(document).ready(function() {
 
             } else {
                 generateToast("Faction Disabled Successfully");
+                window.location.reload();
             }
         }
 
@@ -156,7 +157,32 @@ $(document).ready(function() {
         }));
     });
 
-    $(".verification-faction-enable").on("click", function() {
+    $(".verification-faction-role-add").on("change", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Role Add Failed");
+            } else {
+                generateToast("Role Add Successful");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/faction/role");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factiontid": this.getAttribute("data-faction"),
+            "role": this.options[this.selectedIndex].value
+        }));
+    });
+
+    $(".verification-faction-remove").on("click", function() {
         const xhttp = new XMLHttpRequest();
 
         xhttp.onload = function() {
@@ -165,17 +191,19 @@ $(document).ready(function() {
             if("code" in response) {
 
             } else {
-                generateToast("Faction Enabled Successfully");
+                generateToast("Faction Removed Successfully");
+                window.location.reload();
             }
         }
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/faction");
+        xhttp.open("DELETE", "/api/bot/verify/faction");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
             "guildid": guildid,
-            "factiontid": this.getAttribute("data-faction")
+            "factiontid": this.getAttribute("data-faction"),
+            "remove": true
         }));
     });
-})
+});

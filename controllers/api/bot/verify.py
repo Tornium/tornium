@@ -355,7 +355,7 @@ def faction_verification(*args, **kwargs):
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
-    if (request.method == "POST" and faction.tid in guild.faction_verify) and (
+    if (request.method == "POST" and faction.tid in guild.faction_verify) or (
         request.method == "DELETE" and faction.tid not in guild.faction_verify
     ):
         return (
@@ -374,13 +374,16 @@ def faction_verification(*args, **kwargs):
             },
         )
 
-    if faction.tid not in guild.faction_verify:
-        guild.faction_verify[str(factiontid)] = {"roles": [], "enabled": False}
+    if request.method == "DELETE" and data.get("remove") is True:
+        del guild.faction_verify[str(factiontid)]
+    else:
+        if faction.tid not in guild.faction_verify:
+            guild.faction_verify[str(factiontid)] = {"roles": [], "enabled": False}
 
-    if request.method == "POST":
-        guild.faction_verify[str(factiontid)]["enabled"] = True
-    elif requests.cookies.MockRequest == "DELETE":
-        guild.faction_verify[str(factiontid)]["enabled"] = False
+        if request.method == "POST":
+            guild.faction_verify[str(factiontid)]["enabled"] = True
+        elif request.method == "DELETE":
+            guild.faction_verify[str(factiontid)]["enabled"] = False
 
     guild.save()
 
@@ -407,38 +410,37 @@ def faction_verification(*args, **kwargs):
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
-def faction_verification_status(*args, **kwargs):
+def faction_role(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     factiontid = data.get("factiontid")
+    roleid = data.get("role")
 
     if (
         guildid in ("", None, 0)
         or not guildid.isdigit()
         or factiontid in ("", None, 0)
         or not factiontid.isdigit()
+        or roleid in ("", None, 0)
+        or not roleid.isdidigt()
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and faction TID are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return jsonify({
+            "code": 0,
+            "name": "GeneralError",
+            "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and role ID are required.",
+        }), 400, {
+            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Remaining": client.get(key),
+            "X-RateLimit-Reset": client.ttl(key),
+        }
 
     guildid = int(guildid)
     factiontid = int(factiontid)
+    roleid = int(roleid)
+
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
@@ -448,7 +450,7 @@ def faction_verification_status(*args, **kwargs):
                     "code": 0,
                     "name": "UnknownGuild",
                     "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
+                               "in the database.",
                 }
             ),
             400,
@@ -459,29 +461,63 @@ def faction_verification_status(*args, **kwargs):
             },
         )
 
-    faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
+    if factiontid not in guild.faction_verify:
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "GeneralError",
+                    "message": "Server failed to fulfill the request. The faction does not have a verification config."
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            }
+        )
+    elif (request.method == "POST" and roleid in guild.faction_verify[str(factiontid)]["roles"]) or (
+        request.method == "DELETE" and roleid not in guild.faction_verify[str(factiontid)]["roles"]
+    ):
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "",
+                    "message": "Server failed to fulfill the request. Improper HTTP request type.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
 
-    if faction.tid not in guild.faction_verify:
-        return jsonify({
-            "code": 0,
-            "name": "GeneralError",
-            "message": "Server failed to fulfill the request. The faction is not in the guild's faction verification "
-                       "list."
-        }), 400, {
+    if request.method == "POST":
+        guild.faction_verify[str(factiontid)]["roles"].append(roleid)
+    elif request.method == "DELETE":
+        guild.faction_verify[str(factiontid)]["roles"].remove(roleid)
+
+    guild.save()
+
+    return jsonify(
+        {
+            "verify": {
+                "enabled": guild.config.get("verify")
+                if guild.config.get("verify") is not None
+                else False,
+                "verify_log_channel": guild.verify_log_channel,
+                "welcome_channel": guild.welcome_channel,
+                "faction_verify": guild.faction_verify,
+            },
+        },
+        200,
+        {
             "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
-        }
-    elif (request.method == "POST" and guild.faction_verify.get("enabled") in (None, True)) or (request.method == "DELETE" and guild.faction_verify.get("enabled") in (None, False)):
-        return jsonify({
-            "code": 0,
-            "name": "GeneralError",
-            "message": "Server failed to fulfill the request. Improper HTTP request type."
-        }), 400, {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        }
-
-    # if request.method == "POST":
-    #     guild.faction_verify[str(factiontid)][]
+        },
+    )

@@ -33,8 +33,8 @@ mod.add_url_rule(
     methods=["POST", "DELETE"],
 )
 mod.add_url_rule(
-    "/api/bot/verify/faction/status",
-    view_func=bot.verify.faction_verification_status,
+    "/api/bot/verify/faction/role",
+    view_func=bot.verify,
     methods=["POST", "DELETE"]
 )
 mod.add_url_rule(

@@ -14,5 +14,5 @@ def verify_dashboard(guildid):
     guild = Server(guildid)
 
     return render_template(
-        "bot/verify.html", channels=guild.get_text_channels(), guild=guild
+        "bot/verify.html", channels=guild.get_text_channels(), roles=guild.get_roles(), guild=guild
     )

@@ -124,7 +124,7 @@ Tornium - Verification
                     </div>
 
                     {% for faction in guild.faction_verify %}
-                    <div class="card my-3" style="width: 22rem">
+                    <div class="card my-3">
                         <div class="card-header">
                             NYI [{{ faction }}]
                             {% if guild.faction_verify[faction]["enabled"] %}
@@ -136,14 +136,19 @@ Tornium - Verification
                             {% endif %}
 
                             <div class="float-md-end">
-                                <i class="fa-solid fa-user-plus" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Role">
-
-                                </i>
-
                                 <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Faction">
-
+                                    <button type="button" class="verification-faction-remove" data-faction="{{ faction }}"></button>
                                 </i>
                             </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <select class="form-select verification-faction-role-add" data-faction="{{ faction }}" aria-label="Verification Faction Role Add">
+                                <option value="0">Add a role for faction verification</option>
+                                {% for role in roles.values() %}
+                                    <option value="{{ role["id"] }}">{{ role["name"] }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <ul class="list-group list-group-flush">

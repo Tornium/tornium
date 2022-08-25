@@ -355,14 +355,14 @@ def faction_verification(*args, **kwargs):
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
-    if (request.method == "POST" and faction.tid in guild.faction_verify) or (
-        request.method == "DELETE" and faction.tid not in guild.faction_verify
+    if (request.method == "POST" and str(faction.tid) in guild.faction_verify) or (
+        request.method == "DELETE" and str(faction.tid) not in guild.faction_verify
     ):
         return (
             jsonify(
                 {
                     "code": 0,
-                    "name": "",
+                    "name": "GeneralError",
                     "message": "Server failed to fulfill the request. Improper HTTP request type.",
                 }
             ),
@@ -425,7 +425,7 @@ def faction_role(*args, **kwargs):
         or factiontid in ("", None, 0)
         or not factiontid.isdigit()
         or roleid in ("", None, 0)
-        or not roleid.isdidigt()
+        or not roleid.isdigit()
     ):
         return jsonify({
             "code": 0,

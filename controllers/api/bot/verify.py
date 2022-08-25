@@ -461,7 +461,7 @@ def faction_role(*args, **kwargs):
             },
         )
 
-    if factiontid not in guild.faction_verify:
+    if str(factiontid) not in guild.faction_verify.keys():
         return (
             jsonify(
                 {

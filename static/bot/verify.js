@@ -133,6 +133,30 @@ $(document).ready(function() {
         }));
     });
 
+    $(".verification-faction-enable").on("click", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+
+            } else {
+                generateToast("Faction Enabled Successfully");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/faction");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factiontid": this.getAttribute("data-faction")
+        }));
+    });
+
     $(".verification-faction-disable").on("click", function() {
         const xhttp = new XMLHttpRequest();
 

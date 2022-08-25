@@ -153,7 +153,7 @@ Tornium - Verification
 
                         <ul class="list-group list-group-flush">
                             {% for role in guild.faction_verify[faction]["roles"] %}
-                            <li class="list-group-item">{{ role }}</li>
+                            <li class="list-group-item">{{ roles[role].name }} [{{ role }}]</li>
                             {% endfor %}
                         </ul>
 

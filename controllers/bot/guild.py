@@ -27,10 +27,11 @@ def dashboard():
 
 @login_required
 def guild_dashboard(guildid: str):
-    if guildid not in [str(server) for server in current_user.servers]:
+    server = Server(guildid)
+
+    if current_user.tid not in server.admins:
         abort(403)
 
-    server = Server(guildid)
     factions = []
     assist_factions = []
 
@@ -72,10 +73,11 @@ def guild_dashboard(guildid: str):
 
 @login_required
 def update_guild(guildid: str, factiontid: int):
-    if guildid not in [str(server) for server in current_user.servers]:
+    server_model = ServerModel.objects(sid=guildid).first()
+
+    if current_user.tid not in server_model.admins:
         abort(403)
 
-    server_model = ServerModel.objects(sid=guildid).first()
     server_model.factions.remove(factiontid)
     server_model.save()
 

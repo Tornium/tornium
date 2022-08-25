@@ -402,3 +402,86 @@ def faction_verification(*args, **kwargs):
             "X-RateLimit-Reset": client.ttl(key),
         },
     )
+
+
+@key_required
+@ratelimit
+@requires_scopes(scopes={"admin", "bot:admin"})
+def faction_verification_status(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    client = redisdb.get_redis()
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    guildid = data.get("guildid")
+    factiontid = data.get("factiontid")
+
+    if (
+        guildid in ("", None, 0)
+        or not guildid.isdigit()
+        or factiontid in ("", None, 0)
+        or not factiontid.isdigit()
+    ):
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "GeneralError",
+                    "message": "Server failed to fulfill the request. A valid guild ID and faction TID are required.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+
+    guildid = int(guildid)
+    factiontid = int(factiontid)
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "UnknownGuild",
+                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
+                    "in the database.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+
+    faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
+
+    if faction.tid not in guild.faction_verify:
+        return jsonify({
+            "code": 0,
+            "name": "GeneralError",
+            "message": "Server failed to fulfill the request. The faction is not in the guild's faction verification "
+                       "list."
+        }), 400, {
+            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Remaining": client.get(key),
+            "X-RateLimit-Reset": client.ttl(key),
+        }
+    elif (request.method == "POST" and guild.faction_verify.get("enabled") in (None, True)) or (request.method == "DELETE" and guild.faction_verify.get("enabled") in (None, False)):
+        return jsonify({
+            "code": 0,
+            "name": "GeneralError",
+            "message": "Server failed to fulfill the request. Improper HTTP request type."
+        }), 400, {
+            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Remaining": client.get(key),
+            "X-RateLimit-Reset": client.ttl(key),
+        }
+
+    # if request.method == "POST":
+    #     guild.faction_verify[str(factiontid)][]

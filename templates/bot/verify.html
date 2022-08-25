@@ -52,7 +52,7 @@ Tornium - Verification
                         </div>
 
                         <select class="form-select" id="verification-welcome-channel" aria-label="Verification Welcome Channel Select">
-                            <option value="0">Verification welcome channel</option>
+                            <option value="0">No verification welcome channel</option>
                             {% for category in channels.values() %}
                                 {% if category["name"] == "" %}
                                 <optgroup label="No Category">
@@ -82,7 +82,7 @@ Tornium - Verification
                         </div>
 
                         <select class="form-select" id="verification-log-channel" aria-label="Verification Log Channel Select"">
-                            <option value="0">Verification log channel</option>
+                            <option value="0">No verification log channel</option>
                             {% for category in channels.values() %}
                                 {% if category["name"] == "" %}
                                 <optgroup label="No Category">

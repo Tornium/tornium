@@ -73,6 +73,7 @@ $(document).ready(function() {
                 generateToast("Faction Input Failed", `The Tornium API server has responded with \"${response["message"]}\".`);
             } else {
                 generateToast("Faction Input Successful");
+                window.location.reload(); // TODO: Replace with dynamically adding code
             }
         }
 
@@ -146,7 +147,7 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/bot/verify/status");
+        xhttp.open("DELETE", "/api/bot/verify/faction");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
@@ -169,7 +170,7 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/status");
+        xhttp.open("POST", "/api/bot/verify/faction");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({

@@ -152,7 +152,7 @@ $(document).ready(function() {
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
             "guildid": guildid,
-            "factionid": this.getAttribute("data-faction")
+            "factiontid": this.getAttribute("data-faction")
         }));
     });
 
@@ -175,7 +175,7 @@ $(document).ready(function() {
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
             "guildid": guildid,
-            "factionid": this.getAttribute("data-faction")
+            "factiontid": this.getAttribute("data-faction")
         }));
     });
 })

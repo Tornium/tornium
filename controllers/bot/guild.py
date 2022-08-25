@@ -18,15 +18,16 @@ import utils
 def dashboard():
     servers = []
 
-    for server in current_user.servers:
-        servers.append(Server(int(server)))
+    server: ServerModel
+    for server in ServerModel.objects(admins=current_user.tid):
+        servers.append(server)
 
     return render_template("bot/dashboard.html", servers=servers)
 
 
 @login_required
 def guild_dashboard(guildid: str):
-    if guildid not in current_user.servers and not current_user.admin:
+    if guildid not in current_user.servers:
         abort(403)
 
     server = Server(guildid)

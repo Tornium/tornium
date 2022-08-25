@@ -135,4 +135,4 @@ class Server:
                 "position": role["position"],
             }
 
-        return sorted(roles, key=lambda r: r["position"])
+        return roles

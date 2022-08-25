@@ -1,9 +1,10 @@
 ## Done
  - Finish /user/who command
  - Create helper function for the listing of admins/API keys regardless of call invocation location
+ - Fix Stat DB variance causing large number of players who aren't 3x FF at 75% stat score
 
 ## Requires Internet
- - Install Mongo, Redis, and required packages **ASAP**
+ - Install Mongo, Redis **ASAP**
  - Fix force option type for bot/verify/verify and bot/verify/verifyall (requires API connection for Discord docs)
  - Fix some links and add data in user/who SkyNet command
 
@@ -17,8 +18,7 @@
  - Update bot documentation
  - Update stat DB documentation
 ### Backend
- - Fix Stat DB variance causing large number of players who aren't 3x FF at 75% stat score
-### Bot
+### SkyNet
  - Add helper function to handle Torn (and possible Discord) API call errors
  - Implement stat DB commands
 ### API
@@ -26,6 +26,5 @@
 ### Low Priority
  - Add additional log messages for automated actions and flask/Discord-based actions that modify the database
  - Fix styling of certain sections (primarily comma use)
- - Add release notes w/ GH releases
  - Create Tornium API documentation
  - Add docstrings to util funcs

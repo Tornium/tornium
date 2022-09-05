@@ -74,6 +74,9 @@ def get_faction_keys(interaction, faction=None):
     :param faction: Torn faction whose API keys are being retrieved
     """
 
+    if faction is not None:
+        return type(faction.aa_keys)
+
     if "member" in interaction:
         invoker: UserModel = UserModel.objects(
             discord_id=interaction["member"]["user"]["id"]

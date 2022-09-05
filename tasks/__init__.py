@@ -267,38 +267,17 @@ def tornget(
     request = request.json()
 
     if "error" in request:
-        if request["error"]["code"] in (13, 10, 2):
-            user = UserModel.objects(key=key).first()
-
-            if user is not None:
-                logger.info(
-                    f"API key of {user.name} [{user.tid}] has been removed due to API code {request['error']['code']} on {url}"
-                )
-                user.key = ""
-                user.save()
-
-                for server in user.servers:
-                    server = ServerModel.objects(sid=server).first()
-
-                    if server is not None and user.tid in server.admins:
-                        server.admins.remove(user.tid)
-                        server.save()
-
-                for server in ServerModel.objects(admins=user.tid):
-                    server.admins.remove(user.tid)
-                    server.save()
-        elif request["error"]["code"] == 7:
+        if request["error"]["code"] == 7:
             user: UserModel = UserModel.objects(key=key).first()
             user.factionaa = False
             user.save()
-
-            raise TornError(code=request["error"]["code"], endpoint=url)
         else:
             logger.info(
                 f'The Torn API has responded with error code {request["error"]["code"]} '
                 f'({request["error"]["error"]}) to {url}).'
             )
-            raise TornError(code=request["error"]["code"], endpoint=url)
+
+        raise TornError(code=request["error"]["code"], endpoint=url)
 
     if cache <= 0 or cache >= 60:
         return request

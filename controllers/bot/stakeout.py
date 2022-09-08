@@ -32,13 +32,13 @@ def stakeouts_dashboard(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                f"of {server.name}.",
+                      f"of {server.name}.",
             ),
             403,
         )
@@ -179,13 +179,13 @@ def stakeouts(guildid: str, stype: int):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                f"of {server.name}.",
+                      f"of {server.name}.",
             ),
             403,
         )
@@ -275,13 +275,13 @@ def stakeout_data(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                f"of {server.name}.",
+                      f"of {server.name}.",
             ),
             403,
         )
@@ -340,13 +340,13 @@ def stakeout_update(guildid):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                f"of {server.name}.",
+                      f"of {server.name}.",
             ),
             403,
         )

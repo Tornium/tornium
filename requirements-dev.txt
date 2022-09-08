@@ -2,7 +2,7 @@ async-timeout == 3.0.1
 black == 22.3.0
 blinker == 1.4
 celery[redis] == 5.2.7
-cryptography == 37.0.2
+cryptography == 38.0.1
 ddtrace == 1.2.2
 discord.py == 1.7.3
 flask == 2.1.2

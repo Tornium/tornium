@@ -75,7 +75,7 @@ def get_faction_keys(interaction, faction=None):
     """
 
     if faction is not None:
-        return type(faction.aa_keys)
+        return tuple(faction.aa_keys)
 
     if "member" in interaction:
         invoker: UserModel = UserModel.objects(

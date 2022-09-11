@@ -80,7 +80,7 @@ class User(UserMixin):
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            user = UserModel.objects(tid=self.tid).first()
+            user = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
             user.name = user_data["name"]
             user.last_refresh = now

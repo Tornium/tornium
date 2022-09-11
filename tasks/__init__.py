@@ -267,16 +267,10 @@ def tornget(
     request = request.json()
 
     if "error" in request:
-        if request["error"]["code"] == 7:
-            user: UserModel = UserModel.objects(key=key).first()
-            user.factionaa = False
-            user.save()
-        else:
-            logger.info(
-                f'The Torn API has responded with error code {request["error"]["code"]} '
-                f'({request["error"]["error"]}) to {url}).'
-            )
-
+        logger.info(
+            f'The Torn API has responded with error code {request["error"]["code"]} '
+            f'({request["error"]["error"]}) to {url}).'
+        )
         raise TornError(code=request["error"]["code"], endpoint=url)
 
     if cache <= 0 or cache >= 60:

@@ -187,12 +187,12 @@ class Faction:
                         level=member_data["level"],
                         last_action=member_data["last_action"]["timestamp"],
                         status=member_data["last_action"]["status"],
-                        factionid=self.tid,
+                        factionid=member_data["ID"],
                     ).save()
                 else:
                     user.name = member_data["name"]
                     user.level = member_data["level"]
                     user.last_action = member_data["last_action"]["timestamp"]
                     user.status = member_data["last_action"]["status"]
-                    user.factionid = self.tid
+                    user.factionid = member_data["ID"]
                     user.save()

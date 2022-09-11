@@ -145,19 +145,19 @@ def withdraw(interaction):
                 },
             }
 
-        user = UserModel(
-            tid=user_data["player_id"],
-            name=user_data["name"],
-            level=user_data["level"],
-            last_refresh=utils.now(),
-            discord_id=user_data["discord"]["discordID"]
+        user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
+            upsert=True,
+            new=True,
+            set__name=user_data["name"],
+            set__level=user_data["level"],
+            set__last_refresh=utils.now(),
+            set__discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            factionid=user_data["faction"]["faction_id"],
-            status=user_data["last_action"]["status"],
-            last_action=user_data["last_action"]["timestamp"],
+            set__factionid=user_data["faction"]["faction_id"],
+            set__status=user_data["last_action"]["status"],
+            set__last_action=user_data["last_action"]["timestamp"],
         )
-        user.save()
 
         if user.discord_id == 0:
             return {

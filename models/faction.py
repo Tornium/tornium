@@ -71,22 +71,14 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = UserModel.objects(tid=int(member_id)).first()
-
-                if user is None:
-                    UserModel(
-                        tid=int(member_id),
-                        name=member_data["name"],
-                        level=member_data["level"],
-                        last_action=member_data["last_action"]["timestamp"],
-                        status=member_data["last_action"]["status"],
-                    ).save()
-                else:
-                    user.name = member_data["name"]
-                    user.level = member_data["level"]
-                    user.last_action = member_data["last_action"]["timestamp"]
-                    user.status = member_data["last_action"]["status"]
-                    user.save()
+                UserModel.objects(tid=int(member_id)).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=member_data["name"],
+                    set__level=member_data["level"],
+                    set__last_action=member_data["last_action"]["timestamp"],
+                    set__status=member_data["last_action"]["status"]
+                )
 
         self.tid = tid
         self.name = faction.name
@@ -178,21 +170,12 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = UserModel.objects(tid=int(member_id)).first()
-
-                if user is None:
-                    UserModel(
-                        tid=int(member_id),
-                        name=member_data["name"],
-                        level=member_data["level"],
-                        last_action=member_data["last_action"]["timestamp"],
-                        status=member_data["last_action"]["status"],
-                        factionid=member_data["ID"],
-                    ).save()
-                else:
-                    user.name = member_data["name"]
-                    user.level = member_data["level"]
-                    user.last_action = member_data["last_action"]["timestamp"]
-                    user.status = member_data["last_action"]["status"]
-                    user.factionid = member_data["ID"]
-                    user.save()
+                UserModel.objects(tid=int(member_id)).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=member_data["name"],
+                    set__level=member_data["level"],
+                    set__last_action=member_data["last_action"]["timestamp"],
+                    set__status=member_data["last_action"]["status"],
+                    set__factionid=member_data["ID"]
+                )

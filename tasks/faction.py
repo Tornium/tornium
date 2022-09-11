@@ -132,24 +132,24 @@ def refresh_factions():
             users.append(int(member_id))
 
             if user is None:
-                user = UserModel(
-                    tid=int(member_id),
-                    name=member["name"],
-                    level=member["level"],
-                    last_refresh=utils.now(),
-                    factionid=faction.tid,
-                    status=member["last_action"]["status"],
-                    last_action=member["last_action"]["timestamp"],
+                user: UserModel = UserModel.objects(tid=int(member)).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=member["name"],
+                    set__level=member["level"],
+                    set__last_refresh=utils.now(),
+                    set__factionid=faction.tid,
+                    set__status=member["last_action"]["status"],
+                    set__last_action=member["last_action"]["timestamp"],
                 )
+            else:
+                user.name = member["name"]
+                user.level = member["level"]
+                user.last_refresh = utils.now()
+                user.factionid = faction.tid
+                user.status = member["last_action"]["status"]
+                user.last_action = member["last_action"]["timestamp"]
                 user.save()
-
-            user.name = member["name"]
-            user.level = member["level"]
-            user.last_refresh = utils.now()
-            user.factionid = faction.tid
-            user.status = member["last_action"]["status"]
-            user.last_action = member["last_action"]["timestamp"]
-            user.save()
 
             recruit: RecruitModel = (
                 RecruitModel.objects(Q(tid=user.tid) & Q(factionid=faction.tid))
@@ -416,12 +416,12 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent_id = attack["attacker_id"]
 
                 if opponent is None:
-                    opponent = UserModel(
-                        tid=attack["attacker_id"],
-                        name=attack["attacker_name"],
-                        factionid=attack["attacker_faction"],
+                    opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                        upsert=True,
+                        new=True,
+                        set__name=attack["attacker_name"],
+                        set__factionid=attack["attacker_faction"],
                     )
-                    opponent.save()
             else:  # User is the attacker
                 # logger.debug(f"INFO attack {attack['code']} (attack)")
 
@@ -458,12 +458,12 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 opponent_id = attack["defender_id"]
 
                 if opponent is None:
-                    opponent = UserModel(
-                        tid=attack["attacker_id"],
-                        name=attack["attacker_name"],
-                        factionid=attack["attacker_faction"],
+                    opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                        upsert=True,
+                        new=True,
+                        set__name=attack["attacker_name"],
+                        set__factionid=attack["attacker_faction"],
                     )
-                    opponent.save()
 
             if opponent is None:
                 try:

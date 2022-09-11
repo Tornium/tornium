@@ -45,18 +45,18 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         raise Exception("discordid does not match returned discordID")
 
     if user is None:
-        user: UserModel = UserModel(
-            tid=user_data["player_id"],
-            name=user_data["name"],
-            level=user_data["level"],
-            discord_id=user_data["discord"]["discordID"]
+        user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
+            upsert=True,
+            new=True,
+            set__name=user_data["name"],
+            set__level=user_data["level"],
+            set__discord_id=user_data["discord"]["discordID"]
             if user_data["discord"]["discordID"] != ""
             else 0,
-            factionid=user_data["faction"]["faction_id"],
-            status=user_data["last_action"]["status"],
-            last_action=user_data["last_action"]["timestamp"],
+            set__factionid=user_data["faction"]["faction_id"],
+            set__status=user_data["last_action"]["status"],
+            set__last_action=user_data["last_action"]["timestamp"],
         )
-        user.save()
     else:
         user.name = user_data["name"]
         user.level = user_data["level"]

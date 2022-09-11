@@ -116,9 +116,7 @@ class Server:
         return channels
 
     def get_roles(self):
-        roles_query = tasks.discordget(
-            f"guilds/{self.sid}", dev=self.skynet
-        )
+        roles_query = tasks.discordget(f"guilds/{self.sid}", dev=self.skynet)
         roles = {}
 
         for role in roles_query.get("roles"):
@@ -126,7 +124,9 @@ class Server:
                 continue
             elif role["managed"]:  # whether this role is managed by an integration
                 continue
-            elif "tags" in role and ("bot_id" in role["tags"] or "integration_id" in role["tags"]):
+            elif "tags" in role and (
+                "bot_id" in role["tags"] or "integration_id" in role["tags"]
+            ):
                 continue
 
             roles[role["id"]] = {

@@ -38,7 +38,7 @@ def stakeouts_dashboard(guildid: str):
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                      f"of {server.name}.",
+                f"of {server.name}.",
             ),
             403,
         )
@@ -185,7 +185,7 @@ def stakeouts(guildid: str, stype: int):
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                      f"of {server.name}.",
+                f"of {server.name}.",
             ),
             403,
         )
@@ -281,7 +281,7 @@ def stakeout_data(guildid: str):
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                      f"of {server.name}.",
+                f"of {server.name}.",
             ),
             403,
         )
@@ -346,7 +346,7 @@ def stakeout_update(guildid):
                 "errors/error.html",
                 title="Permission Denied",
                 error=f"{current_user.name} [{current_user.tid}] is required to be an administrator "
-                      f"of {server.name}.",
+                f"of {server.name}.",
             ),
             403,
         )

@@ -375,20 +375,15 @@ def banking_request(*args, **kwargs):
                             "label": "Faction Vault",
                             "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        },
+                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
                         {
                             "type": 2,
                             "style": 3,
                             "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill"
-                        }
-                    ]
-                }
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                    ],
+                },
             }
         else:
             message_payload = {
@@ -399,7 +394,7 @@ def banking_request(*args, **kwargs):
                         "description": f"{user.name} [{user.tid}] is requesting "
                         f'{vault_balances["donations"][str(user.tid)]["money_balance"]} from the '
                         f"faction vault. "
-                        f"To fulfill this request, enter `?f {request_id}` in this channel.",\
+                        f"To fulfill this request, enter `?f {request_id}` in this channel.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
@@ -412,20 +407,15 @@ def banking_request(*args, **kwargs):
                             "label": "Faction Vault",
                             "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": send_link
-                        },
+                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
                         {
                             "type": 2,
                             "style": 3,
                             "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill"
-                        }
-                    ]
-                }
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                    ],
+                },
             }
         message = tasks.discordpost(
             f'channels/{vault_config["banking"]}/messages',

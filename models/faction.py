@@ -77,7 +77,7 @@ class Faction:
                     set__name=member_data["name"],
                     set__level=member_data["level"],
                     set__last_action=member_data["last_action"]["timestamp"],
-                    set__status=member_data["last_action"]["status"]
+                    set__status=member_data["last_action"]["status"],
                 )
 
         self.tid = tid
@@ -177,5 +177,5 @@ class Faction:
                     set__level=member_data["level"],
                     set__last_action=member_data["last_action"]["timestamp"],
                     set__status=member_data["last_action"]["status"],
-                    set__factionid=member_data["ID"]
+                    set__factionid=member_data["ID"],
                 )

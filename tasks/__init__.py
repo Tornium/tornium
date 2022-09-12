@@ -320,7 +320,7 @@ def discordget(endpoint, session=None, dev=False):
         logger.warning(
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
         )
-        logger.debug(request_json)
+        logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(
@@ -371,7 +371,7 @@ def discordpatch(endpoint, payload, session=None, dev=False):
         logger.warning(
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
         )
-        logger.debug(request_json)
+        logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(
@@ -422,7 +422,7 @@ def discordpost(endpoint, payload, session=None, dev=False):
         logger.warning(
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
         )
-        logger.debug(request_json)
+        logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(
@@ -473,7 +473,7 @@ def discordput(endpoint, payload, session=None, dev=False):
         logger.warning(
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
         )
-        logger.debug(request_json)
+        logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(
@@ -524,7 +524,7 @@ def discorddelete(endpoint, session=None, dev=False):
         logger.warning(
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
         )
-        logger.debug(request_json)
+        logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(

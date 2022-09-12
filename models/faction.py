@@ -177,5 +177,5 @@ class Faction:
                     set__level=member_data["level"],
                     set__last_action=member_data["last_action"]["timestamp"],
                     set__status=member_data["last_action"]["status"],
-                    set__factionid=member_data["ID"],
+                    set__factionid=faction_data["ID"],
                 )

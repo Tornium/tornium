@@ -366,24 +366,26 @@ def banking_request(*args, **kwargs):
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
-                "components": {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                        },
-                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
-                        {
-                            "type": 2,
-                            "style": 3,
-                            "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill",
-                        },
-                    ],
-                },
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Faction Vault",
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                            },
+                            {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                            {
+                                "type": 2,
+                                "style": 3,
+                                "label": "Fulfill Manually",
+                                "custom_id": "faction:vault:fulfill",
+                            },
+                        ],
+                    },
+                ]
             }
         else:
             message_payload = {
@@ -398,24 +400,26 @@ def banking_request(*args, **kwargs):
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }
                 ],
-                "components": {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                        },
-                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
-                        {
-                            "type": 2,
-                            "style": 3,
-                            "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill",
-                        },
-                    ],
-                },
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Faction Vault",
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                            },
+                            {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                            {
+                                "type": 2,
+                                "style": 3,
+                                "label": "Fulfill Manually",
+                                "custom_id": "faction:vault:fulfill",
+                            },
+                        ],
+                    },
+                ]
             }
         message = tasks.discordpost(
             f'channels/{vault_config["banking"]}/messages',

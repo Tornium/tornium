@@ -112,6 +112,11 @@ def refresh_users():
                 session=requests_session,
             )
         except utils.TornError as e:
+            if e.code in (2, 13):
+                user.key = ""
+                user.save()
+                continue
+
             logger.exception(e)
             honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
             continue

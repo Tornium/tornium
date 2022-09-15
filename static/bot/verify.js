@@ -230,4 +230,30 @@ $(document).ready(function() {
             "remove": true
         }));
     });
+
+    $(".verification-faction-role-remove").on("click", function() {
+        console.log(this);
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+
+            } else {
+                generateToast("Role Removed Successfully");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", "/api/bot/verify/faction/role");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factiontid": this.getAttribute("data-faction"),
+            "role": this.getAttribute("data-role-id")
+        }));
+    });
 });

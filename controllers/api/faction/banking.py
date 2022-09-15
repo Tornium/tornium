@@ -376,7 +376,12 @@ def banking_request(*args, **kwargs):
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                             },
-                            {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Fulfill",
+                                "url": send_link,
+                            },
                             {
                                 "type": 2,
                                 "style": 3,
@@ -385,7 +390,7 @@ def banking_request(*args, **kwargs):
                             },
                         ],
                     },
-                ]
+                ],
             }
         else:
             message_payload = {
@@ -410,7 +415,12 @@ def banking_request(*args, **kwargs):
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                             },
-                            {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Fulfill",
+                                "url": send_link,
+                            },
                             {
                                 "type": 2,
                                 "style": 3,
@@ -419,7 +429,7 @@ def banking_request(*args, **kwargs):
                             },
                         ],
                     },
-                ]
+                ],
             }
         message = tasks.discordpost(
             f'channels/{vault_config["banking"]}/messages',

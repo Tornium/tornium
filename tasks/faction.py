@@ -193,8 +193,9 @@ def refresh_factions():
                         continue
 
                     try:
-                        if user_od["contributed"] != faction.chainod.get(tid).get(
-                            "contributed"
+                        if (
+                            faction.chainod.get(tid) is None
+                            and user_od["contributed"] == 1
                         ):
                             overdosed_user = UserModel.objects(tid=tid).first()
                             payload = {
@@ -205,21 +206,49 @@ def refresh_factions():
                                         f"faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
                                         "footer": {"text": utils.torn_timestamp()},
+                                    }
+                                ],
+                                "components": [
+                                    {
+                                        "type": 1,
                                         "components": [
                                             {
-                                                "type": 1,
-                                                "components": [
-                                                    {
-                                                        "type": 2,
-                                                        "style": 5,
-                                                        "label": "User",
-                                                        "url": f"https://www.torn.com/profiles.php?XID={tid}",
-                                                    }
-                                                ],
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "User",
+                                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
                                             }
                                         ],
                                     }
-                                ]
+                                ],
+                            }
+                        elif faction.chainod.get(tid) is not None and user_od[
+                            "contributed"
+                        ] != faction.chainod.get(tid).get("contributed"):
+                            overdosed_user = UserModel.objects(tid=tid).first()
+                            payload = {
+                                "embeds": [
+                                    {
+                                        "title": "User Overdose",
+                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} of "
+                                        f"faction {faction.name} has overdosed.",
+                                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                                        "footer": {"text": utils.torn_timestamp()},
+                                    }
+                                ],
+                                "components": [
+                                    {
+                                        "type": 1,
+                                        "components": [
+                                            {
+                                                "type": 2,
+                                                "style": 5,
+                                                "label": "User",
+                                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                                            }
+                                        ],
+                                    }
+                                ],
                             }
 
                             try:

@@ -132,7 +132,7 @@ def refresh_factions():
             users.append(int(member_id))
 
             if user is None:
-                user: UserModel = UserModel.objects(tid=int(member)).modify(
+                user: UserModel = UserModel.objects(tid=int(member_id)).modify(
                     upsert=True,
                     new=True,
                     set__name=member["name"],

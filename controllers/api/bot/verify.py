@@ -355,9 +355,7 @@ def faction_verification(*args, **kwargs):
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
-    if (request.method == "POST" and str(faction.tid) in guild.faction_verify) or (
-        request.method == "DELETE" and str(faction.tid) not in guild.faction_verify
-    ):
+    if (request.method == "DELETE" and str(faction.tid) not in guild.faction_verify):
         return (
             jsonify(
                 {

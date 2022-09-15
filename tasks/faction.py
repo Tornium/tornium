@@ -169,12 +169,12 @@ def refresh_factions():
             user.factionaa = False
             user.save()
 
-        if faction.chainconfig["od"] == 1 and len(keys) != 0:
+        if faction.chainconfig["od"] == 1 and len(faction.aa_keys) != 0:
             try:
                 faction_od = tornget(
                     "faction/?selections=contributors",
                     stat="drugoverdoses",
-                    key=random.choice(keys),
+                    key=random.choice(faction.aa_keys),
                     session=requests_session,
                 )
             except TornError as e:

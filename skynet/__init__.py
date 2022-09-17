@@ -36,8 +36,9 @@ commands_dev_data = []
 
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
-        commands_data.append(json.load(command_file))
-        commands_dev_data.append(json.load(command_file))
+        command_json = json.load(command_file)
+        commands_data.append(command_json)
+        commands_dev_data.append(command_json)
 
 for commandid in commands_list["development"]:
     with open(f"commands/{commandid}.json") as command_file:

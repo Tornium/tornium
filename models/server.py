@@ -40,6 +40,7 @@ class Server:
                 stakeoutconfig={"category": 0},
                 userstakeouts=[],
                 factionstakeouts=[],
+                verify_template="{{ name }} [{{ tid }}]",
                 faction_verify={},
                 verify_log_channel=0,
                 welcome_channel=0,
@@ -62,6 +63,7 @@ class Server:
         self.user_stakeouts = server.userstakeouts
         self.faction_stakeouts = server.factionstakeouts
 
+        self.verify_template = server.verify_template
         self.faction_verify = server.faction_verify
         self.verify_log_channel = server.verify_log_channel
         self.welcome_channel = server.welcome_channel

@@ -32,6 +32,7 @@ class ServerModel(DynamicDocument):
     factionstakeouts = ListField(default=[])  # List of staked-out factions
 
     verify_template = StringField(default="{{ name }} [{{ tid }}]")
+    verified_roles = ListField(default=[])
     faction_verify = DictField(default={})
     verify_log_channel = IntField(default=0)
     welcome_channel = IntField(default=0)

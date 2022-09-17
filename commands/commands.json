@@ -1,6 +1,7 @@
 {
     "active": [
         "ping",
+        "bot/verify/verify",
         "faction/assist/assist",
         "faction/banking/balance",
         "faction/banking/fulfill",
@@ -9,7 +10,6 @@
         "user/who"
     ],
     "disabled": [
-        "bot/verify/verify",
         "bot/verify/verifyall"
     ]
 }

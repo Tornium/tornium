@@ -1,7 +1,7 @@
 {
     "name": "verify",
     "type": 1,
-    "description": "Verifies the current user or the memtioned user within the server",
+    "description": "Verifies the current user or the mentioned user within the server",
     "options": [
         {
             "type": 6,

@@ -25,7 +25,7 @@ except FileNotFoundError:
         "url": "",
         "honeyenv": "production",
         "honeykey": "",
-        "skynet": {"applicationid": "", "applicationpublic": "", "bottoken": ""},
+        "skynet": {"applicationid": "", "applicationpublic": "", "bottoken": "", "devguild": ""},
     }
     with open(f"settings.json", "w") as file:
         json.dump(data, file, indent=4)
@@ -54,5 +54,9 @@ redis.set(
 )
 redis.set(
     "tornium:settings:skynet:bottoken",
+    data.get("skynet").get("bottoken") if "skynet" in data else None,
+)
+redis.set(
+    "tornium:settings:skynet:devguild",
     data.get("skynet").get("bottoken") if "skynet" in data else None,
 )

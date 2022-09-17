@@ -32,10 +32,16 @@ session = requests.Session()
 application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid")
 
 commands_data = []
+commands_dev_data = []
 
 for commandid in commands_list["active"]:
     with open(f"commands/{commandid}.json") as command_file:
         commands_data.append(json.load(command_file))
+        commands_dev_data.append(json.load(command_file))
+
+for commandid in commands_list["development"]:
+    with open(f"commands/{commandid}.json") as command_file:
+        commands_dev_data.append(json.load(command_file))
 
 try:
     commands_data = tasks.discordput(
@@ -51,7 +57,23 @@ except Exception as e:
     honeybadger.honeybadger.notify(e)
     raise e
 
-    # TODO: Add permissions to certain commands (e.g. fulfill)
+try:
+    if redisdb.get_redis().exists("tornium:skynet:devguild"):
+        guild = redisdb.get_redis().get("tornium:skynet:devguild")
+
+        if guild != "":
+            commands_dev_data = tasks.discordput(
+                f"applications/{application_id}/guilds/{guild}/commands",
+                commands_dev_data,
+                session=True,
+                dev=True
+            )
+except utils.DiscordError as e:
+    honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
+    raise e
+except Exception as e:
+    honeybadger.honeybadger.notify(e)
+    raise e
 
 mod = Blueprint("botinteractions", __name__)
 

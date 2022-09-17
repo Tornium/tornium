@@ -1,13 +1,15 @@
 {
     "active": [
         "ping",
-        "bot/verify/verify",
         "faction/assist/assist",
         "faction/banking/balance",
         "faction/banking/fulfill",
         "faction/banking/transfer",
         "faction/banking/withdraw",
         "user/who"
+    ],
+    "development": [
+        "bot/verify/verify"
     ],
     "disabled": [
         "bot/verify/verifyall"

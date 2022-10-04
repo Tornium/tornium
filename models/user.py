@@ -23,9 +23,8 @@ class User(UserMixin):
 
         user = UserModel.objects(_id=tid).first()
         if user is None:
-            user = UserModel.objects(_id=tid).modify(
-                upsert=True, new=True
-            )
+            user = UserModel.objects(_id=tid).first()
+            user.save()
 
         self.tid = tid
         self.name = user.name

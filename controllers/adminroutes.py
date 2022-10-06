@@ -95,6 +95,7 @@ def dashboard():
                     session=session,
                     dev=True,
                 )
+                botlogger.info(commands_data)
             except utils.DiscordError as e:
                 botlogger.error(e)
                 honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})

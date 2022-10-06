@@ -3,10 +3,8 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from functools import wraps
 import json
-from re import search
-from controllers.authroutes import login
+import logging
 
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
@@ -66,6 +64,14 @@ def dashboard():
             with open("commands/commands.json") as commands_file:
                 commands_list = json.load(commands_file)
 
+            botlogger = logging.getLogger("skynet")
+            botlogger.setLevel(logging.DEBUG)
+            handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
+            handler.setFormatter(
+                logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+            )
+            botlogger.addHandler(handler)
+
             session = requests.Session()
             application_id = get_redis().get("tornium:settings:skynet:applicationid")
 
@@ -90,9 +96,11 @@ def dashboard():
                     dev=True,
                 )
             except utils.DiscordError as e:
+                botlogger.error(e)
                 honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
                 raise e
             except Exception as e:
+                botlogger.error(e)
                 honeybadger.honeybadger.notify(e)
                 raise e
 
@@ -108,9 +116,11 @@ def dashboard():
                             dev=True
                         )
             except utils.DiscordError as e:
+                botlogger.error(e)
                 honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
                 raise e
             except Exception as e:
+                botlogger.error(e)
                 honeybadger.honeybadger.notify(e)
                 raise e
 

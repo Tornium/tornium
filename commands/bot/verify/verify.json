@@ -8,6 +8,12 @@
             "name": "member",
             "description": "The Discord member to be verified",
             "required": false
+        },
+        {
+            "type": 5,
+            "name": "force",
+            "description": "Forced verification of user",
+            "required": false
         }
     ]
 }

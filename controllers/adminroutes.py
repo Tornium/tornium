@@ -74,6 +74,7 @@ def dashboard():
 
             session = requests.Session()
             application_id = get_redis().get("tornium:settings:skynet:applicationid")
+            botlogger.debug(application_id)
 
             commands_data = []
             commands_dev_data = []
@@ -87,6 +88,9 @@ def dashboard():
             for commandid in commands_list["development"]:
                 with open(f"commands/{commandid}.json") as command_file:
                     commands_dev_data.append(json.load(command_file))
+
+            botlogger.debug(commands_data)
+            botlogger.debug(commands_dev_data)
 
             try:
                 commands_data = tasks.discordput(

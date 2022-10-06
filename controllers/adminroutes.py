@@ -77,20 +77,13 @@ def dashboard():
             botlogger.debug(application_id)
 
             commands_data = []
-            commands_dev_data = []
 
             for commandid in commands_list["active"]:
                 with open(f"commands/{commandid}.json") as command_file:
                     command_json = json.load(command_file)
                     commands_data.append(command_json)
-                    commands_dev_data.append(command_json)
-
-            for commandid in commands_list["development"]:
-                with open(f"commands/{commandid}.json") as command_file:
-                    commands_dev_data.append(json.load(command_file))
 
             botlogger.debug(commands_data)
-            botlogger.debug(commands_dev_data)
 
             try:
                 commands_data = tasks.discordput(
@@ -116,7 +109,7 @@ def dashboard():
                     if guild != "":
                         commands_dev_data = tasks.discordput(
                             f"applications/{application_id}/guilds/{guild}/commands",
-                            commands_dev_data,
+                            commands_data,
                             session=True,
                             dev=True
                         )

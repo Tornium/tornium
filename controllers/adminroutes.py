@@ -4,11 +4,14 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from functools import wraps
+import json
 from re import search
 from controllers.authroutes import login
 
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
+import honeybadger
+import requests
 
 from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
@@ -59,6 +62,57 @@ def dashboard():
 
             for key in redis.keys("tornium:torn-cache:*"):
                 redis.delete(key)
+        elif request.form.get("updatecommands") is not None:
+            with open("commands/commands.json") as commands_file:
+                commands_list = json.load(commands_file)
+
+            session = requests.Session()
+            application_id = get_redis().get("tornium:settings:skynet:applicationid")
+
+            commands_data = []
+            commands_dev_data = []
+
+            for commandid in commands_list["active"]:
+                with open(f"commands/{commandid}.json") as command_file:
+                    command_json = json.load(command_file)
+                    commands_data.append(command_json)
+                    commands_dev_data.append(command_json)
+
+            for commandid in commands_list["development"]:
+                with open(f"commands/{commandid}.json") as command_file:
+                    commands_dev_data.append(json.load(command_file))
+
+            try:
+                commands_data = tasks.discordput(
+                    f"applications/{application_id}/commands",
+                    commands_data,
+                    session=session,
+                    dev=True,
+                )
+            except utils.DiscordError as e:
+                honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
+                raise e
+            except Exception as e:
+                honeybadger.honeybadger.notify(e)
+                raise e
+
+            try:
+                if get_redis().exists("tornium:skynet:devguild"):
+                    guild = get_redis().get("tornium:skynet:devguild")
+
+                    if guild != "":
+                        commands_dev_data = tasks.discordput(
+                            f"applications/{application_id}/guilds/{guild}/commands",
+                            commands_dev_data,
+                            session=True,
+                            dev=True
+                        )
+            except utils.DiscordError as e:
+                honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
+                raise e
+            except Exception as e:
+                honeybadger.honeybadger.notify(e)
+                raise e
 
     return render_template("admin/dashboard.html")
 

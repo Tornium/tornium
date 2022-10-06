@@ -256,4 +256,53 @@ $(document).ready(function() {
             "role": this.getAttribute("data-role-id")
         }));
     });
+
+    $(".verification-role-add").on("change", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Role Add Failed");
+            } else {
+                generateToast("Role Add Successful");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/role");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "role": this.options[this.selectedIndex].value
+        }));
+    });
+
+    $(".verification-role-remove").on("click", function() {
+        console.log(this);
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+
+            } else {
+                generateToast("Role Removed Scucessfully");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", "/api/bot/verify/role");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "role": this.getAttribute("data-role-id")
+        }));
+    });
 });

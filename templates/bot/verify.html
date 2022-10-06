@@ -108,6 +108,66 @@ Tornium - Verification
 
     <div class="card mt-3">
         <div class="card-body">
+            <h5 class="card-title">Verified Role and Names</h5>
+            <p class="card-text">
+                Settings regarding how the names of users who are verified change.
+            </p>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <div class="form-floating">
+                        <input class="form-control" id="verification-name-template" name="name-template" value="{{ guild.verify_template }}">
+                        <label for="name-template">Verification Name Template</label>
+                        <div class="form-text">
+                            Please enter the template to be used for verification names. Leave the template empty to prevent faction 
+                            members from having their names automatically changed.
+
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">{% raw %} {{ name}} {% endraw %}: Torn name</li>
+                                <li class="list-group-item">{% raw %} {{ tid }} {% endraw %}: Torn ID</li>
+                                <li class="list-group-item disabled">{% raw %} {{ tag }} {% endraw %}: Faction Tag (NYI)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Verified Roles
+                        </div>
+
+                        <div class="form-floating px-3 py-3">
+                            <select class="form-select verification-role-add" aria-label="Verification Role Add">
+                                <option value="0">Add a role for verification</option>
+                                {% for role in roles.values() %}
+                                    {% if role not in guild.verified_roles %}
+                                        <option value="{{ role["id"] }}">{{ role["name"] }} [{{ role["id"] }}]</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <ul class="list-group list-group-flush">
+                            {% for role in guild.verified_roles %}
+                            <li class="list-group-item">
+                                <button type="button" class="btn verification-role-remove" data-role-id="{{ role }}">
+                                    <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
+                                </button>
+                                {{ roles[role|string].name }} [{{ role }}]
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
             <h5 class="card-title">Faction Verification</h5>
             <p class="card-text">
                 Verifies users in a Torn Discord server by the faction ID. Any faction can be used for this verification.
@@ -159,7 +219,7 @@ Tornium - Verification
                                 <button type="button" class="btn verification-faction-role-remove" data-faction="{{ faction }}" data-role-id="{{ role }}">
                                     <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
                                 </button>
-                                {{roles[role|string].name }} [{{ role }}]
+                                {{ roles[role|string].name }} [{{ role }}]
                             </li>
                             {% endfor %}
                         </ul>

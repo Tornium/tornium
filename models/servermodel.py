@@ -35,7 +35,6 @@ class ServerModel(DynamicDocument):
     verified_roles = ListField(default=[])
     faction_verify = DictField(default={})
     verify_log_channel = IntField(default=0)
-    welcome_channel = IntField(default=0)
 
     assistschannel = IntField(default=0)
     assist_factions = ListField(

@@ -129,7 +129,6 @@ def guild_verification(*args, **kwargs):
                     if guild.config.get("verify") is not None
                     else False,
                     "verify_log_channel": guild.verify_log_channel,
-                    "welcome_channel": guild.welcome_channel,
                     "faction_verify": guild.faction_verify,
                 },
             }
@@ -208,85 +207,6 @@ def guild_verification_log(*args, **kwargs):
                 if guild.config.get("verify") is not None
                 else False,
                 "verify_log_channel": guild.verify_log_channel,
-                "welcome_channel": guild.welcome_channel,
-                "faction_verify": guild.faction_verify,
-            },
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
-
-
-@key_required
-@ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
-def guild_verification_welcome(*args, **kwargs):
-    data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    guildid = data.get("guildid")
-    channelid = data.get("channel")
-
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or channelid in ("", None, 0)
-        or not channelid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and channel ID are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-
-    guildid = int(guildid)
-    channelid = int(channelid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-
-    guild.welcome_channel = channelid
-    guild.save()
-
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "welcome_channel": guild.welcome_channel,
                 "faction_verify": guild.faction_verify,
             },
         },
@@ -393,7 +313,6 @@ def faction_verification(*args, **kwargs):
                 if guild.config.get("verify") is not None
                 else False,
                 "verify_log_channel": guild.verify_log_channel,
-                "welcome_channel": guild.welcome_channel,
                 "faction_verify": guild.faction_verify,
             },
         },
@@ -498,7 +417,6 @@ def guild_verification_role(*args, **kwargs):
                 if guild.config.get("verify") is not None
                 else False,
                 "verify_log_channel": guild.verify_log_channel,
-                "welcome_channel": guild.welcome_channel,
                 "faction_verify": guild.faction_verify,
             }
         },
@@ -624,7 +542,6 @@ def faction_role(*args, **kwargs):
                 if guild.config.get("verify") is not None
                 else False,
                 "verify_log_channel": guild.verify_log_channel,
-                "welcome_channel": guild.welcome_channel,
                 "faction_verify": guild.faction_verify,
             },
         },

@@ -110,28 +110,7 @@ $(document).ready(function() {
         }));
     });
 
-    $("#verification-welcome-channel").on('change', function() {
-        const xhttp = new XMLHttpRequest();
 
-        xhttp.onload = function() {
-            let response = xhttp.response;
-
-            if("code" in response) {
-                generateToast("Welcome Channel Failed", `The Tornium API server has responded with \"${response["message"]}\".`);
-            } else {
-                generateToast("Welcome Channel Successful");
-            }
-        }
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/welcome");
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify({
-            "guildid": guildid,
-            "channel": this.options[this.selectedIndex].value
-        }));
-    });
 
     $(".verification-faction-enable").on("click", function() {
         const xhttp = new XMLHttpRequest();

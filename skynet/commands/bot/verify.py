@@ -34,6 +34,21 @@ def verify(interaction):
 
     server = Server(interaction["guild_id"])
 
+    if server.config.get("verify") in (None, 0):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Not Enabled",
+                        "description": "Verification is not enabled in the server's admin dashboard.",
+                        "color": 0xC83F49
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
+
     if "member" in interaction:
         user: UserModel = UserModel.objects(
             discord_id=interaction["member"]["user"]["id"]
@@ -205,7 +220,7 @@ def verify(interaction):
             "embeds": [
                 {
                     "title": "Verification Successful",
-                    "description": f"""User: ({user.name} [{user.tid}])[https://www.torn.com/profiles.php?XID={user.tid}]
+                    "description": f"""User: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
                     Faction: {faction_str}
                     Discord: <@{user.discord_id}>""",
                     "color": 0x32CD32,

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Assists
 // @namespace    http://torn.deek.sh
-// @version      0.0.1
+// @version      0.0.2
 // @updateURL    https://torn.deek.sh/userscripts/tornium-assists.user.js
 // @downloadURL  https://torn.deek.sh/userscripts/tornium-assists.user.js
 // @author       tiksan [2383326]
@@ -29,7 +29,7 @@ $(document).ready(function() {
     button.classList.add("torn-btn");
     button.style.setProperty("margin-left", "1rem");
 
-    $("a[aria-labelledby='back-to-profile']").parent().append(button);
+    $("div[class^='titleContainer__']").append(button);
 
     button.innerHTML = "Assist";
     button.onclick = function() {

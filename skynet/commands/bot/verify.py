@@ -94,10 +94,10 @@ def verify(interaction):
 
     if member != -1:
         user: UserModel = UserModel.objects(
-            discord_id=force[1]["value"]
+            discord_id=member[1]["value"]
         ).first()
 
-        discord_id = force[1]["value"]
+        discord_id = member[1]["value"]
 
         try:
             discord_member = tasks.discordget(f"guilds/{server.sid}/members/{discord_id}", dev=server.skynet)

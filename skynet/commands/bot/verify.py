@@ -254,14 +254,30 @@ def verify(interaction):
         if nick != interaction["member"]["nick"]:
             patch_json["nick"] = nick
 
-    if len(server.verified_roles) != 0:
-        role_overlap = set(server.verified_roles) & set(user_roles)
+    if len(server.verified_roles) != 0 and user.discord_id != 0:
+        verified_role: int
+        for verified_role in server.verified_roles:
+            if str(verified_role) in user_roles:
+                continue
+            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                patch_json["roles"] = user_roles
 
-        if user.discord_id == 0 and len(role_overlap) != 0:
-            print(list(set(server.verified_roles) - role_overlap))
+            patch_json["roles"].append(str(verified_role))
 
-    if server.faction_verify.get(user.factiontid) is not None:
-        pass
+    if (
+        server.faction_verify.get(str(user.factiontid)) is not None
+        and server.faction_verify[str(user.factiontid)].get("roles") is not None
+        and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
+        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
+    ):
+        faction_role: int
+        for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
+            if str(faction_role) in user_roles:
+                continue
+            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                patch_json["roles"] = user_roles
+
+            patch_json["roles"].append(str(faction_role))
 
     print(patch_json)
 

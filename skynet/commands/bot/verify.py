@@ -75,12 +75,14 @@ def verify(interaction):
             discord_id=interaction["member"]["user"]["id"]
         ).first()
 
+        discord_id = interaction["member"]["user"]["id"]
         user_roles = interaction["member"]["roles"]
     else:
         user: UserModel = UserModel.objects(
             discord_id=interaction["user"]["id"]
         ).first()
 
+        discord_id = interaction["member"]["user"]["id"]
         user_roles = interaction["user"]["roles"]
 
     if "options" in interaction["data"]:
@@ -91,18 +93,44 @@ def verify(interaction):
         force = -1
 
     if member != -1:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Yet Implemented",
-                        "description": "Not Yet Implemented",
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
+        user: UserModel = UserModel.objects(
+            discord_id=force[1]["value"]
+        ).first()
+
+        discord_id = force[1]["value"]
+
+        try:
+            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{discord_id}", dev=server.skynet)
+        except utils.DiscordError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+        except utils.NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        user_roles = discord_member["roles"]
 
     admin_keys = get_admin_keys(interaction)
 
@@ -125,7 +153,7 @@ def verify(interaction):
     if user is None:
         try:
             user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=profile,discord",
+                f"user/{discord_id}?selections=profile,discord",
                 random.choice(admin_keys),
             )
         except utils.TornError as e:

@@ -249,11 +249,10 @@ def verify(interaction):
     patch_json = {}
 
     if server.verify_template != "":
-        patch_json["nick"] = (
-            jinja2.Environment()
-            .from_string(server.verify_template)
-            .render(name=user.name, tid=user.tid, tag="")
-        )
+        nick = jinja2.Environment().from_string(server.verify_template).render(name=user.name, tid=user.tid, tag="")
+
+        if nick != interaction["member"]["nick"]:
+            patch_json["nick"] = nick
 
     if len(server.verified_roles) != 0:
         role_overlap = set(server.verified_roles) & set(user_roles)

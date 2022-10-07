@@ -93,14 +93,14 @@ def verify(interaction):
         force = -1
 
     if member != -1:
-        user: UserModel = UserModel.objects(
-            discord_id=member[1]["value"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=member[1]["value"]).first()
 
         discord_id = member[1]["value"]
 
         try:
-            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{discord_id}", dev=server.skynet)
+            discord_member = tasks.discordget(
+                f"guilds/{server.sid}/members/{discord_id}", dev=server.skynet
+            )
         except utils.DiscordError as e:
             return {
                 "type": 4,
@@ -277,7 +277,11 @@ def verify(interaction):
     patch_json = {}
 
     if server.verify_template != "":
-        nick = jinja2.Environment().from_string(server.verify_template).render(name=user.name, tid=user.tid, tag="")
+        nick = (
+            jinja2.Environment()
+            .from_string(server.verify_template)
+            .render(name=user.name, tid=user.tid, tag="")
+        )
 
         if nick != interaction["member"]["nick"]:
             patch_json["nick"] = nick
@@ -296,7 +300,8 @@ def verify(interaction):
         server.faction_verify.get(str(user.factiontid)) is not None
         and server.faction_verify[str(user.factiontid)].get("roles") is not None
         and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
-        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
+        and server.faction_verify[str(user.factiontid)].get("enabled")
+        not in (None, False)
     ):
         faction_role: int
         for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
@@ -307,7 +312,9 @@ def verify(interaction):
 
             patch_json["roles"].append(str(faction_role))
 
-    if len(patch_json) == 0 and (force == -1 or (type(force) == list and not force[1].get("value"))):
+    if len(patch_json) == 0 and (
+        force == -1 or (type(force) == list and not force[1].get("value"))
+    ):
         return {
             "type": 4,
             "data": {
@@ -315,16 +322,20 @@ def verify(interaction):
                     {
                         "title": "Verification Already Completed",
                         "description": "The verification would have modified no values. Run the command with force if "
-                                       "you believe something has changed.",
-                        "color": 0x7DF9FF
+                        "you believe something has changed.",
+                        "color": 0x7DF9FF,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     try:
-        response = tasks.discordpatch(f"guilds/{server.sid}/members/{user.discord_id}", patch_json, dev=server.skynet)
+        response = tasks.discordpatch(
+            f"guilds/{server.sid}/members/{user.discord_id}",
+            patch_json,
+            dev=server.skynet,
+        )
     except utils.DiscordError as e:
         return {
             "type": 4,

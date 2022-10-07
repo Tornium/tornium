@@ -279,7 +279,24 @@ def verify(interaction):
 
             patch_json["roles"].append(str(faction_role))
 
-    print(patch_json)
+    if len(patch_json) == 0 and (force == -1 or (type(force) == list and not force[1].get("value"))):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Already Completed",
+                        "description": "The verification would have modified no values. Run the command with force if "
+                                       "you believe something has changed.",
+                        "color": 0x7DF9FF
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
+
+    response = tasks.discordpatch(f"guilds/{server.sid}/members/{user.discord_id}", patch_json, dev=server.skynet)
+    print(response)
 
     faction: FactionModel = (
         FactionModel.objects(tid=user.factiontid).first()

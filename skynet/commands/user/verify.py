@@ -42,7 +42,7 @@ def verify(interaction):
                         {
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
-                                           "Tornium or run this command in a server with signed-in admins.",
+                            "Tornium or run this command in a server with signed-in admins.",
                             "color": 0xC83F49,
                         }
                     ],
@@ -111,7 +111,7 @@ def verify(interaction):
                         {
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
-                                           "Tornium or run this command in a server with signed-in admins.",
+                            "Tornium or run this command in a server with signed-in admins.",
                             "color": 0xC83F49,
                         }
                     ],
@@ -132,7 +132,7 @@ def verify(interaction):
                 user, user_date = update_user(
                     key=random.choice(admin_keys),
                     discordid=interaction["user"]["id"],
-                    refresh_existing=True
+                    refresh_existing=True,
                 )
         except utils.TornError as e:
             return {
@@ -184,11 +184,10 @@ def verify(interaction):
             "embeds": [
                 {
                     "title": "Verification Successful",
-                    "description":
-                        f"""Torn: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
+                    "description": f"""Torn: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
                         Discord: <@{user.discord_id}>
-                        """
+                        """,
                 }
             ]
-        }
+        },
     }

@@ -5,6 +5,8 @@
 
 import random
 
+import jinja2
+
 from models.factionmodel import FactionModel
 from models.server import Server
 from models.user import User
@@ -25,11 +27,11 @@ def verify(interaction):
                     {
                         "title": "Invalid Location",
                         "description": "The verification command must be run in a server where verification is setup "
-                                       "and enabled.",
+                        "and enabled.",
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     server = Server(interaction["guild_id"])
@@ -42,21 +44,44 @@ def verify(interaction):
                     {
                         "title": "Verification Not Enabled",
                         "description": "Verification is not enabled in the server's admin dashboard.",
-                        "color": 0xC83F49
+                        "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
+        }
+    elif (
+        server.verify_template == ""
+        and len(server.verified_roles) == 0
+        and len(server.faction_verify) == 0
+    ):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Not Enabled",
+                        "description": "Verification is enabled, but nothing will be changed based on the current "
+                        "settings in the server's admin dashboard.",
+                        "color": 0xC83F49,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
         }
 
     if "member" in interaction:
         user: UserModel = UserModel.objects(
             discord_id=interaction["member"]["user"]["id"]
         ).first()
+
+        user_roles = interaction["member"]["roles"]
     else:
         user: UserModel = UserModel.objects(
             discord_id=interaction["user"]["id"]
         ).first()
+
+        user_roles = interaction["user"]["roles"]
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -64,6 +89,20 @@ def verify(interaction):
     else:
         member = -1
         force = -1
+
+    if member != -1:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Not Yet Implemented",
+                        "description": "Not Yet Implemented",
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     admin_keys = get_admin_keys(interaction)
 
@@ -75,7 +114,7 @@ def verify(interaction):
                     {
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
-                                       "Tornium or run this command in a server with signed-in admins.",
+                        "Tornium or run this command in a server with signed-in admins.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -140,11 +179,11 @@ def verify(interaction):
                         {
                             "title": "User Requires Verification",
                             "description": "You are required to be verified officially by Torn through the "
-                                           "[official Torn Discord server](https://www.torn.com/discord] before being "
-                                           "able to utilize the banking features of this bot. Alternatively, you can "
-                                           "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
-                                           "your API key to send a request without verifying. If you have recently "
-                                           "verified yourself, please wait a minute or two before trying again.",
+                            "[official Torn Discord server](https://www.torn.com/discord] before being "
+                            "able to utilize the banking features of this bot. Alternatively, you can "
+                            "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                            "your API key to send a request without verifying. If you have recently "
+                            "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
                         }
                     ],
@@ -159,11 +198,11 @@ def verify(interaction):
                     {
                         "title": "User Requires Verification",
                         "description": "You are required to be verified officially by Torn through the "
-                                       "[official Torn Discord server](https://www.torn.com/discord] before being "
-                                       "able to utilize the banking features of this bot. Alternatively, you can "
-                                       "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
-                                       "your API key to send a request without verifying. If you have recently "
-                                       "verified yourself, please wait a minute or two before trying again.",
+                        "[official Torn Discord server](https://www.torn.com/discord] before being "
+                        "able to utilize the banking features of this bot. Alternatively, you can "
+                        "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                        "your API key to send a request without verifying. If you have recently "
+                        "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -173,7 +212,9 @@ def verify(interaction):
 
     try:
         user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys), force=True if force != -1 else False)
+        user.refresh(
+            key=random.choice(admin_keys), force=True if force != -1 else False
+        )
     except utils.MissingKeyError:
         return {
             "type": 4,
@@ -197,15 +238,39 @@ def verify(interaction):
                     {
                         "title": "Verification Failed",
                         "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
-                                       "Otherwise, try forcing the verification.",
-                        "color": 0xC83F49
+                        "Otherwise, try forcing the verification.",
+                        "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
-    faction: FactionModel = FactionModel.objects(tid=user.factiontid).first() if user.factiontid != 0 else None
+    patch_json = {}
+
+    if server.verify_template != "":
+        patch_json["nick"] = (
+            jinja2.Environment()
+            .from_string(server.verify_template)
+            .render(name=user.name, tid=user.tid, tag="")
+        )
+
+    if len(server.verified_roles) != 0:
+        role_overlap = set(server.verified_roles) & set(user_roles)
+
+        if user.discord_id == 0 and len(role_overlap) != 0:
+            print(list(set(server.verified_roles) - role_overlap))
+
+    if server.faction_verify.get(user.factiontid) is not None:
+        pass
+
+    print(patch_json)
+
+    faction: FactionModel = (
+        FactionModel.objects(tid=user.factiontid).first()
+        if user.factiontid != 0
+        else None
+    )
 
     if user.factiontid == 0:
         faction_str = "None"
@@ -226,5 +291,5 @@ def verify(interaction):
                     "color": 0x32CD32,
                 }
             ]
-        }
+        },
     }

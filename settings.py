@@ -25,7 +25,12 @@ except FileNotFoundError:
         "url": "",
         "honeyenv": "production",
         "honeykey": "",
-        "skynet": {"applicationid": "", "applicationpublic": "", "bottoken": "", "devguild": ""},
+        "skynet": {
+            "applicationid": "",
+            "applicationpublic": "",
+            "bottoken": "",
+            "devguild": "",
+        },
     }
     with open(f"settings.json", "w") as file:
         json.dump(data, file, indent=4)

@@ -276,7 +276,7 @@ def faction_verification(*args, **kwargs):
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
-    if (request.method == "DELETE" and str(faction.tid) not in guild.faction_verify):
+    if request.method == "DELETE" and str(faction.tid) not in guild.faction_verify:
         return (
             jsonify(
                 {
@@ -336,7 +336,7 @@ def guild_verification_role(*args, **kwargs):
     guildid = data.get("guildid")
     roleid = data.get("role")
 
-    if(
+    if (
         guildid in ("", None, 0)
         or not guildid.isdigit()
         or roleid in ("", None, 0)
@@ -357,7 +357,7 @@ def guild_verification_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    
+
     guildid = int(guildid)
     roleid = int(roleid)
 
@@ -380,12 +380,8 @@ def guild_verification_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    elif (
-        request.method == "POST"
-        and roleid in guild.verified_roles
-    ) or (
-        request.method == "DELETE"
-        and roleid not in guild.verified_roles
+    elif (request.method == "POST" and roleid in guild.verified_roles) or (
+        request.method == "DELETE" and roleid not in guild.verified_roles
     ):
         return (
             jsonify(
@@ -402,12 +398,12 @@ def guild_verification_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    
+
     if request.method == "POST":
         guild.verified_roles.append(roleid)
     elif request.method == "DELETE":
         guild.verified_roles.remove(roleid)
-    
+
     guild.save()
 
     return jsonify(

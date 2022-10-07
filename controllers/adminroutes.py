@@ -66,7 +66,9 @@ def dashboard():
 
             botlogger = logging.getLogger("skynet")
             botlogger.setLevel(logging.DEBUG)
-            handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
+            handler = logging.FileHandler(
+                filename="skynet.log", encoding="utf-8", mode="a"
+            )
             handler.setFormatter(
                 logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
             )
@@ -95,7 +97,9 @@ def dashboard():
                 botlogger.info(commands_data)
             except utils.DiscordError as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
+                honeybadger.honeybadger.notify(
+                    e, context={"code": e.code, "message": e.message}
+                )
                 raise e
             except Exception as e:
                 botlogger.error(e)
@@ -111,11 +115,13 @@ def dashboard():
                             f"applications/{application_id}/guilds/{guild}/commands",
                             commands_data,
                             session=True,
-                            dev=True
+                            dev=True,
                         )
             except utils.DiscordError as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(e, context={"code": e.code, "message": e.message})
+                honeybadger.honeybadger.notify(
+                    e, context={"code": e.code, "message": e.message}
+                )
                 raise e
             except Exception as e:
                 botlogger.error(e)

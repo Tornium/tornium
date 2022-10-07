@@ -43,7 +43,7 @@ mod.add_url_rule(
 mod.add_url_rule(
     "/api/bot/verify/role",
     view_func=bot.verify.guild_verification_role,
-    methods=["POST", "DELETE"]
+    methods=["POST", "DELETE"],
 )
 
 # /api/faction

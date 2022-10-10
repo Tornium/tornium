@@ -355,6 +355,7 @@ def verify(interaction):
             patch_json,
             dev=server.skynet,
         )
+        print(response)
     except utils.DiscordError as e:
         return {
             "type": 4,
@@ -383,8 +384,6 @@ def verify(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-
-    print(response)
 
     faction: FactionModel = (
         FactionModel.objects(tid=user.factiontid).first()

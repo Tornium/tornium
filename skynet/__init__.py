@@ -64,7 +64,7 @@ def skynet_interactions():
     elif request.json["data"]["name"] == "verify":
         return jsonify(skynet.commands.bot.verify.verify(request.json))
     elif request.json["data"]["name"] == "verifyall":
-        return {}
+        return jsonify(skynet.commands.bot.verifyall.verifyall(request.json))
 
     # User Commands
     elif request.json["data"]["name"] == "who":

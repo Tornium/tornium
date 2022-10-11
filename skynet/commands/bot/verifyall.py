@@ -6,8 +6,8 @@
 import random
 
 import jinja2
+import requests
 
-from models.factionmodel import FactionModel
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
@@ -70,15 +70,6 @@ def verifyall(interaction):
             },
         }
 
-    if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
-    else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
-
     if "options" in interaction["data"]:
         force = utils.find_list(interaction["data"]["option"], "name", "force")
     else:
@@ -102,9 +93,15 @@ def verifyall(interaction):
             },
         }
 
+    session = requests.Session()
+
     try:
         server_data = tasks.discordget(
-            f"guilds/{server.sid}?with_counts=true", dev=server.skynet
+            f"guilds/{server.sid}?with_counts=true",
+            dev=server.skynet,
+            bucket=f"guilds/{server.sid}",
+            retry=True,
+            session=session,
         )
         print(server_data)
     except utils.DiscordError as e:
@@ -147,7 +144,11 @@ def verifyall(interaction):
     ):
         try:
             guild_members = tasks.discordget(
-                f"guilds/{server.sid}/members?limit=1000", dev=server.skynet
+                f"guilds/{server.sid}/members?limit=1000",
+                dev=server.skynet,
+                bucket=f"guilds/{server.sid}",
+                retry=True,
+                session=session,
             )
             print(guild_members)
         except utils.DiscordError as e:
@@ -236,6 +237,9 @@ def verifyall(interaction):
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                            session=session,
                         )
                         continue
                     except Exception:
@@ -264,6 +268,9 @@ def verifyall(interaction):
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                            session=session,
                         )
                         continue
                     except Exception:
@@ -305,6 +312,9 @@ def verifyall(interaction):
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                        session=session,
                     )
                     continue
                 except Exception:
@@ -345,6 +355,9 @@ def verifyall(interaction):
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                        session=session,
                     )
                     continue
                 except Exception:
@@ -367,7 +380,9 @@ def verifyall(interaction):
                 for verified_role in server.verified_roles:
                     if str(verified_role) in guild_member["roles"]:
                         continue
-                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    elif (
+                        patch_json.get("roles") is None or len(patch_json["roles"]) == 0
+                    ):
                         patch_json["roles"] = guild_member["roles"]
 
                     patch_json["roles"].append(str(verified_role))
@@ -375,37 +390,50 @@ def verifyall(interaction):
                 verified_role: int
                 for verified_role in server.verified_roles:
                     if str(verified_role) in guild_member["roles"]:
-                        if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                        if (
+                            patch_json.get("roles") is None
+                            or len(patch_json["roles"]) == 0
+                        ):
                             patch_json["roles"] = guild_member["roles"]
 
                         patch_json["roles"].remove(str(verified_role))
 
             if (
-                    server.faction_verify.get(str(user.factiontid)) is not None
-                    and server.faction_verify[str(user.factiontid)].get("roles") is not None
-                    and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
-                    and server.faction_verify[str(user.factiontid)].get("enabled")
-                    not in (None, False)
+                server.faction_verify.get(str(user.factiontid)) is not None
+                and server.faction_verify[str(user.factiontid)].get("roles") is not None
+                and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
+                and server.faction_verify[str(user.factiontid)].get("enabled")
+                not in (None, False)
             ):
                 faction_role: int
-                for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
+                for faction_role in server.faction_verify[str(user.factiontid)][
+                    "roles"
+                ]:
                     if str(faction_role) in guild_member["roles"]:
                         continue
-                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    elif (
+                        patch_json.get("roles") is None or len(patch_json["roles"]) == 0
+                    ):
                         patch_json["roles"] = guild_member["roles"]
 
                     patch_json["roles"].append(str(faction_role))
 
             for factiontid, data in server.faction_verify.items():
                 for faction_role in server.faction_verify[str(factiontid)]["roles"]:
-                    if str(faction_role) in guild_member["roles"] and int(factiontid) != user.factiontid:
-                        if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    if (
+                        str(faction_role) in guild_member["roles"]
+                        and int(factiontid) != user.factiontid
+                    ):
+                        if (
+                            patch_json.get("roles") is None
+                            or len(patch_json["roles"]) == 0
+                        ):
                             patch_json["roles"] = guild_member["roles"]
 
                         patch_json["roles"].remove(str(faction_role))
 
             if len(patch_json) == 0 and (
-                    force == -1 or (type(force) == list and not force[1].get("value"))
+                force == -1 or (type(force) == list and not force[1].get("value"))
             ):
                 continue
 
@@ -419,6 +447,9 @@ def verifyall(interaction):
                     f"guilds/{server.sid}/members/{user.discord_id}",
                     patch_json,
                     dev=server.skynet,
+                    bucket=f"guilds/{server.sid}",
+                    retry=True,
+                    session=session,
                 )
                 print(response)
             except utils.DiscordError as e:
@@ -445,6 +476,9 @@ def verifyall(interaction):
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                        session=session,
                     )
                     continue
                 except Exception:
@@ -473,6 +507,9 @@ def verifyall(interaction):
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                        session=session,
                     )
                     continue
                 except Exception:
@@ -483,7 +520,7 @@ def verifyall(interaction):
                     {
                         "title": "API Verification Completed",
                         "description": f"<@{guild_member['user']['id']}> is officially verified by Torn with updated "
-                                       f"roles and nickname.",
+                        f"roles and nickname.",
                         "color": 0xC83F49,
                         "author": {
                             "name": guild_member["nick"]
@@ -501,6 +538,9 @@ def verifyall(interaction):
                     f"channels/{server.verify_log_channel}/messages",
                     payload=payload,
                     dev=server.skynet,
+                    bucket=f"channels/{server.verify_log_channel}",
+                    retry=True,
+                    session=session,
                 )
                 continue
             except Exception:

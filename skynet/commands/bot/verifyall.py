@@ -121,7 +121,6 @@ def verifyall(interaction):
 
     while (
         member_count >= server_data["approximate_member_count"] * 0.99
-        and member_fetch_run < (server_data["approximate_member_count"] // 1000 + 1)
         and member_fetch_run < 100
     ):
         try:

@@ -286,7 +286,7 @@ def tornget(
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordget(endpoint, session=None, dev=False, bucket=None, retry=False):
+def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False):
     redis = get_redis()
 
     if dev:
@@ -392,7 +392,7 @@ def discordget(endpoint, session=None, dev=False, bucket=None, retry=False):
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpatch(endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordpatch(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
     redis = get_redis()
 
     if dev:
@@ -502,7 +502,7 @@ def discordpatch(endpoint, payload, session=None, dev=False, bucket=None, retry=
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpost(endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordpost(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
     redis = get_redis()
 
     if dev:
@@ -612,7 +612,7 @@ def discordpost(endpoint, payload, session=None, dev=False, bucket=None, retry=F
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordput(endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordput(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
     redis = get_redis()
 
     if dev:
@@ -722,7 +722,7 @@ def discordput(endpoint, payload, session=None, dev=False, bucket=None, retry=Fa
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discorddelete(endpoint, session=None, dev=False, bucket=None, retry=False):
+def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=False):
     redis = get_redis()
 
     if dev:
@@ -832,7 +832,7 @@ def discorddelete(endpoint, session=None, dev=False, bucket=None, retry=False):
 
 
 @celery_app.task
-def torn_stats_get(endpoint, key, session=None, autosleep=False):
+def torn_stats_get(self, endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
 
     redis = get_redis()

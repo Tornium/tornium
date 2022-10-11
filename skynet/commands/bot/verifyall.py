@@ -478,6 +478,34 @@ def verifyall(interaction):
                 except Exception:
                     continue
 
+            payload = {
+                "embeds": [
+                    {
+                        "title": "API Verification Completed",
+                        "description": f"<@{guild_member['user']['id']}> is officially verified by Torn with updated "
+                                       f"roles and nickname.",
+                        "color": 0xC83F49,
+                        "author": {
+                            "name": guild_member["nick"]
+                            if "nick" in guild_member
+                            else guild_member["user"]["username"],
+                            "url": f"https://discordapp.com/users/{guild_member['user']['id']}",
+                            "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/{guild_member['user']['avatar']}.webp",
+                        },
+                    }
+                ]
+            }
+
+            try:
+                tasks.discordpost.delay(
+                    f"channels/{server.verify_log_channel}/messages",
+                    payload=payload,
+                    dev=server.skynet,
+                )
+                continue
+            except Exception:
+                continue
+
         member_count += len(guild_members)
         member_fetch_run += 1
 

@@ -98,10 +98,10 @@ def verifyall(interaction):
     try:
         server_data = tasks.discordget(
             f"guilds/{server.sid}?with_counts=true",
+            session=session,
             dev=server.skynet,
             bucket=f"guilds/{server.sid}",
             retry=True,
-            session=session,
         )
         print(server_data)
     except utils.DiscordError as e:

@@ -85,7 +85,7 @@ def verifyall(interaction):
         force = -1
 
     try:
-        server_data = tasks.discordget(f"guilds/{server.sid}?with_counts=true")
+        server_data = tasks.discordget(f"guilds/{server.sid}?with_counts=true", dev=server.skynet)
         print(server_data)
     except utils.DiscordError as e:
         return {

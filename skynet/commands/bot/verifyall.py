@@ -62,7 +62,7 @@ def verifyall(interaction):
                     {
                         "title": "Verification Not Enabled",
                         "description": "Verification is enabled, but nothing will be changed based on the current "
-                                       "settings in the server's admin dashboard.",
+                        "settings in the server's admin dashboard.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -85,8 +85,8 @@ def verifyall(interaction):
         force = -1
 
     try:
-        guild_members = tasks.discordget(f"guilds/{server.sid}/members", dev=server.skynet)
-        print(guild_members)
+        server_data = tasks.discordget(f"guilds/{server.sid}?with_counts=true")
+        print(server_data)
     except utils.DiscordError as e:
         return {
             "type": 4,
@@ -108,10 +108,67 @@ def verifyall(interaction):
                 "embeds": [
                     {
                         "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                        "description": f'The Discord API has returned an HTTP error {e.code}: "{e.message}".',
                         "color": 0xC83F49,
                     }
                 ],
                 "flags": 64,  # Ephemeral
             },
         }
+
+    member_count = 0
+    member_fetch_run = 0
+
+    while (
+        member_count >= server_data["approximate_member_count"] * 0.99
+        and member_fetch_run < (server_data["approximate_member_count"] // 1000 + 1)
+        and member_fetch_run < 100
+    ):
+        try:
+            guild_members = tasks.discordget(
+                f"guilds/{server.sid}/members?limit=1000", dev=server.skynet
+            )
+            print(guild_members)
+        except utils.DiscordError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+        except utils.NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Discord API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        member_count += len(guild_members)
+        member_fetch_run += 1
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Verification Complete",
+                    "description": f"Approximately {server_data['approximate_member_count']}; Accurately {member_count}",
+                }
+            ]
+        },
+    }

@@ -199,34 +199,6 @@ def verifyall(interaction):
                     if server.verify_log_channel in (None, 0):
                         continue
 
-                    payload = {
-                        "embeds": [
-                            {
-                                "title": "Torn API Error",
-                                "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                                "color": 0xC83F49,
-                                "footer": {
-                                    "text": f"Failed on member <@{guild_member['user']['id']}>"
-                                },
-                            }
-                        ]
-                    }
-
-                    try:
-                        tasks.discordpost.delay(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            dev=server.skynet,
-                        )
-                        continue
-                    except Exception:
-                        continue
-                except utils.NetworkingError as e:
-                    errors += 1
-
-                    if server.verify_log_channel in (None, 0):
-                        continue
-
                     if e.code == 6:
                         errors -= 1
                         payload = {
@@ -249,15 +221,43 @@ def verifyall(interaction):
                         payload = {
                             "embeds": [
                                 {
-                                    "title": "HTTP Error",
-                                    "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                                    "title": "Torn API Error",
+                                    "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                                     "color": 0xC83F49,
                                     "footer": {
                                         "text": f"Failed on member <@{guild_member['user']['id']}>"
                                     },
                                 }
-                            ],
+                            ]
                         }
+
+                    try:
+                        tasks.discordpost.delay(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            dev=server.skynet,
+                        )
+                        continue
+                    except Exception:
+                        continue
+                except utils.NetworkingError as e:
+                    errors += 1
+
+                    if server.verify_log_channel in (None, 0):
+                        continue
+
+                    payload = {
+                        "embeds": [
+                            {
+                                "title": "HTTP Error",
+                                "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                                "color": 0xC83F49,
+                                "footer": {
+                                    "text": f"Failed on member <@{guild_member['user']['id']}>"
+                                },
+                            }
+                        ],
+                    }
 
                     try:
                         tasks.discordpost.delay(
@@ -414,41 +414,69 @@ def verifyall(interaction):
 
             print(patch_json)
 
-            # try:
-            #     response = tasks.discordpatch(
-            #         f"guilds/{server.sid}/members/{user.discord_id}",
-            #         patch_json,
-            #         dev=server.skynet,
-            #     )
-            #     print(response)
-            # except utils.DiscordError as e:
-            #     return {
-            #         "type": 4,
-            #         "data": {
-            #             "embeds": [
-            #                 {
-            #                     "title": "Discord API Error",
-            #                     "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-            #                     "color": 0xC83F49,
-            #                 }
-            #             ],
-            #             "flags": 64,  # Ephemeral
-            #         },
-            #     }
-            # except utils.NetworkingError as e:
-            #     return {
-            #         "type": 4,
-            #         "data": {
-            #             "embeds": [
-            #                 {
-            #                     "title": "HTTP Error",
-            #                     "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-            #                     "color": 0xC83F49,
-            #                 }
-            #             ],
-            #             "flags": 64,  # Ephemeral
-            #         },
-            #     }
+            try:
+                response = tasks.discordpatch(
+                    f"guilds/{server.sid}/members/{user.discord_id}",
+                    patch_json,
+                    dev=server.skynet,
+                )
+                print(response)
+            except utils.DiscordError as e:
+                errors += 1
+
+                if server.verify_log_channel in (None, 0):
+                    continue
+
+                payload = {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                            "footer": {
+                                "text": f"Failed on member <@{guild_member['user']['id']}>"
+                            },
+                        }
+                    ]
+                }
+
+                try:
+                    tasks.discordpost.delay(
+                        f"channels/{server.verify_log_channel}/messages",
+                        payload=payload,
+                        dev=server.skynet,
+                    )
+                    continue
+                except Exception:
+                    continue
+            except utils.NetworkingError as e:
+                errors += 1
+
+                if server.verify_log_channel in (None, 0):
+                    continue
+
+                payload = {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": 0xC83F49,
+                            "footer": {
+                                "text": f"Failed on member <@{guild_member['user']['id']}>"
+                            },
+                        }
+                    ],
+                }
+
+                try:
+                    tasks.discordpost.delay(
+                        f"channels/{server.verify_log_channel}/messages",
+                        payload=payload,
+                        dev=server.skynet,
+                    )
+                    continue
+                except Exception:
+                    continue
 
         member_count += len(guild_members)
         member_fetch_run += 1

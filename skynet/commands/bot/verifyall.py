@@ -362,7 +362,7 @@ def verifyall(interaction):
                     .render(name=user.name, tid=user.tid, tag="")
                 )
 
-                print(f"Nick: {nick}; Server nick: {guild_member.get('nick')}; username: {guild_member['user']['username']}")
+                print(f"Nick: {nick}; Server nick: {guild_member.get('nick')}; username: {guild_member['user']['username']}; Equals: {nick == guild_member.get('nick')}")
 
                 if "nick" in guild_member and nick != guild_member["nick"]:
                     patch_json["nick"] = nick

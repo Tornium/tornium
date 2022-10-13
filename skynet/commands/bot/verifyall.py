@@ -96,7 +96,7 @@ def verifyall(interaction):
     session = requests.Session()
 
     try:
-        server_data = tasks.discordget(
+        server_data = tasks.discordget.delay(
             f"guilds/{server.sid}?with_counts=true",
             dev=server.skynet,
             bucket=f"guilds/{server.sid}",
@@ -143,7 +143,7 @@ def verifyall(interaction):
         and member_fetch_run < 100
     ):
         try:
-            guild_members = tasks.discordget(
+            guild_members = tasks.discordget.delay(
                 f"guilds/{server.sid}/members?limit=1000",
                 dev=server.skynet,
                 bucket=f"guilds/{server.sid}",
@@ -233,7 +233,7 @@ def verifyall(interaction):
                         }
 
                     try:
-                        tasks.discordpost(
+                        tasks.discordpost.delay(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
@@ -264,7 +264,7 @@ def verifyall(interaction):
                     }
 
                     try:
-                        tasks.discordpost(
+                        tasks.discordpost.delay(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
@@ -308,7 +308,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
+                    tasks.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -351,7 +351,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
+                    tasks.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -443,7 +443,7 @@ def verifyall(interaction):
             print(patch_json)
 
             try:
-                response = tasks.discordpatch(
+                response = tasks.discordpatch.delay(
                     f"guilds/{server.sid}/members/{user.discord_id}",
                     patch_json,
                     dev=server.skynet,
@@ -472,7 +472,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
+                    tasks.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -503,7 +503,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
+                    tasks.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -534,7 +534,7 @@ def verifyall(interaction):
             }
 
             try:
-                tasks.discordpost(
+                tasks.discordpost.delay(
                     f"channels/{server.verify_log_channel}/messages",
                     payload=payload,
                     dev=server.skynet,

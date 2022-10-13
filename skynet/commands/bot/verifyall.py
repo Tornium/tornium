@@ -93,15 +93,12 @@ def verifyall(interaction):
             },
         }
 
-    session = requests.Session()
-
     try:
         server_data = tasks.discordget.delay(
             f"guilds/{server.sid}?with_counts=true",
             dev=server.skynet,
             bucket=f"guilds/{server.sid}",
             retry=True,
-            session=session,
         )
         print(server_data)
     except utils.DiscordError as e:
@@ -148,7 +145,6 @@ def verifyall(interaction):
                 dev=server.skynet,
                 bucket=f"guilds/{server.sid}",
                 retry=True,
-                session=session,
             )
             print(guild_members)
         except utils.DiscordError as e:
@@ -239,7 +235,6 @@ def verifyall(interaction):
                             dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
-                            session=session,
                         )
                         continue
                     except Exception:
@@ -270,7 +265,6 @@ def verifyall(interaction):
                             dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
-                            session=session,
                         )
                         continue
                     except Exception:
@@ -314,7 +308,6 @@ def verifyall(interaction):
                         dev=server.skynet,
                         bucket=f"channels/{server.verify_log_channel}",
                         retry=True,
-                        session=session,
                     )
                     continue
                 except Exception:
@@ -357,7 +350,6 @@ def verifyall(interaction):
                         dev=server.skynet,
                         bucket=f"channels/{server.verify_log_channel}",
                         retry=True,
-                        session=session,
                     )
                     continue
                 except Exception:
@@ -449,7 +441,6 @@ def verifyall(interaction):
                     dev=server.skynet,
                     bucket=f"guilds/{server.sid}",
                     retry=True,
-                    session=session,
                 )
                 print(response)
             except utils.DiscordError as e:
@@ -478,7 +469,6 @@ def verifyall(interaction):
                         dev=server.skynet,
                         bucket=f"channels/{server.verify_log_channel}",
                         retry=True,
-                        session=session,
                     )
                     continue
                 except Exception:
@@ -509,7 +499,6 @@ def verifyall(interaction):
                         dev=server.skynet,
                         bucket=f"channels/{server.verify_log_channel}",
                         retry=True,
-                        session=session,
                     )
                     continue
                 except Exception:
@@ -540,7 +529,6 @@ def verifyall(interaction):
                     dev=server.skynet,
                     bucket=f"channels/{server.verify_log_channel}",
                     retry=True,
-                    session=session,
                 )
                 continue
             except Exception:

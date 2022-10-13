@@ -362,11 +362,7 @@ def verifyall(interaction):
                     .render(name=user.name, tid=user.tid, tag="")
                 )
 
-                print(f"Nick: {nick}; Server nick: {guild_member.get('nick')}; username: {guild_member['user']['username']}; Equals: {nick == guild_member.get('nick')}")
-
                 if "nick" in guild_member and nick != guild_member["nick"]:
-                    patch_json["nick"] = nick
-                elif "user" in guild_member and nick != guild_member["user"]["username"]:
                     patch_json["nick"] = nick
 
             if len(server.verified_roles) != 0 and user.discord_id != 0:

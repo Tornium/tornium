@@ -94,7 +94,7 @@ def verifyall(interaction):
         }
 
     try:
-        server_data = tasks.discordget.delay(
+        server_data = tasks.discordget(
             f"guilds/{server.sid}?with_counts=true",
             dev=server.skynet,
             bucket=f"guilds/{server.sid}",
@@ -140,7 +140,7 @@ def verifyall(interaction):
         and member_fetch_run < 100
     ):
         try:
-            guild_members = tasks.discordget.delay(
+            guild_members = tasks.discordget(
                 f"guilds/{server.sid}/members?limit=1000",
                 dev=server.skynet,
                 bucket=f"guilds/{server.sid}",
@@ -435,14 +435,13 @@ def verifyall(interaction):
             print(patch_json)
 
             try:
-                response = tasks.discordpatch.delay(
+                tasks.discordpatch.delay(
                     f"guilds/{server.sid}/members/{user.discord_id}",
                     patch_json,
                     dev=server.skynet,
                     bucket=f"guilds/{server.sid}",
                     retry=True,
                 )
-                print(response)
             except utils.DiscordError as e:
                 errors += 1
 

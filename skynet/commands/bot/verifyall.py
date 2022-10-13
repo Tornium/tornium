@@ -233,7 +233,7 @@ def verifyall(interaction):
                         }
 
                     try:
-                        tasks.discordpost.delay(
+                        tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
@@ -264,7 +264,7 @@ def verifyall(interaction):
                     }
 
                     try:
-                        tasks.discordpost.delay(
+                        tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             dev=server.skynet,
@@ -308,7 +308,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost.delay(
+                    tasks.discordpost(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -351,7 +351,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost.delay(
+                    tasks.discordpost(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -472,7 +472,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost.delay(
+                    tasks.discordpost(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -503,7 +503,7 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost.delay(
+                    tasks.discordpost(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         dev=server.skynet,
@@ -534,7 +534,7 @@ def verifyall(interaction):
             }
 
             try:
-                tasks.discordpost.delay(
+                tasks.discordpost(
                     f"channels/{server.verify_log_channel}/messages",
                     payload=payload,
                     dev=server.skynet,

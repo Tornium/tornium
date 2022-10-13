@@ -295,12 +295,12 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
             "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}'
         }
 
-        if not redis.exists("tornium:discord:ratelimit:global"):
+        if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and not redis.exists(
+        elif bucket is not None and redis.exists(
             f"tornium:discord:ratelimit:bucket:{bucket}"
         ):
             if retry:
@@ -392,7 +392,9 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpatch(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordpatch(
+    self, endpoint, payload, session=None, dev=False, bucket=None, retry=False
+):
     redis = get_redis()
 
     if dev:
@@ -402,12 +404,12 @@ def discordpatch(self, endpoint, payload, session=None, dev=False, bucket=None, 
             "Content-Type": "application/json",
         }
 
-        if not redis.exists("tornium:discord:ratelimit:global"):
+        if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and not redis.exists(
+        elif bucket is not None and redis.exists(
             f"tornium:discord:ratelimit:bucket:{bucket}"
         ):
             if retry:
@@ -502,7 +504,9 @@ def discordpatch(self, endpoint, payload, session=None, dev=False, bucket=None, 
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpost(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordpost(
+    self, endpoint, payload, session=None, dev=False, bucket=None, retry=False
+):
     redis = get_redis()
 
     if dev:
@@ -512,12 +516,12 @@ def discordpost(self, endpoint, payload, session=None, dev=False, bucket=None, r
             "Content-Type": "application/json",
         }
 
-        if not redis.exists("tornium:discord:ratelimit:global"):
+        if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and not redis.exists(
+        elif bucket is not None and redis.exists(
             f"tornium:discord:ratelimit:bucket:{bucket}"
         ):
             if retry:
@@ -612,7 +616,9 @@ def discordpost(self, endpoint, payload, session=None, dev=False, bucket=None, r
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordput(self, endpoint, payload, session=None, dev=False, bucket=None, retry=False):
+def discordput(
+    self, endpoint, payload, session=None, dev=False, bucket=None, retry=False
+):
     redis = get_redis()
 
     if dev:
@@ -622,12 +628,12 @@ def discordput(self, endpoint, payload, session=None, dev=False, bucket=None, re
             "Content-Type": "application/json",
         }
 
-        if not redis.exists("tornium:discord:ratelimit:global"):
+        if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and not redis.exists(
+        elif bucket is not None and redis.exists(
             f"tornium:discord:ratelimit:bucket:{bucket}"
         ):
             if retry:
@@ -732,12 +738,12 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
             "Content-Type": "application/json",
         }
 
-        if not redis.exists("tornium:discord:ratelimit:global"):
+        if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and not redis.exists(
+        elif bucket is not None and redis.exists(
             f"tornium:discord:ratelimit:bucket:{bucket}"
         ):
             if retry:

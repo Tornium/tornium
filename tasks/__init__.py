@@ -428,7 +428,7 @@ def discordpatch(
     if session is None:
         request = requests.patch(url, headers=headers, data=json.dumps(payload))
     else:
-        request = session.patch(url, header=headers, data=json.dumps(payload))
+        request = session.patch(url, headers=headers, data=json.dumps(payload))
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")

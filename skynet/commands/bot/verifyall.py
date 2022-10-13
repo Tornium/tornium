@@ -364,7 +364,9 @@ def verifyall(interaction):
                     .render(name=user.name, tid=user.tid, tag="")
                 )
 
-                if nick != interaction["member"]["nick"]:
+                if "nick" in guild_member and nick != guild_member["nick"]:
+                    patch_json["nick"] = nick
+                elif "user" in guild_member and nick != guild_member["user"]["username"]:
                     patch_json["nick"] = nick
 
             if len(server.verified_roles) != 0 and user.discord_id != 0:
@@ -509,7 +511,7 @@ def verifyall(interaction):
                         "title": "API Verification Completed",
                         "description": f"<@{guild_member['user']['id']}> is officially verified by Torn with updated "
                         f"roles and nickname.",
-                        "color": 0xC83F49,
+                        "color": 0x32CD32,
                         "author": {
                             "name": guild_member["nick"]
                             if "nick" in guild_member

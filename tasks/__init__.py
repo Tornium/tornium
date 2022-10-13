@@ -359,6 +359,7 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
     elif (
         dev
         and bucket is not None
+        and "X-RateLimit-Remaining" in request.headers
     ):
         redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", request.headers["X-RateLimit-Remaining"])
         redis.expire(
@@ -475,6 +476,7 @@ def discordpatch(
     elif (
         dev
         and bucket is not None
+        and "X-RateLimit-Remaining" in request.headers
     ):
         redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", request.headers["X-RateLimit-Remaining"])
         redis.expire(
@@ -591,6 +593,7 @@ def discordpost(
     elif (
         dev
         and bucket is not None
+        and "X-RateLimit-Remaining" in request.headers
     ):
         redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", request.headers["X-RateLimit-Remaining"])
         redis.expire(
@@ -707,6 +710,7 @@ def discordput(
     elif (
         dev
         and bucket is not None
+        and "X-RateLimit-Remaining" in request.headers
     ):
         redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", request.headers["X-RateLimit-Remaining"])
         redis.expire(
@@ -821,6 +825,7 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
     elif (
         dev
         and bucket is not None
+        and "X-RateLimit-Remaining" in request.headers
     ):
         redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", request.headers["X-RateLimit-Remaining"])
         redis.expire(

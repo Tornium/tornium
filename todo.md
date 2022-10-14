@@ -1,11 +1,4 @@
-## Done
- - Finish /user/who command
- - Create helper function for the listing of admins/API keys regardless of call invocation location
- - Fix Stat DB variance causing large number of players who aren't 3x FF at 75% stat score
-
-## Requires Internet
- - Install Mongo, Redis **ASAP**
- - Fix force option type for bot/verify/verify and bot/verify/verifyall (requires API connection for Discord docs)
+## Requires Internet\
  - Fix some links and add data in user/who SkyNet command
 
 ## Needs to be done

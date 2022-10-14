@@ -23,6 +23,8 @@
  - Add helper function to handle Torn (and possible Discord) API call errors
  - Implement stat DB commands
  - Add OC ready and delay watchers
+ - Add value-based faction armory usage to stakeouts
+ - retals
 ### API
  - Improve Tornium API error codes (most are code 0 rn)
 ### Low Priority

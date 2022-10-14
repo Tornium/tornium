@@ -300,7 +300,11 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+        elif (
+            bucket is not None
+            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+        ):
             if retry:
                 self.retry(
                     countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
@@ -343,7 +347,10 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
             and "X-RateLimit-Remaining" in request.headers
             and "X-RateLimit-ResetAfter" in request.headers
         ):
-            redis.setnx(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+            redis.setnx(
+                f"tornium:discord:ratelimit:bucket:{bucket}",
+                int(request.headers["X-RateLimit-Remaining"]),
+            )
             redis.expire(
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
@@ -364,10 +371,13 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
         and "X-RateLimit-Remaining" in request.headers
         and "X-RateLimit-ResetAfter" in request.headers
     ):
-        redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+        redis.set(
+            f"tornium:discord:ratelimit:bucket:{bucket}",
+            int(request.headers["X-RateLimit-Remaining"]),
+        )
         redis.expire(
             f"tornium:discord:ratelimit:bucket:{bucket}",
-            math.ceil(float(request.headers["X-RateLimit-ResetAfter"]))
+            math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
         )
 
     try:
@@ -417,7 +427,11 @@ def discordpatch(
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+        elif (
+            bucket is not None
+            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+        ):
             if retry:
                 self.retry(
                     countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
@@ -463,7 +477,10 @@ def discordpatch(
             and "X-RateLimit-Remaining" in request.headers
             and "X-RateLimit-ResetAfter" in request.headers
         ):
-            redis.setnx(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+            redis.setnx(
+                f"tornium:discord:ratelimit:bucket:{bucket}",
+                int(request.headers["X-RateLimit-Remaining"]),
+            )
             redis.expire(
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
@@ -484,10 +501,13 @@ def discordpatch(
         and "X-RateLimit-Remaining" in request.headers
         and "X-RateLimit-ResetAfter" in request.headers
     ):
-        redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+        redis.set(
+            f"tornium:discord:ratelimit:bucket:{bucket}",
+            int(request.headers["X-RateLimit-Remaining"]),
+        )
         redis.expire(
             f"tornium:discord:ratelimit:bucket:{bucket}",
-            math.ceil(float(request.headers["X-RateLimit-ResetAfter"]))
+            math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
         )
 
     try:
@@ -537,7 +557,11 @@ def discordpost(
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+        elif (
+            bucket is not None
+            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+        ):
             if retry:
                 self.retry(
                     countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
@@ -583,7 +607,10 @@ def discordpost(
             and "X-RateLimit-Remaining" in request.headers
             and "X-RateLimit-ResetAfter" in request.headers
         ):
-            redis.setnx(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+            redis.setnx(
+                f"tornium:discord:ratelimit:bucket:{bucket}",
+                int(request.headers["X-RateLimit-Remaining"]),
+            )
             redis.expire(
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
@@ -604,10 +631,13 @@ def discordpost(
         and "X-RateLimit-Remaining" in request.headers
         and "X-RateLimit-ResetAfter" in request.headers
     ):
-        redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+        redis.set(
+            f"tornium:discord:ratelimit:bucket:{bucket}",
+            int(request.headers["X-RateLimit-Remaining"]),
+        )
         redis.expire(
             f"tornium:discord:ratelimit:bucket:{bucket}",
-            math.ceil(float(request.headers["X-RateLimit-ResetAfter"]))
+            math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
         )
 
     try:
@@ -657,7 +687,11 @@ def discordput(
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+        elif (
+            bucket is not None
+            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+        ):
             if retry:
                 self.retry(
                     countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
@@ -703,7 +737,10 @@ def discordput(
             and "X-RateLimit-Remaining" in request.headers
             and "X-RateLimit-ResetAfter" in request.headers
         ):
-            redis.setnx(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+            redis.setnx(
+                f"tornium:discord:ratelimit:bucket:{bucket}",
+                int(request.headers["X-RateLimit-Remaining"]),
+            )
             redis.expire(
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
@@ -724,10 +761,13 @@ def discordput(
         and "X-RateLimit-Remaining" in request.headers
         and "X-RateLimit-ResetAfter" in request.headers
     ):
-        redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+        redis.set(
+            f"tornium:discord:ratelimit:bucket:{bucket}",
+            int(request.headers["X-RateLimit-Remaining"]),
+        )
         redis.expire(
             f"tornium:discord:ratelimit:bucket:{bucket}",
-            math.ceil(float(request.headers["X-RateLimit-ResetAfter"]))
+            math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
         )
 
     try:
@@ -775,7 +815,11 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
             else:
                 raise RatelimitError()
-        elif bucket is not None and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+        elif (
+            bucket is not None
+            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+        ):
             if retry:
                 self.retry(
                     countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
@@ -821,7 +865,10 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
             and "X-RateLimit-Remaining" in request.headers
             and "X-RateLimit-ResetAfter" in request.headers
         ):
-            redis.setnx(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+            redis.setnx(
+                f"tornium:discord:ratelimit:bucket:{bucket}",
+                int(request.headers["X-RateLimit-Remaining"]),
+            )
             redis.expire(
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
@@ -842,10 +889,13 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
         and "X-RateLimit-Remaining" in request.headers
         and "X-RateLimit-ResetAfter" in request.headers
     ):
-        redis.set(f"tornium:discord:ratelimit:bucket:{bucket}", int(request.headers["X-RateLimit-Remaining"]))
+        redis.set(
+            f"tornium:discord:ratelimit:bucket:{bucket}",
+            int(request.headers["X-RateLimit-Remaining"]),
+        )
         redis.expire(
             f"tornium:discord:ratelimit:bucket:{bucket}",
-            math.ceil(float(request.headers["X-RateLimit-ResetAfter"]))
+            math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
         )
 
     try:

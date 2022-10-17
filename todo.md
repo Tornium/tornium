@@ -1,4 +1,4 @@
-## Requires Internet\
+## Requires Internet
  - Fix some links and add data in user/who SkyNet command
 
 ## Needs to be done

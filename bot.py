@@ -89,12 +89,8 @@ async def on_guild_join(guild):
             if user is None:
                 continue
 
-            user.servers.append(str(guild.id))
             server.admins.append(user.tid)
-
-            user.servers = list(set(user.servers))
             server.admins = list(set(server.admins))
-            user.save()
 
     server.save()
 

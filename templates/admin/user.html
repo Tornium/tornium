@@ -27,23 +27,6 @@ Tornium - Admin User
             <li class="list-group-item">Faction: <a href="/admin/database/faction/{{ user.factionid }}">Link to {{ user.factionid }}</a></li>
             <li class="list-group-item">Faction AA: {{ user.factionaa }}</li>
             <li class="list-group-item">Chain Hits: {{ user.chain_hits }}</li>
-            {% if user.servers|length != 0 %}
-            <li class="list-group-item">
-                Servers:
-
-                <div class="row">
-                    <div class="col-sm-12 col-md-6 col-lg-3">
-                        <ul class="list-group">
-                            {% for server in user.servers %}
-                                <li class="list-group-item"><a href="/admin/server/{{ server }}">Link to {{ server }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </li>
-            {% else %}
-            <li class="list-group-item">Servers: None</li>
-            {% endif %}
             <li class="list-group-item">Status: {{ user.status }}</li>
             <li class="list-group-item">Last Action: {{ user.last_action | tcttime }}</li>
             <li class="list-group-item">Pro: {{ user.pro }}</li>

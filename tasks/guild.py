@@ -46,7 +46,7 @@ def refresh_guilds():
 
         try:
             members = discordget(
-                f'guilds/{guild["id"]}/members', session=requests_session
+                f'guilds/{guild["id"]}/members?limit=1000', session=requests_session
             )
         except utils.DiscordError as e:
             if e.code == 10007:
@@ -67,15 +67,9 @@ def refresh_guilds():
             honeybadger.notify(e)
             continue
 
-        # admins = guild_db.admins
         admins = []
-
         owner: UserModel = UserModel.objects(discord_id=guild["owner_id"]).first()
 
-        if owner is not None and guild["id"] not in owner.servers:
-            owner.servers.append(guild["id"])
-            owner.servers = list(set(owner.servers))
-            owner.save()
         if owner is not None:
             admins.append(owner.tid)
 
@@ -91,19 +85,7 @@ def refresh_guilds():
                             and (int(guild_role["permissions"]) & 0x0000000008)
                             == 0x0000000008
                         ):
-                            user.servers.append(guild["id"])
-                            user.servers = list(set(user.servers))
-                            user.save()
-
                             admins.append(user.tid)
-                        else:
-                            if guild["id"] in user.servers:
-                                user.servers.remove(guild["id"])
-                                user.servers = list(set(user.servers))
-                                user.save()
-
-                                if user.tid in admins:
-                                    admins.remove(user.tid)
 
         admins = list(set(admins))
         guild_db.admins = admins

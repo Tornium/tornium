@@ -28,7 +28,6 @@ class UserModel(DynamicDocument):
     dexterity = FloatField(default=0.0)
 
     discord_id = IntField(default=0)
-    servers = ListField(default=[])  # List of discord servers where user is admin
 
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)

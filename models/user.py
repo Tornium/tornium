@@ -40,7 +40,6 @@ class User(UserMixin):
         self.dexterity = user.dexterity
 
         self.discord_id = user.discord_id
-        self.servers = user.servers
 
         self.factiontid = user.factionid
         self.aa = user.factionaa

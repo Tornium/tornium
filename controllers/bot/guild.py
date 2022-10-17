@@ -18,11 +18,11 @@ import utils
 def dashboard():
     servers = []
 
-    for server in current_user.servers:
-        server = ServerModel.objects(sid=server).first()
+    for server in ServerModel.objects(admins=current_user.tid):
+        if current_user.tid not in server:
+            continue
 
-        if server is not None:
-            servers.append(server)
+        servers.append(server)
 
     return render_template("bot/dashboard.html", servers=list(set(servers)))
 

@@ -70,6 +70,7 @@ def guild_dashboard(guildid: str):
         guildid=guildid,
         assist_factions=assist_factions,
         assist_mod=server.assist_mod,
+        channels=server.get_text_channels(),
     )
 
 

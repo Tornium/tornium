@@ -86,7 +86,10 @@ def create_stakeout(stype, *args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    elif User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid not in guild.admins:
+    elif (
+        User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid
+        not in guild.admins
+    ):
         return (
             jsonify(
                 {

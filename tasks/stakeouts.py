@@ -782,6 +782,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     if (
                         member["status"]["details"]
                         == data["members"][memberid]["status"]["details"]
+                        and member["status"]["details"] != ""
                     ):
                         continue
 

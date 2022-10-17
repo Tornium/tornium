@@ -554,6 +554,7 @@ def discordpost(
 
         if bucket is not None:
             logger.info(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}"))
+            logger.info(redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}"))
 
         if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
@@ -564,6 +565,7 @@ def discordpost(
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}" != 0)
         ):
             if retry:
                 self.retry(
@@ -577,8 +579,6 @@ def discordpost(
             "Authorization": f'Bot {redis.get("tornium:settings:bottoken")}',
             "Content-Type": "application/json",
         }
-
-    logger.info(url)
 
     if session is None:
         request = requests.post(url, headers=headers, data=json.dumps(payload))

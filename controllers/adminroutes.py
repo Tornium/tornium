@@ -60,6 +60,9 @@ def dashboard():
 
             for key in redis.keys("tornium:torn-cache:*"):
                 redis.delete(key)
+
+            for key in redis.keys("tornium:discord:ratelimit:*"):
+                redis.delete(key)
         elif request.form.get("updatecommands") is not None:
             with open("commands/commands.json") as commands_file:
                 commands_list = json.load(commands_file)

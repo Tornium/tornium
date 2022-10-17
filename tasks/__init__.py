@@ -580,7 +580,7 @@ def discordpost(
     else:
         request = session.post(url, headers=headers, data=json.dumps(payload))
 
-    logger.info(request.headers)
+    logging.getLogger("skynet").info(request.headers)
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")

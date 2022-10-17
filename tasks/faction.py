@@ -79,20 +79,20 @@ def refresh_factions():
         faction.coleader = faction_data["co-leader"]
         faction.last_members = utils.now()
 
-        keys = []
+        lead_keys = []
 
         leader = UserModel.objects(tid=faction.leader).first()
         coleader = UserModel.objects(tid=faction.coleader).first()
 
         if leader is not None and leader.key != "":
-            keys.append(leader.key)
+            lead_keys.append(leader.key)
         if coleader is not None and coleader.key != "":
-            keys.append(coleader.key)
+            lead_keys.append(coleader.key)
 
-        if len(keys) != 0:
+        if len(lead_keys) != 0:
             try:
                 user_ts_data = torn_stats_get(
-                    f"spy/faction/{faction.tid}", random.choice(keys)
+                    f"spy/faction/{faction.tid}", random.choice(lead_keys)
                 )
             except Exception as e:
                 logger.exception(e)
@@ -169,12 +169,12 @@ def refresh_factions():
             user.factionaa = False
             user.save()
 
-        if faction.chainconfig["od"] == 1 and len(faction.aa_keys) != 0:
+        if faction.chainconfig["od"] == 1 and len(keys) != 0:
             try:
                 faction_od = tornget(
                     "faction/?selections=contributors",
                     stat="drugoverdoses",
-                    key=random.choice(faction.aa_keys),
+                    key=random.choice(keys),
                     session=requests_session,
                 )
             except TornError as e:
@@ -222,6 +222,17 @@ def refresh_factions():
                                     }
                                 ],
                             }
+
+                            try:
+                                discordpost.delay(
+                                    f'channels/{faction.chainconfig["odchannel"]}/messages',
+                                    payload=payload,
+                                    dev=guild.skynet,
+                                )
+                            except Exception as e:
+                                logger.exception(e)
+                                honeybadger.notify(e)
+                                continue
                         elif faction.chainod.get(tid) is not None and user_od[
                             "contributed"
                         ] != faction.chainod.get(tid).get("contributed"):

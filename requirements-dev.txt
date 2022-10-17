@@ -1,5 +1,5 @@
 async-timeout == 3.0.1
-black == 22.6.0
+black == 22.10.0
 blinker == 1.5
 celery[redis] == 5.2.7
 cryptography == 37.0.4

@@ -185,46 +185,6 @@ Tornium - Bot Dashboard
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h5 class="card-title">Retaliation</h5>x
-                    <p class="card-text">
-                        Sends a message for a retaliation to occur upon a person who's attacked a faction member for
-                        specified factions in the server.
-                    </p>
-
-                    {% if server.factions|length != 0 %}
-                    <ul class="list-group list-group-flush">
-                        {% for faction in factions %}
-                        <li class="list-group-item d-flex">
-                            <p>{{ faction.name }} [{{ faction.tid }}]</p>
-
-                            <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select"">
-                                <option value="0">No faction retal channel</option>
-                                {% for category in channels.values() %}
-                                    {% if category["name"] == "" %}
-                                    <optgroup label="No Category">
-                                    {% else %}
-                                    <optgroup label="{{ category["name"] }}">
-                                    {% endif %}
-
-                                        {% for channel in category["channels"].values() %}
-                                            {% if guild.retal_config[faction.tid]["channel"]|int == channel["id"]|int %}
-                                            <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
-                                            {% else %}
-                                            <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </optgroup>
-                                {% endfor %}
-                            </select>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-
             <div class="col-sm-12 col-md-8 col-lg-4 my-3">
                 <select class="form-select mb-3" id="assist-type-select" aria-label="Select Assist Filter Type">
                     <option value="0">Everyone</option>
@@ -234,6 +194,46 @@ Tornium - Bot Dashboard
 
                 <button type="button" class="btn btn-primary" id="submit-assist-mod">Submit</button>
             </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Retaliation</h5>x
+            <p class="card-text">
+                Sends a message for a retaliation to occur upon a person who's attacked a faction member for
+                specified factions in the server.
+            </p>
+
+            {% if server.factions|length != 0 %}
+            <ul class="list-group list-group-flush">
+                {% for faction in factions %}
+                <li class="list-group-item d-flex">
+                    <p>{{ faction.name }} [{{ faction.tid }}]</p>
+
+                    <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select"">
+                        <option value="0">No faction retal channel</option>
+                        {% for category in channels.values() %}
+                            {% if category["name"] == "" %}
+                            <optgroup label="No Category">
+                            {% else %}
+                            <optgroup label="{{ category["name"] }}">
+                            {% endif %}
+
+                                {% for channel in category["channels"].values() %}
+                                    {% if guild.retal_config[faction.tid]["channel"]|int == channel["id"]|int %}
+                                    <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
+                                    {% else %}
+                                    <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
         </div>
     </div>
 

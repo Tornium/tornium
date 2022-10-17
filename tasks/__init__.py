@@ -943,7 +943,7 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
 
 
 @celery_app.task
-def torn_stats_get(self, endpoint, key, session=None, autosleep=False):
+def torn_stats_get(endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
 
     redis = get_redis()

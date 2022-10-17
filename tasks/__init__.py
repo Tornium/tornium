@@ -561,7 +561,7 @@ def discordpost(
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}" != 0)
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
         ):
             if retry:
                 self.retry(

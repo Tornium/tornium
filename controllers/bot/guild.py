@@ -19,7 +19,7 @@ def dashboard():
     servers = []
 
     for server in ServerModel.objects(admins=current_user.tid):
-        if current_user.tid not in server:
+        if current_user.tid not in server.admins:
             continue
 
         servers.append(server)

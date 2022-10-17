@@ -302,12 +302,12 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
                 raise RatelimitError()
         elif (
             bucket is not None
-            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
         ):
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -361,7 +361,7 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
 
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -429,12 +429,12 @@ def discordpatch(
                 raise RatelimitError()
         elif (
             bucket is not None
-            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
         ):
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -491,7 +491,7 @@ def discordpatch(
 
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -552,6 +552,9 @@ def discordpost(
             "Content-Type": "application/json",
         }
 
+        if bucket is not None:
+            print(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}"))
+
         if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -559,12 +562,12 @@ def discordpost(
                 raise RatelimitError()
         elif (
             bucket is not None
-            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
         ):
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -621,7 +624,7 @@ def discordpost(
 
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -689,12 +692,12 @@ def discordput(
                 raise RatelimitError()
         elif (
             bucket is not None
-            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
         ):
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -751,7 +754,7 @@ def discordput(
 
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -817,12 +820,12 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
                 raise RatelimitError()
         elif (
             bucket is not None
-            and redis.get(f"tornium:discord:ratelimit:bucket:{bucket}") is not None
+            and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
         ):
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()
@@ -879,7 +882,7 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
 
             if retry:
                 self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
+                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
                 )
             else:
                 raise RatelimitError()

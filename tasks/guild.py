@@ -24,7 +24,7 @@ def refresh_guilds():
         return
 
     for guild in guilds:
-        guild_db: ServerModel = utils.first(ServerModel.objects(sid=guild["id"]))
+        guild_db: ServerModel = ServerModel.objects(sid=guild["id"]).first()
 
         if guild_db is None:
             guild_db = ServerModel(
@@ -67,9 +67,10 @@ def refresh_guilds():
             honeybadger.notify(e)
             continue
 
-        admins = guild_db.admins
+        # admins = guild_db.admins
+        admins = []
 
-        owner: UserModel = utils.first(UserModel.objects(discord_id=guild["owner_id"]))
+        owner: UserModel = UserModel.objects(discord_id=guild["owner_id"]).first()
 
         if owner is not None and guild["id"] not in owner.servers:
             owner.servers.append(guild["id"])
@@ -79,11 +80,9 @@ def refresh_guilds():
             admins.append(owner.tid)
 
         for member in members:
-            user: UserModel = utils.first(
-                UserModel.objects(discord_id=member["user"]["id"])
-            )
+            user: UserModel = UserModel.objects(discord_id=member["user"]["id"]).first()
 
-            if user is not None:
+            if user is not None and user.key not in (None, ""):
                 for role in member["roles"]:
                     for guild_role in guild["roles"]:
                         # Checks if the user has the role and the role has the administrator permission

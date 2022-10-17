@@ -1,0 +1,20 @@
+{
+    "name": "who",
+    "type": 1,
+    "description": "Returns a summary on the discord member or Torn user",
+    "options": [
+        {
+            "type": 6,
+            "name": "member",
+            "description": "Discord member whose summary is to be returned",
+            "required": false
+        },
+        {
+            "type": 4,
+            "name": "tid",
+            "description": "Torn ID of user whose summary is to be returned",
+            "min_value": 1,
+            "required": false
+        }
+    ]
+}

@@ -219,13 +219,13 @@ def user_data():
         if str(stat_entry.addedid) in users:
             user = users[str(stat_entry.addedid)]
         else:
-            user = utils.first(UserModel.objects(tid=stat_entry.addedid))
+            user = UserModel.objects(tid=stat_entry.addedid).first()
             users[str(stat_entry.addedid)] = user
 
         if str(stat_entry.addedfactiontid) in factions:
             faction = factions[str(stat_entry.addedfactiontid)]
         else:
-            faction = utils.first(FactionModel.objects(tid=stat_entry.addedfactiontid))
+            faction = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
             factions[str(stat_entry.addedfactiontid)] = faction
 
         defender_base_dmg = []

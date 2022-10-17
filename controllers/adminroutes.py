@@ -3,12 +3,13 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from functools import wraps
-from re import search
-from controllers.authroutes import login
+import json
+import logging
 
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
+import honeybadger
+import requests
 
 from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
@@ -60,6 +61,76 @@ def dashboard():
             for key in redis.keys("tornium:torn-cache:*"):
                 redis.delete(key)
 
+            for key in redis.keys("tornium:discord:ratelimit:*"):
+                redis.delete(key)
+        elif request.form.get("updatecommands") is not None:
+            with open("commands/commands.json") as commands_file:
+                commands_list = json.load(commands_file)
+
+            botlogger = logging.getLogger("skynet")
+            botlogger.setLevel(logging.DEBUG)
+            handler = logging.FileHandler(
+                filename="skynet.log", encoding="utf-8", mode="a"
+            )
+            handler.setFormatter(
+                logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+            )
+            botlogger.addHandler(handler)
+
+            session = requests.Session()
+            application_id = get_redis().get("tornium:settings:skynet:applicationid")
+            botlogger.debug(application_id)
+
+            commands_data = []
+
+            for commandid in commands_list["active"]:
+                with open(f"commands/{commandid}.json") as command_file:
+                    command_json = json.load(command_file)
+                    commands_data.append(command_json)
+
+            botlogger.debug(commands_data)
+
+            try:
+                commands_data = tasks.discordput(
+                    f"applications/{application_id}/commands",
+                    commands_data,
+                    session=session,
+                    dev=True,
+                )
+                botlogger.info(commands_data)
+            except utils.DiscordError as e:
+                botlogger.error(e)
+                honeybadger.honeybadger.notify(
+                    e, context={"code": e.code, "message": e.message}
+                )
+                raise e
+            except Exception as e:
+                botlogger.error(e)
+                honeybadger.honeybadger.notify(e)
+                raise e
+
+            try:
+                if get_redis().exists("tornium:skynet:devguild"):
+                    guild = get_redis().get("tornium:skynet:devguild")
+
+                    if guild != "":
+                        commands_dev_data = tasks.discordput(
+                            f"applications/{application_id}/guilds/{guild}/commands",
+                            commands_data,
+                            session=True,
+                            dev=True,
+                        )
+            except utils.DiscordError as e:
+                botlogger.error(e)
+                honeybadger.honeybadger.notify(
+                    e, context={"code": e.code, "message": e.message}
+                )
+                raise e
+            except Exception as e:
+                botlogger.error(e)
+                honeybadger.honeybadger.notify(e)
+                raise e
+
     return render_template("admin/dashboard.html")
 
 
@@ -98,9 +169,9 @@ def faction_database():
 @login_required
 @admin_required
 def faction(tid: int):
-    faction = utils.first(FactionModel.objects(tid=tid))
-
-    return render_template("admin/faction.html", faction=faction)
+    return render_template(
+        "admin/faction.html", faction=FactionModel.objects(tid=tid).first()
+    )
 
 
 @mod.route("/admin/database/factions")
@@ -141,9 +212,7 @@ def user_database():
 @login_required
 @admin_required
 def user(tid: int):
-    user = utils.first(UserModel.objects(tid=tid))
-
-    return render_template("admin/user.html", user=user)
+    return render_template("admin/user.html", user=UserModel.objects(tid=tid).first())
 
 
 @mod.route("/admin/database/users")
@@ -188,9 +257,9 @@ def server_database():
 @login_required
 @admin_required
 def server(did: int):
-    server = utils.first(ServerModel.objects(sid=did))
-
-    return render_template("admin/server.html", server=server)
+    return render_template(
+        "admin/server.html", server=ServerModel.objects(sid=did).first()
+    )
 
 
 @mod.route("/admin/database/servers")

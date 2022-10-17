@@ -23,10 +23,10 @@ def chain(*args, **kwargs):
         if not current_user.aa:
             abort(403)
 
-        faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
         if request.form.get("odchannel") is not None:
-            guild: ServerModel = utils.first(ServerModel.objects(sid=faction.guild))
+            guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
             if guild is None:
                 return render_template(

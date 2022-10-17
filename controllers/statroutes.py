@@ -90,7 +90,7 @@ def stats_data():
     stat_entries = stat_entries[start : start + length]
 
     for stat_entry in stat_entries:
-        user: UserModel = utils.first(UserModel.objects(_id=stat_entry.tid))
+        user: UserModel = UserModel.objects(_id=stat_entry.tid).first()
 
         stats.append(
             [
@@ -135,13 +135,13 @@ def user_data():
         if str(stat_entry.addedid) in users:
             user = users[str(stat_entry.addedid)]
         else:
-            user = utils.first(UserModel.objects(tid=stat_entry.addedid))
+            user = UserModel.objects(tid=stat_entry.addedid).first()
             users[str(stat_entry.addedid)] = user
 
         if str(stat_entry.addedfactiontid) in factions:
             faction = factions[str(stat_entry.addedfactiontid)]
         else:
-            faction = utils.first(FactionModel.objects(tid=stat_entry.addedfactiontid))
+            faction = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
             factions[str(stat_entry.addedfactiontid)] = faction
 
         stats.append(
@@ -159,13 +159,13 @@ def user_data():
     user = User(tid=tid)
 
     # If user's last action was over a month ago and last refresh was over a week ago
-    # if (
-    #     utils.now() - user.last_action > 30 * 24 * 60 * 60
-    #     and utils.now() - user.last_refresh > 604800
-    # ):
-    #     user.refresh(key=current_user.key)
-    # elif utils.now() - user.last_action <= 30 * 24 * 60 * 60:
-    #     user.refresh(key=current_user.key)
+    if (
+        utils.now() - user.last_action > 30 * 24 * 60 * 60
+        and utils.now() - user.last_refresh > 604800
+    ):
+        user.refresh(key=current_user.key)
+    elif utils.now() - user.last_action <= 30 * 24 * 60 * 60:
+        user.refresh(key=current_user.key)
 
     if user.factiontid != 0:
         faction = Faction(tid=user.factiontid)
@@ -199,7 +199,7 @@ def config():
     faction = Faction(current_user.factiontid)
 
     if request.method == "POST":
-        faction_model = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
         if (request.form.get("enabled") is not None) ^ (
             request.form.get("disabled") is not None

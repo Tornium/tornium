@@ -85,7 +85,7 @@ async def on_guild_join(guild):
 
     for member in guild.members:
         if member.guild_permissions.administrator:
-            user = utils.first(UserModel.objects(discord_id=member.id))
+            user = UserModel.objects(discord_id=member.id).first()
             if user is None:
                 continue
 
@@ -101,10 +101,10 @@ async def on_guild_join(guild):
 
 # @bot.event
 # async def on_guild_remove(guild):
-#     server = utils.first(ServerModel.objects(sid=guild.id))
+#     server = ServerModel.objects(sid=guild.id).first()
 #     if server is not None:
 #         for admin in server.admins:
-#             user = utils.first(UserModel.objects(tid=admin))
+#             user = UserModel.objects(tid=admin).first()
 #             if user is not None:
 #                 user.servers.remove(str(guild.id))
 #                 user.save()
@@ -223,7 +223,7 @@ async def on_message(message):
         return
 
     for faction in server.factions:
-        faction = utils.first(FactionModel.objects(tid=int(faction)))
+        faction = FactionModel.objects(tid=int(faction)).first()
 
         if faction is None:
             continue

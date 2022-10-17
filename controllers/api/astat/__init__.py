@@ -95,13 +95,13 @@ def attack_start(*args, **kwargs):
             },
         )
 
-    attack: AStatModel = utils.last(
-        AStatModel.objects(logid=network_attack["DB"]["logID"])
+    attack: AStatModel = (
+        AStatModel.objects(logid=network_attack["DB"]["logID"]).order_by("-id").first()
     )
 
     if attack is None:
         attack = AStatModel(
-            sid=utils.last(AStatModel.objects()).sid + 1
+            sid=AStatModel.objects().order_by("-sid").first() + 1
             if AStatModel.objects.count() != 0
             else 0,
             logid=network_attack["DB"]["logID"],
@@ -179,8 +179,8 @@ def attack_end(*args, **kwargs):
             },
         )
 
-    attack: AStatModel = utils.last(
-        AStatModel.objects(logid=network_attack["DB"]["logID"])
+    attack: AStatModel = (
+        AStatModel.objects(logid=network_attack["DB"]["logID"]).order_by("-id").first()
     )
 
     if "attacking" not in network_attack["DB"]:
@@ -240,7 +240,7 @@ def attack_log_stats(logID, *args, **kwargs):
     client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-    stat_entry: AStatModel = utils.last(
+    stat_entry: AStatModel = (
         AStatModel.objects(
             Q(logid=logID)
             & (
@@ -250,6 +250,8 @@ def attack_log_stats(logID, *args, **kwargs):
                 | Q(allowedfactions=kwargs["user"].factionid)
             )
         )
+        .order_by("-id")
+        .first()
     )
 
     if stat_entry is None:

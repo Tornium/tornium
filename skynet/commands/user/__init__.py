@@ -3,4 +3,4 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from skynet.commands.user import who
+from skynet.commands.user import verify, who

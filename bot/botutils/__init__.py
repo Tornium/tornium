@@ -65,7 +65,7 @@ async def tornget(ctx, logger, endpoint, key, session=None, cache=30, nocache=Fa
         embed.description = "No API key was passed to the API call."
         await ctx.send(embed=embed)
         logger.error("No API key passed.")
-        return MissingKeyError
+        raise MissingKeyError
 
     redis = get_redis()
 

@@ -23,7 +23,7 @@ from models.userstakeoutmodel import UserStakeoutModel
 
 @login_required
 def stakeouts_dashboard(guildid: str):
-    server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    server: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if server is None:
         return (
@@ -32,7 +32,7 @@ def stakeouts_dashboard(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
@@ -77,9 +77,9 @@ def stakeouts_dashboard(guildid: str):
                     f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
                 )
 
-                db_stakeout = utils.first(
-                    FactionStakeoutModel.objects(tid=request.form.get("factionid"))
-                )
+                db_stakeout = FactionStakeoutModel.objects(
+                    tid=request.form.get("factionid")
+                ).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
                 db_stakeout.save()
 
@@ -136,9 +136,9 @@ def stakeouts_dashboard(guildid: str):
                     f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
                 )
 
-                db_stakeout = utils.first(
-                    UserStakeoutModel.objects(tid=request.form.get("userid"))
-                )
+                db_stakeout = UserStakeoutModel.objects(
+                    tid=request.form.get("userid")
+                ).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
                 db_stakeout.save()
 
@@ -170,7 +170,7 @@ def stakeouts_dashboard(guildid: str):
 
 @login_required
 def stakeouts(guildid: str, stype: int):
-    server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    server: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if server is None:
         return (
@@ -179,7 +179,7 @@ def stakeouts(guildid: str, stype: int):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
@@ -266,7 +266,7 @@ def stakeouts(guildid: str, stype: int):
 
 @login_required
 def stakeout_data(guildid: str):
-    server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    server: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if server is None:
         return (
@@ -275,7 +275,7 @@ def stakeout_data(guildid: str):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
@@ -331,7 +331,7 @@ def stakeout_data(guildid: str):
 
 @login_required
 def stakeout_update(guildid):
-    server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    server: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if server is None:
         return (
@@ -340,7 +340,7 @@ def stakeout_update(guildid):
             ),
             400,
         )
-    elif str(server.sid) not in current_user.servers and not current_user.admin:
+    elif current_user.tid not in server.admins:
         return (
             render_template(
                 "errors/error.html",
@@ -362,12 +362,12 @@ def stakeout_update(guildid):
         return json.dumps({"success": False}), 400, {"ContentType": "application/json"}
 
     if action == "remove":
-        server = utils.first(ServerModel.objects(sid=guildid))
+        server = ServerModel.objects(sid=guildid).first()
 
         if faction is not None:
             server.factionstakeouts.remove(int(faction))
 
-            stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
+            stakeout = FactionStakeoutModel.objects(tid=faction).first()
             try:
                 tasks.discorddelete(
                     f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
@@ -387,7 +387,7 @@ def stakeout_update(guildid):
         elif user is not None:
             server.userstakeouts.remove(int(user))
 
-            stakeout = utils.first(UserStakeoutModel.objects(tid=user))
+            stakeout = UserStakeoutModel.objects(tid=user).first()
             try:
                 tasks.discorddelete(
                     f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
@@ -455,9 +455,9 @@ def stakeout_update(guildid):
             )
 
         if user is not None:
-            stakeout = utils.first(UserStakeoutModel.objects(tid=user))
+            stakeout = UserStakeoutModel.objects(tid=user).first()
         else:
-            stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
+            stakeout = FactionStakeoutModel.objects(tid=faction).first()
 
         if value in stakeout.guilds[str(guildid)]["keys"]:
             return (
@@ -506,9 +506,9 @@ def stakeout_update(guildid):
             )
 
         if user is not None:
-            stakeout = utils.first(UserStakeoutModel.objects(tid=user))
+            stakeout = UserStakeoutModel.objects(tid=user).first()
         else:
-            stakeout = utils.first(FactionStakeoutModel.objects(tid=faction))
+            stakeout = FactionStakeoutModel.objects(tid=faction).first()
 
         if value not in stakeout.guilds[str(guildid)]["keys"]:
             return (
@@ -521,15 +521,15 @@ def stakeout_update(guildid):
         stakeout.guilds[str(guildid)]["keys"].remove(value)
         stakeout.save()
     elif action == "enable":
-        server = utils.first(ServerModel.objects(sid=guildid))
+        server = ServerModel.objects(sid=guildid).first()
         server.config["stakeouts"] = 1
         server.save()
     elif action == "disable":
-        server = utils.first(ServerModel.objects(sid=guildid))
+        server = ServerModel.objects(sid=guildid).first()
         server.config["stakeouts"] = 0
         server.save()
     elif action == "category":
-        server = utils.first(ServerModel.objects(sid=guildid))
+        server = ServerModel.objects(sid=guildid).first()
         server.stakeoutconfig["category"] = int(value)
         server.save()
 

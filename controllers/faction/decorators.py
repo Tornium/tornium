@@ -42,7 +42,7 @@ def fac_required(f):
         if current_user.factiontid == 0:
             return abort(403, "User is not in a faction.")
 
-        faction = utils.first(FactionModel.objects(tid=current_user.factiontid))
+        faction = FactionModel.objects(tid=current_user.factiontid).first()
 
         if faction is None:
             return abort(403, "User is not in a faction stored in the database.")

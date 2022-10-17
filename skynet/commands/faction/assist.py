@@ -14,6 +14,7 @@ from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
 import redisdb
+from skynet.skyutils import get_admin_keys
 import tasks
 import utils
 
@@ -24,13 +25,13 @@ def assist(interaction):
     start_time = time.time()
 
     if "member" in interaction:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["member"]["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["member"]["user"]["id"]
+        ).first()
     else:
-        user: UserModel = utils.first(
-            UserModel.objects(discord_id=interaction["user"]["id"])
-        )
+        user: UserModel = UserModel.objects(
+            discord_id=interaction["user"]["id"]
+        ).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -56,8 +57,8 @@ def assist(interaction):
             "data": {
                 "embeds": [
                     {
-                        "title": "Illegal Paramters",
-                        "description": "The parameter passed must be either the torn ID or the URL.",
+                        "title": "Illegal Parameters",
+                        "description": "The parameter passed must be either the Torn ID or the URL.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -105,13 +106,26 @@ def assist(interaction):
             },
         }
 
-    if target.key != "":
-        target.refresh()
-    elif user.key != "":
-        target.refresh(key=user.key)
-    elif "guild_id" in interaction:
-        server = Server(interaction["guild_id"])
-        target.refresh(key=User(random.choice(server.admins)).key)
+    if user.key != "" or "guild_id" in interaction:
+        keys = get_admin_keys(interaction)
+
+        if len(keys) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys were found to be run for this command. Please sign into "
+                            "Tornium or run this command in a server with signed-in admins.",
+                            "color": 0xC83F49,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        target.refresh(key=random.choice(get_admin_keys(interaction)))
     else:
         return {
             "type": 4,
@@ -160,9 +174,7 @@ def assist(interaction):
             },
         }
 
-    target_faction: FactionModel = utils.first(
-        FactionModel.objects(tid=target.factiontid)
-    )
+    target_faction: FactionModel = FactionModel.objects(tid=target.factiontid).first()
 
     servers_forwarded = []
 
@@ -205,7 +217,7 @@ def assist(interaction):
                         },
                         {
                             "name": "Requesting Faction",
-                            "value": f"{utils.first(FactionModel.objects(tid=user.factionid)).name} [{user.factionid}]",
+                            "value": f"{FactionModel.objects(tid=user.factionid).first().name} [{user.factionid}]",
                             "inline": True,
                         },
                     ],

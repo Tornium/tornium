@@ -121,7 +121,7 @@ def recruits(*args, **kwargs):
     for recruit in RecruitModel.objects(factionid=current_user.factiontid)[
         start : start + length
     ]:
-        recruiter: UserModel = utils.first(UserModel.objects(tid=recruit.recruiter))
+        recruiter: UserModel = UserModel.objects(tid=recruit.recruiter).first()
         recruit_user = User(recruit.tid).refresh(key=current_user.key)
 
         if recruit.status == 0:

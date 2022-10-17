@@ -20,7 +20,7 @@ class ServerModel(DynamicDocument):
     admins = ListField(default=[])  # List of admin ids
     prefix = StringField(default="?")
     config = DictField(
-        default={"stakeouts": 0, "assists": 0}
+        default={"stakeouts": 0, "assists": 0, "verify": 0}
     )  # Dictionary of server configurations
 
     factions = ListField(default=[])  # List of factions in server
@@ -30,6 +30,11 @@ class ServerModel(DynamicDocument):
     )  # Dictionary of stakeout configurations for the server
     userstakeouts = ListField(default=[])  # List of staked-out users
     factionstakeouts = ListField(default=[])  # List of staked-out factions
+
+    verify_template = StringField(default="{{ name }} [{{ tid }}]")
+    verified_roles = ListField(default=[])
+    faction_verify = DictField(default={})
+    verify_log_channel = IntField(default=0)
 
     assistschannel = IntField(default=0)
     assist_factions = ListField(

@@ -6,6 +6,7 @@
 from flask import Blueprint, render_template
 
 from controllers.api import astat
+from controllers.api import bot
 from controllers.api import key
 from controllers.api import stakeout
 from controllers.api import stat
@@ -19,6 +20,31 @@ mod = Blueprint("apiroutes", __name__)
 mod.add_url_rule("/api/key", view_func=key.test_key, methods=["GET"])
 mod.add_url_rule("/api/key", view_func=key.create_key, methods=["POST"])
 mod.add_url_rule("/api/key", view_func=key.remove_key, methods=["DELETE"])
+
+# /api/bot
+mod.add_url_rule(
+    "/api/bot/verify",
+    view_func=bot.verify.guild_verification,
+    methods=["POST", "DELETE"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/faction",
+    view_func=bot.verify.faction_verification,
+    methods=["POST", "DELETE"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/faction/role",
+    view_func=bot.verify.faction_role,
+    methods=["POST", "DELETE"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"]
+)
+mod.add_url_rule(
+    "/api/bot/verify/role",
+    view_func=bot.verify.guild_verification_role,
+    methods=["POST", "DELETE"],
+)
 
 # /api/faction
 mod.add_url_rule(

@@ -21,31 +21,9 @@ class User(UserMixin):
         :param tid: Torn user ID
         """
 
-        user = utils.first(UserModel.objects(_id=tid))
+        user = UserModel.objects(_id=tid).first()
         if user is None:
-            user = UserModel(
-                tid=tid,
-                name="",
-                level=0,
-                last_refresh=0,
-                admin=False,
-                key=key,
-                keyaccess=True if access == 4 else False,
-                battlescore=0,
-                battlescore_update=0,
-                discord_id=0,
-                servers=[],
-                factionid=0,
-                factionaa=False,
-                recruiter=False,
-                recruiter_code="",
-                recruiter_mail_update=0,
-                chain_hits=0,
-                status="",
-                last_action=0,
-                pro=False,
-                pro_expiration=0,
-            )
+            user = UserModel(tid=tid)
             user.save()
 
         self.tid = tid
@@ -83,7 +61,7 @@ class User(UserMixin):
         if force or (now - self.last_refresh) > 1800:
             if self.key != "":
                 key = self.key
-            elif key is None:
+            elif key is None:  # TODO: Check if there is a session/current_user
                 key = current_user.key
                 if key == "":
                     raise utils.MissingKeyError
@@ -102,7 +80,7 @@ class User(UserMixin):
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            user = utils.first(UserModel.objects(tid=self.tid))
+            user = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
             user.name = user_data["name"]
             user.last_refresh = now
@@ -139,7 +117,7 @@ class User(UserMixin):
         return self
 
     def faction_refresh(self):
-        user = utils.first(UserModel.objects(tid=self.tid))
+        user = UserModel.objects(tid=self.tid).first()
 
         try:
             tasks.tornget(f"faction/?selections=positions", self.key)
@@ -160,7 +138,7 @@ class User(UserMixin):
         return self.aa
 
     def set_key(self, key: str):
-        user = utils.first(UserModel.objects(tid=self.tid))
+        user = UserModel.objects(tid=self.tid).first()
         user.key = key
         self.key = key
         user.save()

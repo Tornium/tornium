@@ -116,7 +116,7 @@ def remove_key(*args, **kwargs):
     if key is None:
         return
 
-    key = utils.first(KeyModel.objects(key=key))
+    key = KeyModel.objects(key=key).first()
     owner = key.tid
     scopes = key.scopes
     expires = key.expires

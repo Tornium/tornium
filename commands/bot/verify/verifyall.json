@@ -1,0 +1,13 @@
+{
+    "name": "verifyall",
+    "type": 1,
+    "description": "Verifies the current user or the mentioned user within the server",
+    "options": [
+        {
+            "type": 5,
+            "name": "force",
+            "description": "Force verification of the member",
+            "required": false
+        }
+    ]
+}

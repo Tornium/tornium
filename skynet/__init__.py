@@ -25,34 +25,6 @@ handler.setFormatter(
 )
 botlogger.addHandler(handler)
 
-with open("commands/commands.json") as commands_file:
-    commands_list = json.load(commands_file)
-
-session = requests.Session()
-application_id = redisdb.get_redis().get("tornium:settings:skynet:applicationid")
-
-for commandid in commands_list["active"]:
-    with open(f"commands/{commandid}.json") as command_file:
-        command_data = json.load(command_file)
-
-    try:
-        command = tasks.discordpost(
-            f"applications/{application_id}/commands",
-            command_data,
-            session=session,
-            dev=True,
-        )
-    except utils.DiscordError as e:
-        honeybadger.honeybadger.notify(
-            e, context={"code": e.code, "message": e.message, "command": commandid}
-        )
-        continue
-    except Exception as e:
-        honeybadger.honeybadger.notify(e, context={"command": commandid})
-        continue
-
-    # TODO: Add permissions to certain commands (e.g. fulfill)
-
 mod = Blueprint("botinteractions", __name__)
 
 
@@ -72,8 +44,11 @@ def skynet_interactions():
         if request.json["data"]["custom_id"] == "faction:vault:fulfill":
             return jsonify(skynet.commands.faction.fulfill.fulfill_button(request.json))
 
+    # General Commands
     if request.json["data"]["name"] == "ping":
         return jsonify(skynet.commands.ping(request.json))
+
+    # Faction Commands
     elif request.json["data"]["name"] == "assist":
         return jsonify(skynet.commands.faction.assist.assist(request.json))
     elif request.json["data"]["name"] == "balance":
@@ -84,7 +59,15 @@ def skynet_interactions():
         return jsonify(skynet.commands.faction.fulfill.fulfill_command(request.json))
     elif request.json["data"]["name"] == "transfer":
         return jsonify(skynet.commands.faction.transfer.transfer(request.json))
-    elif request.json["data"]["name"] == "sr":
-        return jsonify(skynet.commands.sr(request.json))
+
+    # Bot Commands
+    elif request.json["data"]["name"] == "verify":
+        return jsonify(skynet.commands.bot.verify.verify(request.json))
+    elif request.json["data"]["name"] == "verifyall":
+        return jsonify(skynet.commands.bot.verifyall.verifyall(request.json))
+
+    # User Commands
+    elif request.json["data"]["name"] == "who":
+        return jsonify(skynet.commands.user.who.who(request.json))
 
     return {}

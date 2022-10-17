@@ -62,7 +62,7 @@ def add_recruiter(*args, **kwargs):
             },
         )
 
-    user: UserModel = utils.first(UserModel.objects(tid=user))
+    user: UserModel = UserModel.objects(tid=user).first()
 
     if user is None:
         return (
@@ -191,7 +191,7 @@ def remove_recruiter(*args, **kwargs):
             },
         )
 
-    user: UserModel = utils.first(UserModel.objects(tid=user))
+    user: UserModel = UserModel.objects(tid=user).first()
 
     if user is None:
         return (
@@ -300,7 +300,7 @@ def refresh_code(*args, **kwargs):
 
     code = uuid.uuid4().hex[:8]
 
-    if utils.first(UserModel.objects(recruiter_code=code)) is not None:
+    if UserModel.objects(recruiter_code=code).first() is not None:
         return (
             jsonify(
                 {
@@ -318,7 +318,7 @@ def refresh_code(*args, **kwargs):
             },
         )
 
-    user: UserModel = utils.first(UserModel.objects(tid=kwargs["user"].tid))
+    user: UserModel = UserModel.objects(tid=kwargs["user"].tid).first()
 
     if user is None:
         return (
@@ -398,10 +398,12 @@ def invite_recruit(*args, **kwargs):
             },
         )
 
-    recruit: RecruitModel = utils.last(
+    recruit: RecruitModel = (
         RecruitModel.objects(Q(tid=user) & Q(factionid=kwargs["user"].factionid))
+        .order_by("-id")
+        .first()
     )
-    user: UserModel = utils.first(UserModel.objects(tid=user))
+    user: UserModel = UserModel.objects(tid=user).first()
 
     if recruit is None:
         return (
@@ -548,10 +550,12 @@ def remove_recruit(*args, **kwargs):
             },
         )
 
-    recruit: RecruitModel = utils.last(
+    recruit: RecruitModel = (
         RecruitModel.objects(Q(tid=user) & Q(factionid=kwargs["user"].factionid))
+        .order_by("-id")
+        .first()
     )
-    user: UserModel = utils.first(UserModel.objects(tid=user))
+    user: UserModel = UserModel.objects(tid=user).first()
 
     if recruit is None:
         return (
@@ -837,12 +841,14 @@ def message_send(*args, **kwargs):
             },
         )
 
-    recruit: RecruitModel = utils.last(
+    recruit: RecruitModel = (
         RecruitModel.objects(
             Q(tid=receiver_data["player_id"])
             & Q(factionid=kwargs["user"].factionid)
             & Q(recruiter=kwargs["user"].tid)
         )
+        .order_by("-id")
+        .first()
     )
 
     # TODO: Add max delay since last message before creating new recruit object

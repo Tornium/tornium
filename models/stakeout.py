@@ -14,9 +14,9 @@ import utils
 class Stakeout:
     def __init__(self, tid, guild=None, user=True, key=""):
         if user:
-            stakeout = utils.first(UserStakeoutModel.objects(tid=tid))
+            stakeout = UserStakeoutModel.objects(tid=tid).first()
         else:
-            stakeout = utils.first(FactionStakeoutModel.objects(tid=tid))
+            stakeout = FactionStakeoutModel.objects(tid=tid).first()
 
         if stakeout is None:
             now = utils.now()

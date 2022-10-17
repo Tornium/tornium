@@ -6,13 +6,13 @@ Written by tiksan <webmaster@deek.sh> */
 const guildid = document.currentScript.getAttribute('data-guildid');
 const assistMod = document.currentScript.getAttribute('data-assist-mod');
 
-$(document).ready(function(){
+$(document).ready(function() {
     $('[data-bs-toggle="tooltip"]').tooltip({
         container: '.list-group'
     });
 
     $('#assist-type-select').find('option').each(function(i, e) {
-        if($(e).val() == String(assistMod)) {
+        if($(e).val() === String(assistMod)) {
             $('#assist-type-select').prop('selectedIndex', i);
         }
     });

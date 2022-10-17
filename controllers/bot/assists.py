@@ -22,7 +22,7 @@ def assists_update(guildid):
             jsonify({"ContentType": "application/json"}),
         )
 
-    server: ServerModel = utils.first(ServerModel.objects(sid=guildid))
+    server: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if action == "enable":
         server.config["assists"] = 1

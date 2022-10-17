@@ -20,7 +20,7 @@ import utils
 
 class Schedule:
     def __init__(self, uuid, factiontid=None):
-        schedule = utils.first(ScheduleModel.objects(uuid=uuid))
+        schedule = ScheduleModel.objects(uuid=uuid).first
 
         if schedule is None and factiontid is None:
             raise Exception
@@ -65,26 +65,26 @@ class Schedule:
             else:
                 self.activity[tid] = [activity]
 
-        schedule = utils.first(ScheduleModel.objects(uuid=self.uuid))
+        schedule = ScheduleModel.objects(uuid=self.uuid).first
         schedule.activity = self.activity
         schedule.save()
 
     def remove_user(self, tid):
         self.activity.pop(tid, None)
         self.weight.pop(tid, None)
-        schedule = utils.first(ScheduleModel.objects(uuid=self.uuid))
+        schedule = ScheduleModel.objects(uuid=self.uuid).first
         schedule.activity = self.activity
         schedule.weight = self.weight
         schedule.save()
 
     def set_weight(self, tid, weight):
         self.weight[tid] = weight
-        schedule = utils.first(ScheduleModel.objects(uuid=self.uuid))
+        schedule = ScheduleModel.objects(uuid=self.uuid).first
         schedule.weight = self.weight
         schedule.save()
 
     def delete(self):
-        schedule = utils.first(ScheduleModel.objects(uuid=self.uuid))
+        schedule = ScheduleModel.objects(uuid=self.uuid).first
         schedule.delete()
 
     def generate(self):

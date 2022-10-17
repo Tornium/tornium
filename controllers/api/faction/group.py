@@ -21,9 +21,9 @@ def group_modify(*args, **kwargs):
     client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user = User(kwargs["user"].tid)
-    group: FactionGroupModel = utils.first(
-        FactionGroupModel.objects(tid=data.get("groupid"))
-    )
+    group: FactionGroupModel = FactionGroupModel.objects(
+        tid=data.get("groupid")
+    ).first()
 
     action = data.get("action")
     value = data.get("value")
@@ -128,7 +128,7 @@ def group_modify(*args, **kwargs):
         group.save()
     elif action == "delete":
         for faction in group.members:
-            faction: FactionModel = utils.first(FactionModel.objects(tid=faction))
+            faction: FactionModel = FactionModel.objects(tid=faction).first()
             faction.groups.remove(group.tid)
             faction.save()
 

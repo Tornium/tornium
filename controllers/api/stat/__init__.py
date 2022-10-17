@@ -26,7 +26,7 @@ def generate_chain_list(*args, **kwargs):
     variance = (
         request.args.get("variance")
         if request.args.get("variance") is not None
-        else 0.05
+        else 0.01
     )
 
     if kwargs["user"].battlescore == 0:
@@ -124,6 +124,7 @@ def generate_chain_list(*args, **kwargs):
 @requires_scopes(scopes={"admin", "read:stats"})
 def get_stat_user(tid, *args, **kwargs):
     client = redisdb.get_redis()
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
     limit = request.args.get("limit") if request.args.get("limit") is not None else 10
 
     stat_entries = (

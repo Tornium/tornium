@@ -25,7 +25,7 @@ class Faction:
         :param key: Torn API Key to be utilized (uses current user's key if not passed)
         """
 
-        faction = utils.first(FactionModel.objects(tid=tid))
+        faction = FactionModel.objects(tid=tid).first()
         if faction is None:
             try:
                 faction_data = tasks.tornget(
@@ -40,13 +40,14 @@ class Faction:
             now = utils.now()
 
             faction = FactionModel(
-                tid=tid,
+                tid=faction_data["ID"],
                 name=faction_data["name"],
                 respect=faction_data["respect"],
                 capacity=faction_data["capacity"],
                 leader=faction_data["leader"],
                 coleader=faction_data["co-leader"],
                 aa_keys=[],
+                last_attacks=0,
                 last_members=now,
                 guild=0,
                 config={"vault": 0, "stats": 1},
@@ -70,22 +71,14 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
-
-                if user is None:
-                    UserModel(
-                        tid=int(member_id),
-                        name=member_data["name"],
-                        level=member_data["level"],
-                        last_action=member_data["last_action"]["timestamp"],
-                        status=member_data["last_action"]["status"],
-                    ).save()
-                else:
-                    user.name = member_data["name"]
-                    user.level = member_data["level"]
-                    user.last_action = member_data["last_action"]["timestamp"]
-                    user.status = member_data["last_action"]["status"]
-                    user.save()
+                UserModel.objects(tid=int(member_id)).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=member_data["name"],
+                    set__level=member_data["level"],
+                    set__last_action=member_data["last_action"]["timestamp"],
+                    set__status=member_data["last_action"]["status"],
+                )
 
         self.tid = tid
         self.name = faction.name
@@ -96,6 +89,7 @@ class Faction:
         self.aa_keys = faction.aa_keys
 
         self.last_members = faction.last_members
+        self.last_attacks = faction.last_attacks
 
         self.guild = faction.guild
         self.config = faction.config
@@ -125,7 +119,7 @@ class Faction:
 
         keys = list(set(keys))
 
-        faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
+        faction: FactionModel = FactionModel.objects(tid=self.tid).first()
         faction.aa_keys = keys
         faction.save()
         self.aa_keys = keys
@@ -166,7 +160,7 @@ class Faction:
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            faction: FactionModel = utils.first(FactionModel.objects(tid=self.tid))
+            faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]
             faction.respect = faction_data["respect"]
             faction.capacity = faction_data["capacity"]
@@ -176,21 +170,12 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                user: UserModel = utils.first(UserModel.objects(tid=int(member_id)))
-
-                if user is None:
-                    UserModel(
-                        tid=int(member_id),
-                        name=member_data["name"],
-                        level=member_data["level"],
-                        last_action=member_data["last_action"]["timestamp"],
-                        status=member_data["last_action"]["status"],
-                        factionid=self.tid,
-                    ).save()
-                else:
-                    user.name = member_data["name"]
-                    user.level = member_data["level"]
-                    user.last_action = member_data["last_action"]["timestamp"]
-                    user.status = member_data["last_action"]["status"]
-                    user.factionid = self.tid
-                    user.save()
+                UserModel.objects(tid=int(member_id)).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=member_data["name"],
+                    set__level=member_data["level"],
+                    set__last_action=member_data["last_action"]["timestamp"],
+                    set__status=member_data["last_action"]["status"],
+                    set__factionid=faction_data["ID"],
+                )

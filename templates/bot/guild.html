@@ -221,7 +221,7 @@ Tornium - Bot Dashboard
                             {% endif %}
 
                                 {% for channel in category["channels"].values() %}
-                                    {% if server.retal_config[faction.tid]["channel"]|int == channel["id"]|int %}
+                                    {% if faction.tid|string in server.retal_config and server.retal_config[faction.tid|string]["channel"]|int == channel["id"]|int %}
                                     <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
                                     {% else %}
                                     <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>

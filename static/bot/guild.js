@@ -3,6 +3,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 Written by tiksan <webmaster@deek.sh> */
 
+const key = document.currentScript.getAttribute('data-key');
 const guildid = document.currentScript.getAttribute('data-guildid');
 const assistMod = document.currentScript.getAttribute('data-assist-mod');
 

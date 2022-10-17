@@ -552,6 +552,9 @@ def discordpost(
             "Content-Type": "application/json",
         }
 
+        if bucket is not None:
+            logger.info(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}"))
+
         if redis.exists("tornium:discord:ratelimit:global"):
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -575,12 +578,12 @@ def discordpost(
             "Content-Type": "application/json",
         }
 
+    logger.info(url)
+
     if session is None:
         request = requests.post(url, headers=headers, data=json.dumps(payload))
     else:
         request = session.post(url, headers=headers, data=json.dumps(payload))
-
-    logger.warning(request.headers)
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")

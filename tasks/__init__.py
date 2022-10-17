@@ -304,6 +304,7 @@ def discordget(self, endpoint, session=None, dev=False, bucket=None, retry=False
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
         ):
             if retry:
                 self.retry(
@@ -431,6 +432,7 @@ def discordpatch(
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
         ):
             if retry:
                 self.retry(
@@ -581,8 +583,6 @@ def discordpost(
     else:
         request = session.post(url, headers=headers, data=json.dumps(payload))
 
-    print(request.headers)
-
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
 
@@ -694,6 +694,7 @@ def discordput(
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
         ):
             if retry:
                 self.retry(
@@ -822,6 +823,7 @@ def discorddelete(self, endpoint, session=None, dev=False, bucket=None, retry=Fa
             bucket is not None
             and redis.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
             and int(redis.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
+            and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
         ):
             if retry:
                 self.retry(

@@ -70,4 +70,29 @@ $(document).ready(function() {
         xhttp.open('POST', `/bot/assists/${guildid}/update?action=mod&value=${assistMod}`);
         xhttp.send();
     });
+
+    $(".faction-retal-channel").on("change", function() {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Channel Set Failed");
+            } else {
+                generateToast("Channel Set Successful");
+                window.location.reload();
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/retal/faction/channel");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factiontid": this.getAttribute("data-faction"),
+            "channel": this.options[this.selectedIndex].value
+        }));
+    });
 });

@@ -110,8 +110,6 @@ $(document).ready(function() {
         }));
     });
 
-
-
     $(".verification-faction-enable").on("click", function() {
         const xhttp = new XMLHttpRequest();
 

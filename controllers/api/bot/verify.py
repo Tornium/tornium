@@ -5,9 +5,6 @@
 
 import json
 import random
-from xmlrpc.client import Server
-
-import requests.cookies
 
 from controllers.api.decorators import *
 from models.faction import Faction

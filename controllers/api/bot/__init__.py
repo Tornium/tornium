@@ -3,4 +3,4 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from controllers.api.bot import verify
+from controllers.api.bot import retal, verify

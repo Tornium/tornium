@@ -44,6 +44,7 @@ class Server:
                 verified_roles=[],
                 faction_verify={},
                 verify_log_channel=0,
+                retal_config={},
                 assistschannel=0,
                 assist_factions=[],
                 assist_mod=0,
@@ -67,6 +68,8 @@ class Server:
         self.verified_roles = server.verified_roles
         self.faction_verify = server.faction_verify
         self.verify_log_channel = server.verify_log_channel
+
+        self.retal_config = server.retal_config
 
         self.assistschannel = server.assistschannel
         self.assist_factions = server.assist_factions

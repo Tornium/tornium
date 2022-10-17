@@ -36,6 +36,8 @@ class ServerModel(DynamicDocument):
     faction_verify = DictField(default={})
     verify_log_channel = IntField(default=0)
 
+    retal_config = DictField(default={})  # Configuration of retals for the server
+
     assistschannel = IntField(default=0)
     assist_factions = ListField(
         default=[]

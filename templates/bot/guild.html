@@ -206,16 +206,15 @@ Tornium - Bot Dashboard
             </p>
 
             {% if server.factions|length != 0 %}
-            <div class="col-sm-12 col-md-10 col-lg-8 my-3">
+            <div class="col-sm-12 col-md-8 col-lg-4">
                 <div class="card mb-3" style="width: 18rem">
                     <div class="card-header">Factions:</div>
                     <ul class="list-group list-group-flush">
                         {% for faction in factions %}
                         <li class="list-group-item d-flex">
                             <p>{{ faction.name }} [{{ faction.tid }}]</p>
-
                             <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select"">
-                                <option value="0">No faction retal channel</option>
+                                <option value="0">Disabled</option>
                                 {% for category in channels.values() %}
                                     {% if category["name"] == "" %}
                                     <optgroup label="No Category">

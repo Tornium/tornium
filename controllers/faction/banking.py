@@ -130,9 +130,9 @@ def userbankingdata():
 def fulfill(wid: int):
     withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=wid).first()
     if withdrawal.wtype in [0, None]:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&giveMoneyAmount={withdrawal.amount}"
+        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&money={withdrawal.amount}"
     else:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo={withdrawal.requester}&givePointsAmount={withdrawal.amount}"
+        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo={withdrawal.requester}&points={withdrawal.amount}"
 
     if withdrawal is None:
         return (

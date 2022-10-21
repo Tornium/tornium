@@ -49,7 +49,7 @@ def generate_chain_list(*args, **kwargs):
 
     stat_entries = StatModel.objects(
         (
-            Q(globalstat=1)
+            Q(globalstat=True)
             | Q(addedid=kwargs["user"].tid)
             | Q(addedfactiontid=kwargs["user"].factionid)
             | Q(allowedfactions=kwargs["user"].factionid)
@@ -130,7 +130,7 @@ def get_stat_user(tid, *args, **kwargs):
     stat_entries = (
         StatModel.objects(
             (
-                Q(globalstat=1)
+                Q(globalstat=True)
                 | Q(addedid=kwargs["user"].tid)
                 | Q(addedfactiontid=kwargs["user"].factionid)
                 | Q(allowedfactions=kwargs["user"].factionid)

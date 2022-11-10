@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Tornium Assists
-// @namespace    http://torn.deek.sh
-// @version      0.0.2
-// @updateURL    https://torn.deek.sh/userscripts/tornium-assists.user.js
-// @downloadURL  https://torn.deek.sh/userscripts/tornium-assists.user.js
+// @namespace    http://tornium.com
+// @version      0.0.3
+// @updateURL    https://tornium.com/userscripts/tornium-assists.user.js
+// @downloadURL  https://tornium.com/userscripts/tornium-assists.user.js
 // @author       tiksan [2383326]
-// @match        https://www.torn.com/*
-// @icon         https://torn.deek.sh/favicon.svg
+// @match        https://www.torn.com/loader*
+// @icon         https://tornium.com/favicon.svg
 // @grant        GM_xmlhttpRequest
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js
 // @connect      deek.sh

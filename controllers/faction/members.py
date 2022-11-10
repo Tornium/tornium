@@ -35,5 +35,5 @@ def members(*args, **kwargs):
         average_stat=UserModel.objects(
             Q(factionid=kwargs["faction"].tid) & Q(battlescore__ne=0)
         ).average("battlescore"),
-        average_stat_80=sum(stats) / len(stats),
+        average_stat_80=sum(stats) / len(stats) if len(stats) != 0 else 0,
     )

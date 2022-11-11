@@ -649,7 +649,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 upsert=True,
                 new=True,
                 set__name=attack["defender_id"],
-                set__factionid=attack["defender_faction"]
+                set__factionid=attack["defender_faction"],
             )
 
         if opponent is None:
@@ -731,11 +731,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             )
         else:
             fields.append(
-                {
-                    "name": "Opponent Faction Chaining",
-                    "value": "False",
-                    "inline": True
-                }
+                {"name": "Opponent Faction Chaining", "value": "False", "inline": True}
             )
 
         payload = {
@@ -756,15 +752,15 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                             "type": 2,
                             "style": 5,
                             "label": "Attack Log",
-                            "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}"
+                            "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "RETAL!!",
-                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}"
-                        }
-                    ]
+                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}",
+                        },
+                    ],
                 },
                 {
                     "type": 1,
@@ -773,15 +769,15 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                             "type": 2,
                             "style": 5,
                             "label": f"{opponent.name} [{opponent.tid}]",
-                            "url": f"https://www.torn.com/profiles.php?XID={opponent.tid}"
+                            "url": f"https://www.torn.com/profiles.php?XID={opponent.tid}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": f"{attack['attacker_factionname']} [{attack['attacker_faction']}]",
-                            "url": f"https://www.torn.com/factions.php?step=profile&userID={opponent.tid}"
-                        }
-                    ]
+                            "url": f"https://www.torn.com/factions.php?step=profile&userID={opponent.tid}",
+                        },
+                    ],
                 },
                 {
                     "type": 1,
@@ -790,17 +786,17 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                             "type": 2,
                             "style": 5,
                             "label": f"{user.name} [{user.tid}]",
-                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}"
+                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": f"{attack['defender_factionname']} [{attack['defender_faction']}]",
-                            "url": f"https://www.torn.com/factions.php?step=profile&userID={user.tid}"
-                        }
-                    ]
-                }
-            ]
+                            "url": f"https://www.torn.com/factions.php?step=profile&userID={user.tid}",
+                        },
+                    ],
+                },
+            ],
         }
 
         try:

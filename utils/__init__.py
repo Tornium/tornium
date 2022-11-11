@@ -6,6 +6,7 @@
 import datetime
 import logging
 import re
+from typing import Union
 
 from flask import render_template
 
@@ -182,8 +183,13 @@ def remove_str(text):
     return int("".join(filter(lambda x: x.isdigit(), text)))
 
 
-def rel_time(time):
-    delta = now() - int(time.timestamp())
+def rel_time(time: Union[datetime.datetime, int, float]):
+    if type(time) == datetime.datetime:
+        delta = now() - int(time.timestamp())
+    elif type(time) in (int, float):
+        delta = now() - time
+    else:
+        raise AttributeError
 
     if delta < 60:  # One minute
         return "Now"

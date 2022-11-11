@@ -592,6 +592,8 @@ def fetch_attacks_runner():
 
 @celery_app.task
 def retal_attacks(factiontid, faction_data, last_attacks=None):
+    logger.debug(f"{factiontid} retal attacks task initiated")
+
     if len(faction_data) == 0:
         return
     elif "attacks" not in faction_data:
@@ -736,6 +738,8 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
 @celery_app.task
 def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None):
+    logger.debug(f"{factiontid} stat DB attacks task initiated")
+
     if len(faction_data) == 0:
         return
     elif "attacks" not in faction_data:

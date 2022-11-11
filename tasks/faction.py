@@ -599,29 +599,34 @@ def fetch_attacks_runner():
 def retal_attacks(factiontid, faction_data, last_attacks=None):
     logger.debug(f"{factiontid} retal attacks task initiated")
 
-    if len(faction_data) == 0:
-        return
-    elif "attacks" not in faction_data:
+    if "attacks" not in faction_data:
         return
     elif len(faction_data["attacks"]) == 0:
+        logger.debug("no attacks found")
         return
 
     faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
     if faction is None:
+        logger.debug("faction not located")
         return
     elif faction.guild == 0:
+        logger.debug("no faction guild")
         return
 
     guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
     if guild is None:
+        logger.debug("guild not found")
         return
     elif faction.tid not in guild.factions:
+        logger.debug("faction not in guild factions")
         return
     elif str(faction.tid) not in guild.retal_config:
+        logger.debug("faction not in guild's retal config")
         return
     elif guild.retal_config[str(faction.tid)] == 0:
+        logger.debug("faction's retal config doesn't have a set channel")
         return
 
     if last_attacks is None or last_attacks >= utils.now():

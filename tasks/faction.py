@@ -719,10 +719,30 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 )
             )
 
+        if attack["attacker_faction"] in (0, ""):
+            pass
+        elif attack["chain"] > 100:
+            fields.append(
+                {
+                    "name": "Opponent Faction Chaining",
+                    "value": "True",
+                    "inline": True,
+                }
+            )
+        else:
+            fields.append(
+                {
+                    "name": "Opponent Faction Chaining",
+                    "value": "False",
+                    "inline": True
+                }
+            )
+
         payload = {
             "embeds": [
                 {
                     "title": title,
+                    "description": f"{opponent.name} [{opponent.tid}] {attack['result'].lower()} {user.name} [{user.tid}] (-{attack['respect_loss']})",
                     "fields": fields,
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                     "footer": {"text": utils.torn_timestamp()},

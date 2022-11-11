@@ -672,9 +672,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         fields = [
             {
                 "name": "Timeout",
-                "value": utils.torn_timestamp(
-                    attack["timestamp_ended"] + 300
-                ),  # Five minutes after attack ends,
+                "value": f"<t:{attack['timestamp_ended'] + 300}:R>",  # Five minutes after attack ends
             }
         ]
 
@@ -713,7 +711,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                     },
                     {
                         "name": "Stat Score Update",
-                        "value": utils.rel_time(stat.timeadded),
+                        "value": f"<t:{stat.timeadded}:R>",
                         "inline": True,
                     },
                 )
@@ -726,12 +724,12 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 {
                     "name": "Opponent Faction Chaining",
                     "value": "True",
-                    "inline": True,
+                    "inline": False,
                 }
             )
         else:
             fields.append(
-                {"name": "Opponent Faction Chaining", "value": "False", "inline": True}
+                {"name": "Opponent Faction Chaining", "value": "False", "inline": False}
             )
 
         payload = {

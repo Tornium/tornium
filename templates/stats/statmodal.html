@@ -80,12 +80,18 @@
                         {% for stat in stats %}
                             <tr>
                                 <th>{{ stat["statid"] }}</th>
-                                <th>{{ stat["battlescore"] }}</th>
+                                <th>{{ stat["battlescore"]|commas }}</th>
                                 <th>
                                     <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ stat["timeadded"]|tcttime }}">{{ stat["timeadded"]|reltime }}</span>
                                 </th>
-                                <th>{{ stat["addedid"].name }} [{{ stat["addedid"].tid }}]</th>
-                                <th>{{ stat["addedfactiontid"].name }} [{{ stat["addedfactiontid"].tid }}]</th>
+                                <th>{{ stat["added_user"].name }} [{{ stat["added_user"].tid }}]</th>
+                                {% if stat["added_faction_tid"] == 0 %}
+                                <th>Unknown/No Faction</th>
+                                {% elif stat["added_faction"] is none %}
+                                <th>Unknown Faction</th>
+                                {% else %}
+                                <th>{{ stat["added_faction"].name }} [{{ stat["added_faction"].tid }}]</th>
+                                {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>

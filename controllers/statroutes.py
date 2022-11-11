@@ -150,8 +150,9 @@ def user_data():
                 "tid": stat_entry.tid,
                 "battlescore": stat_entry.battlescore,
                 "timeadded": stat_entry.timeadded,
-                "addedid": user,
-                "addedfactiontid": faction,
+                "added_user": user,
+                "added_faction": faction,
+                "added_faction_tid": stat_entry.addedfactiontid,
                 "globalstat": stat_entry.globalstat,
             }
         )

@@ -553,6 +553,8 @@ def fetch_attacks_runner():
     for faction in FactionModel.objects(
         Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
     ):
+        logger.debug(f'fetch attacks running initiated on {faction.name} [{faction.tid}]')
+
         if len(faction.aa_keys) == 0:
             continue
         elif faction.config.get("config") in (0, None):
@@ -580,6 +582,11 @@ def fetch_attacks_runner():
         except Exception as e:
             logger.exception(e)
             honeybadger.notify(e)
+            continue
+
+        logger.debug(faction_data)
+
+        if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
             continue
 
         retal_attacks.delay(

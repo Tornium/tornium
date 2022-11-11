@@ -584,8 +584,8 @@ def fetch_attacks_runner():
 
         logger.debug(faction_data)
 
-        if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
-            continue
+        # if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
+        #     continue
 
         retal_attacks.delay(
             faction.tid, faction_data, last_attacks=faction.last_attacks

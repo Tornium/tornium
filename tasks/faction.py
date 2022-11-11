@@ -553,8 +553,6 @@ def fetch_attacks_runner():
     for faction in FactionModel.objects(
         Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
     ):
-        logger.debug(f'fetch attacks running initiated on {faction.name} [{faction.tid}]')
-
         if len(faction.aa_keys) == 0:
             continue
         elif faction.last_attacks == 0:
@@ -582,10 +580,8 @@ def fetch_attacks_runner():
             honeybadger.notify(e)
             continue
 
-        logger.debug(faction_data)
-
-        # if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
-        #     continue
+        if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
+            continue
 
         retal_attacks.delay(
             faction.tid, faction_data, last_attacks=faction.last_attacks
@@ -597,36 +593,27 @@ def fetch_attacks_runner():
 
 @celery_app.task
 def retal_attacks(factiontid, faction_data, last_attacks=None):
-    logger.debug(f"{factiontid} retal attacks task initiated")
-
     if "attacks" not in faction_data:
         return
     elif len(faction_data["attacks"]) == 0:
-        logger.debug("no attacks found")
         return
 
     faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
     if faction is None:
-        logger.debug("faction not located")
         return
     elif faction.guild == 0:
-        logger.debug("no faction guild")
         return
 
     guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
     if guild is None:
-        logger.debug("guild not found")
         return
     elif faction.tid not in guild.factions:
-        logger.debug("faction not in guild factions")
         return
     elif str(faction.tid) not in guild.retal_config:
-        logger.debug("faction not in guild's retal config")
         return
     elif guild.retal_config[str(faction.tid)] == 0:
-        logger.debug("faction's retal config doesn't have a set channel")
         return
 
     if last_attacks is None or last_attacks >= utils.now():
@@ -670,9 +657,9 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         ).first()
 
         if opponent_faction is None:
-            title = f"Legacy can retal on {opponent.name} [{opponent.tid}] from Unknown Faction"
+            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from Unknown Faction"
         else:
-            title = f"Legacy can retal on {opponent.name} [{opponent.tid}] from {opponent_faction.name} [{opponent_faction.tid}]"
+            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from {opponent_faction.name} [{opponent_faction.tid}]"
 
         fields = [
             {
@@ -749,8 +736,6 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
 @celery_app.task
 def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None):
-    logger.debug(f"{factiontid} stat DB attacks task initiated")
-
     if len(faction_data) == 0:
         return
     elif "attacks" not in faction_data:

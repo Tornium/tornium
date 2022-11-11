@@ -77,6 +77,11 @@ if celery_app is None:
             },
             "fetch-attacks": {
                 "task": "tasks.faction.fetch_attacks",
+                "enabled": False,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },
+            "fetch-attacks-runner": {
+                "task": "tasks.faction.fetch_attacks_runner",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },  # Guild tasks
@@ -148,9 +153,17 @@ if celery_app is None:
             "task": data["fetch-attacks"]["task"],
             "schedule": crontab(
                 minute=data["fetch-attacks"]["schedule"]["minute"],
-                hour=data["refresh-factions"]["schedule"]["hour"],
+                hour=data["fetch-attacks"]["schedule"]["hour"],
             ),
         }
+    if data["fetch-attacks-runner"]["enabled"]:
+        schedule["fetch-attacks-runner"] [ {
+            "task": data["fetch-attacks-runner"]["task"],
+            "schedule": crontab(
+                minute=data["fetch-attacks-runner"]["schedule"]["minute"],
+                hour=data["fetch-attacks-runner"]["schedule"]["hour"],
+            ),
+        }]
     if data["refresh-guilds"]["enabled"]:
         schedule["refresh-guilds"] = {
             "task": data["refresh-guilds"]["task"],

@@ -23,7 +23,7 @@ import redisdb
 from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
 from tasks.user import update_user
 import utils
-from utils.errors import TornError
+from utils.errors import NetworkingError, TornError
 
 logger: logging.Logger
 
@@ -371,7 +371,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
                 if attack["attacker_id"] in ("", 0):  # Attacker stealthed
                     continue
-                elif attack["respect"] == 0:  # Attack on fac member
+                elif attack["respect"] == 0:  # Attack by fac member
                     continue
 
                 user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
@@ -458,8 +458,6 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     logger.exception(e)
                     continue
 
-            logger.debug(f"GET stat scores of attack {attack['code']}")
-
             try:
                 if attack["defender_faction"] == faction_data["ID"]:
                     opponent_score = user_score / (
@@ -491,10 +489,12 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
 
                 allowed_factions = list(set(allowed_factions))
 
+            last_stat_entry = StatModel.objects().order_by("-statid").first()
+
             try:
                 stat_entry = StatModel(
-                    statid=StatModel.objects().order_by("-statid").first().statid + 1
-                    if StatModel.objects().count() != 0
+                    statid=last_stat_entry.statid + 1
+                    if last_stat_entry is not None
                     else 0,
                     tid=opponent_id,
                     battlescore=opponent_score,
@@ -518,3 +518,398 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                 faction.save()
             except Exception as e:
                 logger.exception(e)
+
+
+@celery_app.task
+def fetch_attacks_runner():
+    redis = redisdb.get_redis()
+
+    if redis.exists("tornium:celery-lock:fetch-attacks"):  # Lock enabled
+        logger.debug("Fetch attacks task terminated due to pre-existing task")
+        raise Exception(
+            f"Can not run task as task is already being run. Try again in {redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
+        )
+
+    if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
+        redis.expire("tornium:celery-lock:fetch-attacks", 60)  # Lock for five minutes
+    if redis.ttl("torniusm:celery-lock:fetch-attacks") < 0:
+        redis.expire("tornium:celery-lock:fetch-attacks", 1)
+
+    requests_session = requests.Session()
+    faction_shares = {}
+
+    group: FactionGroupModel
+    for group in FactionGroupModel.objects():
+        for member in group.sharestats:
+            if str(member) in faction_shares:
+                faction_shares[str(member)].extend(group.members)
+            else:
+                faction_shares[str(member)] = group.members
+
+    for factiontid, shares in faction_shares.items():
+        faction_shares[factiontid] = list(set(shares))
+
+    faction: FactionModel
+    for faction in FactionModel.objects(
+        Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
+    ):
+        if len(faction.aa_keys) == 0:
+            continue
+        elif faction.config.get("config") in (0, None):
+            continue
+        elif faction.last_attacks == 0:
+            faction.last_attacks = utils.now()
+            faction.save()
+            continue
+
+        try:
+            faction_data = tornget(
+                "faction/?selections=basic,attacks",
+                fromts=faction.last_attacks + 1,  # Timestamp is inclusive
+                key=random.choice(faction.aa_keys),
+                session=requests_session,
+            )
+        except TornError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+            continue
+        except NetworkingError as e:
+            logger.exception(e)
+            honeybadger.notify(e, context={"code": e.code})
+            continue
+        except Exception as e:
+            logger.exception(e)
+            honeybadger.notify(e)
+            continue
+
+        retal_attacks.delay(
+            faction.tid, faction_data, last_attacks=faction.last_attacks
+        )
+        stat_db_attacks.delay(
+            faction.tid, faction_data, faction_shares, last_attacks=faction.last_attacks
+        )
+
+
+@celery_app.task
+def retal_attacks(factiontid, faction_data, last_attacks=None):
+    if len(faction_data) == 0:
+        return
+    elif "attacks" not in faction_data:
+        return
+    elif len(faction_data["attacks"]) == 0:
+        return
+
+    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
+
+    if faction is None:
+        return
+    elif faction.guild == 0:
+        return
+
+    guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
+
+    if guild is None:
+        return
+    elif faction.tid not in guild.factions:
+        return
+    elif str(faction.tid) not in guild.retal_config:
+        return
+    elif guild.retal_config[str(faction.tid)] == 0:
+        return
+
+    if last_attacks is None or last_attacks >= utils.now():
+        last_attacks = faction.last_attacks
+
+    for attack in faction_data["attacks"].values():
+        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+            continue
+        elif attack["defender_id"] in [
+            4,
+            10,
+            15,
+            17,
+            19,
+            20,
+            21,
+        ]:  # Checks if NPC fight (and you defeated NPC)
+            continue
+        elif attack["timestamp_ended"] <= last_attacks:
+            continue
+        elif attack["defender_faction"] != faction.tid:  # Not a defend
+            continue
+        elif attack["attacker_id"] in ("", 0):  # Stealthed attacker
+            continue
+        elif attack["respect"] == 0:  # Attack by fac member
+            continue
+
+        user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
+        opponent: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
+
+        if opponent is None:
+            opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                upsert=True,
+                new=True,
+                set__name=attack["attacker_name"],
+                set__factionid=attack["attacker_faction"],
+            )
+
+        opponent_faction: FactionModel = FactionModel.objects(
+            tid=attack["attacker_faction"]
+        ).first()
+
+        if opponent_faction is None:
+            title = f"Legacy can retal on {opponent.name} [{opponent.tid}] from Unknown Faction"
+        else:
+            title = f"Legacy can retal on {opponent.name} [{opponent.tid}] from {opponent_faction.name} [{opponent_faction.tid}]"
+
+        fields = [
+            {
+                "name": "Timeout",
+                "value": utils.torn_timestamp(
+                    attack["timestamp_ended"] + 300
+                ),  # Five minutes after attack ends,
+            }
+        ]
+
+        stat: StatModel = (
+            StatModel.objects(
+                Q(tid=opponent.tid)
+                & (
+                    Q(globalstat=True)
+                    | Q(addedid=user.tid)
+                    | Q(addedfactionid=user.factionid)
+                    | Q(allowedfactions=user.factionid)
+                )
+            )
+            .order_by("-statid")
+            .first()
+        )
+
+        if stat is not None:
+            fields.append(
+                {
+                    "name": "Estimated Stat Score",
+                    "value": utils.commas(stat.battlescore),
+                    "inline": True,
+                }
+            )
+            fields.append(
+                {
+                    "name": "Stat Score Update",
+                    "value": utils.rel_time(stat.timeadded),
+                    "inline": True,
+                }
+            )
+
+        payload = {
+            "embeds": [
+                {
+                    "title": title,
+                    "fields": fields,
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "footer": {"text": utils.torn_timestamp()},
+                }
+            ]
+        }
+
+        try:
+            discordpost.delay(
+                f"channels/{guild.retal_config[str(faction.tid)]}/messages",
+                payload,
+                bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
+            )
+        except utils.DiscordError as e:
+            if e.code == 10003:
+                logger.warning(
+                    f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}"
+                )
+                return
+
+            logger.exception(e)
+            honeybadger.notify(e)
+            continue
+        except Exception as e:
+            logger.exception(e)
+            honeybadger.notify(e)
+            continue
+
+
+@celery_app.task
+def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None):
+    if len(faction_data) == 0:
+        return
+    elif "attacks" not in faction_data:
+        return
+    elif len(faction_data["attacks"]) == 0:
+        return
+
+    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
+
+    if faction is None:
+        return
+
+    for attack in faction_data["attacks"].values():
+        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+            continue
+        elif attack["defender_id"] in [
+            4,
+            10,
+            15,
+            17,
+            19,
+            20,
+            21,
+        ]:  # Checks if NPC fight (and you defeated NPC)
+            continue
+        elif attack["modifiers"]["fair_fight"] in (
+            1,
+            3,
+        ):  # 3x FF can be greater than the defender battlescore indicated
+            continue
+        elif attack["timestamp_ended"] <= faction.last_attacks:
+            continue
+
+        # User: faction member
+        # Opponent: non-faction member regardless of attack or defend
+
+        if (
+            attack["defender_faction"] == faction_data["ID"]
+        ):  # Defender fac is the fac making the call
+
+            if attack["attacker_id"] in ("", 0):  # Attacker stealthed
+                continue
+            elif attack["respect"] == 0:  # Attack by fac member
+                continue
+
+            user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
+            user_id = attack["defender_id"]
+
+            if user is None:
+                continue
+
+            try:
+                if user.battlescore_update - utils.now() <= 259200:  # Three days
+                    user_score = user.battlescore
+                else:
+                    continue
+            except IndexError:
+                continue
+            except AttributeError as e:
+                logger.exception(e)
+                honeybadger.notify(e)
+                continue
+
+            # TODO: Update
+            if user_score > 100000 or user_score == 0:  # 100k old value
+                continue
+
+            opponent: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
+            opponent_id = attack["attacker_id"]
+
+            if opponent is None:
+                opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=attack["attacker_name"],
+                    set__factionid=attack["attacker_faction"],
+                )
+        else:  # User is the attacker
+            user: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
+            user_id = attack["attacker_id"]
+
+            if user is None:
+                continue
+
+            try:
+                if user.battlescore_update - utils.now() <= 259200:  # Three days
+                    user_score = user.battlescore
+                else:
+                    continue
+            except IndexError:
+                continue
+            except AttributeError as e:
+                logger.exception(e)
+                honeybadger.notify(e)
+                continue
+
+            if user_score == 0:
+                continue
+
+            opponent: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
+            opponent_id = attack["defender_id"]
+
+            if opponent is None:
+                opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=attack["attacker_name"],
+                    set__factionid=attack["attacker_faction"],
+                )
+
+        if opponent is None:
+            try:
+                update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
+            except TornError as e:
+                logger.exception(e)
+                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
+                continue
+            except Exception as e:
+                logger.exception(e)
+                continue
+
+        try:
+            if attack["defender_faction"] == faction_data["ID"]:
+                opponent_score = user_score / (
+                    (attack["modifiers"]["fair_fight"] - 1) * 0.375
+                )
+            else:
+                opponent_score = (
+                    (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
+                )
+        except DivisionByZero:
+            continue
+
+        if opponent_score == 0:
+            continue
+
+        stat_faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
+
+        if stat_faction is None or user.factionid == 0:
+            globalstat = 1
+            allowed_factions = []
+        else:
+            globalstat = stat_faction.statconfig["global"]
+            allowed_factions = [stat_faction.tid]
+
+            if str(stat_faction.tid) in faction_shares:
+                allowed_factions.extend(faction_shares[str(stat_faction.tid)])
+
+            allowed_factions = list(set(allowed_factions))
+
+        last_stat_entry = StatModel.objects().order_by("-statid").first()
+
+        try:
+            stat_entry = StatModel(
+                statid=last_stat_entry.statid + 1 if last_stat_entry is not None else 0,
+                tid=opponent_id,
+                battlescore=opponent_score,
+                timeadded=attack["timestamp_ended"],
+                addedid=user_id,
+                addedfactiontid=user.factionid,
+                globalstat=globalstat,
+                allowedfactions=allowed_factions,
+            )
+            stat_entry.save()
+        except Exception as e:
+            logger.exception(e)
+            honeybadger.notify(e)
+            continue
+
+    if len(faction_data["attacks"].values()) > 0:
+        try:
+            faction.last_attacks = list(faction_data["attacks"].values())[-1][
+                "timestamp_ended"
+            ]
+            faction.save()
+        except Exception as e:
+            logger.exception(e)

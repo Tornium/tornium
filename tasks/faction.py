@@ -557,8 +557,6 @@ def fetch_attacks_runner():
 
         if len(faction.aa_keys) == 0:
             continue
-        elif faction.config.get("config") in (0, None):
-            continue
         elif faction.last_attacks == 0:
             faction.last_attacks = utils.now()
             faction.save()
@@ -758,6 +756,11 @@ def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None)
 
     if faction is None:
         return
+    elif faction.config.get("stats") in (0, None):
+        return
+
+    if last_attacks is None or last_attacks >= utils.now():
+        last_attacks = faction.last_attacks
 
     for attack in faction_data["attacks"].values():
         if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
@@ -777,7 +780,7 @@ def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None)
             3,
         ):  # 3x FF can be greater than the defender battlescore indicated
             continue
-        elif attack["timestamp_ended"] <= faction.last_attacks:
+        elif attack["timestamp_ended"] <= last_attacks:
             continue
 
         # User: faction member

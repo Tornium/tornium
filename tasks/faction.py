@@ -644,6 +644,14 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
         opponent: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
 
+        if user is None:
+            user = UserModel.objects(tid=attack["defender_id"]).modify(
+                upsert=True,
+                new=True,
+                set__name=attack["defender_id"],
+                set__factionid=attack["defender_faction"]
+            )
+
         if opponent is None:
             opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
                 upsert=True,
@@ -718,6 +726,59 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                     "fields": fields,
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                     "footer": {"text": utils.torn_timestamp()},
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Attack Log",
+                            "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}"
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "RETAL!!",
+                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}"
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": f"{opponent.name} [{opponent.tid}]",
+                            "url": f"https://www.torn.com/profiles.php?XID={opponent.tid}"
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": f"{attack['attacker_factionname']} [{attack['attacker_faction']}]",
+                            "url": f"https://www.torn.com/factions.php?step=profile&userID={opponent.tid}"
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": f"{user.name} [{user.tid}]",
+                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}"
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": f"{attack['defender_factionname']} [{attack['defender_faction']}]",
+                            "url": f"https://www.torn.com/factions.php?step=profile&userID={user.tid}"
+                        }
+                    ]
                 }
             ]
         }

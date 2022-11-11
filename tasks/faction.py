@@ -729,6 +729,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 f"channels/{guild.retal_config[str(faction.tid)]}/messages",
                 payload,
                 bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
+                dev=guild.skynet
             )
         except utils.DiscordError as e:
             if e.code == 10003:

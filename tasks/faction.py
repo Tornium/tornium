@@ -638,7 +638,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             continue
         elif attack["attacker_id"] in ("", 0):  # Stealthed attacker
             continue
-        elif attack["respect"] == 0:  # Attack by fac member
+        elif attack["respect"] == 0:  # Attack by fac member or recruit
             continue
 
         user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
@@ -670,34 +670,45 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             }
         ]
 
-        stat: StatModel = (
-            StatModel.objects(
-                Q(tid=opponent.tid)
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactionid=user.factionid)
-                    | Q(allowedfactions=user.factionid)
+        try:
+            if user is not None:
+                stat: StatModel = (
+                    StatModel.objects(
+                        Q(tid=opponent.tid)
+                        & (
+                            Q(globalstat=True)
+                            | Q(addedid=user.tid)
+                            | Q(addedfactionid=user.factionid)
+                            | Q(allowedfactions=user.factionid)
+                        )
+                    )
+                    .order_by("-timeadded")
+                    .first()
                 )
-            )
-            .order_by("-statid")
-            .first()
-        )
+            else:
+                stat: StatModel = (
+                    StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True))
+                    .order_by("-timeadded")
+                    .first()
+                )
+        except AttributeError as e:
+            logger.exception(e),
+            stat = None
 
         if stat is not None:
-            fields.append(
-                {
-                    "name": "Estimated Stat Score",
-                    "value": utils.commas(stat.battlescore),
-                    "inline": True,
-                }
-            )
-            fields.append(
-                {
-                    "name": "Stat Score Update",
-                    "value": utils.rel_time(stat.timeadded),
-                    "inline": True,
-                }
+            fields.extend(
+                (
+                    {
+                        "name": "Estimated Stat Score",
+                        "value": utils.commas(stat.battlescore),
+                        "inline": True,
+                    },
+                    {
+                        "name": "Stat Score Update",
+                        "value": utils.rel_time(stat.timeadded),
+                        "inline": True,
+                    },
+                )
             )
 
         payload = {
@@ -891,11 +902,9 @@ def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None)
 
             allowed_factions = list(set(allowed_factions))
 
-        last_stat_entry = StatModel.objects().order_by("-statid").first()
-
         try:
             stat_entry = StatModel(
-                statid=last_stat_entry.statid + 1 if last_stat_entry is not None else 0,
+                statid=StatModel.objects().order_by("-statid").first().statid + 1,
                 tid=opponent_id,
                 battlescore=opponent_score,
                 timeadded=attack["timestamp_ended"],

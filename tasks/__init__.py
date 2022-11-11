@@ -157,13 +157,13 @@ if celery_app is None:
             ),
         }
     if data["fetch-attacks-runner"]["enabled"]:
-        schedule["fetch-attacks-runner"] [ {
+        schedule["fetch-attacks-runner"] = {
             "task": data["fetch-attacks-runner"]["task"],
             "schedule": crontab(
                 minute=data["fetch-attacks-runner"]["schedule"]["minute"],
                 hour=data["fetch-attacks-runner"]["schedule"]["hour"],
             ),
-        }]
+        }
     if data["refresh-guilds"]["enabled"]:
         schedule["refresh-guilds"] = {
             "task": data["refresh-guilds"]["task"],

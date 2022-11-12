@@ -11,7 +11,6 @@
  - Update bot documentation
  - Update stat DB documentation
 ### Backend
- - Add a cache to discordget
  - Add stakeouts to DB after Discord, Torn, and DB calls are made
 ### SkyNet
  - Add helper function to handle Torn (and possible Discord) API call errors

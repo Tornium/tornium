@@ -677,7 +677,11 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         ]
 
         if attack["modifiers"]["fair_fight"] != 3:
-            if user is not None and user.battlescore != 0 and utils.now() - user.battlescore_update <= 259200:  # Three days
+            if (
+                user is not None
+                and user.battlescore != 0
+                and utils.now() - user.battlescore_update <= 259200
+            ):  # Three days
                 try:
                     opponent_score = user.battlescore / (
                         (attack["modifiers"]["fair_fight"] - 1) * 0.375

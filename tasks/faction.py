@@ -694,7 +694,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                         (
                             {
                                 "name": "Estimated Stat Score",
-                                "value": utils.commas(opponent_score),
+                                "value": utils.commas(round(opponent_score)),
                                 "inline": True,
                             },
                             {

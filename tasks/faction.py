@@ -648,7 +648,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             user = UserModel.objects(tid=attack["defender_id"]).modify(
                 upsert=True,
                 new=True,
-                set__name=attack["defender_id"],
+                set__name=attack["defender_name"],
                 set__factionid=attack["defender_faction"],
             )
 

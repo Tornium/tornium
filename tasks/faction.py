@@ -416,7 +416,7 @@ def fetch_attacks():  # Based off of https://www.torn.com/forums.php#/p=threads&
                     continue
 
                 try:
-                    if user.battlescore_update - utils.now() <= 259200:  # Three days
+                    if utils.now() - user.battlescore_update <= 259200:  # Three days
                         user_score = user.battlescore
                     else:
                         continue
@@ -676,46 +676,71 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             }
         ]
 
-        try:
-            if user is not None:
-                stat: StatModel = (
-                    StatModel.objects(
-                        Q(tid=opponent.tid)
-                        & (
-                            Q(globalstat=True)
-                            | Q(addedid=user.tid)
-                            | Q(addedfactionid=user.factionid)
-                            | Q(allowedfactions=user.factionid)
+        if attack["modifiers"]["fair_fight"] != 3:
+            if user is not None and user.battlescore != 0 and utils.now() - user.battlescore_update <= 259200:  # Three days
+                try:
+                    opponent_score = user.battlescore / (
+                        (attack["modifiers"]["fair_fight"] - 1) * 0.375
+                    )
+                except DivisionByZero:
+                    opponent_score = 0
+
+                if opponent_score != 0:
+                    fields.extend(
+                        (
+                            {
+                                "name": "Estimated Stat Score",
+                                "value": utils.commas(opponent_score),
+                                "inline": True,
+                            },
+                            {
+                                "name": "Stat Score Update",
+                                "value": f"<t:{utils.now()}:R>",
+                                "inline": True,
+                            },
                         )
                     )
-                    .order_by("-timeadded")
-                    .first()
-                )
-            else:
-                stat: StatModel = (
-                    StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True))
-                    .order_by("-timeadded")
-                    .first()
-                )
-        except AttributeError as e:
-            logger.exception(e),
-            stat = None
+        else:
+            try:
+                if user is not None:
+                    stat: StatModel = (
+                        StatModel.objects(
+                            Q(tid=opponent.tid)
+                            & (
+                                Q(globalstat=True)
+                                | Q(addedid=user.tid)
+                                | Q(addedfactionid=user.factionid)
+                                | Q(allowedfactions=user.factionid)
+                            )
+                        )
+                        .order_by("-timeadded")
+                        .first()
+                    )
+                else:
+                    stat: StatModel = (
+                        StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True))
+                        .order_by("-timeadded")
+                        .first()
+                    )
+            except AttributeError as e:
+                logger.exception(e),
+                stat = None
 
-        if stat is not None:
-            fields.extend(
-                (
-                    {
-                        "name": "Estimated Stat Score",
-                        "value": utils.commas(stat.battlescore),
-                        "inline": True,
-                    },
-                    {
-                        "name": "Stat Score Update",
-                        "value": f"<t:{stat.timeadded}:R>",
-                        "inline": True,
-                    },
+            if stat is not None:
+                fields.extend(
+                    (
+                        {
+                            "name": "Estimated Stat Score",
+                            "value": utils.commas(stat.battlescore),
+                            "inline": True,
+                        },
+                        {
+                            "name": "Stat Score Update",
+                            "value": f"<t:{stat.timeadded}:R>",
+                            "inline": True,
+                        },
+                    )
                 )
-            )
 
         if attack["attacker_faction"] in (0, ""):
             pass

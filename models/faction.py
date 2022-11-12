@@ -107,7 +107,7 @@ class Faction:
 
     def refresh_keys(self):
         users = UserModel.objects(
-            Q(factionaa=True) & Q(factionid=self.tid) & Q(key__ne="")
+            Q(factionaa=True) & Q(factionid=self.tid) & Q(key__exists=True) & Q(key__ne="")
         )
         keys = []
 

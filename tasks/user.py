@@ -101,7 +101,7 @@ def refresh_users():
     requests_session = requests.Session()
 
     user: UserModel
-    for user in UserModel.objects(key__ne=""):
+    for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="")):
         if user.key == "":
             continue
 
@@ -206,7 +206,7 @@ def mail_check():
     requests_session = requests.Session()
 
     user: UserModel
-    for user in UserModel.objects(Q(key__ne="") & Q(pro=1)):
+    for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="") & Q(pro=1)):
         if user.key == "" or not user.pro:
             continue
 
@@ -273,7 +273,7 @@ def mail_check():
 #         faction_shares[factiontid] = list(set(shares))
 #
 #     user: UserModel
-#     for user in UserModel.objects(Q(key__ne="") & Q(factionid__ne=0)):
+#     for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="") & Q(factionid__ne=0)):
 #         if user.key == "":
 #             continue
 #         elif user.factionid == 0:

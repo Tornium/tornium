@@ -8,6 +8,7 @@ from decimal import DivisionByZero
 import logging
 import math
 import random
+import uuid
 
 from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
@@ -15,6 +16,7 @@ import requests
 
 from models.factiongroupmodel import FactionGroupModel
 from models.factionmodel import FactionModel
+from models.positionmodel import PositionModel
 from models.recruitmodel import RecruitModel
 from models.servermodel import ServerModel
 from models.statmodel import StatModel
@@ -55,7 +57,7 @@ def refresh_factions():
 
         try:
             faction_data = tornget(
-                "faction/?selections=",
+                "faction/?selections=basic,positions",
                 key=random.choice(keys),
                 session=requests_session,
             )
@@ -78,6 +80,177 @@ def refresh_factions():
         faction.leader = faction_data["leader"]
         faction.coleader = faction_data["co-leader"]
         faction.last_members = utils.now()
+
+        positions = PositionModel.objects(factiontid=faction.tid)
+        positions_names = [position.name for position in positions]
+        positions_data = {}
+
+        position: PositionModel
+        for position in positions:
+            if position.name not in faction_data["positions"].keys():
+                positions_names.remove(position.name)
+                position.delete()
+                continue
+
+            positions_data[position.name] = {
+                "uuid": position.pid,
+                "aa": faction_data["positions"][position.name]["canAccessFactionApi"]
+            }
+
+            position.default = faction_data["positions"][position.name]["default"]
+            position.canUseMedicalItem = faction_data["positions"][position.name][
+                "canUseMedicalItem"
+            ]
+            position.canUseBoosterItem = faction_data["positions"][position.name][
+                "canUseBoosterItem"
+            ]
+            position.canUseDrugItem = faction_data["positions"][position.name][
+                "canUseDrugItem"
+            ]
+            position.canUseEnergyRefill = faction_data["positions"][position.name][
+                "canUseEnergyRefill"
+            ]
+            position.canUseNerveRefill = faction_data["positions"][position.name][
+                "canUseNerveRefill"
+            ]
+            position.canLoanTemporaryItem = faction_data["positions"][position.name][
+                "canLoanTemporaryItem"
+            ]
+            position.canLoanWeaponAndArmory = faction_data["positions"][position.name][
+                "canLoanWeaponAndArmory"
+            ]
+            position.canRetrieveLoanedArmory = faction_data["positions"][position.name][
+                "canRetrieveLoanedArmory"
+            ]
+            position.canPlanAndInitiateOrganisedCrime = faction_data["positions"][
+                position.name
+            ]["canPlanAndInitiateOrganisedCrime"]
+            position.canAccessFactionApi = faction_data["positions"][position.name][
+                "canAccessFactionApi"
+            ]
+            position.canGiveItem = faction_data["positions"][position.name][
+                "canGiveItem"
+            ]
+            position.canGiveMoney = faction_data["positions"][position.name][
+                "canGiveMoney"
+            ]
+            position.canGivePoints = faction_data["positions"][position.name][
+                "canGivePoints"
+            ]
+            position.canManageForum = faction_data["positions"][position.name][
+                "canManageForum"
+            ]
+            position.canManageApplications = faction_data["positions"][position.name][
+                "canManageApplications"
+            ]
+            position.canKickMembers = faction_data["positions"][position.name][
+                "canKickMembers"
+            ]
+            position.canAdjustMemberBalance = faction_data["positions"][position.name][
+                "canAdjustMemberBalance"
+            ]
+            position.canManageWars = faction_data["positions"][position.name][
+                "canManageWars"
+            ]
+            position.canManageUpgrades = faction_data["positions"][position.name][
+                "canManageUpgrades"
+            ]
+            position.canSendNewsletter = faction_data["positions"][position.name][
+                "canSendNewsletter"
+            ]
+            position.canChangeAnnouncement = faction_data["positions"][position.name][
+                "canChangeAnnouncement"
+            ]
+            position.canChangeDescription = faction_data["positions"][position.name][
+                "canChangeDescription"
+            ]
+            position.save()
+
+        for position_name, position_data in faction_data["positions"].items():
+            if position_name in positions_names:
+                continue
+
+            position = PositionModel(
+                pid=uuid.uuid4().hex,
+                name=position_name,
+                factiontid=faction.tid,
+            )
+
+            positions_data[position.name] = {
+                "uuid": position.pid,
+                "aa": faction_data["positions"][position.name]["canAccessFactionApi"]
+            }
+
+            position.default = faction_data["positions"][position.name]["default"]
+            position.canUseMedicalItem = faction_data["positions"][position.name][
+                "canUseMedicalItem"
+            ]
+            position.canUseBoosterItem = faction_data["positions"][position.name][
+                "canUseBoosterItem"
+            ]
+            position.canUseDrugItem = faction_data["positions"][position.name][
+                "canUseDrugItem"
+            ]
+            position.canUseEnergyRefill = faction_data["positions"][position.name][
+                "canUseEnergyRefill"
+            ]
+            position.canUseNerveRefill = faction_data["positions"][position.name][
+                "canUseNerveRefill"
+            ]
+            position.canLoanTemporaryItem = faction_data["positions"][position.name][
+                "canLoanTemporaryItem"
+            ]
+            position.canLoanWeaponAndArmory = faction_data["positions"][position.name][
+                "canLoanWeaponAndArmory"
+            ]
+            position.canRetrieveLoanedArmory = faction_data["positions"][position.name][
+                "canRetrieveLoanedArmory"
+            ]
+            position.canPlanAndInitiateOrganisedCrime = faction_data["positions"][
+                position.name
+            ]["canPlanAndInitiateOrganisedCrime"]
+            position.canAccessFactionApi = faction_data["positions"][position.name][
+                "canAccessFactionApi"
+            ]
+            position.canGiveItem = faction_data["positions"][position.name][
+                "canGiveItem"
+            ]
+            position.canGiveMoney = faction_data["positions"][position.name][
+                "canGiveMoney"
+            ]
+            position.canGivePoints = faction_data["positions"][position.name][
+                "canGivePoints"
+            ]
+            position.canManageForum = faction_data["positions"][position.name][
+                "canManageForum"
+            ]
+            position.canManageApplications = faction_data["positions"][position.name][
+                "canManageApplications"
+            ]
+            position.canKickMembers = faction_data["positions"][position.name][
+                "canKickMembers"
+            ]
+            position.canAdjustMemberBalance = faction_data["positions"][position.name][
+                "canAdjustMemberBalance"
+            ]
+            position.canManageWars = faction_data["positions"][position.name][
+                "canManageWars"
+            ]
+            position.canManageUpgrades = faction_data["positions"][position.name][
+                "canManageUpgrades"
+            ]
+            position.canSendNewsletter = faction_data["positions"][position.name][
+                "canSendNewsletter"
+            ]
+            position.canChangeAnnouncement = faction_data["positions"][position.name][
+                "canChangeAnnouncement"
+            ]
+            position.canChangeDescription = faction_data["positions"][position.name][
+                "canChangeDescription"
+            ]
+            position.save()
+
+            positions_names.append(position.name)
 
         lead_keys = []
 
@@ -139,6 +312,8 @@ def refresh_factions():
                     set__level=member["level"],
                     set__last_refresh=utils.now(),
                     set__factionid=faction.tid,
+                    set__factionaa=positions_data[member["position"]]["aa"],
+                    set__faction_position=positions_data[member["position"]]["uuid"],
                     set__status=member["last_action"]["status"],
                     set__last_action=member["last_action"]["timestamp"],
                 )
@@ -147,6 +322,8 @@ def refresh_factions():
                 user.level = member["level"]
                 user.last_refresh = utils.now()
                 user.factionid = faction.tid
+                user.factionaa = positions_data[member["position"]]["aa"]
+                user.faction_position = positions_data[member["position"]]["uuid"]
                 user.status = member["last_action"]["status"]
                 user.last_action = member["last_action"]["timestamp"]
                 user.save()
@@ -166,6 +343,7 @@ def refresh_factions():
                 continue
 
             user.factionid = 0
+            user.faction_position = None
             user.factionaa = False
             user.save()
 

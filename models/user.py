@@ -7,7 +7,9 @@ import math
 
 from flask_login import UserMixin, current_user
 from honeybadger import honeybadger
+from mongoengine.queryset.visitor import Q
 
+from models.positionmodel import PositionModel
 from models.usermodel import UserModel
 import tasks
 import utils
@@ -43,6 +45,7 @@ class User(UserMixin):
 
         self.factiontid = user.factionid
         self.aa = user.factionaa
+        self.faction_position = user.faction_position
         self.recruiter = user.recruiter
         self.recruiter_code = user.recruiter_code
         self.recruiter_mail_update = user.recruit_mail_update
@@ -79,8 +82,17 @@ class User(UserMixin):
                 honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
-            user = UserModel.objects(tid=user_data["player_id"]).first()
+            user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
+
+            position: PositionModel = PositionModel.objects(Q(name=user.name) & Q(factiontid=user_data["faction"]["faction_id"])).first()
+
+            if position is None:
+                user.factionaa = False
+            else:
+                user.factionaa = position.canAccessFactionApi
+
+            user.faction_position = user_data["faction"]["position"]
             user.name = user_data["name"]
             user.last_refresh = now
             user.status = user_data["last_action"]["status"]

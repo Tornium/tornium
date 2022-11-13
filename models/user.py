@@ -85,7 +85,9 @@ class User(UserMixin):
             user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
 
-            position: PositionModel = PositionModel.objects(Q(name=user.name) & Q(factiontid=user_data["faction"]["faction_id"])).first()
+            position: PositionModel = PositionModel.objects(
+                Q(name=user.name) & Q(factiontid=user_data["faction"]["faction_id"])
+            ).first()
 
             if position is None:
                 user.factionaa = False

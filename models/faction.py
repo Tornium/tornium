@@ -180,7 +180,9 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
-                position: PositionModel = PositionModel.objects(Q(name=member_data["name"]) & Q(factiontid=faction_data["ID"])).first()
+                position: PositionModel = PositionModel.objects(
+                    Q(name=member_data["name"]) & Q(factiontid=faction_data["ID"])
+                ).first()
 
                 UserModel.objects(tid=int(member_id)).modify(
                     upsert=True,
@@ -191,5 +193,7 @@ class Faction:
                     set__status=member_data["last_action"]["status"],
                     set__factionid=faction_data["ID"],
                     set__faction_position=member_data["position"],
-                    set__faction_aa=False if position is None else position.canAccessFactionApi
+                    set__faction_aa=False
+                    if position is None
+                    else position.canAccessFactionApi,
                 )

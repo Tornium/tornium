@@ -94,76 +94,78 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": faction_data["positions"][position.name]["canAccessFactionApi"]
+                "aa": faction_data["positions"][position.name]["canAccessFactionApi"],
             }
 
-            position.default = faction_data["positions"][position.name]["default"]
-            position.canUseMedicalItem = faction_data["positions"][position.name][
-                "canUseMedicalItem"
-            ]
-            position.canUseBoosterItem = faction_data["positions"][position.name][
-                "canUseBoosterItem"
-            ]
-            position.canUseDrugItem = faction_data["positions"][position.name][
-                "canUseDrugItem"
-            ]
-            position.canUseEnergyRefill = faction_data["positions"][position.name][
-                "canUseEnergyRefill"
-            ]
-            position.canUseNerveRefill = faction_data["positions"][position.name][
-                "canUseNerveRefill"
-            ]
-            position.canLoanTemporaryItem = faction_data["positions"][position.name][
-                "canLoanTemporaryItem"
-            ]
-            position.canLoanWeaponAndArmory = faction_data["positions"][position.name][
-                "canLoanWeaponAndArmory"
-            ]
-            position.canRetrieveLoanedArmory = faction_data["positions"][position.name][
-                "canRetrieveLoanedArmory"
-            ]
-            position.canPlanAndInitiateOrganisedCrime = faction_data["positions"][
-                position.name
-            ]["canPlanAndInitiateOrganisedCrime"]
-            position.canAccessFactionApi = faction_data["positions"][position.name][
-                "canAccessFactionApi"
-            ]
-            position.canGiveItem = faction_data["positions"][position.name][
-                "canGiveItem"
-            ]
-            position.canGiveMoney = faction_data["positions"][position.name][
-                "canGiveMoney"
-            ]
-            position.canGivePoints = faction_data["positions"][position.name][
-                "canGivePoints"
-            ]
-            position.canManageForum = faction_data["positions"][position.name][
-                "canManageForum"
-            ]
-            position.canManageApplications = faction_data["positions"][position.name][
-                "canManageApplications"
-            ]
-            position.canKickMembers = faction_data["positions"][position.name][
-                "canKickMembers"
-            ]
-            position.canAdjustMemberBalance = faction_data["positions"][position.name][
-                "canAdjustMemberBalance"
-            ]
-            position.canManageWars = faction_data["positions"][position.name][
-                "canManageWars"
-            ]
-            position.canManageUpgrades = faction_data["positions"][position.name][
-                "canManageUpgrades"
-            ]
-            position.canSendNewsletter = faction_data["positions"][position.name][
-                "canSendNewsletter"
-            ]
-            position.canChangeAnnouncement = faction_data["positions"][position.name][
-                "canChangeAnnouncement"
-            ]
-            position.canChangeDescription = faction_data["positions"][position.name][
-                "canChangeDescription"
-            ]
+            position.default = bool(faction_data["positions"][position.name]["default"])
+            position.canUseMedicalItem = bool(
+                faction_data["positions"][position.name]["canUseMedicalItem"]
+            )
+            position.canUseBoosterItem = bool(
+                faction_data["positions"][position.name]["canUseBoosterItem"]
+            )
+            position.canUseDrugItem = bool(
+                faction_data["positions"][position.name]["canUseDrugItem"]
+            )
+            position.canUseEnergyRefill = bool(
+                faction_data["positions"][position.name]["canUseEnergyRefill"]
+            )
+            position.canUseNerveRefill = bool(
+                faction_data["positions"][position.name]["canUseNerveRefill"]
+            )
+            position.canLoanTemporaryItem = bool(
+                faction_data["positions"][position.name]["canLoanTemporaryItem"]
+            )
+            position.canLoanWeaponAndArmory = bool(
+                faction_data["positions"][position.name]["canLoanWeaponAndArmory"]
+            )
+            position.canRetrieveLoanedArmory = bool(
+                faction_data["positions"][position.name]["canRetrieveLoanedArmory"]
+            )
+            position.canPlanAndInitiateOrganisedCrime = bool(
+                faction_data["positions"][position.name][
+                    "canPlanAndInitiateOrganisedCrime"
+                ]
+            )
+            position.canAccessFactionApi = bool(
+                faction_data["positions"][position.name]["canAccessFactionApi"]
+            )
+            position.canGiveItem = bool(
+                faction_data["positions"][position.name]["canGiveItem"]
+            )
+            position.canGiveMoney = bool(
+                faction_data["positions"][position.name]["canGiveMoney"]
+            )
+            position.canGivePoints = bool(
+                faction_data["positions"][position.name]["canGivePoints"]
+            )
+            position.canManageForum = bool(
+                faction_data["positions"][position.name]["canManageForum"]
+            )
+            position.canManageApplications = bool(
+                faction_data["positions"][position.name]["canManageApplications"]
+            )
+            position.canKickMembers = bool(
+                faction_data["positions"][position.name]["canKickMembers"]
+            )
+            position.canAdjustMemberBalance = bool(
+                faction_data["positions"][position.name]["canAdjustMemberBalance"]
+            )
+            position.canManageWars = bool(
+                faction_data["positions"][position.name]["canManageWars"]
+            )
+            position.canManageUpgrades = bool(
+                faction_data["positions"][position.name]["canManageUpgrades"]
+            )
+            position.canSendNewsletter = bool(
+                faction_data["positions"][position.name]["canSendNewsletter"]
+            )
+            position.canChangeAnnouncement = bool(
+                faction_data["positions"][position.name]["canChangeAnnouncement"]
+            )
+            position.canChangeDescription = bool(
+                faction_data["positions"][position.name]["canChangeDescription"]
+            )
             position.save()
 
         for position_name, position_data in faction_data["positions"].items():
@@ -178,76 +180,78 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": faction_data["positions"][position.name]["canAccessFactionApi"]
+                "aa": faction_data["positions"][position.name]["canAccessFactionApi"],
             }
 
-            position.default = faction_data["positions"][position.name]["default"]
-            position.canUseMedicalItem = faction_data["positions"][position.name][
-                "canUseMedicalItem"
-            ]
-            position.canUseBoosterItem = faction_data["positions"][position.name][
-                "canUseBoosterItem"
-            ]
-            position.canUseDrugItem = faction_data["positions"][position.name][
-                "canUseDrugItem"
-            ]
-            position.canUseEnergyRefill = faction_data["positions"][position.name][
-                "canUseEnergyRefill"
-            ]
-            position.canUseNerveRefill = faction_data["positions"][position.name][
-                "canUseNerveRefill"
-            ]
-            position.canLoanTemporaryItem = faction_data["positions"][position.name][
-                "canLoanTemporaryItem"
-            ]
-            position.canLoanWeaponAndArmory = faction_data["positions"][position.name][
-                "canLoanWeaponAndArmory"
-            ]
-            position.canRetrieveLoanedArmory = faction_data["positions"][position.name][
-                "canRetrieveLoanedArmory"
-            ]
-            position.canPlanAndInitiateOrganisedCrime = faction_data["positions"][
-                position.name
-            ]["canPlanAndInitiateOrganisedCrime"]
-            position.canAccessFactionApi = faction_data["positions"][position.name][
-                "canAccessFactionApi"
-            ]
-            position.canGiveItem = faction_data["positions"][position.name][
-                "canGiveItem"
-            ]
-            position.canGiveMoney = faction_data["positions"][position.name][
-                "canGiveMoney"
-            ]
-            position.canGivePoints = faction_data["positions"][position.name][
-                "canGivePoints"
-            ]
-            position.canManageForum = faction_data["positions"][position.name][
-                "canManageForum"
-            ]
-            position.canManageApplications = faction_data["positions"][position.name][
-                "canManageApplications"
-            ]
-            position.canKickMembers = faction_data["positions"][position.name][
-                "canKickMembers"
-            ]
-            position.canAdjustMemberBalance = faction_data["positions"][position.name][
-                "canAdjustMemberBalance"
-            ]
-            position.canManageWars = faction_data["positions"][position.name][
-                "canManageWars"
-            ]
-            position.canManageUpgrades = faction_data["positions"][position.name][
-                "canManageUpgrades"
-            ]
-            position.canSendNewsletter = faction_data["positions"][position.name][
-                "canSendNewsletter"
-            ]
-            position.canChangeAnnouncement = faction_data["positions"][position.name][
-                "canChangeAnnouncement"
-            ]
-            position.canChangeDescription = faction_data["positions"][position.name][
-                "canChangeDescription"
-            ]
+            position.default = bool(faction_data["positions"][position.name]["default"])
+            position.canUseMedicalItem = bool(
+                faction_data["positions"][position.name]["canUseMedicalItem"]
+            )
+            position.canUseBoosterItem = bool(
+                faction_data["positions"][position.name]["canUseBoosterItem"]
+            )
+            position.canUseDrugItem = bool(
+                faction_data["positions"][position.name]["canUseDrugItem"]
+            )
+            position.canUseEnergyRefill = bool(
+                faction_data["positions"][position.name]["canUseEnergyRefill"]
+            )
+            position.canUseNerveRefill = bool(
+                faction_data["positions"][position.name]["canUseNerveRefill"]
+            )
+            position.canLoanTemporaryItem = bool(
+                faction_data["positions"][position.name]["canLoanTemporaryItem"]
+            )
+            position.canLoanWeaponAndArmory = bool(
+                faction_data["positions"][position.name]["canLoanWeaponAndArmory"]
+            )
+            position.canRetrieveLoanedArmory = bool(
+                faction_data["positions"][position.name]["canRetrieveLoanedArmory"]
+            )
+            position.canPlanAndInitiateOrganisedCrime = bool(
+                faction_data["positions"][position.name][
+                    "canPlanAndInitiateOrganisedCrime"
+                ]
+            )
+            position.canAccessFactionApi = bool(
+                faction_data["positions"][position.name]["canAccessFactionApi"]
+            )
+            position.canGiveItem = bool(
+                faction_data["positions"][position.name]["canGiveItem"]
+            )
+            position.canGiveMoney = bool(
+                faction_data["positions"][position.name]["canGiveMoney"]
+            )
+            position.canGivePoints = bool(
+                faction_data["positions"][position.name]["canGivePoints"]
+            )
+            position.canManageForum = bool(
+                faction_data["positions"][position.name]["canManageForum"]
+            )
+            position.canManageApplications = bool(
+                faction_data["positions"][position.name]["canManageApplications"]
+            )
+            position.canKickMembers = bool(
+                faction_data["positions"][position.name]["canKickMembers"]
+            )
+            position.canAdjustMemberBalance = bool(
+                faction_data["positions"][position.name]["canAdjustMemberBalance"]
+            )
+            position.canManageWars = bool(
+                faction_data["positions"][position.name]["canManageWars"]
+            )
+            position.canManageUpgrades = bool(
+                faction_data["positions"][position.name]["canManageUpgrades"]
+            )
+            position.canSendNewsletter = bool(
+                faction_data["positions"][position.name]["canSendNewsletter"]
+            )
+            position.canChangeAnnouncement = bool(
+                faction_data["positions"][position.name]["canChangeAnnouncement"]
+            )
+            position.canChangeDescription = bool(
+                faction_data["positions"][position.name]["canChangeDescription"]
+            )
             position.save()
 
             positions_names.append(position.name)

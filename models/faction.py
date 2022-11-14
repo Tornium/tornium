@@ -181,7 +181,7 @@ class Faction:
 
             for member_id, member_data in faction_data["members"].items():
                 position: PositionModel = PositionModel.objects(
-                    Q(name=member_data["name"]) & Q(factiontid=faction_data["ID"])
+                    Q(name=member_data["position"]) & Q(factiontid=faction_data["ID"])
                 ).first()
 
                 UserModel.objects(tid=int(member_id)).modify(

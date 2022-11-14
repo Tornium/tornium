@@ -94,7 +94,7 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": faction_data["positions"][position.name]["canAccessFactionApi"],
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])
@@ -180,7 +180,7 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": faction_data["positions"][position.name]["canAccessFactionApi"],
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])
@@ -255,6 +255,8 @@ def refresh_factions():
             position.save()
 
             positions_names.append(position.name)
+
+        print(positions_data)
 
         lead_keys = []
 

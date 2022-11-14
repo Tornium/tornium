@@ -85,6 +85,11 @@ def refresh_factions():
         positions_names = [position.name for position in positions]
         positions_data = {}
 
+        positions_data["Recruit"] = {
+            "uuid": None,
+            "aa": False,
+        }
+
         position: PositionModel
         for position in positions:
             if position.name not in faction_data["positions"].keys():

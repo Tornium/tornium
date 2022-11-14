@@ -83,16 +83,24 @@ def refresh_factions():
 
         positions = PositionModel.objects(factiontid=faction.tid)
         positions_names = [position.name for position in positions]
-        positions_data = {}
-
-        positions_data["Recruit"] = {
-            "uuid": None,
-            "aa": False,
+        positions_data = {
+            "Recruit": {
+                "uuid": None,
+                "aa": False,
+            },
+            "Leader": {
+                "uuid": None,
+                "aa": True,
+            },
+            "Co-leader": {
+                "uuid": None,
+                "aa": True,
+            }
         }
 
         position: PositionModel
         for position in positions:
-            if position.name not in faction_data["positions"].keys():
+            if position.name not in ("Leader", "Co-leader", "Recruit") and position.name not in faction_data["positions"].keys():
                 positions_names.remove(position.name)
                 position.delete()
                 continue

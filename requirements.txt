@@ -7,7 +7,7 @@ discord.py == 1.7.3
 flask == 2.2.2
 flask-cors == 3.0.10
 flask-login == 0.6.2
-honeybadger == 0.12.0
+honeybadger == 0.13.0
 is-safe-url == 1.0
 mongoengine == 0.24.2
 pynacl == 1.5.0

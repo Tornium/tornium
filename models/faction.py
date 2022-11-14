@@ -192,7 +192,7 @@ class Faction:
                     set__last_action=member_data["last_action"]["timestamp"],
                     set__status=member_data["last_action"]["status"],
                     set__factionid=faction_data["ID"],
-                    set__faction_position=member_data["position"],
+                    set__faction_position=position.pid,
                     set__faction_aa=False
                     if position is None
                     else position.canAccessFactionApi,

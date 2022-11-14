@@ -91,10 +91,11 @@ class User(UserMixin):
 
             if position is None:
                 user.factionaa = False
+                user.faction_position = None
             else:
                 user.factionaa = position.canAccessFactionApi
+                user.faction_position = position.pid
 
-            user.faction_position = user_data["faction"]["position"]
             user.name = user_data["name"]
             user.last_refresh = now
             user.status = user_data["last_action"]["status"]

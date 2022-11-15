@@ -113,6 +113,7 @@ class Server:
                     }
                 else:
                     channels[channel["parent_id"]] = {
+                        "id": channel["parent_id"],
                         "name": None,
                         "channels": {
                             channel["id"]: {
@@ -121,7 +122,11 @@ class Server:
                                 "position": channel["position"] if "position" in channel else -1,
                             }
                         },
+                        "position": -2
                     }
+
+            if channel["type"] == 4 and channels[channel["id"]] == -2:
+                channels[channel["id"]]["position"] = channel["position"]
 
         return channels
 

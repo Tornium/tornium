@@ -63,7 +63,7 @@ mod.add_url_rule(
 )
 mod.add_url_rule(
     "/bot/dashboard/<string:guildid>/verify/faction/<int:factiontid>",
-    view_func=verify.verify_dashboard,
+    view_func=verify.verify_faction_modal,
     methods=["GET"],
 )
 

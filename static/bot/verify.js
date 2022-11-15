@@ -282,4 +282,19 @@ $(document).ready(function() {
             "role": this.getAttribute("data-role-id")
         }));
     });
+
+    $(".verification-faction-edit").on("click", function() {
+        console.log(this);
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            document.getElementById("modal").innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($("#verify-settings-modal"));
+            modal.show();
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("GET", `/bot/dashboard/${guildid}/verify/faction/${this.getAttribute("data-faction")}`);
+        xhttp.send();
+    })
 });

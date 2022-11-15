@@ -2,6 +2,7 @@
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
+import operator
 
 from models.servermodel import ServerModel
 import redisdb
@@ -88,6 +89,7 @@ class Server:
                 channels[channel["id"]] = {
                     "id": channel["id"],
                     "name": channel["name"] if "name" in channel else "",
+                    "position": channel["position"] if "position" in channel else -1,
                     "channels": {},
                 }
             elif (
@@ -101,11 +103,13 @@ class Server:
                     channels[0]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
+                        "position": channel["position"] if "position" in channel else -1,
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
+                        "position": channel["position"] if "position" in channel else -1,
                     }
                 else:
                     channels[channel["parent_id"]] = {
@@ -114,6 +118,7 @@ class Server:
                             channel["id"]: {
                                 "id": channel["id"],
                                 "name": channel["name"] if "name" in channel else "",
+                                "position": channel["position"] if "position" in channel else -1,
                             }
                         },
                     }
@@ -140,4 +145,4 @@ class Server:
                 "position": role["position"],
             }
 
-        return roles
+        return sorted(roles.items(), key=lambda x: operator.getitem(x[1], "position"), reverse=True)

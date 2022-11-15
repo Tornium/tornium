@@ -293,7 +293,6 @@ $(document).ready(function() {
             modal.show();
         }
 
-        xhttp.responseType = "json";
         xhttp.open("GET", `/bot/dashboard/${guildid}/verify/faction/${this.getAttribute("data-faction")}`);
         xhttp.send();
     })

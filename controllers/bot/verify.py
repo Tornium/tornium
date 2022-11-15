@@ -6,6 +6,7 @@
 from flask import render_template
 from flask_login import login_required
 
+from models.faction import Faction
 from models.server import Server
 
 
@@ -18,4 +19,15 @@ def verify_dashboard(guildid):
         channels=guild.get_text_channels(),
         roles=guild.get_roles(),
         guild=guild,
+    )
+
+
+@login_required
+def verify_faction_modal(guildid, factiontid):
+    guild = Server(guildid)
+    faction = Faction(factiontid)
+
+    return render_template(
+        "bot/verifymodal.html",
+        faction=faction
     )

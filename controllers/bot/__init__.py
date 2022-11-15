@@ -61,6 +61,11 @@ mod.add_url_rule(
     view_func=verify.verify_dashboard,
     methods=["GET"],
 )
+mod.add_url_rule(
+    "/bot/dashboard/<string:guildid>/verify/faction/<int:factiontid>",
+    view_func=verify.verify_dashboard,
+    methods=["GET"],
+)
 
 
 @mod.route("/bot")

@@ -14,7 +14,7 @@ from mongoengine import (
 
 
 class UserModel(DynamicDocument):
-    meta = {"indexes": ["#discord_id", ("+factionaa", "factionid")]}
+    meta = {"indexes": ["#discord_id", ("+factionaa", "factionid"), "#key"]}
 
     tid = IntField(primary_key=True)
     name = StringField(default="")

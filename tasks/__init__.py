@@ -68,12 +68,12 @@ if celery_app is None:
             "pro-refresh": {
                 "task": "tasks.pro_refresh",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+                "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
             },  # Faction tasks
             "refresh-factions": {
                 "task": "tasks.faction.refresh_factions",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "0", "hour": "*"},
+                "schedule": {"type": "cron", "minute": "5", "hour": "*"},
             },
             "fetch-attacks": {
                 "task": "tasks.faction.fetch_attacks",
@@ -103,16 +103,16 @@ if celery_app is None:
             "refresh-users": {
                 "task": "tasks.user.refresh_users",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+                "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
             },
             "mail-check": {
                 "task": "tasks.user.mail_check",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+                "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
             },
             "fetch-attacks-users": {
                 "task": "tasks.user.fetch_attacks_users",
-                "enabled": True,
+                "enabled": False,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },
         }

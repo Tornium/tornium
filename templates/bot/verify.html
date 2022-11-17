@@ -118,7 +118,7 @@ Tornium - Verification
                                 <option value="0">Add a role for verification</option>
                                 {% for role in roles.values() %}
                                     {% if role not in guild.verified_roles %}
-                                        <option value="{{ role["id"] }}">{{ role["name"] }} [{{ role["id"] }}]</option>
+                                        <option value="{{ role["id"] }}">{{ role["name"] }}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -184,7 +184,7 @@ Tornium - Verification
                                 <option value="0">Add a role for faction verification</option>
                                 {% for role in roles.values() %}
                                     {% if role not in guild.faction_verify[faction]["roles"] %}
-                                        <option value="{{ role["id"] }}">{{ role["name"] }} [{{ role["id"] }}]</option>
+                                        <option value="{{ role["id"] }}">{{ role["name"] }}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -196,7 +196,7 @@ Tornium - Verification
                                 <button type="button" class="btn verification-faction-role-remove" data-faction="{{ faction }}" data-role-id="{{ role }}">
                                     <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
                                 </button>
-                                {{ roles[role|string].name }} [{{ role }}]
+                                {{ roles[role|string].name }}
                             </li>
                             {% endfor %}
                         </ul>

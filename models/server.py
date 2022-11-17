@@ -156,8 +156,8 @@ class Server:
                 "position": role["position"],
             }
 
-        return sorted(
+        return dict(sorted(
             roles.items(),
             key=lambda x: operator.getitem(x[1], "position"),
             reverse=True,
-        )
+        ))

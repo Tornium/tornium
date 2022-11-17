@@ -103,13 +103,17 @@ class Server:
                     channels[0]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "position": channel["position"]
+                        if "position" in channel
+                        else -1,
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "position": channel["position"]
+                        if "position" in channel
+                        else -1,
                     }
                 else:
                     channels[channel["parent_id"]] = {
@@ -119,10 +123,12 @@ class Server:
                             channel["id"]: {
                                 "id": channel["id"],
                                 "name": channel["name"] if "name" in channel else "",
-                                "position": channel["position"] if "position" in channel else -1,
+                                "position": channel["position"]
+                                if "position" in channel
+                                else -1,
                             }
                         },
-                        "position": -2
+                        "position": -2,
                     }
 
             if channel["type"] == 4 and channels[channel["id"]] == -2:
@@ -150,4 +156,8 @@ class Server:
                 "position": role["position"],
             }
 
-        return sorted(roles.items(), key=lambda x: operator.getitem(x[1], "position"), reverse=True)
+        return sorted(
+            roles.items(),
+            key=lambda x: operator.getitem(x[1], "position"),
+            reverse=True,
+        )

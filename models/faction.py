@@ -188,7 +188,8 @@ class Faction:
                     faction_aa = True
                 else:
                     position: PositionModel = PositionModel.objects(
-                        Q(name=member_data["position"]) & Q(factiontid=faction_data["ID"])
+                        Q(name=member_data["position"])
+                        & Q(factiontid=faction_data["ID"])
                     ).first()
 
                     if position is None:

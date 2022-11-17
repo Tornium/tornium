@@ -27,7 +27,4 @@ def verify_faction_modal(guildid, factiontid):
     guild = Server(guildid)
     faction = Faction(factiontid)
 
-    return render_template(
-        "bot/verifymodal.html",
-        faction=faction
-    )
+    return render_template("bot/verifymodal.html", faction=faction)

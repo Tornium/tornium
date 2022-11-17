@@ -95,19 +95,24 @@ def refresh_factions():
             "Co-leader": {
                 "uuid": None,
                 "aa": True,
-            }
+            },
         }
 
         position: PositionModel
         for position in positions:
-            if position.name not in ("Leader", "Co-leader", "Recruit") and position.name not in faction_data["positions"].keys():
+            if (
+                position.name not in ("Leader", "Co-leader", "Recruit")
+                and position.name not in faction_data["positions"].keys()
+            ):
                 positions_names.remove(position.name)
                 position.delete()
                 continue
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+                "aa": bool(
+                    faction_data["positions"][position.name]["canAccessFactionApi"]
+                ),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])
@@ -193,7 +198,9 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+                "aa": bool(
+                    faction_data["positions"][position.name]["canAccessFactionApi"]
+                ),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])

@@ -85,9 +85,14 @@ class User(UserMixin):
             user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
 
-            if user.factionid != 0 and user_data["faction"]["position"] not in ("Leader", "Co-leader", "Recruit"):
+            if user.factionid != 0 and user_data["faction"]["position"] not in (
+                "Leader",
+                "Co-leader",
+                "Recruit",
+            ):
                 position: PositionModel = PositionModel.objects(
-                    Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
+                    Q(name=user_data["faction"]["position"])
+                    & Q(factiontid=user_data["faction"]["faction_id"])
                 ).first()
 
                 if position is None:
@@ -96,7 +101,10 @@ class User(UserMixin):
                 else:
                     user.factionaa = position.canAccessFactionApi
                     user.faction_position = position.pid
-            elif user.factionid != 0 and user_data["faction"]["position"] in ("Leader", "Co-leader"):
+            elif user.factionid != 0 and user_data["faction"]["position"] in (
+                "Leader",
+                "Co-leader",
+            ):
                 user.factionaa = True
                 user.faction_position = None
             else:

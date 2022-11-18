@@ -35,7 +35,7 @@ $(document).ready(function() {
                 } else {
                     $.each($(".discord-role-selector"), function(index, item) {
                         $.each(response["roles"], function(role_id, role) {
-                            if(roleverificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
+                            if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
                                 item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
                             } else {
                                 item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
@@ -315,7 +315,6 @@ $(document).ready(function() {
                 generateToast("Role Add Failed");
             } else {
                 generateToast("Role Add Successful");
-                window.location.reload();
             }
         }
 

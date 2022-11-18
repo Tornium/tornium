@@ -68,7 +68,7 @@ def get_roles(guildid, *args, **kwargs):
         )
 
     return (
-        {"roles": server.get_roles().values()},
+        {"roles": list(server.get_roles().values())},
         200,
         {
             "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,

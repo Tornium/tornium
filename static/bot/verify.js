@@ -328,16 +328,38 @@ $(document).ready(function() {
     });
 
     $(".verification-faction-edit").on("click", function() {
-        console.log(this);
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function() {
-            document.getElementById("modal").innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($("#verify-settings-modal"));
-            modal.show();
-        }
-
-        xhttp.open("GET", `/bot/dashboard/${guildid}/verify/faction/${this.getAttribute("data-faction")}`);
-        xhttp.send();
+        $("body").append($("<div>", {
+            "class": "modal fade",
+            "id": "verify-settings-modal",
+            "tabindex": "-1",
+            "aria-labelledby": "verify-settings-modal",
+            "aria-hidden": "true"
+        }));
+        $("#verify-settings-modal").append($("<div>", {
+            "class": "modal-dialog modal-lg",
+            "id": "verify-settings-modal-dialog"
+        }));
+        $("#verify-settings-modal-dialog").append($("<div>", {
+            "class": "modal-content",
+            "id": "verify-settings-modal-content"
+        }));
+        $("#verify-settings-modal-content").append($("<div>", {
+            "class": "modal-header",
+            "id": "verify-settings-modal-header"
+        }));
+        $("#verify-settings-modal-header").append($("<h5>", {
+            "class": "modal-title",
+            "value": `Advanced Verification Dashboard: NYI [${this.getAttribute("data-faction")}]`
+        }));
+        $("#verify-settings-modal-header").append($("<button>", {
+            "type": "button",
+            "class": "btn-close",
+            "data-bs-dismiss": "modal",
+            "aria-label": "Close"
+        }));
+        $("verify-settings-modal-content").append($("<div>", {
+            "class": "modal-body",
+            "id": "verify-settings-modal-body"
+        }));
     })
 });

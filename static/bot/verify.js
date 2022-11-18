@@ -328,6 +328,48 @@ $(document).ready(function() {
     });
 
     $(".verification-faction-edit").on("click", function() {
+        if($('#verify-settings-modal').length) {
+            let modal = bootstrap.Modal.getInstance(document.getElementById('verify-settings-modal'));
+            modal.dispose();
+        }
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Position Load Failed", response["message"]);
+                return;
+            }
+
+            $.each(response["positions"], function(index, position) {
+                $("#verify-settings-modal-body").append($("<div>", {
+                    "class": "card px-3 py-3 col-12 col-md-6 col-lg-4",
+                    "data-position": position.pid
+                }));
+                $(`card[data-position=${position.pid}]`).append($("<h5>", {
+                    "class": "card-header",
+                    "text": position.name
+                }))
+                $(`card[data-position=${position.pid}]`).append($("<select>", {
+                    "class": "discord-role-selector",
+                    "data-position": position.pid,
+                    "data-factiontid": position.factiontid,
+                    "aria-label": `Roles for ${position.name}`,
+                    "data-live-search": "true",
+                    "data-selected-text-format": "count > 2",
+                    "multiple": "",
+                }))
+            });
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("GET", "/api/faction/positions");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send();
+
         $("body").append($("<div>", {
             "class": "modal fade",
             "id": "verify-settings-modal",
@@ -349,7 +391,7 @@ $(document).ready(function() {
         }));
         $("#verify-settings-modal-header").append($("<h5>", {
             "class": "modal-title",
-            "value": `Advanced Verification Dashboard: NYI [${this.getAttribute("data-faction")}]`
+            "text": `Advanced Verification Dashboard: NYI [${this.getAttribute("data-faction")}]`
         }));
         $("#verify-settings-modal-header").append($("<button>", {
             "type": "button",
@@ -361,5 +403,8 @@ $(document).ready(function() {
             "class": "modal-body",
             "id": "verify-settings-modal-body"
         }));
+
+        let modal = new bootstrap.Modal($("#verify-settings-modal"));
+        modal.show();
     })
 });

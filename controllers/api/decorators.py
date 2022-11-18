@@ -21,7 +21,7 @@ def ratelimit(func):
     def wrapper(*args, **kwargs):
         client = redisdb.get_redis()
         key = f'tornium:ratelimit:{kwargs["user"].tid}'
-        limit = 250 if kwargs["user"].pro else 150
+        limit = 250
 
         if client.setnx(key, limit):
             client.expire(key, 60 - datetime.datetime.utcnow().second)
@@ -44,7 +44,7 @@ def ratelimit(func):
                 ),
                 429,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -79,7 +79,7 @@ def requires_scopes(func=None, scopes=None):
                 ),
                 403,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -324,7 +324,7 @@ def pro_required(func):
                 ),
                 402,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },

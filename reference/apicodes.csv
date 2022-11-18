@@ -1,6 +1,8 @@
 Code, Error Code, HTTP Status Code, Message
 0000, GeneralError, 400, Something bad happened.
 0001, OK, 200, Server request was successful.
+1000, UnknownElement, 400, Server failed to respond. An unnamed element could not be located.
+1001, UnknownGuild, 400, Server failed to locate the requested guild.
 4000, TooManyRequests, 429, Server failed to respond to request. Too many requests were received.
 4001, NoAuthenticationInformation, 401, Server failed to authenticate the request. No authentication code was provided.
 4002, InvalidAuthenticationInformation, 401, Server failed to authenticate the request. The provided authentication code was invalid.

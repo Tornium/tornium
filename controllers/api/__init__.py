@@ -28,6 +28,21 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/server/<int:guildid>/channels",
+    view_func=bot.utils.get_channels,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/bot/server/<int:guildid>/roles",
+    view_func=bot.utils.get_roles,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/<int:guildid>",
+    view_func=bot.verify.verification_config,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/bot/verify",
     view_func=bot.verify.guild_verification,
     methods=["POST", "DELETE"],

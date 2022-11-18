@@ -11,6 +11,70 @@ $(document).ready(function() {
         html: true
     });
 
+    let verificationConfig = null;
+
+    const xhttp = new XMLHttpRequest();
+
+    xhttp.onload = function() {
+        let response = xhttp.response;
+
+        if("code" in response) {
+            generateToast("Discord Verification Config Not Located", response["message"])
+            generateToast("Verification Loading Halted", "The lack of verification configs has prevented the page from loading.")
+            throw new Error("Verification config error");
+        } else {
+            verificationConfig = response;
+        }
+    }
+
+    xhttp.responseType = "json";
+    xhttp.open("GET", `/api/bot/verify/${guildid}`);
+    xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send();
+
+    xhttp.onload = function() {
+        let response = xhttp.response;
+
+        if("code" in response) {
+            generateToast("Discord Roles Not Located", response["message"]);
+        } else {
+            $.each($(".discord-role-selector"), function(index, item) {
+                console.log(item);
+
+                response["roles"].forEach(function(role) {
+                    if(role["id"] in verificationConfig["verified_roles"]) {
+                        item.append(`<option value="${role['id']}" selected>${role["name"]}</option>`);
+                    } else {
+                        item.append(`<option value="${role['id']}">${role["name"]}</option>`);
+                    }
+                });
+            });
+        }
+    }
+
+    xhttp.responseType = "json";
+    xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
+    xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send();
+
+    xhttp.onload = function() {
+        let response = xhttp.response;
+
+        if("code" in response) {
+            generateToast("Discord Channels Not Located", response["message"]);
+        } else {
+            channels = response["channels"];
+        }
+    }
+
+    xhttp.responseType = "json";
+    xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
+    xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send();
+
     $("#verification-config-enable").on("click", function() {
         const xhttp = new XMLHttpRequest();
 

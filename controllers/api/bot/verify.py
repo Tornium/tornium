@@ -10,7 +10,42 @@ from controllers.api.decorators import *
 from models.faction import Faction
 from models.servermodel import ServerModel
 from models.user import User
-import utils
+
+
+@key_required
+@ratelimit
+@requires_scopes(scopes={"admin", "bot:admin"})
+def verification_config(guildid, *args, **kwargs):
+    client = redisdb.get_redis()
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "UnknownGuild",
+                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
+                    "in the database.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+
+    return {
+        "enabled": guild.config.get("verify"),
+        "verify_template": guild.verify_template,
+        "verified_roles": guild.verified_roles,
+        "faction_verify": guild.faction_verify,
+        "verify_log_channel": guild.verify_log_channel,
+    }
 
 
 @key_required

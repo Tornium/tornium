@@ -5,10 +5,7 @@
 import operator
 
 from models.servermodel import ServerModel
-import redisdb
 import tasks
-import utils
-from utils.errors import DiscordError
 
 
 class Server:
@@ -21,37 +18,7 @@ class Server:
 
         server = ServerModel.objects(sid=sid).first()
         if server is None:
-            try:
-                guild = tasks.discordget(f"guilds/{sid}")
-                skynet = False
-            except DiscordError as e:
-                if e.code == 10004:
-                    guild = tasks.discordget(f"guilds/{sid}", dev=True)
-                    skynet = True
-                else:
-                    raise e
-
-            server = ServerModel(
-                sid=sid,
-                name=guild["name"],
-                admins=[],
-                prefix="?",
-                config={"stakeouts": 0, "assists": 0, "verify": 0},
-                factions=[],
-                stakeoutconfig={"category": 0},
-                userstakeouts=[],
-                factionstakeouts=[],
-                verify_template="{{ name }} [{{ tid }}]",
-                verified_roles=[],
-                faction_verify={},
-                verify_log_channel=0,
-                retal_config={},
-                assistschannel=0,
-                assist_factions=[],
-                assist_mod=0,
-                skynet=skynet,
-            )
-            server.save()
+            raise LookupError("Server not found in the DB")
 
         self.sid = sid
         self.name = server.name

@@ -74,9 +74,13 @@ mod.add_url_rule(
     "/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"]
 )
 mod.add_url_rule(
-    "/api/faction/banking/vault", view_func=faction.banking.vault_balance, methods=["GET"]
+    "/api/faction/banking/vault",
+    view_func=faction.banking.vault_balance,
+    methods=["GET"],
 )
-mod.add_url_rule("/api/faction/group", view_func=faction.group.group_modify, methods=["POST"])
+mod.add_url_rule(
+    "/api/faction/group", view_func=faction.group.group_modify, methods=["POST"]
+)
 mod.add_url_rule(
     "/api/faction/positions",
     view_func=faction.positions.get_positions,
@@ -113,13 +117,19 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule", view_func=faction.schedule.create_schedule, methods=["POST"]
+    "/api/faction/schedule",
+    view_func=faction.schedule.create_schedule,
+    methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule", view_func=faction.schedule.delete_schedule, methods=["DELETE"]
+    "/api/faction/schedule",
+    view_func=faction.schedule.delete_schedule,
+    methods=["DELETE"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule/setup", view_func=faction.schedule.schedule_setup, methods=["POST"]
+    "/api/faction/schedule/setup",
+    view_func=faction.schedule.schedule_setup,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/schedule/watcher/<string:uuid>",

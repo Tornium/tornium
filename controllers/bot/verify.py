@@ -17,4 +17,3 @@ def verify_dashboard(guildid):
         "bot/verify.html",
         guild=guild,
     )
-

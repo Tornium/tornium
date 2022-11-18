@@ -3,4 +3,11 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from controllers.api.faction import assist, banking, group, positions, recruitment, schedule
+from controllers.api.faction import (
+    assist,
+    banking,
+    group,
+    positions,
+    recruitment,
+    schedule,
+)

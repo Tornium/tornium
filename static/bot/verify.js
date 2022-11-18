@@ -28,17 +28,21 @@ $(document).ready(function() {
             xhttp.onload = function() {
                 let response = xhttp.response;
         
-                console.log(response);
-        
                 if("code" in response) {
                     generateToast("Discord Roles Not Located", response["message"]);
                 } else {
-                    $.each($(".discord-role-selector"), function(index, item) {
-                        $.each(response["roles"], function(role_id, role) {
-                            if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
-                                item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
+                    $.each(response["roles"], function(role_id, role) {
+                        if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
+                            $("#verification-roles").get(0).innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
+                        } else {
+                            $("#verification-roles").get(0).innerHTML += `<option value="${role.id}">${role.name}</option>`;
+                        }
+
+                        $.each($(".verification-faction-roles"), function(index, item) {
+                            if(verificationConfig["faction_verify"][parseInt(item.getAttribute("data-faction"))]["roles"].includes(parseInt(role["id"]))) {
+                                item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
                             } else {
-                                item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
+                                item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
                             }
                         });
                     });
@@ -222,31 +226,6 @@ $(document).ready(function() {
         }));
     });
 
-    $(".verification-faction-role-add").on("change", function() {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function() {
-            let response = xhttp.response;
-
-            if("code" in response) {
-                generateToast("Role Add Failed");
-            } else {
-                generateToast("Role Add Successful");
-                window.location.reload();
-            }
-        }
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/faction/role");
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify({
-            "guildid": guildid,
-            "factiontid": this.getAttribute("data-faction"),
-            "role": this.options[this.selectedIndex].value
-        }));
-    });
-
     $(".verification-faction-remove").on("click", function() {
         const xhttp = new XMLHttpRequest();
 
@@ -272,29 +251,35 @@ $(document).ready(function() {
         }));
     });
 
-    $(".verification-faction-role-remove").on("click", function() {
-        console.log(this);
+
+    $(".verification-faction-roles").on("change", function() {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function(index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
         const xhttp = new XMLHttpRequest();
 
         xhttp.onload = function() {
             let response = xhttp.response;
 
             if("code" in response) {
-
+                generateToast("Role Add Failed");
             } else {
-                generateToast("Role Removed Successfully");
-                window.location.reload();
+                generateToast("Role Add Successful");
             }
         }
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/bot/verify/faction/role");
+        xhttp.open("POST", "/api/bot/verify/faction/roles");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
             "guildid": guildid,
             "factiontid": this.getAttribute("data-faction"),
-            "role": this.getAttribute("data-role-id")
+            "roles": selectedRoles
         }));
     });
 

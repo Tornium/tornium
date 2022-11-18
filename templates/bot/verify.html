@@ -158,26 +158,8 @@ Tornium - Verification
                         </div>
 
                         <div class="form-floating px-3 py-3">
-                            <select class="form-select verification-faction-role-add" data-faction="{{ faction }}" aria-label="Verification Faction Role Add">
-                                <option value="0">Add a role for faction verification</option>
-                                {% for role in roles.values() %}
-                                    {% if role not in guild.faction_verify[faction]["roles"] %}
-                                        <option value="{{ role["id"] }}">{{ role["name"] }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
+                            <select class="discord-role-selector verification-faction-roles" data-faction="{{ faction }}" aria-label="Verification Faction Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                         </div>
-
-                        <ul class="list-group list-group-flush">
-                            {% for role in guild.faction_verify[faction]["roles"] %}
-                            <li class="list-group-item">
-                                <button type="button" class="btn verification-faction-role-remove" data-faction="{{ faction }}" data-role-id="{{ role }}">
-                                    <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
-                                </button>
-                                {{ roles[role|string].name }}
-                            </li>
-                            {% endfor %}
-                        </ul>
 
                         <div class="card-footer">
                             Enable or disable this faction's verification.

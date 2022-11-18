@@ -49,7 +49,7 @@ class Server:
         channels_query = tasks.discordget(
             f"guilds/{self.sid}/channels", dev=self.skynet
         )
-        channels = {0: {"name": "", "channels": {}, "position": -1}}
+        channels = {"0": {"name": "", "channels": {}, "position": -1}}
 
         for channel in channels_query:
             if channel["type"] == 4 and channel["id"] not in channels:

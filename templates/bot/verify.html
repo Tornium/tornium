@@ -1,9 +1,5 @@
 {% extends 'base.html' %}
 
-{% block head_insert %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css" integrity="sha512-ARJR74swou2y0Q2V9k0GbzQ/5vJ2RBSoCWokg4zkfM29Fb3vZEQyv0iWBMW/yvKgyHSR/7D64pFMmU8nYmbRkg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-{% endblock %}
-
 {% block title %}
 Tornium - Verification
 {% endblock %}
@@ -114,9 +110,7 @@ Tornium - Verification
                         </div>
 
                         <div class="form-floating px-3 py-3">
-                            <select class="selectpicker discord-role-selector" data-live-search="true" aria-label="Verification Role Add" multiple>
-                                <option value="0">Add a role for verification</option>
-                            </select>
+                            <select class="discord-role-selector" id="verification-roles" aria-label="Verification Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                         </div>
                     </div>
                 </div>
@@ -216,8 +210,7 @@ Tornium - Verification
 
 <div id="modal"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js" integrity="sha512-yDlE7vpGDP7o2eftkCiPZ+yuUyEcaBwoJoIhdXv71KZWugFqEphIS3PU60lEkFaz8RxaVsMpSvQxMBaKVwA5xg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/bot/verify.js" data-guildid="{{ guild.sid }}" data-key="{{ current_user.key }}"></script>
 {% endblock %}

@@ -48,22 +48,36 @@ $(document).ready(function() {
                     });
 
                     $(".discord-role-selector").selectpicker();
-
-                    // xhttp.onload = function() {
-                    //     let response = xhttp.response;
-                
-                    //     if("code" in response) {
-                    //         generateToast("Discord Channels Not Located", response["message"]);
-                    //     } else {
-                    //         channels = response["channels"];
-                    //     }
-                    // }
-                    
-                    // xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
-                    // xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-                    // xhttp.setRequestHeader("Content-Type", "application/json");
-                    // xhttp.send();
                 }
+
+                xhttp.onload = function() {
+                    let response = xhttp.response;
+            
+                    if("code" in response) {
+                        generateToast("Discord Channels Not Located", response["message"]);
+                    } else {
+                        $.each(response["channels"], function(category_id, category) {
+                            var optgroup = $(`<optgroup>`);
+                            optgroup.attr("label", category["name"]);
+                            $("#verification-log-channel").append(optgroup);
+
+                            $.each(category["channels"], function(channel_id, channel) {
+                                if(verificationConfig["verify_log_channel"] == parseInt(channel.id)) {
+                                    optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`))
+                                } else {
+                                    optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
+                                }
+                            });
+                        });
+
+                        $(".discord-channel-selector").selectpicker();
+                    }
+                }
+                
+                xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
+                xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.send();
             }
 
             xhttp.open("GET", `/api/bot/server/${guildid}/roles`);

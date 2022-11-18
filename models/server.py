@@ -67,7 +67,7 @@ class Server:
                 channels[channel["id"]]["name"] = channel["name"]
             elif channel["type"] == 0:
                 if "parent_id" not in channel or channel.get("parent_id") is None:
-                    channels[0]["channels"][channel["id"]] = {
+                    channels["0"]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
                         "position": channel["position"]

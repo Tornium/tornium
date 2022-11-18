@@ -360,19 +360,19 @@ def faction_verification(*args, **kwargs):
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
-def guild_verification_role(*args, **kwargs):
+def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
-    roleid = data.get("role")
+    roles = data.get("roles")
+
+    print(roles)
 
     if (
         guildid in ("", None, 0)
         or not guildid.isdigit()
-        or roleid in ("", None, 0)
-        or not roleid.isdigit()
     ):
         return (
             jsonify(
@@ -391,8 +391,6 @@ def guild_verification_role(*args, **kwargs):
         )
 
     guildid = int(guildid)
-    roleid = int(roleid)
-
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
@@ -412,15 +410,16 @@ def guild_verification_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    elif (request.method == "POST" and roleid in guild.verified_roles) or (
-        request.method == "DELETE" and roleid not in guild.verified_roles
-    ):
+
+    try:
+        guild.verified_roles = [int(role) for role in roles]
+    except ValueError:
         return (
             jsonify(
                 {
                     "code": 0,
-                    "name": "",
-                    "message": "Server failed to fulfill the request. Improper HTTP request type.",
+                    "name": "ValueError",
+                    "message": "Server failed to fulfill the request. A role could not be parsed."
                 }
             ),
             400,
@@ -430,11 +429,6 @@ def guild_verification_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-
-    if request.method == "POST":
-        guild.verified_roles.append(roleid)
-    elif request.method == "DELETE":
-        guild.verified_roles.remove(roleid)
 
     guild.save()
 

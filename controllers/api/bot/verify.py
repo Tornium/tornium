@@ -527,7 +527,7 @@ def faction_roles(*args, **kwargs):
             },
         )
 
-    guild.faction_verify[str(factiontid)]["roles"] = roles
+    guild.faction_verify[str(factiontid)]["roles"] = [int(role) for role in roles]
     guild.save()
 
     return jsonify(

@@ -370,10 +370,7 @@ def guild_verification_roles(*args, **kwargs):
 
     print(roles)
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-    ):
+    if guildid in ("", None, 0) or not guildid.isdigit():
         return (
             jsonify(
                 {
@@ -419,7 +416,7 @@ def guild_verification_roles(*args, **kwargs):
                 {
                     "code": 0,
                     "name": "ValueError",
-                    "message": "Server failed to fulfill the request. A role could not be parsed."
+                    "message": "Server failed to fulfill the request. A role could not be parsed.",
                 }
             ),
             400,

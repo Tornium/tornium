@@ -18,23 +18,29 @@ def get_channels(guildid, *args, **kwargs):
     try:
         server = Server(guildid)
     except LookupError:
-        return {
-            "code": 1001,
-            "name": "UnknownGuild",
-            "message": "Server failed to locate the requested guild.",
-        }, 400, {
+        return (
+            {
+                "code": 1001,
+                "name": "UnknownGuild",
+                "message": "Server failed to locate the requested guild.",
+            },
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+
+    return (
+        {"channels": server.get_text_channels()},
+        200,
+        {
             "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
-        }
-
-    return {
-        "channels": server.get_text_channels()
-    }, 200, {
-        "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-        "X-RateLimit-Remaining": client.get(key),
-        "X-RateLimit-Reset": client.ttl(key),
-    }
+        },
+    )
 
 
 @key_required
@@ -47,20 +53,26 @@ def get_roles(guildid, *args, **kwargs):
     try:
         server = Server(guildid)
     except LookupError:
-        return {
-            "code": 1001,
-            "name": "UnknownGuild",
-            "message": "Server failed to locate the requested guild.",
-        }, 400, {
+        return (
+            {
+                "code": 1001,
+                "name": "UnknownGuild",
+                "message": "Server failed to locate the requested guild.",
+            },
+            400,
+            {
+                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+
+    return (
+        {"roles": server.get_roles()},
+        200,
+        {
             "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
-        }
-
-    return {
-        "roles": server.get_roles()
-    }, 200, {
-        "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-        "X-RateLimit-Remaining": client.get(key),
-        "X-RateLimit-Reset": client.ttl(key),
-    }
+        },
+    )

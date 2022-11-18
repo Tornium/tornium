@@ -368,15 +368,18 @@ def guild_verification_roles(*args, **kwargs):
     guildid = data.get("guildid")
     roles = data.get("roles")
 
-    print(roles)
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    if (
+        guildid in ("", None, 0)
+        or not guildid.isdigit()
+        or roles is None
+        or type(roles) != list
+    ):
         return (
             jsonify(
                 {
                     "code": 0,
                     "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and role ID are required.",
+                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and list of roles are required.",
                 }
             ),
             400,
@@ -451,29 +454,29 @@ def guild_verification_roles(*args, **kwargs):
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
-def faction_role(*args, **kwargs):
+def faction_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     factiontid = data.get("factiontid")
-    roleid = data.get("role")
+    roles = data.get("roles")
 
     if (
         guildid in ("", None, 0)
         or not guildid.isdigit()
         or factiontid in ("", None, 0)
         or not factiontid.isdigit()
-        or roleid in ("", None, 0)
-        or not roleid.isdigit()
+        or roles is None
+        or type(roles) != list
     ):
         return (
             jsonify(
                 {
                     "code": 0,
                     "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and role ID are required.",
+                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and list of roles are required.",
                 }
             ),
             400,
@@ -486,7 +489,6 @@ def faction_role(*args, **kwargs):
 
     guildid = int(guildid)
     factiontid = int(factiontid)
-    roleid = int(roleid)
 
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
@@ -524,34 +526,8 @@ def faction_role(*args, **kwargs):
                 "X-RateLimit-Reset": client.ttl(key),
             },
         )
-    elif (
-        request.method == "POST"
-        and roleid in guild.faction_verify[str(factiontid)]["roles"]
-    ) or (
-        request.method == "DELETE"
-        and roleid not in guild.faction_verify[str(factiontid)]["roles"]
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "",
-                    "message": "Server failed to fulfill the request. Improper HTTP request type.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
 
-    if request.method == "POST":
-        guild.faction_verify[str(factiontid)]["roles"].append(roleid)
-    elif request.method == "DELETE":
-        guild.faction_verify[str(factiontid)]["roles"].remove(roleid)
-
+    guild.faction_verify[str(factiontid)]["roles"] = roles
     guild.save()
 
     return jsonify(

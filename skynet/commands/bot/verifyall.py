@@ -93,42 +93,42 @@ def verifyall(interaction):
             },
         }
 
-    try:
-        tasks.discordpost(
-            f"interactions/{interaction['id']}/{interaction['token']}/callback",
-            payload={
-                "type": 5
-            },
-            dev=server.skynet,
-        )
-    except utils.DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    except utils.NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Discord API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
+    # try:
+    #     tasks.discordpost(
+    #         f"interactions/{interaction['id']}/{interaction['token']}/callback",
+    #         payload={
+    #             "type": 5
+    #         },
+    #         dev=server.skynet,
+    #     )
+    # except utils.DiscordError as e:
+    #     return {
+    #         "type": 4,
+    #         "data": {
+    #             "embeds": [
+    #                 {
+    #                     "title": "Discord API Error",
+    #                     "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+    #                     "color": 0xC83F49,
+    #                 }
+    #             ],
+    #             "flags": 64,  # Ephemeral
+    #         },
+    #     }
+    # except utils.NetworkingError as e:
+    #     return {
+    #         "type": 4,
+    #         "data": {
+    #             "embeds": [
+    #                 {
+    #                     "title": "HTTP Error",
+    #                     "description": f'The Discord API has returned an HTTP error {e.code}: "{e.message}".',
+    #                     "color": 0xC83F49,
+    #                 }
+    #             ],
+    #             "flags": 64,  # Ephemeral
+    #         },
+    #     }
 
     try:
         server_data = tasks.discordget(

@@ -93,6 +93,7 @@ def verifyall(interaction):
             },
         }
 
+    # requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
     # try:
     #     tasks.discordpost(
     #         f"interactions/{interaction['id']}/{interaction['token']}/callback",

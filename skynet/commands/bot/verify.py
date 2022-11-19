@@ -350,11 +350,11 @@ def verify(interaction):
             patch_json["roles"].append(str(position_role))
 
     for factiontid, data in server.faction_verify.items():
-        if "positions" not in server.faction_verify[str(factiontid)]:
+        if "positions" not in data:
             continue
 
-        for position, position_roles in server.faction_verify[str(factiontid)]["positions"].items():
-            if set(position_roles) & set(user_roles) and (int(factiontid) != user.factiontid or user.faction_position != position):
+        for position, position_roles in data["positions"].items():
+            if set(position_roles) & set(user_roles) and (int(factiontid) != user.factiontid or str(user.faction_position) != position):
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
 

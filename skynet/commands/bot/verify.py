@@ -369,6 +369,9 @@ def verify(interaction):
                     elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = user_roles
 
+                    print(str(user.faction_position))
+                    print(faction_positions_data["positions"])
+
                     patch_json["roles"].remove(str(position_role))
 
     if len(patch_json) == 0 and (

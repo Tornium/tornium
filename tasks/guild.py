@@ -6,6 +6,7 @@
 from honeybadger import honeybadger
 import requests
 
+from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordget, logger
@@ -89,4 +90,17 @@ def refresh_guilds():
 
         admins = list(set(admins))
         guild_db.admins = admins
+        guild_db.save()
+
+        for factiontid, faction_data in guild_db.faction_verify.items():
+            faction_positions_data = faction_data
+
+            for position_uuid, position_data in faction_data["positions"].items():
+                position: PositionModel = PositionModel.objects(pid=position_uuid).first()
+
+                if position is None or position.factiontid != int(factiontid):
+                    faction_positions_data["positions"].pop(position_uuid)
+
+            guild_db.faction_verify[factiontid] = faction_positions_data
+
         guild_db.save()

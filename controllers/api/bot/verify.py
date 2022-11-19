@@ -39,7 +39,9 @@ def verification_config(guildid, *args, **kwargs):
             },
         )
 
-    if
+    if "positions" not in guild.faction_verify:
+        guild.faction_verify["positions"] = {}
+        guild.save()
 
     return {
         "enabled": guild.config.get("verify"),

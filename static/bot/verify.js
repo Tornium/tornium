@@ -382,13 +382,15 @@ $(document).ready(function() {
 
             $.each(roles, function(role_id, role) {
                 $.each($(".faction-position-roles-selector"), function(index, item) {
-                    if(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"][item.getAttribute("data-position")].includes(parseInt(role["id"]))) {
-                        item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
+                    if(!(Object.keys(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"]).includes(item.getAttribute("data-position")))) {
+                        console.log("Position not in config");
+                        item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
+                    } else if(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"][item.getAttribute("data-position")].includes(role["id"])) {
+                        console.log("Position in config");
+                        item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
                     } else {
-                        item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+                        item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
                     }
-
-                    // item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
                 });
             });
 
@@ -413,7 +415,7 @@ $(document).ready(function() {
                 }
 
                 xhttp.responseType = "json";
-                xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/positions`);
+                xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/position/${this.getAttribute("data-position")}`);
                 xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(JSON.stringify({

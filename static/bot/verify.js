@@ -293,12 +293,11 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/faction/roles");
+        xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
             "guildid": guildid,
-            "factiontid": this.getAttribute("data-faction"),
             "roles": selectedRoles
         }));
     });
@@ -414,7 +413,7 @@ $(document).ready(function() {
                 }
 
                 xhttp.responseType = "json";
-                xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
+                xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/positions`);
                 xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(JSON.stringify({

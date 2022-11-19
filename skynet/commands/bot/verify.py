@@ -361,7 +361,8 @@ def verify(interaction):
                         print(position_role in faction_positions_data["positions"][str(user.faction_position)])
 
                     print(f"{position_role}: {type(position_role)}")
-                    print(faction_positions_data["positions"][str(user.faction_position)])
+                    if str(user.faction_position) in faction_positions_data["positions"]:
+                        print(faction_positions_data["positions"][str(user.faction_position)])
 
                     if str(user.faction_position) in faction_positions_data["positions"] and position_role in faction_positions_data["positions"][str(user.faction_position)]:
                         continue

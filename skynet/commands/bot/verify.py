@@ -361,7 +361,7 @@ def verify(interaction):
                 roles_remove = list(set(position_roles) & set(user_roles))
 
                 for position_role in roles_remove:
-                    if position_role in data["positions"][str(user.faction_position)]:
+                    if str(user.faction_position) in data["positions"] and position_role in data["positions"][str(user.faction_position)]:
                         roles_remove.remove(position_role)
 
                 for position_role in roles_remove:

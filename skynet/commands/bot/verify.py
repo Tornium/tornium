@@ -362,9 +362,7 @@ def verify(interaction):
 
                 for position_role in roles_remove:
                     if position_role in data["positions"][str(user.faction_position)]:
-                        continue
-
-                    roles_remove.remove(position_role)
+                        roles_remove.remove(position_role)
 
                 for position_role in roles_remove:
                     patch_json["roles"].remove(str(position_role))

@@ -215,7 +215,7 @@ def get_positions(*args, **kwargs):
     position: PositionModel
     for position in positions:
         position_data = json.loads(position.to_json())
-        position_data["_id"] = str(position.name)
+        position_data["_id"] = str(position.pid)
         positions_data.append(position_data)
 
     return (

@@ -354,13 +354,14 @@ def verify(interaction):
             continue
 
         for position, position_roles in data["positions"].items():
-            print(f"{position} : {user.faction_position}")
-            print(f"{type(position)} : {type(str(user.faction_position))}")
             if set(position_roles) & set(user_roles) and (int(factiontid) != user.factiontid or str(user.faction_position) != position):
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
 
                 for position_role in set(position_roles) & set(user_roles):
+                    if position_role in data["positions"][str(user.faction_position)]:
+                        continue
+
                     print(f"{position}: {position_role} removed from patch")
                     patch_json["roles"].remove(str(position_role))
 

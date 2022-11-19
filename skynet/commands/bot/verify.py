@@ -358,11 +358,15 @@ def verify(interaction):
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
 
-                for position_role in set(position_roles) & set(user_roles):
+                roles_remove = set(position_roles) & set(user_roles)
+
+                for position_role in roles_remove:
                     if position_role in data["positions"][str(user.faction_position)]:
                         continue
 
-                    print(f"{position}: {position_role} removed from patch")
+                    roles_remove.remove(position_role)
+
+                for position_role in roles_remove:
                     patch_json["roles"].remove(str(position_role))
 
     if len(patch_json) == 0 and (

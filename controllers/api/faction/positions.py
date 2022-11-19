@@ -3,6 +3,8 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import json
+
 from controllers.api.decorators import *
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel

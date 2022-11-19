@@ -335,7 +335,11 @@ def faction_verification(*args, **kwargs):
         del guild.faction_verify[str(factiontid)]
     else:
         if faction.tid not in guild.faction_verify:
-            guild.faction_verify[str(factiontid)] = {"roles": [], "positions": {}, "enabled": False}
+            guild.faction_verify[str(factiontid)] = {
+                "roles": [],
+                "positions": {},
+                "enabled": False,
+            }
 
         if request.method == "POST":
             guild.faction_verify[str(factiontid)]["enabled"] = True

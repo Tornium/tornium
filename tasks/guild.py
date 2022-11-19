@@ -96,7 +96,9 @@ def refresh_guilds():
             faction_positions_data = faction_data
 
             for position_uuid, position_data in faction_data["positions"].items():
-                position: PositionModel = PositionModel.objects(pid=position_uuid).first()
+                position: PositionModel = PositionModel.objects(
+                    pid=position_uuid
+                ).first()
 
                 if position is None or position.factiontid != int(factiontid):
                     faction_positions_data["positions"].pop(position_uuid)

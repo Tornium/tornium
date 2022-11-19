@@ -354,14 +354,16 @@ def verify(interaction):
             continue
 
         for position, position_roles in data["positions"].items():
-            if set(position_roles) & set(user_roles) and (int(factiontid) != user.factiontid or str(user.faction_position) != position):
+            if set(user_roles) - set(position_roles):
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
 
-                roles_remove = list(set(position_roles) & set(user_roles))
+                roles_remove = list(set(user_roles) - set(position_roles))
 
                 for position_role in roles_remove:
                     if str(user.faction_position) in data["positions"] and position_role in data["positions"][str(user.faction_position)]:
+                        roles_remove.remove(position_role)
+                    elif position_role in data["roles"]:
                         roles_remove.remove(position_role)
 
                 for position_role in roles_remove:

@@ -323,8 +323,8 @@ def verify(interaction):
 
             patch_json["roles"].append(str(faction_role))
 
-    for factiontid, data in server.faction_verify.items():
-        for faction_role in server.faction_verify[str(factiontid)]["roles"]:
+    for factiontid, faction_verify_data in server.faction_verify.items():
+        for faction_role in faction_verify_data["roles"]:
             if str(faction_role) in user_roles and int(factiontid) != user.factiontid:
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
@@ -349,16 +349,17 @@ def verify(interaction):
 
             patch_json["roles"].append(str(position_role))
 
-    for factiontid, data in server.faction_verify.items():
-        if "positions" not in data:
-            continue
+    for factiontid, faction_positions_data in server.faction_verify.items():
+        for position_uuid, position_data in faction_positions_data["positions"].items():
+            if position_uuid == str(user.faction_position):
+                continue
 
-        for position, position_roles in data["positions"].items():
-            if set(user_roles) - set(position_roles):
-                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
-                    patch_json["roles"] = user_roles
+            for position in position_data:
+                if position in user_roles:
+                    if str(user.faction_position) in faction_positions_data["positions"] and position in faction_positions_data[str(user.faction_position)]:
+                        continue
 
-                print(set(user_roles) - set(position_roles))
+                    patch_json["roles"].remove(str(position))
 
     if len(patch_json) == 0 and (
         force == -1 or (type(force) == list and not force[1].get("value"))

@@ -6,8 +6,10 @@
 import random
 
 import jinja2
+from mongoengine.queryset.visitor import Q
 
 from models.factionmodel import FactionModel
+from models.positionmodel import PositionModel
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
@@ -305,7 +307,8 @@ def verify(interaction):
                 patch_json["roles"].remove(str(verified_role))
 
     if (
-        server.faction_verify.get(str(user.factiontid)) is not None
+        user.factiontid != 0
+        and server.faction_verify.get(str(user.factiontid)) is not None
         and server.faction_verify[str(user.factiontid)].get("roles") is not None
         and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
         and server.faction_verify[str(user.factiontid)].get("enabled")
@@ -327,6 +330,36 @@ def verify(interaction):
                     patch_json["roles"] = user_roles
 
                 patch_json["roles"].remove(str(faction_role))
+
+    if (
+            user.factiontid != 0
+            and user.faction_position is not None
+            and server.faction_verify.get(str(user.factiontid)) is not None
+            and server.faction_verify[str(user.factiontid)].get("positions") is not None
+            and len(server.faction_verify[str(user.factiontid)]["positions"]) != 0
+            and str(user.faction_position) in server.faction_verify[str(user.factiontid)]["positions"].keys()
+            and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
+    ):
+        position_role: int
+        for position_role in server.faction_verify[str(user.factiontid)]["positions"][str(user.faction_position)]:
+            if str(position_role) in user_roles:
+                continue
+            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                patch_json["roles"] = user_roles
+
+            patch_json["roles"].append(str(position_role))
+
+    for factiontid, data in server.faction_verify.items():
+        if "positions" not in server.faction_verify[str(factiontid)]:
+            continue
+
+        for position, position_roles in server.faction_verify[str(factiontid)]["positions"].items():
+            if set(position_roles) & set(user_roles) and (int(factiontid) != user.factiontid or user.faction_position != position):
+                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    patch_json["roles"] = user_roles
+
+                for position_role in set(position_roles) & set(user_roles):
+                    patch_json["roles"].remove(str(position_role))
 
     if len(patch_json) == 0 and (
         force == -1 or (type(force) == list and not force[1].get("value"))

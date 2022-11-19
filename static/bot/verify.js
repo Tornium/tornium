@@ -382,13 +382,13 @@ $(document).ready(function() {
 
             $.each(roles, function(role_id, role) {
                 $.each($(".faction-position-roles-selector"), function(index, item) {
-                    // if(verificationConfig["faction_verify"][parseInt(item.getAttribute("data-faction"))][item.getAttribute("data-position")]["roles"].includes(parseInt(role["id"]))) {
-                    //     item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
-                    // } else {
-                    //     item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
-                    // }
+                    if(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"][item.getAttribute("data-position")].includes(parseInt(role["id"]))) {
+                        item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
+                    } else {
+                        item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+                    }
 
-                    item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+                    // item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
                 });
             });
 

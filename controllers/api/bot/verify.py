@@ -39,6 +39,8 @@ def verification_config(guildid, *args, **kwargs):
             },
         )
 
+    if
+
     return {
         "enabled": guild.config.get("verify"),
         "verify_template": guild.verify_template,
@@ -613,7 +615,7 @@ def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
             },
         )
 
-    guild.faction_verify[str(factiontid)][position]["roles"] = roles
+    guild.faction_verify[str(factiontid)]["positions"][position] = roles
     guild.save()
 
     return jsonify(

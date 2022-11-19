@@ -354,14 +354,20 @@ def verify(interaction):
             if position_uuid == str(user.faction_position):
                 continue
 
-            for position in position_data:
-                if position in user_roles:
-                    if str(user.faction_position) in faction_positions_data["positions"] and position in faction_positions_data["positions"][str(user.faction_position)]:
+            for position_role in position_data:
+                if position_role in user_roles:
+                    print(str(user.faction_position) in faction_positions_data["positions"])
+                    print(position_role in faction_positions_data["positions"][str(user.faction_position)])
+
+                    print(f"{position_role}: {type(position_role)}")
+                    print(faction_positions_data["positions"][str(user.faction_position)])
+
+                    if str(user.faction_position) in faction_positions_data["positions"] and position_role in faction_positions_data["positions"][str(user.faction_position)]:
                         continue
                     elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = user_roles
 
-                    patch_json["roles"].remove(str(position))
+                    patch_json["roles"].remove(str(position_role))
 
     if len(patch_json) == 0 and (
         force == -1 or (type(force) == list and not force[1].get("value"))

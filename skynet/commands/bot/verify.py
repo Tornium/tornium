@@ -351,26 +351,12 @@ def verify(interaction):
 
     for factiontid, faction_positions_data in server.faction_verify.items():
         for position_uuid, position_data in faction_positions_data["positions"].items():
-            if position_uuid == str(user.faction_position):
-                continue
-
             for position_role in position_data:
                 if position_role in user_roles:
-                    print(str(user.faction_position) in faction_positions_data["positions"])
-                    if str(user.faction_position) in faction_positions_data["positions"]:
-                        print(position_role in faction_positions_data["positions"][str(user.faction_position)])
-
-                    print(f"{position_role}: {type(position_role)}")
-                    if str(user.faction_position) in faction_positions_data["positions"]:
-                        print(faction_positions_data["positions"][str(user.faction_position)])
-
                     if str(user.faction_position) in faction_positions_data["positions"] and position_role in faction_positions_data["positions"][str(user.faction_position)]:
                         continue
                     elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = user_roles
-
-                    print(str(user.faction_position))
-                    print(faction_positions_data["positions"])
 
                     patch_json["roles"].remove(str(position_role))
 

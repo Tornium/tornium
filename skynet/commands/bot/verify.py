@@ -358,6 +358,8 @@ def verify(interaction):
                 if position in user_roles:
                     if str(user.faction_position) in faction_positions_data["positions"] and position in faction_positions_data["positions"][str(user.faction_position)]:
                         continue
+                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                        patch_json["roles"] = user_roles
 
                     patch_json["roles"].remove(str(position))
 

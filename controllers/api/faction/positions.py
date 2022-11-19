@@ -2,7 +2,6 @@
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
-import json
 
 from controllers.api.decorators import *
 from models.factionmodel import FactionModel
@@ -13,13 +12,12 @@ from models.servermodel import ServerModel
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "read:faction", "faction:admin"})
-def get_positions(*args, **kwargs):  # TODO: Update with faction and server ID in data
-    data = json.loads(request.get_data().decode("utf-8"))
+def get_positions(*args, **kwargs):
     client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-    factiontid = data.get("factiontid")
+    guildid = request.args.get("guildid")
+    factiontid = request.args.get("factiontid")
 
     if (
         guildid not in (None, 0, "")

@@ -365,7 +365,7 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("GET", "/api/faction/positions");
+        xhttp.open("GET", `/api/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`);
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();

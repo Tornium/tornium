@@ -95,6 +95,9 @@ def refresh_guilds():
         for factiontid, faction_data in guild_db.faction_verify.items():
             faction_positions_data = faction_data
 
+            if "positions" not in faction_data:
+                continue
+
             for position_uuid, position_data in faction_data["positions"].items():
                 position: PositionModel = PositionModel.objects(
                     pid=position_uuid

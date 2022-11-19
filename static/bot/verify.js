@@ -12,6 +12,8 @@ $(document).ready(function() {
     });
 
     let verificationConfig = null;
+    let roles = null;
+    let channels = null;
 
     var xhttp = new XMLHttpRequest();
 
@@ -31,6 +33,8 @@ $(document).ready(function() {
                 if("code" in response) {
                     generateToast("Discord Roles Not Located", response["message"]);
                 } else {
+                    roles = response["roles"];
+
                     $.each(response["roles"], function(role_id, role) {
                         if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
                             $("#verification-roles").get(0).innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
@@ -56,6 +60,8 @@ $(document).ready(function() {
                     if("code" in response) {
                         generateToast("Discord Channels Not Located", response["message"]);
                     } else {
+                        channels = response["channels"];
+
                         $.each(response["channels"], function(category_id, category) {
                             var optgroup = $(`<optgroup>`);
                             optgroup.attr("label", category["name"]);
@@ -328,9 +334,10 @@ $(document).ready(function() {
     });
 
     $(".verification-faction-edit").on("click", function() {
-        if($('#verify-settings-modal').length) {
+        if($('#verify-settings-modal').length != 0) {
             let modal = bootstrap.Modal.getInstance(document.getElementById('verify-settings-modal'));
             modal.dispose();
+            $("#verify-settings-modal").remove();
         }
 
         const xhttp = new XMLHttpRequest();
@@ -344,24 +351,79 @@ $(document).ready(function() {
             }
 
             $.each(response["positions"], function(index, position) {
-                $("#verify-settings-modal-body").append($("<div>", {
-                    "class": "card px-3 py-3 col-12 col-md-6 col-lg-4",
-                    "data-position": position.pid
+                if(index % 2 == 0) {
+                    $("#verify-settings-modal-body").append($("<div>", {
+                        "class": "row",
+                        "data-row-index": Math.floor(index / 2)
+                    }))
+                }
+
+                $(`.row[data-row-index="${Math.floor(index / 2)}"]`).append($("<div>", {
+                    "class": "column col-sm-12 col-md-6",
+                    "data-position": position._id
                 }));
-                $(`card[data-position=${position.pid}]`).append($("<h5>", {
+                $(`.column[data-position="${position._id}"]`).append($("<div>", {
+                    "class": "card mr-3 mb-3",
+                    "data-position": position._id
+                }));
+                $(`.card[data-position="${position._id}"]`).append($("<h5>", {
                     "class": "card-header",
                     "text": position.name
                 }))
-                $(`card[data-position=${position.pid}]`).append($("<select>", {
-                    "class": "discord-role-selector",
-                    "data-position": position.pid,
-                    "data-factiontid": position.factiontid,
+                $(`.card[data-position="${position._id}"]`).append($("<select>", {
+                    "class": "discord-role-selector faction-position-roles-selector",
+                    "data-position": position._id,
+                    "data-faction": position.factiontid,
                     "aria-label": `Roles for ${position.name}`,
                     "data-live-search": "true",
                     "data-selected-text-format": "count > 2",
                     "multiple": "",
                 }))
             });
+
+            $.each(roles, function(role_id, role) {
+                $.each($(".faction-position-roles-selector"), function(index, item) {
+                    // if(verificationConfig["faction_verify"][parseInt(item.getAttribute("data-faction"))][item.getAttribute("data-position")]["roles"].includes(parseInt(role["id"]))) {
+                    //     item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
+                    // } else {
+                    //     item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+                    // }
+
+                    item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+                });
+            });
+
+            $(".faction-position-roles-selector").on("change", function() {
+                var selectedOptions = $(this).find(":selected");
+                var selectedRoles = [];
+
+                $.each(selectedOptions, function(index, item) {
+                    selectedRoles.push(item.getAttribute("value"));
+                });
+
+                const xhttp = new XMLHttpRequest();
+
+                xhttp.onload = function() {
+                    let response = xhttp.response;
+
+                    if("code" in response) {
+                        generateToast("Role Add Failed");
+                    } else {
+                        generateToast("Role Add Successful");
+                    }
+                }
+
+                xhttp.responseType = "json";
+                xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
+                xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.send(JSON.stringify({
+                    "guildid": guildid,
+                    "roles": selectedRoles
+                }));
+            });
+
+            $(".discord-role-selector").selectpicker();
         }
 
         xhttp.responseType = "json";
@@ -378,7 +440,7 @@ $(document).ready(function() {
             "aria-hidden": "true"
         }));
         $("#verify-settings-modal").append($("<div>", {
-            "class": "modal-dialog modal-lg",
+            "class": "modal-dialog modal-xl",
             "id": "verify-settings-modal-dialog"
         }));
         $("#verify-settings-modal-dialog").append($("<div>", {
@@ -399,12 +461,12 @@ $(document).ready(function() {
             "data-bs-dismiss": "modal",
             "aria-label": "Close"
         }));
-        $("verify-settings-modal-content").append($("<div>", {
-            "class": "modal-body",
+        $("#verify-settings-modal-content").append($("<div>", {
+            "class": "modal-body container",
             "id": "verify-settings-modal-body"
         }));
 
         let modal = new bootstrap.Modal($("#verify-settings-modal"));
         modal.show();
-    })
+    });
 });

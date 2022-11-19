@@ -349,11 +349,16 @@ def verify(interaction):
 
             patch_json["roles"].append(str(position_role))
 
+    valid_position_roles = []
+
     for factiontid, faction_positions_data in server.faction_verify.items():
         for position_uuid, position_data in faction_positions_data["positions"].items():
             for position_role in position_data:
-                if position_role in user_roles:
+                if position_role in valid_position_roles:
+                    continue
+                elif position_role in user_roles:
                     if str(user.faction_position) in faction_positions_data["positions"] and position_role in faction_positions_data["positions"][str(user.faction_position)]:
+                        valid_position_roles.append(position_role)
                         continue
                     elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = user_roles

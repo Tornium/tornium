@@ -907,8 +907,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                             Q(tid=opponent.tid)
                             & (
                                 Q(globalstat=True)
-                                | Q(addedid=user.tid)
-                                | Q(addedfactionid=user.factionid)
+                                | Q(addedfactiontid=user.factionid)
                             )
                         )
                         .order_by("-timeadded")

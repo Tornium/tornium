@@ -3,10 +3,12 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, BooleanField, ListField
+from mongoengine import DynamicDocument, IntField, BooleanField
 
 
 class StatModel(DynamicDocument):
+    meta = {"indexes": ["tid", ("+globalstat", "addedfactiontid"), "addedid"]}
+
     statid = IntField(primary_key=True)
     tid = IntField(default=0)
     battlescore = IntField(default=0)

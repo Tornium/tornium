@@ -14,7 +14,6 @@ from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
 import requests
 
-from models.factiongroupmodel import FactionGroupModel
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
 from models.recruitmodel import RecruitModel
@@ -706,7 +705,6 @@ def refresh_factions():
 #                     addedid=user_id,
 #                     addedfactiontid=user.factionid,
 #                     globalstat=globalstat,
-#                     allowedfactions=allowed_factions,
 #                 )
 #                 stat_entry.save()
 #             except Exception as e:
@@ -740,18 +738,6 @@ def fetch_attacks_runner():
         redis.expire("tornium:celery-lock:fetch-attacks", 1)
 
     requests_session = requests.Session()
-    faction_shares = {}
-
-    group: FactionGroupModel
-    for group in FactionGroupModel.objects():
-        for member in group.sharestats:
-            if str(member) in faction_shares:
-                faction_shares[str(member)].extend(group.members)
-            else:
-                faction_shares[str(member)] = group.members
-
-    for factiontid, shares in faction_shares.items():
-        faction_shares[factiontid] = list(set(shares))
 
     faction: FactionModel
     for faction in FactionModel.objects(
@@ -791,7 +777,7 @@ def fetch_attacks_runner():
             faction.tid, faction_data, last_attacks=faction.last_attacks
         )
         stat_db_attacks.delay(
-            faction.tid, faction_data, faction_shares, last_attacks=faction.last_attacks
+            faction.tid, faction_data, last_attacks=faction.last_attacks
         )
 
         if len(faction_data["attacks"].values()) > 0:
@@ -923,7 +909,6 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                                 Q(globalstat=True)
                                 | Q(addedid=user.tid)
                                 | Q(addedfactionid=user.factionid)
-                                | Q(allowedfactions=user.factionid)
                             )
                         )
                         .order_by("-timeadded")
@@ -1042,7 +1027,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
 
 @celery_app.task
-def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None):
+def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     if len(faction_data) == 0:
         return
     elif "attacks" not in faction_data:
@@ -1188,15 +1173,8 @@ def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None)
 
         if stat_faction is None or user.factionid == 0:
             globalstat = 1
-            allowed_factions = []
         else:
             globalstat = stat_faction.statconfig["global"]
-            allowed_factions = [stat_faction.tid]
-
-            if str(stat_faction.tid) in faction_shares:
-                allowed_factions.extend(faction_shares[str(stat_faction.tid)])
-
-            allowed_factions = list(set(allowed_factions))
 
         try:
             stat_entry = StatModel(
@@ -1207,7 +1185,6 @@ def stat_db_attacks(factiontid, faction_data, faction_shares, last_attacks=None)
                 addedid=user_id,
                 addedfactiontid=user.factionid,
                 globalstat=globalstat,
-                allowedfactions=allowed_factions,
             )
             stat_entry.save()
         except Exception as e:

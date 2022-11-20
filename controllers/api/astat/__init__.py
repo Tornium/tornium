@@ -247,7 +247,6 @@ def attack_log_stats(logID, *args, **kwargs):
                 Q(globalstat=True)
                 | Q(addedid=kwargs["user"].tid)
                 | Q(addedfactiontid=kwargs["user"].factionid)
-                | Q(allowedfactions=kwargs["user"].factionid)
             )
         )
         .order_by("-id")

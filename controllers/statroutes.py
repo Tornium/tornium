@@ -54,7 +54,6 @@ def stats_data():
                 Q(globalstat=True)
                 | Q(addedid=current_user.tid)
                 | Q(addedfactiontid=current_user.factiontid)
-                | Q(allowedfactions=current_user.factiontid)
             )
         )
     else:
@@ -62,7 +61,6 @@ def stats_data():
             Q(globalstat=True)
             | Q(addedid=current_user.tid)
             | Q(addedfactiontid=current_user.factiontid)
-            | Q(allowedfactions=current_user.factiontid)
         )
 
     if min_bs != "" and max_bs != "":
@@ -121,7 +119,6 @@ def user_data():
             Q(globalstat=True)
             | Q(addedid=current_user.tid)
             | Q(addedfactiontid=current_user.factiontid)
-            | Q(allowedfactions=current_user.factiontid)
         )
     )
 

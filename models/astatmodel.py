@@ -27,4 +27,3 @@ class AStatModel(DynamicDocument):
     attackerspd = FloatField()
     attackerdex = FloatField()
     globalstat = BooleanField(default=False)
-    allowedfactions = ListField()

@@ -12,7 +12,6 @@ from mongoengine.queryset.visitor import Q
 import requests
 
 from models.factionmodel import FactionModel
-from models.factiongroupmodel import FactionGroupModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, logger, tornget
@@ -328,7 +327,6 @@ def mail_check():
 #                 else attack["defender_id"],
 #                 addedfactiontid=user.factionid,
 #                 globalstat=globalstat,
-#                 allowedfactions=allowed_factions,
 #             )
 #             stat_entry.save()
 #

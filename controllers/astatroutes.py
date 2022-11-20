@@ -153,7 +153,6 @@ def stats_data():
                 Q(globalstat=True)
                 | Q(addedid=current_user.tid)
                 | Q(addedfactiontid=current_user.factiontid)
-                | Q(allowedfactions=current_user.factiontid)
             )
         )
     else:
@@ -161,7 +160,6 @@ def stats_data():
             Q(globalstat=True)
             | Q(addedid=current_user.tid)
             | Q(addedfactiontid=current_user.factiontid)
-            | Q(allowedfactions=current_user.factiontid)
         )
 
     count = stat_entries.count()
@@ -199,7 +197,6 @@ def user_data():
             Q(globalstat=True)
             | Q(addedid=current_user.tid)
             | Q(addedfactiontid=current_user.factiontid)
-            | Q(allowedfactions=current_user.factiontid)
         )
     )
 

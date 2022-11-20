@@ -52,7 +52,6 @@ def generate_chain_list(*args, **kwargs):
             Q(globalstat=True)
             | Q(addedid=kwargs["user"].tid)
             | Q(addedfactiontid=kwargs["user"].factionid)
-            | Q(allowedfactions=kwargs["user"].factionid)
         )
         & Q(
             battlescore__gte=(
@@ -133,7 +132,6 @@ def get_stat_user(tid, *args, **kwargs):
                 Q(globalstat=True)
                 | Q(addedid=kwargs["user"].tid)
                 | Q(addedfactiontid=kwargs["user"].factionid)
-                | Q(allowedfactions=kwargs["user"].factionid)
             )
             & Q(tid=tid)
         )

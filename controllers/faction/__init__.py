@@ -10,7 +10,6 @@ from controllers.faction import (
     banking,
     bot,
     chain,
-    groups,
     members,
     recruitment,
     schedule,
@@ -41,18 +40,6 @@ mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 
 # Chain Routes
 mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET", "POST"])
-
-# Group Routes
-mod.add_url_rule("/faction/groups", view_func=groups.groups, methods=["GET"])
-mod.add_url_rule(
-    "/faction/groups/create", view_func=groups.create_group, methods=["GET"]
-)
-mod.add_url_rule("/faction/group/<int:tid>", view_func=groups.group, methods=["GET"])
-mod.add_url_rule(
-    "/faction/group/invite/<string:invite>",
-    view_func=groups.group_invite,
-    methods=["GET"],
-)
 
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])

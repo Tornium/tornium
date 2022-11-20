@@ -14,4 +14,3 @@ class StatModel(DynamicDocument):
     addedid = IntField(default=0)
     addedfactiontid = IntField(default=0)
     globalstat = BooleanField(default=False)
-    allowedfactions = ListField()

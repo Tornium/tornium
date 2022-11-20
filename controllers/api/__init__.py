@@ -7,11 +7,11 @@ from flask import Blueprint, render_template
 
 from controllers.api import astat
 from controllers.api import bot
+from controllers.api import faction
 from controllers.api import key
 from controllers.api import stakeout
 from controllers.api import stat
 from controllers.api import user
-from controllers.api.faction import assist, banking, group, recruitment, schedule
 
 mod = Blueprint("apiroutes", __name__)
 
@@ -28,6 +28,21 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/server/<int:guildid>/channels",
+    view_func=bot.utils.get_channels,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/bot/server/<int:guildid>/roles",
+    view_func=bot.utils.get_roles,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/<int:guildid>",
+    view_func=bot.verify.verification_config,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/bot/verify",
     view_func=bot.verify.guild_verification,
     methods=["POST", "DELETE"],
@@ -38,87 +53,107 @@ mod.add_url_rule(
     methods=["POST", "DELETE"],
 )
 mod.add_url_rule(
-    "/api/bot/verify/faction/role",
-    view_func=bot.verify.faction_role,
-    methods=["POST", "DELETE"],
+    "/api/bot/verify/faction/<int:factiontid>/position/<string:position>",
+    view_func=bot.verify.faction_position_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/bot/verify/faction/<int:factiontid>/roles",
+    view_func=bot.verify.faction_roles,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"]
 )
 mod.add_url_rule(
-    "/api/bot/verify/role",
-    view_func=bot.verify.guild_verification_role,
-    methods=["POST", "DELETE"],
+    "/api/bot/verify/roles",
+    view_func=bot.verify.guild_verification_roles,
+    methods=["POST"],
 )
 
 # /api/faction
 mod.add_url_rule(
-    "/api/faction/assist", view_func=assist.forward_assist, methods=["POST"]
+    "/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"]
 )
 mod.add_url_rule(
-    "/api/faction/banking", view_func=banking.banking_request, methods=["POST"]
+    "/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"]
 )
 mod.add_url_rule(
-    "/api/faction/banking/vault", view_func=banking.vault_balance, methods=["GET"]
+    "/api/faction/banking/vault",
+    view_func=faction.banking.vault_balance,
+    methods=["GET"],
 )
-mod.add_url_rule("/api/faction/group", view_func=group.group_modify, methods=["POST"])
+mod.add_url_rule(
+    "/api/faction/group", view_func=faction.group.group_modify, methods=["POST"]
+)
+mod.add_url_rule(
+    "/api/faction/positions",
+    view_func=faction.positions.get_positions,
+    methods=["GET"],
+)
 mod.add_url_rule(
     "/api/faction/recruitment/message",
-    view_func=recruitment.message_send,
+    view_func=faction.recruitment.message_send,
     methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/recruitment/recruit",
-    view_func=recruitment.invite_recruit,
+    view_func=faction.recruitment.invite_recruit,
     methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/recruitment/recruit",
-    view_func=recruitment.remove_recruit,
+    view_func=faction.recruitment.remove_recruit,
     methods=["DELETE"],
 )
 mod.add_url_rule(
     "/api/faction/recruitment/recruiter",
-    view_func=recruitment.remove_recruiter,
+    view_func=faction.recruitment.remove_recruiter,
     methods=["DELETE"],
 )
 mod.add_url_rule(
     "/api/faction/recruitment/recruiter",
-    view_func=recruitment.add_recruiter,
+    view_func=faction.recruitment.add_recruiter,
     methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/recruitment/recruiter/code",
-    view_func=recruitment.refresh_code,
+    view_func=faction.recruitment.refresh_code,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule", view_func=schedule.create_schedule, methods=["POST"]
+    "/api/faction/schedule",
+    view_func=faction.schedule.create_schedule,
+    methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule", view_func=schedule.delete_schedule, methods=["DELETE"]
+    "/api/faction/schedule",
+    view_func=faction.schedule.delete_schedule,
+    methods=["DELETE"],
 )
 mod.add_url_rule(
-    "/api/faction/schedule/setup", view_func=schedule.schedule_setup, methods=["POST"]
+    "/api/faction/schedule/setup",
+    view_func=faction.schedule.schedule_setup,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/schedule/watcher/<string:uuid>",
-    view_func=schedule.get_schedule,
+    view_func=faction.schedule.get_schedule,
     methods=["GET"],
 )
 mod.add_url_rule(
     "/api/faction/schedule/watcher",
-    view_func=schedule.add_chain_watcher,
+    view_func=faction.schedule.add_chain_watcher,
     methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/schedule/watcher",
-    view_func=schedule.remove_chain_watcher,
+    view_func=faction.schedule.remove_chain_watcher,
     methods=["DELETE"],
 )
 mod.add_url_rule(
     "/api/faction/schedule/activity",
-    view_func=schedule.add_chain_availability,
+    view_func=faction.schedule.add_chain_availability,
     methods=["POST"],
 )
 

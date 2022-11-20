@@ -34,7 +34,7 @@ def create_schedule(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -46,7 +46,7 @@ def create_schedule(*args, **kwargs):
         schedule.file,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -74,7 +74,7 @@ def delete_schedule(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -86,7 +86,7 @@ def delete_schedule(*args, **kwargs):
         {"code": 0, "name": "OK", "message": "Server request was successful."},
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -114,7 +114,7 @@ def add_chain_watcher(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -128,7 +128,7 @@ def add_chain_watcher(*args, **kwargs):
         schedule.file,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -156,7 +156,7 @@ def remove_chain_watcher(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -169,7 +169,7 @@ def remove_chain_watcher(*args, **kwargs):
         schedule.file,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -197,7 +197,7 @@ def add_chain_availability(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -214,7 +214,7 @@ def add_chain_availability(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -230,7 +230,7 @@ def add_chain_availability(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -250,7 +250,7 @@ def add_chain_availability(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -272,7 +272,7 @@ def add_chain_availability(*args, **kwargs):
                 ),
                 400,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -284,7 +284,7 @@ def add_chain_availability(*args, **kwargs):
         schedule.file,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -312,7 +312,7 @@ def schedule_setup(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -329,7 +329,7 @@ def schedule_setup(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -345,7 +345,7 @@ def schedule_setup(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -360,7 +360,7 @@ def schedule_setup(*args, **kwargs):
         schedule.file,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -387,7 +387,7 @@ def execute_scheduler(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -407,7 +407,7 @@ def execute_scheduler(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -425,7 +425,7 @@ def execute_scheduler(*args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -436,7 +436,7 @@ def execute_scheduler(*args, **kwargs):
         schedule.schedule,
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -463,7 +463,7 @@ def get_schedule(uuid, *args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -484,7 +484,7 @@ def get_schedule(uuid, *args, **kwargs):
                 ),
                 403,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -502,7 +502,7 @@ def get_schedule(uuid, *args, **kwargs):
                 ),
                 403,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -512,7 +512,7 @@ def get_schedule(uuid, *args, **kwargs):
             send_file(f"{os.getcwd()}/schedule/{uuid}.json"),
             200,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -526,7 +526,7 @@ def get_schedule(uuid, *args, **kwargs):
             jsonify(schedules),
             200,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },

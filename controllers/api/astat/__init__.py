@@ -34,7 +34,7 @@ def attack_start(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -55,7 +55,7 @@ def attack_start(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -72,7 +72,7 @@ def attack_start(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -89,7 +89,7 @@ def attack_start(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -125,7 +125,7 @@ def attack_start(*args, **kwargs):
         jsonify({"code": 1, "name": "OK", "message": "Server request was successful."}),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -152,7 +152,7 @@ def attack_end(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -173,7 +173,7 @@ def attack_end(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -195,7 +195,7 @@ def attack_end(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -211,7 +211,7 @@ def attack_end(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -225,7 +225,7 @@ def attack_end(*args, **kwargs):
         jsonify({"code": 1, "name": "OK", "message": "Server request was successful."}),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -265,7 +265,7 @@ def attack_log_stats(logID, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -286,7 +286,7 @@ def attack_log_stats(logID, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -484,7 +484,7 @@ def attack_log_stats(logID, *args, **kwargs):
         ),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },

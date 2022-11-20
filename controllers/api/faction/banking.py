@@ -39,7 +39,7 @@ def vault_balance(*args, **kwargs):
                 ),
                 400,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -57,7 +57,7 @@ def vault_balance(*args, **kwargs):
             },
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit_Reset": client.ttl(key),
             },
@@ -81,7 +81,7 @@ def vault_balance(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -103,7 +103,7 @@ def vault_balance(*args, **kwargs):
             ),
             200,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -119,7 +119,7 @@ def vault_balance(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -148,7 +148,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -164,7 +164,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -181,7 +181,7 @@ def banking_request(*args, **kwargs):
             ),
             429,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -214,7 +214,7 @@ def banking_request(*args, **kwargs):
                 ),
                 400,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -233,7 +233,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -253,7 +253,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -278,7 +278,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -302,7 +302,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -325,7 +325,7 @@ def banking_request(*args, **kwargs):
                 ),
                 400,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -345,7 +345,7 @@ def banking_request(*args, **kwargs):
                 ),
                 400,
                 {
-                    "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                    "X-RateLimit-Limit": 250,
                     "X-RateLimit-Remaining": client.get(key),
                     "X-RateLimit-Reset": client.ttl(key),
                 },
@@ -464,7 +464,7 @@ def banking_request(*args, **kwargs):
             ),
             200,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -480,7 +480,7 @@ def banking_request(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },

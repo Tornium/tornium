@@ -7,14 +7,14 @@ from mongoengine import (
     DynamicDocument,
     IntField,
     StringField,
-    ListField,
     BooleanField,
     FloatField,
+    UUIDField,
 )
 
 
 class UserModel(DynamicDocument):
-    meta = {"indexes": ["#discord_id", ("+factionaa", "factionid")]}
+    meta = {"indexes": ["#discord_id", ("+factionaa", "factionid"), "#key"]}
 
     tid = IntField(primary_key=True)
     name = StringField(default="")
@@ -33,6 +33,7 @@ class UserModel(DynamicDocument):
 
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)
+    faction_position = UUIDField()  # UUID of Position in PositionModel
     recruiter = BooleanField(default=False)
     recruiter_code = StringField(default="")
     recruit_mail_update = IntField(default=0)

@@ -42,7 +42,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -59,7 +59,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -81,7 +81,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -101,7 +101,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -118,7 +118,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -138,7 +138,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -158,7 +158,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -179,7 +179,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -209,7 +209,7 @@ def create_stakeout(stype, *args, **kwargs):
             ),
             403,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -293,7 +293,7 @@ def create_stakeout(stype, *args, **kwargs):
         ),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },

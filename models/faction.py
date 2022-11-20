@@ -10,6 +10,7 @@ from mongoengine.queryset.visitor import Q
 from honeybadger import honeybadger
 
 from models.factionmodel import FactionModel
+from models.positionmodel import PositionModel
 from models.server import Server
 from models.usermodel import UserModel
 import tasks
@@ -106,18 +107,26 @@ class Faction:
         self.pro_expiration = faction.pro_expiration
 
     def refresh_keys(self):
-        users = UserModel.objects(
-            Q(factionaa=True) & Q(factionid=self.tid) & Q(key__exists=True) & Q(key__ne="")
-        )
         keys = []
 
-        for user in users:
-            if user.key == "":
-                continue
+        position: PositionModel
+        for position in PositionModel.objects(
+            Q(factiontid=self.tid) & Q(canAccessFactionApi=True)
+        ):
+            users = UserModel.objects(
+                Q(faction_position=position.pid)
+                & Q(factionid=self.tid)
+                & Q(key__exists=True)
+                & Q(key__ne="")
+            )
 
-            keys.append(user.key)
+            for user in users:
+                if user.key == "":
+                    continue
 
-        keys = list(set(keys))
+                keys.append(user.key)
+
+            keys = list(set(keys))
 
         faction: FactionModel = FactionModel.objects(tid=self.tid).first()
         faction.aa_keys = keys
@@ -129,6 +138,7 @@ class Faction:
     def rand_key(self):
         if len(self.aa_keys) == 0:
             return None
+
         return random.choice(self.aa_keys)
 
     def get_config(self):
@@ -170,6 +180,25 @@ class Faction:
             faction.save()
 
             for member_id, member_data in faction_data["members"].items():
+                if member_data["position"] == "Recruit":
+                    position_pid = None
+                    faction_aa = False
+                elif member_data["position"] in ("Leader", "Co-leader"):
+                    position_pid = None
+                    faction_aa = True
+                else:
+                    position: PositionModel = PositionModel.objects(
+                        Q(name=member_data["position"])
+                        & Q(factiontid=faction_data["ID"])
+                    ).first()
+
+                    if position is None:
+                        position_pid = None
+                        faction_aa = False
+                    else:
+                        position_pid = position.pid
+                        faction_aa = position.canAccessFactionApi
+
                 UserModel.objects(tid=int(member_id)).modify(
                     upsert=True,
                     new=True,
@@ -178,4 +207,6 @@ class Faction:
                     set__last_action=member_data["last_action"]["timestamp"],
                     set__status=member_data["last_action"]["status"],
                     set__factionid=faction_data["ID"],
+                    set__faction_position=position_pid,
+                    set__faction_aa=faction_aa,
                 )

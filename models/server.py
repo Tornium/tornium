@@ -2,12 +2,10 @@
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
+import operator
 
 from models.servermodel import ServerModel
-import redisdb
 import tasks
-import utils
-from utils.errors import DiscordError
 
 
 class Server:
@@ -20,37 +18,7 @@ class Server:
 
         server = ServerModel.objects(sid=sid).first()
         if server is None:
-            try:
-                guild = tasks.discordget(f"guilds/{sid}")
-                skynet = False
-            except DiscordError as e:
-                if e.code == 10004:
-                    guild = tasks.discordget(f"guilds/{sid}", dev=True)
-                    skynet = True
-                else:
-                    raise e
-
-            server = ServerModel(
-                sid=sid,
-                name=guild["name"],
-                admins=[],
-                prefix="?",
-                config={"stakeouts": 0, "assists": 0, "verify": 0},
-                factions=[],
-                stakeoutconfig={"category": 0},
-                userstakeouts=[],
-                factionstakeouts=[],
-                verify_template="{{ name }} [{{ tid }}]",
-                verified_roles=[],
-                faction_verify={},
-                verify_log_channel=0,
-                retal_config={},
-                assistschannel=0,
-                assist_factions=[],
-                assist_mod=0,
-                skynet=skynet,
-            )
-            server.save()
+            raise LookupError("Server not found in the DB")
 
         self.sid = sid
         self.name = server.name
@@ -81,13 +49,14 @@ class Server:
         channels_query = tasks.discordget(
             f"guilds/{self.sid}/channels", dev=self.skynet
         )
-        channels = {0: {"name": "", "channels": {}}}
+        channels = {"0": {"name": "", "channels": {}, "position": -1}}
 
         for channel in channels_query:
             if channel["type"] == 4 and channel["id"] not in channels:
                 channels[channel["id"]] = {
                     "id": channel["id"],
                     "name": channel["name"] if "name" in channel else "",
+                    "position": channel["position"] if "position" in channel else -1,
                     "channels": {},
                 }
             elif (
@@ -98,25 +67,39 @@ class Server:
                 channels[channel["id"]]["name"] = channel["name"]
             elif channel["type"] == 0:
                 if "parent_id" not in channel or channel.get("parent_id") is None:
-                    channels[0]["channels"][channel["id"]] = {
+                    channels["0"]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
+                        "position": channel["position"]
+                        if "position" in channel
+                        else -1,
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": channel["id"],
                         "name": channel["name"] if "name" in channel else "",
+                        "position": channel["position"]
+                        if "position" in channel
+                        else -1,
                     }
                 else:
                     channels[channel["parent_id"]] = {
+                        "id": channel["parent_id"],
                         "name": None,
                         "channels": {
                             channel["id"]: {
                                 "id": channel["id"],
                                 "name": channel["name"] if "name" in channel else "",
+                                "position": channel["position"]
+                                if "position" in channel
+                                else -1,
                             }
                         },
+                        "position": -2,
                     }
+
+            if channel["type"] == 4 and channels[channel["id"]] == -2:
+                channels[channel["id"]]["position"] = channel["position"]
 
         return channels
 
@@ -140,4 +123,10 @@ class Server:
                 "position": role["position"],
             }
 
-        return roles
+        return dict(
+            sorted(
+                roles.items(),
+                key=lambda x: operator.getitem(x[1], "position"),
+                reverse=True,
+            )
+        )

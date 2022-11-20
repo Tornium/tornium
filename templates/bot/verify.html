@@ -51,24 +51,8 @@ Tornium - Verification
                             Select the channel to which log messages regarding member verification are forwarded to.
                         </div>
 
-                        <select class="form-select" id="verification-log-channel" aria-label="Verification Log Channel Select"">
-                            <option value="0">No verification log channel</option>
-                            {% for category in channels.values() %}
-                                {% if category["name"] == "" %}
-                                <optgroup label="No Category">
-                                {% else %}
-                                <optgroup label="{{ category["name"] }}">
-                                {% endif %}
-
-                                    {% for channel in category["channels"].values() %}
-                                        {% if guild.verify_log_channel|int == channel["id"]|int %}
-                                        <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
-                                        {% else %}
-                                        <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </optgroup>
-                            {% endfor %}
+                        <select class="discord-channel-selector" id="verification-log-channel" aria-label="Verification Log Channel" data-live-search="true">
+                            <option value="0">Disabled</option>
                         </select>
                     </div>
                 </div>
@@ -93,7 +77,7 @@ Tornium - Verification
                             members from having their names automatically changed.
 
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item">{% raw %} {{ name}} {% endraw %}: Torn name</li>
+                                <li class="list-group-item">{% raw %} {{ name }} {% endraw %}: Torn name</li>
                                 <li class="list-group-item">{% raw %} {{ tid }} {% endraw %}: Torn ID</li>
                                 <li class="list-group-item disabled">{% raw %} {{ tag }} {% endraw %}: Faction Tag (NYI)</li>
                             </ul>
@@ -110,26 +94,8 @@ Tornium - Verification
                         </div>
 
                         <div class="form-floating px-3 py-3">
-                            <select class="form-select verification-role-add" aria-label="Verification Role Add">
-                                <option value="0">Add a role for verification</option>
-                                {% for role in roles.values() %}
-                                    {% if role not in guild.verified_roles %}
-                                        <option value="{{ role["id"] }}">{{ role["name"] }} [{{ role["id"] }}]</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
+                            <select class="discord-role-selector" id="verification-roles" aria-label="Verification Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                         </div>
-
-                        <ul class="list-group list-group-flush">
-                            {% for role in guild.verified_roles %}
-                            <li class="list-group-item">
-                                <button type="button" class="btn verification-role-remove" data-role-id="{{ role }}">
-                                    <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
-                                </button>
-                                {{ roles[role|string].name }} [{{ role }}]
-                            </li>
-                            {% endfor %}
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -166,6 +132,9 @@ Tornium - Verification
                             {% endif %}
 
                             <div class="float-md-end">
+                                <button type="button" class="btn verification-faction-edit" data-faction="{{ faction }}">
+                                    <i class="fa-solid fa-file-pen" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Faction"></i>
+                                </button>
                                 <button type="button" class="btn verification-faction-remove" data-faction="{{ faction }}">
                                     <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Faction"></i>
                                 </button>
@@ -173,26 +142,8 @@ Tornium - Verification
                         </div>
 
                         <div class="form-floating px-3 py-3">
-                            <select class="form-select verification-faction-role-add" data-faction="{{ faction }}" aria-label="Verification Faction Role Add">
-                                <option value="0">Add a role for faction verification</option>
-                                {% for role in roles.values() %}
-                                    {% if role not in guild.faction_verify[faction]["roles"] %}
-                                        <option value="{{ role["id"] }}">{{ role["name"] }} [{{ role["id"] }}]</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
+                            <select class="discord-role-selector verification-faction-roles" data-faction="{{ faction }}" aria-label="Verification Faction Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                         </div>
-
-                        <ul class="list-group list-group-flush">
-                            {% for role in guild.faction_verify[faction]["roles"] %}
-                            <li class="list-group-item">
-                                <button type="button" class="btn verification-faction-role-remove" data-faction="{{ faction }}" data-role-id="{{ role }}">
-                                    <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Role"></i>
-                                </button>
-                                {{ roles[role|string].name }} [{{ role }}]
-                            </li>
-                            {% endfor %}
-                        </ul>
 
                         <div class="card-footer">
                             Enable or disable this faction's verification.
@@ -225,7 +176,7 @@ Tornium - Verification
 
 <div id="modal"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/bot/verify.js" data-guildid="{{ guild.sid }}" data-key="{{ current_user.key }}"></script>
 {% endblock %}

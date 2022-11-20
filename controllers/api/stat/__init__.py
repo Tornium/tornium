@@ -41,7 +41,7 @@ def generate_chain_list(*args, **kwargs):
             ),
             400,
             {
-                "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+                "X-RateLimit-Limit": 250,
                 "X-RateLimit-Remaining": client.get(key),
                 "X-RateLimit-Reset": client.ttl(key),
             },
@@ -112,7 +112,7 @@ def generate_chain_list(*args, **kwargs):
         ),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },
@@ -165,7 +165,7 @@ def get_stat_user(tid, *args, **kwargs):
         jsonify({"limit": limit, "data": jsonified_stat_entries}),
         200,
         {
-            "X-RateLimit-Limit": 250 if kwargs["user"].pro else 150,
+            "X-RateLimit-Limit": 250,
             "X-RateLimit-Remaining": client.get(key),
             "X-RateLimit-Reset": client.ttl(key),
         },

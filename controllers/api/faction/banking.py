@@ -352,7 +352,7 @@ def banking_request(*args, **kwargs):
             )
 
         request_id = WithdrawalModel.objects().count()
-        send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
+        send_link = f"https://tornium.com/faction/banking/fulfill/{request_id}"
 
         if amount_requested != "all":
             message_payload = {

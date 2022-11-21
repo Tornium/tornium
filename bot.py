@@ -264,13 +264,13 @@ async def help(ctx):
     embed = discord.Embed()
     embed.title = "Bot Help"
     embed.description = (
-        "Take a look at the [documentation](https://torn.deek.sh/bot/documentation) if you need any "
+        "Take a look at the [documentation](https://tornium.com/bot/documentation) if you need any "
         "help."
     )
     embed.add_field(
         name="General Information",
-        value="[Tornium](https://torn.deek.sh/) | "
-        "[Tornium Bot](https://torn.deek.sh/bot)",
+        value="[Tornium](https://tornium.com/) | "
+        "[Tornium Bot](https://tornium.com/bot)",
     )
     embed.add_field(
         name="Support Server",

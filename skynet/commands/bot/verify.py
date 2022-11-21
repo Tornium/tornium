@@ -211,7 +211,7 @@ def verify(interaction):
                             "description": "You are required to be verified officially by Torn through the "
                             "[official Torn Discord server](https://www.torn.com/discord] before being "
                             "able to utilize the banking features of this bot. Alternatively, you can "
-                            "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                            "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
@@ -230,7 +230,7 @@ def verify(interaction):
                         "description": "You are required to be verified officially by Torn through the "
                         "[official Torn Discord server](https://www.torn.com/discord] before being "
                         "able to utilize the banking features of this bot. Alternatively, you can "
-                        "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                        "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,

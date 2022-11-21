@@ -265,7 +265,7 @@ def fulfill(wid: int):
                                     "type": 2,
                                     "style": 5,
                                     "label": "Fulfill",
-                                    "url": f"https://torn.deek.sh/faction/banking/fulfill/{withdrawal.wid}",
+                                    "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
                                 },
                                 {
                                     "type": 2,

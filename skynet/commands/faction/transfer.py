@@ -202,7 +202,7 @@ def transfer(interaction):
                             "description": "You are required to be verified officially by Torn through the "
                             "[official Torn Discord server](https://www.torn.com/discord] before being "
                             "able to utilize the banking features of this bot. Alternatively, you can "
-                            "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                            "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
@@ -221,7 +221,7 @@ def transfer(interaction):
                         "description": "You are required to be verified officially by Torn through the "
                         "[official Torn Discord server](https://www.torn.com/discord] before being "
                         "able to utilize the banking features of this bot. Alternatively, you can "
-                        "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                        "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,
@@ -342,7 +342,7 @@ def transfer(interaction):
                             "description": "You are required to be verified officially by Torn through the "
                             "[official Torn Discord server](https://www.torn.com/discord] before being "
                             "able to utilize the banking features of this bot. Alternatively, you can "
-                            "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                            "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
                             "color": 0xC83F49,
@@ -361,7 +361,7 @@ def transfer(interaction):
                         "description": "You are required to be verified officially by Torn through the "
                         "[official Torn Discord server](https://www.torn.com/discord] before being "
                         "able to utilize the banking features of this bot. Alternatively, you can "
-                        "sign into [the web dashboard](https://torn.deek.sh/faction/banking) with "
+                        "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
                         "color": 0xC83F49,
@@ -493,7 +493,7 @@ def transfer(interaction):
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://torn.deek.sh).",
+                        f"[the dashboard](https://tornium.com).",
                         "color": 0xC83F49,
                     }
                 ]
@@ -513,7 +513,7 @@ def transfer(interaction):
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://torn.deek.sh).",
+                        f"[the dashboard](https://tornium.com).",
                         "color": 0xC83F49,
                     }
                 ]

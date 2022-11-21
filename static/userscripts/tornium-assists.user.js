@@ -63,7 +63,7 @@ $(document).ready(function() {
             "target_tid": urlParams.get("user2ID")
         };
 
-        sendData("https://torn.deek.sh/api/faction/assist", data)
+        sendData("https://tornium.com/api/faction/assist", data)
     }
 });
 

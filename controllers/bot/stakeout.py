@@ -89,7 +89,7 @@ def stakeouts_dashboard(guildid: str):
                             "title": "Faction Stakeout Creation",
                             "description": f'A stakeout of faction {stakeout.data["name"]} has been created in '
                             f"{server.name}. This stakeout can be setup or removed in the "
-                            f"[Tornium Dashboard](https://torn.deek.sh/bot/stakeouts/{server.sid}) by a "
+                            f"[Tornium Dashboard](https://tornium.com/bot/stakeouts/{server.sid}) by a "
                             f"server administrator.",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                         }
@@ -148,7 +148,7 @@ def stakeouts_dashboard(guildid: str):
                             "title": "User Stakeout Creation",
                             "description": f'A stakeout of user {stakeout.data["name"]} has been created in '
                             f"{server.name}. This stakeout can be setup or removed in the "
-                            f"[Tornium Dashboard](https://torn.deek.sh/bot/stakeouts/{server.sid}) by a "
+                            f"[Tornium Dashboard](https://tornium.com/bot/stakeouts/{server.sid}) by a "
                             f"server administrator.",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                         }

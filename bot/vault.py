@@ -141,7 +141,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -159,7 +159,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -211,7 +211,7 @@ class Vault(commands.Cog):
 
             embed = discord.Embed()
             embed.title = f"Vault Request #{request_id}"
-            send_link = f"https://torn.deek.sh/faction/banking/fulfill/{request_id}"
+            send_link = f"https://tornium.com/faction/banking/fulfill/{request_id}"
 
             if cash != "all":
                 embed.description = (
@@ -356,7 +356,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -374,7 +374,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -518,7 +518,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -531,7 +531,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -658,7 +658,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None
@@ -671,7 +671,7 @@ class Vault(commands.Cog):
             embed.description = (
                 f"{ctx.guild.name} needs to be added to {faction.name}'s bot configuration and to "
                 f"the server. Please contact the server administrators to do this via "
-                f"[the dashboard](https://torn.deek.sh/)."
+                f"[the dashboard](https://tornium.com/)."
             )
             await ctx.send(embed=embed)
             return None

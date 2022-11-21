@@ -56,7 +56,6 @@ class Faction:
                 statconfig={"global": 0},
                 chainconfig={"od": 0, "odchannel": 0},
                 chainod={},
-                groups=[],
                 pro=False,
                 pro_expiration=0,
             )
@@ -100,8 +99,6 @@ class Faction:
 
         self.chain_config = faction.chainconfig
         self.chain_od = faction.chainod
-
-        self.groups = faction.groups
 
         self.pro = faction.pro
         self.pro_expiration = faction.pro_expiration

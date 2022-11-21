@@ -38,9 +38,7 @@ class FactionModel(DynamicDocument):
     chainconfig = DictField(
         default={"od": 0, "odchannel": 0}
     )  # Dictionary of chain config
-    chainod = DictField(default={})  # Dictionary of faction member overdoses
-
-    groups = ListField(default=[])
+    chainod = DictField(default={})  # Dictionary of faction member overdosesF
 
     pro = BooleanField(default=False)
     pro_expiration = IntField(default=0)

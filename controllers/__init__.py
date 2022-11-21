@@ -28,7 +28,6 @@ def index():
 @mod.route("/faction/armory.js")
 @mod.route("/faction/banking.js")
 @mod.route("/faction/bankingaa.js")
-@mod.route("/faction/group.js")
 @mod.route("/faction/members.js")
 @mod.route("/stats/db.js")
 @mod.route("/stats/list.js")

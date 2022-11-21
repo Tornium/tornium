@@ -56,16 +56,6 @@ Tornium - Admin Faction
                     <li class="list-group-item">OD: {{ faction.chainod }}</li>
                 </ul>
             </li>
-            <li class="list-group-item">
-                Groups:
-                <ul class="list-group">
-                {% for group in faction.groups %}
-                    <li class="list-group-item">
-                        <a href="/admin/group/{{ group }}">Link to {{ group }}</a>
-                    </li>
-                {% endfor %}
-                </ul>
-            </li>
         </ul>
     </div>
 </div>

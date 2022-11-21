@@ -5,9 +5,11 @@
 
 import random
 
+from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 
 from controllers.api.decorators import *
+from models.factionmodel import FactionModel
 from models.statmodel import StatModel
 from models.user import User
 
@@ -124,43 +126,89 @@ def generate_chain_list(*args, **kwargs):
 def get_stat_user(tid, *args, **kwargs):
     client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    limit = request.args.get("limit") if request.args.get("limit") is not None else 10
 
-    stat_entries = (
+    stat_entries: QuerySet = (
         StatModel.objects(
-            (
+            Q(tid=tid)
+            & (
                 Q(globalstat=True)
                 | Q(addedid=kwargs["user"].tid)
                 | Q(addedfactiontid=kwargs["user"].factionid)
             )
-            & Q(tid=tid)
         )
-        .order_by("-statid")[:limit]
+        .order_by("-statid")
+        .exclude("tid")
         .all()
     )
-    jsonified_stat_entries = []
-    users = []
 
-    for stat_entry in stat_entries:
-        if stat_entry.tid in users:
-            continue
-        else:
-            users.append(stat_entry.tid)
+    data = {"user": {}, "stat_entries": {}}
 
-        user = User(stat_entry.tid)
-        user.refresh(key=kwargs["user"].key)
-
-        jsonified_stat_entries.append(
+    if stat_entries.count() == 0:
+        return (
+            jsonify(
+                {
+                    "code": 0,
+                    "name": "GeneralError",
+                    "message": "Server failed to fulfill the request. No stat entries could be located with your permissions.",
+                }
+            ),
+            400,
             {
-                "statid": stat_entry.statid,
-                "tid": stat_entry.tid,
-                "battlescore": stat_entry.battlescore,
-                "timeadded": stat_entry.addedid,
-            }
+                "X-RateLimit-Limit": 250,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
         )
 
+    user = User(tid)
+    user.refresh(key=kwargs["user"].key)
+
+    data["user"] = {
+        "tid": user.tid,
+        "name": user.name,
+        "level": user.level,
+        "last_refresh": user.last_refresh,
+        "discord_id": user.discord_id,
+        "factiontid": user.factiontid,
+        "status": user.status,
+        "last_action": user.last_action,
+    }
+
+    factions = {}
+
+    stat_entry: StatModel
+    for stat_entry in stat_entries:
+        if stat_entry.addedfactiontid == 0:
+            faction = None
+        elif str(stat_entry.addedfactiontid) in factions:
+            faction = factions[str(stat_entry.addedfactiontid)]
+        else:
+            faction_db: FactionModel = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
+
+            if faction_db is None:
+                faction = None
+                factions[str(stat_entry.addedfactiontid)] = None
+            else:
+                faction = {
+                    "name": faction_db.name,
+                    "respect": faction_db.respect,
+                    "capacity": faction_db.capacity,
+                    "leader": faction_db.leader,
+                    "coleader": faction_db.coleader,
+                }
+                factions[str(stat_entry.addedfactiontid)] = faction
+
+        data["stat_entries"][stat_entry.statid] = {
+            "stat_score": stat_entry.battlescore,
+            "timeadded": stat_entry.timeadded,
+            "addedid": stat_entry.addedid,
+            "addedfaction": faction,
+            "addedfactiontid": stat_entry.addedfactiontid,
+            "globalstat": stat_entry.globalstat,
+        }
+
     return (
-        jsonify({"limit": limit, "data": jsonified_stat_entries}),
+        jsonify(data),
         200,
         {
             "X-RateLimit-Limit": 250,

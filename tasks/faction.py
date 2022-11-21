@@ -905,10 +905,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                     stat: StatModel = (
                         StatModel.objects(
                             Q(tid=opponent.tid)
-                            & (
-                                Q(globalstat=True)
-                                | Q(addedfactiontid=user.factionid)
-                            )
+                            & (Q(globalstat=True) | Q(addedfactiontid=user.factionid))
                         )
                         .order_by("-timeadded")
                         .first()

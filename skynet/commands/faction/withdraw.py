@@ -285,13 +285,6 @@ def withdraw(interaction):
 
     faction = Faction(user.factiontid)
 
-    print(user.factiontid)
-    print(type(user.factiontid))
-    print(server.factions)
-
-    if len(server.factions) != 0:
-        print(type(server.factions[0]))
-
     if user.factiontid not in server.factions:
         return {
             "type": 4,

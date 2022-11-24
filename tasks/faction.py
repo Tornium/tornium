@@ -862,7 +862,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         if attack["attacker_faction"] == 0:
             title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
         else:
-            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from {attack['attacker_factionname']} [{attack['attacker_faction']}"
+            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from {attack['attacker_factionname']} [{attack['attacker_faction']}]"
 
         fields = [
             {

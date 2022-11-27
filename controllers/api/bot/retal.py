@@ -26,17 +26,51 @@ def faction_retal_channel(*args, **kwargs):
     if (
         guildid in ("", None, 0)
         or not guildid.isdigit()
-        or factiontid in ("", None, 0)
+    ):
+        return (
+            jsonify(
+                {
+                    "code": 1001,
+                    "name": "UnknownGuild",
+                    "message": "Server failed to locate the requested guild.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+    elif (
+        factiontid in ("", None, 0)
         or not factiontid.isdigit()
-        or channelid in ("", None, 0)
+    ):
+        return (
+            jsonify(
+                {
+                    "code": 1102,
+                    "name": "UnknownFaction",
+                    "message": "Server failed to locate the requested faction.",
+                }
+            ),
+            400,
+            {
+                "X-RateLimit-Limit": 250,
+                "X-RateLimit-Remaining": client.get(key),
+                "X-RateLimit-Reset": client.ttl(key),
+            },
+        )
+    elif (
+        channelid in ("", None, 0)
         or not channelid.isdigit()
     ):
         return (
             jsonify(
                 {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and channel ID are required.",
+                    "code": 1002,
+                    "name": "UnknownChannel",
+                    "message": "Server failed to locate the requested channel.",
                 }
             ),
             400,

@@ -3,7 +3,9 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import jsonify, Response
+import json
+
+from flask import Response
 import redis
 
 import redisdb
@@ -245,7 +247,7 @@ def make_exception_response(
         exception_response["details"] = exception["details"]
 
     return Response(
-        exception_response,
+        json.dumps(exception_response),
         exception["http"],
         api_ratelimit_response(ratelimit_key, redis_client),
     )

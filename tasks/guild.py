@@ -41,8 +41,11 @@ def refresh_guilds():
                 assistschannel=0,
                 assist_factions=[],
                 assist_mod=0,
-                skynet=False,
+                skynet=True,
             )
+            guild_db.save()
+        elif not guild_db.skynet:
+            guild_db.skynet = True
             guild_db.save()
 
         try:

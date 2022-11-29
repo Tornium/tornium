@@ -18,7 +18,7 @@ def refresh_guilds():
     requests_session = requests.Session()
 
     try:
-        guilds = discordget("users/@me/guilds", session=requests_session)
+        guilds = discordget("users/@me/guilds", session=requests_session, dev=True)
     except Exception as e:
         logger.exception(e)
         honeybadger.notify(e)

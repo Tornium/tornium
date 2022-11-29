@@ -8,7 +8,6 @@
  - Redo bot admin dashboard server selector (primarily DB-related)
 ### Frontend
  - Update faction documentation
- - Update bot documentation
  - Update stat DB documentation
 ### Backend
  - Add stakeouts to DB after Discord, Torn, and DB calls are made

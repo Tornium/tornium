@@ -75,11 +75,6 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "5", "hour": "*"},
             },
-            "fetch-attacks": {
-                "task": "tasks.faction.fetch_attacks",
-                "enabled": False,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },
             "fetch-attacks-runner": {
                 "task": "tasks.faction.fetch_attacks_runner",
                 "enabled": True,
@@ -146,14 +141,6 @@ if celery_app is None:
             "schedule": crontab(
                 minute=data["refresh-factions"]["schedule"]["minute"],
                 hour=data["refresh-factions"]["schedule"]["hour"],
-            ),
-        }
-    if data["fetch-attacks"]["enabled"]:
-        schedule["fetch-attacks"] = {
-            "task": data["fetch-attacks"]["task"],
-            "schedule": crontab(
-                minute=data["fetch-attacks"]["schedule"]["minute"],
-                hour=data["fetch-attacks"]["schedule"]["hour"],
             ),
         }
     if data["fetch-attacks-runner"]["enabled"]:

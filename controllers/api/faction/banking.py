@@ -8,6 +8,7 @@ import json
 from honeybadger import honeybadger
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.server import Server
 from models.user import User
@@ -20,7 +21,6 @@ import utils
 @ratelimit
 @requires_scopes(scopes={"admin", "read:banking", "read:faction", "faction:admin"})
 def vault_balance(*args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user = User(kwargs["user"].tid)
 
@@ -28,40 +28,13 @@ def vault_balance(*args, **kwargs):
         user.refresh(force=True)
 
         if user.factiontid == 0:
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The API key's user is required to be in a Torn "
-                        "faction.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
+            return make_exception_response("1102", key)
 
     faction = Faction(user.factiontid, key=user.key)
     faction_key = faction.rand_key()
 
     if faction_key is None:
-        return jsonify(
-            {
-                "code": 0,
-                "name": "GeneralError",
-                "message": "Server failed to fulfill the request. The user's faction does not have any signed in AA members.",
-            },
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit_Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1201", key)
 
     try:
         vault_balances = tasks.tornget(
@@ -70,20 +43,13 @@ def vault_balance(*args, **kwargs):
     except utils.TornError as e:
         honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
 
-        return (
-            jsonify(
-                {
-                    "code": 4100,
-                    "name": "TornError",
-                    "message": "Server failed to fulfill the request. The Torn API has returned an error.",
-                    "error": {"code": e.code, "error": e.error, "message": e.message},
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
+        return make_exception_response(
+            "4100",
+            key,
+            details={
+                "code": e.code,
+                "error": e.error,
+                "message": e.message,
             },
         )
 
@@ -102,28 +68,10 @@ def vault_balance(*args, **kwargs):
                 }
             ),
             200,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+            api_ratelimit_response(key),
         )
     else:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownUser",
-                    "message": "Server failed to fulfill the request. The user was not found in the faction's vault records.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1100", key)
 
 
 @key_required
@@ -137,55 +85,19 @@ def banking_request(*args, **kwargs):
     amount_requested = data.get("amount_requested")
 
     if amount_requested is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. There was no amount requested provided but an amount "
-                    "requested was required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+        return make_exception_response(
+            "1000", key, details={"element": "amount_requested"}, redis_client=client
         )
     elif amount_requested <= 0:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The amount requested was less than zero, but must be greater than zero.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+        return make_exception_response(
+            "0000",
+            key,
+            details={"message": "Illegal amount requested."},
+            redis_client=client,
         )
 
     if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The user has reached their banking ratelimit.",
-                }
-            ),
-            429,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("4292", key, redis_client=client)
     else:
         client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
         client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
@@ -203,61 +115,17 @@ def banking_request(*args, **kwargs):
         user.refresh(force=True)
 
         if user.factiontid == 0:
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The API key's user is required to be in a Torn "
-                        "faction.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
+            return make_exception_response("1102", key, redis_client=client)
 
     faction = Faction(user.factiontid, key=user.key)
 
     if faction.guild == 0:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The faction does not currently have a Discord server set.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key, redis_client=client)
 
     server = Server(faction.guild)
 
     if faction.tid not in server.factions:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The user's faction is not in the stored server's list "
-                    "of factions.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("4021", key, redis_client=client)
 
     vault_config = faction.vault_config
     config = faction.config
@@ -267,21 +135,11 @@ def banking_request(*args, **kwargs):
         or vault_config.get("banker") == 0
         or config.get("vault") == 0
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The user's faction's bot configuration needs to be "
-                    "configured by faction AA members.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+        return make_exception_response(
+            "0000",
+            key,
+            details={"message": "Faction vault configuration needs to be set."},
+            redis_client=client,
         )
 
     try:
@@ -291,21 +149,15 @@ def banking_request(*args, **kwargs):
     except utils.TornError as e:
         honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
 
-        return (
-            jsonify(
-                {
-                    "code": 4100,
-                    "name": "TornError",
-                    "message": "Server failed to fulfill the request. The Torn API has returned an error.",
-                    "error": {"code": e.code, "error": e.error, "message": e.message},
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
+        return make_exception_response(
+            "4100",
+            key,
+            details={
+                "code": e.code,
+                "error": e.error,
+                "message": e.message,
             },
+            redis_client=client,
         )
 
     if str(user.tid) in vault_balances["donations"]:
@@ -314,41 +166,21 @@ def banking_request(*args, **kwargs):
             and amount_requested
             > vault_balances["donations"][str(user.tid)]["money_balance"]
         ):
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The amount requested was greater than the amount in "
-                        "the user's faction vault balance.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
+            return make_exception_response(
+                "0000",
+                key,
+                details={"message": "Illegal amount requested."},
+                redis_client=client,
             )
         elif (
             amount_requested == "all"
             and vault_balances["donations"][str(user.tid)]["money_balance"] <= 0
         ):
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The user has no cash in the faction vault or a "
-                        "negative vault balance.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
+            return make_exception_response(
+                "0000",
+                key,
+                details={"message": "Illegal amount requested."},
+                redis_client=client,
             )
 
         request_id = WithdrawalModel.objects().count()
@@ -463,25 +295,7 @@ def banking_request(*args, **kwargs):
                 }
             ),
             200,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+            api_ratelimit_response(key),
         )
     else:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownFaction",
-                    "message": "Server failed to fulfill the request. There was no faction stored with that faction ID.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1102", key, redis_client=client)

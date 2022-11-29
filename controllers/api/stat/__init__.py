@@ -9,6 +9,7 @@ from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionmodel import FactionModel
 from models.statmodel import StatModel
 from models.user import User
@@ -18,8 +19,6 @@ from models.user import User
 @ratelimit
 @requires_scopes(scopes={"admin", "read:stats"})
 def generate_chain_list(*args, **kwargs):
-    # curl -H "Authorization: Basic " localhost:8000/api/stat
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     defender_stats = (
@@ -32,22 +31,9 @@ def generate_chain_list(*args, **kwargs):
     )
 
     if kwargs["user"].battlescore == 0:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "General Error",
-                    "message": "Server failed the fulfill the request. There was no battle stats scored for the user but the "
-                    "battle stats are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "User does not have a stat score stored in the database."
+        })
 
     stat_entries = StatModel.objects(
         (
@@ -112,11 +98,7 @@ def generate_chain_list(*args, **kwargs):
             }
         ),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key)
     )
 
 
@@ -143,23 +125,6 @@ def get_stat_user(tid, *args, **kwargs):
 
     data = {"user": {}, "stat_entries": {}}
 
-    if stat_entries.count() == 0:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. No stat entries could be located with your permissions.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-
     user = User(tid)
     user.refresh(key=kwargs["user"].key)
 
@@ -183,7 +148,9 @@ def get_stat_user(tid, *args, **kwargs):
         elif str(stat_entry.addedfactiontid) in factions:
             faction = factions[str(stat_entry.addedfactiontid)]
         else:
-            faction_db: FactionModel = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
+            faction_db: FactionModel = FactionModel.objects(
+                tid=stat_entry.addedfactiontid
+            ).first()
 
             if faction_db is None:
                 faction = None
@@ -210,9 +177,5 @@ def get_stat_user(tid, *args, **kwargs):
     return (
         jsonify(data),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key)
     )

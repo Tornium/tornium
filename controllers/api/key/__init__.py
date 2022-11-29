@@ -7,6 +7,7 @@ import json
 import secrets
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.keymodel import KeyModel
 from models.user import User
 import utils
@@ -15,30 +16,13 @@ import utils
 @key_required
 @ratelimit
 def test_key(*args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
-
-    return (
-        jsonify(
-            {
-                "code": 1,
-                "name": "OK",
-                "message": "Server request was successful. Authentication was successful.",
-            }
-        ),
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return make_exception_response("0001", key)
 
 
 @torn_key_required
 @ratelimit
 def create_key(*args, **kwargs):
-    # curl -X POST -H "Authorization: Basic " -H "Content-Type: application/json" -d '{"scopes": []}' localhost:8000/api/key
     user = User(kwargs["user"].tid)
     data = json.loads(request.get_data().decode("utf-8"))
 

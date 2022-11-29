@@ -6,6 +6,7 @@
 import json
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.keymodel import KeyModel
 from models.servermodel import ServerModel
@@ -13,7 +14,6 @@ from models.stakeout import Stakeout
 from models.user import User
 from models.userstakeoutmodel import UserStakeoutModel
 import tasks
-import utils
 
 
 @key_required
@@ -21,7 +21,6 @@ import utils
 @requires_scopes(scopes={"admin", "write:stakeouts", "guilds:admin"})
 def create_stakeout(stype, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     guildid = data.get("guildid")
@@ -31,159 +30,52 @@ def create_stakeout(stype, *args, **kwargs):
     category = data.get("category")
 
     if guildid is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. There was no guild ID provided but a guild ID was "
-                    "required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
     elif tid is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownID",
-                    "message": "Server failed to fulfill the request. There was no Torn ID provided but a Torn ID was "
-                    "required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1000", key)
 
     guildid = int(guildid)
     tid = int(tid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if stype not in ["faction", "user"]:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "InvalidStakeoutType",
-                    "message": "Server failed to create the stakeout. The provided stakeout type did not match a known "
-                    "stakeout type.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1000", key, details={
+            "message": "The provided stakeout type did not match a known stakeout type.",
+            "stakeout_category": stype,
+        })
     elif (
         User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid
         not in guild.admins
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The provided guild ID did not match a guild that the "
-                    "owner of the provided Tornium key was marked as an administrator in.",
-                }
-            ),
-            403,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
     if json.loads(guild.config)["stakeoutconfig"] != 1:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "InvalidRequest",
-                    "message": "Server failed to fulfill the request. The provided server ID has not enabled stakeouts. "
-                    "Contact a server administrator in order to enable this feature.",
-                }
-            ),
-            403,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "Server admins have not enabled stakeouts."
+        })
     elif (
         stype == "user"
         and UserStakeoutModel.objects(tid=tid).first() is not None
         and str(guildid) in UserStakeoutModel.objects(tid=tid).first().guilds
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "StakeoutAlreadyExists",
-                    "message": "Server failed to fulfill the request. The provided user ID is already being staked",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "Stakeout already exists."
+        })
     elif (
         stype == "faction"
         and FactionStakeoutModel.objects(tid=tid).first() is not None
         and str(guildid) in FactionStakeoutModel.objects(tid=tid).first().guilds
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "StakeoutAlreadyExists",
-                    "message": "Server failed to fulfill the request. The provided faction ID is already being staked",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "Stakeout already exists."
+        })
     elif (
         stype == "user"
         and keys is not None
         and not set(keys) & {"level", "status", "flyingstatus", "online", "offline"}
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "InvalidStakeoutKey",
-                    "message": "Server failed to fulfill the request. The provided array of stakeout keys included a "
-                    "stakeout key that was invalid for the provided stakeout type..",
-                }
-            ),
-            403,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "Invalid stakeout key."
+        })
     elif (
         stype == "faction"
         and keys is not None
@@ -198,22 +90,9 @@ def create_stakeout(stype, *args, **kwargs):
             "armorydeposit",
         }
     ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "InvalidStakeoutKey",
-                    "message": "Server failed to fulfill the request. The provided array of stakeout keys included a "
-                    "stakeout key that was invalid for the provided stakeout type..",
-                }
-            ),
-            403,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "Invalid stakeout key."
+        })
 
     stakeout = Stakeout(
         tid=tid,
@@ -246,6 +125,7 @@ def create_stakeout(stype, *args, **kwargs):
     )
 
     stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
+
     if stype == "user":
         db_stakeout = UserStakeoutModel.objects(tid=tid).first()
         message_payload = {
@@ -292,9 +172,5 @@ def create_stakeout(stype, *args, **kwargs):
             }
         ),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key)
     )

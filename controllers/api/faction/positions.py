@@ -6,6 +6,7 @@
 import json
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
@@ -34,181 +35,43 @@ def get_positions(*args, **kwargs):
             guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
             if guild is None:
-                return (
-                    jsonify(
-                        {
-                            "code": 1001,
-                            "name": "UnknownGuild",
-                            "message": "Server failed to locate the requested guild.",
-                        }
-                    ),
-                    400,
-                    {
-                        "X-RateLimit-Limit": 250,
-                        "X-RateLimit-Remaining": client.get(key),
-                        "X-RateLimit-Reset": client.ttl(key),
-                    },
-                )
+                return make_exception_response("1001", key)
             elif kwargs["user"].tid not in guild.admins:
-                return (
-                    jsonify(
-                        {
-                            "code": 4020,
-                            "name": "InsufficientDiscordPermissions",
-                            "message": "Server failed to fulfill the request. The user is not an admin in the provided guild.",
-                        }
-                    ),
-                    403,
-                    {
-                        "X-RateLimit-Limit": 250,
-                        "X-RateLimit-Remaining": client.get(key),
-                        "X-RateLimit-Reset": client.ttl(key),
-                    },
-                )
+                return make_exception_response("4020", key)
             elif factiontid not in guild.factions:
-                return (
-                    jsonify(
-                        {
-                            "code": 0,
-                            "name": "GeneralError",
-                            "message": "Server failed to fulfill the request. The faction is not list as in the guild.",
-                        }
-                    ),
-                    403,
-                    {
-                        "X-RateLimit-Limit": 250,
-                        "X-RateLimit-Remaining": client.get(key),
-                        "X-RateLimit-Reset": client.ttl(key),
-                    },
-                )
+                return make_exception_response("1102", key)
 
             faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
             if faction is None:
-                return (
-                    jsonify(
-                        {
-                            "code": 0,
-                            "name": "GeneralError",
-                            "message": "Server failed to locate the requested faction.",
-                        }
-                    ),
-                    400,
-                    {
-                        "X-RateLimit-Limit": 250,
-                        "X-RateLimit-Remaining": client.get(key),
-                        "X-RateLimit-Reset": client.ttl(key),
-                    },
-                )
+                return make_exception_response("1102", key)
             elif faction.guild != guildid:
-                return (
-                    jsonify(
-                        {
-                            "code": 0,
-                            "name": "GeneralError",
-                            "message": "Server failed to fulfill the request. The faction is not list as in the guild.",
-                        }
-                    ),
-                    403,
-                    {
-                        "X-RateLimit-Limit": 250,
-                        "X-RateLimit-Remaining": client.get(key),
-                        "X-RateLimit-Reset": client.ttl(key),
-                    },
-                )
+                return make_exception_response("1102", key)
         else:
             faction: FactionModel = FactionModel.objects(
                 tid=kwargs["user"].factionid
             ).first()
     else:
         if kwargs["user"].factionid == 0:
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The user is not in a faction.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
+            return make_exception_response("1102", key)
         elif not kwargs["user"].factionaa:
-            return (
-                jsonify(
-                    {
-                        "code": 4005,
-                        "name": "InsufficientFactionPermissions",
-                        "message": "Server failed to fulfill the request. The provided authentication code was not sufficient for an AA level request.",
-                    }
-                ),
-                403,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
+            return make_exception_response("4005", key)
 
         faction: FactionModel = FactionModel.objects(
             tid=kwargs["user"].factionid
         ).first()
 
     if faction is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownFaction",
-                    "message": "Server failed to fulfill the request. No faction matched the user's faction.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1102", key)
     elif utils.now() - faction.last_members >= 86400:  # one day
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "ExpiredData",
-                    "message": "Server failed to fulfill the request. The data hasn't been updated sufficiently recently.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("0000", key, details={
+            "message": "The data hasn't been updated sufficiently recently."
+        })
 
     positions = PositionModel.objects(factiontid=faction.tid)
 
     if positions.count() == 0:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. There are no positions stored in the database for the faction.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1103", key)
 
     positions_data = []
 
@@ -221,9 +84,5 @@ def get_positions(*args, **kwargs):
     return (
         jsonify({"positions": positions_data}),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key)
     )

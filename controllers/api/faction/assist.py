@@ -4,9 +4,9 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import json
-import time
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
@@ -27,40 +27,17 @@ def forward_assist(*args, **kwargs):
     target = User(data.get("target_tid")).refresh(key=user.key)
 
     if client.get(assist_key) is not None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The user has reached their assist ratelimit.",
-                }
-            ),
-            429,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("4291", key, redis_client=client)
     else:
         client.set(assist_key, 1)
         client.expire(assist_key, 30)
 
     if user.tid == target.tid:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The target was the same as the requesting user.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
+        return make_exception_response(
+            "0000",
+            key,
+            details={"message": "The target was the same as the requesting user."},
+            redis_client=client,
         )
 
     target_faction = Faction(target.factiontid)
@@ -181,9 +158,5 @@ def forward_assist(*args, **kwargs):
             }
         ),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key),
     )

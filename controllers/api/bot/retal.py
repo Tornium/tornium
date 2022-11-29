@@ -4,9 +4,9 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import json
-import random
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 
@@ -16,70 +16,18 @@ from models.servermodel import ServerModel
 @requires_scopes(scopes={"admin", "bot:admin"})
 def faction_retal_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     factiontid = data.get("factiontid")
     channelid = data.get("channel")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 1001,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to locate the requested guild.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-    elif (
-        factiontid in ("", None, 0)
-        or not factiontid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 1102,
-                    "name": "UnknownFaction",
-                    "message": "Server failed to locate the requested faction.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-    elif (
-        channelid in ("", None, 0)
-        or not channelid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 1002,
-                    "name": "UnknownChannel",
-                    "message": "Server failed to locate the requested channel.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif factiontid in ("", None, 0) or not factiontid.isdigit():
+        return make_exception_response("1102", key)
+    elif channelid in ("", None, 0) or not channelid.isdigit():
+        return make_exception_response("1002", key)
 
     guildid = int(guildid)
     factiontid = int(factiontid)
@@ -88,75 +36,14 @@ def faction_retal_channel(*args, **kwargs):
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
     elif factiontid not in guild.factions:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The faction is not valid for this server.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("4021", key)
 
     faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
-    if faction is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownFaction",
-                    "message": "Server failed to fulfill the request. The faction ID could not be matched with a "
-                    "faction in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
-    elif faction.guild != guildid:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The faction's server could not be matched with "
-                    "this server.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if faction is None or faction.guild != guildid:
+        return make_exception_response("1102", key)
 
     if str(factiontid) in guild.retal_config:
         guild.retal_config[str(factiontid)] = channelid
@@ -165,12 +52,4 @@ def faction_retal_channel(*args, **kwargs):
 
     guild.save()
 
-    return (
-        jsonify(guild.retal_config),
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonify(guild.retal_config), 200, api_ratelimit_response(key))

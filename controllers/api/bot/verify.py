@@ -7,37 +7,34 @@ import json
 import random
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.servermodel import ServerModel
 from models.user import User
+
+
+def jsonified_verify_config(guild: ServerModel):
+    return jsonify(
+        {
+            "enabled": guild.config.get("verify"),
+            "verify_template": guild.verify_template,
+            "verified_roles": guild.verified_roles,
+            "faction_verify": guild.faction_verify,
+            "verify_log_channel": guild.verify_log_channel,
+        }
+    )
 
 
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
 def verification_config(guildid, *args, **kwargs):
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     for factiontid, faction_data in guild.faction_verify.items():
         if "positions" not in guild.faction_verify[factiontid]:
@@ -45,13 +42,7 @@ def verification_config(guildid, *args, **kwargs):
 
     guild.save()
 
-    return {
-        "enabled": guild.config.get("verify"),
-        "verify_template": guild.verify_template,
-        "verified_roles": guild.verified_roles,
-        "faction_verify": guild.faction_verify,
-        "verify_log_channel": guild.verify_log_channel,
-    }
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -59,67 +50,30 @@ def verification_config(guildid, *args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
 
     if guildid in ("", None, 0) or not guildid.isdigit():
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and faction TID are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     guildid = int(guildid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     if request.method == "POST":
         if guild.config.get("verify") in (None, 0):
             guild.config["verify"] = 1
             guild.save()
         else:
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The guild's verification is already enabled.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already enabled.",
+                    "setting": "guild.config.verify",
                 },
             )
     elif request.method == "DELETE":
@@ -127,57 +81,16 @@ def guild_verification(*args, **kwargs):
             guild.config["verify"] = 0
             guild.save()
         else:
-            return (
-                jsonify(
-                    {
-                        "code": 0,
-                        "name": "GeneralError",
-                        "message": "Server failed to fulfill the request. The guild's verification is already disabled.",
-                    }
-                ),
-                400,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already disabled.",
+                    "setting": "guild.config.verify",
                 },
             )
-    else:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. An unknown caught HTTP method was passed.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
 
-    return (
-        jsonify(
-            {
-                "verify": {
-                    "enabled": guild.config.get("verify")
-                    if guild.config.get("verify") is not None
-                    else False,
-                    "verify_log_channel": guild.verify_log_channel,
-                    "faction_verify": guild.faction_verify,
-                },
-            }
-        ),
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -185,76 +98,27 @@ def guild_verification(*args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     channelid = data.get("channel")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or channelid in ("", None, 0)
-        or not channelid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and channel ID are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif channelid in ("", None, 0) or not channelid.isdigit():
+        return make_exception_response("1002", key)
 
     guildid = int(guildid)
     channelid = int(channelid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     guild.verify_log_channel = channelid
     guild.save()
 
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "faction_verify": guild.faction_verify,
-            },
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -262,72 +126,32 @@ def guild_verification_log(*args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     guildid = data.get("guildid")
     factiontid = data.get("factiontid")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or factiontid in ("", None, 0)
-        or not factiontid.isdigit()
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID and faction TID are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif factiontid in ("", None, 0) or not factiontid.isdigit():
+        return make_exception_response("1102", key)
 
     guildid = int(guildid)
     factiontid = int(factiontid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
     if request.method == "DELETE" and str(faction.tid) not in guild.faction_verify:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. Improper HTTP request type.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
+        return make_exception_response(
+            "0000",
+            key,
+            details={
+                "message": "Faction not in guild's list of factions to verify.",
+                "factiontid": factiontid,
             },
         )
 
@@ -348,23 +172,7 @@ def faction_verification(*args, **kwargs):
 
     guild.save()
 
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "faction_verify": guild.faction_verify,
-            },
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -372,93 +180,30 @@ def faction_verification(*args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or roles is None
-        or type(roles) != list
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and list of roles are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif roles is None or type(roles) != list:
+        return make_exception_response("1000", key)
 
     guildid = int(guildid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     try:
         guild.verified_roles = [int(role) for role in roles]
     except ValueError:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "ValueError",
-                    "message": "Server failed to fulfill the request. A role could not be parsed.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1003", key)
 
     guild.save()
 
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "faction_verify": guild.faction_verify,
-            }
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -466,91 +211,28 @@ def guild_verification_roles(*args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def faction_roles(factiontid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or roles is None
-        or type(roles) != list
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and list of roles are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif roles is None or type(roles) != list:
+        return make_exception_response("1000", key)
 
     guildid = int(guildid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
     elif str(factiontid) not in guild.faction_verify.keys():
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The faction does not have a verification config.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1102", key)
 
     guild.faction_verify[str(factiontid)]["roles"] = [int(role) for role in roles]
     guild.save()
 
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "faction_verify": guild.faction_verify,
-            },
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -558,88 +240,25 @@ def faction_roles(factiontid, *args, **kwargs):
 @requires_scopes(scopes={"admin", "bot:admin"})
 def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if (
-        guildid in ("", None, 0)
-        or not guildid.isdigit()
-        or roles is None
-        or type(roles) != list
-    ):
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. A valid guild ID, faction TID, and list of roles are required.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif roles is None or type(roles) != list:
+        return make_exception_response("1000", key)
 
     guildid = int(guildid)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "UnknownGuild",
-                    "message": "Server failed to fulfill the request. The guild ID could not be matched with a server "
-                    "in the database.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
     elif str(factiontid) not in guild.faction_verify.keys():
-        return (
-            jsonify(
-                {
-                    "code": 0,
-                    "name": "GeneralError",
-                    "message": "Server failed to fulfill the request. The faction does not have a verification config.",
-                }
-            ),
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1102", key)
 
     guild.faction_verify[str(factiontid)]["positions"][position] = roles
     guild.save()
 
-    return jsonify(
-        {
-            "verify": {
-                "enabled": guild.config.get("verify")
-                if guild.config.get("verify") is not None
-                else False,
-                "verify_log_channel": guild.verify_log_channel,
-                "faction_verify": guild.faction_verify,
-            },
-        },
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))

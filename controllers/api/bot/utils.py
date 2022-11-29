@@ -4,75 +4,37 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.server import Server
-import redisdb
 
 
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
 def get_channels(guildid, *args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     try:
         server = Server(guildid)
     except LookupError:
-        return (
-            {
-                "code": 1001,
-                "name": "UnknownGuild",
-                "message": "Server failed to locate the requested guild.",
-            },
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
-    return (
-        {"channels": server.get_text_channels()},
-        200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
-    )
+    return ({"channels": server.get_text_channels()}, 200, api_ratelimit_response(key))
 
 
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
 def get_roles(guildid, *args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     try:
         server = Server(guildid)
     except LookupError:
-        return (
-            {
-                "code": 1001,
-                "name": "UnknownGuild",
-                "message": "Server failed to locate the requested guild.",
-            },
-            400,
-            {
-                "X-RateLimit-Limit": 250,
-                "X-RateLimit-Remaining": client.get(key),
-                "X-RateLimit-Reset": client.ttl(key),
-            },
-        )
+        return make_exception_response("1001", key)
 
     return (
         {"roles": list(server.get_roles().values())},
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key),
     )

@@ -4,13 +4,13 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from controllers.api.decorators import *
+from controllers.api.utils import api_ratelimit_response
 
 
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "read:user"})
 def get_user(*args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     return (
@@ -32,9 +32,5 @@ def get_user(*args, **kwargs):
             }
         ),
         200,
-        {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": client.get(key),
-            "X-RateLimit-Reset": client.ttl(key),
-        },
+        api_ratelimit_response(key)
     )

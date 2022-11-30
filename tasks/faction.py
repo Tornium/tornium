@@ -521,7 +521,8 @@ def fetch_attacks_runner():
 
                 try:
                     db_aa_keys.remove(aa_key)
-                    db_aa_keys.save()
+                    faction.aa_keys = db_aa_keys
+                    faction.save()
                 except ValueError:
                     pass
 

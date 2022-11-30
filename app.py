@@ -17,8 +17,6 @@ import logging
 import flask
 from flask_cors import CORS
 from flask_login import LoginManager
-import honeybadger
-from honeybadger.contrib import FlaskHoneybadger
 from mongoengine import connect
 
 import settings  # Do not remove - initializes redis values
@@ -27,7 +25,6 @@ import skynet
 
 
 redis = get_redis()
-honeybadger.honeybadger.configure(api_key=redis.get("tornium:settings:honeykey"))
 
 connect(
     db="Tornium",
@@ -60,11 +57,7 @@ logger.addHandler(handler)
 
 app = flask.Flask(__name__)
 app.secret_key = redis.get("tornium:settings:secret")
-app.config["HONEYBADGER_ENVIRONMENT"] = redis.get("tornium:settings:honeyenv")
-app.config["HONEYBADGER_API_KEY"] = redis.get("tornium:settings:honeykey")
-app.config["HONEYBADGER_PARAMS_FILTERS"] = "password, secret, credit-card"
 app.config["REMEMBER_COOKIE_DURATION"] = 604800
-FlaskHoneybadger(app, report_exceptions=True)
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 

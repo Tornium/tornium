@@ -213,7 +213,7 @@ Tornium - Bot Dashboard
                         {% for faction in factions %}
                         <li class="list-group-item d-flex">
                             <p>{{ faction.name }} [{{ faction.tid }}]</p>
-                            <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select"">
+                            <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select">
                                 <option value="0">Disabled</option>
                                 {% for category in channels.values() %}
                                     {% if category["name"] == "" %}

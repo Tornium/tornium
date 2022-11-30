@@ -6,7 +6,6 @@
 import datetime
 import json
 
-import honeybadger
 from flask import request, jsonify, render_template, redirect, flash
 from flask_login import login_required, current_user
 
@@ -202,12 +201,6 @@ def stakeouts(guildid: str, stype: int):
             stakeout: Stakeout = Stakeout(int(stakeout), key=current_user.key)
 
             if str(guildid) not in stakeout.guilds:
-                honeybadger.honeybadger.notify(
-                    error_class="Exception",
-                    error_message=f"{guildid} not in the guilds of {stakeout.tid}",
-                    context={"guildid": guildid, "tid": stakeout.tid},
-                )
-
                 user_stakeouts = server.userstakeouts
                 user_stakeouts.remove(stakeout.tid)
                 server.userstakeouts = user_stakeouts
@@ -231,11 +224,6 @@ def stakeouts(guildid: str, stype: int):
             )
 
             if str(guildid) not in stakeout.guilds:
-                honeybadger.honeybadger.notify(
-                    error_class="Exception",
-                    error_message=f"{guildid} not in the guilds of {stakeout.tid}",
-                    context={"guildid": guildid, "tid": stakeout.tid},
-                )
                 faction_stakeouts = server.factionstakeouts
                 faction_stakeouts.remove(stakeout.tid)
                 server.factionstakeouts = faction_stakeouts

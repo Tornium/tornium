@@ -10,7 +10,6 @@ import math
 import random
 import uuid
 
-from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
 import requests
 
@@ -62,11 +61,9 @@ def refresh_factions():
             )
         except TornError as e:
             logger.exception(e)
-            honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
             continue
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         if faction_data is None:
@@ -382,7 +379,6 @@ def refresh_factions():
                 )
             except TornError as e:
                 logger.exception(e)
-                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 continue
             except Exception as e:
                 logger.exception(e)
@@ -434,7 +430,6 @@ def refresh_factions():
                                 )
                             except Exception as e:
                                 logger.exception(e)
-                                honeybadger.notify(e)
                                 continue
                         elif faction.chainod.get(tid) is not None and user_od[
                             "contributed"
@@ -473,11 +468,9 @@ def refresh_factions():
                                 )
                             except Exception as e:
                                 logger.exception(e)
-                                honeybadger.notify(e)
                                 continue
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         continue
 
             faction.chainod = faction_od["contributors"]["drugoverdoses"]
@@ -522,15 +515,12 @@ def fetch_attacks_runner():
             )
         except TornError as e:
             logger.exception(e)
-            honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
             continue
         except NetworkingError as e:
             logger.exception(e)
-            honeybadger.notify(e, context={"code": e.code})
             continue
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
@@ -777,11 +767,9 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 return
 
             logger.exception(e)
-            honeybadger.notify(e)
             continue
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
 
@@ -852,7 +840,6 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 continue
             except AttributeError as e:
                 logger.exception(e)
-                honeybadger.notify(e)
                 continue
 
             # TODO: Update
@@ -885,7 +872,6 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 continue
             except AttributeError as e:
                 logger.exception(e)
-                honeybadger.notify(e)
                 continue
 
             if user_score == 0:
@@ -907,7 +893,6 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
             except TornError as e:
                 logger.exception(e)
-                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 continue
             except Exception as e:
                 logger.exception(e)
@@ -948,5 +933,4 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             stat_entry.save()
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue

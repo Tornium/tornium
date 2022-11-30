@@ -17,7 +17,6 @@ import time
 
 from celery import Celery
 from celery.schedules import crontab
-import honeybadger
 from mongoengine import connect
 from redis.commands.json.path import Path
 import requests
@@ -35,8 +34,6 @@ from utils.errors import (
     RatelimitError,
     TornError,
 )
-
-honeybadger.honeybadger.configure(api_key=get_redis().get("tornium:settings:honeykey"))
 
 connect(
     db="Tornium",

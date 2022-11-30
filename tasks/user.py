@@ -4,9 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import math
-import time
 
-from honeybadger import honeybadger
 from models.recruitmodel import RecruitModel
 from mongoengine.queryset.visitor import Q
 import requests
@@ -117,11 +115,8 @@ def refresh_users():
                 continue
 
             logger.exception(e)
-            honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
             continue
         except Exception as e:
-            logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         try:  # Torn API debug
@@ -176,11 +171,9 @@ def mail_check():
             )
         except utils.TornError as e:
             logger.exception(e)
-            honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
             continue
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         for mailid, mail in mail_data.items():
@@ -249,11 +242,9 @@ def mail_check():
 #             )
 #         except utils.TornError as e:
 #             logger.exception(e)
-#             honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
 #             continue
 #         except Exception as e:
 #             logger.exception(e)
-#             honeybadger.notify(e)
 #             continue
 #
 #         for attack in user_data["attacks"].values():
@@ -354,9 +345,6 @@ def mail_check():
 #                     user.save()
 #                 except utils.TornError as e:
 #                     logger.exception(e)
-#                     honeybadger.notify(
-#                         e, context={"code": e.code, "endpoint": e.endpoint}
-#                     )
 #                     continue
 #                 except Exception as e:
 #                     logger.exception(e)

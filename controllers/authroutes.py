@@ -5,7 +5,6 @@
 
 from flask import Blueprint, request, redirect, render_template, abort, url_for
 from flask_login import logout_user, login_user
-from honeybadger import honeybadger
 from is_safe_url import is_safe_url
 
 from models.user import User
@@ -29,7 +28,6 @@ def login():
             endpoint="key/?selections=info", key=request.form["key"]
         )
     except utils.TornError as e:
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         return utils.handle_torn_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
@@ -50,7 +48,6 @@ def login():
     try:
         torn_user = tasks.tornget(endpoint="user/?selections=", key=request.form["key"])
     except utils.TornError as e:
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         return utils.handle_torn_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))

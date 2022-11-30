@@ -7,7 +7,6 @@ import random
 
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
-from honeybadger import honeybadger
 
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
@@ -35,7 +34,6 @@ class Faction:
                 )
             except utils.TornError as e:
                 utils.get_logger().exception(e)
-                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
             now = utils.now()
@@ -164,7 +162,6 @@ class Faction:
                 )
             except utils.TornError as e:
                 utils.get_logger().exception(e)
-                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
             faction: FactionModel = FactionModel.objects(tid=self.tid).first()

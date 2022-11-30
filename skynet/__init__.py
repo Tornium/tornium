@@ -7,7 +7,6 @@ import json
 import logging
 
 from flask import Blueprint, request, jsonify, abort
-import honeybadger
 from nacl.exceptions import BadSignatureError
 import requests
 

@@ -3,7 +3,6 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from honeybadger import honeybadger
 import requests
 
 from models.positionmodel import PositionModel
@@ -21,7 +20,6 @@ def refresh_guilds():
         guilds = discordget("users/@me/guilds", session=requests_session, dev=True)
     except Exception as e:
         logger.exception(e)
-        honeybadger.notify(e)
         return
 
     for guild in guilds:
@@ -57,18 +55,15 @@ def refresh_guilds():
                 continue
             else:
                 logger.exception(e)
-                honeybadger.notify(e)
                 continue
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         try:
             guild = discordget(f'guilds/{guild["id"]}', session=requests_session)
         except Exception as e:
             logger.exception(e)
-            honeybadger.notify(e)
             continue
 
         admins = []

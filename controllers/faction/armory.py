@@ -7,7 +7,6 @@ import random
 
 from flask import render_template, request, abort
 from flask_login import login_required, current_user
-from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
 
 from controllers.faction.decorators import fac_required
@@ -58,7 +57,6 @@ def armoryitemdata(*args, **kwargs):
         armorydata = tornget("faction/?selections=armor,temporary,weapons", key=key)
     except TornError as e:
         utils.get_logger().exception(e)
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         abort(400)
 
     data = []
@@ -134,7 +132,6 @@ def item_modal(*args, **kwargs):
         armorydata = tornget("faction/?selections=armor,temporary,weapons", key=key)
     except TornError as e:
         utils.get_logger().exception(e)
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         abort(400)
 
     item = {}

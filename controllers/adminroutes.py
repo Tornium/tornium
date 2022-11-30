@@ -8,7 +8,6 @@ import logging
 
 from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
-import honeybadger
 import requests
 
 from controllers.decorators import admin_required
@@ -100,13 +99,9 @@ def dashboard():
                 botlogger.info(commands_data)
             except utils.DiscordError as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(
-                    e, context={"code": e.code, "message": e.message}
-                )
                 raise e
             except Exception as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(e)
                 raise e
 
             try:
@@ -122,13 +117,9 @@ def dashboard():
                         )
             except utils.DiscordError as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(
-                    e, context={"code": e.code, "message": e.message}
-                )
                 raise e
             except Exception as e:
                 botlogger.error(e)
-                honeybadger.honeybadger.notify(e)
                 raise e
 
     return render_template("admin/dashboard.html")

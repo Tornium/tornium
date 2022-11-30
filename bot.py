@@ -11,7 +11,6 @@ from urllib.parse import urlparse, parse_qs
 
 import discord
 from discord.ext import commands
-import honeybadger
 from mongoengine import connect
 
 from redisdb import get_redis
@@ -19,7 +18,6 @@ import settings  # Do not remove - initializes redis values
 import utils
 
 redis = get_redis()
-honeybadger.honeybadger.configure(api_key=redis.get("tornium:settings:honeykey"))
 
 connect(
     db="Tornium",
@@ -175,13 +173,9 @@ async def on_message(message):
                         key=User(random.choice(server.admins)).key,
                     )
                 except utils.TornError as e:
-                    honeybadger.honeybadger.notify(
-                        e, context={"code": e.code, "endpoint": e.endpoint}
-                    )
                     utils.get_logger().exception(e)
                     return None
                 except Exception as e:
-                    honeybadger.honeybadger.notify(e)
                     utils.get_logger().exception(e)
                     return None
 

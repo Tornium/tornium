@@ -1,4 +1,4 @@
-0	General error (such as a malformed request body, amongst other things)
+0	    General error (such as a malformed request body, amongst other things)
 10001	Unknown account
 10002	Unknown application
 10003	Unknown channel

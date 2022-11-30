@@ -6,8 +6,6 @@
 import datetime
 import random
 
-from honeybadger import honeybadger
-import requests
 from mongoengine.queryset.visitor import Q
 
 from models.factionmodel import FactionModel
@@ -84,13 +82,11 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
             )
     except utils.TornError as e:
         logger.exception(e)
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         return
     except utils.MissingKeyError:
         return
     except Exception as e:
         logger.exception(e)
-        honeybadger.notify(e)
         return
 
     stakeout_data = stakeout.data
@@ -371,13 +367,11 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
             )
     except utils.TornError as e:
         logger.exception(e)
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
         return
     except utils.MissingKeyError:
         return
     except Exception as e:
         logger.exception(e)
-        honeybadger.notify(e)
         return
 
     stakeout_data = stakeout.data
@@ -444,7 +438,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
                 elif (
                     "racket" in territory
@@ -490,7 +483,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
 
             for territoryid, territory in data["territory"].items():
@@ -534,7 +526,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
                 if (
                     "racket" in territory
@@ -581,7 +572,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
                 elif (
                     territory["racket"]["level"]
@@ -628,7 +618,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
                 elif (
                     territory["racket"]["level"]
@@ -675,7 +664,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
         if (
             "members" in guild_stakeout["keys"]
@@ -721,7 +709,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
 
             for memberid, member in data["members"].items():
@@ -764,7 +751,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
         if (
             "memberstatus" in guild_stakeout["keys"]
@@ -827,7 +813,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
         if (
             "memberactivity" in guild_stakeout["keys"]
@@ -889,7 +874,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
                 elif member["last_action"]["status"] in ("Online", "Idle") and data[
                     "members"
@@ -947,7 +931,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
         if (
             "assault" in guild_stakeout["keys"]
@@ -1014,7 +997,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
             for war in stakeout_data["territory_wars"]:
                 existing = False
@@ -1073,7 +1055,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                     except Exception as e:
                         logger.exception(e)
-                        honeybadger.notify(e)
                         return
         if "armory" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1104,13 +1085,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                 except utils.TornError as e:
                     logger.exception(e)
-                    honeybadger.notify(
-                        e, context={"code": e.code, "endpoint": e.endpoint}
-                    )
                     return
                 except Exception as e:
                     logger.exception(e)
-                    honeybadger.notify(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1143,7 +1120,6 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             )
                         except Exception as e:
                             logger.exception(e)
-                            honeybadger.notify(e)
                             return
         if "armorydeposit" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1185,13 +1161,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         )
                 except utils.TornError as e:
                     logger.exception(e)
-                    honeybadger.notify(
-                        e, context={"code": e.code, "endpoint": e.endpoint}
-                    )
                     return
                 except Exception as e:
                     logger.exception(e)
-                    honeybadger.notify(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1221,5 +1193,4 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             )
                         except Exception as e:
                             logger.exception(e)
-                            honeybadger.notify(e)
                             return

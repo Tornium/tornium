@@ -5,7 +5,7 @@
 
 from functools import wraps
 
-from flask import render_template
+from flask import abort, render_template
 from flask_login import current_user
 
 

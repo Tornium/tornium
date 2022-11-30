@@ -23,8 +23,6 @@ except FileNotFoundError:
         "password": "",
         "host": "",
         "url": "",
-        "honeyenv": "production",
-        "honeykey": "",
         "skynet": {
             "applicationid": "",
             "applicationpublic": "",
@@ -47,8 +45,6 @@ redis.set("tornium:settings:username", data.get("username"))
 redis.set("tornium:settings:password", data.get("password"))
 redis.set("tornium:settings:host", data.get("host"))
 redis.set("tornium:settings:url", data.get("url"))
-redis.set("tornium:settings:honeyenv", data.get("honeyenv"))
-redis.set("tornium:settings:honeykey", data.get("honeykey"))
 redis.set(
     "tornium:settings:skynet:applicationid",
     data.get("skynet").get("applicationid") if "skynet" in data else None,

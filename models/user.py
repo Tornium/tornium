@@ -6,7 +6,6 @@
 import math
 
 from flask_login import UserMixin, current_user
-from honeybadger import honeybadger
 from mongoengine.queryset.visitor import Q
 
 from models.positionmodel import PositionModel
@@ -79,7 +78,6 @@ class User(UserMixin):
                     )
             except utils.TornError as e:
                 utils.get_logger().exception(e)
-                honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
                 raise e
 
             user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()

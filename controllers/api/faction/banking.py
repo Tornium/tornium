@@ -5,8 +5,6 @@
 
 import json
 
-from honeybadger import honeybadger
-
 from controllers.api.decorators import *
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
@@ -41,8 +39,6 @@ def vault_balance(*args, **kwargs):
             f"faction/?selections=donations", faction.rand_key()
         )
     except utils.TornError as e:
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
-
         return make_exception_response(
             "4100",
             key,
@@ -147,8 +143,6 @@ def banking_request(*args, **kwargs):
             f"faction/?selections=donations", faction.rand_key()
         )
     except utils.TornError as e:
-        honeybadger.notify(e, context={"code": e.code, "endpoint": e.endpoint})
-
         return make_exception_response(
             "4100",
             key,

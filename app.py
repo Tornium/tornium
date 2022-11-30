@@ -60,6 +60,8 @@ handler.setFormatter(
 )
 logger.addHandler(handler)
 
+logger.debug("Flask is online")
+
 app = flask.Flask(__name__)
 app.secret_key = redis.get("tornium:settings:secret")
 app.config["REMEMBER_COOKIE_DURATION"] = 604800

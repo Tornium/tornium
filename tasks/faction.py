@@ -506,14 +506,25 @@ def fetch_attacks_runner():
             faction.save()
             continue
 
+        aa_key = random.choice(faction.aa_keys)
+
         try:
             faction_data = tornget(
                 "faction/?selections=basic,attacks",
                 fromts=faction.last_attacks + 1,  # Timestamp is inclusive
-                key=random.choice(faction.aa_keys),
+                key=aa_key,
                 session=requests_session,
             )
         except TornError as e:
+            if e.code == 7:
+                db_aa_keys = faction.aa_keys
+
+                try:
+                    db_aa_keys.remove(aa_key)
+                    db_aa_keys.save()
+                except ValueError:
+                    pass
+
             logger.exception(e)
             continue
         except NetworkingError as e:

@@ -517,7 +517,7 @@ def fetch_attacks_runner():
             )
         except TornError as e:
             if e.code == 7:
-                db_aa_keys = faction.aa_keys
+                db_aa_keys = list(faction.aa_keys)
 
                 try:
                     db_aa_keys.remove(aa_key)

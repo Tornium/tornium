@@ -4,10 +4,14 @@ Proprietary and confidential
 Written by tiksan <webmaster@deek.sh>*/
 
 function getTID(string) {
+    if((/^\d+$/.test(string))) {
+        return parseInt(string);
+    }
+
     var matches = string.match(/\[(.*?)\]/);
 
     if(matches) {
-        return matches[1];
+        return parseInt(matches[1]);
     } else {
         return 0;
     }

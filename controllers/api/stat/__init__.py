@@ -31,9 +31,13 @@ def generate_chain_list(*args, **kwargs):
     )
 
     if kwargs["user"].battlescore == 0:
-        return make_exception_response("0000", key, details={
-            "message": "User does not have a stat score stored in the database."
-        })
+        return make_exception_response(
+            "0000",
+            key,
+            details={
+                "message": "User does not have a stat score stored in the database."
+            },
+        )
 
     stat_entries = StatModel.objects(
         (
@@ -98,7 +102,7 @@ def generate_chain_list(*args, **kwargs):
             }
         ),
         200,
-        api_ratelimit_response(key)
+        api_ratelimit_response(key),
     )
 
 
@@ -174,8 +178,4 @@ def get_stat_user(tid, *args, **kwargs):
             "globalstat": stat_entry.globalstat,
         }
 
-    return (
-        jsonify(data),
-        200,
-        api_ratelimit_response(key)
-    )
+    return (jsonify(data), 200, api_ratelimit_response(key))

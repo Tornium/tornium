@@ -32,5 +32,5 @@ def get_user(*args, **kwargs):
             }
         ),
         200,
-        api_ratelimit_response(key)
+        api_ratelimit_response(key),
     )

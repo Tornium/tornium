@@ -64,9 +64,11 @@ def get_positions(*args, **kwargs):
     if faction is None:
         return make_exception_response("1102", key)
     elif utils.now() - faction.last_members >= 86400:  # one day
-        return make_exception_response("0000", key, details={
-            "message": "The data hasn't been updated sufficiently recently."
-        })
+        return make_exception_response(
+            "0000",
+            key,
+            details={"message": "The data hasn't been updated sufficiently recently."},
+        )
 
     positions = PositionModel.objects(factiontid=faction.tid)
 
@@ -81,8 +83,4 @@ def get_positions(*args, **kwargs):
         position_data["_id"] = str(position.pid)
         positions_data.append(position_data)
 
-    return (
-        jsonify({"positions": positions_data}),
-        200,
-        api_ratelimit_response(key)
-    )
+    return (jsonify({"positions": positions_data}), 200, api_ratelimit_response(key))

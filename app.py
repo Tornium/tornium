@@ -9,6 +9,7 @@ ddtrace.config.env = "prod"
 ddtrace.tracer.configure(
     enabled=True,
 )
+ddtrace.patch(logging=True)
 ddtrace.patch_all(flask=True)
 
 import datetime
@@ -47,11 +48,15 @@ from controllers.torn import mod as torn_mod
 from skynet import mod as skynet_mod
 import utils
 
+FORMAT = ('%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] '
+          '[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] '
+          '- %(message)s')
+
 logger = logging.getLogger("server")
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
 handler.setFormatter(
-    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+    logging.Formatter(FORMAT)
 )
 logger.addHandler(handler)
 

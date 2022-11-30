@@ -43,6 +43,10 @@ connect(
     connect=False,
 )
 
+FORMAT = ('%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] '
+          '[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] '
+          '- %(message)s')
+
 celery_app: Celery = None
 logger: logging.Logger = logging.getLogger("celeryerrors")
 if get_redis().get("dev"):
@@ -51,7 +55,7 @@ else:
     logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="celeryerrors.log", encoding="utf-8", mode="a")
 handler.setFormatter(
-    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+    logging.Formatter(FORMAT)
 )
 logger.addHandler(handler)
 

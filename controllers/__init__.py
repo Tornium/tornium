@@ -17,40 +17,40 @@ def index():
     return render_template("index.html")
 
 
-@mod.route("/robots.txt")
-@mod.route("/toast.js")
-@mod.route("/favicon.svg")
-@mod.route("/login.css")
-@mod.route("/utils.js")
-@mod.route("/bot/stakeouts.js")
-@mod.route("/bot/guild.js")
-@mod.route("/bot/verify.js")
-@mod.route("/faction/armory.js")
-@mod.route("/faction/banking.js")
-@mod.route("/faction/bankingaa.js")
-@mod.route("/faction/members.js")
-@mod.route("/stats/db.js")
-@mod.route("/stats/list.js")
-@mod.route("/torn/factions.js")
-@mod.route("/torn/users.js")
+@mod.route("/static/robots.txt")
+@mod.route("/static/toast.js")
+@mod.route("/static/favicon.svg")
+@mod.route("/static/login.css")
+@mod.route("/static/utils.js")
+@mod.route("/static/bot/stakeouts.js")
+@mod.route("/static/bot/guild.js")
+@mod.route("/static/bot/verify.js")
+@mod.route("/static/faction/armory.js")
+@mod.route("/static/faction/banking.js")
+@mod.route("/static/faction/bankingaa.js")
+@mod.route("/static/faction/members.js")
+@mod.route("/static/stats/db.js")
+@mod.route("/static/stats/list.js")
+@mod.route("/static/torn/factions.js")
+@mod.route("/static/torn/users.js")
 @mod.route("/userscripts/tornium-assists.user.js")
 def static():
     return send_from_directory("static", request.path[1:])
 
 
-@mod.route("/astats/db.js")
-@mod.route("/faction/recruitment.js")
-@mod.route("/faction/schedule.js")
-@mod.route("/faction/schedulechart.js")
+@mod.route("/static/astats/db.js")
+@mod.route("/static/faction/recruitment.js")
+@mod.route("/static/faction/schedule.js")
+@mod.route("/static/faction/schedulechart.js")
 @login_required
 @pro_required
 def static_pro():
     return send_from_directory("static", request.path[1:])
 
 
-@mod.route("/admin/database/faction.js")
-@mod.route("/admin/database/server.js")
-@mod.route("/admin/database/user.js")
+@mod.route("/static/admin/database/faction.js")
+@mod.route("/static/admin/database/server.js")
+@mod.route("/static/admin/database/user.js")
 @login_required
 @admin_required
 def static_admin():

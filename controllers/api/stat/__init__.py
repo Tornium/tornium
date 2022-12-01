@@ -64,11 +64,18 @@ def generate_chain_list(*args, **kwargs):
     targets_updated = 0
 
     for stat_entry in stat_entries:
-        stat: StatModel = StatModel.objects(Q(tid=stat_entry) & (
-            Q(globalstat=True)
-            | Q(addedid=kwargs["user"].tid)
-            | Q(addedfactiontid=kwargs["user"].factionid)
-        )).order_by("-timeadded").first()
+        stat: StatModel = (
+            StatModel.objects(
+                Q(tid=stat_entry)
+                & (
+                    Q(globalstat=True)
+                    | Q(addedid=kwargs["user"].tid)
+                    | Q(addedfactiontid=kwargs["user"].factionid)
+                )
+            )
+            .order_by("-timeadded")
+            .first()
+        )
 
         if stat_entry in targets:
             user = targets[stat_entry]

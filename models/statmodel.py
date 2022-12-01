@@ -7,7 +7,9 @@ from mongoengine import DynamicDocument, IntField, BooleanField
 
 
 class StatModel(DynamicDocument):
-    meta = {"indexes": ["tid", ("+globalstat", "addedid", "addedfactiontid"), "addedid"]}
+    meta = {
+        "indexes": ["tid", ("+globalstat", "addedid", "addedfactiontid"), "addedid"]
+    }
 
     statid = IntField(primary_key=True)
     tid = IntField(default=0)

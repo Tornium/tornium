@@ -85,7 +85,7 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
-    stat_entries_subset = stat_entries[start: start + length]
+    stat_entries_subset = stat_entries[start : start + length]
     users = {}
 
     for stat_entry in stat_entries_subset:

@@ -73,7 +73,9 @@ def generate_chain_list(*args, **kwargs):
             user = targets[stat_entry]
         else:
             user = User(tid=stat.tid)
-            user.refresh(key=kwargs["user"].key)
+
+            if len(stat_entries) <= 100:
+                user.refresh(key=kwargs["user"].key)
 
         jsonified_stat_entires.append(
             {

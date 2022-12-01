@@ -71,7 +71,7 @@ def verifyall(interaction):
         }
 
     if "options" in interaction["data"]:
-        force = utils.find_list(interaction["data"]["option"], "name", "force")
+        force = utils.find_list(interaction["data"]["options"], "name", "force")
     else:
         force = -1
 

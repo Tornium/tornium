@@ -45,6 +45,8 @@ $(document).ready(function() {
                         }
                     });
                 });
+
+                $(".discord-channel-selector").selectpicker();
             }
         }
 

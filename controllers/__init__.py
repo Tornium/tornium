@@ -44,8 +44,6 @@ def userscripts():
 
 @mod.route("/static/astats/db.js")
 @mod.route("/static/faction/recruitment.js")
-@mod.route("/static/faction/schedule.js")
-@mod.route("/static/faction/schedulechart.js")
 @login_required
 @pro_required
 def static_pro():

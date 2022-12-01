@@ -12,7 +12,6 @@ from controllers.faction import (
     chain,
     members,
     recruitment,
-    schedule,
 )
 
 mod = Blueprint("factionroutes", __name__)
@@ -52,10 +51,6 @@ mod.add_url_rule("/faction/recruits", view_func=recruitment.recruits, methods=["
 mod.add_url_rule(
     "/faction/recruiters", view_func=recruitment.recruiters, methods=["GET"]
 )
-
-# Schedule Routes
-mod.add_url_rule("/faction/schedule", view_func=schedule.schedule, methods=["GET"])
-mod.add_url_rule("/faction/scheduledata", view_func=schedule.schedule, methods=["GET"])
 
 
 @mod.route("/faction")

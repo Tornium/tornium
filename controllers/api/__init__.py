@@ -118,41 +118,6 @@ mod.add_url_rule(
     view_func=faction.recruitment.refresh_code,
     methods=["POST"],
 )
-mod.add_url_rule(
-    "/api/faction/schedule",
-    view_func=faction.schedule.create_schedule,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule",
-    view_func=faction.schedule.delete_schedule,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule/setup",
-    view_func=faction.schedule.schedule_setup,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule/watcher/<string:uuid>",
-    view_func=faction.schedule.get_schedule,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule/watcher",
-    view_func=faction.schedule.add_chain_watcher,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule/watcher",
-    view_func=faction.schedule.remove_chain_watcher,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/faction/schedule/activity",
-    view_func=faction.schedule.add_chain_availability,
-    methods=["POST"],
-)
 
 # /api/stakeout
 mod.add_url_rule(

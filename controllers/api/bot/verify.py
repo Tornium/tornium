@@ -118,7 +118,7 @@ def guild_verification_log(*args, **kwargs):
     guild.verify_log_channel = channelid
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @key_required

@@ -21,7 +21,7 @@ $(document).ready(function() {
         let response = xhttp.response;
 
         if("code" in response) {
-            generateToast("Discord Verification Config Not Located", response["message"])
+            generateToast("Discord Verification Config Not Located", response["message"]);
             generateToast("Verification Loading Halted", "The lack of verification configs has prevented the page from loading.")
             throw new Error("Verification config error");
         } else {
@@ -63,12 +63,12 @@ $(document).ready(function() {
                         channels = response["channels"];
 
                         $.each(response["channels"], function(category_id, category) {
-                            var optgroup = $(`<optgroup>`);
+                            let optgroup = $(`<optgroup>`);
                             optgroup.attr("label", category["name"]);
                             $("#verification-log-channel").append(optgroup);
 
                             $.each(category["channels"], function(channel_id, channel) {
-                                if(verificationConfig["verify_log_channel"] == parseInt(channel.id)) {
+                                if(verificationConfig["verify_log_channel"] === parseInt(channel.id)) {
                                     optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`))
                                 } else {
                                     optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));

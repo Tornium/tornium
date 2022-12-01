@@ -10,15 +10,6 @@ Tornium - Faction Bot Dashboard
 {% include 'faction/navbar.html' %}
 
 <div class="py-3 px-3">
-    <div class="card min-w-25 max-w-50">
-        <div class="card-body">
-            <h5 class="card-title">{{ faction.name }}'s Chains</h5>
-            <p class="card-text">
-                Not yet implemented.
-            </p>
-        </div>
-    </div>
-
     <div class="card min-w-25 max-w-50 my-3">
         <div class="card-body">
             <h5 class="card-title">Assists</h5>
@@ -39,20 +30,9 @@ Tornium - Faction Bot Dashboard
             <p class="card-text">
                 The chain OD watcher reports overdoses of faction members in the specified channel when enabled.
 
-                <form class="form-floating my-3" method="POST" action="/faction/chain">
-                    <input class="form-control" id="odchannel" name="odchannel" value="{{ faction.chain_config['odchannel'] }}">
-                    <label for="odchannel">Overdose Channel</label>
-                </form>
-
-                <form class="form-floating" method="POST" action="/faction/chain">
-                    {% if faction.chain_config['od'] == 0 %}
-                    <input type="submit" class="btn btn-primary" id="odenabled" name="odenabled" value="Enabled">
-                    <input type="submit" class="btn btn-primary active" disabled id="oddisabled" name="oddisabled" value="Disabled">
-                    {% else %}
-                    <input type="submit" class="btn btn-primary active" disabled id="odenabled" name="odenabled" value="Enabled">
-                    <input type="submit" class="btn btn-primary" id="oddisabled" name="oddisabled" value="Disabled">
-                    {% endif %}
-                </form>
+                <select class="discord-channel-selector" id="od-channel" aria-label="OD Log Channel" data-live-search="true">
+                    <option value="0">Disabled</option>
+                </select>
             </p>
         </div>
     </div>
@@ -74,4 +54,6 @@ Tornium - Faction Bot Dashboard
     </div>
     {% endif %}
 </div>
+
+<script src="/static/faction/chain.js" data-guildid="{{ faction.guild }}" data-key="{{ current_user.key }}"></script>
 {% endblock %}

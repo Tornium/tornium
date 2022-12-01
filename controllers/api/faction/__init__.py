@@ -6,6 +6,7 @@
 from controllers.api.faction import (
     assist,
     banking,
+    chain,
     positions,
     recruitment,
 )

@@ -84,6 +84,11 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
+    "/api/faction/chain/od/channel",
+    view_func=faction.chain.chain_od_channel,
+    methods=["GET", "POST"],
+)
+mod.add_url_rule(
     "/api/faction/positions",
     view_func=faction.positions.get_positions,
     methods=["GET"],

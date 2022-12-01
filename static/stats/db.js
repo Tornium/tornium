@@ -44,6 +44,9 @@ $(document).ready(function() {
 
             let lastStat = response["stat_entries"][Object.keys(response["stat_entries"])[Object.keys(response["stat_entries"]).length - 1]];
             let ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
+            if(ff > 3) {
+                ff = 3;
+            }
             let respect = ((Math.log10(user["level"]) + 1) / 4 * ff).toFixed(2);
 
             $("#stat-modal-body").append($("<div>", {

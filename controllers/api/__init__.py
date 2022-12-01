@@ -83,10 +83,11 @@ mod.add_url_rule(
     view_func=faction.banking.vault_balance,
     methods=["GET"],
 )
+mod.add_url_rule("/api/faction/chain", view_func=faction.chain.config, methods=["GET"])
 mod.add_url_rule(
     "/api/faction/chain/od/channel",
     view_func=faction.chain.chain_od_channel,
-    methods=["GET", "POST"],
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/faction/positions",

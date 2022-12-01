@@ -13,8 +13,7 @@ from models.factionmodel import FactionModel
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "faction:bot"})
-def chain_od_channel(*args, **kwargs):
-    data = json.loads(request.get_data().decode("utf-8"))
+def chain_config(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     if not kwargs["user"].factionaa:
@@ -27,14 +26,37 @@ def chain_od_channel(*args, **kwargs):
     if faction is None:
         return make_exception_response("1102", key)
 
-    if request.method == "POST":
-        channelid = data.get("channel")
+    return (
+        jsonify({"od": {"channel": faction.chainod["odchannel"]}}),
+        200,
+        api_ratelimit_response(key),
+    )
 
-        if channelid in ("", None, 0) or not channelid.isdigit():
-            return make_exception_response("1002", key)
 
-        faction.chainconfig["odchannel"] = int(channelid)
-        faction.save()
+@key_required
+@ratelimit
+@requires_scopes(scopes={"admin", "faction:bot"})
+def chain_od_channel(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not kwargs["user"].factionaa:
+        return make_exception_response("4005", key)
+
+    channelid = data.get("channel")
+
+    if channelid in ("", None, 0) or not channelid.isdigit():
+        return make_exception_response("1002", key)
+    elif kwargs["user"].factionid in ("", None, 0):
+        return make_exception_response("1102", key)
+
+    faction: FactionModel = FactionModel.objects(tid=kwargs["user"].factionid).first()
+
+    if faction is None:
+        return make_exception_response("1102", key)
+
+    faction.chainconfig["odchannel"] = int(channelid)
+    faction.save()
 
     return (
         jsonify({"od_channel": faction.chainod["odchannel"]}),

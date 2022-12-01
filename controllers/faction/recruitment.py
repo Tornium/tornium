@@ -122,7 +122,8 @@ def recruits(*args, **kwargs):
         start : start + length
     ]:
         recruiter: UserModel = UserModel.objects(tid=recruit.recruiter).first()
-        recruit_user = User(recruit.tid).refresh(key=current_user.key)
+        recruit_user = User(recruit.tid)
+        recruit_user.refresh(key=current_user.key)
 
         if recruit.status == 0:
             status = "Not Invited"

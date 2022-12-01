@@ -141,7 +141,9 @@ class User(UserMixin):
             self.battlescore_update = now
             self.discord_id = user.discord_id
 
-        return self
+            return True
+
+        return False
 
     def faction_refresh(self):
         user = UserModel.objects(tid=self.tid).first()

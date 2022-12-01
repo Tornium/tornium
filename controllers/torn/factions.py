@@ -72,9 +72,11 @@ def faction_data(tid: int):
     Faction(tid).refresh(key=current_user.key, force=True)
     faction: FactionModel = FactionModel.objects(tid=tid).first()
 
-    leader = User(faction.leader).refresh(key=current_user.key)
+    leader: User = User(faction.leader)
+    leader.refresh(key=current_user.key)
     if faction.coleader != 0:
-        coleader = User(faction.coleader).refresh(key=current_user.key)
+        coleader: User = User(faction.coleader)
+        coleader.refresh(key=current_user.key)
 
     leader: UserModel = UserModel.objects(tid=faction.leader).first()
     coleader: UserModel = UserModel.objects(tid=faction.coleader).first()

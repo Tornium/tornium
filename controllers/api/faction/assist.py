@@ -24,7 +24,8 @@ def forward_assist(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     assist_key = f'tornium:assist-ratelimit:{kwargs["user"].tid}'
     user = User(kwargs["user"].tid)
-    target = User(data.get("target_tid")).refresh(key=user.key)
+    target = User(data.get("target_tid"))
+    target.refresh(key=user.key)
 
     if client.get(assist_key) is not None:
         return make_exception_response("4291", key, redis_client=client)

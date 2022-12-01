@@ -61,6 +61,7 @@ def generate_chain_list(*args, **kwargs):
     jsonified_stat_entires = []
 
     targets = {}
+    targets_updated = 0
 
     for stat_entry in stat_entries:
         stat: StatModel = StatModel.objects(Q(tid=stat_entry) & (
@@ -74,8 +75,9 @@ def generate_chain_list(*args, **kwargs):
         else:
             user = User(tid=stat.tid)
 
-            if len(stat_entries) <= 100:
-                user.refresh(key=kwargs["user"].key)
+            if targets_updated <= 50:
+                if user.refresh(key=kwargs["user"].key):
+                    targets_updated += 1
 
         jsonified_stat_entires.append(
             {

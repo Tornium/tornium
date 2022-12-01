@@ -48,16 +48,16 @@ from controllers.torn import mod as torn_mod
 from skynet import mod as skynet_mod
 import utils
 
-FORMAT = ('%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] '
-          '[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] '
-          '- %(message)s')
+FORMAT = (
+    "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+    "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
+    "- %(message)s"
+)
 
 logger = logging.getLogger("server")
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
-handler.setFormatter(
-    logging.Formatter(FORMAT)
-)
+handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
 
 logger.debug("Flask is online")

@@ -33,8 +33,12 @@ def index():
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")
 @mod.route("/static/torn/users.js")
-@mod.route("/userscripts/tornium-assists.user.js")
 def static():
+    return send_from_directory("static", request.path[7:])
+
+
+@mod.route("/userscripts/tornium-assists.user.js")
+def userscripts():
     return send_from_directory("static", request.path[1:])
 
 

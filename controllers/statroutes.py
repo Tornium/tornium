@@ -86,13 +86,9 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
-    start_ts = time.time()
-    count = stat_entries.count()
-    print(time.time() - start_ts)
+    stat_entries_subset = stat_entries[start: start + length]
 
-    stat_entries = stat_entries[start: start + length]
-
-    for stat_entry in stat_entries:
+    for stat_entry in stat_entries_subset:
         user: UserModel = UserModel.objects(_id=stat_entry.tid).first()
 
         stats.append(
@@ -103,16 +99,18 @@ def stats_data():
             ]
         )
 
-    start_ts = time.time()
-    a = len(stat_entries)
-    print(time.time() - start_ts)
-
-    data = {
-        "draw": request.args.get("draw"),
-        "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
-        "recordsFiltered": count,
-        "data": stats,
-    }
+    if start == 0:
+        data = {
+            "draw": request.args.get("draw"),
+            "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
+            "recordsFiltered": stat_entries.count(),
+            "data": stats,
+        }
+    else:
+        data = {
+            "draw": request.args.get("draw"),
+            "data": stats,
+        }
 
     return data
 

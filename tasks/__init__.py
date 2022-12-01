@@ -23,7 +23,6 @@ import requests
 
 import settings  # Do not remove - initializes redis values
 from models.factionmodel import FactionModel
-from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from redisdb import get_redis
 import utils
@@ -255,10 +254,14 @@ def tornget(
             f"Error raised on API key {key} with redis return value {redis.get(redis_key)} and redis key {redis_key}"
         )
 
-    if session is None:
-        request = requests.get(url, timeout=5)
-    else:
-        request = session.get(url, timeout=5)
+    try:
+        if session is None:
+            request = requests.get(url, timeout=5)
+        else:
+            request = session.get(url, timeout=5)
+    except requests.exceptions.Timeout as e:
+        logger.exception(e)
+        raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
         logger.warning(

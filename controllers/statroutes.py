@@ -6,7 +6,7 @@
 import datetime
 import json
 import math
-import stat
+import time
 
 from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
@@ -86,8 +86,11 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
+    start_ts = time.time()
     count = stat_entries.count()
-    stat_entries = stat_entries[start : start + length]
+    print(time.time() - start_ts)
+
+    stat_entries = stat_entries[start: start + length]
 
     for stat_entry in stat_entries:
         user: UserModel = UserModel.objects(_id=stat_entry.tid).first()
@@ -100,9 +103,13 @@ def stats_data():
             ]
         )
 
+    start_ts = time.time()
+    a = len(stat_entries)
+    print(time.time() - start_ts)
+
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": StatModel.objects().count(),
+        "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
         "recordsFiltered": count,
         "data": stats,
     }

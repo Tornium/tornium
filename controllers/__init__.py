@@ -17,7 +17,6 @@ def index():
     return render_template("index.html")
 
 
-@mod.route("/static/robots.txt")
 @mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
 @mod.route("/static/login.css")
@@ -37,8 +36,9 @@ def static():
     return send_from_directory("static", request.path[8:])
 
 
+@mod.route("/robots.txt")
 @mod.route("/userscripts/tornium-assists.user.js")
-def userscripts():
+def base_statics():
     return send_from_directory("static", request.path[1:])
 
 

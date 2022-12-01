@@ -3,6 +3,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 Written by tiksan <webmaster@deek.sh> */
 
+const battlescore = document.currentScript.getAttribute("data-battlescore");
 const key = document.currentScript.getAttribute('data-key');
 
 $(document).ready(function() {
@@ -40,6 +41,10 @@ $(document).ready(function() {
             
             const user = response["user"];
             let modal = new bootstrap.Modal($("#stats-modal"));
+
+            let lastStat = response["stat_entries"][Object.keys(response["stat_entries"])[Object.keys(response["stat_entires"]).length - 1]];
+            let ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
+            let respect = ((Math.log10(user["level"]) + 1) / 4 * ff).toFixed(2);
 
             $("#stat-modal-body").append($("<div>", {
                 "class": "container"
@@ -100,7 +105,7 @@ $(document).ready(function() {
             }));
             $("#stat-modal-row-ff").append($("<div>", {
                 "class": "col-sm-6",
-                "text": "NYI"
+                "text": ff
             }));
 
             $("#stat-modal-body .container").append($("<div>", {
@@ -113,7 +118,7 @@ $(document).ready(function() {
             }));
             $("#stat-modal-row-respect").append($("<div>", {
                 "class": "col-sm-6",
-                "text": "NYI"
+                "text": respect
             }));
 
             $("#stat-modal-body .container").append($("<div>", {

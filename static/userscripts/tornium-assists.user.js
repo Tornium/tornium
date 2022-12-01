@@ -6,7 +6,7 @@
 // @downloadURL  https://tornium.com/userscripts/tornium-assists.user.js
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/loader*
-// @icon         https://tornium.com/favicon.svg
+// @icon         https://tornium.com/static/favicon.svg
 // @grant        GM_xmlhttpRequest
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js
 // @connect      deek.sh

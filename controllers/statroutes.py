@@ -99,10 +99,12 @@ def stats_data():
             ]
         )
 
+    total_records = StatModel.objects().order_by("-statid").first().statid
+
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
-        "recordsFiltered": stat_entries.count(),
+        "recordsTotal": total_records,
+        # "recordsFiltered": total_records,
         "data": stats,
     }
 

@@ -18,7 +18,8 @@ $(document).ready(function() {
                 d.maxBS = $('#max-bs').val();
             }
         },
-        "order": [[2, "desc"], [1, "desc"]]
+        "order": [[2, "desc"], [1, "desc"]],
+        "pagingType": "simple"
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;

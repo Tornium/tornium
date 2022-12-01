@@ -38,7 +38,7 @@ $(document).ready(function() {
                     $("#od-channel").append(optgroup);
 
                     $.each(category["channels"], function(channel_id, channel) {
-                        if(chainConfig["od_channel"] === parseInt(channel.id)) {
+                        if(chainConfig["od"]["channel"] === parseInt(channel.id)) {
                             optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`));
                         } else {
                             optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
@@ -55,7 +55,7 @@ $(document).ready(function() {
     }
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/faction/chain/od`);
+    xhttp.open("GET", `/api/faction/chain`);
     xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();

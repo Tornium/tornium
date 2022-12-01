@@ -99,18 +99,12 @@ def stats_data():
             ]
         )
 
-    if start == 0:
-        data = {
-            "draw": request.args.get("draw"),
-            "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
-            "recordsFiltered": stat_entries.count(),
-            "data": stats,
-        }
-    else:
-        data = {
-            "draw": request.args.get("draw"),
-            "data": stats,
-        }
+    data = {
+        "draw": request.args.get("draw"),
+        "recordsTotal": StatModel.objects().order_by("-statid").first().statid,
+        "recordsFiltered": stat_entries.count(),
+        "data": stats,
+    }
 
     return data
 

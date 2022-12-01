@@ -27,7 +27,7 @@ def chain_config(*args, **kwargs):
         return make_exception_response("1102", key)
 
     return (
-        jsonify({"od": {"channel": faction.chainod["odchannel"]}}),
+        jsonify({"od": {"channel": faction.chainconfig["odchannel"]}}),
         200,
         api_ratelimit_response(key),
     )
@@ -59,7 +59,7 @@ def chain_od_channel(*args, **kwargs):
     faction.save()
 
     return (
-        jsonify({"od_channel": faction.chainod["odchannel"]}),
+        jsonify({"od_channel": faction.chainconfig["odchannel"]}),
         200,
         api_ratelimit_response(key),
     )

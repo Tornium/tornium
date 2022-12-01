@@ -47,7 +47,7 @@ $(document).ready(function() {
             if(ff > 3) {
                 ff = 3;
             }
-            let respect = ((Math.log10(user["level"]) + 1) / 4 * ff).toFixed(2);
+            let respect = ((Math.log(user["level"]) + 1) / 4 * ff).toFixed(2);
 
             $("#stat-modal-body").append($("<div>", {
                 "class": "container"

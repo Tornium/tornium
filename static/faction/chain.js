@@ -74,7 +74,7 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/faction/chain/od");
+        xhttp.open("POST", "/api/faction/chain/od/channel");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({

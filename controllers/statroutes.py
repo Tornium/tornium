@@ -104,7 +104,7 @@ def stats_data():
     data = {
         "draw": request.args.get("draw"),
         "recordsTotal": total_records,
-        # "recordsFiltered": total_records,
+        "recordsFiltered": total_records,
         "data": stats,
     }
 

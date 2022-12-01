@@ -256,9 +256,9 @@ def tornget(
         )
 
     if session is None:
-        request = requests.get(url)
+        request = requests.get(url, timeout=5)
     else:
-        request = session.get(url)
+        request = session.get(url, timeout=5)
 
     if request.status_code != 200:
         logger.warning(

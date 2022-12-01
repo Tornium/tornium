@@ -36,4 +36,8 @@ def chain_od_channel(*args, **kwargs):
         faction.chainconfig["odchannel"] = int(channelid)
         faction.save()
 
-    return jsonify({"od_channel": faction.chainod["odchannel"]}), 200, api_ratelimit_response(key)
+    return (
+        jsonify({"od_channel": faction.chainod["odchannel"]}),
+        200,
+        api_ratelimit_response(key),
+    )

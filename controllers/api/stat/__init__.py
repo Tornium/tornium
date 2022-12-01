@@ -56,22 +56,24 @@ def generate_chain_list(*args, **kwargs):
             )
         )
     )
-    stat_entries = list(stat_entries.all().values_list("statid"))
+    stat_entries = list(set(stat_entries.all().values_list("tid")))
     random.shuffle(stat_entries)
     jsonified_stat_entires = []
-    jsonified_stat_ids = []
+
+    targets = {}
 
     for stat_entry in stat_entries:
-        if len(jsonified_stat_entires) >= 10:
-            break
+        stat: StatModel = StatModel.objects(Q(tid=stat_entry) & (
+            Q(globalstat=True)
+            | Q(addedid=kwargs["user"].tid)
+            | Q(addedfactiontid=kwargs["user"].factionid)
+        )).order_by("-timeadded").first()
 
-        stat: StatModel = StatModel.objects(statid=stat_entry).first()
-
-        if stat.tid in jsonified_stat_ids:
-            continue
-
-        user = User(tid=stat.tid)
-        user.refresh(key=kwargs["user"].key)
+        if stat_entry in targets:
+            user = targets[stat_entry]
+        else:
+            user = User(tid=stat.tid)
+            user.refresh(key=kwargs["user"].key)
 
         jsonified_stat_entires.append(
             {
@@ -91,7 +93,6 @@ def generate_chain_list(*args, **kwargs):
                 },
             }
         )
-        jsonified_stat_ids.append(stat.tid)
 
     return (
         jsonify(

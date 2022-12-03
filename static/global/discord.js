@@ -33,6 +33,8 @@ function setDiscordSelectors() {
                 "text": role.name
             }));
         });
+
+        $(".discord-role-selector").selectpicker();
     }
     rolesRequest.responseType = "json";
     rolesRequest.open("GET", `/api/bot/server/${guildid}/roles`)
@@ -66,6 +68,8 @@ function setDiscordSelectors() {
                 }))
             })
         });
+
+        $(".discord-channel-selector").selectpicker();
     }
     channelsRequest.responseType = "json";
     channelsRequest.open("GET", `/api/bot/server/${guildid}/channels`)

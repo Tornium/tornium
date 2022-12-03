@@ -24,28 +24,12 @@ Tornium - Bot Dashboard
 </div>
 
 <div class="pb-3 px-3">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Basic Setup</h5>
-            <p class="card-text">
-                Various basic settings (such as the prefix) that can be changed for this particular Discord guild. Only single character prefixes are accepted.
-            </p>
-
-            <div class="col-sm-12 col-md-8 col-lg-4">
-                <form class="form-floating" method="POST" action="/bot/dashboard/{{ server.sid }}">
-                    <input class="form-control" id="prefix" name="prefix" value="{{ server.prefix }}">
-                    <label for="prefix">Prefix</label>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <div class="card mt-3">
         <div class="card-body">
             <h5 class="card-title">Factions</h5>
             <p class="card-text">
                 The factions located in the particular Discord guild.
-                Add the faction to the server to indicate the the server administration accepts the faction in the server; however, for any features to be run by the faction in the server, the server ID will need to be added in the <a href="/faction/bot">faction bot dashboard</a>.
+                Add the faction to the server to indicate the server administration accepts the faction in the server; however, for any features to be run by the faction in the server, the server ID will need to be added in the <a href="/faction/bot">faction bot dashboard</a>.
             </p>
 
             <div class="col-sm-12 col-md-8 col-lg-4">

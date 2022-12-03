@@ -12,10 +12,7 @@ $(document).ready(function() {
     });
 
     let verificationConfig = null;
-    let roles = null;
-    let channels = null;
-
-    var xhttp = new XMLHttpRequest();
+    let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function() {
         let response = xhttp.response;
@@ -27,70 +24,99 @@ $(document).ready(function() {
         } else {
             verificationConfig = response;
 
-            xhttp.onload = function() {
-                let response = xhttp.response;
-        
-                if("code" in response) {
-                    generateToast("Discord Roles Not Located", response["message"]);
-                } else {
-                    roles = response["roles"];
+            $.each(verificationConfig["verified_roles"], function(index, role) {
+                let option = $(`#verification-roles option[value="${role}"]`);
 
-                    $.each(response["roles"], function(role_id, role) {
-                        if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
-                            $("#verification-roles").get(0).innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
-                        } else {
-                            $("#verification-roles").get(0).innerHTML += `<option value="${role.id}">${role.name}</option>`;
-                        }
-
-                        $.each($(".verification-faction-roles"), function(index, item) {
-                            if(verificationConfig["faction_verify"][parseInt(item.getAttribute("data-faction"))]["roles"].includes(parseInt(role["id"]))) {
-                                item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
-                            } else {
-                                item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
-                            }
-                        });
-                    });
-
-                    $(".discord-role-selector").selectpicker();
+                if(option.length === 0) {
+                    return;
                 }
 
-                xhttp.onload = function() {
-                    let response = xhttp.response;
-            
-                    if("code" in response) {
-                        generateToast("Discord Channels Not Located", response["message"]);
-                    } else {
-                        channels = response["channels"];
+                option.attr("selected", "");
+            });
 
-                        $.each(response["channels"], function(category_id, category) {
-                            let optgroup = $(`<optgroup>`);
-                            optgroup.attr("label", category["name"]);
-                            $("#verification-log-channel").append(optgroup);
+            $.each(verificationConfig["faction_verify"], function(factionid, factionConfig) {
+                $.each(factionConfig["roles"], function(index, role) {
+                    let option = $(`.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`);
 
-                            $.each(category["channels"], function(channel_id, channel) {
-                                if(verificationConfig["verify_log_channel"] === parseInt(channel.id)) {
-                                    optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`))
-                                } else {
-                                    optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
-                                }
-                            });
-                        });
-
-                        $(".discord-channel-selector").selectpicker();
+                    if(option.length === 0) {
+                        return;
                     }
-                }
-                
-                xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
-                xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send();
-            }
 
-            xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
-            xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send();
+                    option.attr("selected", "");
+                });
+            });
+
+            let logChannel = $(`#verification-log-channel option[value="${verificationConfig["verify_log_channel"]}"]`);
+
+            if(logChannel.length !== 0) {
+                logChannel.attr("selected", "");
+            }
         }
+
+        //     xhttp.onload = function() {
+        //         let response = xhttp.response;
+        //
+        //         if("code" in response) {
+        //             generateToast("Discord Roles Not Located", response["message"]);
+        //         } else {
+        //             roles = response["roles"];
+        //
+        //             $.each(response["roles"], function(role_id, role) {
+        //                 if(verificationConfig["verified_roles"].includes(parseInt(role["id"]))) {
+        //                     $("#verification-roles").get(0).innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
+        //                 } else {
+        //                     $("#verification-roles").get(0).innerHTML += `<option value="${role.id}">${role.name}</option>`;
+        //                 }
+        //
+        //                 $.each($(".verification-faction-roles"), function(index, item) {
+        //                     if(verificationConfig["faction_verify"][parseInt(item.getAttribute("data-faction"))]["roles"].includes(parseInt(role["id"]))) {
+        //                         item.innerHTML += `<option value=${role.id}" selected>${role.name}</option>`;
+        //                     } else {
+        //                         item.innerHTML += `<option value=${role.id}>${role.name}</option>`;
+        //                     }
+        //                 });
+        //             });
+        //
+        //             $(".discord-role-selector").selectpicker();
+        //         }
+        //
+        //         xhttp.onload = function() {
+        //             let response = xhttp.response;
+        //
+        //             if("code" in response) {
+        //                 generateToast("Discord Channels Not Located", response["message"]);
+        //             } else {
+        //                 channels = response["channels"];
+        //
+        //                 $.each(response["channels"], function(category_id, category) {
+        //                     let optgroup = $(`<optgroup>`);
+        //                     optgroup.attr("label", category["name"]);
+        //                     $("#verification-log-channel").append(optgroup);
+        //
+        //                     $.each(category["channels"], function(channel_id, channel) {
+        //                         if(verificationConfig["verify_log_channel"] === parseInt(channel.id)) {
+        //                             optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`))
+        //                         } else {
+        //                             optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
+        //                         }
+        //                     });
+        //                 });
+        //
+        //                 $(".discord-channel-selector").selectpicker();
+        //             }
+        //         }
+        //
+        //         xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
+        //         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        //         xhttp.setRequestHeader("Content-Type", "application/json");
+        //         xhttp.send();
+        //     }
+        //
+        //     xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
+        //     xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        //     xhttp.setRequestHeader("Content-Type", "application/json");
+        //     xhttp.send();
+        // }
     }
 
     xhttp.responseType = "json";

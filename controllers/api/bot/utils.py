@@ -19,6 +19,9 @@ def get_channels(guildid, *args, **kwargs):
     except LookupError:
         return make_exception_response("1001", key)
 
+    if kwargs["user"].tid not in server.admins:
+        return make_exception_response("4020", key)
+
     return ({"channels": server.get_text_channels()}, 200, api_ratelimit_response(key))
 
 
@@ -32,6 +35,9 @@ def get_roles(guildid, *args, **kwargs):
         server = Server(guildid)
     except LookupError:
         return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in server.admins:
+        return make_exception_response("4020", key)
 
     return (
         {"roles": list(server.get_roles().values())},

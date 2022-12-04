@@ -28,6 +28,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/server/<int:guildid>",
+    view_func=bot.server_config,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/bot/server/<int:guildid>/channels",
     view_func=bot.utils.get_channels,
     methods=["GET"],

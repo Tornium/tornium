@@ -37,6 +37,8 @@ def faction_retal_channel(*args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
     elif factiontid not in guild.factions:
         return make_exception_response("4021", key)
 

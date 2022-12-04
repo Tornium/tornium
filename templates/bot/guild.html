@@ -119,6 +119,8 @@ Tornium - Bot Dashboard
                 <div class="form-floating">
                     <input class="form-control" id="assistchannel" name="assistchannel" value="{{ server.assistschannel }}">
                     <label for="assistchannel">Assist Channel</label>
+
+                    <select class="discord-channel-selector" id="assist-channel" aria-label="Assist Channel" data-live-search="true"></select>
                 </div>
             </div>
 
@@ -238,6 +240,9 @@ Tornium - Bot Dashboard
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script src="/static/global/discord.js" data-guildid="{{ guildid }}" data-key="{{ current_user.key }}"></script>
 <script src="/static/bot/guild.js" data-guildid="{{ guildid }}" data-key="{{ current_user.key }}" data-assist-mod="{{ assist_mod }}"></script>
 {% endblock %}

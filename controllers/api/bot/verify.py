@@ -35,6 +35,8 @@ def verification_config(guildid, *args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
     for factiontid, faction_data in guild.faction_verify.items():
         if "positions" not in guild.faction_verify[factiontid]:
@@ -62,6 +64,8 @@ def guild_verification(*args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
     if request.method == "POST":
         if guild.config.get("verify") in (None, 0):
@@ -114,6 +118,8 @@ def guild_verification_log(*args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
     guild.verify_log_channel = channelid
     guild.save()
@@ -142,6 +148,8 @@ def faction_verification(*args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
     faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
 
@@ -195,6 +203,8 @@ def guild_verification_roles(*args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
     try:
         guild.verified_roles = [int(role) for role in roles]
@@ -226,6 +236,8 @@ def faction_roles(factiontid, *args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
     elif str(factiontid) not in guild.faction_verify.keys():
         return make_exception_response("1102", key)
 
@@ -255,6 +267,8 @@ def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
 
     if guild is None:
         return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
     elif str(factiontid) not in guild.faction_verify.keys():
         return make_exception_response("1102", key)
 

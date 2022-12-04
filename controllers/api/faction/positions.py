@@ -16,7 +16,6 @@ from models.servermodel import ServerModel
 @ratelimit
 @requires_scopes(scopes={"admin", "read:faction", "faction:admin"})
 def get_positions(*args, **kwargs):
-    client = redisdb.get_redis()
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     guildid = request.args.get("guildid")

@@ -29,7 +29,7 @@ mod.add_url_rule(
 )
 mod.add_url_rule(
     "/api/bot/server/<int:guildid>",
-    view_func=bot.server_config,
+    view_func=bot.config.server_config,
     methods=["GET"],
 )
 mod.add_url_rule(

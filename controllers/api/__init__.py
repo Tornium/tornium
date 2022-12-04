@@ -23,7 +23,9 @@ mod.add_url_rule("/api/key", view_func=key.remove_key, methods=["DELETE"])
 
 # /api/bot
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/assists/channel"
+    "/api/bot/<int:guildid>/assists/channel",
+    view_func=bot.assists.assists_channel,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/bot/retal/faction/channel",

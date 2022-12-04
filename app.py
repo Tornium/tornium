@@ -114,6 +114,8 @@ def after_request(response: flask.Response):
     # X-Frame-Options
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
 
+    return response
+
 
 if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":
     app.register_blueprint(base_mod)

@@ -60,8 +60,6 @@ handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
 
-logger.debug("Flask is online")
-
 app = flask.Flask(__name__)
 app.secret_key = redis.get("tornium:settings:secret")
 app.config["REMEMBER_COOKIE_DURATION"] = 604800
@@ -101,6 +99,20 @@ def commas(s):
 def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
+
+
+@app.after_request
+def after_request(response: flask.Response):
+    # HSTS enabled through CloudFlare
+    # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+
+    # Content Security Policy
+
+    # X-Content-Type-Options
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+
+    # X-Frame-Options
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
 
 
 if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":

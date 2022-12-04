@@ -58,19 +58,26 @@ $(document).ready(function() {
         }
     });
 
-    $('#assistchannel').on('keypress', function(e) {
-        if(e.which === 13) {
-            const id = $('#assistchannel').val();
-            const xhttp = new XMLHttpRequest();
+    $("#assist-channel").on("change", function() {
+        const xhttp = new XMLHttpRequest();
 
-            xhttp.onload = function() {
-                window.location.reload();
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Assists Channel Failed", response["message"]);
+                return;
             }
 
-            xhttp.open('POST', `/bot/assists/${guildid}/update?action=channel&value=${id}`);
-            xhttp.send();
+            xhttp.responseType = "json";
+            xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
+            xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(JSON.stringify({
+                "channel": this.options[this.selectedIndex].value
+            }));
         }
-    });
+    })
 
     $('#assistfactionid').on('keypress', function(e) {
         if(e.which === 13) {

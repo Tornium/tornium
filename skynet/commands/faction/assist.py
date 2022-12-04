@@ -180,7 +180,7 @@ def assist(interaction):
 
     server: ServerModel
     for server in ServerModel.objects(assistchannel__ne=0):
-        if server.config.get("assists") in (0, None) or server.assistschannel == 0:
+        if server.assistschannel == 0:
             continue
         elif server.assist_mod == 1 and user.factionid not in server.assist_factions:
             continue

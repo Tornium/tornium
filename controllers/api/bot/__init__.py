@@ -3,4 +3,4 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from controllers.api.bot import config, retal, utils, verify
+from controllers.api.bot import assists, config, retal, utils, verify

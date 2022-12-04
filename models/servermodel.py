@@ -20,7 +20,7 @@ class ServerModel(DynamicDocument):
     admins = ListField(default=[])  # List of admin ids
     prefix = StringField(default="?")
     config = DictField(
-        default={"stakeouts": 0, "assists": 0, "verify": 0}
+        default={"stakeouts": 0, "verify": 0}
     )  # Dictionary of server configurations
 
     factions = ListField(default=[])  # List of factions in server

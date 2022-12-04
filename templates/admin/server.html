@@ -37,12 +37,6 @@ Tornium - Admin Server
                     {% else %}
                         <li class="list-group-item">Stakeouts: Not Found</li>
                     {% endif %}
-
-                    {% if "assists" in server.config %}
-                        <li class="list-group-item">Assists: {{ server.config.get("assists") }}</li>
-                    {% else %}
-                        <li class="list-group-item">Assists: Not Found</li>
-                    {% endif %}
                 </ul>
             </li>
             <li class="list-group-item">

@@ -31,7 +31,7 @@ def refresh_guilds():
                 name=guild["name"],
                 admins=[],
                 prefix="?",
-                config={"stakeouts": 0, "assists": 0},
+                config={"stakeouts": 0, "verify": 0},
                 factions=[],
                 stakeoutconfig={"category": 0},
                 userstakeouts=[],

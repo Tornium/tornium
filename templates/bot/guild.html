@@ -117,25 +117,11 @@ Tornium - Bot Dashboard
 
             <div class="col-sm-12 col-md-8 col-lg-4 mb-3">
                 <div class="form-floating">
-                    <select class="discord-channel-selector" id="assist-channel" aria-label="Assist Channel" data-live-search="true"></select>
+                    <select class="discord-channel-selector" id="assist-channel" aria-label="Assist Channel" data-live-search="true">
+                        <option value="0">Disabled</option>
+                    </select>
                 </div>
             </div>
-
-            {% if server.config['assists'] == 0 %}
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/assists/{{ guildid }}/update?action=enable" style="color: white;">Enabled</a>
-            </button>
-            <button type="button" class="btn btn-primary" disabled>
-                <a href="#" style="color: white;">Disabled</a>
-            </button>
-            {% else %}
-            <button type="button" class="btn btn-primary" disabled>
-                <a href="#" style="color: white;">Enabled</a>
-            </button>
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/assists/{{ guildid }}/update?action=disable" style="color: white;">Disabled</a>
-            </button>
-            {% endif %}
 
             <p class="card-text my-3">
                 Set where the assist requests are accepted from by whitelisting factions, blacklisting factions, or by accepting them from everyone.

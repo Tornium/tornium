@@ -15,7 +15,7 @@ def assists_update(guildid):
     action = request.args.get("action")
     value = request.args.get("value")
 
-    if action not in ["enable", "disable", "channel", "faction", "mod"]:
+    if action not in ["enable", "disable", "faction", "mod"]:
         return (
             jsonify({"success": False}),
             400,
@@ -24,16 +24,7 @@ def assists_update(guildid):
 
     server: ServerModel = ServerModel.objects(sid=guildid).first()
 
-    if action == "enable":
-        server.config["assists"] = 1
-        server.save()
-    elif action == "disable":
-        server.config["assists"] = 0
-        server.save()
-    elif action == "channel":
-        server.assistschannel = int(value)
-        server.save()
-    elif action == "faction":
+    if action == "faction":
         if int(value) in server.assist_factions:
             factions = server.assist_factions
             factions.remove(int(value))

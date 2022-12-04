@@ -9,31 +9,33 @@ from models.servermodel import ServerModel
 
 
 def jsonified_server_config(guild: ServerModel):
-    return jsonify({
-        "id": guild.sid,
-        "name": guild.name,
-        "admins": guild.admins,
-        "factions": guild.factions,
-        "stakeouts": {
-            "enabled": guild.config.get("stakeouts"),
-            "category": guild.stakeoutconfig.get("category"),
-            "user_stakeouts": guild.userstakeouts,
-            "faction_stakeouts": guild.factionstakeouts,
-        },
-        "verify": {
-            "enabled": guild.config.get("verify"),
-            "template": guild.verify_template,
-            "verified_roles": guild.verified_roles,
-            "faction_verify": guild.faction_verify,
-            "log_channel": guild.verify_log_channel,
-        },
-        "retals": guild.retal_config,
-        "assists": {
-            "channel": guild.assistschannel,
-            "factions": guild.assist_factions,
-            "modifier": guild.assist_mod
+    return jsonify(
+        {
+            "id": guild.sid,
+            "name": guild.name,
+            "admins": guild.admins,
+            "factions": guild.factions,
+            "stakeouts": {
+                "enabled": guild.config.get("stakeouts"),
+                "category": guild.stakeoutconfig.get("category"),
+                "user_stakeouts": guild.userstakeouts,
+                "faction_stakeouts": guild.factionstakeouts,
+            },
+            "verify": {
+                "enabled": guild.config.get("verify"),
+                "template": guild.verify_template,
+                "verified_roles": guild.verified_roles,
+                "faction_verify": guild.faction_verify,
+                "log_channel": guild.verify_log_channel,
+            },
+            "retals": guild.retal_config,
+            "assists": {
+                "channel": guild.assistschannel,
+                "factions": guild.assist_factions,
+                "modifier": guild.assist_mod,
+            },
         }
-    })
+    )
 
 
 @key_required

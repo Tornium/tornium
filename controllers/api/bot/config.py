@@ -44,7 +44,7 @@ def jsonified_server_config(guild: ServerModel):
 def server_config(guildid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guild: ServerModel = ServerModel.objects(id=guildid).first()
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
         return make_exception_response("1001", key)

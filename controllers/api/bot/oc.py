@@ -13,7 +13,7 @@ from models.servermodel import ServerModel
 
 @key_required
 @ratelimit
-@requires_scopes(scopes={"admin", {"bot:admin"}})
+@requires_scopes(scopes={"admin", "bot:admin"})
 def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 

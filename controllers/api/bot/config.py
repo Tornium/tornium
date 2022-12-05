@@ -11,7 +11,7 @@ from models.servermodel import ServerModel
 def jsonified_server_config(guild: ServerModel):
     return jsonify(
         {
-            "id": guild.sid,
+            "id": str(guild.sid),
             "name": guild.name,
             "admins": guild.admins,
             "factions": guild.factions,
@@ -24,13 +24,13 @@ def jsonified_server_config(guild: ServerModel):
             "verify": {
                 "enabled": guild.config.get("verify"),
                 "template": guild.verify_template,
-                "verified_roles": guild.verified_roles,
+                "verified_roles": list(map(str, guild.verified_roles)),
                 "faction_verify": guild.faction_verify,
-                "log_channel": guild.verify_log_channel,
+                "log_channel": str(guild.verify_log_channel),
             },
-            "retals": guild.retal_config,
+            "retals": dict(zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))),
             "assists": {
-                "channel": guild.assistschannel,
+                "channel": str(guild.assistschannel),
                 "factions": guild.assist_factions,
                 "modifier": guild.assist_mod,
             },

@@ -58,11 +58,11 @@ function setDiscordSelectors() {
         $.each(response["channels"], function(category_id, category) {
             $(".discord-channel-selector").append($("<optgroup>", {
                 "label": category.name,
-                "data-category-id": category_id
+                "data-category-id": category["id"]
             }));
 
             $.each(category["channels"], function(channel_id, channel) {
-                $(`optgroup[data-category-id="${category_id}"]`).append($("<option>", {
+                $(`optgroup[data-category-id="${category["id"]}"]`).append($("<option>", {
                     "value": channel.id,
                     "text": `#${channel.name}`
                 }))

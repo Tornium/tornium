@@ -45,7 +45,13 @@ class Server:
 
         self.skynet = server.skynet
 
-    def get_text_channels(self):
+    def get_text_channels(self, api=False):
+        def parse(value):
+            if api:
+                return str(value)
+            else:
+                return value
+
         channels_query = tasks.discordget(
             f"guilds/{self.sid}/channels", dev=self.skynet
         )
@@ -54,7 +60,7 @@ class Server:
         for channel in channels_query:
             if channel["type"] == 4 and channel["id"] not in channels:
                 channels[channel["id"]] = {
-                    "id": channel["id"],
+                    "id": parse(channel["id"]),
                     "name": channel["name"] if "name" in channel else "",
                     "position": channel["position"] if "position" in channel else -1,
                     "channels": {},
@@ -68,7 +74,7 @@ class Server:
             elif channel["type"] == 0:
                 if "parent_id" not in channel or channel.get("parent_id") is None:
                     channels["0"]["channels"][channel["id"]] = {
-                        "id": channel["id"],
+                        "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
                         "position": channel["position"]
                         if "position" in channel
@@ -76,7 +82,7 @@ class Server:
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
-                        "id": channel["id"],
+                        "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
                         "position": channel["position"]
                         if "position" in channel
@@ -84,11 +90,11 @@ class Server:
                     }
                 else:
                     channels[channel["parent_id"]] = {
-                        "id": channel["parent_id"],
+                        "id": parse(channel["parent_id"]),
                         "name": None,
                         "channels": {
                             channel["id"]: {
-                                "id": channel["id"],
+                                "id": parse(channel["id"]),
                                 "name": channel["name"] if "name" in channel else "",
                                 "position": channel["position"]
                                 if "position" in channel
@@ -103,7 +109,13 @@ class Server:
 
         return channels
 
-    def get_roles(self):
+    def get_roles(self, api=False):
+        def parse(value):
+            if api:
+                return str(value)
+            else:
+                return value
+
         roles_query = tasks.discordget(f"guilds/{self.sid}", dev=self.skynet)
         roles = {}
 
@@ -118,7 +130,7 @@ class Server:
                 continue
 
             roles[role["id"]] = {
-                "id": role["id"],
+                "id": parse(role["id"]),
                 "name": role["name"],
                 "position": role["position"],
             }

@@ -22,7 +22,7 @@ def get_channels(guildid, *args, **kwargs):
     if kwargs["user"].tid not in server.admins:
         return make_exception_response("4020", key)
 
-    return ({"channels": server.get_text_channels()}, 200, api_ratelimit_response(key))
+    return ({"channels": server.get_text_channels(api=True)}, 200, api_ratelimit_response(key))
 
 
 @key_required
@@ -40,7 +40,7 @@ def get_roles(guildid, *args, **kwargs):
         return make_exception_response("4020", key)
 
     return (
-        {"roles": list(server.get_roles().values())},
+        {"roles": list(server.get_roles(api=True).values())},
         200,
         api_ratelimit_response(key),
     )

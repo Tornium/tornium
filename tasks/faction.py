@@ -14,6 +14,7 @@ from mongoengine.queryset.visitor import Q
 import requests
 
 from models.factionmodel import FactionModel
+from models.ocmodel import OCModel
 from models.positionmodel import PositionModel
 from models.recruitmodel import RecruitModel
 from models.servermodel import ServerModel
@@ -26,6 +27,17 @@ import utils
 from utils.errors import NetworkingError, TornError
 
 logger: logging.Logger
+
+ORGANIZED_CRIMES = {
+    1: "Blackmail",
+    2: "Kidnapping",
+    3: "Bomb Threat",
+    4: "Planned Robbery",
+    5: "Rob a Money Train",
+    6: "Take over a Cruise Liner",
+    7: "Hijack a Plane",
+    8: "Political Assassination",
+}
 
 
 @celery_app.task
@@ -497,7 +509,7 @@ def fetch_attacks_runner():
 
     faction: FactionModel
     for faction in FactionModel.objects(
-        Q(aa_keys__not__size=0) & Q(aa_keys__exists=True)
+        Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)
     ):
         if len(faction.aa_keys) == 0:
             continue
@@ -946,3 +958,158 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except Exception as e:
             logger.exception(e)
             continue
+
+
+@celery_app.task
+def oc_refresh():
+    requests_session = requests.Session()
+
+    faction: FactionModel
+    for faction in FactionModel.objects(
+        Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)
+    ):
+        if len(faction.aa_keys) == 0:
+            continue
+        elif faction.guild in (None, 0):
+            continue
+
+        guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
+
+        if guild is None:
+            continue
+
+        aa_key = random.choice(faction.aa_keys)
+
+        try:
+            oc_data = tornget(
+                "faction/?selections=crimes",
+                key=aa_key,
+                session=requests_session,
+            )
+        except TornError as e:
+            if e.code == 7:
+                db_aa_keys = list(faction.aa_keys)
+
+                try:
+                    db_aa_keys.remove(aa_key)
+                    faction.aa_keys = db_aa_keys
+                    faction.save()
+                except ValueError:
+                    pass
+
+            logger.exception(e)
+            continue
+        except NetworkingError as e:
+            logger.exception(e)
+            continue
+        except Exception as e:
+            logger.exception(e)
+            continue
+
+        for oc_id, oc_data in oc_data["crimes"].items():
+            oc_db_original: OCModel = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id)).first()
+
+            oc_db: OCModel = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id)).modify(
+                upsert=True,
+                new=True,
+                set__crime_id=oc_data["crime_id"],
+                set__participants=[list(participant.keys())[0] for participant in oc_data["participants"]],
+                set__time_started=oc_data["time_started"],
+                set__time_ready=oc_data["time_ready"],
+                set__time_completed=oc_data["time_completed"],
+                set__planned_by=oc_data["planned_by"],
+                set__initiated_by=oc_data["initiated_by"],
+                set__money_gain=oc_data["money_gain"],
+                set__respect_gain=oc_data["respect_gain"],
+            )
+
+            if oc_db_original is None:
+                continue
+            elif utils.now() >= oc_db.time_completed:
+                continue
+            elif oc_db.time_ready < utils.now():
+                continue
+
+            ready = map(lambda participant: list(participant.values())[0]["color"] == "green", oc_data["participants"])
+
+            if len(oc_db.delayers) == 0 and not all(ready):
+                # OC has been delayed
+                oc_db.notified = False
+
+                payload = {
+                    "embeds": [
+                        {
+                            "title": f"OC of {faction.name} Delayed",
+                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]}] has been delayed ({list(ready).count(True)}/{len(oc_data['participants'])}).""",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "footer": {"text": utils.torn_timestamp()}
+                        }
+                    ],
+                    "components": [],
+                }
+
+                for participant in oc_data["participants"]:
+                    participant_id = list(participant.keys())[0]
+                    participant = participant[participant_id]
+
+                    if participant["color"] != "green":
+                        oc_db.delayers.append(participant_id)
+
+                        participant_db: UserModel = UserModel.objects(tid=participant_id).first()
+
+                        if participant_db is None:
+                            payload["components"].append(
+                                {
+                                    "type": 1,
+                                    "components": [
+                                        {
+                                            "type": 2,
+                                            "style": 5,
+                                            "label": f"Unknown [{participant_id}]",
+                                            "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                        },
+                                        {
+                                            "type": 2,
+                                            "style": 2,
+                                            "label": f"{participant['description']}",
+                                            "custom_id": f"participant:delay:{participant_id}",
+                                        }
+                                    ]
+                                }
+                            )
+                        else:
+                            payload["components"].append(
+                                {
+                                    "type": 1,
+                                    "components": [
+                                        {
+                                            "type": 2,
+                                            "style": 5,
+                                            "label": f"{participant_db.name} [{participant_id}]",
+                                            "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                        },
+                                        {
+                                            "type": 2,
+                                            "style": 2,
+                                            "label": f"{participant['description']}",
+                                            "custom_id": f"participant:delay:{participant_id}",
+                                        }
+                                    ]
+                                }
+                            )
+
+                print(payload)
+                continue
+
+                try:
+                    discordpost.delay(
+                        f'channels/{None}/messages',
+                        payload=payload,
+                        dev=guild.skynet,
+                    )
+                except Exception as e:
+                    logger.exception(e)
+                    continue
+            elif not oc_db.notified and all(ready):
+                # OC is ready
+                pass

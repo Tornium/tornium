@@ -26,9 +26,6 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
             "1000", key, details={"message": "Invalid notification element."}
         )
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
-        return make_exception_response("1001", key)
-
     data = json.loads(request.get_data().decode("utf-8"))
     elementid = data.get(element)
 

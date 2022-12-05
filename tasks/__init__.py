@@ -79,6 +79,11 @@ if celery_app is None:
                 "task": "tasks.faction.fetch_attacks_runner",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },
+            "oc-refresh": {
+                "task": "tasks.faction.oc_refresh",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
             },  # Guild tasks
             "refresh-guilds": {
                 "task": "tasks.guild.refresh_guilds",

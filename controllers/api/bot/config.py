@@ -15,10 +15,10 @@ def jsonified_server_config(guild: ServerModel):
         "admins": guild.admins,
         "factions": guild.factions,
         "stakeouts": {
-        "enabled": guild.config.get("stakeouts"),
-        "category": guild.stakeoutconfig.get("category"),
-        "user_stakeouts": guild.userstakeouts,
-        "faction_stakeouts": guild.factionstakeouts,
+            "enabled": guild.config.get("stakeouts"),
+            "category": guild.stakeoutconfig.get("category"),
+            "user_stakeouts": guild.userstakeouts,
+            "faction_stakeouts": guild.factionstakeouts,
         },
         "verify": {
             "enabled": guild.config.get("verify"),
@@ -27,7 +27,9 @@ def jsonified_server_config(guild: ServerModel):
             "faction_verify": guild.faction_verify,
             "log_channel": str(guild.verify_log_channel),
         },
-        "retals": dict(zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))),
+        "retals": dict(
+            zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))
+        ),
         "assists": {
             "channel": str(guild.assistschannel),
             "factions": guild.assist_factions,
@@ -36,10 +38,11 @@ def jsonified_server_config(guild: ServerModel):
     }
 
     for faction in data["verify"]["faction_verify"]:
-        data["verify"]["faction_verify"][faction]["roles"] = list(map(str, data["verify"]["faction_verify"][faction]["roles"]))
-    
-    return data
+        data["verify"]["faction_verify"][faction]["roles"] = list(
+            map(str, data["verify"]["faction_verify"][faction]["roles"])
+        )
 
+    return data
 
 
 @key_required

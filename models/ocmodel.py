@@ -3,18 +3,11 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import (
-    DynamicDocument,
-    IntField,
-    ListField,
-    BooleanField
-)
+from mongoengine import DynamicDocument, IntField, ListField, BooleanField
 
 
 class OCModel(DynamicDocument):
-    meta = {
-        "indexes": ["factiontid", ("factiontid", "ocid")]
-    }
+    meta = {"indexes": ["factiontid", ("factiontid", "ocid")]}
 
     factiontid = IntField(required=True)
     ocid = IntField(required=True)

@@ -977,6 +977,10 @@ def oc_refresh():
 
         if guild is None:
             continue
+        elif faction.tid not in guild.factions:
+            continue
+        elif faction.tid not in guild.oc_config:
+            continue
 
         aa_key = random.choice(faction.aa_keys)
 
@@ -1006,14 +1010,24 @@ def oc_refresh():
             logger.exception(e)
             continue
 
-        for oc_id, oc_data in oc_data["crimes"].items():
-            oc_db_original: OCModel = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id)).first()
+        OC_DELAY = guild.oc_config[faction.tid]["delay"]["channel"] != 0
+        OC_READY = guild.oc_config[faction.tid]["ready"]["channel"] != 0
 
-            oc_db: OCModel = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id)).modify(
+        for oc_id, oc_data in oc_data["crimes"].items():
+            oc_db_original: OCModel = OCModel.objects(
+                Q(factiontid=faction.tid) & Q(ocid=oc_id)
+            ).first()
+
+            oc_db: OCModel = OCModel.objects(
+                Q(factiontid=faction.tid) & Q(ocid=oc_id)
+            ).modify(
                 upsert=True,
                 new=True,
                 set__crime_id=oc_data["crime_id"],
-                set__participants=[list(participant.keys())[0] for participant in oc_data["participants"]],
+                set__participants=[
+                    list(participant.keys())[0]
+                    for participant in oc_data["participants"]
+                ],
                 set__time_started=oc_data["time_started"],
                 set__time_ready=oc_data["time_ready"],
                 set__time_completed=oc_data["time_completed"],
@@ -1030,9 +1044,12 @@ def oc_refresh():
             elif oc_db.time_ready < utils.now():
                 continue
 
-            ready = map(lambda participant: list(participant.values())[0]["color"] == "green", oc_data["participants"])
+            ready = map(
+                lambda participant: list(participant.values())[0]["color"] == "green",
+                oc_data["participants"],
+            )
 
-            if len(oc_db.delayers) == 0 and not all(ready):
+            if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
                 # OC has been delayed
                 oc_db.notified = False
 
@@ -1040,13 +1057,35 @@ def oc_refresh():
                     "embeds": [
                         {
                             "title": f"OC of {faction.name} Delayed",
-                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]}] has been delayed ({list(ready).count(True)}/{len(oc_data['participants'])}).""",
+                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed ({list(ready).count(True)}/{len(oc_data['participants'])}).""",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": utils.torn_timestamp()}
+                            "footer": {"text": utils.torn_timestamp()},
                         }
                     ],
-                    "components": [],
+                    "components": [
+                        {
+                            "type": 1,
+                            "components": [
+                                {
+                                    "type": 2,
+                                    "style": 5,
+                                    "label": "Faction OCs",
+                                    "url": "https://www.torn.com/factions.php?step=your#/tab=crimes",
+                                }
+                            ],
+                        }
+                    ],
                 }
+
+                roles = guild.oc_config[faction.tid]["delay"]["roles"]
+
+                if len(roles) != 0:
+                    roles_str = ""
+
+                    for role in roles:
+                        roles_str += f"<@&{role}>"
+
+                    payload["embeds"][0]["content"] = roles_str
 
                 for participant in oc_data["participants"]:
                     participant_id = list(participant.keys())[0]
@@ -1055,7 +1094,9 @@ def oc_refresh():
                     if participant["color"] != "green":
                         oc_db.delayers.append(participant_id)
 
-                        participant_db: UserModel = UserModel.objects(tid=participant_id).first()
+                        participant_db: UserModel = UserModel.objects(
+                            tid=participant_id
+                        ).first()
 
                         if participant_db is None:
                             payload["components"].append(
@@ -1073,8 +1114,8 @@ def oc_refresh():
                                             "style": 2,
                                             "label": f"{participant['description']}",
                                             "custom_id": f"participant:delay:{participant_id}",
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 }
                             )
                         else:
@@ -1093,23 +1134,67 @@ def oc_refresh():
                                             "style": 2,
                                             "label": f"{participant['description']}",
                                             "custom_id": f"participant:delay:{participant_id}",
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 }
                             )
 
                 print(payload)
-                continue
 
                 try:
                     discordpost.delay(
-                        f'channels/{None}/messages',
+                        f'channels/{guild.oc_config[faction.tid]["delay"]["channel"]}/messages',
                         payload=payload,
                         dev=guild.skynet,
                     )
                 except Exception as e:
                     logger.exception(e)
                     continue
-            elif not oc_db.notified and all(ready):
+            elif OC_READY and not oc_db.notified and all(ready):
                 # OC is ready
-                pass
+
+                payload = {
+                    "embeds": [
+                        {
+                            "title": f"OC of {faction.name} Ready",
+                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.""",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "footer": {"text": utils.torn_timestamp()},
+                        }
+                    ],
+                    "components": [
+                        {
+                            "type": 1,
+                            "components": [
+                                {
+                                    "type": 2,
+                                    "style": 5,
+                                    "label": "Faction OCs",
+                                    "url": "https://www.torn.com/factions.php?step=your#/tab=crimes",
+                                }
+                            ],
+                        }
+                    ],
+                }
+
+                roles = guild.oc_config[faction.tid]["ready"]["roles"]
+
+                if len(roles) != 0:
+                    roles_str = ""
+
+                    for role in roles:
+                        roles_str += f"<@&{role}>"
+
+                    payload["embeds"][0]["content"] = roles_str
+
+                print(payload)
+
+                try:
+                    discordpost.delay(
+                        f'channels/{guild.oc_config[faction.tid]["delay"]["channel"]}/messages',
+                        payload=payload,
+                        dev=guild.skynet,
+                    )
+                except Exception as e:
+                    logger.exception(e)
+                    continue

@@ -162,7 +162,6 @@ $(document).ready(function() {
         
                     if("code" in response) {
                         generateToast("OC Ready Channel Failed", response["message"]);
-                        return;
                     }
                 }
         
@@ -190,7 +189,6 @@ $(document).ready(function() {
         
                     if("code" in response) {
                         generateToast("OC Ready Roles Failed", response["message"]);
-                        return;
                     }
                 }
         
@@ -211,7 +209,6 @@ $(document).ready(function() {
         
                     if("code" in response) {
                         generateToast("OC Delay Channel Failed", response["message"]);
-                        return;
                     }
                 }
         
@@ -239,7 +236,6 @@ $(document).ready(function() {
         
                     if("code" in response) {
                         generateToast("OC Ready Roles Failed", response["message"]);
-                        return;
                     }
                 }
         

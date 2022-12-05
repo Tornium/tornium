@@ -44,4 +44,6 @@ class ServerModel(DynamicDocument):
     )  # List of factions that can send assists to the server
     assist_mod = IntField(default=0)  # 0: Everyone; 1: Whitelist; 2: Blacklist
 
+    oc_config = DictField(default={})
+
     skynet = BooleanField(default=False)

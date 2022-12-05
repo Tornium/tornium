@@ -156,6 +156,14 @@ if celery_app is None:
                 hour=data["fetch-attacks-runner"]["schedule"]["hour"],
             ),
         }
+    if data["oc-refresh"]["enabled"]:
+        schedule["oc-refresh"] = {
+            "task": data["oc-refresh"]["task"],
+            "schedule": crontab(
+                minute=data["oc-refresh"]["schedule"]["minute"],
+                hour=data["oc-refresh"]["schedule"]["hour"],
+            ),
+        }
     if data["refresh-guilds"]["enabled"]:
         schedule["refresh-guilds"] = {
             "task": data["refresh-guilds"]["task"],

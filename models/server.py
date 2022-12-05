@@ -43,6 +43,8 @@ class Server:
         self.assist_factions = server.assist_factions
         self.assist_mod = server.assist_mod
 
+        self.oc_config = server.oc_config
+
         self.skynet = server.skynet
 
     def get_text_channels(self, api=False):

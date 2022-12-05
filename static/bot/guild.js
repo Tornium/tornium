@@ -8,11 +8,6 @@ Written by tiksan <webmaster@deek.sh> */
 const assistMod = document.currentScript.getAttribute('data-assist-mod');
 
 $(document).ready(function() {
-    $('[data-bs-toggle="tooltip"]').tooltip({
-        container: '.list-group'
-    });
-
-    let serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function() {
@@ -25,18 +20,33 @@ $(document).ready(function() {
 
         serverConfig = response;
 
-        let assistsChannel = $(`#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`);
-
-        if(assistsChannel.length !== 0) {
-            assistsChannel.attr("selected", "");
-        }
+        channelsRequest().then(function() {
+            console.log(serverConfig["assists"]["channel"]);
+            console.log(`#assist-channel option[value="${serverConfig['assists']['channel']}"]`);
+    
+            let assistsChannel = $(`#assist-channel option[value="${serverConfig['assists']['channel']}"]`);
+    
+            console.log(assistsChannel);
+    
+            if(assistsChannel.length !== 0) {
+                assistsChannel.attr("selected", "");
+            }    
+        }).finally(function() {
+            $(".discord-channel-selector").selectpicker();
+        });
     }
-
+    
     xhttp.responseType = "json";
     xhttp.open("GET", `/api/bot/server/${guildid}`);
     xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
+
+    $('[data-bs-toggle="tooltip"]').tooltip({
+        container: '.list-group'
+    });
+
+    let serverConfig = null;
 
     $('#assist-type-select').find('option').each(function(i, e) {
         if($(e).val() === String(assistMod)) {

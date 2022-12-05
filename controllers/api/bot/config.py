@@ -9,33 +9,37 @@ from models.servermodel import ServerModel
 
 
 def jsonified_server_config(guild: ServerModel):
-    return jsonify(
-        {
-            "id": str(guild.sid),
-            "name": guild.name,
-            "admins": guild.admins,
-            "factions": guild.factions,
-            "stakeouts": {
-                "enabled": guild.config.get("stakeouts"),
-                "category": guild.stakeoutconfig.get("category"),
-                "user_stakeouts": guild.userstakeouts,
-                "faction_stakeouts": guild.factionstakeouts,
-            },
-            "verify": {
-                "enabled": guild.config.get("verify"),
-                "template": guild.verify_template,
-                "verified_roles": list(map(str, guild.verified_roles)),
-                "faction_verify": guild.faction_verify,
-                "log_channel": str(guild.verify_log_channel),
-            },
-            "retals": dict(zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))),
-            "assists": {
-                "channel": str(guild.assistschannel),
-                "factions": guild.assist_factions,
-                "modifier": guild.assist_mod,
-            },
-        }
-    )
+    data = {
+        "id": str(guild.sid),
+        "name": guild.name,
+        "admins": guild.admins,
+        "factions": guild.factions,
+        "stakeouts": {
+        "enabled": guild.config.get("stakeouts"),
+        "category": guild.stakeoutconfig.get("category"),
+        "user_stakeouts": guild.userstakeouts,
+        "faction_stakeouts": guild.factionstakeouts,
+        },
+        "verify": {
+            "enabled": guild.config.get("verify"),
+            "template": guild.verify_template,
+            "verified_roles": list(map(str, guild.verified_roles)),
+            "faction_verify": guild.faction_verify,
+            "log_channel": str(guild.verify_log_channel),
+        },
+        "retals": dict(zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))),
+        "assists": {
+            "channel": str(guild.assistschannel),
+            "factions": guild.assist_factions,
+            "modifier": guild.assist_mod,
+        },
+    }
+
+    for faction in data["verify"]["faction_verify"]:
+        data["verify"]["faction_verify"][faction]["roles"] = list(map(str, data["verify"]["faction_verify"][faction]["roles"]))
+    
+    return data
+
 
 
 @key_required

@@ -6,77 +6,84 @@ Written by tiksan <webmaster@deek.sh> */
 const guildid = document.currentScript.getAttribute("data-guildid");
 const key = document.currentScript.getAttribute("data-key");
 
-if(guildid !== null && key !== null) {
-    setDiscordSelectors();
+var discordRoles = null;
+var discordChannels = null;
+
+let rolesRequest = obj => {
+    return new Promise((resolve, reject) => {
+        let xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+    
+            if("code" in response) {
+                generateToast("Discord Roles Not Located", response["message"]);
+                reject();
+                return;
+            }
+    
+            discordRoles = response["roles"];
+    
+            $.each(response["roles"], function(role_id, role) {
+                $(".discord-role-selector").append($("<option>", {
+                    "value": role.id,
+                    "text": role.name
+                }));
+            });
+    
+            // $(".discord-role-selector").selectpicker();
+            resolve();
+        }
+        xhttp.responseType = "json";
+        xhttp.open("GET", `/api/bot/server/${guildid}/roles`)
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+
+        if(guildid !== null && key !== null && $(".discord-role-selector").length !== 0) {
+            xhttp.send();
+        }
+    })
 }
 
-function setDiscordSelectors() {
-    let discordRoles = null;
-    let discordChannels = null;
+let channelsRequest = obj => {
+    return new Promise((resolve, reject) => {
+        let xhttp = new XMLHttpRequest();
 
-    let rolesRequest = new XMLHttpRequest();
-    let channelsRequest = new XMLHttpRequest();
-
-    rolesRequest.onload = function() {
-        let response = rolesRequest.response;
-
-        if("code" in response) {
-            generateToast("Discord Roles Not Located", response["message"]);
-            return;
+        xhttp.onload = function() {
+            let response = xhttp.response;
+    
+            if("code" in response) {
+                generateToast("Discord Channels Not Located", response["message"]);
+                reject();
+                return;
+            }
+    
+            discordChannels = response["channels"];
+    
+            $.each(response["channels"], function(category_id, category) {
+                $(".discord-channel-selector").append($("<optgroup>", {
+                    "label": category.name,
+                    "data-category-id": category["id"]
+                }));
+    
+                $.each(category["channels"], function(channel_id, channel) {
+                    $(`optgroup[data-category-id="${category["id"]}"]`).append($("<option>", {
+                        "value": channel.id,
+                        "text": `#${channel.name}`
+                    }))
+                })
+            });
+    
+            // $(".discord-channel-selector").selectpicker();
+            resolve();
         }
-
-        discordRoles = response["roles"];
-
-        $.each(response["roles"], function(role_id, role) {
-            $(".discord-role-selector").append($("<option>", {
-                "value": role.id,
-                "text": role.name
-            }));
-        });
-
-        $(".discord-role-selector").selectpicker();
-    }
-    rolesRequest.responseType = "json";
-    rolesRequest.open("GET", `/api/bot/server/${guildid}/roles`)
-    rolesRequest.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-    rolesRequest.setRequestHeader("Content-Type", "application/json");
-
-    if($(".discord-role-selector").length !== 0) {
-        rolesRequest.send();
-    }
-
-    channelsRequest.onload = function() {
-        let response = channelsRequest.response;
-
-        if("code" in response) {
-            generateToast("Discord Channels Not Located", response["message"]);
-            return;
+        xhttp.responseType = "json";
+        xhttp.open("GET", `/api/bot/server/${guildid}/channels`)
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+    
+        if(guildid !== null && key !== null && $(".discord-channel-selector").length !== 0) {
+            xhttp.send();
         }
-
-        discordChannels = response["channels"];
-
-        $.each(response["channels"], function(category_id, category) {
-            $(".discord-channel-selector").append($("<optgroup>", {
-                "label": category.name,
-                "data-category-id": category["id"]
-            }));
-
-            $.each(category["channels"], function(channel_id, channel) {
-                $(`optgroup[data-category-id="${category["id"]}"]`).append($("<option>", {
-                    "value": channel.id,
-                    "text": `#${channel.name}`
-                }))
-            })
-        });
-
-        $(".discord-channel-selector").selectpicker();
-    }
-    channelsRequest.responseType = "json";
-    channelsRequest.open("GET", `/api/bot/server/${guildid}/channels`)
-    channelsRequest.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-    channelsRequest.setRequestHeader("Content-Type", "application/json");
-
-    if($(".discord-channel-selector").length !== 0) {
-        channelsRequest.send();
-    }
+    })
 }

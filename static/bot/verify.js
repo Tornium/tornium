@@ -11,7 +11,7 @@ $(document).ready(function() {
         html: true
     });
 
-    let verificationConfig = null;
+    let serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function() {
@@ -23,21 +23,11 @@ $(document).ready(function() {
             throw new Error("Verification config error");
         }
 
-        verificationConfig = response;
+        serverConfig = response;
 
-        $.each(verificationConfig["verified_roles"], function(index, role) {
-            let option = $(`#verification-roles option[value="${role}"]`);
-
-            if(option.length === 0) {
-                return;
-            }
-
-            option.attr("selected", "");
-        });
-
-        $.each(verificationConfig["faction_verify"], function(factionid, factionConfig) {
-            $.each(factionConfig["roles"], function(index, role) {
-                let option = $(`.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`);
+        rolesRequest().then(function() {
+            $.each(serverConfig["verify"]["verified_roles"], function(index, role) {
+                let option = $(`#verification-roles option[value="${role}"]`);
 
                 if(option.length === 0) {
                     return;
@@ -45,17 +35,35 @@ $(document).ready(function() {
 
                 option.attr("selected", "");
             });
+
+            $.each(serverConfig["verify"]["faction_verify"], function(factionid, factionConfig) {
+                $.each(factionConfig["roles"], function(index, role) {
+                    let option = $(`.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`);
+
+                    if(option.length === 0) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+            });
+        }).finally(function() {
+            $(".discord-role-selector").selectpicker();
         });
 
-        let logChannel = $(`#verification-log-channel option[value="${verificationConfig["verify_log_channel"]}"]`);
+        channelsRequest().then(function() {
+            let logChannel = $(`#verification-log-channel option[value="${serverConfig["verify"]["log_channel"]}"]`);
 
-        if(logChannel.length !== 0) {
-            logChannel.attr("selected", "");
-        }
+            if(logChannel.length !== 0) {
+                logChannel.attr("selected", "");
+            }
+        }).finally(function() {
+            $(".discord-channel-selector").selectpicker();
+        });
     }
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/bot/verify/${guildid}`);
+    xhttp.open("GET", `/api/bot/server/${guildid}`);
     xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
@@ -341,12 +349,12 @@ $(document).ready(function() {
                 }))
             });
 
-            $.each(roles, function(role_id, role) {
+            $.each(discordRoles, function(role_id, role) {
                 $.each($(".faction-position-roles-selector"), function(index, item) {
-                    if(!(Object.keys(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"]).includes(item.getAttribute("data-position")))) {
+                    if(!(Object.keys(serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"]).includes(item.getAttribute("data-position")))) {
                         console.log("Position not in config");
                         item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
-                    } else if(verificationConfig["faction_verify"][item.getAttribute("data-faction")]["positions"][item.getAttribute("data-position")].includes(role["id"])) {
+                    } else if(serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"][item.getAttribute("data-position")].includes(role["id"])) {
                         console.log("Position in config");
                         item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
                     } else {

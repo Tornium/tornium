@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - OCs
+{% endblock %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+{% include 'bot/navbar.html' %}
+
+<div class="row">
+    <div class="py-3 px-3 col text-end">
+        <button type="button" class="btn btn-primary">
+            <a href="/bot/dashboard/{{ guildid }}" style="color: white">Go to Guild Dashboard</a>
+        </button>
+    </div>
+</div>
+
+<div class="px-3 py-3" id="card-container"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/discord.js" data-guildid="{{ guildid }}" data-key="{{ current_user.key }}"></script>
+<script src="/static/bot/oc.js"></script>
+{% endblock %}

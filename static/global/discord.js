@@ -8,6 +8,7 @@ const key = document.currentScript.getAttribute("data-key");
 
 var discordRoles = null;
 var discordChannels = null;
+var serverConfig = null;
 
 let rolesRequest = obj => {
     return new Promise((resolve, reject) => {
@@ -86,4 +87,33 @@ let channelsRequest = obj => {
             xhttp.send();
         }
     })
+}
+
+let configRequest = obj => {
+    return new Promise((resolve, reject) => {
+        if(serverConfig !== null) {
+            resolve();
+        } else {
+            let xhttp = new XMLHttpRequest();
+
+            xhttp.onload = function() {
+                let response = xhttp.response;
+
+                if("code" in response) {
+                    generateToast("Discord Config Not Located", response["message"]);
+                    reject();
+                    throw new Error("Config error");
+                }
+
+                serverConfig = xhttp.response;
+                resolve();
+            }
+
+            xhttp.responseType = "json";
+            xhttp.open("GET", `/api/bot/server/${guildid}`);
+            xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send();
+        }
+    });
 }

@@ -18,7 +18,7 @@ $(document).ready(function() {
         let response = xhttp.response;
 
         if("code" in response) {
-            generateToast("Discord Verification Config Not Located", response["message"]);
+            generateToast("Discord Config Not Located", response["message"]);
             generateToast("Verification Loading Halted", "The lack of verification configs has prevented the page from loading.")
             throw new Error("Verification config error");
         }

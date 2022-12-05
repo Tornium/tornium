@@ -8,6 +8,7 @@ from flask_login import login_required
 
 from controllers.bot import assists
 from controllers.bot import guild
+from controllers.bot import oc
 from controllers.bot import stakeout
 from controllers.bot import verify
 
@@ -59,6 +60,13 @@ mod.add_url_rule(
 mod.add_url_rule(
     "/bot/dashboard/<string:guildid>/verify",
     view_func=verify.verify_dashboard,
+    methods=["GET"],
+)
+
+# OC Routes
+mod.add_url_rule(
+    "/bot/dashboard/<string:guildid>/oc",
+    view_func=oc.oc_dashboard,
     methods=["GET"],
 )
 

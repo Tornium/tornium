@@ -209,14 +209,10 @@ def config():
         if (request.form.get("enabled") is not None) ^ (
             request.form.get("disabled") is not None
         ):
-            config = faction.stat_config
-
             if request.form.get("enabled") is not None:
-                config["global"] = 1
-                faction_model.statconfig = json.dumps(config)
+                faction_model.statconfig["global"] = 1
             else:
-                config["global"] = 0
-                faction_model.statconfig = json.dumps(config)
+                faction_model.statconfig["global"] = 0
 
             faction_model.save()
 

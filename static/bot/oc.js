@@ -153,7 +153,7 @@ $(document).ready(function() {
                             return;
                         }
 
-                        roleElement.attr("selected");
+                        roleElement.attr("selected", "");
                     });
 
                     $.each(oc_config["delay"]["roles"], function(index, role) {
@@ -163,7 +163,7 @@ $(document).ready(function() {
                             return;
                         }
 
-                        roleElement.attr("selected");
+                        roleElement.attr("selected", "");
                     });
                 });
 

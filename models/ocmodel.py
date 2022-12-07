@@ -12,7 +12,7 @@ class OCModel(DynamicDocument):
     factiontid = IntField(required=True)
     ocid = IntField(required=True)
     crime_id = IntField(required=True)
-    participants = ListField(IntField, required=True)
+    participants = ListField(required=True)
     time_started = IntField(required=True)
     time_ready = IntField(required=True)
     time_completed = IntField(required=True)  # 0 if not initiated yet
@@ -20,5 +20,5 @@ class OCModel(DynamicDocument):
     initiated_by = IntField(default=0)  # 0 if not initiated yet
     money_gain = IntField(default=0)  # 0 if not initiated yet
     respect_gain = IntField(default=0)  # 0 if not initiated yet
-    delayers = ListField(IntField, default=[])
+    delayers = ListField(default=[])
     notified = BooleanField(default=False)

@@ -1038,7 +1038,7 @@ def oc_refresh():
                 new=True,
                 set__crime_id=oc_data["crime_id"],
                 set__participants=[
-                    list(participant.keys())[0]
+                    int(list(participant.keys())[0])
                     for participant in oc_data["participants"]
                 ],
                 set__time_started=oc_data["time_started"],

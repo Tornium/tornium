@@ -1010,8 +1010,8 @@ def oc_refresh():
             logger.exception(e)
             continue
 
-        OC_DELAY = guild.oc_config[faction.tid]["delay"]["channel"] != 0
-        OC_READY = guild.oc_config[faction.tid]["ready"]["channel"] != 0
+        OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
+        OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
 
         for oc_id, oc_data in oc_data["crimes"].items():
             oc_db_original: OCModel = OCModel.objects(
@@ -1077,7 +1077,7 @@ def oc_refresh():
                     ],
                 }
 
-                roles = guild.oc_config[faction.tid]["delay"]["roles"]
+                roles = guild.oc_config[str(faction.tid)]["delay"]["roles"]
 
                 if len(roles) != 0:
                     roles_str = ""
@@ -1143,7 +1143,7 @@ def oc_refresh():
 
                 try:
                     discordpost.delay(
-                        f'channels/{guild.oc_config[faction.tid]["delay"]["channel"]}/messages',
+                        f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                         payload=payload,
                         dev=guild.skynet,
                     )
@@ -1177,7 +1177,7 @@ def oc_refresh():
                     ],
                 }
 
-                roles = guild.oc_config[faction.tid]["ready"]["roles"]
+                roles = guild.oc_config[str(faction.tid)]["ready"]["roles"]
 
                 if len(roles) != 0:
                     roles_str = ""
@@ -1191,7 +1191,7 @@ def oc_refresh():
 
                 try:
                     discordpost.delay(
-                        f'channels/{guild.oc_config[faction.tid]["delay"]["channel"]}/messages',
+                        f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                         payload=payload,
                         dev=guild.skynet,
                     )

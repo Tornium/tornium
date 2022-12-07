@@ -1018,18 +1018,18 @@ def oc_refresh():
                 Q(factiontid=faction.tid) & Q(ocid=oc_id)
             ).first()
 
-            print(oc_data["crime_id"])
-            print([
+            logger.debug(oc_data["crime_id"])
+            logger.debug([
                     list(participant.keys())[0]
                     for participant in oc_data["participants"]
                 ])
-            print(oc_data["time_started"])
-            print(oc_data["time_ready"])
-            print(oc_data["time_completed"])
-            print(oc_data["planned_by"])
-            print(oc_data["initiated_by"])
-            print(oc_data["money_gain"])
-            print(oc_data["respect_gain"])
+            logger.debug(oc_data["time_started"])
+            logger.debug(oc_data["time_ready"])
+            logger.debug(oc_data["time_completed"])
+            logger.debug(oc_data["planned_by"])
+            logger.debug(oc_data["initiated_by"])
+            logger.debug(oc_data["money_gain"])
+            logger.debug(oc_data["respect_gain"])
 
             oc_db: OCModel = OCModel.objects(
                 Q(factiontid=faction.tid) & Q(ocid=oc_id)

@@ -170,6 +170,7 @@ def verifyall(interaction):
     member_count = 0
     member_fetch_run = 0
     errors = 0
+    channel_error = False
 
     while (
         member_count <= server_data["approximate_member_count"] * 0.99
@@ -265,13 +266,19 @@ def verifyall(interaction):
                         }
 
                     try:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            dev=server.skynet,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
+                        if not channel_error:
+                            tasks.discordpost(
+                                f"channels/{server.verify_log_channel}/messages",
+                                payload=payload,
+                                dev=server.skynet,
+                                bucket=f"channels/{server.verify_log_channel}",
+                                retry=True,
+                            )
+                        continue
+                    except utils.DiscordError as e:
+                        if e.code == 10003:
+                            channel_error = True
+
                         continue
                     except Exception:
                         continue
@@ -295,13 +302,19 @@ def verifyall(interaction):
                     }
 
                     try:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            dev=server.skynet,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
+                        if not channel_error:
+                            tasks.discordpost(
+                                f"channels/{server.verify_log_channel}/messages",
+                                payload=payload,
+                                dev=server.skynet,
+                                bucket=f"channels/{server.verify_log_channel}",
+                                retry=True,
+                            )
+                        continue
+                    except utils.DiscordError as e:
+                        if e.code == 10003:
+                            channel_error = True
+
                         continue
                     except Exception:
                         continue
@@ -338,13 +351,19 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
-                        f"channels/{server.verify_log_channel}/messages",
-                        payload=payload,
-                        dev=server.skynet,
-                        bucket=f"channels/{server.verify_log_channel}",
-                        retry=True,
-                    )
+                    if not channel_error:
+                        tasks.discordpost(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
+                except utils.DiscordError as e:
+                    if e.code == 10003:
+                        channel_error = True
+
                     continue
                 except Exception:
                     continue
@@ -380,13 +399,19 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
-                        f"channels/{server.verify_log_channel}/messages",
-                        payload=payload,
-                        dev=server.skynet,
-                        bucket=f"channels/{server.verify_log_channel}",
-                        retry=True,
-                    )
+                    if not channel_error:
+                        tasks.discordpost(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
+                except utils.DiscordError as e:
+                    if e.code == 10003:
+                        channel_error = True
+
                     continue
                 except Exception:
                     continue
@@ -502,13 +527,19 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
-                        f"channels/{server.verify_log_channel}/messages",
-                        payload=payload,
-                        dev=server.skynet,
-                        bucket=f"channels/{server.verify_log_channel}",
-                        retry=True,
-                    )
+                    if not channel_error:
+                        tasks.discordpost(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
+                except utils.DiscordError as e:
+                    if e.code == 10003:
+                        channel_error = True
+
                     continue
                 except Exception:
                     continue
@@ -532,13 +563,19 @@ def verifyall(interaction):
                 }
 
                 try:
-                    tasks.discordpost(
-                        f"channels/{server.verify_log_channel}/messages",
-                        payload=payload,
-                        dev=server.skynet,
-                        bucket=f"channels/{server.verify_log_channel}",
-                        retry=True,
-                    )
+                    if not channel_error:
+                        tasks.discordpost(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            dev=server.skynet,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
+                except utils.DiscordError as e:
+                    if e.code == 10003:
+                        channel_error = True
+
                     continue
                 except Exception:
                     continue
@@ -562,13 +599,19 @@ def verifyall(interaction):
             }
 
             try:
-                tasks.discordpost(
-                    f"channels/{server.verify_log_channel}/messages",
-                    payload=payload,
-                    dev=server.skynet,
-                    bucket=f"channels/{server.verify_log_channel}",
-                    retry=True,
-                )
+                if not channel_error:
+                    tasks.discordpost(
+                        f"channels/{server.verify_log_channel}/messages",
+                        payload=payload,
+                        dev=server.skynet,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                    )
+                continue
+            except utils.DiscordError as e:
+                if e.code == 10003:
+                    channel_error = True
+
                 continue
             except Exception:
                 continue

@@ -145,11 +145,45 @@ $(document).ready(function() {
         })
         .then(function() {
             rolesRequest().then(function() {
+                $.each(serverConfig["oc"], function(factionid, oc_config) {
+                    $.each(oc_config["ready"]["roles"], function(index, role) {
+                        let roleElement = $(`.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`);
+
+                        if(roleElement.length === 0) {
+                            return;
+                        }
+
+                        roleElement.attr("selected");
+                    });
+
+                    $.each(oc_config["delay"]["roles"], function(index, role) {
+                        let roleElement = $(`.oc-delay-roles[data-factionid="${factionid}"] option[value="${role}"]`);
+
+                        if(roleElement.length === 0) {
+                            return;
+                        }
+
+                        roleElement.attr("selected");
+                    });
+                });
+
                 $(".discord-role-selector").selectpicker();
             });
         })
         .then(function() {
             channelsRequest().then(function() {
+                $.each(serverConfig["oc"], function(factionid, oc_config) {
+                    let delayChannel =  $(`.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config["delay"]["channel"]}"]`);
+                    let readyChannel =  $(`.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config["delay"]["channel"]}"]`);
+
+                    if(delayChannel.length !== 0) {
+                        delayChannel.attr("selected", "");
+                    }
+                    if(readyChannel.length !== 0) {
+                        readyChannel.attr("selected", "");
+                    }
+                });
+
                 $(".discord-channel-selector").selectpicker();
             });
         }).finally(function() {
@@ -240,7 +274,7 @@ $(document).ready(function() {
                 }
         
                 xhttp.responseType = "json";
-                xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`);
+                xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`);
                 xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(JSON.stringify({

@@ -11,5 +11,5 @@ flask-login == 0.6.2
 is-safe-url == 1.0
 mongoengine == 0.24.2
 pynacl == 1.5.0
-redis == 4.3.5
+redis == 4.4.0
 requests == 2.28.1

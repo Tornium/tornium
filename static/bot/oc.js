@@ -240,7 +240,7 @@ $(document).ready(function() {
                 }
         
                 xhttp.responseType = "json";
-                xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`);
+                xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`);
                 xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(JSON.stringify({

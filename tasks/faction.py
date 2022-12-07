@@ -979,7 +979,7 @@ def oc_refresh():
             continue
         elif faction.tid not in guild.factions:
             continue
-        elif faction.tid not in guild.oc_config:
+        elif str(faction.tid) not in guild.oc_config:
             continue
 
         aa_key = random.choice(faction.aa_keys)

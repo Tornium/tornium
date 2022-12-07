@@ -101,7 +101,7 @@ def verify(interaction):
 
         try:
             discord_member = tasks.discordget(
-                f"guilds/{server.sid}/members/{discord_id}", dev=server.skynet
+                f"guilds/{server.sid}/members/{discord_id}"
             )
         except utils.DiscordError as e:
             return {
@@ -403,7 +403,6 @@ def verify(interaction):
         response = tasks.discordpatch(
             f"guilds/{server.sid}/members/{user.discord_id}",
             patch_json,
-            dev=server.skynet,
         )
         print(response)
     except utils.DiscordError as e:

@@ -6,7 +6,6 @@
 import random
 
 import jinja2
-import requests
 
 from models.server import Server
 from models.user import User
@@ -100,7 +99,6 @@ def verifyall(interaction):
     #         payload={
     #             "type": 5
     #         },
-    #         dev=server.skynet,
     #     )
     # except utils.DiscordError as e:
     #     return {
@@ -134,7 +132,6 @@ def verifyall(interaction):
     try:
         server_data = tasks.discordget(
             f"guilds/{server.sid}?with_counts=true",
-            dev=server.skynet,
             bucket=f"guilds/{server.sid}",
             retry=True,
         )
@@ -180,7 +177,6 @@ def verifyall(interaction):
         try:
             guild_members = tasks.discordget(
                 f"guilds/{server.sid}/members?limit=1000",
-                dev=server.skynet,
                 bucket=f"guilds/{server.sid}",
                 retry=True,
             )
@@ -270,7 +266,6 @@ def verifyall(interaction):
                             tasks.discordpost(
                                 f"channels/{server.verify_log_channel}/messages",
                                 payload=payload,
-                                dev=server.skynet,
                                 bucket=f"channels/{server.verify_log_channel}",
                                 retry=True,
                             )
@@ -306,7 +301,6 @@ def verifyall(interaction):
                             tasks.discordpost(
                                 f"channels/{server.verify_log_channel}/messages",
                                 payload=payload,
-                                dev=server.skynet,
                                 bucket=f"channels/{server.verify_log_channel}",
                                 retry=True,
                             )
@@ -355,7 +349,6 @@ def verifyall(interaction):
                         tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
-                            dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
                         )
@@ -403,7 +396,6 @@ def verifyall(interaction):
                         tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
-                            dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
                         )
@@ -503,7 +495,6 @@ def verifyall(interaction):
                 tasks.discordpatch(
                     f"guilds/{server.sid}/members/{user.discord_id}",
                     patch_json,
-                    dev=server.skynet,
                     bucket=f"guilds/{server.sid}",
                     retry=True,
                 )
@@ -531,7 +522,6 @@ def verifyall(interaction):
                         tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
-                            dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
                         )
@@ -567,7 +557,6 @@ def verifyall(interaction):
                         tasks.discordpost(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
-                            dev=server.skynet,
                             bucket=f"channels/{server.verify_log_channel}",
                             retry=True,
                         )
@@ -603,7 +592,6 @@ def verifyall(interaction):
                     tasks.discordpost(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
-                        dev=server.skynet,
                         bucket=f"channels/{server.verify_log_channel}",
                         retry=True,
                     )

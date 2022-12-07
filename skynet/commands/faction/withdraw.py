@@ -6,7 +6,6 @@
 import datetime
 import random
 
-from bot import botutils
 from models.faction import Faction
 from models.server import Server
 from models.user import User
@@ -281,7 +280,7 @@ def withdraw(interaction):
         if withdrawal_amount.lower() == "all":
             withdrawal_amount = "all"
         else:
-            withdrawal_amount = botutils.text_to_num(withdrawal_amount)
+            withdrawal_amount = utils.text_to_num(withdrawal_amount)
 
     faction = Faction(user.factiontid)
 
@@ -517,7 +516,6 @@ def withdraw(interaction):
     message = tasks.discordpost(
         f'channels/{faction.vault_config["banking"]}/messages',
         payload=message_payload,
-        dev=True,
     )
 
     withdrawal = WithdrawalModel(

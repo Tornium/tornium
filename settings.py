@@ -16,7 +16,6 @@ except FileNotFoundError:
     data = {
         "jsonfiles": ["settings"],
         "dev": False,
-        "bottoken": "",
         "secret": str(os.urandom(32)),
         "taskqueue": "redis",
         "username": "tornium",
@@ -27,7 +26,6 @@ except FileNotFoundError:
             "applicationid": "",
             "applicationpublic": "",
             "bottoken": "",
-            "devguild": "",
         },
     }
     with open(f"settings.json", "w") as file:
@@ -38,7 +36,6 @@ with open("settings.json", "r") as file:
 
 redis = get_redis()
 redis.set("tornium:settings:dev", str(data.get("dev")))
-redis.set("tornium:settings:bottoken", data.get("bottoken"))
 redis.set("tornium:settings:secret", data.get("secret"))
 redis.set("tornium:settings:taskqueue", data.get("taskqueue"))
 redis.set("tornium:settings:username", data.get("username"))
@@ -55,9 +52,5 @@ redis.set(
 )
 redis.set(
     "tornium:settings:skynet:bottoken",
-    data.get("skynet").get("bottoken") if "skynet" in data else None,
-)
-redis.set(
-    "tornium:settings:skynet:devguild",
     data.get("skynet").get("bottoken") if "skynet" in data else None,
 )

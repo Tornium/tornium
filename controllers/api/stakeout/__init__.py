@@ -126,9 +126,7 @@ def create_stakeout(stype, *args, **kwargs):
         "parent_id": guild.stakeoutconfig["category"] if category is None else category,
     }
 
-    channel = tasks.discordpost(
-        f"guilds/{guildid}/channels", payload=payload, dev=guild.skynet
-    )
+    channel = tasks.discordpost(f"guilds/{guildid}/channels", payload=payload)
 
     stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
 
@@ -163,9 +161,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     db_stakeout.guilds = stakeout.guilds
     db_stakeout.save()
-    tasks.discordpost(
-        f'channels/{channel["id"]}/messages', payload=message_payload, dev=guild.skynet
-    )
+    tasks.discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
 
     return (
         jsonify(

@@ -44,14 +44,6 @@ def base_statics():
     return send_from_directory("static", request.path[1:])
 
 
-@mod.route("/static/astats/db.js")
-@mod.route("/static/faction/recruitment.js")
-@login_required
-@pro_required
-def static_pro():
-    return send_from_directory("static", request.path[1:])
-
-
 @mod.route("/static/admin/database/faction.js")
 @mod.route("/static/admin/database/server.js")
 @mod.route("/static/admin/database/user.js")

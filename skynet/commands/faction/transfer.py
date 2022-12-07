@@ -5,7 +5,6 @@
 
 import random
 
-from bot import botutils
 from models.faction import Faction
 from models.server import Server
 from models.user import User
@@ -480,7 +479,7 @@ def transfer(interaction):
         if transfer_amount.lower() == "all":
             transfer_amount = "all"
         else:
-            transfer_amount = botutils.text_to_num(transfer_amount)
+            transfer_amount = utils.text_to_num(transfer_amount)
 
     faction = Faction(user.factiontid)
 

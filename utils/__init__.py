@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
+from decimal import Decimal
 import logging
 import re
 from typing import Union
@@ -246,3 +247,17 @@ def find_list(lst: list, key, value):
         if dic[key] == value:
             return [i, dic]
     return -1
+
+
+def text_to_num(text):
+    text = text.upper().replace(",", "")
+    numbers = re.sub(f"[a-z]", "", text.lower())
+
+    if "K" in text:
+        return int(Decimal(numbers) * 1000)
+    elif "M" in text:
+        return int(Decimal(numbers) * 1000000)
+    elif "B" in text:
+        return int(Decimal(numbers) * 1000000000)
+    else:
+        return int(Decimal(numbers))

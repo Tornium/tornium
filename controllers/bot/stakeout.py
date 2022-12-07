@@ -73,7 +73,7 @@ def stakeouts_dashboard(guildid: str):
                     }  # TODO: Add permission overwrite: everyone write false
 
                 channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
+                    f"guilds/{guildid}/channels", payload=payload
                 )
 
                 db_stakeout = FactionStakeoutModel.objects(
@@ -97,7 +97,6 @@ def stakeouts_dashboard(guildid: str):
                 tasks.discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
-                    dev=server.skynet,
                 )
             else:
                 flash(
@@ -132,7 +131,7 @@ def stakeouts_dashboard(guildid: str):
                     }  # TODO: Add permission overwrite: everyone write false
 
                 channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload, dev=server.skynet
+                    f"guilds/{guildid}/channels", payload=payload
                 )
 
                 db_stakeout = UserStakeoutModel.objects(
@@ -156,7 +155,6 @@ def stakeouts_dashboard(guildid: str):
                 tasks.discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
-                    dev=server.skynet,
                 )
             else:
                 flash(
@@ -358,8 +356,7 @@ def stakeout_update(guildid):
             stakeout = FactionStakeoutModel.objects(tid=faction).first()
             try:
                 tasks.discorddelete(
-                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
-                    dev=server.skynet,
+                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}'
                 )
             except utils.DiscordError as e:
                 if e.code == 10003:
@@ -379,7 +376,6 @@ def stakeout_update(guildid):
             try:
                 tasks.discorddelete(
                     f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
-                    dev=server.skynet,
                 )
             except utils.DiscordError as e:
                 if e.code == 10003:

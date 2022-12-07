@@ -66,9 +66,7 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(
-                    f'channels/{request.form.get("withdrawal")}', dev=guild.skynet
-                )
+                channel = tasks.discordget(f'channels/{request.form.get("withdrawal")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
@@ -94,9 +92,7 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(
-                    f'channels/{request.form.get("banking")}', dev=guild.skynet
-                )
+                channel = tasks.discordget(f'channels/{request.form.get("banking")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
@@ -122,9 +118,7 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                roles = tasks.discordget(
-                    f"guilds/{faction.guild}/roles", dev=guild.skynet
-                )
+                roles = tasks.discordget(f"guilds/{faction.guild}/roles")
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

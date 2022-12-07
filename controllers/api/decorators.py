@@ -304,32 +304,3 @@ def key_required(func):
         return func(*args, **kwargs)
 
     return wrapper
-
-
-def pro_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not kwargs["user"].pro:
-            client = redisdb.get_redis()
-            key = f'tornium:ratelimit:{kwargs["user"].tid}'
-
-            return (
-                jsonify(
-                    {
-                        "code": 4011,
-                        "name": "InsufficientUserType",
-                        "message": "Server failed to fulfill the request. The provided authentication code was not sufficient "
-                        "for a pro level request.",
-                    }
-                ),
-                402,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
-
-        return func(*args, **kwargs)
-
-    return wrapper

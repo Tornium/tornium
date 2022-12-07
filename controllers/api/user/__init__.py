@@ -27,8 +27,6 @@ def get_user(*args, **kwargs):
                 "aa": kwargs["user"].factionaa,
                 "status": kwargs["user"].status,
                 "last_action": kwargs["user"].last_action,
-                "pro": kwargs["user"].pro,
-                "pro_expiration": kwargs["user"].pro_expiration,
             }
         ),
         200,

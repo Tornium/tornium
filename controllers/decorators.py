@@ -9,17 +9,6 @@ from flask import abort, render_template
 from flask_login import current_user
 
 
-def pro_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not current_user.pro:
-            return render_template("errors/402.html"), 402
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):

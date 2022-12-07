@@ -36,9 +36,7 @@ def chain(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(
-                    f'channels/{request.form.get("odchannel")}', dev=guild.skynet
-                )
+                channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

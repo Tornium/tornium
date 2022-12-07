@@ -17,7 +17,7 @@ def refresh_guilds():
     requests_session = requests.Session()
 
     try:
-        guilds = discordget("users/@me/guilds", session=requests_session, dev=True)
+        guilds = discordget("users/@me/guilds", session=requests_session)
     except Exception as e:
         logger.exception(e)
         return
@@ -39,11 +39,7 @@ def refresh_guilds():
                 assistschannel=0,
                 assist_factions=[],
                 assist_mod=0,
-                skynet=True,
             )
-            guild_db.save()
-        elif not guild_db.skynet:
-            guild_db.skynet = True
             guild_db.save()
 
         try:

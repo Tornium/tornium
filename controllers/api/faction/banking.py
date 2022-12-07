@@ -260,7 +260,6 @@ def banking_request(*args, **kwargs):
         message = tasks.discordpost(
             f'channels/{vault_config["banking"]}/messages',
             payload=message_payload,
-            dev=server.skynet,
         )
 
         withdrawal = WithdrawalModel(

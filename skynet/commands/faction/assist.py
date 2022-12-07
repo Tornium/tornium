@@ -272,9 +272,7 @@ def assist(interaction):
         }
 
         try:
-            tasks.discordpost(
-                f"channels/{server.assistschannel}/messages", data, dev=True
-            )
+            tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
         except utils.DiscordError as e:
             continue
         except utils.NetworkingError as e:

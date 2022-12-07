@@ -8,5 +8,4 @@ from controllers.api.faction import (
     banking,
     chain,
     positions,
-    recruitment,
 )

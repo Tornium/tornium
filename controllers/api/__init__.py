@@ -111,36 +111,6 @@ mod.add_url_rule(
     view_func=faction.positions.get_positions,
     methods=["GET"],
 )
-mod.add_url_rule(
-    "/api/faction/recruitment/message",
-    view_func=faction.recruitment.message_send,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/recruitment/recruit",
-    view_func=faction.recruitment.invite_recruit,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/recruitment/recruit",
-    view_func=faction.recruitment.remove_recruit,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/faction/recruitment/recruiter",
-    view_func=faction.recruitment.remove_recruiter,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/faction/recruitment/recruiter",
-    view_func=faction.recruitment.add_recruiter,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/faction/recruitment/recruiter/code",
-    view_func=faction.recruitment.refresh_code,
-    methods=["POST"],
-)
 
 # /api/stakeout
 mod.add_url_rule(
@@ -150,17 +120,6 @@ mod.add_url_rule(
 # /api/stat
 mod.add_url_rule("/api/stat", view_func=stat.generate_chain_list, methods=["GET"])
 mod.add_url_rule("/api/stat/<int:tid>", view_func=stat.get_stat_user, methods=["GET"])
-
-# /api/astat
-mod.add_url_rule(
-    "/api/astat/attack/started", view_func=astat.attack_start, methods=["POST"]
-)
-mod.add_url_rule(
-    "/api/astat/attack/finished", view_func=astat.attack_end, methods=["POST"]
-)
-mod.add_url_rule(
-    "/api/astat/stats/<logID>", view_func=astat.attack_log_stats, methods=["GET"]
-)
 
 # /api/user
 mod.add_url_rule("/api/user", view_func=user.get_user, methods=["GET"])

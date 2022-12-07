@@ -356,7 +356,6 @@ def fulfill_command(interaction):
                     }
                 ],
             },
-            dev=True,
         )
     except utils.DiscordError as e:
         return {
@@ -722,7 +721,6 @@ def fulfill_button(interaction):
                     }
                 ],
             },
-            dev=True,
         )
     except utils.DiscordError as e:
         return {

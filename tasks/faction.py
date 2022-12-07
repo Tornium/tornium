@@ -439,7 +439,6 @@ def refresh_factions():
                                 discordpost.delay(
                                     f'channels/{faction.chainconfig["odchannel"]}/messages',
                                     payload=payload,
-                                    dev=guild.skynet,
                                 )
                             except Exception as e:
                                 logger.exception(e)
@@ -477,7 +476,6 @@ def refresh_factions():
                                 discordpost.delay(
                                     f'channels/{faction.chainconfig["odchannel"]}/messages',
                                     payload=payload,
-                                    dev=guild.skynet,
                                 )
                             except Exception as e:
                                 logger.exception(e)
@@ -782,7 +780,6 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 f"channels/{guild.retal_config[str(faction.tid)]}/messages",
                 payload,
                 bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
-                dev=guild.skynet,
             )
         except utils.DiscordError as e:
             if e.code == 10003:
@@ -1015,7 +1012,9 @@ def oc_refresh():
         OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
 
         for oc_id, oc_data in oc_data["crimes"].items():
-            oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
+            oc_db_original: mongoengine.QuerySet = OCModel.objects(
+                Q(factiontid=faction.tid) & Q(ocid=oc_id)
+            )
 
             oc_db: OCModel = oc_db_original.modify(
                 upsert=True,
@@ -1144,7 +1143,6 @@ def oc_refresh():
                     discordpost.delay(
                         f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                         payload=payload,
-                        dev=guild.skynet,
                     )
                 except Exception as e:
                     logger.exception(e)
@@ -1192,7 +1190,6 @@ def oc_refresh():
                     discordpost.delay(
                         f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                         payload=payload,
-                        dev=guild.skynet,
                     )
                 except Exception as e:
                     logger.exception(e)

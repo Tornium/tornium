@@ -45,13 +45,11 @@ def dashboard():
         elif request.form.get("refreshusers") is not None:
             usertasks.refresh_users.delay()
         elif request.form.get("fetchattacks") is not None:
-            factiontasks.fetch_attacks.delay()
+            factiontasks.fetch_attacks_runner.delay()
         elif request.form.get("refreshuserstakeouts") is not None:
             stakeouttasks.user_stakeouts.delay()
         elif request.form.get("refreshfactionstakeouts") is not None:
             stakeouttasks.faction_stakeouts.delay()
-        elif request.form.get("refreshpro") is not None:
-            tasks.pro_refresh()
         elif request.form.get("mailcheck") is not None:
             usertasks.mail_check.delay()
         elif request.form.get("purgecache") is not None:
@@ -94,7 +92,6 @@ def dashboard():
                     f"applications/{application_id}/commands",
                     commands_data,
                     session=session,
-                    dev=True,
                 )
                 botlogger.info(commands_data)
             except utils.DiscordError as e:
@@ -104,42 +101,7 @@ def dashboard():
                 botlogger.error(e)
                 raise e
 
-            try:
-                if get_redis().exists("tornium:skynet:devguild"):
-                    guild = get_redis().get("tornium:skynet:devguild")
-
-                    if guild != "":
-                        commands_dev_data = tasks.discordput(
-                            f"applications/{application_id}/guilds/{guild}/commands",
-                            commands_data,
-                            session=True,
-                            dev=True,
-                        )
-            except utils.DiscordError as e:
-                botlogger.error(e)
-                raise e
-            except Exception as e:
-                botlogger.error(e)
-                raise e
-
     return render_template("admin/dashboard.html")
-
-
-@mod.route("/admin/bot", methods=["GET", "POST"])
-@login_required
-@admin_required
-def bot():
-    redis = get_redis()
-
-    if request.method == "POST":
-        if request.form.get("bottoken") is not None:
-            redis.set(
-                "tornium:settings:bottoken", request.form.get("bottoken")
-            )  # TODO: Replace bottoken in settings file
-
-    return render_template(
-        "admin/bot.html", bottoken=redis.get("tornium:settings:bottoken")
-    )
 
 
 @mod.route("/admin/database")

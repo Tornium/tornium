@@ -53,9 +53,6 @@ class User(UserMixin):
         self.status = user.status
         self.last_action = user.last_action
 
-        self.pro = user.pro
-        self.pro_expiration = user.pro_expiration
-
     def refresh(self, key=None, force=False):
         now = utils.now()
 

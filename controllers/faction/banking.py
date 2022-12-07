@@ -190,7 +190,7 @@ def fulfill(wid: int):
             error="The faction's Discord server could not be located in the database.",
         )
 
-    channels = tasks.discordget(f"guilds/{faction.guild}/channels", dev=guild.skynet)
+    channels = tasks.discordget(f"guilds/{faction.guild}/channels")
     banking_channel = None
 
     for channel in channels:
@@ -209,76 +209,53 @@ def fulfill(wid: int):
         )
 
     try:
-        if guild.skynet:
-            message = tasks.discordget(
-                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-                dev=guild.skynet,
-            )
-            embed = message["embeds"][0]
-
-            embed["fields"] = [
-                {"name": "Original Message", "value": embed["description"]}
-            ]
-            embed[
-                "description"
-            ] = f"This request has been fulfilled by {current_user.name} [{current_user.tid}] at {utils.torn_timestamp(utils.now())}"
-
-            message = tasks.discordpatch(
-                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-                payload={"embeds": [embed]},
-                dev=True,
-            )
-        else:
-            message = tasks.discordpatch(
-                f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-                payload={
-                    "embeds": [
-                        {
-                            "title": f"Vault Request #{withdrawal.wid}",
-                            "description": f"This request has been fulfilled by {current_user.name} [{current_user.tid}].",
-                            "fields": [
-                                {
-                                    "name": "Original Request Amount",
-                                    "value": utils.commas(withdrawal.amount),
-                                },
-                                {
-                                    "name": "Original Request Type",
-                                    "value": "Points"
-                                    if withdrawal.wtype == 1
-                                    else "Cash",
-                                },
-                            ],
-                            "timestamp": datetime.datetime.utcnow().isoformat(),
-                        }
-                    ],
-                    "components": [
-                        {
-                            "type": 1,
-                            "components": [
-                                {
-                                    "type": 2,
-                                    "style": 5,
-                                    "label": "Faction Vault",
-                                    "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                                },
-                                {
-                                    "type": 2,
-                                    "style": 5,
-                                    "label": "Fulfill",
-                                    "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
-                                },
-                                {
-                                    "type": 2,
-                                    "style": 3,
-                                    "label": "Fulfill Manually",
-                                    "custom_id": "faction:vault:fulfill",
-                                },
-                            ],
-                        }
-                    ],
-                },
-                dev=True,
-            )
+        message = tasks.discordpatch(
+            f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
+            payload={
+                "embeds": [
+                    {
+                        "title": f"Vault Request #{withdrawal.wid}",
+                        "description": f"This request has been fulfilled by {current_user.name} [{current_user.tid}].",
+                        "fields": [
+                            {
+                                "name": "Original Request Amount",
+                                "value": utils.commas(withdrawal.amount),
+                            },
+                            {
+                                "name": "Original Request Type",
+                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
+                        ],
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Faction Vault",
+                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                            },
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Fulfill",
+                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
+                            },
+                            {
+                                "type": 2,
+                                "style": 3,
+                                "label": "Fulfill Manually",
+                                "custom_id": "faction:vault:fulfill",
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
     except DiscordError as e:
         return utils.handle_discord_error(e)
 

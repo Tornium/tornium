@@ -10,6 +10,7 @@ import math
 import random
 import uuid
 
+import mongoengine
 from mongoengine.queryset.visitor import Q
 import requests
 
@@ -1014,26 +1015,9 @@ def oc_refresh():
         OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
 
         for oc_id, oc_data in oc_data["crimes"].items():
-            oc_db_original: OCModel = OCModel.objects(
-                Q(factiontid=faction.tid) & Q(ocid=oc_id)
-            ).first()
+            oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
 
-            logger.debug(oc_data["crime_id"])
-            logger.debug([
-                    list(participant.keys())[0]
-                    for participant in oc_data["participants"]
-                ])
-            logger.debug(oc_data["time_started"])
-            logger.debug(oc_data["time_ready"])
-            logger.debug(oc_data["time_completed"])
-            logger.debug(oc_data["planned_by"])
-            logger.debug(oc_data["initiated_by"])
-            logger.debug(oc_data["money_gain"])
-            logger.debug(oc_data["respect_gain"])
-
-            oc_db: OCModel = OCModel.objects(
-                Q(factiontid=faction.tid) & Q(ocid=oc_id)
-            ).modify(
+            oc_db: OCModel = oc_db_original.modify(
                 upsert=True,
                 new=True,
                 set__crime_id=oc_data["crime_id"],
@@ -1049,6 +1033,8 @@ def oc_refresh():
                 set__money_gain=oc_data["money_gain"],
                 set__respect_gain=oc_data["respect_gain"],
             )
+
+            oc_db_original = oc_db_original.first()
 
             if oc_db_original is None:
                 continue

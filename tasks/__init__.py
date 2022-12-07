@@ -261,9 +261,9 @@ def tornget(
 
     try:
         if session is None:
-            request = requests.get(url, timeout=5)
+            request = requests.get(url, timeout=2)
         else:
-            request = session.get(url, timeout=5)
+            request = session.get(url, timeout=2)
     except requests.exceptions.Timeout as e:
         logger.exception(e)
         raise NetworkingError(code=408, url=url)
@@ -891,7 +891,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
     return request_json
 
 
-@celery_app.task
+@celery_app.task(time_limit=5)
 def torn_stats_get(endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
 
@@ -913,9 +913,9 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
             raise RatelimitError
 
     if session is None:
-        request = requests.get(url)
+        request = requests.get(url, timeout=3)
     else:
-        request = session.get(url)
+        request = session.get(url, timeout=3)
 
     if request.status_code // 100 != 2:
         logger.warning(

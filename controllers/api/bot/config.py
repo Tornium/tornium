@@ -35,7 +35,7 @@ def jsonified_server_config(guild: ServerModel):
             "factions": guild.assist_factions,
             "modifier": guild.assist_mod,
         },
-        "oc": guild.oc_config
+        "oc": guild.oc_config,
     }
 
     for faction in data["verify"]["faction_verify"]:

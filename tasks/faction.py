@@ -1057,7 +1057,7 @@ def oc_refresh():
                             "title": f"OC of {faction.name} Delayed",
                             "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed ({list(ready).count(True)}/{len(oc_data['participants'])}).""",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": utils.torn_timestamp()},
+                            "footer": {"text": f"#{oc_db.ocid}"},
                         }
                     ],
                     "components": [],
@@ -1149,7 +1149,7 @@ def oc_refresh():
                             "title": f"OC of {faction.name} Ready",
                             "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.""",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": utils.torn_timestamp()},
+                            "footer": {"text": f"#{oc_db.ocid}"},
                         }
                     ],
                 }

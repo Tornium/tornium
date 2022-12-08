@@ -1037,7 +1037,7 @@ def oc_refresh():
 
             if oc_db_original is None:
                 continue
-            elif utils.now() >= oc_db.time_completed:
+            elif oc_db.time_completed != 0 and utils.now() >= oc_db.time_completed:
                 continue
             elif oc_db.time_ready < utils.now():
                 continue
@@ -1060,19 +1060,7 @@ def oc_refresh():
                             "footer": {"text": utils.torn_timestamp()},
                         }
                     ],
-                    "components": [
-                        {
-                            "type": 1,
-                            "components": [
-                                {
-                                    "type": 2,
-                                    "style": 5,
-                                    "label": "Faction OCs",
-                                    "url": "https://www.torn.com/factions.php?step=your#/tab=crimes",
-                                }
-                            ],
-                        }
-                    ],
+                    "components": [],
                 }
 
                 roles = guild.oc_config[str(faction.tid)]["delay"]["roles"]
@@ -1112,6 +1100,7 @@ def oc_refresh():
                                             "style": 2,
                                             "label": f"{participant['description']}",
                                             "custom_id": f"participant:delay:{participant_id}",
+                                            "disabled": True,
                                         },
                                     ],
                                 }
@@ -1132,11 +1121,13 @@ def oc_refresh():
                                             "style": 2,
                                             "label": f"{participant['description']}",
                                             "custom_id": f"participant:delay:{participant_id}",
+                                            "disabled": True,
                                         },
                                     ],
                                 }
                             )
 
+                oc_db.save()
                 print(payload)
 
                 try:
@@ -1149,6 +1140,8 @@ def oc_refresh():
                     continue
             elif OC_READY and not oc_db.notified and all(ready):
                 # OC is ready
+                oc_db.notified = True
+                oc_db.save()
 
                 payload = {
                     "embeds": [
@@ -1157,19 +1150,6 @@ def oc_refresh():
                             "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.""",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                             "footer": {"text": utils.torn_timestamp()},
-                        }
-                    ],
-                    "components": [
-                        {
-                            "type": 1,
-                            "components": [
-                                {
-                                    "type": 2,
-                                    "style": 5,
-                                    "label": "Faction OCs",
-                                    "url": "https://www.torn.com/factions.php?step=your#/tab=crimes",
-                                }
-                            ],
                         }
                     ],
                 }

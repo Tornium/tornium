@@ -100,6 +100,32 @@ def banking():
                 "adjust": banker_position.canAdjustMemberBalance,
             })
 
+    if faction.leader != 0:
+        user: UserModel = UserModel.objects(tid=faction.leader).first()
+
+        if user is not None:
+            bankers.append({
+                "name": user.name,
+                "tid": user.tid,
+                "position": "Leader",
+                "money": True,
+                "points": True,
+                "adjust": True,
+            })
+
+    if faction.coleader != 0:
+        user: UserModel = UserModel.objects(tid=faction.coleader).first()
+
+        if user is not None:
+            bankers.append({
+                "name": user.name,
+                "tid": user.tid,
+                "position": "Co-leader",
+                "money": True,
+                "points": True,
+                "adjust": True,
+            })
+
 
     return render_template(
         "faction/banking.html",

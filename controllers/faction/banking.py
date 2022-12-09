@@ -108,6 +108,7 @@ def banking():
         and faction.vaultconfig["withdrawal"] != 0,
         key=current_user.key,
         faction=faction,
+        bankers=bankers,
     )
 
 

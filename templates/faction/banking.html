@@ -46,6 +46,36 @@ Tornium - Faction Banking
         </div>
     </div>
 </div>
+
+<div class="row px-3 pt-3">
+    <div class="col-xs-12 col-lg-6 col-xl-4 mb-3">
+        <div class="card" style="width: 18rem;">
+            <div class="card-header">
+                List of Bankers
+            </div>
+
+            <ul class="list-group list-group-flush">
+                {% for banker in bankers %}
+                <li class="list-group-item">
+                    <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ banker["position"] }}">{{ banker["name"] }} [{{ banker["tid"] }}]</span>
+
+                    {% if banker["money"] %}
+                    <i class="fa-solid fa-circle-dollar-to-slot" data-bs-toggle="tooltip" data-bs-placement="right" title="Can give money."></i>
+                    {% endif %}
+
+                    {% if banker["points"] %}
+                    <i class="fa-solid fa-circle-dot" data-bs-toggle="tooltip" data-bs-placement="right" title="Can give points."></i>
+                    {% endif %}
+
+                    {% if banker["adjust"] %}
+                    <i class="fa-solid fa-money-check-dollar" data-bs-toggle="tooltip" data-bs-placement="right" title="Can adjust balances."></i>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 <div class="row px-3 pt-3">

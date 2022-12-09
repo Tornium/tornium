@@ -7,11 +7,14 @@ import datetime
 
 from flask import render_template, request, redirect
 from flask_login import login_required
+from mongoengine.queryset.visitor import Q
 
 from controllers.faction.decorators import *
 from models.factionmodel import FactionModel
+from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.user import User
+from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
 import tasks
 import utils
@@ -76,6 +79,27 @@ def banking():
         return render_template(
             "faction/banking.html", bankingenabled=False, key=current_user.key
         )
+
+    banker_positions = PositionModel.objects(
+        Q(factiontid=faction.tid) & (Q(canGiveMoney=True) | Q(canGivePoints=True) | Q(canAdjustMemberBalance=True))
+    )
+    bankers = []
+
+    banker_position: PositionModel
+    for banker_position in banker_positions:
+        users = UserModel.objects(faction_position=banker_position.pid)
+
+        user: UserModel
+        for user in users:
+            bankers.append({
+                "name": user.name,
+                "tid": user.tid,
+                "position": banker_position.name,
+                "money": banker_position.canGiveMoney,
+                "points": banker_position.canGivePoints,
+                "adjust": banker_position.canAdjustMemberBalance,
+            })
+
 
     return render_template(
         "faction/banking.html",

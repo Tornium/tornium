@@ -94,6 +94,7 @@ def banking():
             bankers.append({
                 "name": user.name,
                 "tid": user.tid,
+                "last_action": user.last_action,
                 "position": banker_position.name,
                 "money": banker_position.canGiveMoney,
                 "points": banker_position.canGivePoints,
@@ -107,6 +108,7 @@ def banking():
             bankers.append({
                 "name": user.name,
                 "tid": user.tid,
+                "last_action": user.last_action,
                 "position": "Leader",
                 "money": True,
                 "points": True,
@@ -120,6 +122,7 @@ def banking():
             bankers.append({
                 "name": user.name,
                 "tid": user.tid,
+                "last_action": user.last_action,
                 "position": "Co-leader",
                 "money": True,
                 "points": True,

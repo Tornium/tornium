@@ -17,9 +17,9 @@ Tornium - Faction Banking
                 <h5 class="card-title">Faction Vault Withdrawal</h5>
 
                 <p class="card-text">
-                    You currently have $<span id="money-balance"></span> in the {{ faction.name }}[{{ faction.tid }}] vault.
+                    You currently have $<span id="money-balance"></span> in the {{ faction.name }} [{{ faction.tid }}] vault.
                     <br />
-                    You currently have <span id="points-balance"></span> point(s) in the {{ faction.name }}[{{ faction.tid }}] vault.
+                    You currently have <span id="points-balance"></span> point(s) in the {{ faction.name }} [{{ faction.tid }}] vault.
                 </p>
 
                 <div class="row">
@@ -57,7 +57,7 @@ Tornium - Faction Banking
             <ul class="list-group list-group-flush">
                 {% for banker in bankers %}
                 <li class="list-group-item">
-                    <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ banker["position"] }}">{{ banker["name"] }} [{{ banker["tid"] }}]</span>
+                    <span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ banker["last_action"]|reltime }}">{{ banker["name"] }} [{{ banker["tid"] }}]</span>
 
                     {% if banker["money"] %}
                     <i class="fa-solid fa-circle-dollar-to-slot" data-bs-toggle="tooltip" data-bs-placement="right" title="Can give money."></i>

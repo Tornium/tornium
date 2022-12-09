@@ -6,6 +6,10 @@ Written by tiksan <webmaster@deek.sh> */
 const key = document.currentScript.getAttribute('data-key');
 
 $(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip({
+        html: true
+    });
+
     $('#banking-table').DataTable({
         "processing": true,
         "serverSide": true,

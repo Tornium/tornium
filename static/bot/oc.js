@@ -174,7 +174,7 @@ $(document).ready(function() {
             channelsRequest().then(function() {
                 $.each(serverConfig["oc"], function(factionid, oc_config) {
                     let delayChannel =  $(`.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config["delay"]["channel"]}"]`);
-                    let readyChannel =  $(`.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config["delay"]["channel"]}"]`);
+                    let readyChannel =  $(`.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config["ready"]["channel"]}"]`);
 
                     if(delayChannel.length !== 0) {
                         delayChannel.attr("selected", "");

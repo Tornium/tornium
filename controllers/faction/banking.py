@@ -81,7 +81,12 @@ def banking():
         )
 
     banker_positions = PositionModel.objects(
-        Q(factiontid=faction.tid) & (Q(canGiveMoney=True) | Q(canGivePoints=True) | Q(canAdjustMemberBalance=True))
+        Q(factiontid=faction.tid)
+        & (
+            Q(canGiveMoney=True)
+            | Q(canGivePoints=True)
+            | Q(canAdjustMemberBalance=True)
+        )
     )
     bankers = []
 
@@ -91,44 +96,49 @@ def banking():
 
         user: UserModel
         for user in users:
-            bankers.append({
-                "name": user.name,
-                "tid": user.tid,
-                "last_action": user.last_action,
-                "position": banker_position.name,
-                "money": banker_position.canGiveMoney,
-                "points": banker_position.canGivePoints,
-                "adjust": banker_position.canAdjustMemberBalance,
-            })
+            bankers.append(
+                {
+                    "name": user.name,
+                    "tid": user.tid,
+                    "last_action": user.last_action,
+                    "position": banker_position.name,
+                    "money": banker_position.canGiveMoney,
+                    "points": banker_position.canGivePoints,
+                    "adjust": banker_position.canAdjustMemberBalance,
+                }
+            )
 
     if faction.leader != 0:
         user: UserModel = UserModel.objects(tid=faction.leader).first()
 
         if user is not None:
-            bankers.append({
-                "name": user.name,
-                "tid": user.tid,
-                "last_action": user.last_action,
-                "position": "Leader",
-                "money": True,
-                "points": True,
-                "adjust": True,
-            })
+            bankers.append(
+                {
+                    "name": user.name,
+                    "tid": user.tid,
+                    "last_action": user.last_action,
+                    "position": "Leader",
+                    "money": True,
+                    "points": True,
+                    "adjust": True,
+                }
+            )
 
     if faction.coleader != 0:
         user: UserModel = UserModel.objects(tid=faction.coleader).first()
 
         if user is not None:
-            bankers.append({
-                "name": user.name,
-                "tid": user.tid,
-                "last_action": user.last_action,
-                "position": "Co-leader",
-                "money": True,
-                "points": True,
-                "adjust": True,
-            })
-
+            bankers.append(
+                {
+                    "name": user.name,
+                    "tid": user.tid,
+                    "last_action": user.last_action,
+                    "position": "Co-leader",
+                    "money": True,
+                    "points": True,
+                    "adjust": True,
+                }
+            )
 
     return render_template(
         "faction/banking.html",

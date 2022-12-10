@@ -84,6 +84,9 @@ class NetworkingError(Exception):
     def __str__(self):
         return f"HTTP {self.code} was returned in response to {self.url}"
 
+    def __reduce__(self):
+        return self.__class__, (self.code, self.url)
+
 
 class TornError(Exception):
     def __init__(self, code: int, endpoint: str):
@@ -150,6 +153,9 @@ class TornError(Exception):
 
     def __str__(self):
         return f"The Torn API has returned error code {self.code}"
+
+    def __reduce__(self):
+        return self.__class__, (self.code, self.endpoint)
 
 
 class DiscordError(Exception):

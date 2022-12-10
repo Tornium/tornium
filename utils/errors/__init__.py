@@ -162,6 +162,9 @@ class DiscordError(Exception):
     def __str__(self):
         return f"The Discord API has return error code {self.code}"
 
+    def __reduce__(self):
+        return self.__class__, (self.code, self.message)
+
 
 class MissingKeyError(Exception):
     pass

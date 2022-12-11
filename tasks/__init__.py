@@ -5,7 +5,7 @@
 
 from ddtrace import patch_all
 
-patch_all()
+patch_all(logging=True)
 import ddtrace.profiling.auto
 
 import datetime

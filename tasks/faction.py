@@ -1040,10 +1040,10 @@ def oc_refresh():
             elif oc_db.time_completed != 0:
                 continue
 
-            ready = map(
+            ready = list(map(
                 lambda participant: list(participant.values())[0]["color"] == "green",
                 oc_data["participants"],
-            )
+            ))
 
             logger.info(ready)
 
@@ -1060,7 +1060,7 @@ def oc_refresh():
                     "embeds": [
                         {
                             "title": f"OC of {faction.name} Delayed",
-                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed ({list(ready).count(True)}/{len(oc_data['participants'])}).""",
+                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed ({ready.count(True)}/{len(oc_data['participants'])}).""",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                             "footer": {"text": f"#{oc_db.ocid}"},
                         }

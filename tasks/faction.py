@@ -1037,9 +1037,7 @@ def oc_refresh():
 
             if oc_db_original is None:
                 continue
-            elif oc_db.time_completed != 0 and utils.now() >= oc_db.time_completed:
-                continue
-            elif oc_db.time_ready < utils.now():
+            elif oc_db.time_completed != 0:
                 continue
 
             ready = map(
@@ -1047,7 +1045,14 @@ def oc_refresh():
                 oc_data["participants"],
             )
 
-            if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
+            logger.info(ready)
+
+            if (
+                OC_DELAY
+                and len(oc_db.delayers) == 0
+                and oc_db.time_ready <= utils.now()
+                and not all(ready)
+            ):
                 # OC has been delayed
                 oc_db.notified = False
 

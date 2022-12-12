@@ -1039,6 +1039,8 @@ def oc_refresh():
                 continue
             elif oc_db.time_completed != 0:
                 continue
+            elif oc_db.time_ready > utils.now():
+                continue
 
             ready = list(map(
                 lambda participant: list(participant.values())[0]["color"] == "green",
@@ -1050,7 +1052,6 @@ def oc_refresh():
             if (
                 OC_DELAY
                 and len(oc_db.delayers) == 0
-                and oc_db.time_ready <= utils.now()
                 and not all(ready)
             ):
                 # OC has been delayed

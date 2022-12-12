@@ -1042,18 +1042,17 @@ def oc_refresh():
             elif oc_db.time_ready > utils.now():
                 continue
 
-            ready = list(map(
-                lambda participant: list(participant.values())[0]["color"] == "green",
-                oc_data["participants"],
-            ))
+            ready = list(
+                map(
+                    lambda participant: list(participant.values())[0]["color"]
+                    == "green",
+                    oc_data["participants"],
+                )
+            )
 
             logger.info(ready)
 
-            if (
-                OC_DELAY
-                and len(oc_db.delayers) == 0
-                and not all(ready)
-            ):
+            if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
                 # OC has been delayed
                 oc_db.notified = False
 

@@ -133,3 +133,4 @@ celery.json
 wsgi.py
 tt
 test.py
+.tox

@@ -167,7 +167,16 @@ def verifyall(interaction):
     member_count = 0
     member_fetch_run = 0
     errors = 0
-    channel_error = False
+    log_channel_found = False
+
+    for category in server.get_text_channels().values():
+        if log_channel_found:
+            break
+
+        for channel in category["channels"]:
+            if channel == server.verify_log_channel:
+                log_channel_found = True
+                break
 
     while (
         member_count <= server_data["approximate_member_count"] * 0.99
@@ -261,22 +270,14 @@ def verifyall(interaction):
                             ]
                         }
 
-                    try:
-                        if not channel_error:
-                            tasks.discordpost(
-                                f"channels/{server.verify_log_channel}/messages",
-                                payload=payload,
-                                bucket=f"channels/{server.verify_log_channel}",
-                                retry=True,
-                            )
-                        continue
-                    except utils.DiscordError as e:
-                        if e.code == 10003:
-                            channel_error = True
-
-                        continue
-                    except Exception:
-                        continue
+                    if log_channel_found:
+                        tasks.discordpost.delay(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
                 except utils.NetworkingError as e:
                     errors += 1
 
@@ -296,22 +297,14 @@ def verifyall(interaction):
                         ],
                     }
 
-                    try:
-                        if not channel_error:
-                            tasks.discordpost(
-                                f"channels/{server.verify_log_channel}/messages",
-                                payload=payload,
-                                bucket=f"channels/{server.verify_log_channel}",
-                                retry=True,
-                            )
-                        continue
-                    except utils.DiscordError as e:
-                        if e.code == 10003:
-                            channel_error = True
-
-                        continue
-                    except Exception:
-                        continue
+                    if log_channel_found:
+                        tasks.discordpost.delay(
+                            f"channels/{server.verify_log_channel}/messages",
+                            payload=payload,
+                            bucket=f"channels/{server.verify_log_channel}",
+                            retry=True,
+                        )
+                    continue
 
                 user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
                     upsert=True,
@@ -344,22 +337,14 @@ def verifyall(interaction):
                     ]
                 }
 
-                try:
-                    if not channel_error:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
-                    continue
-                except utils.DiscordError as e:
-                    if e.code == 10003:
-                        channel_error = True
-
-                    continue
-                except Exception:
-                    continue
+                if log_channel_found:
+                    tasks.discordpost.delay(
+                        f"channels/{server.verify_log_channel}/messages",
+                        payload=payload,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                    )
+                continue
 
             try:
                 user: User = User(user.tid)
@@ -391,22 +376,14 @@ def verifyall(interaction):
                     ]
                 }
 
-                try:
-                    if not channel_error:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
-                    continue
-                except utils.DiscordError as e:
-                    if e.code == 10003:
-                        channel_error = True
-
-                    continue
-                except Exception:
-                    continue
+                if log_channel_found:
+                    tasks.discordpost.delay(
+                        f"channels/{server.verify_log_channel}/messages",
+                        payload=payload,
+                        bucket=f"channels/{server.verify_log_channel}",
+                        retry=True,
+                    )
+                continue
 
             patch_json = {}
 
@@ -497,88 +474,17 @@ def verifyall(interaction):
 
             print(patch_json)
 
-            try:
-                tasks.discordpatch(
-                    f"guilds/{server.sid}/members/{user.discord_id}",
-                    patch_json,
-                    bucket=f"guilds/{server.sid}",
-                    retry=True,
-                )
-            except utils.DiscordError as e:
-                errors += 1
-
-                if server.verify_log_channel in (None, 0):
-                    continue
-
-                payload = {
-                    "embeds": [
-                        {
-                            "title": "Discord API Error",
-                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
-                            "footer": {
-                                "text": f"Failed on member <@{guild_member['user']['id']}>"
-                            },
-                        }
-                    ]
-                }
-
-                try:
-                    if not channel_error:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
-                    continue
-                except utils.DiscordError as e:
-                    if e.code == 10003:
-                        channel_error = True
-
-                    continue
-                except Exception:
-                    continue
-            except utils.NetworkingError as e:
-                errors += 1
-
-                if server.verify_log_channel in (None, 0):
-                    continue
-
-                payload = {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
-                            "footer": {
-                                "text": f"Failed on member <@{guild_member['user']['id']}>"
-                            },
-                        }
-                    ],
-                }
-
-                try:
-                    if not channel_error:
-                        tasks.discordpost(
-                            f"channels/{server.verify_log_channel}/messages",
-                            payload=payload,
-                            bucket=f"channels/{server.verify_log_channel}",
-                            retry=True,
-                        )
-                    continue
-                except utils.DiscordError as e:
-                    if e.code == 10003:
-                        channel_error = True
-
-                    continue
-                except Exception:
-                    continue
+            tasks.discordpatch.delay(
+                f"guilds/{server.sid}/members/{user.discord_id}",
+                patch_json,
+                bucket=f"guilds/{server.sid}",
+                retry=True,
+            )
 
             payload = {
                 "embeds": [
                     {
-                        "title": "API Verification Completed",
+                        "title": "API Verification Attempted",
                         "description": f"<@{guild_member['user']['id']}> is officially verified by Torn with updated "
                         f"roles and nickname.",
                         "color": 0x32CD32,
@@ -593,22 +499,14 @@ def verifyall(interaction):
                 ]
             }
 
-            try:
-                if not channel_error:
-                    tasks.discordpost(
-                        f"channels/{server.verify_log_channel}/messages",
-                        payload=payload,
-                        bucket=f"channels/{server.verify_log_channel}",
-                        retry=True,
-                    )
-                continue
-            except utils.DiscordError as e:
-                if e.code == 10003:
-                    channel_error = True
-
-                continue
-            except Exception:
-                continue
+            if log_channel_found:
+                tasks.discordpost.delay(
+                    f"channels/{server.verify_log_channel}/messages",
+                    payload=payload,
+                    bucket=f"channels/{server.verify_log_channel}",
+                    retry=True,
+                )
+            continue
 
         member_count += len(guild_members)
         member_fetch_run += 1

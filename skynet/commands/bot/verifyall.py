@@ -170,13 +170,9 @@ def verifyall(interaction):
     log_channel_found = False
 
     for category in server.get_text_channels().values():
-        if log_channel_found:
+        if str(server.verify_log_channel) in category["channels"]:
+            log_channel_found = True
             break
-
-        for channel in category["channels"]:
-            if channel == server.verify_log_channel:
-                log_channel_found = True
-                break
 
     while (
         member_count <= server_data["approximate_member_count"] * 0.99

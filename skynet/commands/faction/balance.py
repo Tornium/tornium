@@ -6,16 +6,11 @@
 import random
 
 from models.faction import Faction
-from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys, get_faction_keys
+from skynet.skyutils import get_admin_keys, get_faction_keys, SKYNET_ERROR, SKYNET_GOOD
 import tasks
 import utils
-
-# Red: C83F49
-# Lime: 32CD32
-# Blue: 7DF9FF
 
 
 def balance(interaction):
@@ -58,7 +53,7 @@ def balance(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -79,7 +74,7 @@ def balance(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -93,7 +88,7 @@ def balance(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -127,7 +122,7 @@ def balance(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -146,7 +141,7 @@ def balance(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -169,7 +164,7 @@ def balance(interaction):
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
                                 f"set regardless of a force refresh.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -183,7 +178,7 @@ def balance(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -202,7 +197,7 @@ def balance(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -219,7 +214,7 @@ def balance(interaction):
                         "title": "No API Keys",
                         "description": "No AA API keys were found to be run for this command. Please sign into "
                         "Tornium or ask a faction AA member to sign into Tornium.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -238,7 +233,7 @@ def balance(interaction):
                     {
                         "title": "Torn API Error",
                         "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -252,7 +247,7 @@ def balance(interaction):
                     {
                         "title": "HTTP Error",
                         "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -272,7 +267,7 @@ def balance(interaction):
                             f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
                             f"If you think that this is an error, please report this to the developers of this bot."
                         ),
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -295,7 +290,7 @@ def balance(interaction):
                             "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}",
                         },
                     ],
-                    "color": 0x32CD32,
+                    "color": SKYNET_GOOD,
                 }
             ],
             "components": [

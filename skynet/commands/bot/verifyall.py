@@ -10,7 +10,7 @@ import jinja2
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD
 import tasks
 import utils
 
@@ -43,7 +43,7 @@ def verifyall(interaction):
                     {
                         "title": "Verification Not Enabled",
                         "description": "Verification is not enabled in the server's admin dashboard.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -62,7 +62,7 @@ def verifyall(interaction):
                         "title": "Verification Not Enabled",
                         "description": "Verification is enabled, but nothing will be changed based on the current "
                         "settings in the server's admin dashboard.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -85,7 +85,7 @@ def verifyall(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -143,7 +143,7 @@ def verifyall(interaction):
                     {
                         "title": "Discord API Error",
                         "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -157,7 +157,7 @@ def verifyall(interaction):
                     {
                         "title": "HTTP Error",
                         "description": f'The Discord API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -193,7 +193,7 @@ def verifyall(interaction):
                         {
                             "title": "Discord API Error",
                             "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -483,7 +483,7 @@ def verifyall(interaction):
                         "title": "API Verification Attempted",
                         "description": f"<@{guild_member['user']['id']}> is officially verified by Torn with updated "
                         f"roles and nickname.",
-                        "color": 0x32CD32,
+                        "color": SKYNET_GOOD,
                         "author": {
                             "name": guild_member["nick"]
                             if "nick" in guild_member

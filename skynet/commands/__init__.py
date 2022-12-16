@@ -4,6 +4,7 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from skynet.commands import faction, user, bot, stat
+from skynet.skyutils import SKYNET_INFO
 
 
 def ping(interaction):
@@ -16,7 +17,7 @@ def ping(interaction):
                     "image": {
                         "url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"
                     },
-                    "color": 0x7DF9FF,
+                    "color": SKYNET_INFO,
                 }
             ],
             "flags": 64,  # Ephemeral

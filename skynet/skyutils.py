@@ -12,6 +12,10 @@ from models.server import Server
 from models.usermodel import UserModel
 import redisdb
 
+SKYNET_ERROR = 0xC83F49
+SKYNET_GOOD = 0x32CD32
+SKYNET_INFO = 0x7DF9FF
+
 
 def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization

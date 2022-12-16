@@ -12,7 +12,7 @@ from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
 import redisdb
-from skynet.skyutils import get_admin_keys, get_faction_keys
+from skynet.skyutils import get_admin_keys, get_faction_keys, SKYNET_ERROR
 import tasks
 import utils
 
@@ -27,7 +27,7 @@ def withdraw(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -53,7 +53,7 @@ def withdraw(interaction):
                         "title": "Withdrawal Request Failed",
                         "description": "No options were passed with the "
                         "request. The withdrawal amount option is required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -81,7 +81,7 @@ def withdraw(interaction):
                     {
                         "title": "Withdrawal Request Failed",
                         "description": "An incorrect withdrawal type was passed.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                         "footer": {
                             "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
                         },
@@ -102,7 +102,7 @@ def withdraw(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -123,7 +123,7 @@ def withdraw(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -137,7 +137,7 @@ def withdraw(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -171,7 +171,7 @@ def withdraw(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -190,7 +190,7 @@ def withdraw(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -213,7 +213,7 @@ def withdraw(interaction):
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
                                 f"set regardless of a force refresh.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -227,7 +227,7 @@ def withdraw(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -245,7 +245,7 @@ def withdraw(interaction):
                         "title": "Ratelimit Reached",
                         "description": f"You have reached the ratelimit on banking requests (once every minute). "
                         f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -267,7 +267,7 @@ def withdraw(interaction):
                     {
                         "title": "Illegal Parameters Passed",
                         "description": "No withdrawal amount was passed, but is required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral

@@ -6,7 +6,6 @@
         "faction/assist/assist",
         "faction/banking/balance",
         "faction/banking/fulfill",
-        "faction/banking/transfer",
         "faction/banking/withdraw",
         "stats/stat",
         "user/who"

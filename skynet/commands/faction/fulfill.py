@@ -11,7 +11,7 @@ from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD
 import tasks
 import utils
 
@@ -27,7 +27,7 @@ def fulfill_command(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -53,7 +53,7 @@ def fulfill_command(interaction):
                         "title": "Withdrawal Request Failed",
                         "description": "No options were passed with the "
                         "request. The withdrawal amount option is required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -71,7 +71,7 @@ def fulfill_command(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -92,7 +92,7 @@ def fulfill_command(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -106,7 +106,7 @@ def fulfill_command(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -140,7 +140,7 @@ def fulfill_command(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -159,7 +159,7 @@ def fulfill_command(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -182,7 +182,7 @@ def fulfill_command(interaction):
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
                                 f"set regardless of a force refresh.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -196,7 +196,7 @@ def fulfill_command(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -215,7 +215,7 @@ def fulfill_command(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -235,7 +235,7 @@ def fulfill_command(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -251,7 +251,7 @@ def fulfill_command(interaction):
                     {
                         "title": "Illegal Parameters Passed",
                         "description": "No withdrawal ID was passed, but is required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -268,7 +268,7 @@ def fulfill_command(interaction):
                     {
                         "title": "Illegal Parameter Value",
                         "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -403,7 +403,7 @@ def fulfill_command(interaction):
                 {
                     "title": f"Banking Request {withdrawal_id} Fulfilled",
                     "description": "You have fulfilled the banking request.",
-                    "color": 0x32CD32,
+                    "color": SKYNET_GOOD,
                 }
             ],
             "flags": 64,  # Ephemeral
@@ -768,7 +768,7 @@ def fulfill_button(interaction):
                 {
                     "title": f"Banking Request {withdrawal.wid} Fulfilled",
                     "description": "You have fulfilled the banking request.",
-                    "color": 0x32CD32,
+                    "color": SKYNET_GOOD,
                 }
             ],
             "flags": 64,  # Ephemeral

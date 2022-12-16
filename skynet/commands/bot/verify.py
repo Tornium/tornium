@@ -11,7 +11,7 @@ from models.factionmodel import FactionModel
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 import tasks
 import utils
 
@@ -44,7 +44,7 @@ def verify(interaction):
                     {
                         "title": "Verification Not Enabled",
                         "description": "Verification is not enabled in the server's admin dashboard.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -63,7 +63,7 @@ def verify(interaction):
                         "title": "Verification Not Enabled",
                         "description": "Verification is enabled, but nothing will be changed based on the current "
                         "settings in the server's admin dashboard.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -109,7 +109,7 @@ def verify(interaction):
                         {
                             "title": "Discord API Error",
                             "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -123,7 +123,7 @@ def verify(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -143,7 +143,7 @@ def verify(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -164,7 +164,7 @@ def verify(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -178,7 +178,7 @@ def verify(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -212,7 +212,7 @@ def verify(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -231,7 +231,7 @@ def verify(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -251,7 +251,7 @@ def verify(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -267,7 +267,7 @@ def verify(interaction):
                         "title": "Verification Failed",
                         "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
                         "Otherwise, try forcing the verification.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -393,7 +393,7 @@ def verify(interaction):
                         "title": "Verification Already Completed",
                         "description": "The verification would have modified no values. Run the command with force if "
                         "you believe something has changed.",
-                        "color": 0x7DF9FF,
+                        "color": SKYNET_INFO,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -460,7 +460,7 @@ def verify(interaction):
                     "description": f"""User: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
                     Faction: {faction_str}
                     Discord: <@{user.discord_id}>""",
-                    "color": 0x32CD32,
+                    "color": SKYNET_GOOD,
                 }
             ]
         },

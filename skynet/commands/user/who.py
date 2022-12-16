@@ -7,7 +7,7 @@ import random
 
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD
 from tasks.user import update_user
 import utils
 
@@ -27,7 +27,7 @@ def who(interaction):
                         {
                             "title": "Illegal Parameters",
                             "description": "The parameter passed must be either the Torn ID or a member mention.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -45,7 +45,7 @@ def who(interaction):
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
                             "Tornium or run this command in a server with signed-in admins.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -69,7 +69,7 @@ def who(interaction):
                         {
                             "title": f"Torn API Error #{e.code}",
                             "description": f'The Torn API has responded to the API call with "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -84,7 +84,7 @@ def who(interaction):
                             "title": f"HTTP Error Code {e.code}",
                             "description": f"The Torn API has responded to the API call with a networking error... "
                             f'"{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -98,7 +98,7 @@ def who(interaction):
                         {
                             "title": "Miscellaneous Exception",
                             "description": "The Torn API call has resulted with a miscellaneous error.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -117,7 +117,7 @@ def who(interaction):
                                 "title": "Unknown User",
                                 "description": "The mention Discord member could not be located. The user may not be "
                                 "officially verified. Please try using their Torn ID if you know that.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -134,7 +134,7 @@ def who(interaction):
                             {
                                 "title": "Unknown User",
                                 "description": "The passed Torn ID could not be located.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -162,7 +162,7 @@ def who(interaction):
                             "Tornium. However, please make sure that you are officially verified by "
                             "Torn; otherwise you'll need to verify on the "
                             "[official Discord server](https://www.torn.com/discord).",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -209,7 +209,7 @@ def who(interaction):
                         {
                             "title": f"Torn API Error #{e.code}",
                             "description": f'The Torn API has responded to the API call with "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -224,7 +224,7 @@ def who(interaction):
                             "title": f"HTTP Error Code {e.code}",
                             "description": f"The Torn API has responded to the API call with a networking error... "
                             f'"{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -238,7 +238,7 @@ def who(interaction):
                         {
                             "title": "Miscellaneous Exception",
                             "description": "The Torn API call has resulted with a miscellaneous error.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -283,7 +283,7 @@ def who(interaction):
                             "inline": True,
                         },  # TODO: Add other fields from API data
                     ],
-                    "color": 0x32CD32,
+                    "color": SKYNET_GOOD,
                 }
             ],
             "components": [

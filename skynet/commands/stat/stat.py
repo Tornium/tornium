@@ -36,7 +36,7 @@ def stat(interaction):
                     {
                         "title": "Illegal Parameters",
                         "description": "The parameter passed must be either the Torn ID or a Torn name.",
-                        "color": 0xC83F49,
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -54,7 +54,7 @@ def stat(interaction):
                     {
                         "title": "Illegal Parameters",
                         "description": "The parameter passed must be either the Torn ID or a Torn name.",
-                        "color": 0xC83F49,
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -77,7 +77,7 @@ def stat(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": skynet.skyutils.SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -91,7 +91,7 @@ def stat(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": skynet.skyutils.SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -125,7 +125,7 @@ def stat(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": skynet.skyutils.SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -144,7 +144,7 @@ def stat(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -162,7 +162,7 @@ def stat(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -193,7 +193,7 @@ def stat(interaction):
                         {
                             "title": "Unknown User",
                             "description": "No Torn user could be located in the database with that name.",
-                            "color": 0xC83F49,
+                            "color": skynet.skyutils.SKYNET_ERROR,
                         }
                     ]
                 },
@@ -220,7 +220,7 @@ def stat(interaction):
                     {
                         "title": "User Not Located",
                         "description": "The specified user could not be found with your permissions in the stat database.",
-                        "color": 0xC83F49,
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ]
             },

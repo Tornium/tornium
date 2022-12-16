@@ -51,8 +51,6 @@ def skynet_interactions():
         return jsonify(skynet.commands.faction.withdraw.withdraw(request.json))
     elif request.json["data"]["name"] == "fulfill":
         return jsonify(skynet.commands.faction.fulfill.fulfill_command(request.json))
-    elif request.json["data"]["name"] == "transfer":
-        return jsonify(skynet.commands.faction.transfer.transfer(request.json))
 
     # Bot Commands
     elif request.json["data"]["name"] == "verify":

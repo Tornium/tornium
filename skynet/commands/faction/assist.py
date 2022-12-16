@@ -13,7 +13,7 @@ from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
 import redisdb
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR
 import tasks
 import utils
 
@@ -40,7 +40,7 @@ def assist(interaction):
                     {
                         "title": "Assist Request Failed",
                         "description": "No options were passed with the command.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -58,7 +58,7 @@ def assist(interaction):
                     {
                         "title": "Illegal Parameters",
                         "description": "The parameter passed must be either the Torn ID or the URL.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -84,7 +84,7 @@ def assist(interaction):
                         {
                             "title": "Illegal Attack URL",
                             "description": "The passed attack URL was not valid.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -98,7 +98,7 @@ def assist(interaction):
                     {
                         "title": "Unknown Parameter",
                         "description": "Confusion!",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -117,7 +117,7 @@ def assist(interaction):
                             "title": "No API Keys",
                             "description": "No API keys were found to be run for this command. Please sign into "
                             "Tornium or run this command in a server with signed-in admins.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -133,7 +133,7 @@ def assist(interaction):
                     {
                         "title": "Error",
                         "description": "Unable to refresh target's data. Please sign into Tornium or run this in a server.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -148,7 +148,7 @@ def assist(interaction):
                     {
                         "title": "Ratelimit Reached",
                         "description": "You have reached the ratelimit for assist requests (once every thirty seconds).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -166,7 +166,7 @@ def assist(interaction):
                     {
                         "title": "Same User",
                         "description": "The user requested for the assist is the same as the requester.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral

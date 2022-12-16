@@ -11,7 +11,6 @@ from controllers.faction.decorators import *
 from models.recruitmodel import RecruitModel
 from models.user import User
 from models.usermodel import UserModel
-import utils
 
 
 @login_required

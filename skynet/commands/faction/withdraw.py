@@ -340,7 +340,7 @@ def withdraw(interaction):
 
     try:
         faction_balances = tasks.tornget(
-            f"faction/?selections=donations", random.choice(aa_keys)
+            "faction/?selections=donations", random.choice(aa_keys)
         )
     except utils.TornError as e:
         return {

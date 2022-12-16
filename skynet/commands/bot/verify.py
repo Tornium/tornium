@@ -6,10 +6,8 @@
 import random
 
 import jinja2
-from mongoengine.queryset.visitor import Q
 
 from models.factionmodel import FactionModel
-from models.positionmodel import PositionModel
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel

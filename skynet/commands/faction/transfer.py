@@ -10,7 +10,7 @@ from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 import redisdb
-from skynet.skyutils import get_admin_keys, get_faction_keys
+from skynet.skyutils import get_admin_keys
 import tasks
 import utils
 
@@ -384,7 +384,7 @@ def transfer(interaction):
                         "embeds": [
                             {
                                 "title": "Faction ID Error",
-                                "description": f"The faction ID of the recipient is not set regardless of a force refresh.",
+                                "description": "The faction ID of the recipient is not set regardless of a force refresh.",
                                 "color": 0xC83F49,
                             }
                         ],
@@ -521,7 +521,7 @@ def transfer(interaction):
 
     try:
         faction_balances = tasks.tornget(
-            f"faction/?selections=donations", faction.rand_key()
+            "faction/?selections=donations", faction.rand_key()
         )
     except utils.TornError as e:
         return {

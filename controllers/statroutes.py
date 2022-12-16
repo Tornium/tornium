@@ -4,7 +4,6 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
-import json
 import math
 
 from flask import Blueprint, render_template, request

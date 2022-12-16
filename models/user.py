@@ -67,7 +67,7 @@ class User(UserMixin):
             try:
                 if key == self.key:
                     user_data = tasks.tornget(
-                        f"user/?selections=profile,battlestats,discord", key
+                        "user/?selections=profile,battlestats,discord", key
                     )
                 else:
                     user_data = tasks.tornget(
@@ -147,9 +147,13 @@ class User(UserMixin):
 
         try:
             tasks.tornget(f"faction/?selections=positions", self.key)
-        except:
-            self.aa = False
-            user.factionaa = False
+        except utils.TornError as e:
+            if e.code == 7:
+                self.aa = False
+                user.factionaa = False
+                user.save()
+            return
+        except Exception:
             return
 
         self.aa = True

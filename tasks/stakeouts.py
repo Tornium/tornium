@@ -412,7 +412,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -456,7 +456,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -498,7 +498,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -543,7 +543,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -588,7 +588,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -633,7 +633,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -960,7 +960,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {
@@ -1017,7 +1017,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                         "type": 2,
                                         "style": 5,
                                         "label": "Territory",
-                                        "url": f"",
+                                        "url": "",
                                         "disabled": True,
                                     },
                                     {

@@ -28,7 +28,7 @@ class Stakeout:
                         f"user/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )
-                except:
+                except Exception:
                     data = {}
 
                 stakeout = UserStakeoutModel(
@@ -41,7 +41,7 @@ class Stakeout:
                         f"faction/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )
-                except:
+                except Exception:
                     data = {}
 
                 stakeout = FactionStakeoutModel(

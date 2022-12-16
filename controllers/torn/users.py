@@ -11,7 +11,6 @@ from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.user import User
 from models.usermodel import UserModel
-import utils
 
 
 @login_required

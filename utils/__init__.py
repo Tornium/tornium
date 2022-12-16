@@ -251,7 +251,7 @@ def find_list(lst: list, key, value):
 
 def text_to_num(text):
     text = text.upper().replace(",", "")
-    numbers = re.sub(f"[a-z]", "", text.lower())
+    numbers = re.sub("[a-z]", "", text.lower())
 
     if "K" in text:
         return int(Decimal(numbers) * 1000)

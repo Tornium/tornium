@@ -6,8 +6,8 @@
 import json
 import logging
 
-from flask import Blueprint, render_template, abort, request
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request
+from flask_login import login_required
 import requests
 
 from controllers.decorators import admin_required

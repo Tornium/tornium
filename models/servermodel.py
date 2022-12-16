@@ -10,7 +10,6 @@ from mongoengine import (
     DictField,
     ListField,
     LongField,
-    BooleanField,
 )
 
 

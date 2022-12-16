@@ -20,7 +20,6 @@ import utils
 
 def balance(interaction):
     print(interaction)
-    server = Server(interaction["guild_id"]) if "guild_id" in interaction else None
 
     if "member" in interaction:
         user: UserModel = UserModel.objects(

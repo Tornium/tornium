@@ -6,7 +6,6 @@
 import random
 
 from models.factionmodel import FactionModel
-from models.server import Server
 from models.usermodel import UserModel
 from skynet.skyutils import get_admin_keys
 from tasks.user import update_user
@@ -91,14 +90,14 @@ def who(interaction):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except Exception as e:
+        except Exception:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Miscellaneous Exception",
-                            "description": f"The Torn API call has resulted with a miscellaneous error.",
+                            "description": "The Torn API call has resulted with a miscellaneous error.",
                             "color": 0xC83F49,
                         }
                     ],
@@ -231,14 +230,14 @@ def who(interaction):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except Exception as e:
+        except Exception:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Miscellaneous Exception",
-                            "description": f"The Torn API call has resulted with a miscellaneous error.",
+                            "description": "The Torn API call has resulted with a miscellaneous error.",
                             "color": 0xC83F49,
                         }
                     ],
@@ -270,7 +269,7 @@ def who(interaction):
                         },
                         {
                             "name": "Life",
-                            "value": f"NYI/NYI",  # TODO: Get current and max life from Torn API
+                            "value": "NYI/NYI",  # TODO: Get current and max life from Torn API
                             "inline": True,
                         },
                         {
@@ -313,7 +312,7 @@ def who(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "Company",
-                            "url": f"https://www.torn.com",  # TODO: Update Link
+                            "url": "https://www.torn.com",  # TODO: Update Link
                         },
                     ],
                 }

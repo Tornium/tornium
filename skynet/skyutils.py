@@ -5,7 +5,6 @@
 
 import flask
 from nacl.signing import VerifyKey
-from nacl.exceptions import BadSignatureError
 
 from models.faction import Faction
 from models.factionmodel import FactionModel

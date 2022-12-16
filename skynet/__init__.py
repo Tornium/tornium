@@ -26,7 +26,7 @@ mod = Blueprint("botinteractions", __name__)
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
-    except BadSignatureError as e:
+    except BadSignatureError:
         abort(401, "invalid request signature")
 
     if request.json["type"] == 1:

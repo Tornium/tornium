@@ -5,7 +5,7 @@
 
 import math
 
-from flask import render_template, request
+from flask import render_template
 from flask_login import login_required
 from mongoengine.queryset.visitor import Q
 

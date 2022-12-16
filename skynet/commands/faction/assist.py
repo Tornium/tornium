@@ -9,7 +9,6 @@ import time
 from urllib.parse import urlparse, parse_qs
 
 from models.factionmodel import FactionModel
-from models.server import Server
 from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
@@ -273,9 +272,9 @@ def assist(interaction):
 
         try:
             tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
-        except utils.DiscordError as e:
+        except utils.DiscordError:
             continue
-        except utils.NetworkingError as e:
+        except utils.NetworkingError:
             continue
 
         servers_forwarded.append(server)

@@ -9,7 +9,6 @@ from mongoengine.queryset.visitor import Q
 
 from models.faction import Faction
 from models.factionmodel import FactionModel
-from models.statmodel import StatModel
 from models.user import User
 from models.usermodel import UserModel
 import utils
@@ -93,8 +92,6 @@ def faction_data(tid: int):
 def faction_members_data(tid: int):
     if tid == 0:
         abort(400)
-
-    faction: FactionModel = FactionModel.objects(tid=tid).first()
 
     members = []
 

@@ -28,7 +28,7 @@ except FileNotFoundError:
             "bottoken": "",
         },
     }
-    with open(f"settings.json", "w") as file:
+    with open("settings.json", "w") as file:
         json.dump(data, file, indent=4)
 
 with open("settings.json", "r") as file:

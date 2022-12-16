@@ -648,7 +648,7 @@ def fulfill_button(interaction):
                 "embeds": [
                     {
                         "title": "Request Does not Exist",
-                        "description": f"The Vault Request does not currently exist.",
+                        "description": "The Vault Request does not currently exist.",
                         "color": 0xC83F49,
                         "footer": {
                             "text": f"Message ID: {interaction['message']['id']}"

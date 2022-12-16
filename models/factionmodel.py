@@ -9,7 +9,6 @@ from mongoengine import (
     StringField,
     DictField,
     ListField,
-    BooleanField,
 )
 
 

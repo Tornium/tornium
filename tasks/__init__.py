@@ -259,7 +259,7 @@ def tornget(
                     redis.expire(redis_key, 60 - datetime.datetime.utcnow().second)
                 else:
                     raise RatelimitError
-    except TypeError as e:
+    except TypeError:
         logger.warning(
             f"Error raised on API key {key} with redis return value {redis.get(redis_key)} and redis key {redis_key}"
         )
@@ -336,14 +336,14 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
             bucket is not None
             and "X-RateLimit-Global" in request.headers
             and request.headers["X-RateLimit-Global"] in ("true", "True", True)
-            and not redis.exists(f"tornium:discord:ratelimit:global")
+            and not redis.exists("tornium:discord:ratelimit:global")
         ):
             redis.setnx("tornium:discord:ratelimit:global", 1)
             redis.expire(
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a global ratelimit.")
+            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -456,14 +456,14 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             bucket is not None
             and "X-RateLimit-Global" in request.headers
             and request.headers["X-RateLimit-Global"] in ("true", "True", True)
-            and not redis.exists(f"tornium:discord:ratelimit:global")
+            and not redis.exists("tornium:discord:ratelimit:global")
         ):
             redis.setnx("tornium:discord:ratelimit:global", 1)
             redis.expire(
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a global ratelimit.")
+            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -576,14 +576,14 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
             bucket is not None
             and "X-RateLimit-Global" in request.headers
             and request.headers["X-RateLimit-Global"] in ("true", "True", True)
-            and not redis.exists(f"tornium:discord:ratelimit:global")
+            and not redis.exists("tornium:discord:ratelimit:global")
         ):
             redis.setnx("tornium:discord:ratelimit:global", 1)
             redis.expire(
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a global ratelimit.")
+            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -696,14 +696,14 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
             bucket is not None
             and "X-RateLimit-Global" in request.headers
             and request.headers["X-RateLimit-Global"] in ("true", "True", True)
-            and not redis.exists(f"tornium:discord:ratelimit:global")
+            and not redis.exists("tornium:discord:ratelimit:global")
         ):
             redis.setnx("tornium:discord:ratelimit:global", 1)
             redis.expire(
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a global ratelimit.")
+            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))
@@ -816,14 +816,14 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
             bucket is not None
             and "X-RateLimit-Global" in request.headers
             and request.headers["X-RateLimit-Global"] in ("true", "True", True)
-            and not redis.exists(f"tornium:discord:ratelimit:global")
+            and not redis.exists("tornium:discord:ratelimit:global")
         ):
             redis.setnx("tornium:discord:ratelimit:global", 1)
             redis.expire(
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a global ratelimit.")
+            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis.ttl("tornium:discord:ratelimit:global"))

@@ -122,7 +122,6 @@ def generate_chain_list(*args, **kwargs):
 @ratelimit
 @requires_scopes(scopes={"admin", "read:stats"})
 def get_stat_user(tid, *args, **kwargs):
-    client = redisdb.get_redis()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     stat_entries: QuerySet = (

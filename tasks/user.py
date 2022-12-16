@@ -10,7 +10,6 @@ from mongoengine.queryset.visitor import Q
 import requests
 
 from models.factionmodel import FactionModel
-from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, logger, tornget
 import utils
@@ -104,7 +103,7 @@ def refresh_users():
 
         try:
             user_data = tornget(
-                f"user/?selections=profile,battlestats,discord",
+                "user/?selections=profile,battlestats,discord",
                 user.key,
                 session=requests_session,
             )
@@ -116,7 +115,7 @@ def refresh_users():
 
             logger.exception(e)
             continue
-        except Exception as e:
+        except Exception:
             continue
 
         try:  # Torn API debug
@@ -164,7 +163,7 @@ def mail_check():
 
         try:
             mail_data = tornget(
-                f"user/?selections=messages",
+                "user/?selections=messages",
                 user.key,
                 session=requests_session,
                 fromts=user.recruit_mail_update,

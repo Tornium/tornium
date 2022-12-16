@@ -432,7 +432,7 @@ def stakeout_update(guildid):
             return (
                 jsonify(
                     {
-                        "error": f"This requires the faction to be in the list of factions in the server."
+                        "error": "This requires the faction to be in the list of factions in the server."
                     }
                 ),
                 400,

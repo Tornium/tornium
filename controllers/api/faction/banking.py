@@ -36,7 +36,7 @@ def vault_balance(*args, **kwargs):
 
     try:
         vault_balances = tasks.tornget(
-            f"faction/?selections=donations", faction.rand_key()
+            "faction/?selections=donations", faction.rand_key()
         )
     except utils.TornError as e:
         return make_exception_response(
@@ -140,7 +140,7 @@ def banking_request(*args, **kwargs):
 
     try:
         vault_balances = tasks.tornget(
-            f"faction/?selections=donations", faction.rand_key()
+            "faction/?selections=donations", faction.rand_key()
         )
     except utils.TornError as e:
         return make_exception_response(

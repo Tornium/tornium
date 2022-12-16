@@ -3,15 +3,12 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import json
-
 from flask import render_template, abort, request, flash, redirect
 from flask_login import login_required, current_user
 
 from models.faction import Faction
 from models.server import Server
 from models.servermodel import ServerModel
-import utils
 
 
 @login_required

@@ -3,10 +3,14 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from ddtrace import patch_all
+import sys
 
-patch_all(logging=True)
-import ddtrace.profiling.auto
+if hasattr(sys, "_called_from_test"):
+    from ddtrace import patch_all
+
+    patch_all(logging=True)
+    import ddtrace.profiling.auto
+
 
 import datetime
 import logging
@@ -31,13 +35,14 @@ from utils.errors import (
     TornError,
 )
 
-connect(
-    db="Tornium",
-    username=get_redis().get("tornium:settings:username"),
-    password=get_redis().get("tornium:settings:password"),
-    host=f'mongodb://{get_redis().get("tornium:settings:host")}',
-    connect=False,
-)
+if hasattr(sys, "_called_from_test"):
+    connect(
+        db="Tornium",
+        username=get_redis().get("tornium:settings:username"),
+        password=get_redis().get("tornium:settings:password"),
+        host=f'mongodb://{get_redis().get("tornium:settings:host")}',
+        connect=False,
+    )
 
 FORMAT = (
     "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "

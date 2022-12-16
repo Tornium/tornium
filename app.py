@@ -3,14 +3,17 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import ddtrace
+import sys
 
-ddtrace.config.env = "prod"
-ddtrace.tracer.configure(
-    enabled=True,
-)
-ddtrace.patch(logging=True)
-ddtrace.patch_all(flask=True)
+if hasattr(sys, "_called_from_test"):
+    import ddtrace
+
+    ddtrace.config.env = "prod"
+    ddtrace.tracer.configure(
+        enabled=True,
+    )
+    ddtrace.patch(logging=True)
+    ddtrace.patch_all(flask=True)
 
 import datetime
 import logging
@@ -26,13 +29,14 @@ from redisdb import get_redis
 
 redis = get_redis()
 
-connect(
-    db="Tornium",
-    username=redis.get("tornium:settings:username"),
-    password=redis.get("tornium:settings:password"),
-    host=f'mongodb://{redis.get("tornium:settings:host")}',
-    connect=False,
-)
+if hasattr(sys, "_called_from_test"):
+    connect(
+        db="Tornium",
+        username=redis.get("tornium:settings:username"),
+        password=redis.get("tornium:settings:password"),
+        host=f'mongodb://{redis.get("tornium:settings:host")}',
+        connect=False,
+    )
 
 from controllers import mod as base_mod
 from controllers.authroutes import mod as auth_mod

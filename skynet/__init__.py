@@ -3,18 +3,13 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import json
 import logging
 
 from flask import Blueprint, request, jsonify, abort
 from nacl.exceptions import BadSignatureError
-import requests
 
-import redisdb
 import skynet.commands
 import skynet.skyutils
-import tasks
-import utils
 
 botlogger = logging.getLogger("skynet")
 botlogger.setLevel(logging.DEBUG)

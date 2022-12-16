@@ -28,14 +28,14 @@ def stat(interaction):
             discord_id=interaction["user"]["id"]
         ).first()
 
-    if "options" not in interaction:
+    if "options" not in interaction["data"]:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Illegal Parameters",
-                        "description": "The parameter passed must be either the Torn ID or a member mention.",
+                        "description": "The parameter passed must be either the Torn ID or a Torn name.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -53,7 +53,7 @@ def stat(interaction):
                 "embeds": [
                     {
                         "title": "Illegal Parameters",
-                        "description": "The parameter passed must be either the Torn ID or a member mention.",
+                        "description": "The parameter passed must be either the Torn ID or a Torn name.",
                         "color": 0xC83F49,
                     }
                 ],
@@ -172,7 +172,7 @@ def stat(interaction):
     if tid != -1:
         target: StatModel = (
             StatModel.objects(
-                Q(tid=tid)
+                Q(tid=tid[1]["value"])
                 & (
                     Q(globalstat=True)
                     | Q(addedid=user.tid)
@@ -183,7 +183,7 @@ def stat(interaction):
             .first()
         )
     elif name != -1:
-        target_user: UserModel = UserModel.objects(name=name).first()
+        target_user: UserModel = UserModel.objects(name=name[1]["value"]).first()
 
         if target_user is None:
             return {
@@ -230,7 +230,7 @@ def stat(interaction):
     target_user.refresh(key=random.choice(admin_keys))
 
     if target_user.factiontid != 0:
-        target_faction = Faction(user.factiontid)
+        target_faction = Faction(target_user.factiontid)
     else:
         target_faction = None
 
@@ -239,7 +239,8 @@ def stat(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"[{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})",
+                    "title": f"{user.name} [{user.tid}]",
+                    "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
                     "fields": [
                         {
                             "name": "Faction",

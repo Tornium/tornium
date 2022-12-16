@@ -41,9 +41,9 @@ def chain(interaction):
         ff = 3
         variance = 0.01
 
-    if length != -1:
+    if type(length) != int:
         length = length[1]["value"]
-    if ff != -1:
+    if type(ff) != int:
         ff = round(length[1]["value"], 2)
 
     if ff == 3:

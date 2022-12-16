@@ -28,27 +28,38 @@ def stat(interaction):
             discord_id=interaction["user"]["id"]
         ).first()
 
-    tid = -1
-    name = -1
+    if "options" not in interaction:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Illegal Parameters",
+                        "description": "The parameter passed must be either the Torn ID or a member mention.",
+                        "color": 0xC83F49,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
-    if "options" in interaction:
-        tid = utils.find_list(interaction["data"]["options"], "name", "tornid")
-        name = utils.find_list(interaction["data"]["options"], "name", "name")
+    tid = utils.find_list(interaction["data"]["options"], "name", "tornid")
+    name = utils.find_list(interaction["data"]["options"], "name", "name")
 
-        if (tid == -1 and name == -1) or (tid != -1 and name != -1):
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Illegal Parameters",
-                            "description": "The parameter passed must be either the Torn ID or a member mention.",
-                            "color": 0xC83F49,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
+    if (tid == -1 and name == -1) or (tid != -1 and name != -1):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Illegal Parameters",
+                        "description": "The parameter passed must be either the Torn ID or a member mention.",
+                        "color": 0xC83F49,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     admin_keys = skynet.skyutils.get_admin_keys(interaction)
 

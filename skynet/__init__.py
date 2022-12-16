@@ -63,6 +63,8 @@ def skynet_interactions():
         return jsonify(skynet.commands.user.who.who(request.json))
 
     # Stat Commands
+    elif request.json["data"]["name"] == "chainlist":
+        return jsonify(skynet.commands.stat.chain.chain(request.json))
     elif request.json["data"]["name"] == "stat":
         return jsonify(skynet.commands.stat.stat.stat(request.json))
 

@@ -7,7 +7,7 @@
         "faction/banking/balance",
         "faction/banking/fulfill",
         "faction/banking/withdraw",
-        "stats/chain",
+        "stats/chainlist",
         "stats/stat",
         "user/who"
     ],

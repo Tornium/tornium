@@ -35,7 +35,7 @@ from utils.errors import (
     TornError,
 )
 
-if hasattr(sys, "_called_from_test"):
+if not hasattr(sys, "_called_from_test"):
     connect(
         db="Tornium",
         username=get_redis().get("tornium:settings:username"),

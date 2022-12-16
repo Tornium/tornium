@@ -29,7 +29,7 @@ from redisdb import get_redis
 
 redis = get_redis()
 
-if hasattr(sys, "_called_from_test"):
+if not hasattr(sys, "_called_from_test"):
     connect(
         db="Tornium",
         username=redis.get("tornium:settings:username"),

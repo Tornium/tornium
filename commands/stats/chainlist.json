@@ -1,0 +1,23 @@
+{
+    "name": "chainlist",
+    "type": 1,
+    "description": "Generates a chain list for a certain FF for the user.",
+    "options": [
+        {
+            "type": 4,
+            "name": "length",
+            "description": "Number of targets on the chain list",
+            "min_value": 1,
+            "max_value": 25,
+            "required": false
+        },
+        {
+            "type": 10,
+            "name": "fairfight",
+            "description": "Fair fight of the targets on the chain list",
+            "min_value": 1,
+            "max_value": 3,
+            "required": false
+        }
+    ]
+}

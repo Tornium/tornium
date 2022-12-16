@@ -3,11 +3,13 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import math
 import random
+import time
 
+import mongoengine
 from mongoengine.queryset.visitor import Q
 
-from models.faction import Faction
 from models.statmodel import StatModel
 from models.user import User
 from models.usermodel import UserModel
@@ -16,8 +18,10 @@ import tasks
 import utils
 
 
-def stat(interaction):
+def chain(interaction):
     print(interaction)
+
+    start = time.time()
 
     if "member" in interaction:
         user: UserModel = UserModel.objects(
@@ -28,38 +32,22 @@ def stat(interaction):
             discord_id=interaction["user"]["id"]
         ).first()
 
-    if "options" not in interaction["data"]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Illegal Parameters",
-                        "description": "The parameter passed must be either the Torn ID or a Torn name.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
+    if "options" in interaction["data"]:
+        length = utils.find_list(interaction["data"]["options"], "name", "length")
+        ff = utils.find_list(interaction["data"]["options"], "name", "fairfight")
+        variance = 0.01
+    else:
+        length = 10
+        ff = 3
+        variance = 0.01
 
-    tid = utils.find_list(interaction["data"]["options"], "name", "tornid")
-    name = utils.find_list(interaction["data"]["options"], "name", "name")
+    if length != -1:
+        length = length[1]["value"]
+    if ff != -1:
+        ff = round(length[1]["value"], 2)
 
-    if (tid == -1 and name == -1) or (tid != -1 and name != -1):
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Illegal Parameters",
-                        "description": "The parameter passed must be either the Torn ID or a Torn name.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
+    if ff == 3:
+        variance = 0
 
     admin_keys = skynet.skyutils.get_admin_keys(interaction)
 
@@ -169,99 +157,164 @@ def stat(interaction):
             },
         }
 
-    if tid != -1:
-        target: StatModel = (
-            StatModel.objects(
-                Q(tid=tid[1]["value"])
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactiontid=user.factiontid)
-                )
-            )
-            .order_by("-timeadded")
-            .first()
-        )
-    elif name != -1:
-        target_user: UserModel = UserModel.objects(name=name[1]["value"]).first()
-
-        if target_user is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Unknown User",
-                            "description": "No Torn user could be located in the database with that name.",
-                            "color": skynet.skyutils.SKYNET_ERROR,
-                        }
-                    ]
-                },
-            }
-
-        target: StatModel = (
-            StatModel.objects(
-                Q(tid=target_user.tid)
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactiontid=user.factiontid)
-                )
-            )
-            .order_by("-timeadded")
-            .first()
-        )
-
-    if target is None:
+    if user.battlescore == 0:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "User Not Located",
-                        "description": "The specified user could not be found with your permissions in the stat database.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "title": "Stats Missing",
+                        "description": "The user's battle stats could not be located in the database. Please sign into "
+                                       "Tornium.",
+                        "color": skynet.skyutils.SKYNET_ERROR
                     }
-                ]
-            },
+                ],
+                "flags": 64,  # Ephemeral
+            }
         }
 
-    target_user: User = User(target.tid)
-    target_user.refresh(key=random.choice(admin_keys))
+    # f = fair fight
+    # v = variance
+    # d = defender's stat score
+    # a = attacker's stat score
+    #
+    # f +- v = 1 + 8/3 * d/a
+    # 0.375 * a * (f +- v - 1) = d
 
-    if target_user.factiontid != 0:
-        target_faction = Faction(target_user.factiontid)
-    else:
-        target_faction = None
+    stat_entries: mongoengine.QuerySet = StatModel.objects(
+        (
+            Q(globalstat=True)
+            | Q(addedid=user.tid)
+            | Q(addedfactiontid=user.factiontid)
+        )
+        & Q(
+            battlescore__gte=(
+                0.375 * user.battlescore * (ff - variance - 1)
+            )
+        )
+        & Q(
+            battlescore__lte=(
+                0.375 * user.battlescore * (ff + variance - 1)
+            )
+        )
+    )
+
+    if stat_entries.count():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No Targets Located",
+                        "description": "No chain targets could be located with the following settings.",
+                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "fields": [
+                            {
+                                "name": "Length",
+                                "value": length,
+                                "inline": True,
+                            },
+                            {
+                                "name": "Fair Fight",
+                                "value": ff,
+                                "inline": True,
+                            },
+                            {
+                                "Name": "Variance",
+                                "value": variance,
+                                "inline": True,
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+    stat_entries: list = list(set(stat_entries.all().values_list("tid")))
+    random.shuffle(stat_entries)
+    jsonified_stat_entires = []
+
+    targets = {}
+    targets_updated = 0
+
+    for stat_entry in stat_entries:
+        stat: StatModel = (
+            StatModel.objects(
+                Q(tid=stat_entry)
+                & (
+                    Q(globalstat=True)
+                    | Q(addedid=user.tid)
+                    | Q(addedfactiontid=user.factiontid)
+                )
+            )
+            .order_by("-timeadded")
+            .first()
+        )
+
+        if stat_entry in targets:
+            target = targets[stat_entry]
+        else:
+            target = User(tid=stat.tid)
+
+            if targets_updated <= 50:
+                if target.refresh(key=random.choice(admin_keys)):
+                    targets_updated += 1
+
+        target_ff = 1 + 8 / 3 * (stat.battlescore / user.battlescore)
+
+        jsonified_stat_entires.append(
+            {
+                "statid": stat.statid,
+                "tid": stat.tid,
+                "battlescore": stat.battlescore,
+                "timeadded": stat.timeadded,
+                "ff": target_ff,
+                "respect": round((math.log(target.level, 2) + 1) / 4, 2),
+                "user": {
+                    "tid": target.tid,
+                    "name": target.name,
+                    "username": f"{target.name} [{target.tid}]",
+                    "level": target.level,
+                    "last_refresh": target.last_refresh,
+                    "factionid": target.factiontid,
+                    "status": target.status,
+                    "last_action": target.last_action,
+                },
+            }
+        )
+
+    embed = {
+        "title": f"Chain List for {user.name} [{user.tid}]",
+        "fields": [],
+        "color": skynet.skyutils.SKYNET_GOOD,
+        "footer": {
+            "text": ""
+        }
+    }
+
+    jsonified_stat_entires = sorted(jsonified_stat_entires, key=lambda d: d["respect"], reverse=True)
+    stat_count = 0
+
+    for stat_entry in jsonified_stat_entires:
+        if stat_count >= length:
+            break
+
+        embed["fields"].append({
+            "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
+            "value": f"Stat Score: {utils.commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}",
+            "inline": True,
+        })
+
+        stat_count += 1
+
+    embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entires)} chain targets..."
+    embed["footer"] = {
+        "text": f"Run time: {round(time.time() - start, 2)} seconds"
+    }
 
     return {
         "type": 4,
         "data": {
-            "embeds": [
-                {
-                    "title": f"{user.name} [{user.tid}]",
-                    "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
-                    "fields": [
-                        {
-                            "name": "Faction",
-                            "value": f"{target_faction.name if target_faction is not None else 'Unknown/No Faction'}",
-                        },
-                        {
-                            "name": "Last Action",
-                            "value": f"<t:{target_user.last_action}:R>",
-                        },
-                        {
-                            "name": "Estimated Stat Score",
-                            "value": utils.commas(round(target.battlescore, 2)),
-                            "inline": True,
-                        },
-                        {
-                            "name": "Stat Score Update",
-                            "value": f"<t:{target.timeadded}:R>",
-                            "inline": True,
-                        },
-                    ],
-                }
-            ]
-        },
+            "embeds": [embed]
+        }
     }

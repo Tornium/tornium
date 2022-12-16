@@ -1,0 +1,20 @@
+{
+    "name": "stat",
+    "type": 1,
+    "description": "Locates the battle stat estimates for a specified user",
+    "options": [
+        {
+            "type": 4,
+            "name": "tornid",
+            "description": "The Torn ID of the user",
+            "min_value": 1,
+            "required": false
+        },
+        {
+            "type": 3,
+            "name": "name",
+            "description": "The Torn name of the user",
+            "required": false
+        }
+    ]
+}

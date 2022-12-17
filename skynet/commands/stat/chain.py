@@ -271,6 +271,9 @@ def chain(interaction):
             .first()
         )
 
+        if stat.battlescore > user.battlescore:
+            continue
+
         if stat_entry in targets:
             target = targets[stat_entry]
         else:

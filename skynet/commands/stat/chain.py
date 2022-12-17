@@ -9,6 +9,7 @@ import time
 
 import mongoengine
 from mongoengine.queryset.visitor import Q
+import requests
 
 from models.statmodel import StatModel
 from models.user import User
@@ -37,14 +38,19 @@ def chain(interaction):
         ff = utils.find_list(interaction["data"]["options"], "name", "fairfight")
         variance = 0.01
     else:
-        length = 10
+        length = 12
         ff = 3
         variance = 0.01
 
     if type(length) != int:
         length = length[1]["value"]
+    else:
+        length = 12
+        
     if type(ff) != int:
-        ff = round(length[1]["value"], 2)
+        ff = round(ff[1]["value"], 2)
+    else:
+        ff = 3
 
     if ff == 3:
         variance = 0
@@ -58,24 +64,8 @@ def chain(interaction):
                 "type": 5
             }
         )
-    except utils.DiscordError as e:
-        print(e)
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": f"Discord Error #{e.code}",
-                        "description": f"{e.message}",
-                        "color": skynet.skyutils.SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    except Exception as e:
-        print(e)
-        return {}
+    except requests.exceptions.JSONDecodeError:
+        pass
 
     if user is None:
         try:
@@ -206,29 +196,51 @@ def chain(interaction):
     #
     # f +- v = 1 + 8/3 * d/a
     # 0.375 * a * (f +- v - 1) = d
+    #
+    # f = 11/3 is equal ratio of d/a
+    # f = 17/5 is 9/10 ratio of d/a
 
-    stat_entries: mongoengine.QuerySet = StatModel.objects(
-        (
-            Q(globalstat=True)
-            | Q(addedid=user.tid)
-            | Q(addedfactiontid=user.factiontid)
-        )
-        & Q(
-            battlescore__gte=(
-                0.375 * user.battlescore * (ff - variance - 1)
+    if ff == 3:
+        stat_entries: mongoengine.QuerySet = StatModel.objects(
+            (
+                Q(globalstat=True)
+                | Q(addedid=user.tid)
+                | Q(addedfactiontid=user.factiontid)
+            )
+            & Q(
+                battlescore__gte=(
+                    0.375 * user.battlescore * (ff - 1)
+                )
+            )
+            & Q(
+                battlescore__lte=(
+                    0.375 * user.battlescore * 2.4
+                )
             )
         )
-        & Q(
-            battlescore__lte=(
-                0.375 * user.battlescore * (ff + variance - 1)
+    else:
+        stat_entries: mongoengine.QuerySet = StatModel.objects(
+            (
+                Q(globalstat=True)
+                | Q(addedid=user.tid)
+                | Q(addedfactiontid=user.factiontid)
+            )
+            & Q(
+                battlescore__gte=(
+                    0.375 * user.battlescore * (ff - variance - 1)
+                )
+            )
+            & Q(
+                battlescore__lte=(
+                    0.375 * user.battlescore * (ff + variance - 1)
+                )
             )
         )
-    )
 
-    if stat_entries.count():
-        return {
-            "type": 4,
-            "data": {
+    if stat_entries.count() == 0:
+        response = tasks.discordpatch(
+            f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={
                 "embeds": [
                     {
                         "title": "No Targets Located",
@@ -242,23 +254,23 @@ def chain(interaction):
                             },
                             {
                                 "name": "Fair Fight",
-                                "value": ff,
+                                "value": str(ff),
                                 "inline": True,
                             },
                             {
                                 "Name": "Variance",
-                                "value": variance,
+                                "value": str(variance),
                                 "inline": True,
                             }
                         ]
                     }
                 ]
             }
-        }
+        )
 
     stat_entries: list = list(set(stat_entries.all().values_list("tid")))
     random.shuffle(stat_entries)
-    jsonified_stat_entires = []
+    jsonified_stat_entries = []
 
     targets = {}
     targets_updated = 0
@@ -283,19 +295,38 @@ def chain(interaction):
             target = User(tid=stat.tid)
 
             if targets_updated <= 50:
-                if target.refresh(key=random.choice(admin_keys)):
-                    targets_updated += 1
+                try:
+                    if target.refresh(key=random.choice(admin_keys), minimize=True):
+                        targets_updated += 1
+                except utils.NetworkingError as e:
+                    if e.code == 408:
+                        if utils.now() - target.last_refresh <= 2592000:  # One day
+                            pass
+                        else:
+                            continue
+                    else:
+                        raise e
 
         target_ff = 1 + 8 / 3 * (stat.battlescore / user.battlescore)
+        
+        if target_ff > 3:
+            target_ff = 3
+        if target.level == 0:
+            continue
+        
+        try:
+            base_respect = round((math.log(target.level) + 1) / 4, 2)
+        except ValueError:
+            continue
 
-        jsonified_stat_entires.append(
+        jsonified_stat_entries.append(
             {
                 "statid": stat.statid,
                 "tid": stat.tid,
                 "battlescore": stat.battlescore,
                 "timeadded": stat.timeadded,
                 "ff": target_ff,
-                "respect": round((math.log(target.level, 2) + 1) / 4, 2),
+                "respect": round(base_respect * target_ff, 2),
                 "user": {
                     "tid": target.tid,
                     "name": target.name,
@@ -318,10 +349,10 @@ def chain(interaction):
         }
     }
 
-    jsonified_stat_entires = sorted(jsonified_stat_entires, key=lambda d: d["respect"], reverse=True)
+    jsonified_stat_entries = sorted(jsonified_stat_entries, key=lambda d: d["respect"], reverse=True)
     stat_count = 0
 
-    for stat_entry in jsonified_stat_entires:
+    for stat_entry in jsonified_stat_entries:
         if stat_count >= length:
             break
 
@@ -333,17 +364,14 @@ def chain(interaction):
 
         stat_count += 1
 
-    embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entires)} chain targets..."
+    embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
     embed["footer"] = {
         "text": f"Run time: {round(time.time() - start, 2)} seconds"
     }
 
-    tasks.discordpatch(
+    response = tasks.discordpatch(
         f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
         payload={
-            "type": 4,
-            "data": {
-                "embeds": [embed]
-            }
+            "embeds": [embed]
         }
     )

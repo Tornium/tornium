@@ -53,7 +53,10 @@ class User(UserMixin):
         self.status = user.status
         self.last_action = user.last_action
 
-    def refresh(self, key=None, force=False):
+    def refresh(self, key=None, force=False, minimize=False):
+        if minimize and self.last_refresh != 0:
+            return False
+        
         now = utils.now()
 
         if force or (now - self.last_refresh) > 1800:

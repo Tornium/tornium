@@ -230,7 +230,7 @@ def stat(interaction):
     target_user.refresh(key=random.choice(admin_keys))
 
     if target_user.factiontid != 0:
-        target_faction = Faction(target_user.factiontid)
+        target_faction = Faction(target_user.factiontid, key=random.choice(admin_keys))
     else:
         target_faction = None
 

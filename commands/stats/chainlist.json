@@ -8,7 +8,7 @@
             "name": "length",
             "description": "Number of targets on the chain list",
             "min_value": 1,
-            "max_value": 15,
+            "max_value": 24,
             "required": false
         },
         {

@@ -338,9 +338,12 @@ def chain(interaction):
         "text": f"Run time: {round(time.time() - start, 2)} seconds"
     }
 
-    return {
-        "type": 4,
-        "data": {
-            "embeds": [embed]
+    tasks.discordpatch(
+        f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+        payload={
+            "type": 4,
+            "data": {
+                "embeds": [embed]
+            }
         }
-    }
+    )

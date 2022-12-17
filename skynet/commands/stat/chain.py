@@ -51,6 +51,32 @@ def chain(interaction):
 
     admin_keys = skynet.skyutils.get_admin_keys(interaction)
 
+    try:
+        tasks.discordpost(
+            f"interactions/{interaction['id']}/{interaction['token']}/callback",
+            payload={
+                "type": 5
+            }
+        )
+    except utils.DiscordError as e:
+        print(e)
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": f"Discord Error #{e.code}",
+                        "description": f"{e.message}",
+                        "color": skynet.skyutils.SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+    except Exception as e:
+        print(e)
+        return {}
+
     if user is None:
         try:
             user_data = tasks.tornget(

@@ -46,7 +46,7 @@ def chain(interaction):
         length = length[1]["value"]
     else:
         length = 12
-        
+
     if type(ff) != int:
         ff = round(ff[1]["value"], 2)
     else:
@@ -60,9 +60,7 @@ def chain(interaction):
     try:
         tasks.discordpost(
             f"interactions/{interaction['id']}/{interaction['token']}/callback",
-            payload={
-                "type": 5
-            }
+            payload={"type": 5},
         )
     except requests.exceptions.JSONDecodeError:
         pass
@@ -181,12 +179,12 @@ def chain(interaction):
                     {
                         "title": "Stats Missing",
                         "description": "The user's battle stats could not be located in the database. Please sign into "
-                                       "Tornium.",
-                        "color": skynet.skyutils.SKYNET_ERROR
+                        "Tornium.",
+                        "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     # f = fair fight
@@ -207,16 +205,8 @@ def chain(interaction):
                 | Q(addedid=user.tid)
                 | Q(addedfactiontid=user.factiontid)
             )
-            & Q(
-                battlescore__gte=(
-                    0.375 * user.battlescore * (ff - 1)
-                )
-            )
-            & Q(
-                battlescore__lte=(
-                    0.375 * user.battlescore * 2.4
-                )
-            )
+            & Q(battlescore__gte=(0.375 * user.battlescore * (ff - 1)))
+            & Q(battlescore__lte=(0.375 * user.battlescore * 2.4))
         )
     else:
         stat_entries: mongoengine.QuerySet = StatModel.objects(
@@ -225,16 +215,8 @@ def chain(interaction):
                 | Q(addedid=user.tid)
                 | Q(addedfactiontid=user.factiontid)
             )
-            & Q(
-                battlescore__gte=(
-                    0.375 * user.battlescore * (ff - variance - 1)
-                )
-            )
-            & Q(
-                battlescore__lte=(
-                    0.375 * user.battlescore * (ff + variance - 1)
-                )
-            )
+            & Q(battlescore__gte=(0.375 * user.battlescore * (ff - variance - 1)))
+            & Q(battlescore__lte=(0.375 * user.battlescore * (ff + variance - 1)))
         )
 
     if stat_entries.count() == 0:
@@ -261,11 +243,11 @@ def chain(interaction):
                                 "Name": "Variance",
                                 "value": str(variance),
                                 "inline": True,
-                            }
-                        ]
+                            },
+                        ],
                     }
                 ]
-            }
+            },
         )
 
     stat_entries: list = list(set(stat_entries.all().values_list("tid")))
@@ -308,12 +290,12 @@ def chain(interaction):
                         raise e
 
         target_ff = 1 + 8 / 3 * (stat.battlescore / user.battlescore)
-        
+
         if target_ff > 3:
             target_ff = 3
         if target.level == 0:
             continue
-        
+
         try:
             base_respect = round((math.log(target.level) + 1) / 4, 2)
         except ValueError:
@@ -344,34 +326,34 @@ def chain(interaction):
         "title": f"Chain List for {user.name} [{user.tid}]",
         "fields": [],
         "color": skynet.skyutils.SKYNET_GOOD,
-        "footer": {
-            "text": ""
-        }
+        "footer": {"text": ""},
     }
 
-    jsonified_stat_entries = sorted(jsonified_stat_entries, key=lambda d: d["respect"], reverse=True)
+    jsonified_stat_entries = sorted(
+        jsonified_stat_entries, key=lambda d: d["respect"], reverse=True
+    )
     stat_count = 0
 
     for stat_entry in jsonified_stat_entries:
         if stat_count >= length:
             break
 
-        embed["fields"].append({
-            "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
-            "value": f"Stat Score: {utils.commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}",
-            "inline": True,
-        })
+        embed["fields"].append(
+            {
+                "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
+                "value": f"Stat Score: {utils.commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}",
+                "inline": True,
+            }
+        )
 
         stat_count += 1
 
-    embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
-    embed["footer"] = {
-        "text": f"Run time: {round(time.time() - start, 2)} seconds"
-    }
+    embed[
+        "description"
+    ] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
+    embed["footer"] = {"text": f"Run time: {round(time.time() - start, 2)} seconds"}
 
     response = tasks.discordpatch(
         f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-        payload={
-            "embeds": [embed]
-        }
+        payload={"embeds": [embed]},
     )

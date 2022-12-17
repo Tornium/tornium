@@ -55,7 +55,7 @@ class Faction:
 
                 self.chain_config = faction.chainconfig
                 self.chain_od = faction.chainod
-                
+
                 return self
 
             now = utils.now()

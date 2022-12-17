@@ -56,7 +56,7 @@ class User(UserMixin):
     def refresh(self, key=None, force=False, minimize=False):
         if minimize and self.last_refresh != 0:
             return False
-        
+
         now = utils.now()
 
         if force or (now - self.last_refresh) > 1800:

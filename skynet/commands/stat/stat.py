@@ -239,8 +239,8 @@ def stat(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"{user.name} [{user.tid}]",
-                    "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
+                    "title": f"{target_user.name} [{target_user.tid}]",
+                    "url": f"https://www.torn.com/profiles.php?XID={target_user.tid}",
                     "fields": [
                         {
                             "name": "Faction",

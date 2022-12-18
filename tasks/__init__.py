@@ -266,9 +266,9 @@ def tornget(
 
     try:
         if session is None:
-            request = requests.get(url, timeout=3)
+            request = requests.get(url, timeout=5)
         else:
-            request = session.get(url, timeout=3)
+            request = session.get(url, timeout=5)
     except requests.exceptions.Timeout as e:
         logger.exception(e)
         raise NetworkingError(code=408, url=url)

@@ -111,6 +111,11 @@ if celery_app is None:
                 "task": "tasks.user.fetch_attacks_users",
                 "enabled": False,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },  # Stock tasks
+            "fetch-stock-ticks": {
+                "task": "tasks.stocks.fetch_stock_ticks",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },
         }
 
@@ -129,6 +134,7 @@ if celery_app is None:
             "tasks.faction",
             "tasks.guild",
             "tasks.stakeouts",
+            "tasks.stocks",
             "tasks.user",
         ],
     )
@@ -137,7 +143,7 @@ if celery_app is None:
 
     schedule = {}
 
-    if data["refresh-factions"]["enabled"]:
+    if "refresh-factions" in data and data["refresh-factions"]["enabled"]:
         schedule["refresh-factions"] = {
             "task": data["refresh-factions"]["task"],
             "schedule": crontab(
@@ -145,7 +151,7 @@ if celery_app is None:
                 hour=data["refresh-factions"]["schedule"]["hour"],
             ),
         }
-    if data["fetch-attacks-runner"]["enabled"]:
+    if "fetch-attacks-runner" in data and data["fetch-attacks-runner"]["enabled"]:
         schedule["fetch-attacks-runner"] = {
             "task": data["fetch-attacks-runner"]["task"],
             "schedule": crontab(
@@ -153,7 +159,7 @@ if celery_app is None:
                 hour=data["fetch-attacks-runner"]["schedule"]["hour"],
             ),
         }
-    if data["oc-refresh"]["enabled"]:
+    if "oc-refresh" in data and data["oc-refresh"]["enabled"]:
         schedule["oc-refresh"] = {
             "task": data["oc-refresh"]["task"],
             "schedule": crontab(
@@ -161,7 +167,7 @@ if celery_app is None:
                 hour=data["oc-refresh"]["schedule"]["hour"],
             ),
         }
-    if data["refresh-guilds"]["enabled"]:
+    if "refresh-guilds" in data and data["refresh-guilds"]["enabled"]:
         schedule["refresh-guilds"] = {
             "task": data["refresh-guilds"]["task"],
             "schedule": crontab(
@@ -169,7 +175,7 @@ if celery_app is None:
                 hour=data["refresh-guilds"]["schedule"]["hour"],
             ),
         }
-    if data["user-stakeouts"]["enabled"]:
+    if "user-stakeouts" in data and data["user-stakeouts"]["enabled"]:
         schedule["user-stakeouts"] = {
             "task": data["user-stakeouts"]["task"],
             "schedule": crontab(
@@ -177,7 +183,7 @@ if celery_app is None:
                 hour=data["user-stakeouts"]["schedule"]["hour"],
             ),
         }
-    if data["faction-stakeouts"]["enabled"]:
+    if "faction-stakeouts" in data and data["faction-stakeouts"]["enabled"]:
         schedule["faction-stakeouts"] = {
             "task": data["faction-stakeouts"]["task"],
             "schedule": crontab(
@@ -185,7 +191,7 @@ if celery_app is None:
                 hour=data["faction-stakeouts"]["schedule"]["hour"],
             ),
         }
-    if data["refresh-users"]["enabled"]:
+    if "refresh-users" in data and data["refresh-users"]["enabled"]:
         schedule["refresh-users"] = {
             "task": data["refresh-users"]["task"],
             "schedule": crontab(
@@ -193,7 +199,7 @@ if celery_app is None:
                 hour=data["refresh-users"]["schedule"]["hour"],
             ),
         }
-    if data["mail-check"]["enabled"]:
+    if "mail-check" in data and data["mail-check"]["enabled"]:
         schedule["mail-check"] = {
             "task": data["mail-check"]["task"],
             "schedule": crontab(
@@ -201,12 +207,20 @@ if celery_app is None:
                 hour=data["mail-check"]["schedule"]["hour"],
             ),
         }
-    if data["fetch-attacks-users"]["enabled"]:
+    if "fetch-attacks-users" in data and data["fetch-attacks-users"]["enabled"]:
         schedule["fetch-attacks-users"] = {
             "task": data["fetch-attacks-users"]["task"],
             "schedule": crontab(
                 minute=data["fetch-attacks-users"]["schedule"]["minute"],
                 hour=data["fetch-attacks-users"]["schedule"]["hour"],
+            ),
+        }
+    if "fetch-stock-ticks" in data and data["fetch-stock-ticks"]["enabled"]:
+        schedule["fetch-stock-ticks"] = {
+            "task": data["fetch-stock-ticks"]["task"],
+            "schedule": crontab(
+                minute=data["fetch-stock-ticks"]["schedule"]["minute"],
+                hour=data["fetch-stock-ticks"]["schedule"]["hour"],
             ),
         }
 

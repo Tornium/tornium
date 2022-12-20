@@ -5,7 +5,7 @@
 
 import sys
 
-if hasattr(sys, "_called_from_test"):
+if not hasattr(sys, "_called_from_test"):
     from ddtrace import patch_all
 
     patch_all(logging=True)

@@ -41,7 +41,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
     try:
         if key is not None:
             data = tornget(
-                f"user/{stakeout.tid}?selections=", key=key, session=requests_session
+                f"user/{stakeout.tid}?selections=",
+                key=key,
+                session=requests_session,
+                nocache=True,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -79,6 +82,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 f"user/{stakeout.tid}?selections=",
                 key=admin.key,
                 session=requests_session,
+                nocache=True,
             )
     except utils.TornError as e:
         logger.exception(e)
@@ -326,6 +330,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=key,
                 session=requests_session,
+                nocache=True,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -359,6 +364,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=admin.key,
                 session=requests_session,
+                nocache=True,
             )
     except utils.TornError as e:
         logger.exception(e)
@@ -1050,6 +1056,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             key=key,
                             session=requests_session,
                             fromts=utils.now() - 60,
+                            nocache=True,
                         )
                     else:
                         keys = UserModel.objects(
@@ -1064,6 +1071,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             key=random.choice(keys.key),
                             session=requests_session,
                             fromts=utils.now() - 60,
+                            nocache=True,
                         )
                 except utils.TornError as e:
                     logger.exception(e)
@@ -1113,6 +1121,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             key=key,
                             session=requests_session,
                             fromts=utils.now() - 60,
+                            nocache=True,
                         )
                     else:
                         aa_users = UserModel.objects(
@@ -1139,6 +1148,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             key=random.choice(keys),
                             session=requests_session,
                             fromts=utils.now() - 60,
+                            nocache=True,
                         )
                 except utils.TornError as e:
                     logger.exception(e)

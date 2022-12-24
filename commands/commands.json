@@ -9,6 +9,7 @@
         "faction/banking/withdraw",
         "stats/chainlist",
         "stats/stat",
+        "stocks/stocks",
         "user/who"
     ],
     "disabled": []

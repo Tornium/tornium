@@ -1,4 +1,4 @@
-# Copyright (C) tiksan - All Rights Reserved
+    # Copyright (C) tiksan - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
@@ -8,6 +8,7 @@ from decimal import Decimal
 import logging
 import re
 from typing import Union
+from urllib.parse import urlparse
 
 from flask import render_template
 
@@ -32,35 +33,33 @@ def get_torn_name(name):
     return re.sub("[[].*?[]]", "", name).replace(" ", "")
 
 
-def handle_torn_error(error):
-    error = error.code
-
-    if error == 0:
+def handle_torn_error(error: TornError):
+    if error.code == 0:
         return render_template(
             "/errors/error.html",
             title="Unknown Error",
             error="The Torn API has returned an unknown error.",
         )
-    elif error == 1:
+    elif error.code == 1:
         return render_template(
             "/errors/error.html",
             title="Empty Key",
             error="The passed Torn API key was empty (i.e. no Torn API key was passed).",
         )
-    elif error == 2:
+    elif error.code == 2:
         return render_template(
             "/errors/error.html",
             title="Incorrect Key",
             error="The passed Torn API key was not a valid key.",
         )
-    elif error == 5:
+    elif error.code == 5:
         return render_template(
             "/errors/error.html",
             title="Too Many Requests",
             error="The passed Torn API key has had more than 100 requests sent to the Torn "
             "API server. Please try again in a couple minutes.",
         )
-    elif error == 8:
+    elif error.code == 8:
         return render_template(
             "/errors/error.html",
             title="IP Block",
@@ -69,94 +68,98 @@ def handle_torn_error(error):
             "Please contact the administrators of this site to inform them of this so "
             "that changes can be made.",
         )
-    elif error == 9:
+    elif error.code == 9:
         return render_template(
             "/errors/error.html",
             title="API System Disabled",
             error="Torn's API system has been temporarily disabled. Please try again in a "
             "couple minutes.",
         )
-    elif error == 10:
+    elif error.code == 10:
         return render_template(
             "/errors/error.html",
             title="Key Owner Fedded",
             error="The owner of the passed API key has been fedded. Please verify that the "
             "inputted API key is correct.",
         )
-    elif error == 11:
+    elif error.code == 11:
         return render_template(
             "/errors/error.html",
             title="Key Change Error",
             error="You can only change your API key once every 60 seconds.",
         )
-    elif error == 13:
+    elif error.code == 13:
         return render_template(
             "/errors/error.html",
             title="Key Change Error",
             error="The owner of the passed API key has not been online for more than 7 days. "
             "Please verify that the inputted API key is correct.",
         )
+    elif error.code == 17:
+        return render_template(
+            "/errors/error.html",
+            title="Internal Torn API Error",
+            error="An internal backend error has occurred with the Torn API. Please try again.",
+        )
     else:
         return render_template(
             "/errors/error.html",
             title="Miscellaneous Error",
-            error=f"The Torn API has responded with error code {error}",
+            error=f"The Torn API has responded with error code {error.code}",
         )
 
 
-def handle_discord_error(error):
-    error = error.code
-
-    if error == 0:
+def handle_discord_error(error: DiscordError):
+    if error.code == 0:
         return render_template(
             "/errors/error.html",
             title="General Error",
             error=f"The Discord API has returned a general error.",
         )
-    elif error == 10003:
+    elif error.code == 10003:
         return render_template(
             "/errors/error.html",
             title="Unknown Channel",
             error="The passed guild channel could not be found.",
         )
-    elif error == 10004:
+    elif error.code == 10004:
         return render_template(
             "/errors/error.html",
             title="Unknown Guild",
             error="The passed guild could not be found.",
         )
-    elif error == 10007:
+    elif error.code == 10007:
         return render_template(
             "/errors/error.html",
             title="Unknown Member",
             error="The passed guild member could not be found.",
         )
-    elif error == 10008:
+    elif error.code == 10008:
         return render_template(
             "/errors/error.html",
             title="Unknown Message",
             error="The passed message could not be found.",
         )
-    elif error == 10011:
+    elif error.code == 10011:
         return render_template(
             "/errors/error.html",
             title="Unknown Role",
             error="The passed guild role could not be found.",
         )
-    elif error == 10012:
+    elif error.code == 10012:
         return render_template(
             "/errors/error.html",
             title="Unknown Token",
             error="The passed bot token is not correct. Please immediately contact the bot/app "
             "hoster in order for the bot token to be replaced.",
         )
-    elif error == 10013:
+    elif error.code == 10013:
         return render_template(
             "/errors/error.html",
             title="Unknown User",
             error="The passed Discord user could not be found.",
         )
-    elif error == 40001:
+    elif error.code == 40001:
         return render_template(
             "/errors/error.html",
             title="Unauthorized",
@@ -167,11 +170,27 @@ def handle_discord_error(error):
         return render_template(
             "/errors/error.html",
             title="Miscellaneous Error",
-            error=f"The Discord API has responded with error code {error} that is not currently in "
-            f"the handled list of Discord API errors. Please report this error to the "
+            error=f"The Discord API has responded with error code {error.code} that is not currently in "
+            f"the handled list of Discord API errors. Please report this error.code to the "
             f"developer(s). A full list of Discord API errors can be found at "
             f"https://discord.com/developers/docs/topics/opcodes-and-status-codes#json",
         )
+
+
+def handle_networking_error(error: NetworkingError):
+    if error.code == 408 and urlparse(error.url).hostname == "www.torn.com":
+        return render_template(
+            "/errors/error.html",
+            title="Torn API Timed Out",
+            error="The Torn API did not respond within the prescribed time period. Please try again. This issue "
+                  "originates from Torn's servers."
+        )
+
+    return render_template(
+        "/errors/error.html",
+        title="Miscellaneous Error",
+        error=f"An API has responded with HTTP {error.code}."
+    )
 
 
 def now():

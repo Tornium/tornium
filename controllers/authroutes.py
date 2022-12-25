@@ -34,7 +34,7 @@ def login():
 
     if "error" in key_info:
         return utils.handle_torn_error(
-            utils.TornError(key_info["error"]["code"]), "key/?selections=info"
+            utils.TornError(key_info["error"]["code"], "key/?selections=info")
         )
 
     if key_info["access_level"] < 3:
@@ -52,14 +52,32 @@ def login():
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
 
-    user = User(torn_user["player_id"], access=key_info["access_level"])
+    user = User(torn_user["player_id"])
 
     if user.key != request.form["key"]:
         user.set_key(request.form["key"])
 
-    user.refresh()
-    user.faction_refresh()
+    try:
+        user.refresh()
+        user.faction_refresh()
+    except utils.TornError as e:
+        return utils.handle_torn_error(e)
+    except utils.NetworkingError as e:
+        if e.code == 408:
+            return render_template(
+                "errors/error.html",
+                title="Torn API Timeout",
+                message="The Torn API has taken too long to respond to the API request. Please try again.",
+            )
+
+        return render_template(
+            "errors/error.html", title="Networking Error", message=e.message
+        )
+
     login_user(user, remember=True)
+
+    return redirect(url_for("baseroutes.index"))
+
     next = request.args.get("next")
 
     if next is None or next == "None":

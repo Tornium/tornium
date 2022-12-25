@@ -148,6 +148,9 @@ class TornError(Exception):
         elif self.code == 16:
             self.error = "Access level of this key is not high enough"
             self.message = "A selection is being called of which this key does not have permission to access."
+        elif self.code == 17:
+            self.error = "Backend error occurred"
+            self.message = "Plesae try again"
         else:
             raise ValueError(f"Illegal Torn error code {code}")
 

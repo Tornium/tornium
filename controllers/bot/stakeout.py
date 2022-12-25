@@ -305,7 +305,7 @@ def stakeout_data(guildid: str):
         stakeout = Stakeout(user)
         return render_template(
             "bot/userstakeoutmodal.html",
-            user=f"{User(int(user), key=current_user.key).name} [{user}]",
+            user=f"{User(int(user)).name} [{user}]",
             lastupdate=utils.rel_time(
                 datetime.datetime.fromtimestamp(stakeout.last_update)
             ),

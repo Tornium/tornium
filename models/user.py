@@ -15,7 +15,7 @@ import utils
 
 
 class User(UserMixin):
-    def __init__(self, tid, key="", access=3):
+    def __init__(self, tid):
         """
         Retrieves the user from the database.
 

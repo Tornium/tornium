@@ -22,14 +22,14 @@ def bot(*args, **kwargs):
     faction = Faction(current_user.factiontid)
 
     if faction.guild == 0:
-        vault_config = {"banking": 0, "banker": 0, "withdrawal": 0}
+        vault_config = {"banking": 0, "banker": 0}
         config = {"vault": 0, "stats": 1}
         flash("Remember to set the faction server before performing any other setup.")
     else:
         server = Server(faction.guild)
 
         if faction.tid not in server.factions:
-            vault_config = {"banking": 0, "banker": 0, "withdrawal": 0}
+            vault_config = {"banking": 0, "banker": 0}
             config = {"vault": 0, "stats": 1}
             flash(
                 "Remember to add the faction to the server's list of factions before performing any other setup"
@@ -54,32 +54,6 @@ def bot(*args, **kwargs):
 
             faction.guild = request.form.get("guildid")
             faction_model.guild = request.form.get("guildid")
-            faction_model.save()
-        elif request.form.get("withdrawal") is not None:
-            guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
-
-            if guild is None:
-                return render_template(
-                    "errors/error.html",
-                    title="Unknown Guild",
-                    error=f"The Discord server with ID {faction.guild} could not be found.",
-                )
-
-            try:
-                channel = tasks.discordget(f'channels/{request.form.get("withdrawal")}')
-            except utils.DiscordError as e:
-                return utils.handle_discord_error(e)
-            except utils.NetworkingError as e:
-                return render_template(
-                    "errors/error.html",
-                    title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code "
-                    f"{utils.remove_str(str(e))}.",
-                )
-            except Exception as e:
-                return render_template("errors/error.html", title="Error", error=str(e))
-
-            faction_model.vaultconfig["withdrawal"] = int(channel["id"])
             faction_model.save()
         elif request.form.get("banking") is not None:
             guild: ServerModel = ServerModel.objects(sid=faction.guild).first()

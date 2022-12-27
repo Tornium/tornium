@@ -35,28 +35,6 @@ class Faction:
             except utils.TornError as e:
                 utils.get_logger().exception(e)
                 raise e
-            except AttributeError:
-                self.tid = tid
-                self.name = faction.name
-                self.respect = faction.respect
-                self.capacity = faction.capacity
-                self.leader = faction.leader
-                self.coleader = faction.coleader
-                self.aa_keys = faction.aa_keys
-
-                self.last_members = faction.last_members
-                self.last_attacks = faction.last_attacks
-
-                self.guild = faction.guild
-                self.config = faction.config
-                self.vault_config = faction.vaultconfig
-
-                self.stat_config = faction.statconfig
-
-                self.chain_config = faction.chainconfig
-                self.chain_od = faction.chainod
-
-                return self
 
             now = utils.now()
 
@@ -72,7 +50,7 @@ class Faction:
                 last_members=now,
                 guild=0,
                 config={"vault": 0, "stats": 1},
-                vaultconfig={"banking": 0, "banker": 0, "withdrawal": 0},
+                vaultconfig={"banking": 0, "banker": 0},
                 statconfig={"global": 0},
                 chainconfig={"od": 0, "odchannel": 0},
                 chainod={},

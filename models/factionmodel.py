@@ -29,7 +29,7 @@ class FactionModel(DynamicDocument):
         default={"vault": 0, "stats": 1}
     )  # Dictionary of faction's bot configuration
     vaultconfig = DictField(
-        default={"banking": 0, "banker": 0, "withdrawal": 0}
+        default={"banking": 0, "banker": 0}
     )  # Dictionary of vault configuration
 
     statconfig = DictField(default={"global": 0})  # Dictionary of target config

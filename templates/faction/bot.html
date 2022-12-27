@@ -33,11 +33,6 @@ Tornium - Faction Bot Dashboard
             <h5 class="card-title">Vault Configuration</h5>
             <p class="card-text">
                 <form class="form-floating my-3" method="POST" action="/faction/bot">
-                    <input class="form-control" id="withdrawal" name="withdrawal" value="{{ vault_config['withdrawal'] }}">
-                    <label for="withdrawal">Withdrawal Channel</label>
-                </form>
-
-                <form class="form-floating my-3" method="POST" action="/faction/bot">
                     <input class="form-control" id="banking" name="banking" value="{{ vault_config['banking'] }}">
                     <label for="banking">Banking Channel</label>
                 </form>

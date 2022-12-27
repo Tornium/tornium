@@ -31,8 +31,8 @@ class UnpickleableException(Exception):
         (utils.errors.DiscordError(1, "test"), nullcontext()),
         (utils.errors.MissingKeyError(), nullcontext()),
         (utils.errors.RatelimitError(), nullcontext()),
-        (UnpickleableException(1, 2), pytest.raises(TypeError))
-    ]
+        (UnpickleableException(1, 2), pytest.raises(TypeError)),
+    ],
 )
 def test_celery_pickle(exception, expectation):
     with expectation:

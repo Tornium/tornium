@@ -1,4 +1,4 @@
-    # Copyright (C) tiksan - All Rights Reserved
+# Copyright (C) tiksan - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
@@ -183,13 +183,13 @@ def handle_networking_error(error: NetworkingError):
             "/errors/error.html",
             title="Torn API Timed Out",
             error="The Torn API did not respond within the prescribed time period. Please try again. This issue "
-                  "originates from Torn's servers."
+            "originates from Torn's servers.",
         )
 
     return render_template(
         "/errors/error.html",
         title="Miscellaneous Error",
-        error=f"An API has responded with HTTP {error.code}."
+        error=f"An API has responded with HTTP {error.code}.",
     )
 
 

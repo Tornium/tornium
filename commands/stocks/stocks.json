@@ -28,7 +28,7 @@
                         {
                             "type": 3,
                             "name": "equality",
-                            "description": "",
+                            "description": "Less than, equal, or greater than",
                             "choices": [
                                 {
                                     "name": "<",

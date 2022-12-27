@@ -18,7 +18,9 @@ import utils
 
 
 def _map_stock_image(acronym: str):
-    return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
+    return (
+        f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
+    )
 
 
 @celery_app.task
@@ -104,12 +106,14 @@ def fetch_stock_ticks():
                         "name": target_stock["name"],
                     },
                     "image": {
-                        "url": _map_stock_image(target_stock['acronym']),
+                        "url": _map_stock_image(target_stock["acronym"]),
                     },
                     "fields": [
                         {
                             "name": "Original Price",
-                            "value": f"${stock_tick.price}" if stock_tick is not None else "Unknown",
+                            "value": f"${stock_tick.price}"
+                            if stock_tick is not None
+                            else "Unknown",
                             "inline": True,
                         },
                         {
@@ -118,9 +122,7 @@ def fetch_stock_ticks():
                             "inline": True,
                         },
                     ],
-                    "footer": {
-                        "text": utils.torn_timestamp()
-                    },
+                    "footer": {"text": utils.torn_timestamp()},
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ]
@@ -151,21 +153,17 @@ def fetch_stock_ticks():
                     "users/@me/channel",
                     payload={
                         "recipient_id": notification.recipient,
-                    }
+                    },
                 )
             except utils.DiscordError as e:
                 continue
             except utils.NetworkingError as e:
                 continue
 
-            discordpost.delay(
-                f"channels/{dm_channel['id']}/messages",
-                payload=payload
-            )
+            discordpost.delay(f"channels/{dm_channel['id']}/messages", payload=payload)
         elif notification.recipient_type == 1:
             discordpost.delay(
-                f"channels/{notification.recipient}/messages",
-                payload=payload
+                f"channels/{notification.recipient}/messages", payload=payload
             )
         else:
             return

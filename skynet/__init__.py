@@ -70,8 +70,7 @@ def skynet_interactions():
 
     # Stock Commands
     elif request.json["data"]["name"] == "stock":
-        return jsonify(None)
-
-    print(request.json["data"]["name"])
+        print(request.json)
+        return {}
 
     return {}

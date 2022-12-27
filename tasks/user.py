@@ -5,7 +5,6 @@
 
 import math
 
-from models.recruitmodel import RecruitModel
 from mongoengine.queryset.visitor import Q
 import requests
 
@@ -149,53 +148,6 @@ def refresh_users():
         )
         user.battlescore = battlescore
         user.battlescore_update = utils.now()
-        user.save()
-
-
-@celery_app.task
-def mail_check():
-    requests_session = requests.Session()
-
-    user: UserModel
-    for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="") & Q(pro=1)):
-        if user.key == "" or not user.pro:
-            continue
-
-        try:
-            mail_data = tornget(
-                "user/?selections=messages",
-                user.key,
-                session=requests_session,
-                fromts=user.recruit_mail_update,
-            )
-        except utils.TornError as e:
-            logger.exception(e)
-            continue
-        except Exception as e:
-            logger.exception(e)
-            continue
-
-        for mailid, mail in mail_data.items():
-            if mail["type"] != "User message":
-                continue
-            elif user.recruiter_code not in mail["title"]:
-                continue
-
-            recruit: RecruitModel = (
-                RecruitModel.objects(Q(tid=mail["ID"]) & Q(recruiter=user.tid))
-                .order_by("-id")
-                .first()
-            )
-
-            if recruit is None:
-                continue
-            if recruit.status == 2:
-                continue
-
-            recruit.messages_received += 1
-            recruit.save()
-
-        user.recruit_mail_update = utils.now()
         user.save()
 
 

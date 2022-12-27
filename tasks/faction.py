@@ -17,7 +17,6 @@ import requests
 from models.factionmodel import FactionModel
 from models.ocmodel import OCModel
 from models.positionmodel import PositionModel
-from models.recruitmodel import RecruitModel
 from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
@@ -362,16 +361,6 @@ def refresh_factions():
                 user.status = member["last_action"]["status"]
                 user.last_action = member["last_action"]["timestamp"]
                 user.save()
-
-            recruit: RecruitModel = (
-                RecruitModel.objects(Q(tid=user.tid) & Q(factionid=faction.tid))
-                .order_by("-id")
-                .first()
-            )
-
-            if recruit is not None:
-                recruit.tif = member["days_in_faction"]
-                recruit.save()
 
         for user in UserModel.objects(factionid=faction.tid):
             if user.tid in users:

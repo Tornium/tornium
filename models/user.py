@@ -45,9 +45,6 @@ class User(UserMixin):
         self.factiontid = user.factionid
         self.aa = user.factionaa
         self.faction_position = user.faction_position
-        self.recruiter = user.recruiter
-        self.recruiter_code = user.recruiter_code
-        self.recruiter_mail_update = user.recruit_mail_update
         self.chain_hits = user.chain_hits
 
         self.status = user.status

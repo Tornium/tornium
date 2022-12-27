@@ -11,7 +11,6 @@ from controllers.faction import (
     bot,
     chain,
     members,
-    recruitment,
 )
 
 mod = Blueprint("factionroutes", __name__)
@@ -42,15 +41,6 @@ mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET", "POST"
 
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])
-
-# Recruitment Routes
-mod.add_url_rule(
-    "/faction/recruitment", view_func=recruitment.dashboard, methods=["GET"]
-)
-mod.add_url_rule("/faction/recruits", view_func=recruitment.recruits, methods=["GET"])
-mod.add_url_rule(
-    "/faction/recruiters", view_func=recruitment.recruiters, methods=["GET"]
-)
 
 
 @mod.route("/faction")

@@ -23,19 +23,6 @@ def aa_required(f):
     return wrapper
 
 
-def aa_recruitment_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or (
-            not current_user.aa and not current_user.recruiter
-        ):
-            return abort(403)
-        else:
-            return f(*args, **kwargs)
-
-    return wrapper
-
-
 def fac_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):

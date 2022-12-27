@@ -102,11 +102,6 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
             },
-            "mail-check": {
-                "task": "tasks.user.mail_check",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
-            },
             "fetch-attacks-users": {
                 "task": "tasks.user.fetch_attacks_users",
                 "enabled": False,
@@ -197,14 +192,6 @@ if celery_app is None:
             "schedule": crontab(
                 minute=data["refresh-users"]["schedule"]["minute"],
                 hour=data["refresh-users"]["schedule"]["hour"],
-            ),
-        }
-    if "mail-check" in data and data["mail-check"]["enabled"]:
-        schedule["mail-check"] = {
-            "task": data["mail-check"]["task"],
-            "schedule": crontab(
-                minute=data["mail-check"]["schedule"]["minute"],
-                hour=data["mail-check"]["schedule"]["hour"],
             ),
         }
     if "fetch-attacks-users" in data and data["fetch-attacks-users"]["enabled"]:

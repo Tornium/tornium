@@ -72,7 +72,7 @@ Tornium - Faction Members
                                 </th>
                             {% endif %}
 
-                            <th data-order="{{ member.last_action }}">
+                            <th data-order="{{ member.last_refresh }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh|tcttime }}">{{ member.last_refresh|reltime }}</span>
                             </th>
 

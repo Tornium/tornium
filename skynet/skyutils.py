@@ -42,13 +42,9 @@ def get_admin_keys(interaction):
     admin_keys = []
 
     if "member" in interaction:
-        invoker: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        invoker: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        invoker: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        invoker: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if invoker is not None and invoker.key not in ("", None):
         return tuple([invoker.key])
@@ -81,13 +77,9 @@ def get_faction_keys(interaction, faction=None):
         return tuple(faction.aa_keys)
 
     if "member" in interaction:
-        invoker: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        invoker: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        invoker: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        invoker: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if invoker is None:
         return ()

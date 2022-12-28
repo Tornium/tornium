@@ -5,8 +5,10 @@
 
 import json
 
+from flask import request
+
 from controllers.api.bot.config import jsonified_server_config
-from controllers.api.decorators import *
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.servermodel import ServerModel
 

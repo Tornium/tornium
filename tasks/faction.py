@@ -118,80 +118,34 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": bool(
-                    faction_data["positions"][position.name]["canAccessFactionApi"]
-                ),
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])
-            position.canUseMedicalItem = bool(
-                faction_data["positions"][position.name]["canUseMedicalItem"]
-            )
-            position.canUseBoosterItem = bool(
-                faction_data["positions"][position.name]["canUseBoosterItem"]
-            )
-            position.canUseDrugItem = bool(
-                faction_data["positions"][position.name]["canUseDrugItem"]
-            )
-            position.canUseEnergyRefill = bool(
-                faction_data["positions"][position.name]["canUseEnergyRefill"]
-            )
-            position.canUseNerveRefill = bool(
-                faction_data["positions"][position.name]["canUseNerveRefill"]
-            )
-            position.canLoanTemporaryItem = bool(
-                faction_data["positions"][position.name]["canLoanTemporaryItem"]
-            )
-            position.canLoanWeaponAndArmory = bool(
-                faction_data["positions"][position.name]["canLoanWeaponAndArmory"]
-            )
-            position.canRetrieveLoanedArmory = bool(
-                faction_data["positions"][position.name]["canRetrieveLoanedArmory"]
-            )
+            position.canUseMedicalItem = bool(faction_data["positions"][position.name]["canUseMedicalItem"])
+            position.canUseBoosterItem = bool(faction_data["positions"][position.name]["canUseBoosterItem"])
+            position.canUseDrugItem = bool(faction_data["positions"][position.name]["canUseDrugItem"])
+            position.canUseEnergyRefill = bool(faction_data["positions"][position.name]["canUseEnergyRefill"])
+            position.canUseNerveRefill = bool(faction_data["positions"][position.name]["canUseNerveRefill"])
+            position.canLoanTemporaryItem = bool(faction_data["positions"][position.name]["canLoanTemporaryItem"])
+            position.canLoanWeaponAndArmory = bool(faction_data["positions"][position.name]["canLoanWeaponAndArmory"])
+            position.canRetrieveLoanedArmory = bool(faction_data["positions"][position.name]["canRetrieveLoanedArmory"])
             position.canPlanAndInitiateOrganisedCrime = bool(
-                faction_data["positions"][position.name][
-                    "canPlanAndInitiateOrganisedCrime"
-                ]
+                faction_data["positions"][position.name]["canPlanAndInitiateOrganisedCrime"]
             )
-            position.canAccessFactionApi = bool(
-                faction_data["positions"][position.name]["canAccessFactionApi"]
-            )
-            position.canGiveItem = bool(
-                faction_data["positions"][position.name]["canGiveItem"]
-            )
-            position.canGiveMoney = bool(
-                faction_data["positions"][position.name]["canGiveMoney"]
-            )
-            position.canGivePoints = bool(
-                faction_data["positions"][position.name]["canGivePoints"]
-            )
-            position.canManageForum = bool(
-                faction_data["positions"][position.name]["canManageForum"]
-            )
-            position.canManageApplications = bool(
-                faction_data["positions"][position.name]["canManageApplications"]
-            )
-            position.canKickMembers = bool(
-                faction_data["positions"][position.name]["canKickMembers"]
-            )
-            position.canAdjustMemberBalance = bool(
-                faction_data["positions"][position.name]["canAdjustMemberBalance"]
-            )
-            position.canManageWars = bool(
-                faction_data["positions"][position.name]["canManageWars"]
-            )
-            position.canManageUpgrades = bool(
-                faction_data["positions"][position.name]["canManageUpgrades"]
-            )
-            position.canSendNewsletter = bool(
-                faction_data["positions"][position.name]["canSendNewsletter"]
-            )
-            position.canChangeAnnouncement = bool(
-                faction_data["positions"][position.name]["canChangeAnnouncement"]
-            )
-            position.canChangeDescription = bool(
-                faction_data["positions"][position.name]["canChangeDescription"]
-            )
+            position.canAccessFactionApi = bool(faction_data["positions"][position.name]["canAccessFactionApi"])
+            position.canGiveItem = bool(faction_data["positions"][position.name]["canGiveItem"])
+            position.canGiveMoney = bool(faction_data["positions"][position.name]["canGiveMoney"])
+            position.canGivePoints = bool(faction_data["positions"][position.name]["canGivePoints"])
+            position.canManageForum = bool(faction_data["positions"][position.name]["canManageForum"])
+            position.canManageApplications = bool(faction_data["positions"][position.name]["canManageApplications"])
+            position.canKickMembers = bool(faction_data["positions"][position.name]["canKickMembers"])
+            position.canAdjustMemberBalance = bool(faction_data["positions"][position.name]["canAdjustMemberBalance"])
+            position.canManageWars = bool(faction_data["positions"][position.name]["canManageWars"])
+            position.canManageUpgrades = bool(faction_data["positions"][position.name]["canManageUpgrades"])
+            position.canSendNewsletter = bool(faction_data["positions"][position.name]["canSendNewsletter"])
+            position.canChangeAnnouncement = bool(faction_data["positions"][position.name]["canChangeAnnouncement"])
+            position.canChangeDescription = bool(faction_data["positions"][position.name]["canChangeDescription"])
             position.save()
 
         for position_name, position_data in faction_data["positions"].items():
@@ -206,80 +160,34 @@ def refresh_factions():
 
             positions_data[position.name] = {
                 "uuid": position.pid,
-                "aa": bool(
-                    faction_data["positions"][position.name]["canAccessFactionApi"]
-                ),
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
             }
 
             position.default = bool(faction_data["positions"][position.name]["default"])
-            position.canUseMedicalItem = bool(
-                faction_data["positions"][position.name]["canUseMedicalItem"]
-            )
-            position.canUseBoosterItem = bool(
-                faction_data["positions"][position.name]["canUseBoosterItem"]
-            )
-            position.canUseDrugItem = bool(
-                faction_data["positions"][position.name]["canUseDrugItem"]
-            )
-            position.canUseEnergyRefill = bool(
-                faction_data["positions"][position.name]["canUseEnergyRefill"]
-            )
-            position.canUseNerveRefill = bool(
-                faction_data["positions"][position.name]["canUseNerveRefill"]
-            )
-            position.canLoanTemporaryItem = bool(
-                faction_data["positions"][position.name]["canLoanTemporaryItem"]
-            )
-            position.canLoanWeaponAndArmory = bool(
-                faction_data["positions"][position.name]["canLoanWeaponAndArmory"]
-            )
-            position.canRetrieveLoanedArmory = bool(
-                faction_data["positions"][position.name]["canRetrieveLoanedArmory"]
-            )
+            position.canUseMedicalItem = bool(faction_data["positions"][position.name]["canUseMedicalItem"])
+            position.canUseBoosterItem = bool(faction_data["positions"][position.name]["canUseBoosterItem"])
+            position.canUseDrugItem = bool(faction_data["positions"][position.name]["canUseDrugItem"])
+            position.canUseEnergyRefill = bool(faction_data["positions"][position.name]["canUseEnergyRefill"])
+            position.canUseNerveRefill = bool(faction_data["positions"][position.name]["canUseNerveRefill"])
+            position.canLoanTemporaryItem = bool(faction_data["positions"][position.name]["canLoanTemporaryItem"])
+            position.canLoanWeaponAndArmory = bool(faction_data["positions"][position.name]["canLoanWeaponAndArmory"])
+            position.canRetrieveLoanedArmory = bool(faction_data["positions"][position.name]["canRetrieveLoanedArmory"])
             position.canPlanAndInitiateOrganisedCrime = bool(
-                faction_data["positions"][position.name][
-                    "canPlanAndInitiateOrganisedCrime"
-                ]
+                faction_data["positions"][position.name]["canPlanAndInitiateOrganisedCrime"]
             )
-            position.canAccessFactionApi = bool(
-                faction_data["positions"][position.name]["canAccessFactionApi"]
-            )
-            position.canGiveItem = bool(
-                faction_data["positions"][position.name]["canGiveItem"]
-            )
-            position.canGiveMoney = bool(
-                faction_data["positions"][position.name]["canGiveMoney"]
-            )
-            position.canGivePoints = bool(
-                faction_data["positions"][position.name]["canGivePoints"]
-            )
-            position.canManageForum = bool(
-                faction_data["positions"][position.name]["canManageForum"]
-            )
-            position.canManageApplications = bool(
-                faction_data["positions"][position.name]["canManageApplications"]
-            )
-            position.canKickMembers = bool(
-                faction_data["positions"][position.name]["canKickMembers"]
-            )
-            position.canAdjustMemberBalance = bool(
-                faction_data["positions"][position.name]["canAdjustMemberBalance"]
-            )
-            position.canManageWars = bool(
-                faction_data["positions"][position.name]["canManageWars"]
-            )
-            position.canManageUpgrades = bool(
-                faction_data["positions"][position.name]["canManageUpgrades"]
-            )
-            position.canSendNewsletter = bool(
-                faction_data["positions"][position.name]["canSendNewsletter"]
-            )
-            position.canChangeAnnouncement = bool(
-                faction_data["positions"][position.name]["canChangeAnnouncement"]
-            )
-            position.canChangeDescription = bool(
-                faction_data["positions"][position.name]["canChangeDescription"]
-            )
+            position.canAccessFactionApi = bool(faction_data["positions"][position.name]["canAccessFactionApi"])
+            position.canGiveItem = bool(faction_data["positions"][position.name]["canGiveItem"])
+            position.canGiveMoney = bool(faction_data["positions"][position.name]["canGiveMoney"])
+            position.canGivePoints = bool(faction_data["positions"][position.name]["canGivePoints"])
+            position.canManageForum = bool(faction_data["positions"][position.name]["canManageForum"])
+            position.canManageApplications = bool(faction_data["positions"][position.name]["canManageApplications"])
+            position.canKickMembers = bool(faction_data["positions"][position.name]["canKickMembers"])
+            position.canAdjustMemberBalance = bool(faction_data["positions"][position.name]["canAdjustMemberBalance"])
+            position.canManageWars = bool(faction_data["positions"][position.name]["canManageWars"])
+            position.canManageUpgrades = bool(faction_data["positions"][position.name]["canManageUpgrades"])
+            position.canSendNewsletter = bool(faction_data["positions"][position.name]["canSendNewsletter"])
+            position.canChangeAnnouncement = bool(faction_data["positions"][position.name]["canChangeAnnouncement"])
+            position.canChangeDescription = bool(faction_data["positions"][position.name]["canChangeDescription"])
             position.save()
 
             positions_names.append(position.name)
@@ -298,9 +206,7 @@ def refresh_factions():
 
         if len(lead_keys) != 0:
             try:
-                user_ts_data = torn_stats_get(
-                    f"spy/faction/{faction.tid}", random.choice(lead_keys)
-                )
+                user_ts_data = torn_stats_get(f"spy/faction/{faction.tid}", random.choice(lead_keys))
             except Exception as e:
                 logger.exception(e)
                 continue
@@ -394,10 +300,7 @@ def refresh_factions():
                         continue
 
                     try:
-                        if (
-                            faction.chainod.get(tid) is None
-                            and user_od["contributed"] == 1
-                        ):
+                        if faction.chainod.get(tid) is None and user_od["contributed"] == 1:
                             overdosed_user = UserModel.objects(tid=tid).first()
                             payload = {
                                 "embeds": [
@@ -432,9 +335,9 @@ def refresh_factions():
                             except Exception as e:
                                 logger.exception(e)
                                 continue
-                        elif faction.chainod.get(tid) is not None and user_od[
-                            "contributed"
-                        ] != faction.chainod.get(tid).get("contributed"):
+                        elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(
+                            tid
+                        ).get("contributed"):
                             overdosed_user = UserModel.objects(tid=tid).first()
                             payload = {
                                 "embeds": [
@@ -496,9 +399,7 @@ def fetch_attacks_runner():
     requests_session = requests.Session()
 
     faction: FactionModel
-    for faction in FactionModel.objects(
-        Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)
-    ):
+    for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
         if len(faction.aa_keys) == 0:
             continue
         elif faction.last_attacks == 0:
@@ -538,18 +439,12 @@ def fetch_attacks_runner():
         if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
             continue
 
-        retal_attacks.delay(
-            faction.tid, faction_data, last_attacks=faction.last_attacks
-        )
-        stat_db_attacks.delay(
-            faction.tid, faction_data, last_attacks=faction.last_attacks
-        )
+        retal_attacks.delay(faction.tid, faction_data, last_attacks=faction.last_attacks)
+        stat_db_attacks.delay(faction.tid, faction_data, last_attacks=faction.last_attacks)
 
         if len(faction_data["attacks"].values()) > 0:
             try:
-                faction.last_attacks = list(faction_data["attacks"].values())[-1][
-                    "timestamp_ended"
-                ]
+                faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
                 faction.save()
             except Exception as e:
                 logger.exception(e)
@@ -638,14 +533,10 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
         if attack["modifiers"]["fair_fight"] != 3:
             if (
-                user is not None
-                and user.battlescore != 0
-                and utils.now() - user.battlescore_update <= 259200
+                user is not None and user.battlescore != 0 and utils.now() - user.battlescore_update <= 259200
             ):  # Three days
                 try:
-                    opponent_score = user.battlescore / (
-                        (attack["modifiers"]["fair_fight"] - 1) * 0.375
-                    )
+                    opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
                 except DivisionByZero:
                     opponent_score = 0
 
@@ -669,17 +560,14 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 if user is not None:
                     stat: StatModel = (
                         StatModel.objects(
-                            Q(tid=opponent.tid)
-                            & (Q(globalstat=True) | Q(addedfactiontid=user.factionid))
+                            Q(tid=opponent.tid) & (Q(globalstat=True) | Q(addedfactiontid=user.factionid))
                         )
                         .order_by("-timeadded")
                         .first()
                     )
                 else:
                     stat: StatModel = (
-                        StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True))
-                        .order_by("-timeadded")
-                        .first()
+                        StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True)).order_by("-timeadded").first()
                     )
             except AttributeError as e:
                 logger.exception(e),
@@ -712,9 +600,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 }
             )
         else:
-            fields.append(
-                {"name": "Opponent Faction Chaining", "value": "False", "inline": False}
-            )
+            fields.append({"name": "Opponent Faction Chaining", "value": "False", "inline": False})
 
         payload = {
             "embeds": [
@@ -772,9 +658,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             )
         except utils.DiscordError as e:
             if e.code == 10003:
-                logger.warning(
-                    f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}"
-                )
+                logger.warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
                 return
 
             logger.exception(e)
@@ -827,9 +711,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         # User: faction member
         # Opponent: non-faction member regardless of attack or defend
 
-        if (
-            attack["defender_faction"] == faction_data["ID"]
-        ):  # Defender fac is the fac making the call
+        if attack["defender_faction"] == faction_data["ID"]:  # Defender fac is the fac making the call
 
             if attack["attacker_id"] in ("", 0):  # Attacker stealthed
                 continue
@@ -899,7 +781,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                     set__factionid=attack["attacker_faction"],
                 )
 
-        if opponent is None:
+        if opponent is None or opponent.name in (None, ""):
             try:
                 update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
             except TornError as e:
@@ -911,13 +793,9 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
 
         try:
             if attack["defender_faction"] == faction_data["ID"]:
-                opponent_score = user_score / (
-                    (attack["modifiers"]["fair_fight"] - 1) * 0.375
-                )
+                opponent_score = user_score / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
             else:
-                opponent_score = (
-                    (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
-                )
+                opponent_score = (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
         except DivisionByZero:
             continue
 
@@ -952,9 +830,7 @@ def oc_refresh():
     requests_session = requests.Session()
 
     faction: FactionModel
-    for faction in FactionModel.objects(
-        Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)
-    ):
+    for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
         if len(faction.aa_keys) == 0:
             continue
         elif faction.guild in (None, 0):
@@ -1001,18 +877,13 @@ def oc_refresh():
         OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
 
         for oc_id, oc_data in oc_data["crimes"].items():
-            oc_db_original: mongoengine.QuerySet = OCModel.objects(
-                Q(factiontid=faction.tid) & Q(ocid=oc_id)
-            )
+            oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
 
             oc_db: OCModel = oc_db_original.modify(
                 upsert=True,
                 new=True,
                 set__crime_id=oc_data["crime_id"],
-                set__participants=[
-                    int(list(participant.keys())[0])
-                    for participant in oc_data["participants"]
-                ],
+                set__participants=[int(list(participant.keys())[0]) for participant in oc_data["participants"]],
                 set__time_started=oc_data["time_started"],
                 set__time_ready=oc_data["time_ready"],
                 set__time_completed=oc_data["time_completed"],
@@ -1033,8 +904,7 @@ def oc_refresh():
 
             ready = list(
                 map(
-                    lambda participant: list(participant.values())[0]["color"]
-                    == "green",
+                    lambda participant: list(participant.values())[0]["color"] == "green",
                     oc_data["participants"],
                 )
             )
@@ -1074,9 +944,7 @@ def oc_refresh():
                     if participant["color"] != "green":
                         oc_db.delayers.append(participant_id)
 
-                        participant_db: UserModel = UserModel.objects(
-                            tid=participant_id
-                        ).first()
+                        participant_db: UserModel = UserModel.objects(tid=participant_id).first()
 
                         if participant_db is None:
                             payload["components"].append(

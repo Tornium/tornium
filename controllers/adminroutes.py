@@ -66,12 +66,8 @@ def dashboard():
 
             botlogger = logging.getLogger("skynet")
             botlogger.setLevel(logging.DEBUG)
-            handler = logging.FileHandler(
-                filename="skynet.log", encoding="utf-8", mode="a"
-            )
-            handler.setFormatter(
-                logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-            )
+            handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
+            handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
             botlogger.addHandler(handler)
 
             session = requests.Session()
@@ -122,9 +118,7 @@ def faction_database():
 @login_required
 @admin_required
 def faction(tid: int):
-    return render_template(
-        "admin/faction.html", faction=FactionModel.objects(tid=tid).first()
-    )
+    return render_template("admin/faction.html", faction=FactionModel.objects(tid=tid).first())
 
 
 @mod.route("/admin/database/factions")
@@ -141,9 +135,7 @@ def factions():
         for faction in FactionModel.objects().all()[start : start + length]:
             factions.append([faction.tid, faction.name])
     else:
-        for faction in FactionModel.objects(name__startswith=search_value)[
-            start : start + length
-        ]:
+        for faction in FactionModel.objects(name__startswith=search_value)[start : start + length]:
             factions.append([faction.tid, faction.name])
 
     return {
@@ -180,16 +172,10 @@ def users():
 
     if search_value is None:
         for user in UserModel.objects().all()[start : start + length]:
-            users.append(
-                [user.tid, user.name, user.discord_id if user.discord_id != 0 else ""]
-            )
+            users.append([user.tid, user.name, user.discord_id if user.discord_id != 0 else ""])
     else:
-        for user in UserModel.objects(name__startswith=search_value)[
-            start : start + length
-        ]:
-            users.append(
-                [user.tid, user.name, user.discord_id if user.discord_id != 0 else ""]
-            )
+        for user in UserModel.objects(name__startswith=search_value)[start : start + length]:
+            users.append([user.tid, user.name, user.discord_id if user.discord_id != 0 else ""])
 
     return {
         "draw": request.args.get("draw"),
@@ -210,9 +196,7 @@ def server_database():
 @login_required
 @admin_required
 def server(did: int):
-    return render_template(
-        "admin/server.html", server=ServerModel.objects(sid=did).first()
-    )
+    return render_template("admin/server.html", server=ServerModel.objects(sid=did).first())
 
 
 @mod.route("/admin/database/servers")
@@ -230,9 +214,7 @@ def servers():
         for server in ServerModel.objects().all()[start : start + length]:
             servers.append([str(server.sid), server.name, server.prefix])
     else:
-        for server in ServerModel.objects(name__startswith=search_value).all()[
-            start : start + length
-        ]:
+        for server in ServerModel.objects(name__startswith=search_value).all()[start : start + length]:
             servers.append([str(server.sid), server.name, server.prefix])
 
     return {

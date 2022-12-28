@@ -36,13 +36,9 @@ def fulfill_command(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -119,9 +115,7 @@ def fulfill_command(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -275,9 +269,7 @@ def fulfill_command(interaction):
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(
-        wid=int(withdrawal_id)
-    ).first()
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
 
     if withdrawal is None:
         return {
@@ -432,13 +424,9 @@ def fulfill_button(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     admin_keys = get_admin_keys(interaction)
 
@@ -499,9 +487,7 @@ def fulfill_button(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -620,10 +606,7 @@ def fulfill_button(interaction):
                 ]
             },
         }
-    elif (
-        interaction["data"]["custom_id"] != "faction:vault:fulfill"
-        or interaction["data"]["component_type"] != 2
-    ):
+    elif interaction["data"]["custom_id"] != "faction:vault:fulfill" or interaction["data"]["component_type"] != 2:
         return {
             "type": 4,
             "data": {
@@ -637,9 +620,7 @@ def fulfill_button(interaction):
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(
-        withdrawal_message=interaction["message"]["id"]
-    ).first()
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"]).first()
 
     if withdrawal is None:
         return {
@@ -650,9 +631,7 @@ def fulfill_button(interaction):
                         "title": "Request Does not Exist",
                         "description": "The Vault Request does not currently exist.",
                         "color": 0xC83F49,
-                        "footer": {
-                            "text": f"Message ID: {interaction['message']['id']}"
-                        },
+                        "footer": {"text": f"Message ID: {interaction['message']['id']}"},
                     }
                 ],
                 "flags": 64,  # Ephemeral

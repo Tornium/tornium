@@ -36,13 +36,9 @@ def withdraw(interaction):
     server = Server(interaction["guild_id"])
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -63,9 +59,7 @@ def withdraw(interaction):
     # -1: default
     # 0: cash (default)
     # 1: points
-    withdrawal_option = utils.find_list(
-        interaction["data"]["options"], "name", "option"
-    )
+    withdrawal_option = utils.find_list(interaction["data"]["options"], "name", "option")
 
     if withdrawal_option == -1:
         withdrawal_option = 0
@@ -82,9 +76,7 @@ def withdraw(interaction):
                         "title": "Withdrawal Request Failed",
                         "description": "An incorrect withdrawal type was passed.",
                         "color": SKYNET_ERROR,
-                        "footer": {
-                            "text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"
-                        },
+                        "footer": {"text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"},
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -150,9 +142,7 @@ def withdraw(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -255,9 +245,7 @@ def withdraw(interaction):
         client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
         client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
 
-    withdrawal_amount = utils.find_list(
-        interaction["data"]["options"], "name", "amount"
-    )
+    withdrawal_amount = utils.find_list(interaction["data"]["options"], "name", "amount")
 
     if withdrawal_amount == -1:
         return {
@@ -339,9 +327,7 @@ def withdraw(interaction):
         }
 
     try:
-        faction_balances = tasks.tornget(
-            "faction/?selections=donations", random.choice(aa_keys)
-        )
+        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
     except utils.TornError as e:
         return {
             "type": 4,
@@ -396,10 +382,7 @@ def withdraw(interaction):
     else:
         withdrawal_option_str = "money_balance"
 
-    if (
-        withdrawal_amount != "all"
-        and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]
-    ):
+    if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
         return {
             "type": 4,
             "data": {
@@ -411,9 +394,7 @@ def withdraw(interaction):
                             {"name": "Amount Requested", "value": withdrawal_amount},
                             {
                                 "name": "Amount Available",
-                                "value": faction_balances[str(user.tid)][
-                                    withdrawal_option_str
-                                ],
+                                "value": faction_balances[str(user.tid)][withdrawal_option_str],
                             },
                         ],
                         "color": 0xC83F49,
@@ -422,10 +403,7 @@ def withdraw(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif (
-        withdrawal_amount == "all"
-        and faction_balances[str(user.tid)][withdrawal_option_str] <= 0
-    ):
+    elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
         return {
             "type": 4,
             "data": {

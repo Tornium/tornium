@@ -14,9 +14,7 @@ def ping(interaction):
             "embeds": [
                 {
                     "title": "Pong",
-                    "image": {
-                        "url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"
-                    },
+                    "image": {"url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"},
                     "color": SKYNET_INFO,
                 }
             ],

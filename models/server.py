@@ -63,28 +63,20 @@ class Server:
                     "position": channel["position"] if "position" in channel else -1,
                     "channels": {},
                 }
-            elif (
-                channel["type"] == 4
-                and channel["id"] in channels
-                and channels[channel["id"]]["name"] is None
-            ):
+            elif channel["type"] == 4 and channel["id"] in channels and channels[channel["id"]]["name"] is None:
                 channels[channel["id"]]["name"] = channel["name"]
             elif channel["type"] == 0:
                 if "parent_id" not in channel or channel.get("parent_id") is None:
                     channels["0"]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"]
-                        if "position" in channel
-                        else -1,
+                        "position": channel["position"] if "position" in channel else -1,
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"]
-                        if "position" in channel
-                        else -1,
+                        "position": channel["position"] if "position" in channel else -1,
                     }
                 else:
                     channels[channel["parent_id"]] = {
@@ -94,9 +86,7 @@ class Server:
                             channel["id"]: {
                                 "id": parse(channel["id"]),
                                 "name": channel["name"] if "name" in channel else "",
-                                "position": channel["position"]
-                                if "position" in channel
-                                else -1,
+                                "position": channel["position"] if "position" in channel else -1,
                             }
                         },
                         "position": -2,
@@ -122,9 +112,7 @@ class Server:
                 continue
             elif role["managed"]:  # whether this role is managed by an integration
                 continue
-            elif "tags" in role and (
-                "bot_id" in role["tags"] or "integration_id" in role["tags"]
-            ):
+            elif "tags" in role and ("bot_id" in role["tags"] or "integration_id" in role["tags"]):
                 continue
 
             roles[role["id"]] = {

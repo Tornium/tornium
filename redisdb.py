@@ -12,8 +12,6 @@ def get_redis():
     global redis_client
 
     if not redis_client:
-        redis_client = redis.Redis(
-            host="localhost", port=6379, charset="utf-8", decode_responses=True
-        )
+        redis_client = redis.Redis(host="localhost", port=6379, charset="utf-8", decode_responses=True)
     assert redis_client.ping()
     return redis_client

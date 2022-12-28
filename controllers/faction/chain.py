@@ -43,8 +43,7 @@ def chain(*args, **kwargs):
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code "
-                    f"{e.code}.",
+                    error=f"The Discord API has responded with HTTP error code " f"{e.code}.",
                 )
             except Exception as e:
                 raise e
@@ -52,9 +51,7 @@ def chain(*args, **kwargs):
             config = faction_model.chainconfig
             config["odchannel"] = int(channel["id"])
             faction_model.save()
-        elif (request.form.get("odenabled") is not None) ^ (
-            request.form.get("oddisabled") is not None
-        ):
+        elif (request.form.get("odenabled") is not None) ^ (request.form.get("oddisabled") is not None):
             config = faction_model.chainconfig
 
             if request.form.get("odenabled") is not None:

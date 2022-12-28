@@ -76,9 +76,7 @@ class NetworkingError(Exception):
 
         self.code = code
         self.url = url
-        self.message = (
-            _httperrors.get(self.code) if self.code in _httperrors else self.code
-        )
+        self.message = _httperrors.get(self.code) if self.code in _httperrors else self.code
 
     def __str__(self):
         return f"HTTP {self.code} was returned in response to {self.url}"

@@ -5,7 +5,6 @@
 
 from flask import Blueprint, render_template
 
-from controllers.api import astat
 from controllers.api import bot
 from controllers.api import faction
 from controllers.api import key
@@ -77,9 +76,7 @@ mod.add_url_rule(
     view_func=bot.verify.faction_roles,
     methods=["POST"],
 )
-mod.add_url_rule(
-    "/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"]
-)
+mod.add_url_rule("/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"])
 mod.add_url_rule(
     "/api/bot/verify/roles",
     view_func=bot.verify.guild_verification_roles,
@@ -87,20 +84,14 @@ mod.add_url_rule(
 )
 
 # /api/faction
-mod.add_url_rule(
-    "/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"]
-)
-mod.add_url_rule(
-    "/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"]
-)
+mod.add_url_rule("/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"])
+mod.add_url_rule("/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"])
 mod.add_url_rule(
     "/api/faction/banking/vault",
     view_func=faction.banking.vault_balance,
     methods=["GET"],
 )
-mod.add_url_rule(
-    "/api/faction/chain", view_func=faction.chain.chain_config, methods=["GET"]
-)
+mod.add_url_rule("/api/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
 mod.add_url_rule(
     "/api/faction/chain/od/channel",
     view_func=faction.chain.chain_od_channel,
@@ -113,9 +104,7 @@ mod.add_url_rule(
 )
 
 # /api/stakeout
-mod.add_url_rule(
-    "/api/stakeout/<string:stype>", view_func=stakeout.create_stakeout, methods=["POST"]
-)
+mod.add_url_rule("/api/stakeout/<string:stype>", view_func=stakeout.create_stakeout, methods=["POST"])
 
 # /api/stat
 mod.add_url_rule("/api/stat", view_func=stat.generate_chain_list, methods=["GET"])

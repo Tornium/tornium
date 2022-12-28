@@ -5,11 +5,14 @@
 
 import json
 
-from controllers.api.decorators import *
+from flask import jsonify, request
+
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
+import utils
 
 
 @key_required
@@ -21,12 +24,7 @@ def get_positions(*args, **kwargs):
     guildid = request.args.get("guildid")
     factiontid = request.args.get("factiontid")
 
-    if (
-        guildid not in (None, 0, "")
-        and factiontid not in (None, 0, "")
-        and guildid.isdigit()
-        and factiontid.isdigit()
-    ):
+    if guildid not in (None, 0, "") and factiontid not in (None, 0, "") and guildid.isdigit() and factiontid.isdigit():
         guildid = int(guildid)
         factiontid = int(factiontid)
 
@@ -47,18 +45,14 @@ def get_positions(*args, **kwargs):
             elif faction.guild != guildid:
                 return make_exception_response("1102", key)
         else:
-            faction: FactionModel = FactionModel.objects(
-                tid=kwargs["user"].factionid
-            ).first()
+            faction: FactionModel = FactionModel.objects(tid=kwargs["user"].factionid).first()
     else:
         if kwargs["user"].factionid == 0:
             return make_exception_response("1102", key)
         elif not kwargs["user"].factionaa:
             return make_exception_response("4005", key)
 
-        faction: FactionModel = FactionModel.objects(
-            tid=kwargs["user"].factionid
-        ).first()
+        faction: FactionModel = FactionModel.objects(tid=kwargs["user"].factionid).first()
 
     if faction is None:
         return make_exception_response("1102", key)

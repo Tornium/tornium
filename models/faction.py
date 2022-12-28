@@ -100,14 +100,9 @@ class Faction:
         keys = []
 
         position: PositionModel
-        for position in PositionModel.objects(
-            Q(factiontid=self.tid) & Q(canAccessFactionApi=True)
-        ):
+        for position in PositionModel.objects(Q(factiontid=self.tid) & Q(canAccessFactionApi=True)):
             users = UserModel.objects(
-                Q(faction_position=position.pid)
-                & Q(factionid=self.tid)
-                & Q(key__exists=True)
-                & Q(key__ne="")
+                Q(faction_position=position.pid) & Q(factionid=self.tid) & Q(key__exists=True) & Q(key__ne="")
             )
 
             for user in users:
@@ -152,9 +147,7 @@ class Faction:
                     raise Exception  # TODO: Make exception more descriptive
 
             try:
-                faction_data = tasks.tornget(
-                    f"faction/{self.tid}?selections=basic", key
-                )
+                faction_data = tasks.tornget(f"faction/{self.tid}?selections=basic", key)
             except utils.TornError as e:
                 utils.get_logger().exception(e)
                 raise e
@@ -177,8 +170,7 @@ class Faction:
                     faction_aa = True
                 else:
                     position: PositionModel = PositionModel.objects(
-                        Q(name=member_data["position"])
-                        & Q(factiontid=faction_data["ID"])
+                        Q(name=member_data["position"]) & Q(factiontid=faction_data["ID"])
                     ).first()
 
                     if position is None:

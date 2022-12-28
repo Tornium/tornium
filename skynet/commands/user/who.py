@@ -142,13 +142,9 @@ def who(interaction):
                 }
     else:
         if "member" in interaction:
-            user: UserModel = UserModel.objects(
-                discord_id=interaction["member"]["user"]["id"]
-            ).first()
+            user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
         else:
-            user: UserModel = UserModel.objects(
-                discord_id=interaction["user"]["id"]
-            ).first()
+            user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
         if user is None:
             return {
@@ -188,9 +184,7 @@ def who(interaction):
                                     "inline": True,
                                 },
                             ],
-                            "footer": {
-                                "text": "User data not refreshed. No available API keys."
-                            },
+                            "footer": {"text": "User data not refreshed. No available API keys."},
                         }
                     ]
                 },
@@ -198,9 +192,7 @@ def who(interaction):
 
         try:
             user: UserModel
-            user, user_data = update_user(
-                key=user.key, tid=user.tid, refresh_existing=True
-            )
+            user, user_data = update_user(key=user.key, tid=user.tid, refresh_existing=True)
         except utils.TornError as e:
             return {
                 "type": 4,

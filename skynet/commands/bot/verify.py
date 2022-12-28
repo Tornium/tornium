@@ -50,11 +50,7 @@ def verify(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif (
-        server.verify_template == ""
-        and len(server.verified_roles) == 0
-        and len(server.faction_verify) == 0
-    ):
+    elif server.verify_template == "" and len(server.verified_roles) == 0 and len(server.faction_verify) == 0:
         return {
             "type": 4,
             "data": {
@@ -71,16 +67,12 @@ def verify(interaction):
         }
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
 
         discord_id = interaction["member"]["user"]["id"]
         user_roles = interaction["member"]["roles"]
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
         discord_id = interaction["member"]["user"]["id"]
         user_roles = interaction["user"]["roles"]
@@ -98,9 +90,7 @@ def verify(interaction):
         discord_id = member[1]["value"]
 
         try:
-            discord_member = tasks.discordget(
-                f"guilds/{server.sid}/members/{discord_id}"
-            )
+            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{discord_id}")
         except utils.DiscordError as e:
             return {
                 "type": 4,
@@ -191,9 +181,7 @@ def verify(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -240,9 +228,7 @@ def verify(interaction):
 
     try:
         user: User = User(user.tid)
-        user.refresh(
-            key=random.choice(admin_keys), force=True if force != -1 else False
-        )
+        user.refresh(key=random.choice(admin_keys), force=True if force != -1 else False)
     except utils.MissingKeyError:
         return {
             "type": 4,
@@ -315,8 +301,7 @@ def verify(interaction):
         and server.faction_verify.get(str(user.factiontid)) is not None
         and server.faction_verify[str(user.factiontid)].get("roles") is not None
         and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
-        and server.faction_verify[str(user.factiontid)].get("enabled")
-        not in (None, False)
+        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
     ):
         faction_role: int
         for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
@@ -341,15 +326,11 @@ def verify(interaction):
         and server.faction_verify.get(str(user.factiontid)) is not None
         and server.faction_verify[str(user.factiontid)].get("positions") is not None
         and len(server.faction_verify[str(user.factiontid)]["positions"]) != 0
-        and str(user.faction_position)
-        in server.faction_verify[str(user.factiontid)]["positions"].keys()
-        and server.faction_verify[str(user.factiontid)].get("enabled")
-        not in (None, False)
+        and str(user.faction_position) in server.faction_verify[str(user.factiontid)]["positions"].keys()
+        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
     ):
         position_role: int
-        for position_role in server.faction_verify[str(user.factiontid)]["positions"][
-            str(user.faction_position)
-        ]:
+        for position_role in server.faction_verify[str(user.factiontid)]["positions"][str(user.faction_position)]:
             if str(position_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
@@ -366,25 +347,17 @@ def verify(interaction):
                     continue
                 elif position_role in user_roles:
                     if (
-                        str(user.faction_position)
-                        in faction_positions_data["positions"]
-                        and position_role
-                        in faction_positions_data["positions"][
-                            str(user.faction_position)
-                        ]
+                        str(user.faction_position) in faction_positions_data["positions"]
+                        and position_role in faction_positions_data["positions"][str(user.faction_position)]
                     ):
                         valid_position_roles.append(position_role)
                         continue
-                    elif (
-                        patch_json.get("roles") is None or len(patch_json["roles"]) == 0
-                    ):
+                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = user_roles
 
                     patch_json["roles"].remove(str(position_role))
 
-    if len(patch_json) == 0 and (
-        force == -1 or (type(force) == list and not force[1].get("value"))
-    ):
+    if len(patch_json) == 0 and (force == -1 or (type(force) == list and not force[1].get("value"))):
         return {
             "type": 4,
             "data": {
@@ -438,11 +411,7 @@ def verify(interaction):
             },
         }
 
-    faction: FactionModel = (
-        FactionModel.objects(tid=user.factiontid).first()
-        if user.factiontid != 0
-        else None
-    )
+    faction: FactionModel = FactionModel.objects(tid=user.factiontid).first() if user.factiontid != 0 else None
 
     if user.factiontid == 0:
         faction_str = "None"

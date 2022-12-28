@@ -20,13 +20,9 @@ def stat(interaction):
     print(interaction)
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -104,9 +100,7 @@ def stat(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -172,12 +166,7 @@ def stat(interaction):
     if tid != -1:
         target: StatModel = (
             StatModel.objects(
-                Q(tid=tid[1]["value"])
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactiontid=user.factiontid)
-                )
+                Q(tid=tid[1]["value"]) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
             )
             .order_by("-timeadded")
             .first()
@@ -201,12 +190,7 @@ def stat(interaction):
 
         target: StatModel = (
             StatModel.objects(
-                Q(tid=target_user.tid)
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactiontid=user.factiontid)
-                )
+                Q(tid=target_user.tid) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
             )
             .order_by("-timeadded")
             .first()

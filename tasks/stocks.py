@@ -18,18 +18,14 @@ import utils
 
 
 def _map_stock_image(acronym: str):
-    return (
-        f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
-    )
+    return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
 
 
 @celery_app.task
 def fetch_stock_ticks():
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 
-    auth_users = [
-        user.key for user in UserModel.objects(Q(key__exists=True) & Q(key__ne=""))
-    ]
+    auth_users = [user.key for user in UserModel.objects(Q(key__exists=True) & Q(key__ne=""))]
     random.shuffle(auth_users)
 
     stocks_data = None
@@ -95,8 +91,7 @@ def fetch_stock_ticks():
 
         stock_timestamp = notification.time_created // 60 * 60
         stock_tick: TickModel = TickModel.objects(
-            tick_id=int(bin(target_stock["stock_id"]), 2)
-            + int(bin(stock_timestamp << 8), 2)
+            tick_id=int(bin(target_stock["stock_id"]), 2) + int(bin(stock_timestamp << 8), 2)
         ).first()
 
         payload = {
@@ -111,9 +106,7 @@ def fetch_stock_ticks():
                     "fields": [
                         {
                             "name": "Original Price",
-                            "value": f"${stock_tick.price}"
-                            if stock_tick is not None
-                            else "Unknown",
+                            "value": f"${stock_tick.price}" if stock_tick is not None else "Unknown",
                             "inline": True,
                         },
                         {
@@ -128,16 +121,10 @@ def fetch_stock_ticks():
             ]
         }
 
-        if (
-            notification.options.get("equality") == ">"
-            and target_stock["current_price"] > notification.target
-        ):
+        if notification.options.get("equality") == ">" and target_stock["current_price"] > notification.target:
             payload["embeds"][0]["title"] = "Above Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
-        elif (
-            notification.options.get("equality") == "<"
-            and target_stock["current_price"] < notification.target
-        ):
+        elif notification.options.get("equality") == "<" and target_stock["current_price"] < notification.target:
             payload["embeds"][0]["title"] = "Below Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_ERROR
         else:
@@ -155,15 +142,13 @@ def fetch_stock_ticks():
                         "recipient_id": notification.recipient,
                     },
                 )
-            except utils.DiscordError as e:
+            except utils.DiscordError:
                 continue
-            except utils.NetworkingError as e:
+            except utils.NetworkingError:
                 continue
 
             discordpost.delay(f"channels/{dm_channel['id']}/messages", payload=payload)
         elif notification.recipient_type == 1:
-            discordpost.delay(
-                f"channels/{notification.recipient}/messages", payload=payload
-            )
+            discordpost.delay(f"channels/{notification.recipient}/messages", payload=payload)
         else:
             return

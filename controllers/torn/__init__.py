@@ -10,18 +10,14 @@ from controllers.torn import factions, users
 mod = Blueprint("tornroutes", __name__)
 
 # Factions Routes
-mod.add_url_rule(
-    "/torn/faction/<int:tid>", view_func=factions.faction_data, methods=["GET"]
-)
+mod.add_url_rule("/torn/faction/<int:tid>", view_func=factions.faction_data, methods=["GET"])
 mod.add_url_rule(
     "/torn/faction/members/<int:tid>",
     view_func=factions.faction_members_data,
     methods=["GET"],
 )
 mod.add_url_rule("/torn/factions", view_func=factions.factions, methods=["GET"])
-mod.add_url_rule(
-    "/torn/factionsdata", view_func=factions.factions_data, methods=["GET"]
-)
+mod.add_url_rule("/torn/factionsdata", view_func=factions.factions_data, methods=["GET"])
 
 # Users Routes
 mod.add_url_rule("/torn/user/<int:tid>", view_func=users.user_data, methods=["GET"])

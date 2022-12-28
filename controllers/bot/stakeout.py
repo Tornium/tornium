@@ -26,9 +26,7 @@ def stakeouts_dashboard(guildid: str):
 
     if server is None:
         return (
-            render_template(
-                "errors/error.html", title="Error", error="Server not found."
-            ),
+            render_template("errors/error.html", title="Error", error="Server not found."),
             400,
         )
     elif current_user.tid not in server.admins:
@@ -72,13 +70,9 @@ def stakeouts_dashboard(guildid: str):
                         f'[{stakeout.data["ID"]}] by the Tornium bot.',
                     }  # TODO: Add permission overwrite: everyone write false
 
-                channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload
-                )
+                channel = tasks.discordpost(f"guilds/{guildid}/channels", payload=payload)
 
-                db_stakeout = FactionStakeoutModel.objects(
-                    tid=request.form.get("factionid")
-                ).first()
+                db_stakeout = FactionStakeoutModel.objects(tid=request.form.get("factionid")).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
                 db_stakeout.save()
 
@@ -130,13 +124,9 @@ def stakeouts_dashboard(guildid: str):
                         f'[{stakeout.data["player_id"]}] by the Tornium bot.',
                     }  # TODO: Add permission overwrite: everyone write false
 
-                channel = tasks.discordpost(
-                    f"guilds/{guildid}/channels", payload=payload
-                )
+                channel = tasks.discordpost(f"guilds/{guildid}/channels", payload=payload)
 
-                db_stakeout = UserStakeoutModel.objects(
-                    tid=request.form.get("userid")
-                ).first()
+                db_stakeout = UserStakeoutModel.objects(tid=request.form.get("userid")).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
                 db_stakeout.save()
 
@@ -171,9 +161,7 @@ def stakeouts(guildid: str, stype: int):
 
     if server is None:
         return (
-            render_template(
-                "errors/error.html", title="Error", error="Server not found."
-            ),
+            render_template("errors/error.html", title="Error", error="Server not found."),
             400,
         )
     elif current_user.tid not in server.admins:
@@ -209,17 +197,13 @@ def stakeouts(guildid: str, stype: int):
                 [
                     stakeout.tid,
                     stakeout.guilds[str(guildid)]["keys"],
-                    utils.rel_time(
-                        datetime.datetime.fromtimestamp(stakeout.last_update)
-                    ),
+                    utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
                 ]
             )
     elif stype == 1:  # faction
         filtered = len(server.factionstakeouts)
         for stakeout in server.factionstakeouts:
-            stakeout: Stakeout = Stakeout(
-                int(stakeout), user=False, key=current_user.key
-            )
+            stakeout: Stakeout = Stakeout(int(stakeout), user=False, key=current_user.key)
 
             if str(guildid) not in stakeout.guilds:
                 faction_stakeouts = server.factionstakeouts
@@ -232,9 +216,7 @@ def stakeouts(guildid: str, stype: int):
                 [
                     stakeout.tid,
                     stakeout.guilds[str(guildid)]["keys"],
-                    utils.rel_time(
-                        datetime.datetime.fromtimestamp(stakeout.last_update)
-                    ),
+                    utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
                 ]
             )
     else:
@@ -256,9 +238,7 @@ def stakeout_data(guildid: str):
 
     if server is None:
         return (
-            render_template(
-                "errors/error.html", title="Error", error="Server not found."
-            ),
+            render_template("errors/error.html", title="Error", error="Server not found."),
             400,
         )
     elif current_user.tid not in server.admins:
@@ -287,16 +267,11 @@ def stakeout_data(guildid: str):
         return render_template(
             "bot/factionstakeoutmodal.html",
             faction=f"{Faction(int(faction), key=current_user.key).name} [{faction}]",
-            lastupdate=utils.rel_time(
-                datetime.datetime.fromtimestamp(stakeout.last_update)
-            ),
+            lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
             keys=stakeout.guilds[str(guildid)]["keys"],
             guildid=guildid,
             tid=faction,
-            armory=(
-                int(faction) in Server(guildid).factions
-                or Faction(faction).guild == int(guildid)
-            ),
+            armory=(int(faction) in Server(guildid).factions or Faction(faction).guild == int(guildid)),
         )
     elif user:
         if int(user) not in server.userstakeouts:
@@ -306,9 +281,7 @@ def stakeout_data(guildid: str):
         return render_template(
             "bot/userstakeoutmodal.html",
             user=f"{User(int(user)).name} [{user}]",
-            lastupdate=utils.rel_time(
-                datetime.datetime.fromtimestamp(stakeout.last_update)
-            ),
+            lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
             keys=stakeout.guilds[str(guildid)]["keys"],
             guildid=guildid,
             tid=user,
@@ -321,9 +294,7 @@ def stakeout_update(guildid):
 
     if server is None:
         return (
-            render_template(
-                "errors/error.html", title="Error", error="Server not found."
-            ),
+            render_template("errors/error.html", title="Error", error="Server not found."),
             400,
         )
     elif current_user.tid not in server.admins:
@@ -355,9 +326,7 @@ def stakeout_update(guildid):
 
             stakeout = FactionStakeoutModel.objects(tid=faction).first()
             try:
-                tasks.discorddelete(
-                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}'
-                )
+                tasks.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
             except utils.DiscordError as e:
                 if e.code == 10003:
                     pass
@@ -417,24 +386,14 @@ def stakeout_update(guildid):
             "offline",
         ]:
             return (
-                jsonify(
-                    {
-                        "error": f"User is set to {user} for a key that doesn't allow a user "
-                        f"ID to be passed."
-                    }
-                ),
+                jsonify({"error": f"User is set to {user} for a key that doesn't allow a user " f"ID to be passed."}),
                 400,
             )
         elif value == "armory" and (
-            int(faction) not in Server(guildid).factions
-            or Faction(faction).guild != int(guildid)
+            int(faction) not in Server(guildid).factions or Faction(faction).guild != int(guildid)
         ):
             return (
-                jsonify(
-                    {
-                        "error": "This requires the faction to be in the list of factions in the server."
-                    }
-                ),
+                jsonify({"error": "This requires the faction to be in the list of factions in the server."}),
                 400,
             )
 
@@ -445,9 +404,7 @@ def stakeout_update(guildid):
 
         if value in stakeout.guilds[str(guildid)]["keys"]:
             return (
-                jsonify(
-                    {"error": f"Value {value} is already in {guildid}'s list of keys."}
-                ),
+                jsonify({"error": f"Value {value} is already in {guildid}'s list of keys."}),
                 400,
             )
 
@@ -480,12 +437,7 @@ def stakeout_update(guildid):
             "offline",
         ]:
             return (
-                jsonify(
-                    {
-                        "error": f"User is set to {user} for a key that doesn't allow a user "
-                        f"ID to be passed."
-                    }
-                ),
+                jsonify({"error": f"User is set to {user} for a key that doesn't allow a user " f"ID to be passed."}),
                 400,
             )
 
@@ -496,9 +448,7 @@ def stakeout_update(guildid):
 
         if value not in stakeout.guilds[str(guildid)]["keys"]:
             return (
-                jsonify(
-                    {"error": f"Value {value} is not in {guildid}'s list of keys."}
-                ),
+                jsonify({"error": f"Value {value} is not in {guildid}'s list of keys."}),
                 400,
             )
 

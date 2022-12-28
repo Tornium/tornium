@@ -17,13 +17,9 @@ def balance(interaction):
     print(interaction)
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -101,9 +97,7 @@ def balance(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -222,9 +216,7 @@ def balance(interaction):
         }
 
     try:
-        faction_balances = tasks.tornget(
-            f"faction/?selections=donations", random.choice(aa_keys)
-        )
+        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
     except utils.TornError as e:
         return {
             "type": 4,

@@ -7,7 +7,7 @@ from mongoengine import DynamicDocument, IntField, BooleanField, DynamicField, D
 
 
 class NotificationModel(DynamicDocument):
-    #### ntype ####
+    ###############
     # Notification types
     #
     # 0: stocks price reach

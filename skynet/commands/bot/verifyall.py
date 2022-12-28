@@ -49,11 +49,7 @@ def verifyall(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif (
-        server.verify_template == ""
-        and len(server.verified_roles) == 0
-        and len(server.faction_verify) == 0
-    ):
+    elif server.verify_template == "" and len(server.verified_roles) == 0 and len(server.faction_verify) == 0:
         return {
             "type": 4,
             "data": {
@@ -218,9 +214,7 @@ def verifyall(interaction):
             if "user" not in guild_member:
                 continue
 
-            user: UserModel = UserModel.objects(
-                discord_id=guild_member["user"]["id"]
-            ).first()
+            user: UserModel = UserModel.objects(discord_id=guild_member["user"]["id"]).first()
 
             if user is None:
                 try:
@@ -259,9 +253,7 @@ def verifyall(interaction):
                                     "title": "Torn API Error",
                                     "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                                     "color": 0xC83F49,
-                                    "footer": {
-                                        "text": f"Failed on member <@{guild_member['user']['id']}>"
-                                    },
+                                    "footer": {"text": f"Failed on member <@{guild_member['user']['id']}>"},
                                 }
                             ]
                         }
@@ -286,9 +278,7 @@ def verifyall(interaction):
                                 "title": "HTTP Error",
                                 "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
                                 "color": 0xC83F49,
-                                "footer": {
-                                    "text": f"Failed on member <@{guild_member['user']['id']}>"
-                                },
+                                "footer": {"text": f"Failed on member <@{guild_member['user']['id']}>"},
                             }
                         ],
                     }
@@ -308,9 +298,7 @@ def verifyall(interaction):
                     set__name=user_data["name"],
                     set__level=user_data["level"],
                     set__last_refresh=utils.now(),
-                    set__discord_id=user_data["discord"]["discordID"]
-                    if user_data["discord"]["discordID"] != ""
-                    else 0,
+                    set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
                     set__factionid=user_data["faction"]["faction_id"],
                     set__status=user_data["last_action"]["status"],
                     set__last_action=user_data["last_action"]["timestamp"],
@@ -344,9 +332,7 @@ def verifyall(interaction):
 
             try:
                 user: User = User(user.tid)
-                user.refresh(
-                    key=random.choice(admin_keys), force=True if force != -1 else False
-                )
+                user.refresh(key=random.choice(admin_keys), force=True if force != -1 else False)
             except utils.MissingKeyError:
                 errors += 1
                 continue
@@ -396,11 +382,7 @@ def verifyall(interaction):
                     .render(name=user.name, tid=user.tid, tag="")
                 )
 
-                if (
-                    "nick" in guild_member
-                    and nick != guild_member["nick"]
-                    and nick != guild_member["user"]["username"]
-                ):
+                if "nick" in guild_member and nick != guild_member["nick"] and nick != guild_member["user"]["username"]:
                     patch_json["nick"] = nick
 
             if len(server.verified_roles) != 0 and user.discord_id != 0:
@@ -408,9 +390,7 @@ def verifyall(interaction):
                 for verified_role in server.verified_roles:
                     if str(verified_role) in guild_member["roles"]:
                         continue
-                    elif (
-                        patch_json.get("roles") is None or len(patch_json["roles"]) == 0
-                    ):
+                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = guild_member["roles"]
 
                     patch_json["roles"].append(str(verified_role))
@@ -418,10 +398,7 @@ def verifyall(interaction):
                 verified_role: int
                 for verified_role in server.verified_roles:
                     if str(verified_role) in guild_member["roles"]:
-                        if (
-                            patch_json.get("roles") is None
-                            or len(patch_json["roles"]) == 0
-                        ):
+                        if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                             patch_json["roles"] = guild_member["roles"]
 
                         patch_json["roles"].remove(str(verified_role))
@@ -430,39 +407,26 @@ def verifyall(interaction):
                 server.faction_verify.get(str(user.factiontid)) is not None
                 and server.faction_verify[str(user.factiontid)].get("roles") is not None
                 and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
-                and server.faction_verify[str(user.factiontid)].get("enabled")
-                not in (None, False)
+                and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
             ):
                 faction_role: int
-                for faction_role in server.faction_verify[str(user.factiontid)][
-                    "roles"
-                ]:
+                for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
                     if str(faction_role) in guild_member["roles"]:
                         continue
-                    elif (
-                        patch_json.get("roles") is None or len(patch_json["roles"]) == 0
-                    ):
+                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                         patch_json["roles"] = guild_member["roles"]
 
                     patch_json["roles"].append(str(faction_role))
 
             for factiontid, data in server.faction_verify.items():
                 for faction_role in server.faction_verify[str(factiontid)]["roles"]:
-                    if (
-                        str(faction_role) in guild_member["roles"]
-                        and int(factiontid) != user.factiontid
-                    ):
-                        if (
-                            patch_json.get("roles") is None
-                            or len(patch_json["roles"]) == 0
-                        ):
+                    if str(faction_role) in guild_member["roles"] and int(factiontid) != user.factiontid:
+                        if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                             patch_json["roles"] = guild_member["roles"]
 
                         patch_json["roles"].remove(str(faction_role))
 
-            if len(patch_json) == 0 and (
-                force == -1 or (type(force) == list and not force[1].get("value"))
-            ):
+            if len(patch_json) == 0 and (force == -1 or (type(force) == list and not force[1].get("value"))):
                 continue
 
             if "roles" in patch_json:

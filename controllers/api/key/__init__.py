@@ -3,13 +3,17 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import base64
 import json
 import secrets
 
-from controllers.api.decorators import *
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from flask import jsonify, request
+
+from controllers.api.decorators import key_required, torn_key_required, ratelimit
+from controllers.api.utils import make_exception_response
 from models.keymodel import KeyModel
 from models.user import User
+import redisdb
 import utils
 
 
@@ -70,16 +74,12 @@ def create_key(*args, **kwargs):
                 },
             )
 
-    key = base64.b64encode(
-        f"{user.tid}:{secrets.token_urlsafe(32)}".encode("utf-8")
-    ).decode("utf-8")
+    key = base64.b64encode(f"{user.tid}:{secrets.token_urlsafe(32)}".encode("utf-8")).decode("utf-8")
     keydb = KeyModel(key=key, ownertid=user.tid, scopes=scopes)
     keydb.save()
 
     return (
-        jsonify(
-            {"key": key, "ownertid": user.tid, "scopes": scopes, "expires": expires}
-        ),
+        jsonify({"key": key, "ownertid": user.tid, "scopes": scopes, "expires": expires}),
         200,
         {
             "X-RateLimit-Limit": 250,

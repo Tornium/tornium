@@ -31,9 +31,7 @@ class Stakeout:
                 except Exception:
                     data = {}
 
-                stakeout = UserStakeoutModel(
-                    tid=tid, data=data, guilds=guilds, last_update=now
-                )
+                stakeout = UserStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)
 
             else:
                 try:
@@ -44,9 +42,7 @@ class Stakeout:
                 except Exception:
                     data = {}
 
-                stakeout = FactionStakeoutModel(
-                    tid=tid, data=data, guilds=guilds, last_update=now
-                )
+                stakeout = FactionStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)
 
             stakeout.save()
         elif guild not in stakeout.guilds and guild is not None:

@@ -43,9 +43,7 @@ def refresh_guilds():
             guild_db.save()
 
         try:
-            members = discordget(
-                f'guilds/{guild["id"]}/members?limit=1000', session=requests_session
-            )
+            members = discordget(f'guilds/{guild["id"]}/members?limit=1000', session=requests_session)
         except utils.DiscordError as e:
             if e.code == 10007:
                 continue
@@ -75,11 +73,7 @@ def refresh_guilds():
                 for role in member["roles"]:
                     for guild_role in guild["roles"]:
                         # Checks if the user has the role and the role has the administrator permission
-                        if (
-                            guild_role["id"] == role
-                            and (int(guild_role["permissions"]) & 0x0000000008)
-                            == 0x0000000008
-                        ):
+                        if guild_role["id"] == role and (int(guild_role["permissions"]) & 0x0000000008) == 0x0000000008:
                             admins.append(user.tid)
 
         admins = list(set(admins))
@@ -93,9 +87,7 @@ def refresh_guilds():
                 continue
 
             for position_uuid, position_data in faction_data["positions"].items():
-                position: PositionModel = PositionModel.objects(
-                    pid=position_uuid
-                ).first()
+                position: PositionModel = PositionModel.objects(pid=position_uuid).first()
 
                 if position is None or position.factiontid != int(factiontid):
                     faction_positions_data["positions"].pop(position_uuid)

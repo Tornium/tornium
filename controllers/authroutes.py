@@ -24,18 +24,14 @@ def login():
     global torn_user
 
     try:
-        key_info = tasks.tornget(
-            endpoint="key/?selections=info", key=request.form["key"]
-        )
+        key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])
     except utils.TornError as e:
         return utils.handle_torn_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
 
     if "error" in key_info:
-        return utils.handle_torn_error(
-            utils.TornError(key_info["error"]["code"], "key/?selections=info")
-        )
+        return utils.handle_torn_error(utils.TornError(key_info["error"]["code"], "key/?selections=info"))
 
     if key_info["access_level"] < 3:
         return render_template(
@@ -70,9 +66,7 @@ def login():
                 message="The Torn API has taken too long to respond to the API request. Please try again.",
             )
 
-        return render_template(
-            "errors/error.html", title="Networking Error", message=e.message
-        )
+        return render_template("errors/error.html", title="Networking Error", message=e.message)
 
     login_user(user, remember=True)
 

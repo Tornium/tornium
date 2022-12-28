@@ -24,13 +24,9 @@ def assist(interaction):
     start_time = time.time()
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" not in interaction["data"]:
         return {
@@ -221,9 +217,7 @@ def assist(interaction):
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {
-                        "text": f"Latency: {round(time.time() - start_time, 2)} seconds"
-                    },
+                    "footer": {"text": f"Latency: {round(time.time() - start_time, 2)} seconds"},
                 }
             ],
             "components": [

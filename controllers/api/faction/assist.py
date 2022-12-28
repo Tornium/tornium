@@ -3,14 +3,19 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import json
+import time
 
-from controllers.api.decorators import *
+from flask import jsonify, request
+
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 from models.user import User
+import redisdb
 import tasks
 import utils
 
@@ -88,9 +93,7 @@ def forward_assist(*args, **kwargs):
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {
-                        "text": f"Latency: {round(time.time() - kwargs['start_time'], 2)} seconds"
-                    },
+                    "footer": {"text": f"Latency: {round(time.time() - kwargs['start_time'], 2)} seconds"},
                 }
             ],
             "components": [
@@ -139,9 +142,9 @@ def forward_assist(*args, **kwargs):
 
         try:
             tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
-        except utils.DiscordError as e:
+        except utils.DiscordError:
             continue
-        except utils.NetworkingError as e:
+        except utils.NetworkingError:
             continue
 
         servers_forwarded.append(server)

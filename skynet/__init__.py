@@ -14,9 +14,7 @@ import skynet.skyutils
 botlogger = logging.getLogger("skynet")
 botlogger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
-handler.setFormatter(
-    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
+handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 botlogger.addHandler(handler)
 
 mod = Blueprint("botinteractions", __name__)

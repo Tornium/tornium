@@ -5,8 +5,10 @@
 
 import json
 
+from flask import request
+
 from controllers.api.bot.config import jsonified_server_config
-from controllers.api.decorators import *
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.servermodel import ServerModel
 
@@ -18,13 +20,9 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     if notif not in ("ready", "delay"):
-        return make_exception_response(
-            "1000", key, details={"message": "Invalid notification type."}
-        )
+        return make_exception_response("1000", key, details={"message": "Invalid notification type."})
     elif element not in ("roles", "channel"):
-        return make_exception_response(
-            "1000", key, details={"message": "Invalid notification element."}
-        )
+        return make_exception_response("1000", key, details={"message": "Invalid notification element."})
 
     data = json.loads(request.get_data().decode("utf-8"))
     elementid = data.get(element)

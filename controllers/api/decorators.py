@@ -13,7 +13,6 @@ from flask import jsonify, request
 from models.keymodel import KeyModel
 from models.usermodel import UserModel
 import redisdb
-import utils
 
 
 def ratelimit(func):
@@ -64,10 +63,7 @@ def requires_scopes(func=None, scopes=None):
         client = redisdb.get_redis()
         key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-        if (
-            kwargs["keytype"] == "Tornium"
-            and not set(KeyModel.objects(key=kwargs["key"]).first().scopes) & scopes
-        ):
+        if kwargs["keytype"] == "Tornium" and not set(KeyModel.objects(key=kwargs["key"]).first().scopes) & scopes:
             return (
                 jsonify(
                     {
@@ -119,10 +115,9 @@ def torn_key_required(func):
                 401,
             )
 
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(":")[0]
+        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+            ":"
+        )[0]
 
         if authorization == "":
             return (
@@ -189,10 +184,9 @@ def tornium_key_required(func):
                 401,
             )
 
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(":")[0]
+        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+            ":"
+        )[0]
 
         if authorization == "":
             return (
@@ -259,10 +253,9 @@ def key_required(func):
                 401,
             )
 
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(":")[0]
+        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+            ":"
+        )[0]
 
         if authorization == "":
             return (

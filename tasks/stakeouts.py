@@ -50,16 +50,12 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
             if len(stakeout.guilds) == 0:
                 return
 
-            guild: ServerModel = ServerModel.objects(
-                sid=int(random.choice(list(stakeout.guilds)))
-            ).first()
+            guild: ServerModel = ServerModel.objects(sid=int(random.choice(list(stakeout.guilds)))).first()
 
             if guild is None and len(list(stakeout.guilds)) == 1:
                 return
             elif guild is None and len(list(stakeout.guilds)) > 1:
-                guilds = random.sample(
-                    list(stakeout.guilds), k=len(list(stakeout.guilds))
-                )
+                guilds = random.sample(list(stakeout.guilds), k=len(list(stakeout.guilds)))
                 guild_discovered = False
 
                 for guild_id in guilds:
@@ -75,9 +71,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
             if len(guild.admins) == 0:
                 return
 
-            admin: UserModel = UserModel.objects(
-                tid=random.choice(guild.admins)
-            ).first()
+            admin: UserModel = UserModel.objects(tid=random.choice(guild.admins)).first()
             data = tornget(
                 f"user/{stakeout.tid}?selections=",
                 key=admin.key,
@@ -111,10 +105,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
         elif server.config["stakeouts"] == 0:
             continue
 
-        if (
-            "level" in guild_stakeout["keys"]
-            and data["level"] != stakeout_data["level"]
-        ):
+        if "level" in guild_stakeout["keys"] and data["level"] != stakeout_data["level"]:
             payload = {
                 "embeds": [
                     {
@@ -148,10 +139,7 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
                 logger.exception(e)
                 return
 
-        if (
-            "status" in guild_stakeout["keys"]
-            and data["status"]["state"] != stakeout_data["status"]["state"]
-        ):
+        if "status" in guild_stakeout["keys"] and data["status"]["state"] != stakeout_data["status"]["state"]:
             payload = {
                 "embeds": [
                     {
@@ -272,15 +260,10 @@ def user_stakeout(stakeout: int, requests_session=None, key=None):
         ):
             if (
                 data["last_action"]["status"] == "Idle"
-                and datetime.datetime.utcnow().timestamp()
-                - data["last_action"]["timestamp"]
-                < 300
+                and datetime.datetime.utcnow().timestamp() - data["last_action"]["timestamp"] < 300
             ):
                 continue
-            elif (
-                data["last_action"]["status"] == "Idle"
-                and stakeout_data["last_action"]["status"] == "Idle"
-            ):
+            elif data["last_action"]["status"] == "Idle" and stakeout_data["last_action"]["status"] == "Idle":
                 continue
 
             payload = {
@@ -336,15 +319,11 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
             if len(stakeout.guilds) == 0:
                 return
 
-            guild: ServerModel = ServerModel.objects(
-                sid=int(random.choice(list(stakeout.guilds)))
-            ).first()
+            guild: ServerModel = ServerModel.objects(sid=int(random.choice(list(stakeout.guilds)))).first()
             if guild is None and len(list(stakeout.guilds)) == 1:
                 return
             elif guild is None and len(list(stakeout.guilds)) > 1:
-                guilds = random.sample(
-                    list(stakeout.guilds), k=len(list(stakeout.guilds))
-                )
+                guilds = random.sample(list(stakeout.guilds), k=len(list(stakeout.guilds)))
                 guild_discorvered = False
                 for guild_id in guilds:
                     guild: ServerModel = ServerModel.objects(sid=int(guild_id)).first()
@@ -357,9 +336,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
             if len(guild.admins) == 0:
                 return
 
-            admin: UserModel = UserModel.objects(
-                tid=random.choice(guild.admins)
-            ).first()
+            admin: UserModel = UserModel.objects(tid=random.choice(guild.admins)).first()
             data = tornget(
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=admin.key,
@@ -394,10 +371,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
         # stakeout_data: data from the previous minute
         # data: data from this minute
 
-        if (
-            "territory" in guild_stakeout["keys"]
-            and data["territory"] != stakeout_data["territory"]
-        ):
+        if "territory" in guild_stakeout["keys"] and data["territory"] != stakeout_data["territory"]:
             for territoryid, territory in stakeout_data["territory"].items():
                 if territoryid not in data["territory"]:
                     payload = {
@@ -439,10 +413,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif (
-                    "racket" in territory
-                    and "racket" not in data["territory"][territoryid]
-                ):
+                elif "racket" in territory and "racket" not in data["territory"][territoryid]:
                     payload = {
                         "embeds": [
                             {
@@ -525,10 +496,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-                if (
-                    "racket" in territory
-                    and "racket" not in stakeout_data["territory"][territoryid]
-                ):
+                if "racket" in territory and "racket" not in stakeout_data["territory"][territoryid]:
                     payload = {
                         "embeds": [
                             {
@@ -570,10 +538,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif (
-                    territory["racket"]["level"]
-                    > stakeout_data["territory"][territoryid]["racket"]["level"]
-                ):
+                elif territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]:
                     payload = {
                         "embeds": [
                             {
@@ -615,10 +580,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif (
-                    territory["racket"]["level"]
-                    > stakeout_data["territory"][territoryid]["racket"]["level"]
-                ):
+                elif territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]:
                     payload = {
                         "embeds": [
                             {
@@ -660,10 +622,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-        if (
-            "members" in guild_stakeout["keys"]
-            and data["members"] != stakeout_data["members"]
-        ):
+        if "members" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
                 if memberid not in data["members"]:
                     payload = {
@@ -745,22 +704,16 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-        if (
-            "memberstatus" in guild_stakeout["keys"]
-            and data["members"] != stakeout_data["members"]
-        ):
+        if "memberstatus" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
                 if memberid not in data["members"]:
                     continue
                 elif (
-                    member["status"]["description"]
-                    != data["members"][memberid]["status"]["description"]
-                    or member["status"]["state"]
-                    != data["members"][memberid]["status"]["state"]
+                    member["status"]["description"] != data["members"][memberid]["status"]["description"]
+                    or member["status"]["state"] != data["members"][memberid]["status"]["state"]
                 ):
                     if (
-                        member["status"]["details"]
-                        == data["members"][memberid]["status"]["details"]
+                        member["status"]["details"] == data["members"][memberid]["status"]["details"]
                         and member["status"]["details"] != ""
                     ):
                         continue
@@ -806,10 +759,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-        if (
-            "memberactivity" in guild_stakeout["keys"]
-            and data["members"] != stakeout_data["members"]
-        ):
+        if "memberactivity" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
                 if memberid not in data["members"]:
                     continue
@@ -866,9 +816,9 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif member["last_action"]["status"] in ("Online", "Idle") and data[
-                    "members"
-                ][memberid]["last_action"]["status"] in ("Offline", "Idle"):
+                elif member["last_action"]["status"] in ("Online", "Idle") and data["members"][memberid]["last_action"][
+                    "status"
+                ] in ("Offline", "Idle"):
                     if (
                         data["members"][memberid]["last_action"]["status"] == "Idle"
                         and datetime.datetime.now(datetime.timezone.utc).timestamp()
@@ -922,10 +872,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     except Exception as e:
                         logger.exception(e)
                         return
-        if (
-            "assault" in guild_stakeout["keys"]
-            and data["territory_wars"] != stakeout_data["territory_wars"]
-        ):
+        if "assault" in guild_stakeout["keys"] and data["territory_wars"] != stakeout_data["territory_wars"]:
             for war in data["territory_wars"]:
                 existing = False
 
@@ -935,12 +882,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         break
 
                 if not existing:
-                    defending = FactionModel.objects(
-                        tid=war["defending_faction"]
-                    ).first()
-                    assaulting = FactionModel.objects(
-                        tid=war["assaulting_faction"]
-                    ).first()
+                    defending = FactionModel.objects(tid=war["defending_faction"]).first()
+                    assaulting = FactionModel.objects(tid=war["assaulting_faction"]).first()
 
                     payload = {
                         "embeds": [
@@ -950,12 +893,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                                 f'{war["defending_faction"] if defending is None else defending.name}'
                                 f" has been assaulted by faction "
                                 f'{war["assaulting_faction"] if assaulting is None else assaulting.name}.',
-                                "timestamp": datetime.datetime.fromtimestamp(
-                                    war["start_time"]
-                                ).isoformat(),
-                                "footer": {
-                                    "text": utils.torn_timestamp(war["start_time"])
-                                },
+                                "timestamp": datetime.datetime.fromtimestamp(war["start_time"]).isoformat(),
+                                "footer": {"text": utils.torn_timestamp(war["start_time"])},
                             }
                         ],
                         "components": [
@@ -996,12 +935,8 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                         break
 
                 if not existing:
-                    defending = FactionModel.objects(
-                        tid=war["defending_faction"]
-                    ).first()
-                    assaulting = FactionModel.objects(
-                        tid=war["assaulting_faction"]
-                    ).first()
+                    defending = FactionModel.objects(tid=war["defending_faction"]).first()
+                    assaulting = FactionModel.objects(tid=war["assaulting_faction"]).first()
                     payload = {
                         "embeds": [
                             {
@@ -1059,9 +994,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             nocache=True,
                         )
                     else:
-                        keys = UserModel.objects(
-                            Q(factionaa=True) & Q(factionid=faction.tid)
-                        )
+                        keys = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
 
                         if len(keys) == 0:
                             break
@@ -1087,10 +1020,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                     timestamp = news["timestamp"]
                     news = utils.remove_html(news["news"])
 
-                    if any(
-                        word in news.lower()
-                        for word in ["loaned", "returned", "retrieved"]
-                    ):
+                    if any(word in news.lower() for word in ["loaned", "returned", "retrieved"]):
                         payload = {
                             "embeds": [
                                 {
@@ -1124,9 +1054,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
                             nocache=True,
                         )
                     else:
-                        aa_users = UserModel.objects(
-                            Q(factionaa=True) & Q(factionid=faction.tid)
-                        )
+                        aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
                         keys = []
 
                         user: UserModel

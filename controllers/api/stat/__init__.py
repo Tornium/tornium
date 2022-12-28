@@ -5,10 +5,11 @@
 
 import random
 
+from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 
-from controllers.api.decorators import *
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionmodel import FactionModel
 from models.statmodel import StatModel
@@ -21,40 +22,20 @@ from models.user import User
 def generate_chain_list(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-    defender_stats = (
-        request.args.get("dstats") if request.args.get("dstats") is not None else 0.75
-    )
-    variance = (
-        request.args.get("variance")
-        if request.args.get("variance") is not None
-        else 0.01
-    )
+    defender_stats = request.args.get("dstats") if request.args.get("dstats") is not None else 0.75
+    variance = request.args.get("variance") if request.args.get("variance") is not None else 0.01
 
     if kwargs["user"].battlescore == 0:
         return make_exception_response(
             "0000",
             key,
-            details={
-                "message": "User does not have a stat score stored in the database."
-            },
+            details={"message": "User does not have a stat score stored in the database."},
         )
 
     stat_entries = StatModel.objects(
-        (
-            Q(globalstat=True)
-            | Q(addedid=kwargs["user"].tid)
-            | Q(addedfactiontid=kwargs["user"].factionid)
-        )
-        & Q(
-            battlescore__gte=(
-                kwargs["user"]["battlescore"] * (defender_stats - variance)
-            )
-        )
-        & Q(
-            battlescore__lte=(
-                kwargs["user"]["battlescore"] * (defender_stats + variance)
-            )
-        )
+        (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
+        & Q(battlescore__gte=(kwargs["user"]["battlescore"] * (defender_stats - variance)))
+        & Q(battlescore__lte=(kwargs["user"]["battlescore"] * (defender_stats + variance)))
     )
     stat_entries = list(set(stat_entries.all().values_list("tid")))
     random.shuffle(stat_entries)
@@ -67,11 +48,7 @@ def generate_chain_list(*args, **kwargs):
         stat: StatModel = (
             StatModel.objects(
                 Q(tid=stat_entry)
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=kwargs["user"].tid)
-                    | Q(addedfactiontid=kwargs["user"].factionid)
-                )
+                & (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
             )
             .order_by("-timeadded")
             .first()
@@ -127,11 +104,7 @@ def get_stat_user(tid, *args, **kwargs):
     stat_entries: QuerySet = (
         StatModel.objects(
             Q(tid=tid)
-            & (
-                Q(globalstat=True)
-                | Q(addedid=kwargs["user"].tid)
-                | Q(addedfactiontid=kwargs["user"].factionid)
-            )
+            & (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
         )
         .order_by("-statid")
         .exclude("tid")
@@ -163,9 +136,7 @@ def get_stat_user(tid, *args, **kwargs):
         elif str(stat_entry.addedfactiontid) in factions:
             faction = factions[str(stat_entry.addedfactiontid)]
         else:
-            faction_db: FactionModel = FactionModel.objects(
-                tid=stat_entry.addedfactiontid
-            ).first()
+            faction_db: FactionModel = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
 
             if faction_db is None:
                 faction = None

@@ -3,7 +3,9 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from controllers.api.decorators import *
+from flask import jsonify
+
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response
 
 

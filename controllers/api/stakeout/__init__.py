@@ -3,9 +3,12 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import json
 
-from controllers.api.decorators import *
+from flask import jsonify, request
+
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.keymodel import KeyModel
@@ -47,10 +50,7 @@ def create_stakeout(stype, *args, **kwargs):
                 "stakeout_category": stype,
             },
         )
-    elif (
-        User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid
-        not in guild.admins
-    ):
+    elif User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid not in guild.admins:
         return make_exception_response("1001", key)
     if json.loads(guild.config)["stakeoutconfig"] != 1:
         return make_exception_response(
@@ -63,25 +63,19 @@ def create_stakeout(stype, *args, **kwargs):
         and UserStakeoutModel.objects(tid=tid).first() is not None
         and str(guildid) in UserStakeoutModel.objects(tid=tid).first().guilds
     ):
-        return make_exception_response(
-            "0000", key, details={"message": "Stakeout already exists."}
-        )
+        return make_exception_response("0000", key, details={"message": "Stakeout already exists."})
     elif (
         stype == "faction"
         and FactionStakeoutModel.objects(tid=tid).first() is not None
         and str(guildid) in FactionStakeoutModel.objects(tid=tid).first().guilds
     ):
-        return make_exception_response(
-            "0000", key, details={"message": "Stakeout already exists."}
-        )
+        return make_exception_response("0000", key, details={"message": "Stakeout already exists."})
     elif (
         stype == "user"
         and keys is not None
         and not set(keys) & {"level", "status", "flyingstatus", "online", "offline"}
     ):
-        return make_exception_response(
-            "0000", key, details={"message": "Invalid stakeout key."}
-        )
+        return make_exception_response("0000", key, details={"message": "Invalid stakeout key."})
     elif (
         stype == "faction"
         and keys is not None
@@ -96,9 +90,7 @@ def create_stakeout(stype, *args, **kwargs):
             "armorydeposit",
         }
     ):
-        return make_exception_response(
-            "0000", key, details={"message": "Invalid stakeout key."}
-        )
+        return make_exception_response("0000", key, details={"message": "Invalid stakeout key."})
 
     stakeout = Stakeout(
         tid=tid,

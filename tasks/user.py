@@ -45,9 +45,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             new=True,
             set__name=user_data["name"],
             set__level=user_data["level"],
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -55,18 +53,12 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     else:
         user.name = user_data["name"]
         user.level = user_data["level"]
-        user.discord_id = (
-            user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0
-        )
+        user.discord_id = user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0
 
         try:
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(
-                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
-            )
+            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
             logger.info(user_data)
 
         user.last_refresh = utils.now()
@@ -74,9 +66,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         user.last_action = user_data["last_action"]["timestamp"]
         user.save()
 
-    faction: FactionModel = FactionModel.objects(
-        tid=user_data["faction"]["faction_id"]
-    ).first()
+    faction: FactionModel = FactionModel.objects(tid=user_data["faction"]["faction_id"]).first()
 
     if faction is None:
         faction: FactionModel = FactionModel(
@@ -120,9 +110,7 @@ def refresh_users():
         try:  # Torn API debug
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(
-                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
-            )
+            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
             logger.info(user_data)
 
         user.name = user_data["name"]
@@ -130,11 +118,7 @@ def refresh_users():
         user.status = user_data["last_action"]["status"]
         user.last_action = user_data["last_action"]["timestamp"]
         user.level = user_data["level"]
-        user.discord_id = (
-            user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0
-        )
+        user.discord_id = user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0
         user.strength = user_data["strength"]
         user.defense = user_data["defense"]
         user.speed = user_data["speed"]

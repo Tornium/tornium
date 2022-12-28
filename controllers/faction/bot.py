@@ -4,9 +4,9 @@
 # Written by tiksan <webmaster@deek.sh>
 
 from flask import render_template, request, flash
-from flask_login import login_required
+from flask_login import current_user, login_required
 
-from controllers.faction.decorators import *
+from controllers.faction.decorators import aa_required, fac_required
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.server import Server
@@ -31,9 +31,7 @@ def bot(*args, **kwargs):
         if faction.tid not in server.factions:
             vault_config = {"banking": 0, "banker": 0}
             config = {"vault": 0, "stats": 1}
-            flash(
-                "Remember to add the faction to the server's list of factions before performing any other setup"
-            )
+            flash("Remember to add the faction to the server's list of factions before performing any other setup")
         else:
             vault_config = faction.vault_config
             config = faction.config
@@ -42,9 +40,7 @@ def bot(*args, **kwargs):
         faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
         if request.form.get("guildid") is not None:
-            guild: ServerModel = ServerModel.objects(
-                sid=request.form.get("guildid")
-            ).first()
+            guild: ServerModel = ServerModel.objects(sid=request.form.get("guildid")).first()
             if guild is None:
                 return render_template(
                     "errors/error.html",
@@ -73,8 +69,7 @@ def bot(*args, **kwargs):
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code "
-                    f"{utils.remove_str(str(e))}.",
+                    error=f"The Discord API has responded with HTTP error code " f"{utils.remove_str(str(e))}.",
                 )
             except Exception as e:
                 return render_template("errors/error.html", title="Error", error=str(e))
@@ -99,21 +94,16 @@ def bot(*args, **kwargs):
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code "
-                    f"{utils.remove_str(str(e))}.",
+                    error=f"The Discord API has responded with HTTP error code " f"{utils.remove_str(str(e))}.",
                 )
             except Exception as e:
                 return render_template("errors/error.html", title="Error", error=str(e))
 
             for role in roles:  # TODO: Add error message for role not found in server
                 if role["id"] == request.form.get("banker"):
-                    faction_model.vaultconfig["banker"] = int(
-                        request.form.get("banker")
-                    )
+                    faction_model.vaultconfig["banker"] = int(request.form.get("banker"))
                     faction_model.save()
-        elif (request.form.get("enabled") is not None) ^ (
-            request.form.get("disabled") is not None
-        ):
+        elif (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
             if request.form.get("enabled") is not None:
                 faction_model.config["vault"] = 1
             else:

@@ -275,9 +275,7 @@ def tornget(
         raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
-        logger.warning(
-            f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-        )
+        logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
     request = request.json()
@@ -319,9 +317,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
         and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
     ):
         if retry:
-            self.retry(
-                countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
-            )
+            self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
         else:
             raise RatelimitError()
 
@@ -363,15 +359,10 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(
-                f"The Discord API has enabled a bucket ratelimit on bucket {bucket}"
-            )
+            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
-                self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
-                    + 1
-                )
+                self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError()
     elif (
@@ -409,9 +400,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(
-            f"The Discord API has responded with HTTP {request.status_code} to {url})."
-        )
+        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -439,9 +428,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
     ):
         if retry:
-            self.retry(
-                countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
-            )
+            self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
         else:
             raise RatelimitError()
 
@@ -483,15 +470,10 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(
-                f"The Discord API has enabled a bucket ratelimit on bucket {bucket}"
-            )
+            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
-                self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
-                    + 1
-                )
+                self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError()
     elif (
@@ -529,9 +511,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(
-            f"The Discord API has responded with HTTP {request.status_code} to {url})."
-        )
+        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -559,9 +539,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
     ):
         if retry:
-            self.retry(
-                countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
-            )
+            self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
         else:
             raise RatelimitError()
 
@@ -603,15 +581,10 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(
-                f"The Discord API has enabled a bucket ratelimit on bucket {bucket}"
-            )
+            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
-                self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
-                    + 1
-                )
+                self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError()
     elif (
@@ -649,9 +622,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(
-            f"The Discord API has responded with HTTP {request.status_code} to {url})."
-        )
+        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -679,9 +650,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
     ):
         if retry:
-            self.retry(
-                countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
-            )
+            self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
         else:
             raise RatelimitError()
 
@@ -723,15 +692,10 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(
-                f"The Discord API has enabled a bucket ratelimit on bucket {bucket}"
-            )
+            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
-                self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
-                    + 1
-                )
+                self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError()
     elif (
@@ -769,9 +733,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(
-            f"The Discord API has responded with HTTP {request.status_code} to {url})."
-        )
+        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -799,9 +761,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
         and redis.ttl(f"tornium:discord:ratelimit:bucket{bucket}") > 0
     ):
         if retry:
-            self.retry(
-                countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1
-            )
+            self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
         else:
             raise RatelimitError()
 
@@ -843,15 +803,10 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(
-                f"The Discord API has enabled a bucket ratelimit on bucket {bucket}"
-            )
+            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
-                self.retry(
-                    countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}")
-                    + 1
-                )
+                self.retry(countdown=redis.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError()
     elif (
@@ -889,9 +844,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(
-            f"The Discord API has responded with HTTP {request.status_code} to {url})."
-        )
+        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json

@@ -57,9 +57,7 @@ class TornError(Exception):
 
         self.code = code
         self.endpoint = endpoint
-        self.error, self.message = (
-            _tornerrors[code] if code in _tornerrors else (None, None)
-        )
+        self.error, self.message = _tornerrors[code] if code in _tornerrors else (None, None)
 
     def __str__(self):
         return f"The Torn API has returned error code {self.code}"

@@ -29,9 +29,7 @@ def index():
 @mod.route("/stats/db")
 @login_required
 def stats():
-    return render_template(
-        "stats/db.html", battlescore=current_user.battlescore, key=current_user.key
-    )
+    return render_template("stats/db.html", battlescore=current_user.battlescore, key=current_user.key)
 
 
 @mod.route("/stats/dbdata")
@@ -50,23 +48,15 @@ def stats_data():
     if utils.get_tid(search_value):
         stat_entries = StatModel.objects(
             Q(tid__startswith=utils.get_tid(search_value))
-            & (
-                Q(globalstat=True)
-                | Q(addedid=current_user.tid)
-                | Q(addedfactiontid=current_user.factiontid)
-            )
+            & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
         )
     else:
         stat_entries = StatModel.objects(
-            Q(globalstat=True)
-            | Q(addedid=current_user.tid)
-            | Q(addedfactiontid=current_user.factiontid)
+            Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid)
         )
 
     if min_bs != "" and max_bs != "":
-        stat_entries = stat_entries.filter(
-            Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs))
-        )
+        stat_entries = stat_entries.filter(Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs)))
     elif min_bs == "" and max_bs != "":
         stat_entries = stat_entries.filter(battlescore__lt=int(max_bs))
     elif min_bs != "" and max_bs == "":
@@ -120,12 +110,7 @@ def user_data():
     tid = int(utils.get_tid(request.args.get("user")))
     stats = []
     stat_entries = StatModel.objects(
-        Q(tid=tid)
-        & (
-            Q(globalstat=True)
-            | Q(addedid=current_user.tid)
-            | Q(addedfactiontid=current_user.factiontid)
-        )
+        Q(tid=tid) & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
     )
 
     factions = {}
@@ -163,10 +148,7 @@ def user_data():
     user = User(tid=tid)
 
     # If user's last action was over a month ago and last refresh was over a week ago
-    if (
-        utils.now() - user.last_action > 30 * 24 * 60 * 60
-        and utils.now() - user.last_refresh > 604800
-    ):
+    if utils.now() - user.last_action > 30 * 24 * 60 * 60 and utils.now() - user.last_refresh > 604800:
         user.refresh(key=current_user.key)
     elif utils.now() - user.last_action <= 30 * 24 * 60 * 60:
         user.refresh(key=current_user.key)
@@ -205,9 +187,7 @@ def config():
     if request.method == "POST":
         faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
-        if (request.form.get("enabled") is not None) ^ (
-            request.form.get("disabled") is not None
-        ):
+        if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
             if request.form.get("enabled") is not None:
                 faction_model.statconfig["global"] = 1
             else:

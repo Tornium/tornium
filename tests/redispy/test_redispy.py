@@ -7,8 +7,6 @@ import redis
 
 
 def test_redis_connection():
-    redis_client = redis.Redis(
-        host="localhost", port=6379, charset="utf-8", decode_responses=True
-    )
+    redis_client = redis.Redis(host="localhost", port=6379, charset="utf-8", decode_responses=True)
 
     assert redis_client.ping()

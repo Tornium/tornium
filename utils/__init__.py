@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 from flask import render_template
 
-from utils.errors import *
+from utils.errors import DiscordError, NetworkingError, TornError
 
 
 def get_logger():
@@ -72,8 +72,7 @@ def handle_torn_error(error: TornError):
         return render_template(
             "/errors/error.html",
             title="API System Disabled",
-            error="Torn's API system has been temporarily disabled. Please try again in a "
-            "couple minutes.",
+            error="Torn's API system has been temporarily disabled. Please try again in a " "couple minutes.",
         )
     elif error.code == 10:
         return render_template(
@@ -114,7 +113,7 @@ def handle_discord_error(error: DiscordError):
         return render_template(
             "/errors/error.html",
             title="General Error",
-            error=f"The Discord API has returned a general error.",
+            error="The Discord API has returned a general error.",
         )
     elif error.code == 10003:
         return render_template(
@@ -194,9 +193,7 @@ def handle_networking_error(error: NetworkingError):
 
 
 def now():
-    return int(
-        (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds()
-    )
+    return int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds())
 
 
 def remove_str(text):

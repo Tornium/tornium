@@ -25,13 +25,9 @@ def chain(interaction):
     start = time.time()
 
     if "member" in interaction:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["member"]["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
     else:
-        user: UserModel = UserModel.objects(
-            discord_id=interaction["user"]["id"]
-        ).first()
+        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
     if "options" in interaction["data"]:
         length = utils.find_list(interaction["data"]["options"], "name", "length")
@@ -106,9 +102,7 @@ def chain(interaction):
             set__name=user_data["name"],
             set__level=user_data["level"],
             set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"]
-            if user_data["discord"]["discordID"] != ""
-            else 0,
+            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
@@ -200,21 +194,13 @@ def chain(interaction):
 
     if ff == 3:
         stat_entries: mongoengine.QuerySet = StatModel.objects(
-            (
-                Q(globalstat=True)
-                | Q(addedid=user.tid)
-                | Q(addedfactiontid=user.factiontid)
-            )
+            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
             & Q(battlescore__gte=(0.375 * user.battlescore * (ff - 1)))
             & Q(battlescore__lte=(0.375 * user.battlescore * 2.4))
         )
     else:
         stat_entries: mongoengine.QuerySet = StatModel.objects(
-            (
-                Q(globalstat=True)
-                | Q(addedid=user.tid)
-                | Q(addedfactiontid=user.factiontid)
-            )
+            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
             & Q(battlescore__gte=(0.375 * user.battlescore * (ff - variance - 1)))
             & Q(battlescore__lte=(0.375 * user.battlescore * (ff + variance - 1)))
         )
@@ -260,12 +246,7 @@ def chain(interaction):
     for stat_entry in stat_entries:
         stat: StatModel = (
             StatModel.objects(
-                Q(tid=stat_entry)
-                & (
-                    Q(globalstat=True)
-                    | Q(addedid=user.tid)
-                    | Q(addedfactiontid=user.factiontid)
-                )
+                Q(tid=stat_entry) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
             )
             .order_by("-timeadded")
             .first()
@@ -332,9 +313,7 @@ def chain(interaction):
         "footer": {"text": ""},
     }
 
-    jsonified_stat_entries = sorted(
-        jsonified_stat_entries, key=lambda d: d["respect"], reverse=True
-    )
+    jsonified_stat_entries = sorted(jsonified_stat_entries, key=lambda d: d["respect"], reverse=True)
     stat_count = 0
 
     for stat_entry in jsonified_stat_entries:
@@ -351,12 +330,10 @@ def chain(interaction):
 
         stat_count += 1
 
-    embed[
-        "description"
-    ] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
+    embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
     embed["footer"] = {"text": f"Run time: {round(time.time() - start, 2)} seconds"}
 
-    response = tasks.discordpatch(
+    tasks.discordpatch(
         f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
         payload={"embeds": [embed]},
     )

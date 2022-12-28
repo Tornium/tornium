@@ -25,16 +25,10 @@ class FactionModel(DynamicDocument):
     last_attacks = IntField(default=0)
 
     guild = IntField(default=0)  # Guild ID of the faction's guild
-    config = DictField(
-        default={"vault": 0, "stats": 1}
-    )  # Dictionary of faction's bot configuration
-    vaultconfig = DictField(
-        default={"banking": 0, "banker": 0}
-    )  # Dictionary of vault configuration
+    config = DictField(default={"vault": 0, "stats": 1})  # Dictionary of faction's bot configuration
+    vaultconfig = DictField(default={"banking": 0, "banker": 0})  # Dictionary of vault configuration
 
     statconfig = DictField(default={"global": 0})  # Dictionary of target config
 
-    chainconfig = DictField(
-        default={"od": 0, "odchannel": 0}
-    )  # Dictionary of chain config
+    chainconfig = DictField(default={"od": 0, "odchannel": 0})  # Dictionary of chain config
     chainod = DictField(default={})  # Dictionary of faction member overdoses

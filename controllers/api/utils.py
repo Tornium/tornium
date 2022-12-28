@@ -233,9 +233,7 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
     }
 
 
-def make_exception_response(
-    code: str, ratelimit_key: str, details=None, redis_client: redis.Redis = None
-):
+def make_exception_response(code: str, ratelimit_key: str, details=None, redis_client: redis.Redis = None):
     exception = json_api_exception(code, details)
     exception_response = {
         "code": exception["code"],

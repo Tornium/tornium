@@ -66,13 +66,9 @@ class User(UserMixin):
 
             try:
                 if key == self.key:
-                    user_data = tasks.tornget(
-                        "user/?selections=profile,battlestats,discord", key
-                    )
+                    user_data = tasks.tornget("user/?selections=profile,battlestats,discord", key)
                 else:
-                    user_data = tasks.tornget(
-                        f"user/{self.tid}?selections=profile,discord", key
-                    )
+                    user_data = tasks.tornget(f"user/{self.tid}?selections=profile,discord", key)
             except utils.TornError as e:
                 utils.get_logger().exception(e)
                 raise e
@@ -86,8 +82,7 @@ class User(UserMixin):
                 "Recruit",
             ):
                 position: PositionModel = PositionModel.objects(
-                    Q(name=user_data["faction"]["position"])
-                    & Q(factiontid=user_data["faction"]["faction_id"])
+                    Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
                 ).first()
 
                 if position is None:
@@ -111,11 +106,7 @@ class User(UserMixin):
             user.status = user_data["last_action"]["status"]
             user.last_action = user_data["last_action"]["timestamp"]
             user.level = user_data["level"]
-            user.discord_id = (
-                user_data["discord"]["discordID"]
-                if user_data["discord"]["discordID"] != ""
-                else 0
-            )
+            user.discord_id = user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0
 
             if key == self.key:
                 user.battlescore = (
@@ -146,7 +137,7 @@ class User(UserMixin):
         user = UserModel.objects(tid=self.tid).first()
 
         try:
-            tasks.tornget(f"faction/?selections=positions", self.key)
+            tasks.tornget("faction/?selections=positions", self.key)
         except utils.TornError as e:
             if e.code == 7:
                 self.aa = False

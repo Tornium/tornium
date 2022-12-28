@@ -3,14 +3,18 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import json
 
-from controllers.api.decorators import *
+from flask import jsonify, request
+
+from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.server import Server
 from models.user import User
 from models.withdrawalmodel import WithdrawalModel
+import redisdb
 import tasks
 import utils
 
@@ -35,9 +39,7 @@ def vault_balance(*args, **kwargs):
         return make_exception_response("1201", key)
 
     try:
-        vault_balances = tasks.tornget(
-            "faction/?selections=donations", faction.rand_key()
-        )
+        vault_balances = tasks.tornget("faction/?selections=donations", faction.rand_key())
     except utils.TornError as e:
         return make_exception_response(
             "4100",
@@ -55,12 +57,8 @@ def vault_balance(*args, **kwargs):
                 {
                     "player_id": user.tid,
                     "faction_id": faction.tid,
-                    "money_balance": vault_balances["donations"][str(user.tid)][
-                        "money_balance"
-                    ],
-                    "points_balance": vault_balances["donations"][str(user.tid)][
-                        "points_balance"
-                    ],
+                    "money_balance": vault_balances["donations"][str(user.tid)]["money_balance"],
+                    "points_balance": vault_balances["donations"][str(user.tid)]["points_balance"],
                 }
             ),
             200,
@@ -81,9 +79,7 @@ def banking_request(*args, **kwargs):
     amount_requested = data.get("amount_requested")
 
     if amount_requested is None:
-        return make_exception_response(
-            "1000", key, details={"element": "amount_requested"}, redis_client=client
-        )
+        return make_exception_response("1000", key, details={"element": "amount_requested"}, redis_client=client)
     elif amount_requested <= 0:
         return make_exception_response(
             "0000",
@@ -126,11 +122,7 @@ def banking_request(*args, **kwargs):
     vault_config = faction.vault_config
     config = faction.config
 
-    if (
-        vault_config.get("banking") == 0
-        or vault_config.get("banker") == 0
-        or config.get("vault") == 0
-    ):
+    if vault_config.get("banking") == 0 or vault_config.get("banker") == 0 or config.get("vault") == 0:
         return make_exception_response(
             "0000",
             key,
@@ -139,9 +131,7 @@ def banking_request(*args, **kwargs):
         )
 
     try:
-        vault_balances = tasks.tornget(
-            "faction/?selections=donations", faction.rand_key()
-        )
+        vault_balances = tasks.tornget("faction/?selections=donations", faction.rand_key())
     except utils.TornError as e:
         return make_exception_response(
             "4100",
@@ -155,21 +145,14 @@ def banking_request(*args, **kwargs):
         )
 
     if str(user.tid) in vault_balances["donations"]:
-        if (
-            amount_requested != "all"
-            and amount_requested
-            > vault_balances["donations"][str(user.tid)]["money_balance"]
-        ):
+        if amount_requested != "all" and amount_requested > vault_balances["donations"][str(user.tid)]["money_balance"]:
             return make_exception_response(
                 "0000",
                 key,
                 details={"message": "Illegal amount requested."},
                 redis_client=client,
             )
-        elif (
-            amount_requested == "all"
-            and vault_balances["donations"][str(user.tid)]["money_balance"] <= 0
-        ):
+        elif amount_requested == "all" and vault_balances["donations"][str(user.tid)]["money_balance"] <= 0:
             return make_exception_response(
                 "0000",
                 key,

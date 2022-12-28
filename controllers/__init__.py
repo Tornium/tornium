@@ -6,7 +6,7 @@
 from flask import Blueprint, render_template, send_from_directory, request
 from flask_login import login_required
 
-from controllers.decorators import *
+from controllers.decorators import admin_required
 
 mod = Blueprint("baseroutes", __name__)
 

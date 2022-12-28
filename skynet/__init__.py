@@ -19,9 +19,52 @@ botlogger.addHandler(handler)
 
 mod = Blueprint("botinteractions", __name__)
 
+_commands = {
+    "ping": skynet.commands.ping,
+
+    # Faction Commands
+    "assist": skynet.commands.faction.assist.assist,
+    "balance": skynet.commands.faction.balance.balance,
+    "cancel": skynet.commands.faction.cancel.cancel_command,
+    "fulfill": skynet.commands.faction.fulfill.fulfill_command,
+    "withdraw": skynet.commands.faction.withdraw.withdraw,
+
+    # Bot Commands
+    "verify": skynet.commands.bot.verify.verify,
+    "verifyall": skynet.commands.bot.verifyall.verifyall,
+
+    # User Commands
+    "who": skynet.commands.user.who.who,
+
+    # Stat DB Commands
+    "chainlist": skynet.commands.stat.chain.chain,
+    "stat": skynet.commands.stat.stat.stat,
+}
+
+_buttons = {
+    "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
+    "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
+}
+
 
 @mod.route("/skynet", methods=["POST"])
 def skynet_interactions():
+    def in_dev_command(interaction):
+        print(interaction)
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Command In Development",
+                        "description": "This command is not yet ready for production use.",
+                        "color": skynet.skyutils.SKYNET_INFO,
+                    }
+                ]
+            }
+        }
+
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
     except BadSignatureError:
@@ -33,44 +76,10 @@ def skynet_interactions():
         return jsonify({})
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
-        if request.json["data"]["custom_id"] == "faction:vault:fulfill":
-            return jsonify(skynet.commands.faction.fulfill.fulfill_button(request.json))
-        elif request.json["data"]["custom_id"] == "faction:vault:cancel":
-            return jsonify(skynet.commands.faction.cancel.cancel_button(request.json))
+        if request.json["data"]["custom_id"] in _buttons:
+            return jsonify(_buttons[request.json["data"]["custom_id"]])
+    elif request.json["type"] == 2:
+        if request.json["data"]["name"] in _commands:
+            return jsonify(_commands[request.json["data"]["name"]])
 
-    # General Commands
-    if request.json["data"]["name"] == "ping":
-        return jsonify(skynet.commands.ping(request.json))
-
-    # Faction Commands
-    elif request.json["data"]["name"] == "assist":
-        return jsonify(skynet.commands.faction.assist.assist(request.json))
-    elif request.json["data"]["name"] == "balance":
-        return jsonify(skynet.commands.faction.balance.balance(request.json))
-    elif request.json["data"]["name"] == "withdraw":
-        return jsonify(skynet.commands.faction.withdraw.withdraw(request.json))
-    elif request.json["data"]["name"] == "fulfill":
-        return jsonify(skynet.commands.faction.fulfill.fulfill_command(request.json))
-
-    # Bot Commands
-    elif request.json["data"]["name"] == "verify":
-        return jsonify(skynet.commands.bot.verify.verify(request.json))
-    elif request.json["data"]["name"] == "verifyall":
-        return jsonify(skynet.commands.bot.verifyall.verifyall(request.json))
-
-    # User Commands
-    elif request.json["data"]["name"] == "who":
-        return jsonify(skynet.commands.user.who.who(request.json))
-
-    # Stat Commands
-    elif request.json["data"]["name"] == "chainlist":
-        return jsonify(skynet.commands.stat.chain.chain(request.json))
-    elif request.json["data"]["name"] == "stat":
-        return jsonify(skynet.commands.stat.stat.stat(request.json))
-
-    # Stock Commands
-    elif request.json["data"]["name"] == "stock":
-        print(request.json)
-        return {}
-
-    return {}
+    return jsonify(in_dev_command(request.json))

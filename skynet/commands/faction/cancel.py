@@ -16,7 +16,7 @@ import tasks
 import utils
 
 
-def fulfill_command(interaction):
+def cancel_command(interaction):
     print(interaction)
 
     if "guild_id" not in interaction:

@@ -5,6 +5,7 @@
         "bot/verify/verifyall",
         "faction/assist/assist",
         "faction/banking/balance",
+        "faction/banking/cancel",
         "faction/banking/fulfill",
         "faction/banking/withdraw",
         "stats/chainlist",

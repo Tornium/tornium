@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from skynet.commands import faction, user, bot, stat
+from skynet.commands import faction, user, bot, stat, stocks
 from skynet.skyutils import SKYNET_INFO
 
 

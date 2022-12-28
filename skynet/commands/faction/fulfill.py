@@ -214,6 +214,21 @@ def fulfill_command(interaction):
                 ]
             },
         }
+    elif user.tid not in faction.get_bankers():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     if (
         faction.vault_config.get("banking") in [0, None]
@@ -436,7 +451,7 @@ def fulfill_button(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -461,7 +476,7 @@ def fulfill_button(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -482,7 +497,7 @@ def fulfill_button(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -496,7 +511,7 @@ def fulfill_button(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -528,7 +543,7 @@ def fulfill_button(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -547,7 +562,7 @@ def fulfill_button(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -570,7 +585,7 @@ def fulfill_button(interaction):
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
                                 f"set regardless of a force refresh.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -584,7 +599,7 @@ def fulfill_button(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -603,9 +618,24 @@ def fulfill_button(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
+            },
+        }
+    elif user.tid not in faction.get_bankers():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -623,7 +653,7 @@ def fulfill_button(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -636,7 +666,7 @@ def fulfill_button(interaction):
                     {
                         "title": "Unknown Button Press",
                         "description": "The attributes of the button pressed does not match the attributes required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },

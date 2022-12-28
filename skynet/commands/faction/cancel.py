@@ -206,12 +206,27 @@ def cancel_command(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
+            },
+        }
+    elif user.tid not in faction.get_bankers():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -606,6 +621,21 @@ def cancel_button(interaction):
                         "color": SKYNET_ERROR,
                     }
                 ]
+            },
+        }
+    elif user.tid not in faction.get_bankers():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
             },
         }
 

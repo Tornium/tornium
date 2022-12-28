@@ -21,21 +21,17 @@ mod = Blueprint("botinteractions", __name__)
 
 _commands = {
     "ping": skynet.commands.ping,
-
     # Faction Commands
     "assist": skynet.commands.faction.assist.assist,
     "balance": skynet.commands.faction.balance.balance,
     "cancel": skynet.commands.faction.cancel.cancel_command,
     "fulfill": skynet.commands.faction.fulfill.fulfill_command,
     "withdraw": skynet.commands.faction.withdraw.withdraw,
-
     # Bot Commands
     "verify": skynet.commands.bot.verify.verify,
     "verifyall": skynet.commands.bot.verifyall.verifyall,
-
     # User Commands
     "who": skynet.commands.user.who.who,
-
     # Stat DB Commands
     "chainlist": skynet.commands.stat.chain.chain,
     "stat": skynet.commands.stat.stat.stat,
@@ -62,7 +58,7 @@ def skynet_interactions():
                         "color": skynet.skyutils.SKYNET_INFO,
                     }
                 ]
-            }
+            },
         }
 
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization

@@ -40,15 +40,6 @@ def guild_dashboard(guildid: str):
             server_model.factions.append(int(request.form.get("factionid")))
             server_model.factions = list(set(server_model.factions))
             server_model.save()
-        elif request.form.get("prefix") is not None:  # TODO: Check if prefix is valid character
-            if len(request.form.get("prefix")) != 1:
-                flash("The length of the bot prefix must be one character long.")
-                return render_template("bot/guild.html", server=server, factions=factions)
-
-            server.prefix = request.form.get("prefix")
-            server_model = ServerModel.objects(sid=guildid).first()
-            server_model.prefix = request.form.get("prefix")
-            server_model.save()
 
     for faction in server.factions:
         factions.append(Faction(faction))

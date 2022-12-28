@@ -17,7 +17,6 @@ class ServerModel(DynamicDocument):
     sid = LongField(primary_key=True)
     name = StringField(default="")
     admins = ListField(default=[])  # List of admin ids
-    prefix = StringField(default="?")
     config = DictField(default={"stakeouts": 0, "verify": 0})  # Dictionary of server configurations
 
     factions = ListField(default=[])  # List of factions in server

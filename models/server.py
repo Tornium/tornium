@@ -23,7 +23,6 @@ class Server:
         self.sid = sid
         self.name = server.name
         self.admins = server.admins
-        self.prefix = server.prefix
         self.config = server.config
 
         self.factions = server.factions

@@ -48,31 +48,31 @@ Tornium - Faction Members
                                 <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
                             </th>
                             <th>{{ member.level }}</th>
-                            <td data-order="{{ member.last_action }}">
+                            <th data-order="{{ member.last_action }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action|tcttime }}">{{ member.last_action|reltime }}</span>
                             </th>
 
                             {% if current_user.aa or current_user.tid == member.tid %}
                                 <th>{{ member.factionaa }}</th>
                                 {% if member.battlescore == 0 %}
-                                    <td data-order="0">
+                                    <th data-order="0">
                                         <i class="fa-solid fa-triangle-exclamation" data-bs-toggle="tooltip" data-bs-placement="right" title="Missing Battlestats. User is not signed into Tornium or TornStats."></i>
                                     </th>
                                 {% else %}
-                                    <td data-order="{{ member.battlescore }}">
+                                    <th data-order="{{ member.battlescore }}">
                                         <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
                                     </th>
                                 {% endif %}
                             {% else %}
-                                <td data-order="0">
+                                <th data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
                                 </th>
-                                <td data-order="0">
+                                <th data-order="0">
                                     <i class="fa-solid fa-lock" data-bs-toggle="tooltip" data-bs-placement="right" title="Permission Denied. Not an AA member."></i>
                                 </th>
                             {% endif %}
 
-                            <th>
+                            <th data-order="{{ member.last_action }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh|tcttime }}">{{ member.last_refresh|reltime }}</span>
                             </th>
 

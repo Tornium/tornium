@@ -335,7 +335,7 @@ def fulfill_command(interaction):
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "components": [
@@ -406,7 +406,7 @@ def fulfill_command(interaction):
             },
         }
 
-    withdrawal.fulfiller = user.tid
+    withdrawal.fulfiller = -user.tid
     withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
 
@@ -415,8 +415,8 @@ def fulfill_command(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal_id} Fulfilled",
-                    "description": "You have fulfilled the banking request.",
+                    "title": f"Banking Request {withdrawal_id} Cancelled",
+                    "description": "You have cancelled the banking request.",
                     "color": SKYNET_GOOD,
                 }
             ],
@@ -425,7 +425,7 @@ def fulfill_command(interaction):
     }
 
 
-def fulfill_button(interaction):
+def cancel_button(interaction):
     print(interaction)
 
     if "guild_id" not in interaction:
@@ -436,7 +436,7 @@ def fulfill_button(interaction):
                     {
                         "title": "Not Allowed",
                         "description": "This command can not be run in a DM (for now).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -461,7 +461,7 @@ def fulfill_button(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -482,7 +482,7 @@ def fulfill_button(interaction):
                         {
                             "title": "Torn API Error",
                             "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -496,7 +496,7 @@ def fulfill_button(interaction):
                         {
                             "title": "HTTP Error",
                             "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -528,7 +528,7 @@ def fulfill_button(interaction):
                             "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                             "your API key to send a request without verifying. If you have recently "
                             "verified yourself, please wait a minute or two before trying again.",
-                            "color": 0xC83F49,
+                            "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,  # Ephemeral
@@ -547,7 +547,7 @@ def fulfill_button(interaction):
                         "sign into [the web dashboard](https://tornium.com/faction/banking) with "
                         "your API key to send a request without verifying. If you have recently "
                         "verified yourself, please wait a minute or two before trying again.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -570,7 +570,7 @@ def fulfill_button(interaction):
                                 "title": "Faction ID Error",
                                 "description": f"The faction ID of {interaction['message']['user']['username']} is not "
                                 f"set regardless of a force refresh.",
-                                "color": 0xC83F49,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
@@ -584,7 +584,7 @@ def fulfill_button(interaction):
                     {
                         "title": "No API Key Available",
                         "description": "No Torn API key could be utilized for this request.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -603,7 +603,7 @@ def fulfill_button(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -623,12 +623,12 @@ def fulfill_button(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
-    elif interaction["data"]["custom_id"] != "faction:vault:fulfill" or interaction["data"]["component_type"] != 2:
+    elif interaction["data"]["custom_id"] != "faction:vault:cancel" or interaction["data"]["component_type"] != 2:
         return {
             "type": 4,
             "data": {
@@ -636,7 +636,7 @@ def fulfill_button(interaction):
                     {
                         "title": "Unknown Button Press",
                         "description": "The attributes of the button pressed does not match the attributes required.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -697,7 +697,7 @@ def fulfill_button(interaction):
                 "embeds": [
                     {
                         "title": f"Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
+                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
                         "fields": [
                             {
                                 "name": "Original Request Amount",
@@ -709,7 +709,7 @@ def fulfill_button(interaction):
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "components": [
@@ -733,6 +733,12 @@ def fulfill_button(interaction):
                                 "style": 3,
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
+                            },
+                            {
+                                "type": 2,
+                                "style": 4,
+                                "label": "Cancel",
+                                "custom_id": "faction:vault:cancel",
                             },
                         ],
                     }
@@ -774,7 +780,7 @@ def fulfill_button(interaction):
             },
         }
 
-    withdrawal.fulfiller = user.tid
+    withdrawal.fulfiller = -user.tid
     withdrawal.time_fulfilled = utils.now()
     withdrawal.save()
 
@@ -783,8 +789,8 @@ def fulfill_button(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                    "description": "You have fulfilled the banking request.",
+                    "title": f"Banking Request {withdrawal.wid} Cancelled",
+                    "description": "You have cancelled the banking request.",
                     "color": SKYNET_GOOD,
                 }
             ],

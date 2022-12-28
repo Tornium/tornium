@@ -35,6 +35,8 @@ def skynet_interactions():
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] == "faction:vault:fulfill":
             return jsonify(skynet.commands.faction.fulfill.fulfill_button(request.json))
+        elif request.json["data"]["custom_id"] == "faction:vault:cancel":
+            return jsonify(skynet.commands.faction.cancel.cancel_button(request.json))
 
     # General Commands
     if request.json["data"]["name"] == "ping":

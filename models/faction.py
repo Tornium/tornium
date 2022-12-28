@@ -191,3 +191,24 @@ class Faction:
                     set__faction_position=position_pid,
                     set__faction_aa=faction_aa,
                 )
+
+    def get_bankers(self):
+        banker_positions = PositionModel.objects(
+            Q(factiontid=self.tid) & (Q(canGiveMoney=True) | Q(canGivePoints=True) | Q(canAdjustMemberBalance=True))
+        )
+        bankers = []
+
+        banker_position: PositionModel
+        for banker_position in banker_positions:
+            users = UserModel.objects(faction_position=banker_position.pid).only("tid")
+
+            user: UserModel
+            for user in users:
+                bankers.append(user.tid)
+
+        if self.leader != 0:
+            bankers.append(self.leader)
+        if self.coleader != 0:
+            bankers.append(self.coleader)
+
+        return bankers

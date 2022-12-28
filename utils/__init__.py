@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 from flask import render_template
 
-from utils.errors import DiscordError, NetworkingError, TornError
+from utils.errors import DiscordError, MissingKeyError, NetworkingError, TornError
 
 
 def get_logger():

@@ -282,7 +282,7 @@ def withdraw(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -302,7 +302,7 @@ def withdraw(interaction):
                         "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },
@@ -319,7 +319,7 @@ def withdraw(interaction):
                         "title": "No API Keys",
                         "description": "No AA API keys were found to be run for this command. Please sign into "
                         "Tornium or ask a faction AA member to sign into Tornium.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -336,7 +336,7 @@ def withdraw(interaction):
                     {
                         "title": "Torn API Error",
                         "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -350,7 +350,7 @@ def withdraw(interaction):
                     {
                         "title": "HTTP Error",
                         "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -370,7 +370,7 @@ def withdraw(interaction):
                             f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
                             f"If you think that this is an error, please report this to the developers of this bot."
                         ),
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -397,7 +397,7 @@ def withdraw(interaction):
                                 "value": faction_balances[str(user.tid)][withdrawal_option_str],
                             },
                         ],
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -411,7 +411,7 @@ def withdraw(interaction):
                     {
                         "title": "Not Enough",
                         "description": "You have requested all of your currency, but have zero or a negative vault balance.",
-                        "color": 0xC83F49,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -485,6 +485,12 @@ def withdraw(interaction):
                             "style": 3,
                             "label": "Fulfill Manually",
                             "custom_id": "faction:vault:fulfill",
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Cancel",
+                            "custom_id": "faction:vault:cancel",
                         },
                     ],
                 }

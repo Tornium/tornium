@@ -126,10 +126,7 @@ def get_stat_user(tid, *args, **kwargs):
         "level": user.level,
         "last_refresh": user.last_refresh,
         "discord_id": user.discord_id,
-        "faction": {
-            "tid": faction.tid,
-            "name": faction.name
-        },
+        "faction": {"tid": faction.tid, "name": faction.name},
         "status": user.status,
         "last_action": user.last_action,
     }

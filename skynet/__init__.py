@@ -77,9 +77,9 @@ def skynet_interactions():
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:
-            return jsonify(_buttons[request.json["data"]["custom_id"]])
+            return jsonify(_buttons[request.json["data"]["custom_id"]](request.json))
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
-            return jsonify(_commands[request.json["data"]["name"]])
+            return jsonify(_commands[request.json["data"]["name"]](request.json))
 
     return jsonify(in_dev_command(request.json))

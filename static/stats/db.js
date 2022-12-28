@@ -76,7 +76,7 @@ $(document).ready(function() {
             }));
             $("#stat-modal-row-faction").append($("<div>", {
                 "class": "col-sm-6",
-                "text": "NYI"
+                "text": `${user.faction.name} [${user.faction.tid}]`
             }));
 
             $("#stat-modal-body .container").append($("<div>", {
@@ -192,7 +192,7 @@ $(document).ready(function() {
                     }));
                 } else {
                     statRow.append($("<th>", {
-                        "text": `NYI [${stat.addedid}]`
+                        "text": `${stat.addeduser.name} [${stat.addedid}]`
                     }));
                 }
 
@@ -220,7 +220,7 @@ $(document).ready(function() {
                 "ordering": true,
                 "responsive": true,
                 "autoWidth": false,
-                "order": [[0, "desc"]]
+                "order": [[1, "desc"]]
             });
             modal.show();
         }

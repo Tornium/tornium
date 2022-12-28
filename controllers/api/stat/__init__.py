@@ -11,9 +11,11 @@ from mongoengine.queryset.visitor import Q
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
+from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.statmodel import StatModel
 from models.user import User
+from models.usermodel import UserModel
 
 
 @key_required
@@ -116,18 +118,24 @@ def get_stat_user(tid, *args, **kwargs):
     user = User(tid)
     user.refresh(key=kwargs["user"].key)
 
+    faction = Faction(user.factiontid)
+
     data["user"] = {
         "tid": user.tid,
         "name": user.name,
         "level": user.level,
         "last_refresh": user.last_refresh,
         "discord_id": user.discord_id,
-        "factiontid": user.factiontid,
+        "faction": {
+            "tid": faction.tid,
+            "name": faction.name
+        },
         "status": user.status,
         "last_action": user.last_action,
     }
 
     factions = {}
+    added_users = {}
 
     stat_entry: StatModel
     for stat_entry in stat_entries:
@@ -151,9 +159,26 @@ def get_stat_user(tid, *args, **kwargs):
                 }
                 factions[str(stat_entry.addedfactiontid)] = faction
 
+        if stat_entry.addedid == 0:
+            added_user = None
+        elif str(stat_entry.addedid) in added_users:
+            added_user = added_users[str(stat_entry.addedid)]
+        else:
+            added_user_db: UserModel = UserModel.objects(tid=stat_entry.addedid).first()
+
+            if added_user_db is None:
+                added_user = None
+                added_users[str(stat_entry.addedid)] = None
+            else:
+                added_user = {
+                    "name": added_user_db.name,
+                }
+                added_users[str(stat_entry.addedid)] = added_user
+
         data["stat_entries"][stat_entry.statid] = {
             "stat_score": stat_entry.battlescore,
             "timeadded": stat_entry.timeadded,
+            "addeduser": added_user,
             "addedid": stat_entry.addedid,
             "addedfaction": faction,
             "addedfactiontid": stat_entry.addedfactiontid,

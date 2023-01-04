@@ -1001,7 +1001,7 @@ def faction_stakeout(stakeout: int, requests_session=None, key=None):
 
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
-                            key=random.choice(keys.key),
+                            key=random.choice(keys).key,
                             session=requests_session,
                             fromts=utils.now() - 60,
                             nocache=True,

@@ -55,8 +55,7 @@ def who(interaction):
         # TODO: Verify that mentioned user is not a bot
 
         try:
-            user: UserModel
-            user, user_data = update_user(
+            user_data = update_user(
                 key=random.choice(admin_keys),
                 discordid=member[1]["value"] if member != 1 else tid[1]["value"],
                 refresh_existing=True,
@@ -191,8 +190,7 @@ def who(interaction):
             }
 
         try:
-            user: UserModel
-            user, user_data = update_user(key=user.key, tid=user.tid, refresh_existing=True)
+            user_data = update_user(key=user.key, tid=user.tid, refresh_existing=True)
         except utils.TornError as e:
             return {
                 "type": 4,

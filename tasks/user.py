@@ -78,7 +78,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         faction.name = user_data["faction"]["faction_name"]
         faction.save()
 
-    return user, user_data
+    return user_data
 
 
 @celery_app.task

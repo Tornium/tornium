@@ -86,7 +86,7 @@ def refresh_users():
     requests_session = requests.Session()
 
     user: UserModel
-    for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="")):
+    for user in UserModel.objects(key__nin=[None, ""]):
         if user.key == "":
             continue
 
@@ -158,7 +158,7 @@ def refresh_users():
 #         faction_shares[factiontid] = list(set(shares))
 #
 #     user: UserModel
-#     for user in UserModel.objects(Q(key__exists=True) & Q(key__ne="") & Q(factionid__ne=0)):
+#     for user in UserModel.objects(Q(key__nin=[None, ""]) & Q(factionid__ne=0)):
 #         if user.key == "":
 #             continue
 #         elif user.factionid == 0:

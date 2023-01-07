@@ -5,7 +5,6 @@
 
 import math
 
-from mongoengine.queryset.visitor import Q
 import requests
 
 from models.factionmodel import FactionModel

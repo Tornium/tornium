@@ -35,6 +35,8 @@ _commands = {
     # Stat DB Commands
     "chainlist": skynet.commands.stat.chain.chain,
     "stat": skynet.commands.stat.stat.stat,
+    # Stocks Commands
+    "stocks": skynet.commands.stocks.stocks_switchboard,
 }
 
 _buttons = {

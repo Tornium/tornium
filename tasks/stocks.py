@@ -7,12 +7,13 @@ import datetime
 import random
 import time
 
-from mongoengine.queryset.visitor import Q
+from redis.commands.json.path import Path
 
 import skynet.skyutils
 from models.notificationmodel import NotificationModel
 from models.tickmodel import TickModel
 from models.usermodel import UserModel
+import redisdb
 from tasks import celery_app, logger, tornget, discordpost
 import utils
 
@@ -25,7 +26,7 @@ def _map_stock_image(acronym: str):
 def fetch_stock_ticks():
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 
-    auth_users = [user.key for user in UserModel.objects(Q(key__exists=True) & Q(key__ne=""))]
+    auth_users = [user.key for user in UserModel.objects(key__nin=[None, ""])]
     random.shuffle(auth_users)
 
     stocks_data = None
@@ -67,6 +68,8 @@ def fetch_stock_ticks():
     )
     binary_timestamp = bin(now << 8)
 
+    stocks = {}
+
     for stock in stocks_data["stocks"].values():
         binary_stockid = bin(stock["stock_id"])
 
@@ -81,6 +84,10 @@ def fetch_stock_ticks():
                 "investors": stock["investors"],
             }
         )
+
+        stocks[stock["stock_id"]] = stock["acronym"]
+
+    redisdb.get_redis().json().set("tornium:stocks", Path.root_path(), stocks)
 
     tick_data = [TickModel(**tick) for tick in tick_data]
     TickModel.objects.insert(tick_data)

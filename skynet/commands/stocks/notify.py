@@ -15,33 +15,6 @@ import utils
 
 def notify(interaction):
     def create():
-        a = {
-            "app_permissions": "4398046511103",
-            "application_id": "979105784627593266",
-            "channel_id": "701115188933296225",
-            "data": {
-                "id": "1056377273357447198",
-                "name": "stocks",
-                "options": [
-                    {
-                        "name": "notify",
-                        "options": [
-                            {
-                                "name": "create",
-                                "options": [
-                                    {"name": "stock", "type": 3, "value": "FHG"},
-                                    {"name": "price", "type": 10, "value": 1.0},
-                                ],
-                                "type": 1,
-                            }
-                        ],
-                        "type": 2,
-                    }
-                ],
-                "type": 1,
-            },
-        }
-
         stock = utils.find_list(subcommand_data, "name", "stock")
         price = utils.find_list(subcommand_data, "name", "price")
         equality = utils.find_list(subcommand_data, "name", "equality")
@@ -115,6 +88,19 @@ def notify(interaction):
                         {
                             "title": "Verification Required",
                             "description": "Verification is required for private notifications.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ]
+                },
+            }
+        elif not private and "member" not in interaction:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Illegal Command Input",
+                            "description": "The command must be run in a server for a channel to be passed.",
                             "color": SKYNET_ERROR,
                         }
                     ]

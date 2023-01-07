@@ -5,6 +5,7 @@
 
 import random
 
+from bson.objectid import ObjectId
 import mongoengine.queryset
 from mongoengine.queryset.visitor import Q
 
@@ -245,7 +246,7 @@ def notify(interaction):
         if notification_id.lower() == "all":
             notifications = NotificationModel.objects(invoker=user.tid)
         else:
-            notifications = NotificationModel.objects(Q(_id=notification_id) & Q(invoker=user.tid))
+            notifications = NotificationModel.objects(Q(_id=ObjectId(notification_id)) & Q(invoker=user.tid))
 
         if notifications.count() == 0:
             return {

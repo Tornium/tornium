@@ -118,7 +118,8 @@ def fetch_stock_ticks():
                         },
                         {
                             "name": "Target Price",
-                            "value": f"${utils.commas(notification.target)}"
+                            "value": f"${utils.commas(notification.target)}",
+                            "inline": True,
                         },
                         {
                             "name": "Current Price",

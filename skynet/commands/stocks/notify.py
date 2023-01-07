@@ -5,10 +5,13 @@
 
 import random
 
+import mongoengine.queryset
+from mongoengine.queryset.visitor import Q
+
 from models.notificationmodel import NotificationModel
 from models.usermodel import UserModel
 import redisdb
-from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD
+from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 import tasks
 import utils
 
@@ -31,7 +34,8 @@ def notify(interaction):
                             "description": "A stock, stock price, and equality must be provided.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -59,7 +63,8 @@ def notify(interaction):
                             "description": "The stock price must be greater than zero.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
         if not private and channel is None:
@@ -72,7 +77,8 @@ def notify(interaction):
                             "description": "The notification can not be public without a channel provided.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
         elif private and user.discord_id == 0:
@@ -85,7 +91,8 @@ def notify(interaction):
                             "description": "Verification is required for private notifications.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
         elif not private and "member" not in interaction:
@@ -98,7 +105,8 @@ def notify(interaction):
                             "description": "The command must be run in a server for a channel to be passed.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -115,7 +123,8 @@ def notify(interaction):
                             "bit. If this issue keeps occurring, please report it to the developer.",
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
         elif stock not in stocks.values():
@@ -128,7 +137,8 @@ def notify(interaction):
                             "description": f'"{stock}" does not match a stock acronym in the cache.',
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
 
@@ -144,7 +154,8 @@ def notify(interaction):
                             "description": f'"{stock}" does not match a stock acronym in the cache.',
                             "color": SKYNET_ERROR,
                         }
-                    ]
+                    ],
+                    "flags": 64,  # Ephemeral
                 },
             }
         else:
@@ -204,20 +215,83 @@ def notify(interaction):
                         },
                     }
                 ],
+                "flags": 64,  # Ephemeral
             },
         }
 
     def delete():
+        notification_id = utils.find_list(subcommand_data, "name", "notification")
+
+        if notification_id == -1:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Not Yet Implemented",
+                            "description": "This feature has not been implemented yet. Use `all` to delete all "
+                                           "notifications or use `/stocks notify list` to show the ID from which to "
+                                           "delete.",
+                            "color": SKYNET_INFO,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                }
+            }
+
+        notification_id = notification_id[1]["value"]
+        notifications: mongoengine.queryset.QuerySet
+
+        if notification_id.lower() == "all":
+            notifications = NotificationModel.objects(invoker=user.tid)
+        else:
+            notifications = NotificationModel.objects(Q(_id=notification_id) & Q(invoker=user.tid))
+
+        if notifications.count() == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Notification Query Failed",
+                            "description": "No notifications could be located with the passed parameters.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                }
+            }
+
+        notification: NotificationModel
+        for notification in notifications:
+            notification.delete()
+
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Sub-Command Not Implemented",
-                        "description": "This command hasn't been implemented yet.",
+                        "title": "Notifications Deleted",
+                        "description": f"{notifications.count()} matching notifications found and deleted.",
+                        "color": SKYNET_GOOD,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
+
+    def list():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Command Not Yet Implemented",
+                        "description": "This command is currently under construction.",
                         "color": SKYNET_ERROR,
                     }
-                ]
+                ],
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -352,6 +426,8 @@ def notify(interaction):
         return create()
     elif subcommand == "delete":
         return delete()
+    elif subcommand == "list":
+        return list()
     else:
         return {
             "type": 4,
@@ -362,6 +438,7 @@ def notify(interaction):
                         "description": "This command does not exist.",
                         "color": SKYNET_ERROR,
                     }
-                ]
+                ],
+                "flags": 64,  # Ephemeral
             },
         }

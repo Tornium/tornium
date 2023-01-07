@@ -34,7 +34,22 @@ def notify(interaction):
                     ]
                 },
             }
-        elif price <= 0:
+
+        stock = stock[1]["value"]
+        price = price[1]["value"]
+        equality = equality[1]["value"]
+
+        if private == -1:
+            private = True
+        else:
+            private = private[1]["value"]
+
+        if channel == -1:
+            channel = None
+        else:
+            channel = channel[1]["value"]
+
+        if price <= 0:
             return {
                 "type": 4,
                 "data": {
@@ -47,26 +62,6 @@ def notify(interaction):
                     ]
                 },
             }
-
-        stock = stock[1]["value"]
-        price = price[1]["value"]
-        equality = equality[1]["value"]
-
-        if private == -1:
-            private = False
-        else:
-            private = private[1]["value"]
-
-        if channel == -1:
-            channel = None
-        else:
-            channel = channel[1]["value"]
-
-        if equality == -1:
-            equality = "="
-        else:
-            equality = equality[1]["value"]
-
         if not private and channel is None:
             return {
                 "type": 4,
@@ -107,8 +102,7 @@ def notify(interaction):
                 },
             }
 
-        client = redisdb.get_redis()
-        stocks = client.get("tornium:stocks")
+        stocks: dict = redisdb.get_redis().json().get("tornium:stocks")
 
         if stocks is None:
             return {
@@ -124,7 +118,7 @@ def notify(interaction):
                     ]
                 },
             }
-        elif stock not in stocks:
+        elif stock not in stocks.values():
             return {
                 "type": 4,
                 "data": {
@@ -138,58 +132,79 @@ def notify(interaction):
                 },
             }
 
+        stock_id = [a for a, value in stocks.items() if value == stock]
+
+        if len(stock_id) != 1 or not stock_id[0].isdigit():
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Unknown Stock Acronym",
+                            "description": f'"{stock}" does not match a stock acronym in the cache.',
+                            "color": SKYNET_ERROR,
+                        }
+                    ]
+                },
+            }
+        else:
+            stock_id = int(stock_id[0])
+
         notification = NotificationModel(
             invoker=user.tid,
             time_created=utils.now(),
             recipient=user.discord_id if private else channel,
             recipient_type=int(not private),
             ntype=0,
-            target=stock,
+            target=stock_id,
             persistent=False,
             value=price,
             options={"equality": equality},
-        )
+        ).save()
 
         return {
             "type": 4,
-            "data": [
-                {
-                    "embeds": [
-                        {
-                            "title": "Notification Created",
-                            "description": "A stock notification has been created with the following configuration.",
-                            "fields": [
-                                {
-                                    "name": "Private",
-                                    "value": not bool(notification.recipient_type),
-                                },
-                                {
-                                    "name": "Target Channel",
-                                    "value": f"<#{notification.recipient}>"
-                                    if notification.recipient_type == 1
-                                    else "Direct Message",
-                                },
-                                {
-                                    "name": "Stock",
-                                    "value": notification.target,
-                                },
-                                {
-                                    "name": "Stock Price",
-                                    "value": notification.value,
-                                },
-                                {
-                                    "name": "Equality",
-                                    "value": notification.options["equality"],
-                                },
-                            ],
-                            "color": SKYNET_GOOD,
-                            "footer": {
-                                "text": f"DB ID: {notification.id}",
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Stock Notification Created",
+                        "description": "A stock notification has been created with the following configuration.",
+                        "color": SKYNET_GOOD,
+                        "fields": [
+                            {
+                                "name": "Private",
+                                "value": not bool(notification.recipient_type),
+                                "inline": True,
                             },
-                        }
-                    ]
-                }
-            ],
+                            {
+                                "name": "Target Channel",
+                                "value": f"<#{notification.recipient}>"
+                                if notification.recipient_type == 1
+                                else "Direct Message",
+                                "inline": True,
+                            },
+                            {
+                                "name": "Stock",
+                                "value": stock,
+                                "inline": True,
+                            },
+                            {
+                                "name": "Stock Price",
+                                "value": f"${utils.commas(price)}",
+                                "inline": True,
+                            },
+                            {
+                                "name": "Equality",
+                                "value": equality,
+                                "inline": True,
+                            },
+                        ],
+                        "footer": {
+                            "text": f"DB ID: {notification.id}",
+                        },
+                    }
+                ],
+            },
         }
 
     def delete():
@@ -316,8 +331,8 @@ def notify(interaction):
         }
 
     try:
-        subcommand = interaction["data"]["options"]["options"]["name"]
-        subcommand_data = interaction["data"]["options"]["options"]["options"]
+        subcommand = interaction["data"]["options"][0]["options"][0]["name"]
+        subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
     except Exception:
         return {
             "type": 4,

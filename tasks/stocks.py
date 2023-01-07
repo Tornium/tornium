@@ -144,7 +144,7 @@ def fetch_stock_ticks():
         if notification.recipient_type == 0:
             try:
                 dm_channel = discordpost(
-                    "users/@me/channel",
+                    "users/@me/channels",
                     payload={
                         "recipient_id": notification.recipient,
                     },

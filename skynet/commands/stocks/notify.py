@@ -262,6 +262,8 @@ def notify(interaction):
                     "flags": 64,  # Ephemeral
                 }
             }
+        else:
+            notification_count = notifications.count()
 
         notification: NotificationModel
         for notification in notifications:
@@ -273,7 +275,7 @@ def notify(interaction):
                 "embeds": [
                     {
                         "title": "Notifications Deleted",
-                        "description": f"{notifications.count()} matching notifications found and deleted.",
+                        "description": f"{notification_count} matching notifications found and deleted.",
                         "color": SKYNET_GOOD,
                     }
                 ],

@@ -134,9 +134,11 @@ def fetch_stock_ticks():
         elif notification.options.get("equality") == "<" and target_stock["current_price"] < notification.target:
             payload["embeds"][0]["title"] = "Below Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_ERROR
-        else:
+        elif notification.options.get("equality") == "=" and target_stock["current_price"] == notification.target:
             payload["embeds"][0]["title"] = "Reached Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
+        else:
+            continue
 
         if payload is None:
             continue
@@ -158,4 +160,7 @@ def fetch_stock_ticks():
         elif notification.recipient_type == 1:
             discordpost.delay(f"channels/{notification.recipient}/messages", payload=payload)
         else:
-            return
+            continue
+
+        if not notification.persistent:
+            notification.delete()

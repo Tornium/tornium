@@ -250,7 +250,9 @@ def first(array):
     return None if len(array) == 0 else array[0]
 
 
-def commas(number):
+def commas(number, stock_price=False):
+    if stock_price:
+        return "{:,.2f}".format(number)
     return "{:,}".format(number)
 
 

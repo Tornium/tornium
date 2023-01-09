@@ -101,13 +101,8 @@ def get_faction_keys(interaction, faction=None):
 
 
 def invoker_exists(f):
-    @wraps
-    def wrapper(*args, **kwargs):
-        interaction = kwargs.get("interaction")
-
-        if interaction is None:
-            return f(*args, **kwargs)
-
+    @wraps(f)
+    def wrapper(interaction, *args, **kwargs):
         if "member" in interaction:
             user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
             discord_id = interaction["member"]["user"]["id"]
@@ -118,7 +113,7 @@ def invoker_exists(f):
         if user is not None and user.tid != 0:
             kwargs["invoker"] = user
             kwargs["admin_keys"] = None
-            return f(*args, **kwargs)
+            return f(interaction, *args, **kwargs)
 
         kwargs["admin_keys"] = get_admin_keys(interaction)
 
@@ -205,6 +200,6 @@ def invoker_exists(f):
             }
 
         kwargs["invoker"] = user
-        return f(*args, **kwargs)
+        return f(interaction, *args, **kwargs)
 
     return wrapper

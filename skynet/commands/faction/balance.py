@@ -35,12 +35,12 @@ def balance(interaction, *args, **kwargs):
                             {
                                 "title": "Verification Incomplete",
                                 "description": "This member could not be located in the database. Run `/verify` on the "
-                                               "specified member. Inline verification is under construction currently.",
+                                "specified member. Inline verification is under construction currently.",
                                 "color": SKYNET_ERROR,
                             }
                         ],
                         "flags": 64,  # Ephemeral
-                    }
+                    },
                 }
 
     admin_keys = kwargs.get("admin_keys")
@@ -113,7 +113,7 @@ def balance(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     faction = Faction(user.factiontid)

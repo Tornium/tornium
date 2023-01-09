@@ -15,18 +15,15 @@ from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, get_admin_keys
+from skynet.skyutils import SKYNET_ERROR, get_admin_keys, invoker_exists
 
 
-def assist(interaction):
+@invoker_exists
+def assist(interaction, *args, **kwargs):
     print(interaction)
 
     start_time = time.time()
-
-    if "member" in interaction:
-        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+    user: UserModel = kwargs["invoker"]
 
     if "options" not in interaction["data"]:
         return {
@@ -63,7 +60,7 @@ def assist(interaction):
     elif tid != -1:
         target: User = User(tid[1]["value"])
     elif url != -1:
-        # https://www.torn.com/loader.php?sid=attack&user2ID=1009878
+        # https://www.torn.com/loader.php?sid=attack&user2ID=1
         parsed_url = urlparse(url[1]["value"])
 
         if (
@@ -102,7 +99,10 @@ def assist(interaction):
         }
 
     if user.key != "" or "guild_id" in interaction:
-        keys = get_admin_keys(interaction)
+        keys = kwargs.get("admin_keys")
+
+        if keys is None:
+            keys = get_admin_keys(interaction)
 
         if len(keys) == 0:
             return {
@@ -172,7 +172,6 @@ def assist(interaction):
         }
 
     target_faction: FactionModel = FactionModel.objects(tid=target.factiontid).first()
-
     servers_forwarded = []
 
     server: ServerModel

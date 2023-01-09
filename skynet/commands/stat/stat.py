@@ -16,13 +16,11 @@ from models.user import User
 from models.usermodel import UserModel
 
 
-def stat(interaction):
+@skynet.skyutils.invoker_exists
+def stat(interaction, *args, **kwargs):
     print(interaction)
 
-    if "member" in interaction:
-        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+    user = kwargs["invoker"]
 
     if "options" not in interaction["data"]:
         return {
@@ -57,7 +55,26 @@ def stat(interaction):
             },
         }
 
-    admin_keys = skynet.skyutils.get_admin_keys(interaction)
+    admin_keys = kwargs.get("admin_keys")
+
+    if admin_keys is None:
+        admin_keys = skynet.skyutils.get_admin_keys(interaction)
+
+    if len(admin_keys) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No API Keys",
+                        "description": "No API keys were found to be run for this command. Please sign into "
+                        "Tornium or run this command in a server with signed-in admins.",
+                        "color": skynet.skyutils.SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     if user is None:
         try:

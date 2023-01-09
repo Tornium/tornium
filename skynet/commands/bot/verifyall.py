@@ -12,10 +12,11 @@ import utils
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys
+from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys, invoker_exists
 
 
-def verifyall(interaction):
+@invoker_exists
+def verifyall(interaction, *args, **kwargs):
     print(interaction)
 
     if "guild_id" not in interaction:
@@ -64,13 +65,30 @@ def verifyall(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
+    elif kwargs["invoker"].tid not in server.admins:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only server admins are allowed to run this command",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     if "options" in interaction["data"]:
         force = utils.find_list(interaction["data"]["options"], "name", "force")
     else:
         force = -1
 
-    admin_keys = get_admin_keys(interaction)
+    admin_keys = kwargs.get("admin_keys")
+
+    if admin_keys is None:
+        admin_keys = get_admin_keys(interaction)
 
     if len(admin_keys) == 0:
         return {

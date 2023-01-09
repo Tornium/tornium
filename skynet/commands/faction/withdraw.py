@@ -14,11 +14,13 @@ from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-from skynet.skyutils import SKYNET_ERROR, get_admin_keys, get_faction_keys
+from skynet.skyutils import SKYNET_ERROR, get_admin_keys, get_faction_keys, invoker_exists
 
 
-def withdraw(interaction):
+@invoker_exists
+def withdraw(interaction, *args, **kwargs):
     print(interaction)
+
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -33,12 +35,9 @@ def withdraw(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    server = Server(interaction["guild_id"])
 
-    if "member" in interaction:
-        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+    server = Server(interaction["guild_id"])
+    user: UserModel = kwargs["invoker"]
 
     if "options" not in interaction["data"]:
         return {
@@ -83,7 +82,10 @@ def withdraw(interaction):
             },
         }
 
-    admin_keys = get_admin_keys(interaction)
+    admin_keys = kwargs.get("admin_keys")
+
+    if admin_keys is None:
+        admin_keys = get_admin_keys(interaction)
 
     if len(admin_keys) == 0:
         return {
@@ -94,92 +96,6 @@ def withdraw(interaction):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    if user is None:
-        try:
-            user_data = tasks.tornget(
-                f"user/{interaction['member']['user']['id']}?selections=profile,discord",
-                random.choice(admin_keys),
-            )
-        except utils.TornError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Torn API Error",
-                            "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-        except utils.NetworkingError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
-        user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
-            upsert=True,
-            new=True,
-            set__name=user_data["name"],
-            set__level=user_data["level"],
-            set__last_refresh=utils.now(),
-            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
-            set__factionid=user_data["faction"]["faction_id"],
-            set__status=user_data["last_action"]["status"],
-            set__last_action=user_data["last_action"]["timestamp"],
-        )
-
-        if user.discord_id == 0:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "User Requires Verification",
-                            "description": "You are required to be verified officially by Torn through the "
-                            "[official Torn Discord server](https://www.torn.com/discord] before being "
-                            "able to utilize the banking features of this bot. Alternatively, you can "
-                            "sign into [the web dashboard](https://tornium.com/faction/banking) with "
-                            "your API key to send a request without verifying. If you have recently "
-                            "verified yourself, please wait a minute or two before trying again.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-    elif user.tid == 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "User Requires Verification",
-                        "description": "You are required to be verified officially by Torn through the "
-                        "[official Torn Discord server](https://www.torn.com/discord] before being "
-                        "able to utilize the banking features of this bot. Alternatively, you can "
-                        "sign into [the web dashboard](https://tornium.com/faction/banking) with "
-                        "your API key to send a request without verifying. If you have recently "
-                        "verified yourself, please wait a minute or two before trying again.",
                         "color": SKYNET_ERROR,
                     }
                 ],

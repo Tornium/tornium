@@ -224,7 +224,7 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
     if client is None:
         client = redisdb.get_redis()
     else:
-        assert client.ping()
+        assert client.ping()  # nosec B101
 
     return {
         "X-RateLimit-Limit": 250,

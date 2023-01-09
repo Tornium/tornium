@@ -13,5 +13,5 @@ def get_redis():
 
     if not redis_client:
         redis_client = redis.Redis(host="localhost", port=6379, charset="utf-8", decode_responses=True)
-    assert redis_client.ping()
+    assert redis_client.ping()  # nosec B101
     return redis_client

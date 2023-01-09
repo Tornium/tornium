@@ -55,7 +55,7 @@ def who(interaction):
         # TODO: Verify that mentioned user is not a bot
 
         try:
-            user_data = update_user(
+            update_user(
                 key=random.choice(admin_keys),
                 discordid=member[1]["value"] if member != 1 else tid[1]["value"],
                 refresh_existing=True,
@@ -190,7 +190,7 @@ def who(interaction):
             }
 
         try:
-            user_data = update_user(key=user.key, tid=user.tid, refresh_existing=True)
+            update_user(key=user.key, tid=user.tid, refresh_existing=True)
         except utils.TornError as e:
             return {
                 "type": 4,
@@ -290,13 +290,13 @@ def who(interaction):
                             "type": 2,
                             "style": 5,
                             "label": "Attack Link",
-                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={user.tid}",  # TODO: Update link
+                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={user.tid}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={user.factionid}#/",  # TODO: Update link
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={user.factionid}#/",
                         },
                         {
                             "type": 2,

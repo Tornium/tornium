@@ -135,7 +135,8 @@ def refresh_users():
 
 
 # @celery_app.task
-# def fetch_attacks_users():  # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
+# def fetch_attacks_users():
+#     # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
 #     requests_session = requests.Session()
 #
 #     try:

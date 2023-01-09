@@ -203,7 +203,8 @@ def stat(interaction):
                 "embeds": [
                     {
                         "title": "User Not Located",
-                        "description": "The specified user could not be found with your permissions in the stat database.",
+                        "description": "The specified user could not be found with your permissions in the stat "
+                        "database.",
                         "color": skynet.skyutils.SKYNET_ERROR,
                     }
                 ]

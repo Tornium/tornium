@@ -206,7 +206,7 @@ def fulfill_command(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -241,7 +241,7 @@ def fulfill_command(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -276,7 +276,8 @@ def fulfill_command(interaction):
                 "embeds": [
                     {
                         "title": "Illegal Parameter Value",
-                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
+                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an "
+                        "integer.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -615,7 +616,7 @@ def fulfill_button(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -650,7 +651,7 @@ def fulfill_button(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,

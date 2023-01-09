@@ -264,13 +264,7 @@ def verify(interaction):
 
     if server.verify_template != "":
         nick = (
-            jinja2.Environment(
-                autoescape=jinja2.select_autoescape(
-                    enabled_extensions=(".txt"),
-                    default_for_string=True,
-                    default=True,
-                )
-            )
+            jinja2.Environment(autoescape=True)
             .from_string(server.verify_template)
             .render(name=user.name, tid=user.tid, tag="")
         )

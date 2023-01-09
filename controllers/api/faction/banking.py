@@ -169,8 +169,8 @@ def banking_request(*args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Vault Request #{request_id}",
-                        "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} in cash from the "
-                        f"faction vault. "
+                        "description": f"{user.name} [{user.tid}] is requesting {utils.commas(amount_requested)} in "
+                        f"cash from the faction vault. "
                         f"To fulfill this request, enter `?f {request_id}` in this channel.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                     }

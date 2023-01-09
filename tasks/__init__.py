@@ -16,7 +16,6 @@ import datetime
 import logging
 import json
 import math
-import sys
 import time
 
 from celery import Celery
@@ -46,8 +45,8 @@ if not hasattr(sys, "_called_from_test"):
 
 FORMAT = (
     "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-    "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
-    "- %(message)s"
+    "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%"
+    "(dd.span_id)s] - %(message)s"
 )
 
 celery_app: Celery = None
@@ -395,7 +394,8 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
+            f"to {url})."
         )
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
@@ -506,7 +506,8 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
+            f"to {url})."
         )
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
@@ -617,7 +618,8 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
+            f"to {url})."
         )
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
@@ -728,7 +730,8 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
+            f"to {url})."
         )
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])
@@ -839,7 +842,8 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
         # explanations
 
         logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} to {url}).'
+            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
+            f"to {url})."
         )
         logger.info(request_json)
         raise DiscordError(code=request_json["code"], message=request_json["message"])

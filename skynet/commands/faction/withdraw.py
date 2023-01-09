@@ -279,7 +279,7 @@ def withdraw(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -299,7 +299,7 @@ def withdraw(interaction):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configration and to the "
+                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
                         f"server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -410,7 +410,8 @@ def withdraw(interaction):
                 "embeds": [
                     {
                         "title": "Not Enough",
-                        "description": "You have requested all of your currency, but have zero or a negative vault balance.",
+                        "description": "You have requested all of your currency, but have zero or a negative vault "
+                        "balance.",
                         "color": SKYNET_ERROR,
                     }
                 ],

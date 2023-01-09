@@ -206,7 +206,7 @@ def chain(interaction):
         )
 
     if stat_entries.count() == 0:
-        response = tasks.discordpatch(
+        tasks.discordpatch(
             f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={
                 "embeds": [

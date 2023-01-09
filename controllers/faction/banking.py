@@ -163,9 +163,15 @@ def userbankingdata():
 def fulfill(wid: int):
     withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=wid).first()
     if withdrawal.wtype in [0, None]:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&money={withdrawal.amount}"
+        send_link = (
+            f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo="
+            f"{withdrawal.requester}&money={withdrawal.amount}"
+        )
     else:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo={withdrawal.requester}&points={withdrawal.amount}"
+        send_link = (
+            f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo="
+            f"{withdrawal.requester}&points={withdrawal.amount}"
+        )
 
     if withdrawal is None:
         return (
@@ -209,7 +215,8 @@ def fulfill(wid: int):
             render_template(
                 "errors/error.html",
                 title="Missing Configuration",
-                error="The server's vault configuration is not properly set. Please contact a server administrator or faction AA member to do so.",
+                error="The server's vault configuration is not properly set. Please contact a server administrator or "
+                "faction AA member to do so.",
             ),
             400,
         )
@@ -242,7 +249,7 @@ def fulfill(wid: int):
         )
 
     try:
-        message = tasks.discordpatch(
+        tasks.discordpatch(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
                 "embeds": [

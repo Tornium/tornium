@@ -241,7 +241,8 @@ def verifyall(interaction):
                                         if "nick" in guild_member
                                         else guild_member["user"]["username"],
                                         "url": f"https://discordapp.com/users/{guild_member['user']['id']}",
-                                        "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/{guild_member['user']['avatar']}.webp",
+                                        "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/"
+                                        f"{guild_member['user']['avatar']}.webp",
                                     },
                                 }
                             ]
@@ -315,7 +316,8 @@ def verifyall(interaction):
                                 if "nick" in guild_member
                                 else guild_member["user"]["username"],
                                 "url": f"https://discordapp.com/users/{guild_member['user']['id']}",
-                                "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/{guild_member['user']['avatar']}.webp",
+                                "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/"
+                                f"{guild_member['user']['avatar']}.webp",
                             },
                         }
                     ]
@@ -352,7 +354,8 @@ def verifyall(interaction):
                                 if "nick" in guild_member
                                 else guild_member["user"]["username"],
                                 "url": f"https://discordapp.com/users/{guild_member['user']['id']}",
-                                "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/{guild_member['user']['avatar']}.webp",
+                                "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/"
+                                f"{guild_member['user']['avatar']}.webp",
                             },
                         }
                     ]
@@ -371,13 +374,7 @@ def verifyall(interaction):
 
             if server.verify_template != "":
                 nick = (
-                    jinja2.Environment(
-                        autoescape=jinja2.select_autoescape(
-                            enabled_extensions=(".txt"),
-                            default_for_string=True,
-                            default=True,
-                        )
-                    )
+                    jinja2.Environment(autoescape=True)
                     .from_string(server.verify_template)
                     .render(name=user.name, tid=user.tid, tag="")
                 )
@@ -453,7 +450,8 @@ def verifyall(interaction):
                             if "nick" in guild_member
                             else guild_member["user"]["username"],
                             "url": f"https://discordapp.com/users/{guild_member['user']['id']}",
-                            "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/{guild_member['user']['avatar']}.webp",
+                            "icon_url": f"https://cdn.discordapp.com/avatars/{guild_member['user']['id']}/"
+                            f"{guild_member['user']['avatar']}.webp",
                         },
                     }
                 ]

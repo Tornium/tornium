@@ -271,7 +271,8 @@ def balance(interaction):
         "data": {
             "embeds": [
                 {
-                    "title": f"Vault Balance of {user.name if user.name != '' else interaction['member']['user']['username']}",
+                    "title": f"Vault Balance of "
+                    f"{user.name if user.name != '' else interaction['member']['user']['username']}",
                     "fields": [
                         {
                             "name": "Cash Balance",

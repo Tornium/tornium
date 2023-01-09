@@ -128,7 +128,8 @@ def assist(interaction):
                 "embeds": [
                     {
                         "title": "Error",
-                        "description": "Unable to refresh target's data. Please sign into Tornium or run this in a server.",
+                        "description": "Unable to refresh target's data. Please sign into Tornium or run this in a "
+                        "server.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -143,7 +144,8 @@ def assist(interaction):
                 "embeds": [
                     {
                         "title": "Ratelimit Reached",
-                        "description": "You have reached the ratelimit for assist requests (once every thirty seconds).",
+                        "description": "You have reached the ratelimit for assist requests (once every thirty "
+                        "seconds).",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -186,7 +188,8 @@ def assist(interaction):
             "embeds": [
                 {
                     "title": "Assist Request",
-                    "description": f"An assist request has been forwarded to {server.name} by {user.name} [{user.tid}].",
+                    "description": f"An assist request has been forwarded to {server.name} by {user.name} "
+                    f"[{user.tid}].",
                     "fields": [
                         {
                             "name": "User",
@@ -279,7 +282,8 @@ def assist(interaction):
             "embeds": [
                 {
                     "title": "Assist Request Forwarded",
-                    "description": f"The assist request on [{target.name} [{target.tid}]](https://www.torn.com/profiles.php?XID={target.tid})",
+                    "description": f"The assist request on [{target.name} [{target.tid}]](https://www.torn.com/"
+                    f"profiles.php?XID={target.tid})",
                     "footer": {"text": f"Servers Forwarded: {len(servers_forwarded)}"},
                 }
             ],

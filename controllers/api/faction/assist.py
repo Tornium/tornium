@@ -62,7 +62,8 @@ def forward_assist(*args, **kwargs):
             "embeds": [
                 {
                     "title": "Assist Request",
-                    "description": f"An assist request has been forwarded to {server.name} by {user.name} [{user.tid}].",
+                    "description": f"An assist request has been forwarded to {server.name} by "
+                    f"{user.name} [{user.tid}].",
                     "fields": [
                         {
                             "name": "User",

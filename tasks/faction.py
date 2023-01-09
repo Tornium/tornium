@@ -306,8 +306,8 @@ def refresh_factions():
                                 "embeds": [
                                     {
                                         "title": "User Overdose",
-                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} of "
-                                        f"faction {faction.name} has overdosed.",
+                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                                        f"of faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
                                         "footer": {"text": utils.torn_timestamp()},
                                     }
@@ -343,8 +343,8 @@ def refresh_factions():
                                 "embeds": [
                                     {
                                         "title": "User Overdose",
-                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} of "
-                                        f"faction {faction.name} has overdosed.",
+                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                                        f"of faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
                                         "footer": {"text": utils.torn_timestamp()},
                                     }
@@ -388,7 +388,8 @@ def fetch_attacks_runner():
     if redis.exists("tornium:celery-lock:fetch-attacks"):  # Lock enabled
         logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
-            f"Can not run task as task is already being run. Try again in {redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
+            f"Can not run task as task is already being run. Try again in "
+            f"{redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
         )
 
     if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
@@ -522,7 +523,10 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         if attack["attacker_faction"] == 0:
             title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
         else:
-            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from {attack['attacker_factionname']} [{attack['attacker_faction']}]"
+            title = (
+                f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from "
+                f"{attack['attacker_factionname']} [{attack['attacker_faction']}]"
+            )
 
         fields = [
             {
@@ -606,7 +610,8 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             "embeds": [
                 {
                     "title": title,
-                    "description": f"{opponent.name} [{opponent.tid}] {attack['result'].lower()} {user.name} [{user.tid}] (-{attack['respect_loss']})",
+                    "description": f"{opponent.name} [{opponent.tid}] {attack['result'].lower()} {user.name} "
+                    f"[{user.tid}] (-{attack['respect_loss']})",
                     "fields": fields,
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                     "footer": {"text": utils.torn_timestamp()},
@@ -919,7 +924,8 @@ def oc_refresh():
                     "embeds": [
                         {
                             "title": f"OC of {faction.name} Delayed",
-                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed ({ready.count(True)}/{len(oc_data['participants'])}).""",
+                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
+                            f"({ready.count(True)}/{len(oc_data['participants'])}).",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                             "footer": {"text": f"#{oc_db.ocid}"},
                         }

@@ -69,8 +69,8 @@ def requires_scopes(func=None, scopes=None):
                     {
                         "code": 4004,
                         "name": "InsufficientPermissions",
-                        "message": "Server failed to fulfill the request. The scope of the Tornium key provided was not "
-                        "sufficient for the request.",
+                        "message": "Server failed to fulfill the request. The scope of the Tornium key provided was "
+                        "not sufficient for the request.",
                     }
                 ),
                 403,
@@ -108,8 +108,8 @@ def torn_key_required(func):
                     {
                         "code": 4003,
                         "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was not "
-                        '"Basic" and therefore invalid.',
+                        "message": "Server failed to authenticate the request. The provided authentication type was "
+                        'not "Basic" and therefore invalid.',
                     }
                 ),
                 401,
@@ -139,7 +139,8 @@ def torn_key_required(func):
                     {
                         "code": 4001,
                         "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was invalid.",
+                        "message": "Server failed to authenticate the request. The provided authentication code was "
+                        "invalid.",
                     }
                 ),
                 401,
@@ -177,8 +178,8 @@ def tornium_key_required(func):
                     {
                         "code": 4003,
                         "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was not "
-                        '"Basic" and therefore invalid.',
+                        "message": "Server failed to authenticate the request. The provided authentication type was "
+                        'not "Basic" and therefore invalid.',
                     }
                 ),
                 401,
@@ -208,7 +209,8 @@ def tornium_key_required(func):
                     {
                         "code": 4001,
                         "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was invalid.",
+                        "message": "Server failed to authenticate the request. The provided authentication code was "
+                        "invalid.",
                     }
                 ),
                 401,
@@ -246,8 +248,8 @@ def key_required(func):
                     {
                         "code": 4003,
                         "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was not "
-                        '"Basic" and therefore invalid.',
+                        "message": "Server failed to authenticate the request. The provided authentication type was "
+                        'not "Basic" and therefore invalid.',
                     }
                 ),
                 401,
@@ -288,7 +290,8 @@ def key_required(func):
                     {
                         "code": 4001,
                         "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was invalid.",
+                        "message": "Server failed to authenticate the request. The provided authentication code was "
+                        "invalid.",
                     }
                 ),
                 401,

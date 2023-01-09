@@ -63,7 +63,8 @@ def create_key(*args, **kwargs):
                     {
                         "code": 0,
                         "name": "InvalidScope",
-                        "message": "Server failed to create the key. The provided array of scopes included an invalid scope.",
+                        "message": "Server failed to create the key. The provided array of scopes included an invalid "
+                        "scope.",
                     }
                 ),
                 400,

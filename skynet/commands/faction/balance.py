@@ -17,25 +17,33 @@ from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys, get_facti
 def balance(interaction, *args, **kwargs):
     print(interaction)
 
+    user: UserModel = kwargs["invoker"]
+
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
 
         if member != -1:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Not Yet Implemented",
-                            "description": "The members option of balance has not yet been implemented.",
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
+            member_db: UserModel = UserModel.objects(discord_id=int(member[1]["value"])).first()
+
+            if member_db is not None and member_db.tid:
+                user = member_db
+            else:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Verification Incomplete",
+                                "description": "This member could not be located in the database. Run `/verify` on the "
+                                               "specified member. Inline verification is under construction currently.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,  # Ephemeral
+                    }
+                }
 
     admin_keys = kwargs.get("admin_keys")
-    user: UserModel = kwargs["invoker"]
 
     if admin_keys is None:
         admin_keys = get_admin_keys(interaction)
@@ -91,6 +99,21 @@ def balance(interaction, *args, **kwargs):
                 ],
                 "flags": 64,  # Ephemeral
             },
+        }
+
+    if user.factiontid != kwargs["invoker"].factionid or not kwargs["invoker"].factionaa:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "To check other members' balances, you must be an AA member of their faction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
         }
 
     faction = Faction(user.factiontid)

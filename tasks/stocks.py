@@ -113,7 +113,9 @@ def fetch_stock_ticks():
                     "fields": [
                         {
                             "name": "Original Price",
-                            "value": f"${utils.commas(stock_tick.price, stock_price=True)}" if stock_tick is not None else "Unknown",
+                            "value": f"${utils.commas(stock_tick.price, stock_price=True)}"
+                            if stock_tick is not None
+                            else "Unknown",
                             "inline": True,
                         },
                         {

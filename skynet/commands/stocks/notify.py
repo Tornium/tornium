@@ -231,13 +231,13 @@ def notify(interaction):
                         {
                             "title": "Not Yet Implemented",
                             "description": "This feature has not been implemented yet. Use `all` to delete all "
-                                           "notifications or use `/stocks notify list` to show the ID from which to "
-                                           "delete.",
+                            "notifications or use `/stocks notify list` to show the ID from which to "
+                            "delete.",
                             "color": SKYNET_INFO,
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
 
         notification_id = notification_id[1]["value"]
@@ -260,7 +260,7 @@ def notify(interaction):
                         }
                     ],
                     "flags": 64,  # Ephemeral
-                }
+                },
             }
         else:
             notification_count = notifications.count()
@@ -280,7 +280,7 @@ def notify(interaction):
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
 
     def list():

@@ -3,12 +3,10 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import Blueprint, request, redirect, render_template, abort, url_for
+from flask import Blueprint, request, redirect, render_template, url_for
 from flask_login import logout_user, login_user
-from is_safe_url import is_safe_url
 
 from models.user import User
-from redisdb import get_redis
 import tasks
 import utils
 
@@ -71,16 +69,6 @@ def login():
     login_user(user, remember=True)
 
     return redirect(url_for("baseroutes.index"))
-
-    next = request.args.get("next")
-
-    if next is None or next == "None":
-        return redirect(url_for("baseroutes.index"))
-
-    if not get_redis().get("tornium:settings:dev"):
-        if not is_safe_url(next, {"tornium.com"}):
-            abort(400)
-    return redirect(next or url_for("baseroutes.index"))
 
 
 @mod.route("/logout", methods=["POST"])

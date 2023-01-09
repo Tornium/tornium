@@ -6,22 +6,21 @@
 import json
 import logging
 
+import requests
 from flask import Blueprint, render_template, request
 from flask_login import login_required
-import requests
 
+import tasks
+import utils
 from controllers.decorators import admin_required
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from redisdb import get_redis
-import tasks
 from tasks import faction as factiontasks
 from tasks import guild as guildtasks
 from tasks import stakeouts as stakeouttasks
 from tasks import user as usertasks
-import utils
-
 
 mod = Blueprint("adminroutes", __name__)
 

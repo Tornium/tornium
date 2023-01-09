@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import Document, IntField, BooleanField, StringField, UUIDField
+from mongoengine import BooleanField, Document, IntField, StringField, UUIDField
 
 
 class PositionModel(Document):

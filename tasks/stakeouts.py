@@ -8,13 +8,13 @@ import random
 
 from mongoengine.queryset.visitor import Q
 
+import utils
 from models.factionmodel import FactionModel
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from models.userstakeoutmodel import UserStakeoutModel
 from tasks import celery_app, discordpost, logger, tornget
-import utils
 
 
 @celery_app.task

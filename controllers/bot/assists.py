@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import request, jsonify, redirect
+from flask import jsonify, redirect, request
 from flask_login import login_required
 
 from models.servermodel import ServerModel

@@ -26,7 +26,6 @@ from mongoengine import connect
 import settings  # Do not remove - initializes redis values
 from redisdb import get_redis
 
-
 redis = get_redis()
 
 if not hasattr(sys, "_called_from_test"):
@@ -38,17 +37,17 @@ if not hasattr(sys, "_called_from_test"):
         connect=False,
     )
 
+import utils
 from controllers import mod as base_mod
+from controllers.adminroutes import mod as admin_mod
+from controllers.api import mod as api_mod
 from controllers.authroutes import mod as auth_mod
-from controllers.faction import mod as faction_mod
 from controllers.bot import mod as bot_mod
 from controllers.errors import mod as error_mod
-from controllers.adminroutes import mod as admin_mod
+from controllers.faction import mod as faction_mod
 from controllers.statroutes import mod as stat_mod
-from controllers.api import mod as api_mod
 from controllers.torn import mod as torn_mod
 from skynet import mod as skynet_mod
-import utils
 
 FORMAT = (
     "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "

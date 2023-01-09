@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, DictField
+from mongoengine import DictField, DynamicDocument, IntField
 
 
 class FactionStakeoutModel(DynamicDocument):

@@ -6,16 +6,16 @@
 import datetime
 import random
 import time
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
+import redisdb
+import tasks
+import utils
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
-import redisdb
-from skynet.skyutils import get_admin_keys, SKYNET_ERROR
-import tasks
-import utils
+from skynet.skyutils import SKYNET_ERROR, get_admin_keys
 
 
 def assist(interaction):

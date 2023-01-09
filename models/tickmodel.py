@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import Document, IntField, FloatField, LongField
+from mongoengine import Document, FloatField, IntField, LongField
 
 
 class TickModel(Document):

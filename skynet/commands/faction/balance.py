@@ -5,12 +5,12 @@
 
 import random
 
+import tasks
+import utils
 from models.faction import Faction
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys, get_faction_keys, SKYNET_ERROR, SKYNET_GOOD
-import tasks
-import utils
+from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys, get_faction_keys
 
 
 def balance(interaction):

@@ -5,10 +5,12 @@
 
 import datetime
 
-from flask import render_template, request, redirect
+from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
+import tasks
+import utils
 from controllers.faction.decorators import aa_required
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
@@ -16,8 +18,6 @@ from models.servermodel import ServerModel
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-import tasks
-import utils
 from utils.errors import DiscordError
 
 

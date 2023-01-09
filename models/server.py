@@ -4,8 +4,8 @@
 # Written by tiksan <webmaster@deek.sh>
 import operator
 
-from models.servermodel import ServerModel
 import tasks
+from models.servermodel import ServerModel
 
 
 class Server:

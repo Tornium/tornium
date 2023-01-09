@@ -3,13 +3,12 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import Blueprint, request, redirect, render_template, url_for
-from flask_login import logout_user, login_user
+from flask import Blueprint, redirect, render_template, request, url_for
+from flask_login import login_user, logout_user
 
-from models.user import User
 import tasks
 import utils
-
+from models.user import User
 
 mod = Blueprint("authroutes", __name__)
 

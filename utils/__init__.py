@@ -4,9 +4,9 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
-from decimal import Decimal
 import logging
 import re
+from decimal import Decimal
 from typing import Union
 from urllib.parse import urlparse
 

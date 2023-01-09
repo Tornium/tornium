@@ -5,12 +5,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.api import bot
-from controllers.api import faction
-from controllers.api import key
-from controllers.api import stakeout
-from controllers.api import stat
-from controllers.api import user
+from controllers.api import bot, faction, key, stakeout, stat, user
 
 mod = Blueprint("apiroutes", __name__)
 

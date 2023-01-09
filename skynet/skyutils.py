@@ -6,11 +6,11 @@
 import flask
 from nacl.signing import VerifyKey
 
+import redisdb
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.server import Server
 from models.usermodel import UserModel
-import redisdb
 
 SKYNET_ERROR = 0xC83F49
 SKYNET_GOOD = 0x32CD32

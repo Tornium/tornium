@@ -3,8 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import Blueprint, render_template, request, jsonify
-
+from flask import Blueprint, jsonify, render_template, request
 
 mod = Blueprint("errors", __name__)
 

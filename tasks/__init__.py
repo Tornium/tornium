@@ -11,28 +11,21 @@ if not hasattr(sys, "_called_from_test"):
     patch_all(logging=True)
     import ddtrace.profiling.auto
 
-
 import datetime
-import logging
 import json
+import logging
 import math
 import time
 
+import requests
 from celery import Celery
 from celery.schedules import crontab
 from mongoengine import connect
 from redis.commands.json.path import Path
-import requests
 
 import settings  # Do not remove - initializes redis values
 from redisdb import get_redis
-from utils.errors import (
-    DiscordError,
-    MissingKeyError,
-    NetworkingError,
-    RatelimitError,
-    TornError,
-)
+from utils.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
 if not hasattr(sys, "_called_from_test"):
     connect(

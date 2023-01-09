@@ -8,15 +8,15 @@ import random
 import time
 
 import mongoengine
-from mongoengine.queryset.visitor import Q
 import requests
+from mongoengine.queryset.visitor import Q
 
-from models.statmodel import StatModel
-from models.user import User
-from models.usermodel import UserModel
 import skynet.skyutils
 import tasks
 import utils
+from models.statmodel import StatModel
+from models.user import User
+from models.usermodel import UserModel
 
 
 def chain(interaction):

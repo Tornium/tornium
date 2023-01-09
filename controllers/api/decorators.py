@@ -5,14 +5,14 @@
 
 import base64
 import datetime
-from functools import wraps, partial
 import time
+from functools import partial, wraps
 
 from flask import jsonify, request
 
+import redisdb
 from models.keymodel import KeyModel
 from models.usermodel import UserModel
-import redisdb
 
 
 def ratelimit(func):

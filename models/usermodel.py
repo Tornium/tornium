@@ -3,14 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import (
-    DynamicDocument,
-    IntField,
-    StringField,
-    BooleanField,
-    FloatField,
-    UUIDField,
-)
+from mongoengine import BooleanField, DynamicDocument, FloatField, IntField, StringField, UUIDField
 
 
 class UserModel(DynamicDocument):

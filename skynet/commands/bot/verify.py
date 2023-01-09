@@ -7,13 +7,13 @@ import random
 
 import jinja2
 
+import tasks
+import utils
 from models.factionmodel import FactionModel
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
-import tasks
-import utils
+from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO, get_admin_keys
 
 
 def verify(interaction):

@@ -8,10 +8,10 @@ import math
 from flask_login import UserMixin, current_user
 from mongoengine.queryset.visitor import Q
 
-from models.positionmodel import PositionModel
-from models.usermodel import UserModel
 import tasks
 import utils
+from models.positionmodel import PositionModel
+from models.usermodel import UserModel
 
 
 class User(UserMixin):

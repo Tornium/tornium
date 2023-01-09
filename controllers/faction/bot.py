@@ -3,16 +3,16 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request, flash
+from flask import flash, render_template, request
 from flask_login import current_user, login_required
 
+import tasks
+import utils
 from controllers.faction.decorators import aa_required, fac_required
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.server import Server
 from models.servermodel import ServerModel
-import tasks
-import utils
 
 
 @login_required

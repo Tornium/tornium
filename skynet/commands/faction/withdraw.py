@@ -6,15 +6,15 @@
 import datetime
 import random
 
+import redisdb
+import tasks
+import utils
 from models.faction import Faction
 from models.server import Server
 from models.user import User
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-import redisdb
-from skynet.skyutils import get_admin_keys, get_faction_keys, SKYNET_ERROR
-import tasks
-import utils
+from skynet.skyutils import SKYNET_ERROR, get_admin_keys, get_faction_keys
 
 
 def withdraw(interaction):

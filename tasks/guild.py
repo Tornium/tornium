@@ -5,11 +5,11 @@
 
 import requests
 
+import utils
 from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from tasks import celery_app, discordget, logger
-import utils
 
 
 @celery_app.task

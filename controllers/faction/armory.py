@@ -5,15 +5,15 @@
 
 import random
 
-from flask import render_template, request, abort
-from flask_login import login_required, current_user
+from flask import abort, render_template, request
+from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
+import utils
 from controllers.faction.decorators import fac_required
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
 from tasks import tornget
-import utils
 from utils.errors import TornError
 
 

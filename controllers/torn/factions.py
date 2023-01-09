@@ -3,15 +3,15 @@
 #  Proprietary and confidential
 #  Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, request, abort, jsonify
-from flask_login import login_required, current_user
+from flask import abort, jsonify, render_template, request
+from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
+import utils
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.user import User
 from models.usermodel import UserModel
-import utils
 
 
 @login_required

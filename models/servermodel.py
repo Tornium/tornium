@@ -3,14 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import (
-    DynamicDocument,
-    IntField,
-    StringField,
-    DictField,
-    ListField,
-    LongField,
-)
+from mongoengine import DictField, DynamicDocument, IntField, ListField, LongField, StringField
 
 
 class ServerModel(DynamicDocument):

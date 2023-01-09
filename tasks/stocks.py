@@ -9,13 +9,13 @@ import time
 
 from redis.commands.json.path import Path
 
+import redisdb
 import skynet.skyutils
+import utils
 from models.notificationmodel import NotificationModel
 from models.tickmodel import TickModel
 from models.usermodel import UserModel
-import redisdb
-from tasks import celery_app, logger, tornget, discordpost
-import utils
+from tasks import celery_app, discordpost, logger, tornget
 
 
 def _map_stock_image(acronym: str):

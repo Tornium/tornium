@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import Blueprint, render_template, send_from_directory, request
+from flask import Blueprint, render_template, request, send_from_directory
 from flask_login import login_required
 
 from controllers.decorators import admin_required

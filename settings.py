@@ -8,7 +8,6 @@ import os
 
 from redisdb import get_redis
 
-
 try:
     file = open("settings.json")
     file.close()

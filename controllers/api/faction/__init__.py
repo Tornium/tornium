@@ -3,9 +3,4 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from controllers.api.faction import (
-    assist,
-    banking,
-    chain,
-    positions,
-)
+from controllers.api.faction import assist, banking, chain, positions

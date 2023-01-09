@@ -9,12 +9,12 @@ import secrets
 
 from flask import jsonify, request
 
-from controllers.api.decorators import key_required, torn_key_required, ratelimit
+import redisdb
+import utils
+from controllers.api.decorators import key_required, ratelimit, torn_key_required
 from controllers.api.utils import make_exception_response
 from models.keymodel import KeyModel
 from models.user import User
-import redisdb
-import utils
 
 
 @key_required

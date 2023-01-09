@@ -7,13 +7,13 @@ import random
 
 from mongoengine.queryset.visitor import Q
 
+import skynet.skyutils
+import tasks
+import utils
 from models.faction import Faction
 from models.statmodel import StatModel
 from models.user import User
 from models.usermodel import UserModel
-import skynet.skyutils
-import tasks
-import utils
 
 
 def stat(interaction):

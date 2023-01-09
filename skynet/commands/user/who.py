@@ -5,11 +5,11 @@
 
 import random
 
+import utils
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
-from skynet.skyutils import get_admin_keys, SKYNET_ERROR, SKYNET_GOOD
+from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys
 from tasks.user import update_user
-import utils
 
 
 def who(interaction):

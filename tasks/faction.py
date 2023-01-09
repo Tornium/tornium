@@ -4,26 +4,26 @@
 # Written by tiksan <webmaster@deek.sh>
 
 import datetime
-from decimal import DivisionByZero
 import logging
 import math
 import random
 import uuid
+from decimal import DivisionByZero
 
 import mongoengine
-from mongoengine.queryset.visitor import Q
 import requests
+from mongoengine.queryset.visitor import Q
 
+import redisdb
+import utils
 from models.factionmodel import FactionModel
 from models.ocmodel import OCModel
 from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
-import redisdb
-from tasks import celery_app, discordpost, logger, tornget, torn_stats_get
+from tasks import celery_app, discordpost, logger, torn_stats_get, tornget
 from tasks.user import update_user
-import utils
 from utils.errors import NetworkingError, TornError
 
 logger: logging.Logger

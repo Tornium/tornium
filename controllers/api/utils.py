@@ -5,8 +5,8 @@
 
 import json
 
-from flask import Response
 import redis
+from flask import Response
 
 import redisdb
 

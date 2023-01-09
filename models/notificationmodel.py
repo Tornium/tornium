@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, BooleanField, DynamicField, DictField
+from mongoengine import BooleanField, DictField, DynamicDocument, DynamicField, IntField
 
 
 class NotificationModel(DynamicDocument):

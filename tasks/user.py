@@ -7,10 +7,10 @@ import math
 
 import requests
 
+import utils
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
 from tasks import celery_app, logger, tornget
-import utils
 
 
 @celery_app.task

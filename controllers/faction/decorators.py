@@ -8,8 +8,8 @@ from functools import wraps
 from flask import abort
 from flask_login import current_user
 
-from models.factionmodel import FactionModel
 import utils
+from models.factionmodel import FactionModel
 
 
 def aa_required(f):

@@ -5,7 +5,7 @@
 
 import logging
 
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, abort, jsonify, request
 from nacl.exceptions import BadSignatureError
 
 import skynet.commands

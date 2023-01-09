@@ -5,10 +5,10 @@
 
 from flask_login import current_user
 
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.userstakeoutmodel import UserStakeoutModel
 import tasks
 import utils
+from models.factionstakeoutmodel import FactionStakeoutModel
+from models.userstakeoutmodel import UserStakeoutModel
 
 
 class Stakeout:

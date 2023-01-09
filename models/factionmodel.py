@@ -3,13 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import (
-    DynamicDocument,
-    IntField,
-    StringField,
-    DictField,
-    ListField,
-)
+from mongoengine import DictField, DynamicDocument, IntField, ListField, StringField
 
 
 class FactionModel(DynamicDocument):

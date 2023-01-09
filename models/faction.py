@@ -8,12 +8,12 @@ import random
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
 
+import tasks
+import utils
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
 from models.server import Server
 from models.usermodel import UserModel
-import tasks
-import utils
 
 
 class Faction:

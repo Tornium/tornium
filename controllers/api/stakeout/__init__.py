@@ -8,6 +8,7 @@ import json
 
 from flask import jsonify, request
 
+import tasks
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionstakeoutmodel import FactionStakeoutModel
@@ -16,7 +17,6 @@ from models.servermodel import ServerModel
 from models.stakeout import Stakeout
 from models.user import User
 from models.userstakeoutmodel import UserStakeoutModel
-import tasks
 
 
 @key_required

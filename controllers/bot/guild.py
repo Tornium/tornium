@@ -3,8 +3,8 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from flask import render_template, abort, request, flash, redirect
-from flask_login import login_required, current_user
+from flask import abort, flash, redirect, render_template, request
+from flask_login import current_user, login_required
 
 from models.faction import Faction
 from models.server import Server

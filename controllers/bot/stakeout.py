@@ -6,17 +6,17 @@
 import datetime
 import json
 
-from flask import request, jsonify, render_template, redirect, flash
-from flask_login import login_required, current_user
+from flask import flash, jsonify, redirect, render_template, request
+from flask_login import current_user, login_required
 
+import tasks
+import utils
 from models.faction import Faction
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.server import Server
 from models.servermodel import ServerModel
 from models.stakeout import Stakeout
 from models.user import User
-import tasks
-import utils
 from models.userstakeoutmodel import UserStakeoutModel
 
 

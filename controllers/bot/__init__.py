@@ -6,11 +6,7 @@
 from flask import Blueprint, render_template
 from flask_login import login_required
 
-from controllers.bot import assists
-from controllers.bot import guild
-from controllers.bot import oc
-from controllers.bot import stakeout
-from controllers.bot import verify
+from controllers.bot import assists, guild, oc, stakeout, verify
 
 mod = Blueprint("botroutes", __name__)
 

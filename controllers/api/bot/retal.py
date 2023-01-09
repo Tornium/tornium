@@ -5,7 +5,7 @@
 
 import json
 
-from flask import request, jsonify
+from flask import jsonify, request
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response

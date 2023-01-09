@@ -9,15 +9,15 @@ import time
 
 from flask import jsonify, request
 
+import redisdb
+import tasks
+import utils
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
 from models.user import User
-import redisdb
-import tasks
-import utils
 
 
 @key_required

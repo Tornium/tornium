@@ -3,8 +3,8 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from contextlib import nullcontext
 import pickle
+from contextlib import nullcontext
 
 import pytest
 

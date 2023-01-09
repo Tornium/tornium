@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-from mongoengine import DynamicDocument, IntField, BooleanField
+from mongoengine import BooleanField, DynamicDocument, IntField
 
 
 class StatModel(DynamicDocument):

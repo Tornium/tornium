@@ -21,22 +21,24 @@ from tasks import celery_app, discordpost, logger, tornget
 def user_stakeouts():
     stakeout: UserStakeoutModel
     for stakeout in UserStakeoutModel.objects():
-        user_stakeout.delay(stakeout=stakeout.tid, stakeout_data=stakeout.to_json())
+        user_stakeout.delay(stakeout=stakeout.tid)
 
 
 @celery_app.task
 def faction_stakeouts():
     stakeout: FactionStakeoutModel
     for stakeout in FactionStakeoutModel.objects():
-        faction_stakeout.delay(stakeout=stakeout.tid, stakeout_data=stakeout.to_json())
+        faction_stakeout.delay(stakeout=stakeout.tid)
 
 
 @celery_app.task
 def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
-    if stakeout_data is None:
-        stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
-    else:
-        stakeout: UserStakeoutModel = UserStakeoutModel.from_json(stakeout_data)
+    stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
+
+    # if stakeout_data is None:
+    #     stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
+    # else:
+    #     stakeout: UserStakeoutModel = UserStakeoutModel.from_json(stakeout_data)
 
     if stakeout is None:
         return
@@ -306,10 +308,12 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
 
 @celery_app.task
 def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
-    if stakeout_data is None:
-        stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
-    else:
-        stakeout: FactionStakeoutModel = FactionStakeoutModel.from_json(stakeout_data)
+    stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
+
+    # if stakeout_data is None:
+    #     stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
+    # else:
+    #     stakeout: FactionStakeoutModel = FactionStakeoutModel.from_json(stakeout_data)
 
     if stakeout is None:
         return

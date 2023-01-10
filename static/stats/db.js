@@ -75,7 +75,7 @@ $(document).ready(function() {
                 "text": "Faction:"
             }));
 
-            if(user.faction) {
+            if(user.faction === null) {
                 $("#stat-modal-row-faction").append($("<div>", {
                     "class": "col-sm-6",
                     "text": `None`

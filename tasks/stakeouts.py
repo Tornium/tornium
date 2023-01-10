@@ -51,6 +51,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
             )
         else:
             if len(stakeout.guilds) == 0:
+                stakeout.delete()
                 return
 
             guild: ServerModel = ServerModel.objects(sid=int(random.choice(list(stakeout.guilds)))).first()
@@ -323,6 +324,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
             )
         else:
             if len(stakeout.guilds) == 0:
+                stakeout.delete()
                 return
 
             guild: ServerModel = ServerModel.objects(sid=int(random.choice(list(stakeout.guilds)))).first()

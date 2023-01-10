@@ -74,10 +74,18 @@ $(document).ready(function() {
                 "class": "col-sm-4",
                 "text": "Faction:"
             }));
-            $("#stat-modal-row-faction").append($("<div>", {
-                "class": "col-sm-6",
-                "text": `${user.faction.name} [${user.faction.tid}]`
-            }));
+
+            if(user.faction) {
+                $("#stat-modal-row-faction").append($("<div>", {
+                    "class": "col-sm-6",
+                    "text": `None`
+                }));
+            } else {
+                $("#stat-modal-row-faction").append($("<div>", {
+                    "class": "col-sm-6",
+                    "text": `${user.faction.name} [${user.faction.tid}]`
+                }));
+            }
 
             $("#stat-modal-body .container").append($("<div>", {
                 "class": "row",
@@ -186,7 +194,7 @@ $(document).ready(function() {
                     "title": tcttime(stat.timeadded)
                 }));
 
-                if(stat.addedid == 0 || stat.addedid == null) {
+                if(stat.addedid === 0 || stat.addedid == null) {
                     statRow.append($("<th>", {
                         "text": "Unknown User"
                     }));

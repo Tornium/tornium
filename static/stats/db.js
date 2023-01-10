@@ -194,7 +194,7 @@ $(document).ready(function() {
                     "title": tcttime(stat.timeadded)
                 }));
 
-                if(stat.addedid === 0 || stat.addedid == null) {
+                if(stat.addedid === 0 || stat.addedid == null || stat.addeduser == null) {
                     statRow.append($("<th>", {
                         "text": "Unknown User"
                     }));

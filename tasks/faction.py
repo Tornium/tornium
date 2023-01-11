@@ -717,7 +717,6 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         # Opponent: non-faction member regardless of attack or defend
 
         if attack["defender_faction"] == faction_data["ID"]:  # Defender fac is the fac making the call
-
             if attack["attacker_id"] in ("", 0):  # Attacker stealthed
                 continue
             elif attack["respect"] == 0:  # Attack by fac member
@@ -740,8 +739,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 logger.exception(e)
                 continue
 
-            # TODO: Update
-            if user_score > 100000 or user_score == 0:  # 100k old value
+            if user_score == 0:
                 continue
 
             opponent: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()

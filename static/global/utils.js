@@ -24,7 +24,7 @@ function commas(number) {
 
 
 function reltime(timestamp) {
-    delta = Date.now() / 1000 - timestamp;
+    let delta = Date.now() / 1000 - timestamp;
 
     if(delta < 60) {  // One minute
         return "Now";
@@ -34,7 +34,7 @@ function reltime(timestamp) {
         return Math.round(delta/3600) + " hours ago";
     } else if(delta < 2592000) {  // Thirty days
         return Math.round(delta/86400) + " days ago";
-    } else if(delta < 31104000) {  // Twleve months
+    } else if(delta < 31104000) {  // Twelve months
         return Math.round(delta/2592000) + " months ago";
     } else {
         return "A long time ago";
@@ -43,7 +43,7 @@ function reltime(timestamp) {
 
 
 function tcttime(timestamp) {
-    var tsAdded = new Date(timestamp * 1000);
-    tsAdded = `${("0" + tsAdded.getHours()).slice(-2)}:${("0" + tsAdded.getMinutes()).slice(-2)}:${("0" + tsAdded.getSeconds()).slice(-2)} - ${("0" + tsAdded.getDate()).slice(-2)}/${("0" + tsAdded.getMonth()).slice(-2)}/${tsAdded.getUTCFullYear()}`;
-    return tsAdded
+    let tsAdded = new Date(timestamp * 1000);
+    tsAdded = tsAdded.toUTCString();
+    return tsAdded.substring(0, tsAdded.length - 3) + "TCT"
 }

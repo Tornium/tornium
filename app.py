@@ -3,9 +3,16 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import importlib.util
 import sys
 
-if not hasattr(sys, "_called_from_test"):
+for module in "ddtrace":
+    try:
+        globals()[module] = bool(importlib.util.find_spec(module))
+    except (ValueError, ModuleNotFoundError):
+        globals()[module] = False
+
+if globals()["ddtrace"] and not hasattr(sys, "_called_from_test"):
     import ddtrace
 
     ddtrace.config.env = "prod"

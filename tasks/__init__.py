@@ -3,9 +3,19 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import importlib.util
 import sys
 
-if not hasattr(sys, "_called_from_test"):
+import orjson
+
+for module in ("ddtrace", "orjson"):
+    try:
+        globals()[module] = bool(importlib.util.find_spec(module))
+    except (ValueError, ModuleNotFoundError):
+        globals()[module] = False
+
+
+if globals()["ddtrace"] and not hasattr(sys, "_called_from_test"):
     from ddtrace import patch_all
 
     patch_all(logging=True)
@@ -44,10 +54,7 @@ FORMAT = (
 
 celery_app: Celery = None
 logger: logging.Logger = logging.getLogger("celeryerrors")
-if get_redis().get("dev"):
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename="celeryerrors.log", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
@@ -270,7 +277,10 @@ def tornget(
         logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
-    request = request.json()
+    if globals().get("orjson"):
+        request = orjson.loads(request.content)
+    else:
+        request = request.json()
 
     if "error" in request:
         logger.info(
@@ -372,7 +382,10 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
         )
 
     try:
-        request_json = request.json()
+        if globals().get("orjson"):
+            request_json = orjson.loads(request.content)
+        else:
+            request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -425,10 +438,15 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         else:
             raise RatelimitError()
 
-    if session is None:
-        request = requests.patch(url, headers=headers, data=json.dumps(payload))
+    if globals().get("orjson"):
+        payload = orjson.dumps(payload)
     else:
-        request = session.patch(url, headers=headers, data=json.dumps(payload))
+        payload = json.dumps(payload)
+
+    if session is None:
+        request = requests.patch(url, headers=headers, data=payload)
+    else:
+        request = session.patch(url, headers=headers, data=payload)
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
@@ -484,7 +502,10 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         )
 
     try:
-        request_json = request.json()
+        if globals().get("orjson"):
+            request_json = orjson.loads(request.content)
+        else:
+            request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -537,10 +558,15 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         else:
             raise RatelimitError()
 
-    if session is None:
-        request = requests.post(url, headers=headers, data=json.dumps(payload))
+    if globals().get("orjson"):
+        payload = orjson.dumps(payload)
     else:
-        request = session.post(url, headers=headers, data=json.dumps(payload))
+        payload = json.dumps(payload)
+
+    if session is None:
+        request = requests.post(url, headers=headers, data=payload)
+    else:
+        request = session.post(url, headers=headers, data=payload)
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
@@ -596,7 +622,10 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         )
 
     try:
-        request_json = request.json()
+        if globals().get("orjson"):
+            request_json = orjson.loads(request.content)
+        else:
+            request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -649,10 +678,15 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         else:
             raise RatelimitError()
 
-    if session is None:
-        request = requests.put(url, headers=headers, data=json.dumps(payload))
+    if globals().get("orjson"):
+        payload = orjson.dumps(payload)
     else:
-        request = session.put(url, headers=headers, data=json.dumps(payload))
+        payload = json.dumps(payload)
+
+    if session is None:
+        request = requests.put(url, headers=headers, data=payload)
+    else:
+        request = session.put(url, headers=headers, data=payload)
 
     if request.status_code == 429:
         logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
@@ -708,7 +742,10 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         )
 
     try:
-        request_json = request.json()
+        if globals().get("orjson"):
+            request_json = orjson.loads(request.content)
+        else:
+            request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -820,7 +857,10 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
         )
 
     try:
-        request_json = request.json()
+        if globals().get("orjson"):
+            request_json = orjson.loads(request.content)
+        else:
+            request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -879,5 +919,9 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
         )
         raise NetworkingError(code=request.status_code, url=url)
 
-    request = request.json()
+    if globals().get("orjson"):
+        request = orjson.loads(request.content)
+    else:
+        request = request.json()
+
     return request

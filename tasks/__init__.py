@@ -15,7 +15,7 @@ for module in ("ddtrace", "orjson"):
         globals()[module] = False
 
 
-if globals()["ddtrace"] and not hasattr(sys, "_called_from_test"):
+if globals().get("ddtrace") and not hasattr(sys, "_called_from_test"):
     from ddtrace import patch_all
 
     patch_all(logging=True)

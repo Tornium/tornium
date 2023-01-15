@@ -9,13 +9,13 @@ import sys
 # fmt: off
 for module in ("ddtrace"):
     try:
-        globals()[module] = bool(importlib.util.find_spec(module))
+        globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
     except (ValueError, ModuleNotFoundError):
-        globals()[module] = False
+        globals()[f"{module}:loaded"] = False
 
 # fmt: on
 
-if globals().get("ddtrace") and not hasattr(sys, "_called_from_test"):
+if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
     import ddtrace
 
     ddtrace.config.env = "prod"

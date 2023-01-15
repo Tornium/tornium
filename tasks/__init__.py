@@ -10,12 +10,12 @@ import orjson
 
 for module in ("ddtrace", "orjson"):
     try:
-        globals()[module] = bool(importlib.util.find_spec(module))
+        globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
     except (ValueError, ModuleNotFoundError):
-        globals()[module] = False
+        globals()[f"{module}:loaded"] = False
 
 
-if globals().get("ddtrace") and not hasattr(sys, "_called_from_test"):
+if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
     from ddtrace import patch_all
 
     patch_all(logging=True)
@@ -277,7 +277,7 @@ def tornget(
         logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
-    if globals().get("orjson"):
+    if globals().get("orjson:loaded"):
         request = orjson.loads(request.content)
     else:
         request = request.json()
@@ -382,7 +382,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
         )
 
     try:
-        if globals().get("orjson"):
+        if globals().get("orjson:loaded"):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
@@ -438,7 +438,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         else:
             raise RatelimitError()
 
-    if globals().get("orjson"):
+    if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
     else:
         payload = json.dumps(payload)
@@ -502,7 +502,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         )
 
     try:
-        if globals().get("orjson"):
+        if globals().get("orjson:loaded"):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
@@ -558,7 +558,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         else:
             raise RatelimitError()
 
-    if globals().get("orjson"):
+    if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
     else:
         payload = json.dumps(payload)
@@ -622,7 +622,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
         )
 
     try:
-        if globals().get("orjson"):
+        if globals().get("orjson:loaded"):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
@@ -678,7 +678,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         else:
             raise RatelimitError()
 
-    if globals().get("orjson"):
+    if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
     else:
         payload = json.dumps(payload)
@@ -742,7 +742,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
         )
 
     try:
-        if globals().get("orjson"):
+        if globals().get("orjson:loaded"):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
@@ -857,7 +857,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
         )
 
     try:
-        if globals().get("orjson"):
+        if globals().get("orjson:loaded"):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
@@ -919,7 +919,7 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
         )
         raise NetworkingError(code=request.status_code, url=url)
 
-    if globals().get("orjson"):
+    if globals().get("orjson:loaded"):
         request = orjson.loads(request.content)
     else:
         request = request.json()

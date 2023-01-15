@@ -269,12 +269,12 @@ def tornget(
             request = requests.get(url, timeout=5)
         else:
             request = session.get(url, timeout=5)
-    except requests.exceptions.Timeout as e:
-        logger.info(f"The Torn API has timed out on endpoint \"{endpoint}\"")
+    except requests.exceptions.Timeout:
+        logger.info(f'The Torn API has timed out on endpoint "{endpoint}"')
         raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
-        logger.warning(f"The Torn API has responded with status code {request.status_code} to endpoint \"{endpoint}\".")
+        logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
     if globals().get("orjson:loaded"):

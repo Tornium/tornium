@@ -135,13 +135,13 @@ def fetch_stock_ticks():
             ]
         }
 
-        if notification.options.get("equality") == ">" and target_stock["current_price"] > notification.target:
+        if notification.options.get("equality") == ">" and target_stock["current_price"] > notification.value:
             payload["embeds"][0]["title"] = "Above Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
-        elif notification.options.get("equality") == "<" and target_stock["current_price"] < notification.target:
+        elif notification.options.get("equality") == "<" and target_stock["current_price"] < notification.value:
             payload["embeds"][0]["title"] = "Below Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_ERROR
-        elif notification.options.get("equality") == "=" and target_stock["current_price"] == notification.target:
+        elif notification.options.get("equality") == "=" and target_stock["current_price"] == notification.value:
             payload["embeds"][0]["title"] = "Reached Target Price"
             payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
         else:

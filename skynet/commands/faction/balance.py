@@ -18,6 +18,7 @@ def balance(interaction, *args, **kwargs):
     print(interaction)
 
     user: UserModel = kwargs["invoker"]
+    member = -1
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -101,7 +102,7 @@ def balance(interaction, *args, **kwargs):
             },
         }
 
-    if user.factiontid != kwargs["invoker"].factionid or not kwargs["invoker"].factionaa:
+    if user.factiontid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
         return {
             "type": 4,
             "data": {

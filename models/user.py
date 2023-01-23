@@ -74,14 +74,10 @@ class User(UserMixin):
                 if key == "":
                     raise utils.MissingKeyError
 
-            try:
-                if key == self.key:
-                    user_data = tasks.tornget("user/?selections=profile,battlestats,discord", key)
-                else:
-                    user_data = tasks.tornget(f"user/{self.tid}?selections=profile,discord", key)
-            except utils.TornError as e:
-                utils.get_logger().exception(e)
-                raise e
+            if key == self.key:
+                user_data = tasks.tornget("user/?selections=profile,battlestats,discord", key)
+            else:
+                user_data = tasks.tornget(f"user/{self.tid}?selections=profile,discord", key)
 
             user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]

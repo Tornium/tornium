@@ -111,7 +111,6 @@ def refresh_users():
                 user.save()
                 continue
 
-            logger.exception(e)
             continue
         except Exception:
             continue

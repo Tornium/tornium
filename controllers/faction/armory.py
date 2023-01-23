@@ -19,12 +19,11 @@ from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
-import utils
 from controllers.faction.decorators import fac_required
 from models.factionmodel import FactionModel
 from models.usermodel import UserModel
 from tasks import tornget
-from utils.errors import TornError
+from utils.errors import NetworkingError, TornError
 
 
 @login_required
@@ -65,8 +64,7 @@ def armoryitemdata(*args, **kwargs):
 
     try:
         armorydata = tornget("faction/?selections=armor,temporary,weapons", key=key)
-    except TornError as e:
-        utils.get_logger().exception(e)
+    except (TornError, NetworkingError):
         abort(400)
 
     data = []
@@ -140,8 +138,7 @@ def item_modal(*args, **kwargs):
 
     try:
         armorydata = tornget("faction/?selections=armor,temporary,weapons", key=key)
-    except TornError as e:
-        utils.get_logger().exception(e)
+    except (TornError, NetworkingError):
         abort(400)
 
     item = {}

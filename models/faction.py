@@ -37,15 +37,10 @@ class Faction:
 
         faction = FactionModel.objects(tid=tid).first()
         if faction is None:
-            try:
-                faction_data = tasks.tornget(
-                    f"faction/{tid}?selections=basic",
-                    key if key != "" else current_user.key,
-                )
-            except utils.TornError as e:
-                utils.get_logger().exception(e)
-                raise e
-
+            faction_data = tasks.tornget(
+                f"faction/{tid}?selections=basic",
+                key if key != "" else current_user.key,
+            )
             now = utils.now()
 
             faction = FactionModel(
@@ -71,7 +66,7 @@ class Faction:
                     f"faction/{tid}?selections=positions",
                     key if key != "" else current_user.key,
                 )
-            except utils.TornError:
+            except (utils.NetworkingError, utils.TornError):
                 pass
 
             faction.save()
@@ -156,11 +151,7 @@ class Faction:
                 if key == "":
                     raise Exception  # TODO: Make exception more descriptive
 
-            try:
-                faction_data = tasks.tornget(f"faction/{self.tid}?selections=basic", key)
-            except utils.TornError as e:
-                utils.get_logger().exception(e)
-                raise e
+            faction_data = tasks.tornget(f"faction/{self.tid}?selections=basic", key)
 
             faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]

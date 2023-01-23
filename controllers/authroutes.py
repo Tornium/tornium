@@ -34,6 +34,8 @@ def login():
         key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])
     except utils.TornError as e:
         return utils.handle_torn_error(e)
+    except utils.NetworkingError as e:
+        return utils.handle_networking_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
 
@@ -52,6 +54,8 @@ def login():
         torn_user = tasks.tornget(endpoint="user/?selections=", key=request.form["key"])
     except utils.TornError as e:
         return utils.handle_torn_error(e)
+    except utils.NetworkingError as e:
+        return utils.handle_networking_error(e)
     except Exception as e:
         return render_template("errors/error.html", title="Error", message=str(e))
 

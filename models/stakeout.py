@@ -38,7 +38,7 @@ class Stakeout:
                         f"user/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )
-                except Exception:
+                except (utils.TornError, utils.NetworkingError):
                     data = {}
 
                 stakeout = UserStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)
@@ -49,7 +49,7 @@ class Stakeout:
                         f"faction/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )
-                except Exception:
+                except (utils.TornError, utils.NetworkingError):
                     data = {}
 
                 stakeout = FactionStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)

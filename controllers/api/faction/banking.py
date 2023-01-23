@@ -60,6 +60,15 @@ def vault_balance(*args, **kwargs):
                 "message": e.message,
             },
         )
+    except utils.NetworkingError as e:
+        return make_exception_response(
+            "4101",
+            key,
+            details={
+                "code": e.code,
+                "message": e.message,
+            },
+        )
 
     if str(user.tid) in vault_balances["donations"]:
         return (
@@ -152,6 +161,15 @@ def banking_request(*args, **kwargs):
                 "message": e.message,
             },
             redis_client=client,
+        )
+    except utils.NetworkingError as e:
+        return make_exception_response(
+            "4101",
+            key,
+            details={
+                "code": e.code,
+                "message": e.message,
+            },
         )
 
     if str(user.tid) in vault_balances["donations"]:

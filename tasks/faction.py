@@ -81,8 +81,7 @@ def refresh_factions():
                 key=random.choice(keys),
                 session=requests_session,
             )
-        except TornError as e:
-            logger.exception(e)
+        except (TornError, NetworkingError):
             continue
         except Exception as e:
             logger.exception(e)
@@ -217,6 +216,8 @@ def refresh_factions():
         if len(lead_keys) != 0:
             try:
                 user_ts_data = torn_stats_get(f"spy/faction/{faction.tid}", random.choice(lead_keys))
+            except NetworkingError:
+                continue
             except Exception as e:
                 logger.exception(e)
                 continue
@@ -295,8 +296,7 @@ def refresh_factions():
                     key=random.choice(keys),
                     session=requests_session,
                 )
-            except TornError as e:
-                logger.exception(e)
+            except (TornError, NetworkingError):
                 continue
             except Exception as e:
                 logger.exception(e)
@@ -437,11 +437,8 @@ def fetch_attacks_runner():
                     faction.save()
                 except ValueError:
                     pass
-
-            logger.exception(e)
             continue
         except NetworkingError as e:
-            logger.exception(e)
             continue
         except Exception as e:
             logger.exception(e)
@@ -797,8 +794,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         if opponent is None or opponent.name in (None, ""):
             try:
                 update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
-            except TornError as e:
-                logger.exception(e)
+            except (TornError, NetworkingError):
                 continue
             except Exception as e:
                 logger.exception(e)
@@ -876,11 +872,8 @@ def oc_refresh():
                     faction.save()
                 except ValueError:
                     pass
-
-            logger.exception(e)
             continue
-        except NetworkingError as e:
-            logger.exception(e)
+        except NetworkingError:
             continue
         except Exception as e:
             logger.exception(e)

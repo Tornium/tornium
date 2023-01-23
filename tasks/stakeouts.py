@@ -1028,8 +1028,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             fromts=utils.now() - 60,
                             nocache=True,
                         )
-                except utils.TornError as e:
-                    logger.exception(e)
+                except (utils.NetworkingError, utils.TornError):
                     return
                 except Exception as e:
                     logger.exception(e)
@@ -1100,8 +1099,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             fromts=utils.now() - 60,
                             nocache=True,
                         )
-                except utils.TornError as e:
-                    logger.exception(e)
+                except (utils.NetworkingError, utils.TornError):
                     return
                 except Exception as e:
                     logger.exception(e)

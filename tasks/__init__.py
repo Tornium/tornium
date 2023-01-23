@@ -396,8 +396,6 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
-    except orjson.JSONDecodeError:
-        raise requests.JSONDecodeError()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -518,8 +516,6 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
-    except orjson.JSONDecodeError:
-        raise requests.JSONDecodeError()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -640,8 +636,6 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
-    except orjson.JSONDecodeError:
-        raise requests.JSONDecodeError()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -762,8 +756,6 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
-    except orjson.JSONDecodeError:
-        raise requests.JSONDecodeError()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(
@@ -879,8 +871,6 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
             request_json = orjson.loads(request.content)
         else:
             request_json = request.json()
-    except orjson.JSONDecodeError:
-        raise requests.JSONDecodeError()
     except Exception as e:
         if request.status_code // 100 != 2:
             logger.warning(

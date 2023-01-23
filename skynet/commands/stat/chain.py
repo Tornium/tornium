@@ -18,6 +18,7 @@ import random
 import time
 
 import mongoengine
+import orjson
 import requests
 from mongoengine.queryset.visitor import Q
 
@@ -86,6 +87,8 @@ def chain(interaction, *args, **kwargs):
             payload={"type": 5},
         )
     except requests.exceptions.JSONDecodeError:
+        pass
+    except orjson.JSONDecodeError:
         pass
 
     try:

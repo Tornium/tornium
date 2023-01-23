@@ -918,10 +918,14 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
         else:
             raise RatelimitError
 
-    if session is None:
-        request = requests.get(url, timeout=3)
-    else:
-        request = session.get(url, timeout=3)
+    try:
+        if session is None:
+            request = requests.get(url, timeout=5)
+        else:
+            request = session.get(url, timeout=5)
+    except requests.exceptions.Timeout:
+        logger.info(f'The Torn Stats API has timed out on endpoint "{endpoint}"')
+        raise NetworkingError(code=408, url=url)
 
     if request.status_code // 100 != 2:
         logger.warning(

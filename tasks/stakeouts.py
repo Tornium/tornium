@@ -525,8 +525,8 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "title": "Racket Gained",
                                 "description": f"A racket on {territoryid} has been controlled by faction "
                                 f'{data["name"]}. The racket is '
-                                f'{data["territory"]["racket"]["name"]} and '
-                                f'gives {data["territory"]["racket"]["reward"]}.',
+                                f'{territory["racket"]["name"]} and '
+                                f'gives {territory["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": utils.torn_timestamp()},
                             }

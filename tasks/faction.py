@@ -915,8 +915,6 @@ def oc_refresh():
                 )
             )
 
-            logger.info(ready)
-
             if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
                 # OC has been delayed
                 oc_db.notified = False
@@ -942,7 +940,7 @@ def oc_refresh():
                     for role in roles:
                         roles_str += f"<@&{role}>"
 
-                    payload["embeds"][0]["content"] = roles_str
+                    payload["content"] = roles_str
 
                 for participant in oc_data["participants"]:
                     participant_id = list(participant.keys())[0]
@@ -997,7 +995,6 @@ def oc_refresh():
                             )
 
                 oc_db.save()
-                print(payload)
 
                 try:
                     discordpost.delay(
@@ -1031,9 +1028,7 @@ def oc_refresh():
                     for role in roles:
                         roles_str += f"<@&{role}>"
 
-                    payload["embeds"][0]["content"] = roles_str
-
-                print(payload)
+                    payload["content"] = roles_str
 
                 try:
                     discordpost.delay(

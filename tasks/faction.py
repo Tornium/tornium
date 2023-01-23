@@ -791,14 +791,13 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                     set__factionid=attack["attacker_faction"],
                 )
 
-        if opponent is None or opponent.name in (None, ""):
-            try:
-                update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
-            except (TornError, NetworkingError):
-                continue
-            except Exception as e:
-                logger.exception(e)
-                continue
+        try:
+            update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
+        except (TornError, NetworkingError):
+            continue
+        except Exception as e:
+            logger.exception(e)
+            continue
 
         try:
             if attack["defender_faction"] == faction_data["ID"]:

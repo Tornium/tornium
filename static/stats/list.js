@@ -31,7 +31,7 @@ $(document).ready(function() {
         const xhttp = new XMLHttpRequest();
         var value = Number($("#chainff").val());
 
-        xhttp.onload = function() {
+        xhttp.onload = function() { 
             var response = xhttp.response;
 
             if("code" in response) {
@@ -100,7 +100,7 @@ $(document).ready(function() {
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({
-            'dstats': value
+            'ff': value,
         }));
     });
 });

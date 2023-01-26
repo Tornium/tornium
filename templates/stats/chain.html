@@ -24,12 +24,8 @@ Tornium - Chain Generator
                     since at that point, targets will be as strong or stronger than you are.
                 </p>
                 <p class="card-text">
-                    Note: Please minimize the number of generations per minute since this utility makes a call to the
+                    Note: Please minimize the number of chain list generations per minute since this utility makes a call to the
                     Torn API for each user.
-                </p>
-                <p class="card-text">
-                    <b>WARNING:</b> This tool is currently in BETA and may not produce the best results currently. If 
-                    locate any issues with this tool, please report them to the developer on Discord or Torn.
                 </p>
             </div>
         </div>
@@ -47,12 +43,12 @@ Tornium - Chain Generator
                     <div class="col-sm-12 col-md-8 col-lg-4 my-2">
                         <form class="form-floating" id="chainform">
                             <label for="chainff" class="form-label">
-                                Chain List Strength
+                                Chain List Fair Fight
                                 <span class="badge rounded-pill bg-danger">
-                                    <span id="strength">0.75</span>
+                                    <span id="strength">3</span>
                                 </span>
                             </label>
-                            <input type="range" class="form-range mb-3" id="chainff" min="0.1" max="1.5" step="0.01" Value="0.75" onInput="$('#strength').html($(this).val())">
+                            <input type="range" class="form-range mb-3" id="chainff" min="1" max="3" step="0.01" Value="3" onInput="$('#strength').html($(this).val())">
 
                             <div class="form-text">
                                 Adjust the slider above in order to increase or decrease the difficulty of the target.

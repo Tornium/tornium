@@ -39,7 +39,7 @@ def generate_chain_list(*args, **kwargs):
     variance = request.args.get("variance") if request.args.get("variance") is not None else 0.01
     ff = request.args.get("ff") if request.args.get("ff") is not None else 3
 
-    if not variance.isdigit() or variance < 0 or variance > 0.1 or not ff.isdigit() or ff > 3 or ff < 1:
+    if variance < 0 or variance > 0.1 or ff > 3 or ff < 1:
         return make_exception_response(
             "1000",
             key,

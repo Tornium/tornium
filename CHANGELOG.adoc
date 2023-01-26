@@ -1,6 +1,8 @@
 = Changelog
 
 == [UNRELEASED]
+ - Changed chain list generator to use algorithm found in the Discord command
+ - Changed CHANGELOG.adoc to use https://keepachangelog.com/en/1.0.0/[Keep a Changelog] formatting
 
 == 0.1.0 - Initial Public Release
  - Added all pre-existing features

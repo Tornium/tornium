@@ -9,11 +9,18 @@ A third party, general-purpose website and Discord bot dedicated to simplifying 
 - Discord-based OC ready and delay notifications
 - Discord-based stakeouts
 - Discord-based user verification
+- Discord-based stock verification
 - Stat database
 - Chain list generator
 
 == Installation
 Not yet supported.
+
+=== Optional packages
+Tornium can be run without all of the below optional packages, but will auto-detect installation and run with those packages if they are installed.
+
+ - ddtrace - for monitoring of the flask and celery instances
+ - orjson - for increased performance in encoding and decoding of JSON in all API calls
 
 == License
 https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]

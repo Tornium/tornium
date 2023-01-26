@@ -35,7 +35,6 @@ def chain(interaction, *args, **kwargs):
     print(interaction)
 
     start = time.time()
-
     user: UserModel = kwargs["invoker"]
 
     if "options" in interaction["data"]:
@@ -91,24 +90,6 @@ def chain(interaction, *args, **kwargs):
     except orjson.JSONDecodeError:
         pass
 
-    try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys), force=True)
-    except utils.MissingKeyError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
     if user.battlescore == 0:
         return {
             "type": 4,
@@ -138,13 +119,13 @@ def chain(interaction, *args, **kwargs):
 
     if ff == 3:
         stat_entries: mongoengine.QuerySet = StatModel.objects(
-            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
+            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
             & Q(battlescore__gte=(0.375 * user.battlescore * (ff - 1)))
             & Q(battlescore__lte=(0.375 * user.battlescore * 2.4))
         )
     else:
         stat_entries: mongoengine.QuerySet = StatModel.objects(
-            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
+            (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
             & Q(battlescore__gte=(0.375 * user.battlescore * (ff - variance - 1)))
             & Q(battlescore__lte=(0.375 * user.battlescore * (ff + variance - 1)))
         )
@@ -190,7 +171,7 @@ def chain(interaction, *args, **kwargs):
     for stat_entry in stat_entries:
         stat: StatModel = (
             StatModel.objects(
-                Q(tid=stat_entry) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
+                Q(tid=stat_entry) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
             )
             .order_by("-timeadded")
             .first()
@@ -208,6 +189,11 @@ def chain(interaction, *args, **kwargs):
                 try:
                     if target.refresh(key=random.choice(admin_keys), minimize=True):
                         targets_updated += 1
+                except utils.TornError:
+                    if utils.now() - target.last_refresh <= 2592000:  # One day
+                        pass
+                    else:
+                        continue
                 except utils.NetworkingError as e:
                     if e.code == 408:
                         if utils.now() - target.last_refresh <= 2592000:  # One day

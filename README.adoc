@@ -1,0 +1,26 @@
+= Tornium
+
+A third party, general-purpose website and Discord bot dedicated to simplifying the playing of https://www.torn.com[Torn City].
+
+== Features
+- Faction banking
+- OD detection
+- Discord-based retaliation notifications
+- Discord-based OC ready and delay notifications
+- Discord-based stakeouts
+- Discord-based user verification
+- Stat database
+- Chain list generator
+
+== Installation
+Not yet supported.
+
+== License
+https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]
+
+== Release Notes
+This project follows https://semver.org/[semver v2.0] so all bug fixes, breaking changes, features, etc. can be found in the https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc[changelog].
+
+== Contact
+- tiksan on Discord at tiksan(hastag)9110
+- tiksan on Torn at https://www.torn.com/profiles.php?XID=2383326[tiksan [2383326\]]

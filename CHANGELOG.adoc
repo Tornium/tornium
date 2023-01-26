@@ -1,0 +1,6 @@
+= Changelog
+
+== [UNRELEASED]
+
+== 0.1.0 - Initial Public Release
+ - Added all pre-existing features

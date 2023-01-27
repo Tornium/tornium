@@ -406,7 +406,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
             raise e
 
     if "code" in request_json:
-        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
         logger.warning(
@@ -526,7 +526,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             raise e
 
     if "code" in request_json:
-        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
         logger.warning(
@@ -646,7 +646,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
             raise e
 
     if "code" in request_json:
-        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
         logger.warning(
@@ -766,7 +766,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
             raise e
 
     if "code" in request_json:
-        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
         logger.warning(
@@ -881,7 +881,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
             raise e
 
     if "code" in request_json:
-        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error code
+        # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
         logger.warning(

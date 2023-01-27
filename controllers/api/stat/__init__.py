@@ -57,7 +57,7 @@ def generate_chain_list(*args, **kwargs):
             key,
             details={"message": "User does not have a stat score stored in the database."},
         )
-        
+
     ff = float(ff)
     variance = float(variance)
 

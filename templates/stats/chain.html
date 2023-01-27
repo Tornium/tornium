@@ -40,8 +40,9 @@ Tornium - Chain Generator
                                 <div class="form-text">
                                     Adjust the slider above in order to increase or decrease the difficulty of the target.
                                     As the slider moves to the left, the difficulty decreases; as the slider moves to the
-                                    right, the difficulty increases. A value of around 0.75 will give maximum fair fight
-                                    and a value of around 1 will give a list of users with similar stats.
+                                    right, the difficulty increases. A value of around 3x will give maximum fair fight 
+                                    (at maximum, your total stats) and a value of around 1x will give a list of users with 
+                                    very few total stats.
                                 </div>
 
                                 <button type="submit" class="btn btn-primary my-3">Generate</button>
@@ -79,7 +80,25 @@ Tornium - Chain Generator
     </div>
 </div>
 
-<div id="modal">
+<div class="modal fade" id="stats-modal" tabindex="-1" aria-labelledby="stats-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stat-modal-label"></h5>
+                <button class="btn">
+                    <a href="#" id="stat-modal-attack-link" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </a>
+                    <a href="#" id="stat-modal-profile-link" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-id-card"></i>
+                    </a>
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" id="stat-modal-body"></div>
+        </div>
+    </div>
 </div>
 
 <script src="/static/stats/list.js" data-key="{{ current_user.key }}"></script>

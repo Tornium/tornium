@@ -39,11 +39,17 @@ def generate_chain_list(*args, **kwargs):
     variance = request.args.get("variance") if request.args.get("variance") is not None else 0.01
     ff = request.args.get("ff") if request.args.get("ff") is not None else 3
 
-    if variance < 0 or variance > 0.1 or ff > 3 or ff < 1:
+    if type(variance) not in (float, int) and (not variance.isdigit() or float(variance) < 0 or float(variance) > 0.1):
         return make_exception_response(
             "1000",
             key,
-            details={"message": "An invalid variance or FF has been provided."},
+            details={"message": "An invalid variance has been provided."},
+        )
+    elif type(ff) not in (float, int) and (not ff.isdigit() or float(ff) < 1 or float(ff) > 3):
+        return make_exception_response(
+            "1000",
+            key,
+            details={"message": "An invalid FF has been provided."},
         )
     elif kwargs["user"].battlescore == 0:
         return make_exception_response(
@@ -51,6 +57,9 @@ def generate_chain_list(*args, **kwargs):
             key,
             details={"message": "User does not have a stat score stored in the database."},
         )
+        
+    ff = float(ff)
+    variance = float(variance)
 
     if ff == 3:
         variance = 0

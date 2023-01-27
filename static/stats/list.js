@@ -96,11 +96,9 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("GET", "/api/stat");
+        xhttp.open("GET", `/api/stat?ff=${value}`);
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify({
-            'ff': value,
-        }));
+        xhttp.send();
     });
 });

@@ -37,7 +37,7 @@ def login():
     except utils.NetworkingError as e:
         return utils.handle_networking_error(e)
     except Exception as e:
-        return render_template("errors/error.html", title="Error", message=str(e))
+        return render_template("errors/error.html", title="Error", error=str(e))
 
     if "error" in key_info:
         return utils.handle_torn_error(utils.TornError(key_info["error"]["code"], "key/?selections=info"))
@@ -46,7 +46,7 @@ def login():
         return render_template(
             "errors/error.html",
             title="Bad API Key",
-            message="Only Torn API keys that are full or limited access can currently be used. "
+            error="Only Torn API keys that are full or limited access can currently be used. "
             "Keys with custom permissions are not currently supported either.",
         )
 
@@ -57,7 +57,7 @@ def login():
     except utils.NetworkingError as e:
         return utils.handle_networking_error(e)
     except Exception as e:
-        return render_template("errors/error.html", title="Error", message=str(e))
+        return render_template("errors/error.html", title="Error", error=str(e))
 
     user = User(torn_user["player_id"])
 
@@ -74,10 +74,10 @@ def login():
             return render_template(
                 "errors/error.html",
                 title="Torn API Timeout",
-                message="The Torn API has taken too long to respond to the API request. Please try again.",
+                error="The Torn API has taken too long to respond to the API request. Please try again.",
             )
 
-        return render_template("errors/error.html", title="Networking Error", message=e.message)
+        return render_template("errors/error.html", title="Networking Error", error=e.message)
 
     login_user(user, remember=True)
 

@@ -1,9 +1,20 @@
 = Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on https://keepachangelog.com/en/1.0.0/[Keep a Changelog],
+and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Versioning].
+
+
 == [UNRELEASED]
+=== Added
+ - Added attack saving into DB via AttackModel
+
+=== Changed
  - Changed chain list generator to use algorithm found in the Discord command
  - Changed chain list generator UI
  - Changed CHANGELOG.adoc to use https://keepachangelog.com/en/1.0.0/[Keep a Changelog] formatting
+ - Changed TickModel to use bulk insert in `tasks.stocks.fetch_stock_ticks`
 
 == 0.1.0 - Initial Public Release
  - Added all pre-existing features

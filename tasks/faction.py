@@ -26,6 +26,7 @@ from mongoengine.queryset.visitor import Q
 
 import redisdb
 import utils
+from models.attackmodel import AttackModel
 from models.factionmodel import FactionModel
 from models.ocmodel import OCModel
 from models.positionmodel import PositionModel
@@ -47,6 +48,21 @@ ORGANIZED_CRIMES = {
     6: "Take over a Cruise Liner",
     7: "Hijack a Plane",
     8: "Political Assassination",
+}
+
+ATTACK_RESULTS = {
+    "Lost": 0,
+    "Attacked": 1,
+    "Mugged": 2,
+    "Hospitalized": 3,
+    "Stalemate": 4,
+    "Escape": 5,
+    "Assist": 6,
+    "Special": 7,
+    "Looted": 8,
+    "Arrested": 9,
+    "Timeout": 10,
+    "Interrupted": 11,
 }
 
 
@@ -487,7 +503,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
         last_attacks = faction.last_attacks
 
     for attack in faction_data["attacks"].values():
-        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape", "Looted", "Interrupted", "Timeout"]:
             continue
         elif attack["defender_id"] in [
             4,
@@ -699,8 +715,30 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     if last_attacks is None or last_attacks >= utils.now():
         last_attacks = faction.last_attacks
 
+    attacks_data = []
+
+    attack: dict
     for attack in faction_data["attacks"].values():
-        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
+        attacks_data.append(
+            {
+                "code": attack.get("code"),
+                "timestamp_started": attack.get("timestamp_started"),
+                "timestamp_ended": attack.get("timestamp_ended"),
+                "attacker": attack.get("attacker_id"),
+                "attacker_faction": attack.get("attacker_faction"),
+                "defender": attack.get("defender"),
+                "defender_faction": attack.get("defender_faction"),
+                "result": ATTACK_RESULTS.get(attack.get("result"), -1),
+                "stealth": attack.get("stealthed"),
+                "respect": attack.get("respect"),
+                "chain": attack.get("chain"),
+                "raid": attack.get("raid"),
+                "ranked_war": attack.get("ranked_war"),
+                "modifiers": attack.get("modifiers"),
+            }
+        )
+
+        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape", "Looted", "Interrupted", "Timeout"]:
             continue
         elif attack["defender_id"] in [
             4,
@@ -831,6 +869,10 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except Exception as e:
             logger.exception(e)
             continue
+
+    # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
+    attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
+    AttackModel._get_collection().insert_many(attacks_data, ordered=False)
 
 
 @celery_app.task

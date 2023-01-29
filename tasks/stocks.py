@@ -17,6 +17,7 @@ import datetime
 import random
 import time
 
+from pymongo.errors import BulkWriteError
 from redis.commands.json.path import Path
 
 import redisdb
@@ -99,8 +100,14 @@ def fetch_stock_ticks():
 
     redisdb.get_redis().json().set("tornium:stocks", Path.root_path(), stocks)
 
-    tick_data = [TickModel(**tick) for tick in tick_data]
-    TickModel.objects.insert(tick_data)
+    # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
+    try:
+        tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
+        TickModel._get_collection().insert_many(tick_data, ordered=False)
+    except BulkWriteError:
+        logger.warning(f"Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
+    except Exception as e:
+        logger.exception(e)
 
     notification: NotificationModel
     for notification in NotificationModel.objects(ntype=0):

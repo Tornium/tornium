@@ -70,30 +70,6 @@ $(document).ready(function() {
                     });
 
                     targetTable.sort();
-
-                    // $('#targets-table tbody').on('click', 'tr', function() {
-                    //     const xhttp = new XMLHttpRequest();
-                    //     xhttp.onload = function() {
-                    //         if($('#stats-modal').length) {
-                    //             var modal = bootstrap.Modal.getInstance(document.getElementById('stats-modal'));
-                    //             modal.dispose();
-                    //         }
-
-                    //         document.getElementById('modal').innerHTML = this.responseText;
-                    //         var modal = new bootstrap.Modal($('#stats-modal'));
-                    //         $('#user-table').DataTable({
-                    //             "paging": true,
-                    //             "ordering": true,
-                    //             "responsive": true,
-                    //             "autoWidth": false,
-                    //             "order": [[0, "desc"]]
-                    //         });
-                    //         modal.show();
-                    //     }
-
-                    //     xhttp.open('GET', '/stats/userdata?user=' + targetTable.row(this).data()[0]);
-                    //     xhttp.send();
-                    // });
                 }
             }
         }
@@ -123,11 +99,21 @@ $(document).ready(function() {
             let modal = new bootstrap.Modal($("#stats-modal"));
 
             let lastStat = response["stat_entries"][Object.keys(response["stat_entries"])[Object.keys(response["stat_entries"]).length - 1]];
-            let ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
+            if(battlescore === null) {
+                let ff = 0;
+            } else {
+                let ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
+            }
+
             if(ff > 3) {
                 ff = 3;
             }
-            let respect = ((Math.log(user["level"]) + 1) / 4 * ff).toFixed(2);
+
+            if(ff === 0) {
+                let respect = ((Math.log(user["level"]) + 1) / 4 * ff).toFixed(2);
+            } else {
+                let respect = "Unknown";
+            }
 
             $("#stat-modal-body").append($("<div>", {
                 "class": "container"

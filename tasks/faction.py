@@ -727,7 +727,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 "timestamp_ended": attack.get("timestamp_ended"),
                 "attacker": attack.get("attacker_id"),
                 "attacker_faction": attack.get("attacker_faction"),
-                "defender": attack.get("defender"),
+                "defender": attack.get("defender_id"),
                 "defender_faction": attack.get("defender_faction"),
                 "result": ATTACK_RESULTS.get(attack.get("result"), -1),
                 "stealth": attack.get("stealthed"),

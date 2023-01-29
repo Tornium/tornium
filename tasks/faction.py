@@ -21,6 +21,7 @@ import uuid
 from decimal import DivisionByZero
 
 import mongoengine
+from pymongo.errors import BulkWriteError
 import requests
 from mongoengine.queryset.visitor import Q
 
@@ -871,8 +872,12 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             continue
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
-    attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
-    AttackModel._get_collection().insert_many(attacks_data, ordered=False)
+    try:
+        attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
+        AttackModel._get_collection().insert_many(attacks_data, ordered=False)
+    except BulkWriteError:
+        logger.warning(f"Attack data (from TID {factiontid}) bulk insert failed. Duplicates may have been found and "
+                       f"were skipped.")
 
 
 @celery_app.task

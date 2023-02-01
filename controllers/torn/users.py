@@ -17,10 +17,20 @@ from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
+import utils
 from models.faction import Faction
 from models.factionmodel import FactionModel
 from models.user import User
 from models.usermodel import UserModel
+
+USER_ORDERING = {
+    0: "tid",
+    1: "name",
+    2: "level",
+    3: "factionid",
+    4: "last_action",
+    5: "last_refresh",
+}
 
 
 @login_required
@@ -48,19 +58,53 @@ def users_data():
     else:
         ordering_direction = "-"
 
-    if ordering == 0:
-        users_db = users_db.order_by(f"{ordering_direction}tid")
-    elif ordering == 1:
-        users_db = users_db.order_by(f"{ordering_direction}name")
+    if ordering in USER_ORDERING:
+        users_db = users_db.order_by(f"{ordering_direction}{USER_ORDERING[ordering]}")
     else:
-        users_db = users_db.order_by(f"{ordering_direction}level")
+        users_db = users_db.order_by(f"{ordering_direction}last_refresh")
 
     count = users_db.count()
     users_db = users_db[start : start + length]
 
     user: UserModel
     for user in users_db:
-        users.append([user.tid, user.name, user.level])
+        if user.factionid == 0:
+            users.append(
+                {
+                    "tid": user.tid,
+                    "name": user.name,
+                    "level": user.level,
+                    "faction": "None",
+                    "last_action": {
+                        "display": utils.rel_time(user.last_action),
+                        "timestamp": user.last_action,
+                    },
+                    "last_refresh": {
+                        "display": utils.rel_time(user.last_refresh),
+                        "timestamp": user.last_refresh,
+                    },
+                }
+            )
+            continue
+
+        faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
+
+        users.append(
+            {
+                "tid": user.tid,
+                "name": user.name,
+                "level": user.level,
+                "faction": "Unknown" if faction is None else f"{faction.name} [{faction.tid}]",
+                "last_action": {
+                    "display": utils.rel_time(user.last_action),
+                    "timestamp": user.last_action,
+                },
+                "last_refresh": {
+                    "display": utils.rel_time(user.last_refresh),
+                    "timestamp": user.last_refresh,
+                },
+            }
+        )
 
     data = {
         "draw": request.args.get("draw"),

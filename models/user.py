@@ -55,7 +55,6 @@ class User(UserMixin):
         self.factiontid = user.factionid
         self.aa = user.factionaa
         self.faction_position = user.faction_position
-        self.chain_hits = user.chain_hits
 
         self.status = user.status
         self.last_action = user.last_action

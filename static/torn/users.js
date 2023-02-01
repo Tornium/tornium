@@ -21,7 +21,15 @@ $(document).ready(function() {
         "responsive": true,
         "ajax": {
             url: "/torn/usersdata"
-        }
+        },
+        "columns": [
+            {data: "tid"},
+            {data: "name"},
+            {data: "level"},
+            {data: "faction"},
+            {data: {_: "last_action.display", sort: "last_action.timestamp"}},
+            {data: {_: "last_refresh.display", sort: "last_refresh.timestamp"}}
+        ]
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;

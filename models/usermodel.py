@@ -37,7 +37,6 @@ class UserModel(DynamicDocument):
     factionid = IntField(default=0)
     factionaa = BooleanField(default=False)
     faction_position = UUIDField()  # UUID of Position in PositionModel
-    chain_hits = IntField(default=0)
 
     status = StringField(default="")
     last_action = IntField(default=0)

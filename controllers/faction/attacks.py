@@ -86,7 +86,7 @@ def recent_attacks(*args, **kwargs):
             "defender_faction": "",
             "respect": utils.commas(attack.respect),
             "result": next(
-                (result for result_id, result in ATTACK_RESULTS.items() if result_id == attack.result), "Unknown"
+                (result for result, result_id in ATTACK_RESULTS.items() if result_id == attack.result), "Unknown"
             ),
             "timestamp": utils.rel_time(attack.timestamp_ended),
         }

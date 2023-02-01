@@ -53,7 +53,7 @@ def recent_attacks(*args, **kwargs):
 
     attacks = AttackModel.objects(
         Q(attacker_faction=current_user.factiontid) | Q(defender_faction=current_user.factiontid)
-    )
+    ).order_by("-timestamp")
     attacks_page = attacks[start : start + length]
     returned_attacks_data = []
 
@@ -62,22 +62,22 @@ def recent_attacks(*args, **kwargs):
         if attack.attacker in (0, ""):
             attacker = None
         else:
-            attacker: UserModel = UserModel.objects(tid=attack.attacker).only("tid,name").first()
+            attacker: UserModel = UserModel.objects(tid=attack.attacker).first()
 
         if attack.attacker_faction in (0, ""):
             attacker_faction = None
         else:
-            attacker_faction: FactionModel = FactionModel.objects(tid=attack.attacker_faction).only("tid,name").first()
+            attacker_faction: FactionModel = FactionModel.objects(tid=attack.attacker_faction).first()
 
         if attack.defender in (0, ""):
             defender = None
         else:
-            defender: UserModel = UserModel.objects(tid=attack.defender).only("tid,name").first()
+            defender: UserModel = UserModel.objects(tid=attack.defender).first()
 
         if attack.defender_faction in (0, ""):
             defender_faction = None
         else:
-            defender_faction: FactionModel = FactionModel.objects(tid=attack.defender_faction).only("tid,name").first()
+            defender_faction: FactionModel = FactionModel.objects(tid=attack.defender_faction).first()
 
         attack_data = {
             "attacker": "",

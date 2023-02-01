@@ -199,6 +199,7 @@ $(document).ready(function() {
                 }));
                 statRow.append($("<th>", {
                     "text": reltime(stat.timeadded),
+                    "data-order": stat.timeadded,
                     "data-bs-toggle": "tooltip",
                     "data-bs-placement": "right",
                     "title": tcttime(stat.timeadded)

@@ -84,7 +84,7 @@ def recent_attacks(*args, **kwargs):
         if attack.attacker_faction == 0:
             attack_data["attacker_faction"] = "None"
         elif attacker_faction is not None:
-            attack_data["attacker_faction"] = f"{attacker_faction.name} [{attacker.tid}]"
+            attack_data["attacker_faction"] = f"{attacker_faction.name} [{attacker_faction.tid}]"
         else:
             attack_data["attacker_faction"] = f"Unknown [{attack.attacker_faction}]"
 
@@ -96,7 +96,7 @@ def recent_attacks(*args, **kwargs):
         if attack.defender_faction == 0:
             attack_data["defender_faction"] = "None"
         elif defender_faction is not None:
-            attack_data["defender_faction"] = f"{defender_faction.name} [{defender.tid}]"
+            attack_data["defender_faction"] = f"{defender_faction.name} [{defender_faction.tid}]"
         else:
             attack_data["defender_faction"] = f"Unknown [{attack.defender_faction}]"
 

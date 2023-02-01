@@ -33,7 +33,18 @@ USER_ORDERING = {
     5: "last_refresh",
 }
 
-PS_ORDERING = {}
+PS_ORDERING = {
+    0: "tid",
+    2: "useractivity",
+    3: "attackswon",
+    4: "statenhancersused",
+    5: "xantaken",
+    6: "lsdtaken",
+    7: "networth",
+    8: "energydrinkused",
+    9: "refills",
+    10: "timestamp"
+}
 
 
 @login_required
@@ -140,10 +151,11 @@ def users_ps_data():
     else:
         ordering_direction = "-"
 
-    if ordering in USER_ORDERING:
-        ps_db = ps_db.order_by(f"{ordering_direction}{USER_ORDERING[ordering]}")
+    if ordering in PS_ORDERING:
+        print(PS_ORDERING[ordering])
+        ps_db = ps_db.order_by(f"{ordering_direction}{PS_ORDERING[ordering]}")
     else:
-        ps_db = ps_db.order_by(f"{ordering_direction}last_refresh")
+        ps_db = ps_db.order_by(f"{ordering_direction}timestamp")
 
     count = ps_db.count()
     ps_db = ps_db[start : start + length]
@@ -162,9 +174,9 @@ def users_ps_data():
             "statenhancersused": ps.statenhancersused,
             "xanused": ps.xantaken,
             "lsdused": ps.lsdtaken,
-            "networth": ps.networth,
+            "networth": f"${utils.commas(ps.networth)}",
             "energydrinkused": ps.energydrinkused,
-            "refills": ps.energydrinkused,
+            "refills": ps.refills,
             "update": {
                 "display": utils.rel_time(ps.timestamp),
                 "timestamp": ps.timestamp,
@@ -173,6 +185,8 @@ def users_ps_data():
 
         if user is not None:
             user_data["name"] = user.name
+        
+        users.append(user_data)
 
     data = {
         "draw": request.args.get("draw"),

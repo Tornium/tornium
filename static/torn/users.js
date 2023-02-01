@@ -57,7 +57,7 @@ $(document).ready(function() {
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    function userOpen() {
+    $('#users-table tbody').on('click', 'tr', function() {
         if(table.row(this).data().tid == 0) {
             return;
         }
@@ -75,10 +75,27 @@ $(document).ready(function() {
         }
         xhttp.open('GET', '/torn/user/' + table.row(this).data().tid);
         xhttp.send();
-    }
+    });
 
-    $('#users-table tbody').on('click', 'tr', userOpen);
-    $("#users-ps-table tbody").on("click", "tr", userOpen);
+    $("#users-ps-table tbody").on("click", "tr", function() {
+        if(psTable.row(this).data().tid == 0) {
+            return;
+        }
+
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            if($('#user-modal').length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+                modal.dispose();
+            }
+
+            document.getElementById('modal').innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($('#user-modal'));
+            modal.show();
+        }
+        xhttp.open('GET', '/torn/user/' + psTable.row(this).data().tid);
+        xhttp.send();
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
 

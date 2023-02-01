@@ -36,7 +36,6 @@ mod.add_url_rule("/torn/usersdata", view_func=users.users_data, methods=["GET"])
 mod.add_url_rule("/torn/userspsdata", view_func=users.users_ps_data, methods=["GET"])
 
 
-
 @mod.route("/torn")
 def index():
     return render_template("torn/index.html")

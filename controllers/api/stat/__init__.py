@@ -44,9 +44,7 @@ def generate_chain_list(*args, **kwargs):
         ff = float(ff)
     except ValueError:
         return make_exception_response(
-            "1000",
-            key,
-            details={"message": "Illegal parameter type. Must be a float or integer."}
+            "1000", key, details={"message": "Illegal parameter type. Must be a float or integer."}
         )
 
     if float(variance) < 0 or float(variance) > 0.1:

@@ -43,7 +43,7 @@ PS_ORDERING = {
     7: "networth",
     8: "energydrinkused",
     9: "refills",
-    10: "timestamp"
+    10: "timestamp",
 }
 
 
@@ -185,7 +185,7 @@ def users_ps_data():
 
         if user is not None:
             user_data["name"] = user.name
-        
+
         users.append(user_data)
 
     data = {

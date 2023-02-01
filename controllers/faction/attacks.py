@@ -52,7 +52,7 @@ def recent_attacks(*args, **kwargs):
     length = int(request.args.get("length"))
 
     attacks = AttackModel.objects(
-        Q(attacker_faction=current_user.factionid) | Q(defender_faction=current_user.factionid)
+        Q(attacker_faction=current_user.factiontid) | Q(defender_faction=current_user.factiontid)
     )
     attacks_page = attacks[start : start + length]
     returned_attacks_data = []

@@ -12,6 +12,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added personal stat model
  - Added personal stat model creation to user.update_user
  - Added additional columns to `torn/user`
+ - Added personal stat table to `torn/user`
 
 === Changed
  - Changed chain list generator to use algorithm found in the Discord command

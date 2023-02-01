@@ -32,9 +32,32 @@ $(document).ready(function() {
         ]
     });
 
+    var psTable = $('#users-ps-table').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ordering": true,
+        "responsive": true,
+        "ajax": {
+            url: "/torn/userspsdata"
+        },
+        "columns": [
+            {data: "tid"},
+            {data: "name"},
+            {data: {_: "useractivity.display", sort: "useractivity.sort"}},
+            {data: "attackswon"},
+            {data: "statenhancersused"},
+            {data: "xanused"},
+            {data: "lsdused"},
+            {data: "networth"},
+            {data: "energydrinkused"},
+            {data: "refills"},
+            {data: {_: "update.display", sort: "update.timestamp"}}
+        ]
+    });
+
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    $('#users-table tbody').on('click', 'tr', function() {
+    function userOpen() {
         if(table.row(this).data().tid == 0) {
             return;
         }
@@ -52,7 +75,10 @@ $(document).ready(function() {
         }
         xhttp.open('GET', '/torn/user/' + table.row(this).data().tid);
         xhttp.send();
-    });
+    }
+
+    $('#users-table tbody').on('click', 'tr', userOpen);
+    $("#users-ps-table tbody").on("click", "tr", userOpen);
 
     const urlParams = new URLSearchParams(window.location.search);
 

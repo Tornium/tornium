@@ -20,6 +20,7 @@ from mongoengine.queryset.visitor import Q
 import utils
 from models.faction import Faction
 from models.factionmodel import FactionModel
+from models.personalstatmodel import PersonalStatModel
 from models.user import User
 from models.usermodel import UserModel
 
@@ -31,6 +32,8 @@ USER_ORDERING = {
     4: "last_action",
     5: "last_refresh",
 }
+
+PS_ORDERING = {}
 
 
 @login_required
@@ -109,6 +112,71 @@ def users_data():
     data = {
         "draw": request.args.get("draw"),
         "recordsTotal": UserModel.objects().count(),
+        "recordsFiltered": count,
+        "data": users,
+    }
+
+    return data
+
+
+@login_required
+def users_ps_data():
+    start = int(request.args.get("start"))
+    length = int(request.args.get("length"))
+    search_value = request.args.get("search[value]")
+    ordering = int(request.args.get("order[0][column]"))
+    ordering_direction = request.args.get("order[0][dir]")
+
+    users = []
+
+    if search_value == "":
+        ps_db = PersonalStatModel.objects()
+    else:
+        valid_tid = [user.tid for user in UserModel.objects(Q(name__startswith=search_value)).only("tid").all()]
+        ps_db = PersonalStatModel.objects(tid__in=valid_tid)
+
+    if ordering_direction == "asc":
+        ordering_direction = "+"
+    else:
+        ordering_direction = "-"
+
+    if ordering in USER_ORDERING:
+        ps_db = ps_db.order_by(f"{ordering_direction}{USER_ORDERING[ordering]}")
+    else:
+        ps_db = ps_db.order_by(f"{ordering_direction}last_refresh")
+
+    count = ps_db.count()
+    ps_db = ps_db[start : start + length]
+
+    ps: PersonalStatModel
+    for ps in ps_db:
+        user: UserModel = UserModel.objects(tid=ps.tid).only("name").first()
+        user_data = {
+            "tid": ps.tid,
+            "name": "N/A",
+            "useractivity": {
+                "display": ps.useractivity,
+                "sort": ps.useractivity,
+            },
+            "attackswon": ps.attackswon,
+            "statenhancersused": ps.statenhancersused,
+            "xanused": ps.xantaken,
+            "lsdused": ps.lsdtaken,
+            "networth": ps.networth,
+            "energydrinkused": ps.energydrinkused,
+            "refills": ps.energydrinkused,
+            "update": {
+                "display": utils.rel_time(ps.timestamp),
+                "timestamp": ps.timestamp,
+            },
+        }
+
+        if user is not None:
+            user_data["name"] = user.name
+
+    data = {
+        "draw": request.args.get("draw"),
+        "recordsTotal": PersonalStatModel.objects().count(),
         "recordsFiltered": count,
         "data": users,
     }

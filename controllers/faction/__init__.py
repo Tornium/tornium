@@ -26,6 +26,7 @@ mod.add_url_rule("/faction/armoryitemdata", view_func=armory.armoryitemdata, met
 
 # Attack Routes
 mod.add_url_rule("/faction/attacks", view_func=attacks.attacks, methods=["GET"])
+mod.add_url_rule("/faction/attacks/recent", view_func=attacks.recent_attacks, methods=["GET"])
 
 # Banking Routes
 mod.add_url_rule("/faction/bankingaa", view_func=banking.bankingaa, methods=["GET"])

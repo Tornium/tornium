@@ -13,12 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import math
 
+import mongoengine.errors
 import requests
 
 import utils
 from models.factionmodel import FactionModel
+from models.personalstatmodel import PersonalStatModel
 from models.usermodel import UserModel
 from tasks import celery_app, logger, tornget
 
@@ -39,9 +42,9 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         return user, {"refresh": False}
 
     if user is not None and user.key not in (None, ""):
-        user_data = tornget(f"user/{tid}/?selections=profile,discord", user.key)
+        user_data = tornget(f"user/{tid}/?selections=profile,discord,personalstats", user.key)
     else:
-        user_data = tornget(f"user/{tid}/?selections=profile,discord", key)
+        user_data = tornget(f"user/{tid}/?selections=profile,discord,personalstats", key)
 
     if user_data["player_id"] != tid and tid != 0:
         raise Exception("TID does not match returned player_ID")
@@ -86,6 +89,32 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     elif faction.name != user_data["faction"]["faction_name"]:
         faction.name = user_data["faction"]["faction_name"]
         faction.save()
+
+    now = datetime.datetime.utcnow()
+    now = int(
+        datetime.datetime(
+            year=now.year,
+            month=now.month,
+            day=now.day,
+            hour=now.hour,
+            minute=0,
+            second=0,
+        )
+        .replace(tzinfo=datetime.timezone.utc)
+        .timestamp()
+    )
+
+    try:
+        PersonalStatModel(
+            **dict(
+                {"pstat_id": int(bin(user.tid << 8)) + int(bin(now)), "tid": user.tid, "timestamp": utils.now()},
+                **user_data["personalstats"],
+            )
+        )
+    except mongoengine.errors.OperationError:
+        pass
+    except Exception as e:
+        logger.exception(e)
 
     return user_data
 

@@ -105,7 +105,7 @@ def fetch_stock_ticks():
         tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
         TickModel._get_collection().insert_many(tick_data, ordered=False)
     except BulkWriteError:
-        logger.warning(f"Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
+        logger.warning("Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
     except Exception as e:
         logger.exception(e)
 

@@ -35,7 +35,7 @@ $(document).ready(function() {
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
     $('#users-table tbody').on('click', 'tr', function() {
-        if(table.row(this).data()[0] == 0) {
+        if(table.row(this).data().tid == 0) {
             return;
         }
 
@@ -50,7 +50,7 @@ $(document).ready(function() {
             var modal = new bootstrap.Modal($('#user-modal'));
             modal.show();
         }
-        xhttp.open('GET', '/torn/user/' + table.row(this).data()[0]);
+        xhttp.open('GET', '/torn/user/' + table.row(this).data().tid);
         xhttp.send();
     });
 

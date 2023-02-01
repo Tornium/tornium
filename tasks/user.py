@@ -107,7 +107,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     try:
         PersonalStatModel(
             **dict(
-                {"pstat_id": int(bin(user.tid << 8)) + int(bin(now)), "tid": user.tid, "timestamp": utils.now()},
+                {"pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2), "tid": user.tid, "timestamp": utils.now()},
                 **user_data["personalstats"],
             )
         )

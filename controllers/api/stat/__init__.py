@@ -41,7 +41,7 @@ def generate_chain_list(*args, **kwargs):
 
     try:
         variance = float(variance)
-        ff = float(variance)
+        ff = float(ff)
     except ValueError:
         return make_exception_response(
             "1000",

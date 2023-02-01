@@ -209,6 +209,21 @@ def invoker_exists(f):
                     "flags": 64,  # Ephemeral
                 },
             }
+        elif user is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Unknown User",
+                            "description": "The invoking user could not be located in the database and was not "
+                                           "automatically saved. Please try signing into Tornium first.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                }
+            }
 
         kwargs["invoker"] = user
         return f(interaction, *args, **kwargs)

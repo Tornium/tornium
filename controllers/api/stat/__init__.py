@@ -39,13 +39,13 @@ def generate_chain_list(*args, **kwargs):
     variance = request.args.get("variance") if request.args.get("variance") is not None else 0.01
     ff = request.args.get("ff") if request.args.get("ff") is not None else 3
 
-    if type(variance) not in (float, int) and (not variance.isdigit() or float(variance) < 0 or float(variance) > 0.1):
+    if type(variance) not in (float, int) or float(variance) < 0 or float(variance) > 0.1:
         return make_exception_response(
             "1000",
             key,
             details={"message": "An invalid variance has been provided."},
         )
-    elif type(ff) not in (float, int) and (not ff.isdigit() or float(ff) < 1 or float(ff) > 3):
+    elif type(ff) not in (float, int) or float(ff) < 1 or float(ff) > 3:
         return make_exception_response(
             "1000",
             key,

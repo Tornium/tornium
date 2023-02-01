@@ -95,7 +95,7 @@ def generate_chain_list(*args, **kwargs):
         stat_entries: QuerySet = StatModel.objects(
             (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
             & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (ff - variance - 1)))
-            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * (ff - +variance - 1)))
+            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * (ff + variance - 1)))
         )
 
     stat_entries: list = list(set(stat_entries.all().values_list("tid")))

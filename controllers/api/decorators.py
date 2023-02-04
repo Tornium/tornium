@@ -125,7 +125,10 @@ def torn_key_required(func):
                 401,
             )
 
-        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+        authorization = str(
+            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
+            "utf-8",
+        ).split(
             ":"
         )[0]
 
@@ -195,7 +198,10 @@ def tornium_key_required(func):
                 401,
             )
 
-        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+        authorization = str(
+            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
+            "utf-8",
+        ).split(
             ":"
         )[0]
 
@@ -265,7 +271,10 @@ def key_required(func):
                 401,
             )
 
-        authorization = str(base64.b64decode(request.headers.get("Authorization").split(" ")[1]), "utf-8",).split(
+        authorization = str(
+            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
+            "utf-8",
+        ).split(
             ":"
         )[0]
 

@@ -21,6 +21,7 @@ $(document).ready(function() {
         "serverSide": true,
         "ordering": false,
         "responsive": true,
+        "searching": false,
         "ajax": {
             url: "/faction/attacks/recent",
         },

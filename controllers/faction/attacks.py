@@ -53,7 +53,7 @@ def recent_attacks(*args, **kwargs):
 
     attacks = AttackModel.objects(
         Q(attacker_faction=current_user.factiontid) | Q(defender_faction=current_user.factiontid)
-    ).order_by("-timestamp")
+    ).order_by("-timestamp_ended")
     attacks_page = attacks[start : start + length]
     returned_attacks_data = []
 

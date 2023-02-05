@@ -59,7 +59,6 @@ if not hasattr(sys, "_called_from_test"):
 
 import utils
 from controllers import mod as base_mod
-from controllers.adminroutes import mod as admin_mod
 from controllers.api import mod as api_mod
 from controllers.authroutes import mod as auth_mod
 from controllers.bot import mod as bot_mod
@@ -144,7 +143,6 @@ if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":
     app.register_blueprint(faction_mod)
     app.register_blueprint(bot_mod)
     app.register_blueprint(error_mod)
-    app.register_blueprint(admin_mod)
     app.register_blueprint(stat_mod)
     app.register_blueprint(api_mod)
     app.register_blueprint(torn_mod)
@@ -158,7 +156,6 @@ if redis.get("tornium:settings:dev") == "False":
     app.register_blueprint(faction_mod)
     app.register_blueprint(bot_mod)
     app.register_blueprint(error_mod)
-    app.register_blueprint(admin_mod)
     app.register_blueprint(stat_mod)
     app.register_blueprint(api_mod)
     app.register_blueprint(torn_mod)

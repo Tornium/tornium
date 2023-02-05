@@ -31,28 +31,6 @@
                         Torn
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="/api">
-                        <i class="fa-solid fa-code"></i>
-                        API
-                    </a>
-                </li>
-                {% if current_user.is_authenticated and current_user.pro %}
-                <li class="nav-item">
-                    <a class="nav-link disabled" aria-current="page" href="/astats">
-                        <i class="fa-solid fa-bars-progress"></i>
-                        Adv. Stat DB
-                    </a>
-                </li>
-                {% endif %}
-                {% if current_user.is_authenticated and current_user.admin %}
-                <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="/admin">
-                        <i class="fa-solid fa-user-tie"></i>
-                        Admin
-                    </a>
-                </li>
-                {% endif %}
             </ul>
 
             {% if not current_user.is_authenticated %}

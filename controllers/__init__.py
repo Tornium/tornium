@@ -53,12 +53,3 @@ def static():
 @mod.route("/userscripts/tornium-assists.user.js")
 def base_statics():
     return send_from_directory("static", request.path[1:])
-
-
-@mod.route("/static/admin/database/faction.js")
-@mod.route("/static/admin/database/server.js")
-@mod.route("/static/admin/database/user.js")
-@login_required
-@admin_required
-def static_admin():
-    return send_from_directory("static", request.path[1:])

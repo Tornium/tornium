@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.faction import attacks, banking, bot , chain, members
+from controllers.faction import attacks, banking, bot, chain, members
 
 mod = Blueprint("factionroutes", __name__)
 

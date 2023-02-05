@@ -99,20 +99,19 @@ $(document).ready(function() {
             let modal = new bootstrap.Modal($("#stats-modal"));
 
             let lastStat = response["stat_entries"][Object.keys(response["stat_entries"])[Object.keys(response["stat_entries"]).length - 1]];
-            if(battlescore === null) {
-                let ff = 0;
-            } else {
-                let ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
+            let ff = 0;
+            let respect = "Unknown"
+
+            if(battlescore !== null) {
+                ff = (1 + (8 / 3 * lastStat["stat_score"] / battlescore)).toFixed(2);
             }
 
             if(ff > 3) {
                 ff = 3;
             }
 
-            if(ff === 0) {
+            if(ff !== 0) {
                 let respect = ((Math.log(user["level"]) + 1) / 4 * ff).toFixed(2);
-            } else {
-                let respect = "Unknown";
             }
 
             $("#stat-modal-body").append($("<div>", {

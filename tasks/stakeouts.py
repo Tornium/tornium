@@ -560,7 +560,11 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]:
+                elif (
+                    "racket" in territory
+                    and "racket" in stakeout_data["territory"][territoryid]
+                    and territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]
+                ):
                     payload = {
                         "embeds": [
                             {
@@ -602,7 +606,11 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                     except Exception as e:
                         logger.exception(e)
                         return
-                elif territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]:
+                elif (
+                    "racket" in territory
+                    and "racket" in stakeout_data["territory"][territoryid]
+                    and territory["racket"]["level"] > stakeout_data["territory"][territoryid]["racket"]["level"]
+                ):
                     payload = {
                         "embeds": [
                             {

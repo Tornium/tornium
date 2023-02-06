@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
 import random
 
 import jinja2
@@ -340,9 +341,11 @@ def verify(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": "Verification Successful",
-                    "description": f"""User: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
-                    Faction: {faction_str}
-                    Discord: <@{user.discord_id}>""",
+                    "description": inspect.cleandoc(
+                        f"""User: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
+                        Faction: {faction_str}
+                        Discord: <@{user.discord_id}>"""
+                    ),
                     "color": SKYNET_GOOD,
                 }
             ]

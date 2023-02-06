@@ -1061,7 +1061,7 @@ def oc_refresh():
                     "embeds": [
                         {
                             "title": f"OC of {faction.name} Ready",
-                            "description": f"""{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.""",
+                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
                             "timestamp": datetime.datetime.utcnow().isoformat(),
                             "footer": {"text": f"#{oc_db.ocid}"},
                         }

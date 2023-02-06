@@ -867,6 +867,8 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 globalstat=globalstat,
             )
             stat_entry.save()
+        except BulkWriteError:
+            continue
         except Exception as e:
             logger.exception(e)
             continue

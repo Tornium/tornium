@@ -24,6 +24,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Fixed timestamp sorting in `stat/db.js` and `stat/list.js`
  - Fixed invoker not set in @invoker_exists (#109)
  - Fixed variance and FF check in `/api/stat`
+ - Fixed chain list generator sorting (#35)
 
 === Removed
  - Removed `faction/armory` endpoints

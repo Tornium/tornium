@@ -23,7 +23,15 @@ $(document).ready(function() {
         "ordering": true,
         "responsive": true,
         "paging": true,
-        "order": [[3, "desc"], [4, "desc"], [5, "desc"]]
+        "order": [[3, "desc"], [4, "desc"], [5, "desc"]],
+        "columns": [
+            {data: "name"},
+            {data: "level"},
+            {data: "ff"},
+            {data: "respect"},
+            {data: {_: "timeadded.display", sort: "timeadded.sort"}},
+            {data: {_: "lastaction.display", sort: "lastaction.sort"}}
+        ]
     });
     var targets = []
 
@@ -32,7 +40,7 @@ $(document).ready(function() {
         const xhttp = new XMLHttpRequest();
         var value = Number($("#chainff").val());
 
-        xhttp.onload = function() { 
+        xhttp.onload = function() {
             var response = xhttp.response;
 
             if("code" in response) {
@@ -57,14 +65,15 @@ $(document).ready(function() {
                         var baseRespect = ((Math.log(user["user"]["level"]) + 1)/4).toFixed(2);
 
                         if(!targets.includes(user["user"]["tid"])) {
-                            targetTable.row.add([
-                                user["user"]["username"],
-                                user["user"]["level"],
-                                ff.toFixed(2),
-                                (ff * baseRespect).toFixed(2),
-                                reltime(user["timeadded"]),
-                                reltime(user["user"]["last_action"])
-                            ]).draw();
+                            targetTable.row.add({
+                                name: user["user"]["username"],
+                                level: user["user"]["level"],
+                                ff: ff.toFixed(2),
+                                respect: (ff * baseRespect).toFixed(2),
+                                timeadded: {display: reltime(user["timeadded"]), sort: user["timeadded"]},
+                                lastaction: {display: reltime(user["user"]["last_action"]), sort: user["user"]["last_action"]}
+                            }).draw();
+
                             targets.push(user["user"]["tid"]);
                         }
                     });
@@ -94,7 +103,7 @@ $(document).ready(function() {
             $("#stats-modal-user-table").DataTable().destroy();
             $("#stats-modal-user-table").remove();
             $("#stat-modal-body").empty();
-            
+
             const user = response["user"];
             let modal = new bootstrap.Modal($("#stats-modal"));
 
@@ -222,7 +231,7 @@ $(document).ready(function() {
 
             $("#stat-modal-body").append($("<table>", {
                 "id": "stats-modal-user-table",
-                "class": "table table-striped table-bordered responsive mt-3" 
+                "class": "table table-striped table-bordered responsive mt-3"
             }));
             $("#stats-modal-user-table").append($("<thead>"));
             $("#stats-modal-user-table thead").append($("<tr>"));
@@ -300,7 +309,7 @@ $(document).ready(function() {
         }
 
         xhttp.responseType = "json";
-        xhttp.open("GET", `/api/stat/${getTID(targetTable.row(this).data()[0])}`);
+        xhttp.open("GET", `/api/stat/${getTID(targetTable.row(this).data().name)}`);
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();

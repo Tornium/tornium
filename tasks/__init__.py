@@ -988,6 +988,7 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
     return request
 
 
+@celery_app.task
 def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)
 

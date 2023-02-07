@@ -142,7 +142,7 @@ def user_data():
 
         stats.append(
             {
-                "statid": stat_entry.id,
+                "statid": str(stat_entry.id),
                 "tid": stat_entry.tid,
                 "battlescore": stat_entry.battlescore,
                 "timeadded": stat_entry.timeadded,

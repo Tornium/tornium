@@ -153,7 +153,7 @@ def generate_chain_list(*args, **kwargs):
 
         jsonified_stat_entries.append(
             {
-                "statid": stat.id,
+                "statid": str(stat.id),
                 "tid": stat.tid,
                 "battlescore": stat.battlescore,
                 "timeadded": stat.timeadded,
@@ -260,7 +260,7 @@ def get_stat_user(tid, *args, **kwargs):
                 }
                 added_users[str(stat_entry.addedid)] = added_user
 
-        data["stat_entries"][stat_entry.id] = {
+        data["stat_entries"][str(stat_entry.id)] = {
             "stat_score": stat_entry.battlescore,
             "timeadded": stat_entry.timeadded,
             "addeduser": added_user,

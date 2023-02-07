@@ -19,7 +19,6 @@ from mongoengine import BooleanField, DynamicDocument, IntField
 class StatModel(DynamicDocument):
     meta = {"indexes": ["tid", ("+globalstat", "addedid", "addedfactiontid"), "addedid"]}
 
-    statid = IntField(primary_key=True)
     tid = IntField(default=0)
     battlescore = IntField(default=0)
     timeadded = IntField(default=0)

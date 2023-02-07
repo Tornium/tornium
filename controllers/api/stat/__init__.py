@@ -153,7 +153,7 @@ def generate_chain_list(*args, **kwargs):
 
         jsonified_stat_entries.append(
             {
-                "statid": stat.statid,
+                "statid": stat._id,
                 "tid": stat.tid,
                 "battlescore": stat.battlescore,
                 "timeadded": stat.timeadded,
@@ -196,7 +196,7 @@ def get_stat_user(tid, *args, **kwargs):
             Q(tid=tid)
             & (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
         )
-        .order_by("-statid")
+        .order_by("-timeadded")
         .exclude("tid")
         .all()
     )
@@ -260,7 +260,7 @@ def get_stat_user(tid, *args, **kwargs):
                 }
                 added_users[str(stat_entry.addedid)] = added_user
 
-        data["stat_entries"][stat_entry.statid] = {
+        data["stat_entries"][stat_entry._id] = {
             "stat_score": stat_entry.battlescore,
             "timeadded": stat_entry.timeadded,
             "addeduser": added_user,

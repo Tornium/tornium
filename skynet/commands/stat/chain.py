@@ -217,7 +217,7 @@ def chain(interaction, *args, **kwargs):
 
         jsonified_stat_entries.append(
             {
-                "statid": stat.statid,
+                "statid": stat._id,
                 "tid": stat.tid,
                 "battlescore": stat.battlescore,
                 "timeadded": stat.timeadded,

@@ -69,7 +69,6 @@
                 <table id="user-table" class="table table-striped table-bordered responsive mt-3">
                     <thead>
                         <tr>
-                            <th>Stat ID</th>
                             <th>Battlescore</th>
                             <th>Time Added</th>
                             <th>Added User</th>
@@ -79,8 +78,7 @@
                     <tbody>
                         {% for stat in stats %}
                             <tr>
-                                <th>{{ stat["statid"] }}</th>
-                                <th>{{ stat["battlescore"]|commas }}</th>
+                                <th data-statid="{{ stat["statid"] }}">{{ stat["battlescore"]|commas }}</th>
                                 <th>
                                     <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ stat["timeadded"]|tcttime }}">{{ stat["timeadded"]|reltime }}</span>
                                 </th>

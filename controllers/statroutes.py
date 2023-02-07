@@ -102,12 +102,10 @@ def stats_data():
             ]
         )
 
-    total_records = StatModel.objects().order_by("-statid").first().statid
-
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": total_records,
-        "recordsFiltered": total_records,
+        "recordsTotal": StatModel.objects.count(),
+        "recordsFiltered": StatModel.objects.count(),
         "data": stats,
     }
 
@@ -144,7 +142,7 @@ def user_data():
 
         stats.append(
             {
-                "statid": stat_entry.statid,
+                "statid": stat_entry._id,
                 "tid": stat_entry.tid,
                 "battlescore": stat_entry.battlescore,
                 "timeadded": stat_entry.timeadded,

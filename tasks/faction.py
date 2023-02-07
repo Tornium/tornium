@@ -858,7 +858,6 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
 
         try:
             stat_entry = StatModel(
-                statid=StatModel.objects().order_by("-statid").first().statid + 1,
                 tid=opponent_id,
                 battlescore=opponent_score,
                 timeadded=attack["timestamp_ended"],

@@ -20,6 +20,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Changed chain list generator UI
  - Changed CHANGELOG.adoc to use https://keepachangelog.com/en/1.0.0/[Keep a Changelog] formatting
  - Changed TickModel to use bulk insert in `tasks.stocks.fetch_stock_ticks`
+ - Changed `StatModel` to use `ObjectID` as primary key instead of incrementing ID
 
 === Fixed
  - Fixed timestamp sorting in `stat/db.js` and `stat/list.js`

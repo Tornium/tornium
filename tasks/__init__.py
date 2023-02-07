@@ -1023,9 +1023,13 @@ def remove_unknown_channel(channel_id: int):
 
     faction_stakeout: FactionStakeoutModel
     for faction_stakeout in FactionStakeoutModel.objects():
+        faction_stakeout_data = faction_stakeout.guilds
+
         for guild, guild_stakeout in faction_stakeout.guilds.items():
             if guild_stakeout.get("channel") in (None, 0, channel_id):
-                faction_stakeout.guilds.pop(guild, None)
+                faction_stakeout_data.pop(guild, None)
+
+        faction_stakeout.guilds = faction_stakeout_data
 
         if len(faction_stakeout.guilds) == 0:
             faction_stakeout.delete()
@@ -1034,9 +1038,13 @@ def remove_unknown_channel(channel_id: int):
 
     user_stakeout: UserStakeoutModel
     for user_stakeout in UserStakeoutModel.objects():
+        user_stakeout_data = user_stakeout.guilds
+
         for guild, guild_stakeout in user_stakeout.guilds.items():
             if guild_stakeout.get("channel") in (None, 0, channel_id):
-                user_stakeout.guilds.pop(guild, None)
+                user_stakeout_data.pop(guild, None)
+
+        user_stakeout.guilds = user_stakeout_data
 
         if len(user_stakeout.guilds) == 0:
             user_stakeout.delete()
@@ -1074,15 +1082,21 @@ def remove_unknown_role(role_id: int):
 
     server: ServerModel
     for server in ServerModel.objects():
+        server_verify = server.faction_verify
+
         for faction_id, faction_verify in server.faction_verify.items():
             if role_id in faction_verify["roles"]:
-                server.faction_verify[faction_id]["roles"].remove(role_id)
+                server_verify[faction_id]["roles"].remove(role_id)
+
+        server.faction_verify = server_verify
+        server_oc_config = server.oc_config
 
         for faction_id, faction_oc in server.oc_config.items():
             if str(role_id) in faction_oc["ready"]["roles"]:
-                server.oc_config[faction_id]["ready"]["roles"].remove(str(role_id))
+                server_oc_config[faction_id]["ready"]["roles"].remove(str(role_id))
             if str(role_id) in faction_oc["delay"]["roles"]:
-                server.oc_config[faction_id]["delay"]["roles"].remove(str(role_id))
+                server_oc_config[faction_id]["delay"]["roles"].remove(str(role_id))
 
+        server.oc_config = server_oc_config
         server.save()
 

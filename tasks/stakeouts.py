@@ -95,7 +95,6 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 nocache=True,
             )
     except utils.TornError as e:
-        logger.exception(e)
         return
     except utils.MissingKeyError:
         return

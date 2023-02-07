@@ -45,6 +45,7 @@ from redis.commands.json.path import Path
 
 import settings  # Do not remove - initializes redis values
 from redisdb import get_redis
+from tasks.bot import remove_unknown_channel, remove_unknown_role
 from utils.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
 if not hasattr(sys, "_called_from_test"):
@@ -311,7 +312,7 @@ def tornget(
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordget(self, endpoint, session=None, bucket=None, retry=False):
+def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
@@ -413,7 +414,15 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
             f"to {url})."
         )
-        logger.info(request_json)
+        logger.debug(request_json)
+
+        if request_json["code"] == 10003:
+            if kwargs.get("channel") is not None:
+                remove_unknown_channel.delay(kwargs.get("channel"))
+        elif request_json["code"] == 10011:
+            if kwargs.get("role") is not None:
+                remove_unknown_role.delay(kwargs.get("role"))
+
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
@@ -423,7 +432,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False):
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False):
+def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
@@ -533,7 +542,15 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
             f"to {url})."
         )
-        logger.info(request_json)
+        logger.debug(request_json)
+
+        if request_json["code"] == 10003:
+            if kwargs.get("channel") is not None:
+                remove_unknown_channel.delay(kwargs.get("channel"))
+        elif request_json["code"] == 10011:
+            if kwargs.get("role") is not None:
+                remove_unknown_role.delay(kwargs.get("role"))
+
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
@@ -543,7 +560,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False):
+def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
@@ -653,7 +670,15 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
             f"to {url})."
         )
-        logger.info(request_json)
+        logger.debug(request_json)
+
+        if request_json["code"] == 10003:
+            if kwargs.get("channel") is not None:
+                remove_unknown_channel.delay(kwargs.get("channel"))
+        elif request_json["code"] == 10011:
+            if kwargs.get("role") is not None:
+                remove_unknown_role.delay(kwargs.get("role"))
+
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
@@ -663,7 +688,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False)
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
+def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
@@ -773,7 +798,15 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
             f"to {url})."
         )
-        logger.info(request_json)
+        logger.debug(request_json)
+
+        if request_json["code"] == 10003:
+            if kwargs.get("channel") is not None:
+                remove_unknown_channel.delay(kwargs.get("channel"))
+        elif request_json["code"] == 10011:
+            if kwargs.get("role") is not None:
+                remove_unknown_role.delay(kwargs.get("role"))
+
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
@@ -783,7 +816,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False):
 
 
 @celery_app.task(bind=True, max_retries=3)
-def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
+def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
@@ -888,7 +921,15 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False):
             f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
             f"to {url})."
         )
-        logger.info(request_json)
+        logger.debug(request_json)
+
+        if request_json["code"] == 10003:
+            if kwargs.get("channel") is not None:
+                remove_unknown_channel.delay(kwargs.get("channel"))
+        elif request_json["code"] == 10011:
+            if kwargs.get("role") is not None:
+                remove_unknown_role.delay(kwargs.get("role"))
+
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
         logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")

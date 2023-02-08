@@ -13,7 +13,7 @@ mongomock
 pynacl == 1.5.0
 pytest
 pytest-sugar
-redis == 4.4.2
+redis == 4.5.0
 requests == 2.28.2
 tox
 tox-gh-actions

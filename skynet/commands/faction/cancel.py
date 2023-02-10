@@ -68,22 +68,6 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    if "options" not in interaction["data"]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Withdrawal Request Failed",
-                        "description": "No options were passed with the "
-                        "request. The withdrawal amount option is required.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
     try:
         user: User = User(user.tid)
         user.refresh(key=random.choice(admin_keys))

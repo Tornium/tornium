@@ -158,7 +158,10 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal_id = utils.find_list(interaction["data"]["options"], "name", "id")
+    if "options" in interaction["data"]:
+        withdrawal_id = utils.find_list(interaction["data"]["options"], "name", "id")
+    else:
+        withdrawal_id = -1
 
     if withdrawal_id != -1:
         withdrawal_id = withdrawal_id[1]["value"]

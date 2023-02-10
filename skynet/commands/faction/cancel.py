@@ -182,7 +182,7 @@ def cancel_command(interaction, *args, **kwargs):
         }
 
     if withdrawal_id == -1:
-        withdrawal: WithdrawalModel = WithdrawalModel.objects(requester=faction.tid).order_by("-time_requested").first()
+        withdrawal: WithdrawalModel = WithdrawalModel.objects(requester=user.tid).order_by("-time_requested").first()
     else:
         withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
 

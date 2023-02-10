@@ -176,22 +176,8 @@ def cancel_command(interaction, *args, **kwargs):
 
     withdrawal_id = utils.find_list(interaction["data"]["options"], "name", "id")
 
-    if withdrawal_id == -1:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Illegal Parameters Passed",
-                        "description": "No withdrawal ID was passed, but is required.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    withdrawal_id = withdrawal_id[1]["value"]
+    if withdrawal_id != -1:
+        withdrawal_id = withdrawal_id[1]["value"]
 
     if type(withdrawal_id) == str and not withdrawal_id.isdigit():
         return {
@@ -208,7 +194,10 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
+    if withdrawal_id == -1:
+        withdrawal: WithdrawalModel = WithdrawalModel.objects(requester=faction.tid).order_by("-time_requested").first()
+    else:
+        withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
 
     if withdrawal is None:
         return {

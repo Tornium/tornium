@@ -30,12 +30,12 @@ except FileNotFoundError:
         "username": "tornium",
         "password": "",
         "host": "",
-        "url": "",
         "skynet": {
             "applicationid": "",
             "applicationpublic": "",
             "bottoken": "",
         },
+        "domain": "",
     }
     with open("settings.json", "w") as file:
         json.dump(data, file, indent=4)
@@ -50,7 +50,6 @@ redis.set("tornium:settings:taskqueue", data.get("taskqueue"))
 redis.set("tornium:settings:username", data.get("username"))
 redis.set("tornium:settings:password", data.get("password"))
 redis.set("tornium:settings:host", data.get("host"))
-redis.set("tornium:settings:url", data.get("url"))
 redis.set(
     "tornium:settings:skynet:applicationid",
     data.get("skynet").get("applicationid") if "skynet" in data else None,
@@ -62,4 +61,8 @@ redis.set(
 redis.set(
     "tornium:settings:skynet:bottoken",
     data.get("skynet").get("bottoken") if "skynet" in data else None,
+)
+redis.set(
+    "tornium:settings:domain",
+    data.get("domain") if "domain" in data else None,
 )

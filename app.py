@@ -58,15 +58,6 @@ if not hasattr(sys, "_called_from_test"):
     )
 
 import utils
-from controllers import mod as base_mod
-from controllers.api import mod as api_mod
-from controllers.authroutes import mod as auth_mod
-from controllers.bot import mod as bot_mod
-from controllers.errors import mod as error_mod
-from controllers.faction import mod as faction_mod
-from controllers.statroutes import mod as stat_mod
-from controllers.torn import mod as torn_mod
-from skynet import mod as skynet_mod
 
 FORMAT = (
     "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
@@ -80,17 +71,52 @@ handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
 
-app = flask.Flask(__name__)
-app.secret_key = redis.get("tornium:settings:secret")
-app.config["REMEMBER_COOKIE_DURATION"] = 604800
 
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+def init__app():
+    from controllers import mod as base_mod
+    from controllers.api import mod as api_mod
+    from controllers.authroutes import mod as auth_mod
+    from controllers.bot import mod as bot_mod
+    from controllers.errors import mod as error_mod
+    from controllers.faction import mod as faction_mod
+    from controllers.statroutes import mod as stat_mod
+    from controllers.torn import mod as torn_mod
+    from skynet import mod as skynet_mod
+
+    app = flask.Flask(__name__)
+    app.secret_key = redis.get("tornium:settings:secret")
+    app.config["REMEMBER_COOKIE_DURATION"] = 604800
+
+    CORS(
+        app,
+        resources={
+            r"/api/*": {"origins": "*"},
+            r"/*": {"origins": redis.get("tornium:settings:domain")},
+        },
+        supports_credentials=True,
+    )
+
+    login_manager.init_app(app)
+    login_manager.login_view = "authroutes.login"
+    login_manager.refresh_view = "authroutes.login"
+    login_manager.session_protection = "strong"
+
+    with app.app_context():
+        app.register_blueprint(base_mod)
+        app.register_blueprint(auth_mod)
+        app.register_blueprint(faction_mod)
+        app.register_blueprint(bot_mod)
+        app.register_blueprint(error_mod)
+        app.register_blueprint(stat_mod)
+        app.register_blueprint(api_mod)
+        app.register_blueprint(torn_mod)
+        app.register_blueprint(skynet_mod)
+
+    return app
+
 
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "authroutes.login"
-login_manager.refresh_view = "authroutes.login"
-login_manager.session_protection = "strong"
+app = init__app()
 
 
 @login_manager.user_loader
@@ -135,28 +161,3 @@ def after_request(response: flask.Response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
 
     return response
-
-
-if redis.get("tornium:settings:dev") == "True" and __name__ == "__main__":
-    app.register_blueprint(base_mod)
-    app.register_blueprint(auth_mod)
-    app.register_blueprint(faction_mod)
-    app.register_blueprint(bot_mod)
-    app.register_blueprint(error_mod)
-    app.register_blueprint(stat_mod)
-    app.register_blueprint(api_mod)
-    app.register_blueprint(torn_mod)
-    app.register_blueprint(skynet_mod)
-
-    app.run("localhost", 8000, debug=True)
-
-if redis.get("tornium:settings:dev") == "False":
-    app.register_blueprint(base_mod)
-    app.register_blueprint(auth_mod)
-    app.register_blueprint(faction_mod)
-    app.register_blueprint(bot_mod)
-    app.register_blueprint(error_mod)
-    app.register_blueprint(stat_mod)
-    app.register_blueprint(api_mod)
-    app.register_blueprint(torn_mod)
-    app.register_blueprint(skynet_mod)

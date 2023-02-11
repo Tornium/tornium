@@ -15,6 +15,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added personal stat table to `torn/user`
  - Added automatic channel/role removal upon fail (#108)
  - Added support to cancel last request via `/cancel`
+ - Added support for Tornium Flask extensions (no slash commands)
 
 === Changed
  - Changed chain list generator to use algorithm found in the Discord command

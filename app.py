@@ -22,7 +22,6 @@ for module in ("ddtrace"):
         globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
     except (ValueError, ModuleNotFoundError):
         globals()[f"{module}:loaded"] = False
-
 # fmt: on
 
 if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
@@ -36,7 +35,9 @@ if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
     ddtrace.patch_all(flask=True)
 
 import datetime
+import importlib
 import logging
+from pkgutil import iter_modules
 
 import flask
 from flask_cors import CORS
@@ -71,6 +72,22 @@ handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
 
+for package in iter_modules():
+    if package.name.startswith("tornium_"):
+        try:
+            globals()[package.name] = importlib.import_module(package.name)
+        except Exception as e:
+            logger.error(f"Tornium extension {package.name} failed to import with {e} raised")
+            globals()[f"{package.name}:loaded"] = False
+            continue
+
+        try:
+            globals()[f"{package.name}:loaded"] = bool(importlib.util.find_spec(package.name))
+        except (ValueError, ModuleNotFoundError):
+            globals()[f"{package.name}:loaded"] = False
+
+        globals()[f"{package.name}_ext"] = globals()[package.name].Extension()
+
 
 def init__app():
     from controllers import mod as base_mod
@@ -100,6 +117,12 @@ def init__app():
     login_manager.login_view = "authroutes.login"
     login_manager.refresh_view = "authroutes.login"
     login_manager.session_protection = "strong"
+
+    for global_key, global_value in globals().items():
+        if not global_key.startswith("tornium_") and not global_key.endswith("_ext"):
+            continue
+
+        global_value.init_app(app)
 
     with app.app_context():
         app.register_blueprint(base_mod)

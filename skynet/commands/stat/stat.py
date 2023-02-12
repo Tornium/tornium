@@ -263,6 +263,16 @@ def stat(interaction, *args, **kwargs):
                             "value": f"<t:{target_user.last_action}:R>",
                         },
                         {
+                            "name": "Minimum Total Stats",
+                            "value": utils.commas(utils.bs_to_range(target.battlescore)[0]),
+                            "inline": True,
+                        },
+                        {
+                            "name": "Maximum Total Stats",
+                            "value": utils.commas(utils.bs_to_range(target.battlescore)[1]),
+                            "inline": True,
+                        },
+                        {
                             "name": "Estimated Stat Score",
                             "value": utils.commas(round(target.battlescore, 2)),
                             "inline": True,

@@ -15,6 +15,7 @@
 
 import datetime
 import logging
+import math
 import re
 from decimal import Decimal
 from typing import Union
@@ -290,3 +291,6 @@ def text_to_num(text):
         return int(Decimal(numbers) * 1000000000)
     else:
         return int(Decimal(numbers))
+
+def bs_to_range(battlescore):
+    return math.floor(pow(battlescore, 2) / 4), math.floor(pow(battlescore, 2) / 2.75)

@@ -67,8 +67,6 @@ def update_commands(verbose=False):
         for command in tornium_ext.extension.discord_commands:
             commands_data.append({k: v for k, v in command.items() if k not in EXCLUDE_KEYS})
 
-        commands_data.extend(tornium_ext.extension.discord_commands)
-
     click.echo(f"{len(commands_data)} commands discovered and ready to be exported")
 
     botlogger.debug(commands_data)

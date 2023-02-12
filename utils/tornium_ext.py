@@ -33,6 +33,8 @@ class TorniumExt:
 
         if self.loaded:
             self.extension = self.package.Extension()
+        else:
+            self.extension = None
 
     @classmethod
     def from_package(cls, package: pkgutil.ModuleInfo):

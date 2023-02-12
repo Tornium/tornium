@@ -57,6 +57,9 @@ _buttons = {
 
 tornium_ext: utils.tornium_ext.TorniumExt
 for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
+    if tornium_ext.extension is None:
+        continue
+
     for command in tornium_ext.extension.discord_commands:
         _commands[command["name"]] = command["function"]
 

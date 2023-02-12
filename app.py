@@ -76,6 +76,7 @@ def init__app():
     from controllers.api import mod as api_mod
     from controllers.authroutes import mod as auth_mod
     from controllers.bot import mod as bot_mod
+    from controllers.cli import mod as cli_mod
     from controllers.errors import mod as error_mod
     from controllers.faction import mod as faction_mod
     from controllers.statroutes import mod as stat_mod
@@ -115,6 +116,7 @@ def init__app():
         app.register_blueprint(api_mod)
         app.register_blueprint(torn_mod)
         app.register_blueprint(skynet_mod)
+        app.register_blueprint(cli_mod)
 
     return app
 

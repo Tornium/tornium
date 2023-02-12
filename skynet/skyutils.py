@@ -132,7 +132,7 @@ def check_invoker_exists(interaction):
                     {
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
-                                       "Tornium or run this command in a server with signed-in admins.",
+                        "Tornium or run this command in a server with signed-in admins.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -194,11 +194,11 @@ def check_invoker_exists(interaction):
                     {
                         "title": "User Requires Verification",
                         "description": "You are required to be verified officially by Torn through the "
-                                       "[official Torn Discord server](https://www.torn.com/discord] before being "
-                                       "able to utilize the banking features of this bot. Alternatively, you can "
-                                       "sign into [the web dashboard](https://tornium.com/faction/banking) with "
-                                       "your API key to send a request without verifying. If you have recently "
-                                       "verified yourself, please wait a minute or two before trying again.",
+                        "[official Torn Discord server](https://www.torn.com/discord] before being "
+                        "able to utilize the banking features of this bot. Alternatively, you can "
+                        "sign into [the web dashboard](https://tornium.com/faction/banking) with "
+                        "your API key to send a request without verifying. If you have recently "
+                        "verified yourself, please wait a minute or two before trying again.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -213,7 +213,7 @@ def check_invoker_exists(interaction):
                     {
                         "title": "Unknown User",
                         "description": "The invoking user could not be located in the database and was not "
-                                       "automatically saved. Please try signing into Tornium first.",
+                        "automatically saved. Please try signing into Tornium first.",
                         "color": SKYNET_ERROR,
                     }
                 ],

@@ -292,5 +292,6 @@ def text_to_num(text):
     else:
         return int(Decimal(numbers))
 
+
 def bs_to_range(battlescore):
     return math.floor(pow(battlescore, 2) / 4), math.floor(pow(battlescore, 2) / 2.75)

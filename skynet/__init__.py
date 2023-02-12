@@ -95,13 +95,17 @@ def skynet_interactions():
     elif "id" not in request.json:
         return jsonify({})
 
-    invoker, admin_keys = skyutils.check_invoker_exists(request.json)
+    invoker, admin_keys = skynet.skyutils.check_invoker_exists(request.json)
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:
-            return jsonify(_buttons[request.json["data"]["custom_id"]](request.json, invoker=invoker, admin_keys=admin_keys))
+            return jsonify(
+                _buttons[request.json["data"]["custom_id"]](request.json, invoker=invoker, admin_keys=admin_keys)
+            )
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
-            return jsonify(_commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys))
+            return jsonify(
+                _commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
+            )
 
     return jsonify(in_dev_command(request.json))

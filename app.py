@@ -100,8 +100,9 @@ def init__app():
     login_manager.refresh_view = "authroutes.login"
     login_manager.session_protection = "strong"
 
-    tornium_ext: utils.flask_ext.TorniumExt
-    for tornium_ext in utils.flask_ext.TorniumExt.__iter__():
+    tornium_ext: utils.tornium_ext.TorniumExt
+    for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
+        logger.info(f"Initializing Tornium extension {tornium_ext.name}")
         tornium_ext.extension.init_app(app)
 
     with app.app_context():

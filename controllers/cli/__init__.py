@@ -16,6 +16,7 @@
 import json
 import logging
 
+import click
 from flask import Blueprint
 import requests
 
@@ -27,7 +28,8 @@ mod = Blueprint("cli", __name__)
 
 
 @mod.cli.command("update-commands")
-def update_commands():
+@click.option("-v", "--verbose", "verbose mode")
+def update_commands(verbose:bool=False):
     with open("commands/commands.json") as commands_file:
         commands_list = json.load(commands_file)
 
@@ -43,10 +45,25 @@ def update_commands():
 
     commands_data = []
 
+    if verbose:
+        click.echo("Adding default Tornium commands...")
+
     for commandid in commands_list["active"]:
         with open(f"commands/{commandid}.json") as command_file:
             command_json = json.load(command_file)
             commands_data.append(command_json)
+
+    if verbose:
+        click.echo("Searching for installed Tornium extensions...")
+
+    tornium_ext: utils.tornium_ext.TorniumExt
+    for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
+        if verbose:
+            click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
+
+        commands_data.extend(tornium_ext.extension.discord_commands)
+
+    click.echo(f"{len(commands_data)} commands discovered and ready to be exported")
 
     botlogger.debug(commands_data)
 
@@ -59,7 +76,11 @@ def update_commands():
         botlogger.info(commands_data)
     except utils.DiscordError as e:
         botlogger.error(e)
+        click.echo(f"Command export failed due to Discord API error {e.code}")
         raise e
     except Exception as e:
         botlogger.error(e)
+        click.echo(f"Command export failed due to error {e}")
         raise e
+
+    click.echo("Commands have been successfully exported")

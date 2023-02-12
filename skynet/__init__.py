@@ -20,6 +20,7 @@ from nacl.exceptions import BadSignatureError
 
 import skynet.commands
 import skynet.skyutils
+import utils.tornium_ext
 
 botlogger = logging.getLogger("skynet")
 botlogger.setLevel(logging.DEBUG)
@@ -54,6 +55,14 @@ _buttons = {
     "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
 }
 
+tornium_ext: utils.tornium_ext.TorniumExt
+for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
+    for command in tornium_ext.extension.discord_commands:
+        _commands[command["name"]] = command["function"]
+
+    for button in tornium_ext.extension.discord_buttons:
+        _buttons[button["name"]] = button["function"]
+
 
 @mod.route("/skynet", methods=["POST"])
 def skynet_interactions():
@@ -83,11 +92,13 @@ def skynet_interactions():
     elif "id" not in request.json:
         return jsonify({})
 
+    invoker, admin_keys = skyutils.check_invoker_exists(request.json)
+
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:
-            return jsonify(_buttons[request.json["data"]["custom_id"]](request.json))
+            return jsonify(_buttons[request.json["data"]["custom_id"]](request.json, invoker=invoker, admin_keys=admin_keys))
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
-            return jsonify(_commands[request.json["data"]["name"]](request.json))
+            return jsonify(_commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys))
 
     return jsonify(in_dev_command(request.json))

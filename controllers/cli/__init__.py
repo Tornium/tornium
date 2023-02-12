@@ -26,10 +26,12 @@ import utils
 
 mod = Blueprint("cli", __name__)
 
+EXCLUDE_KEYS = ("function", "active", "disabled")
+
 
 @mod.cli.command("update-commands")
-@click.option("-v", "--verbose", "verbose mode")
-def update_commands(verbose:bool=False):
+@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
+def update_commands(verbose=False):
     with open("commands/commands.json") as commands_file:
         commands_list = json.load(commands_file)
 
@@ -60,6 +62,10 @@ def update_commands(verbose:bool=False):
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
         if verbose:
             click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
+
+        command: dict
+        for command in tornium_ext.extension.discord_commands:
+            commands_data.append({k: v for k, v in command.items() if k in EXCLUDE_KEYS})
 
         commands_data.extend(tornium_ext.extension.discord_commands)
 

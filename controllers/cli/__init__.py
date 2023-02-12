@@ -65,7 +65,7 @@ def update_commands(verbose=False):
 
         command: dict
         for command in tornium_ext.extension.discord_commands:
-            commands_data.append({k: v for k, v in command.items() if k in EXCLUDE_KEYS})
+            commands_data.append({k: v for k, v in command.items() if k not in EXCLUDE_KEYS})
 
         commands_data.extend(tornium_ext.extension.discord_commands)
 

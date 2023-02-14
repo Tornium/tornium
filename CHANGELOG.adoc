@@ -32,6 +32,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Fixed variance and FF check in `/api/stat`
  - Fixed chain list generator sorting (#35)
  - Fixed `bot/verify` multi-line embed (#110)
+ - Fixed removed/deleted guilds remaining in database (#112)
 
 === Removed
  - Removed `faction/armory` endpoints

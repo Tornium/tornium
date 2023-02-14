@@ -32,7 +32,10 @@ def refresh_guilds():
         logger.exception(e)
         return
 
+    guilds_not_updated = [int(server.sid) for server in ServerModel.objects()]
+
     for guild in guilds:
+        guilds_not_updated.remove(int(guild["id"]))
         guild_db: ServerModel = ServerModel.objects(sid=guild["id"]).first()
 
         if guild_db is None:
@@ -104,3 +107,12 @@ def refresh_guilds():
             guild_db.faction_verify[factiontid] = faction_positions_data
 
         guild_db.save()
+
+    for deleted_guild in guilds_not_updated:
+        guild: ServerModel = ServerModel.objects(sid=deleted_guild).first()
+
+        if guild is None:
+            continue
+
+        logger.info(f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)")
+        guild.delete()

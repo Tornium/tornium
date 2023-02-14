@@ -168,7 +168,7 @@ $(document).ready(function() {
 
             $("#stat-modal-body").append($("<table>", {
                 "id": "stats-modal-user-table",
-                "class": "table table-striped table-bordered mt-3"
+                "class": "table table-striped table-bordered mt-3 w-100"
             }));
             $("#stats-modal-user-table").append($("<thead>"));
             $("#stats-modal-user-table thead").append($("<tr>"));

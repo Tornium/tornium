@@ -301,6 +301,12 @@ def fulfill(wid: int):
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
                             },
+                            {
+                                "type": 2,
+                                "style": 4,
+                                "label": "Cancel",
+                                "custom_id": "faction:vault:cancel",
+                            },
                         ],
                     }
                 ],

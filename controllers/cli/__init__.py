@@ -17,12 +17,12 @@ import json
 import logging
 
 import click
-from flask import Blueprint
 import requests
+from flask import Blueprint
 
-from redisdb import get_redis
 import tasks
 import utils
+from redisdb import get_redis
 
 mod = Blueprint("cli", __name__)
 

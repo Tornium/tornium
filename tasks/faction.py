@@ -21,9 +21,9 @@ import uuid
 from decimal import DivisionByZero
 
 import mongoengine
-from pymongo.errors import BulkWriteError
 import requests
 from mongoengine.queryset.visitor import Q
+from pymongo.errors import BulkWriteError
 
 import redisdb
 import utils

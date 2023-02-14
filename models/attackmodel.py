@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import BooleanField, DictField, DynamicDocument, IntField, StringField, FloatField
+from mongoengine import BooleanField, DictField, DynamicDocument, FloatField, IntField, StringField
 
 
 class AttackModel(DynamicDocument):

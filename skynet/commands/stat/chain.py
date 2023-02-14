@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import math
 import random
 import time
@@ -87,7 +88,7 @@ def chain(interaction, *args, **kwargs):
         )
     except requests.exceptions.JSONDecodeError:
         pass
-    except orjson.JSONDecodeError:
+    except json.JSONDecodeError:
         pass
 
     if user.battlescore == 0:

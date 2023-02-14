@@ -20,7 +20,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": false,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: `/bot/stakeouts/${guildid}/1`
         }
@@ -30,7 +30,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": false,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: `/bot/stakeouts/${guildid}/0`
         }

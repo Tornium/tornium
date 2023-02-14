@@ -21,7 +21,7 @@ $(document).ready(function() {
     $('#members-table').DataTable({
         "paging": true,
         "ordering": true,
-        "responsive": true,
+        "responsive": false,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         "displayLength": 25,
         "order": [[2, "desc"], [1, "desc"]],

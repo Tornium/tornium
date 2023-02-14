@@ -21,7 +21,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": false,
         "ordering": true,
-        "responsive": true,
+        "responsive": false,
         "paging": true,
         "order": [[3, "desc"], [4, "desc"], [5, "desc"]],
         "columns": [
@@ -231,7 +231,7 @@ $(document).ready(function() {
 
             $("#stat-modal-body").append($("<table>", {
                 "id": "stats-modal-user-table",
-                "class": "table table-striped table-bordered responsive mt-3"
+                "class": "table table-striped table-bordered mt-3"
             }));
             $("#stats-modal-user-table").append($("<thead>"));
             $("#stats-modal-user-table thead").append($("<tr>"));
@@ -301,7 +301,7 @@ $(document).ready(function() {
             $('#stats-modal-user-table').DataTable({
                 "paging": true,
                 "ordering": true,
-                "responsive": true,
+                "responsive": false,
                 "autoWidth": false,
                 "order": [[1, "desc"]],
                 "scrollX": true

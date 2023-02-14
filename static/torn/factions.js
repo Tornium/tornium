@@ -18,7 +18,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": true,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: "/torn/factionsdata"
         },
@@ -95,7 +95,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
             modal.show();
@@ -123,7 +123,7 @@ $(document).ready(function() {
                 "processing": true,
                 "serverSide": false,
                 "ordering": true,
-                "responsive": true
+                "responsive": false
             });
 
             modal.show();

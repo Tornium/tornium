@@ -18,7 +18,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": true,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: "/torn/usersdata"
         },
@@ -37,7 +37,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": true,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: "/torn/userspsdata"
         },

@@ -20,7 +20,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": false,
-        "responsive": true,
+        "responsive": false,
         "searching": false,
         "ajax": {
             url: "/faction/attacks/recent",

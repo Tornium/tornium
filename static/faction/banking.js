@@ -24,7 +24,7 @@ $(document).ready(function() {
         "processing": true,
         "serverSide": true,
         "ordering": false,
-        "responsive": true,
+        "responsive": false,
         "ajax": {
             url: "/faction/userbankingdata"
         },

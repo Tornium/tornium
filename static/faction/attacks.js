@@ -33,7 +33,8 @@ $(document).ready(function() {
             {data: "respect"},
             {data: "result"},
             {data: "timestamp"}
-        ]
+        ],
+        "scrollX": true
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

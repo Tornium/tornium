@@ -21,7 +21,8 @@ $(document).ready(function() {
         "responsive": true,
         "ajax": {
             url: "/faction/bankingdata"
-        }
+        },
+        "scrollX": true
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

@@ -303,7 +303,8 @@ $(document).ready(function() {
                 "ordering": true,
                 "responsive": true,
                 "autoWidth": false,
-                "order": [[1, "desc"]]
+                "order": [[1, "desc"]],
+                "scrollX": true
             });
             modal.show();
         }

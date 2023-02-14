@@ -21,7 +21,8 @@ $(document).ready(function() {
         "responsive": true,
         "ajax": {
             url: "/torn/factionsdata"
-        }
+        },
+        "scrollX": true
     });
 
     $('[data-bs-toggle="tooltip"]').tooltip({

@@ -27,7 +27,8 @@ $(document).ready(function() {
         "responsive": true,
         "ajax": {
             url: "/faction/userbankingdata"
-        }
+        },
+        "scrollX": true
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

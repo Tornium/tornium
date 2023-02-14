@@ -25,7 +25,8 @@ $(document).ready(function() {
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         "displayLength": 25,
         "order": [[2, "desc"], [1, "desc"]],
-        "columnDefs": [{orderable: false, targets: 0}]
+        "columnDefs": [{orderable: false, targets: 0}],
+        "scrollX": true
     })
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

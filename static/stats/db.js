@@ -30,7 +30,8 @@ $(document).ready(function() {
             }
         },
         "order": [[2, "desc"], [1, "desc"]],
-        "pagingType": "simple"
+        "pagingType": "simple",
+        "scrollX": true
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;

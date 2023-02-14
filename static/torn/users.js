@@ -29,7 +29,8 @@ $(document).ready(function() {
             {data: "faction"},
             {data: {_: "last_action.display", sort: "last_action.timestamp"}},
             {data: {_: "last_refresh.display", sort: "last_refresh.timestamp"}}
-        ]
+        ],
+        "scrollX": true
     });
 
     var psTable = $('#users-ps-table').DataTable({
@@ -52,7 +53,8 @@ $(document).ready(function() {
             {data: "energydrinkused"},
             {data: "refills"},
             {data: {_: "update.display", sort: "update.timestamp"}}
-        ]
+        ],
+        "scrollX": true
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;

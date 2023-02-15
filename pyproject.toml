@@ -32,7 +32,7 @@ dependencies = [
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]
 name = "Tornium-Pro"
-version = "0.1.0"
+version = "0.1.1"
 
 [project.optional-dependencies]
 dev = [

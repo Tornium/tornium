@@ -1,0 +1,12 @@
+{
+    "dev": false,
+    "secret": "",
+    "celery-taskqueue": "redis",
+    "username": "",
+    "password": "",
+    "host": "",
+    "skynet-applicationid": "",
+    "skynet-applicationpublic": "",
+    "skynet-bottoken": "",
+    "domain": ""
+}

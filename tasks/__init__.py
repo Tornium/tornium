@@ -45,7 +45,6 @@ from mongoengine import connect
 from mongoengine.queryset import QuerySet
 from redis.commands.json.path import Path
 
-import settings  # Do not remove - initializes redis values
 from models.factionmodel import FactionModel
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.notificationmodel import NotificationModel
@@ -53,13 +52,16 @@ from models.servermodel import ServerModel
 from models.userstakeoutmodel import UserStakeoutModel
 from redisdb import get_redis
 from utils.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
+from utils.config import Config
+
+config = Config().load()
 
 if not hasattr(sys, "_called_from_test"):
     connect(
         db="Tornium",
-        username=get_redis().get("tornium:settings:username"),
-        password=get_redis().get("tornium:settings:password"),
-        host=f'mongodb://{get_redis().get("tornium:settings:host")}',
+        username=config["username"],
+        password=config["password"],
+        host=f'mongodb://{config["host"]}',
         connect=False,
     )
 
@@ -322,7 +324,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
     redis = get_redis()
 
     url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {"Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}'}
+    headers = {"Authorization": f'Bot {config["skynet-bottoken"]}'}
 
     if redis.exists("tornium:discord:ratelimit:global"):
         if retry:
@@ -443,7 +445,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
 
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+        "Authorization": f'Bot {config["skynet-bottoken"]}',
         "Content-Type": "application/json",
     }
 
@@ -571,7 +573,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
 
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+        "Authorization": f'Bot {config["skynet-bottoken"]}',
         "Content-Type": "application/json",
     }
 
@@ -699,7 +701,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
 
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+        "Authorization": f'Bot {config["skynet-bottoken"]}',
         "Content-Type": "application/json",
     }
 
@@ -827,7 +829,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
 
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
-        "Authorization": f'Bot {redis.get("tornium:settings:skynet:bottoken")}',
+        "Authorization": f'Bot {config["skynet-bottoken"]}',
         "Content-Type": "application/json",
     }
 

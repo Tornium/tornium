@@ -42,17 +42,18 @@ from flask_cors import CORS
 from flask_login import LoginManager
 from mongoengine import connect
 
-import settings  # Do not remove - initializes redis values
 from redisdb import get_redis
+from utils.config import Config
 
 redis = get_redis()
+config = Config().load()
 
 if not hasattr(sys, "_called_from_test"):
     connect(
         db="Tornium",
-        username=redis.get("tornium:settings:username"),
-        password=redis.get("tornium:settings:password"),
-        host=f'mongodb://{redis.get("tornium:settings:host")}',
+        username=config["username"],
+        password=config["password"],
+        host=f'mongodb://{config["host"]}',
         connect=False,
     )
 
@@ -84,14 +85,18 @@ def init__app():
     from skynet import mod as skynet_mod
 
     app = flask.Flask(__name__)
-    app.secret_key = redis.get("tornium:settings:secret")
+    if config["secret"] is None:
+        app.secret_key = config.regen_secret()
+    else:
+        app.secret_key = config["secret"]
+
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
 
     CORS(
         app,
         resources={
             r"/api/*": {"origins": "*"},
-            r"/*": {"origins": redis.get("tornium:settings:domain")},
+            r"/*": {"origins": config["domain"]},
         },
         supports_credentials=True,
     )

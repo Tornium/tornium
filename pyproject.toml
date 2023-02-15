@@ -53,6 +53,10 @@ ci = [
     "tox",
     "tox-gh-actions"
 ]
+extra = [
+    "orjson",
+    "pytoml"
+]
 
 [project.urls]
 homepage = "https://tornium.com"

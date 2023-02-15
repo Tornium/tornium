@@ -42,7 +42,7 @@ def update_commands(verbose=False):
     botlogger.addHandler(handler)
 
     session = requests.Session()
-    application_id = get_redis().get("tornium:settings:skynet:applicationid")
+    application_id = get_redis().get("tornium:settings:skynet-applicationid")
     botlogger.debug(application_id)
 
     commands_data = []

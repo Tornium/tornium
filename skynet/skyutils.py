@@ -36,7 +36,7 @@ def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
 
     redis = redisdb.get_redis()
-    public_key = redis.get("tornium:settings:skynet:applicationpublic")
+    public_key = redis.get("tornium:settings:skynet-applicationpublic")
 
     verify_key = VerifyKey(bytes.fromhex(public_key))
 

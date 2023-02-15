@@ -7,6 +7,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 
 == [UNRELEASED]
+=== Added
+ - Migrated config to use `utils.config.Config` from `settings.py` (#117)
 
 
 == 0.2.0

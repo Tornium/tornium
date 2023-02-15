@@ -18,6 +18,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added support for Tornium Flask extensions (no slash commands)
  - Added `bs_to_range` utility function
  - Added `overflow-x` to DataTables
+ - Added `pyproject.toml` support
 
 === Changed
  - Changed chain list generator to use algorithm found in the Discord command

@@ -7,6 +7,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 
 == [UNRELEASED]
+
+
+== 0.2.0
 === Added
  - Added attack saving into DB via AttackModel
  - Added personal stat model

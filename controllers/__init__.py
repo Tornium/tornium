@@ -14,9 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, render_template, request, send_from_directory
-from flask_login import login_required
 
 from controllers.decorators import admin_required
+import utils
 
 mod = Blueprint("baseroutes", __name__)
 
@@ -24,7 +24,9 @@ mod = Blueprint("baseroutes", __name__)
 @mod.route("/")
 @mod.route("/index")
 def index():
-    return render_template("index.html")
+    extensions = [extension.name for extension in utils.tornium_ext.TorniumExt.__iter__()]
+
+    return render_template("index.html", extensions=extensions)
 
 
 @mod.route("/static/toast.js")

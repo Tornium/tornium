@@ -14,8 +14,8 @@ Tornium
             <p class="lead mb-4">
                 Tornium is a third-party Torn application developed by tiksan [2383326] to supplement existing
                 applications such as <a href="https://yata.yt">YATA</a> and <a href="https://tonstats.com/">Torn Stats</a>,
-                but is more focused on factions. The source code of officially hosted version of Tornium is proprietary and
-                copyrighted by the author, myself.
+                but is more focused on factions. Tornium is an open source project licensed under the GNU General Purpose
+                License (GPLv3).
             </p>
 
             <p class="mb-3">
@@ -27,6 +27,12 @@ Tornium
                 <a href="https://discordapp.com/users/695828257949352028">Discord</a>. In-game donations are appreciated to 
                 support the running of this site and its continued development.
             </p>
+
+            {% if extensions|length > 0 %}
+                <p class="mb-3">
+                    The following Tornium extensions are loaded: {% for extension in extensions %}{{ extension }} {% endfor %}
+                </p>
+            {% endif %}
         </main>
     </div>
 </div>

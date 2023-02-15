@@ -22,6 +22,11 @@ Tornium can be run without all of the below optional packages, but will auto-det
  - ddtrace - for monitoring of the flask and celery instances
  - orjson - for increased performance in encoding and decoding of JSON in all API calls
 
+== Tornium Extensions
+Tornium partially supports extensions for new Discord commands and new Flask endpoints (with no support for Celery tasks currently). However, over-writing pre-existing commands and endpoints is not supported. A template for Tornium extensions can be found at https://github.com/dssecret/tornium-extension-template[dssecret/tornium-extension-template]. Extensions automatically install into Tornium upon start up of Tornium with auto-detection of extensions (must start with `tornium-`). For more information or if you find any issues, please open an issue in either repository.
+
+NOTE: Tornium extensions must be released as open source code under a GPLv3 or another GPL license due to the restrictions of the https://github.com/dssecret/tornium-pro/blob/master/LICENSE[tornium-pro license]. For more details, take a look at https://www.gnu.org/licenses/gpl-3.0.en.html[GPL website].
+
 == License
 https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]
 

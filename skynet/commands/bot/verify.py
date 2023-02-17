@@ -19,18 +19,16 @@ import random
 import jinja2
 
 import tasks
+import tasks.user
 import utils
 from models.factionmodel import FactionModel
 from models.server import Server
-from models.user import User
 from models.usermodel import UserModel
 from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO, get_admin_keys, invoker_exists
 
 
 @invoker_exists
 def verify(interaction, *args, **kwargs):
-    print(interaction)
-
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -79,7 +77,6 @@ def verify(interaction, *args, **kwargs):
         }
 
     user: UserModel = kwargs["invoker"]
-    user_roles = interaction["member"]["roles"]
 
     if "options" in interaction["data"]:
         member = utils.find_list(interaction["data"]["options"], "name", "member")
@@ -87,44 +84,6 @@ def verify(interaction, *args, **kwargs):
     else:
         member = -1
         force = -1
-
-    if member != -1:
-        user: UserModel = UserModel.objects(discord_id=member[1]["value"]).first()
-
-        discord_id = member[1]["value"]
-
-        try:
-            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{discord_id}")
-        except utils.DiscordError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Discord API Error",
-                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-        except utils.NetworkingError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
-        user_roles = discord_member["roles"]
 
     admin_keys = kwargs.get("admin_keys")
 
@@ -147,9 +106,18 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
+    update_user_kwargs = {
+        "key": random.choice(admin_keys),
+        "refresh_existing": True,
+    }
+
+    if member != -1:
+        update_user_kwargs["discordid"] = member[1]["value"]
+    else:
+        update_user_kwargs["discordid"] = user.discord_id
+
     try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys), force=True if force != -1 else False)
+        user: UserModel = tasks.user.update_user(**update_user_kwargs)
     except utils.MissingKeyError:
         return {
             "type": 4,
@@ -180,6 +148,42 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
+
+    if member != -1:
+        try:
+            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{user.discord_id}")
+        except utils.DiscordError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+        except utils.NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        user_roles = discord_member["roles"]
+    else:
+        user_roles = interaction["member"]["roles"]
 
     patch_json = {}
 
@@ -212,14 +216,14 @@ def verify(interaction, *args, **kwargs):
                 patch_json["roles"].remove(str(verified_role))
 
     if (
-        user.factiontid != 0
-        and server.faction_verify.get(str(user.factiontid)) is not None
-        and server.faction_verify[str(user.factiontid)].get("roles") is not None
-        and len(server.faction_verify[str(user.factiontid)]["roles"]) != 0
-        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
+        user.factionid != 0
+        and server.faction_verify.get(str(user.factionid)) is not None
+        and server.faction_verify[str(user.factionid)].get("roles") is not None
+        and len(server.faction_verify[str(user.factionid)]["roles"]) != 0
+        and server.faction_verify[str(user.factionid)].get("enabled") not in (None, False)
     ):
         faction_role: int
-        for faction_role in server.faction_verify[str(user.factiontid)]["roles"]:
+        for faction_role in server.faction_verify[str(user.factionid)]["roles"]:
             if str(faction_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
@@ -229,23 +233,23 @@ def verify(interaction, *args, **kwargs):
 
     for factiontid, faction_verify_data in server.faction_verify.items():
         for faction_role in faction_verify_data["roles"]:
-            if str(faction_role) in user_roles and int(factiontid) != user.factiontid:
+            if str(faction_role) in user_roles and int(factiontid) != user.factionid:
                 if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
                     patch_json["roles"] = user_roles
 
                 patch_json["roles"].remove(str(faction_role))
 
     if (
-        user.factiontid != 0
+        user.factionid != 0
         and user.faction_position is not None
-        and server.faction_verify.get(str(user.factiontid)) is not None
-        and server.faction_verify[str(user.factiontid)].get("positions") is not None
-        and len(server.faction_verify[str(user.factiontid)]["positions"]) != 0
-        and str(user.faction_position) in server.faction_verify[str(user.factiontid)]["positions"].keys()
-        and server.faction_verify[str(user.factiontid)].get("enabled") not in (None, False)
+        and server.faction_verify.get(str(user.factionid)) is not None
+        and server.faction_verify[str(user.factionid)].get("positions") is not None
+        and len(server.faction_verify[str(user.factionid)]["positions"]) != 0
+        and str(user.faction_position) in server.faction_verify[str(user.factionid)]["positions"].keys()
+        and server.faction_verify[str(user.factionid)].get("enabled") not in (None, False)
     ):
         position_role: int
-        for position_role in server.faction_verify[str(user.factiontid)]["positions"][str(user.faction_position)]:
+        for position_role in server.faction_verify[str(user.factionid)]["positions"][str(user.faction_position)]:
             if str(position_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
@@ -326,11 +330,11 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    faction: FactionModel = FactionModel.objects(tid=user.factiontid).first() if user.factiontid != 0 else None
+    faction: FactionModel = FactionModel.objects(tid=user.factionid).first() if user.factionid != 0 else None
 
-    if user.factiontid == 0:
+    if user.factionid == 0:
         faction_str = "None"
-    elif user.factiontid is None:
+    elif user.factionid is None:
         faction_str = "Unknown Faction"
     else:
         faction_str = f"{faction.name} [{faction.tid}]"

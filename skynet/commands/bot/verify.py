@@ -117,7 +117,7 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = user.discord_id
 
     try:
-        user: UserModel = tasks.user.update_user(**update_user_kwargs)
+        user_data = tasks.user.update_user(**update_user_kwargs)
     except utils.MissingKeyError:
         return {
             "type": 4,
@@ -133,6 +133,22 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
+    user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
+
+    if user is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "User Not Found",
+                        "description": "The user could not be found in the database after a refresh.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            }
+        }
     if user.discord_id in (0, None):
         return {
             "type": 4,

@@ -112,7 +112,7 @@ def verify(interaction, *args, **kwargs):
     }
 
     if member != -1:
-        update_user_kwargs["discordid"] = member[1]["value"]
+        update_user_kwargs["discordid"] = int(member[1]["value"])
     else:
         update_user_kwargs["discordid"] = user.discord_id
 

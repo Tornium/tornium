@@ -147,7 +147,7 @@ def verify(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,  # Ephemeral
-            }
+            },
         }
     if user.discord_id in (0, None):
         return {

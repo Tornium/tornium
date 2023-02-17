@@ -416,12 +416,12 @@ def fetch_attacks_runner():
         logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
-            f"{redis.ttl('tornium:celery-lock:fetch-attack')} seconds."
+            f"{redis.ttl('tornium:celery-lock:fetch-attacks')} seconds."
         )
 
     if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
         redis.expire("tornium:celery-lock:fetch-attacks", 60)  # Lock for five minutes
-    if redis.ttl("torniusm:celery-lock:fetch-attacks") < 0:
+    if redis.ttl("tornium:celery-lock:fetch-attacks") < 0:
         redis.expire("tornium:celery-lock:fetch-attacks", 1)
 
     requests_session = requests.Session()
@@ -823,11 +823,11 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             opponent_id = attack["defender_id"]
 
             if opponent is None:
-                opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                opponent = UserModel.objects(tid=attack["defender_id"]).modify(
                     upsert=True,
                     new=True,
-                    set__name=attack["attacker_name"],
-                    set__factionid=attack["attacker_faction"],
+                    set__name=attack["defender_name"],
+                    set__factionid=attack["defender_faction"],
                 )
 
         try:

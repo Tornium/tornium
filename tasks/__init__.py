@@ -120,10 +120,10 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
             },
-            "fetch-attacks-users": {
-                "task": "tasks.user.fetch_attacks_users",
-                "enabled": False,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            "fetch-attacks-user-runner": {
+                "task": "tasks.user.fetch_attacks_user_runner",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
             },  # Stock tasks
             "fetch-stock-ticks": {
                 "task": "tasks.stocks.fetch_stock_ticks",
@@ -212,12 +212,12 @@ if celery_app is None:
                 hour=data["refresh-users"]["schedule"]["hour"],
             ),
         }
-    if "fetch-attacks-users" in data and data["fetch-attacks-users"]["enabled"]:
-        schedule["fetch-attacks-users"] = {
-            "task": data["fetch-attacks-users"]["task"],
+    if "fetch-attacks-user-runner" in data and data["fetch-attacks-user-runner"]["enabled"]:
+        schedule["fetch-attacks-user-runner"] = {
+            "task": data["fetch-attacks-user-runner"]["task"],
             "schedule": crontab(
-                minute=data["fetch-attacks-users"]["schedule"]["minute"],
-                hour=data["fetch-attacks-users"]["schedule"]["hour"],
+                minute=data["fetch-attacks-user-runner"]["schedule"]["minute"],
+                hour=data["fetch-attacks-user-runner"]["schedule"]["hour"],
             ),
         }
     if "fetch-stock-ticks" in data and data["fetch-stock-ticks"]["enabled"]:

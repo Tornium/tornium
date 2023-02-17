@@ -15,15 +15,35 @@
 
 import datetime
 import math
+import typing
+from decimal import DivisionByZero
 
 import mongoengine.errors
 import requests
 
+import redisdb
 import utils
+from models.attackmodel import AttackModel
 from models.factionmodel import FactionModel
 from models.personalstatmodel import PersonalStatModel
+from models.statmodel import StatModel
 from models.usermodel import UserModel
 from tasks import celery_app, logger, tornget
+
+ATTACK_RESULTS = {
+    "Lost": 0,
+    "Attacked": 1,
+    "Mugged": 2,
+    "Hospitalized": 3,
+    "Stalemate": 4,
+    "Escape": 5,
+    "Assist": 6,
+    "Special": 7,
+    "Looted": 8,
+    "Arrested": 9,
+    "Timeout": 10,
+    "Interrupted": 11,
+}
 
 
 @celery_app.task
@@ -172,153 +192,203 @@ def refresh_users():
         user.save()
 
 
-# @celery_app.task
-# def fetch_attacks_users():
-#     # Based off of https://www.torn.com/forums.php#/p=threads&f=61&t=16209964&b=0&a=0&start=0&to=0
-#     requests_session = requests.Session()
-#
-#     try:
-#         last_timestamp = StatModel.objects().order_by("-statid").first().timeadded
-#     except AttributeError:
-#         last_timestamp = 0
-#
-#     faction_shares = {}
-#
-#     group: FactionGroupModel
-#     for group in FactionGroupModel.objects():
-#         for member in group.sharestats:
-#             if str(member) in faction_shares:
-#                 faction_shares[str(member)].extend(group.members)
-#             else:
-#                 faction_shares[str(member)] = group.members
-#
-#     for factiontid, shares in faction_shares.items():
-#         faction_shares[factiontid] = list(set(shares))
-#
-#     user: UserModel
-#     for user in UserModel.objects(Q(key__nin=[None, ""]) & Q(factionid__ne=0)):
-#         if user.key == "":
-#             continue
-#         elif user.factionid == 0:
-#             continue
-#
-#         faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
-#
-#         if faction is not None and time.time() - faction.last_members > 3600:
-#             continue
-#         elif faction is not None and faction.config["stats"] == 1:
-#             continue
-#
-#         try:
-#             user_data = tornget(
-#                 "user/?selections=basic,attacks", key=user.key, session=requests_session
-#             )
-#         except utils.TornError as e:
-#             logger.exception(e)
-#             continue
-#         except Exception as e:
-#             logger.exception(e)
-#             continue
-#
-#         for attack in user_data["attacks"].values():
-#             # if attack["defender_faction"] == user.factionid and user.factionid != 0:
-#             #     continue
-#             if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape"]:
-#                 continue
-#             elif attack["defender_id"] in [
-#                 4,
-#                 10,
-#                 15,
-#                 17,
-#                 19,
-#                 20,
-#                 21,
-#             ]:  # Checks if NPC fight (and you defeated NPC)
-#                 continue
-#             elif (
-#                 attack["modifiers"]["fair_fight"] == 3
-#             ):  # 3x FF can be greater than the defender battlescore indicated
-#                 continue
-#             elif attack["timestamp_ended"] < last_timestamp:
-#                 continue
-#
-#             try:
-#                 if user.battlescore_update - utils.now() <= 10800000:  # Three hours
-#                     user_score = user.battlescore
-#                 else:
-#                     continue
-#             except IndexError:
-#                 continue
-#
-#             if user_score > 100000:
-#                 continue
-#
-#             if attack["defender_id"] == user.tid:
-#                 opponent_score = user_score / (
-#                     (attack["modifiers"]["fair_fight"] - 1) * 0.375
-#                 )
-#             else:
-#                 opponent_score = (
-#                     (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
-#                 )
-#
-#             if opponent_score == 0:
-#                 continue
-#
-#             if faction is None:
-#                 globalstat = 1
-#                 allowed_factions = [user.factionid]
-#             else:
-#                 globalstat = faction.statconfig["global"]
-#                 allowed_factions = [faction.tid]
-#
-#                 if str(faction.tid) in faction_shares:
-#                     allowed_factions.extend(faction_shares[str(faction.tid)])
-#
-#                 allowed_factions = list(set(allowed_factions))
-#
-#             stat_entry = StatModel(
-#                 statid=StatModel.objects().order_by("-statid").first().statid + 1
-#                 if StatModel.objects().count() != 0
-#                 else 0,
-#                 tid=attack["defender_id"]
-#                 if attack["defender_id"] == user.tid
-#                 else attack["attacker_id"],
-#                 battlescore=opponent_score,
-#                 timeadded=attack["timestamp_ended"],
-#                 addedid=attack["attacker_id"]
-#                 if attack["defender_id"] == user.tid
-#                 else attack["defender_id"],
-#                 addedfactiontid=user.factionid,
-#                 globalstat=globalstat,
-#             )
-#             stat_entry.save()
-#
-#             opponent = UserModel.objects(tid=stat_entry.tid).first()
-#
-#             if opponent is None:
-#                 try:
-#                     user_data = tornget(
-#                         f"user/{stat_entry.tid}/?selections=profile,discord",
-#                         user.key,
-#                         session=requests_session,
-#                     )
-#
-#                     user = UserModel(
-#                         tid=stat_entry.tid,
-#                         name=user_data["name"],
-#                         level=user_data["level"],
-#                         discord_id=user_data["discord"]["discordID"]
-#                         if user_data["discord"]["discordID"] != ""
-#                         else 0,
-#                         factionid=user_data["faction"]["faction_id"],
-#                         status=user_data["last_action"]["status"],
-#                         last_action=user_data["last_action"]["timestamp"],
-#                     )
-#                     user.save()
-#                 except utils.TornError as e:
-#                     logger.exception(e)
-#                     continue
-#                 except Exception as e:
-#                     logger.exception(e)
-#                     continue
+@celery_app.task
+def fetch_attacks_user_runner():
+    redis = redisdb.get_redis()
+
+    if redis.exists("tornium:celery-lock:fetch-attacks-user"):  # Lock enabled
+        logger.debug("Fetch attacks task terminated due to pre-existing task")
+        raise Exception(
+            f"Can not run task as task is already being run. Try again in "
+            f"{redis.ttl('tornium:celery-lock:fetch-attacks-user')} seconds."
+        )
+
+    if redis.setnx("tornium:celery-lock:fetch-attacks-user", 1):
+        redis.expire("tornium:celery-lock:fetch-attacks-user", 60)  # Lock for five minutes
+    if redis.ttl("tornium:celery-lock:fetch-attacks-user") < 0:
+        redis.expire("tornium:celery-lock:fetch-attacks-user", 1)
+
+    requests_session = requests.Session()
+
+    user: UserModel
+    for user in UserModel.objects(key__nin=[None, ""]):
+        if user.key in (None, ""):
+            continue
+        elif user.factionaa:
+            continue
+        if user.last_attacks == 0:
+            user.last_attacks = utils.now()
+            user.save()
+            continue
+
+        if user.factionid != 0:
+            faction: typing.Optional[FactionModel] = FactionModel.objects(factionid=user.factionid).first()
+
+            if faction is not None and len(faction.aa_keys) > 0:
+                continue
+
+        tornget.s(
+            "user/?selections=basic,attacks",
+            fromts=user.last_attacks + 1,  # Timestamp is inclusive,
+            key=user.key,
+            session=requests_session,
+        ).apply_async(
+            expires=300,
+            link=None,
+        )
+
+
+@celery_app.task
+def stat_db_attacks_user(user_data):
+    if "attacks" not in user_data:
+        return
+    elif len(user_data["attacks"]) == 0:
+        return
+
+    user: typing.Optional[UserModel] = UserModel.objects(tid=user_data["player_id"]).first()
+
+    if user is None:
+        return
+
+    attacks_data = []
+    stats_data = []
+
+    attack: dict
+    for attack in user_data["attacks"].values():
+        attacks_data.append(
+            {
+                "code": attack.get("code"),
+                "timestamp_started": attack.get("timestamp_started"),
+                "timestamp_ended": attack.get("timestamp_ended"),
+                "attacker": attack.get("attacker_id"),
+                "attacker_faction": attack.get("attacker_faction"),
+                "defender": attack.get("defender_id"),
+                "defender_faction": attack.get("defender_faction"),
+                "result": ATTACK_RESULTS.get(attack.get("result"), -1),
+                "stealth": attack.get("stealthed"),
+                "respect": attack.get("respect"),
+                "chain": attack.get("chain"),
+                "raid": attack.get("raid"),
+                "ranked_war": attack.get("ranked_war"),
+                "modifiers": attack.get("modifiers"),
+            }
+        )
+
+        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape", "Looted", "Interrupted", "Timeout"]:
+            continue
+        elif attack["defender_id"] in [
+            4,
+            10,
+            15,
+            17,
+            19,
+            20,
+            21,
+        ]:  # Checks if NPC fight (and you defeated NPC)
+            continue
+        elif attack["modifiers"]["fair_fight"] in (
+            1,
+            3,
+        ):  # 3x FF can be greater than the defender battlescore indicated
+            continue
+        elif attack["timestamp_ended"] <= user.last_attacks:
+            continue
+        elif attack["respect"] == 0:
+            continue
+        elif user is None:
+            continue
+
+        try:
+            if user.battlescore_update - utils.now() <= 259200:  # Three days
+                user_score = user.battlescore
+            else:
+                continue
+        except IndexError:
+            continue
+        except AttributeError as e:
+            logger.exception(e)
+            continue
+
+        if user_score == 0:
+            continue
+
+        # User: faction member
+        # Opponent: non-faction member regardless of attack or defend
+
+        if attack["attacker_id"] == user.tid:  # Attacker is user
+            opponent: typing.Optional[UserModel] = UserModel.objects(tid=attack["defender_id"]).first()
+            opponent_id = attack["defender_id"]
+
+            if opponent is None:
+                opponent = UserModel.objects(tid=attack["defender_id"]).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=attack["defender_name"],
+                    set__factionid=attack["defender_faction"],
+                )
+        else:  # Defender is user
+            if attack["attacker_id"] in ("", 0):  # Attacker stealthed
+                continue
+
+            opponent: typing.Optional[UserModel] = UserModel.objects(tid=attack["attacker_id"]).first()
+            opponent_id = attack["attacker_id"]
+
+            if opponent is None:
+                opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
+                    upsert=True,
+                    new=True,
+                    set__name=attack["attacker_name"],
+                    set__factionid=attack["attacker_faction"],
+                )
+
+        try:
+            update_user.delay(tid=opponent_id, key=user.key)
+        except (utils.TornError, utils.NetworkingError):
+            continue
+        except Exception as e:
+            logger.exception(e)
+            continue
+
+        try:
+            if attack["attacker_id"] == user.tid:
+                opponent_score = user_score / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
+            else:
+                opponent_score = (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score
+        except DivisionByZero:
+            continue
+
+        if opponent_score == 0:
+            continue
+
+        stats_data.append(
+            {
+                "tid": opponent_id,
+                "battlescore": opponent_score,
+                "timeadded": attack["timestamp_ended"],
+                "addedid": user.tid,
+                "addedfactiontid": user.factionid,
+                "globalstat": True,
+            }
+        )
+
+    # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
+    try:
+        attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
+        AttackModel._get_collection().insert_many(attacks_data, ordered=False)
+    except mongoengine.errors.BulkWriteError:
+        logger.warning(
+            f"Attack data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
+            f"were skipped."
+        )
+
+    try:
+        stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
+        StatModel._get_collection().insert_many(stats_data, ordered=False)
+    except mongoengine.errors.BulkWriteError:
+        logger.warning(
+            f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
+            f"were skipped."
+        )
+
+    user.last_attacks = list(user_data["attacks"].values())[-1]["timestamp_ended"]
+    user.save()

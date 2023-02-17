@@ -40,3 +40,5 @@ class UserModel(DynamicDocument):
 
     status = StringField(default="")
     last_action = IntField(default=0)
+
+    last_attacks = IntField(default=0)

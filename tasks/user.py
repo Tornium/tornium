@@ -46,9 +46,9 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     else:
         user_data = tornget(f"user/{tid}/?selections=profile,discord,personalstats", key)
 
-    if user_data["player_id"] != tid and tid != 0:
+    if int(user_data["player_id"]) != int(tid) and tid != 0:
         raise Exception("TID does not match returned player_ID")
-    elif user_data["discord"]["discordID"] != discordid and discordid != 0:
+    elif int(user_data["discord"]["discordID"]) != int(discordid) and discordid != 0:
         raise Exception("discordid does not match returned discordID")
 
     if user is None:

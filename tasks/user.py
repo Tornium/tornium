@@ -222,7 +222,7 @@ def fetch_attacks_user_runner():
             continue
 
         if user.factionid != 0:
-            faction: typing.Optional[FactionModel] = FactionModel.objects(factionid=user.factionid).first()
+            faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
 
             if faction is not None and len(faction.aa_keys) > 0:
                 continue

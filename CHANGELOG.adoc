@@ -10,6 +10,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Added
  - Migrated config to use `utils.config.Config` from `settings.py` (#117)
  - Added `user.fetch_attacks_runner` and `user.stat_db_attacks_user`
+ - Added auto-cancellation of vault withdrawals
 
 === Fixed
  - Fixed Tox CI runs (due to broken dependency installation)

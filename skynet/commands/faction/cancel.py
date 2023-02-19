@@ -238,7 +238,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Vault Request #{withdrawal_id}",
-                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
+                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
                         "fields": [
                             {
                                 "name": "Original Request Amount",

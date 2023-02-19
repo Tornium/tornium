@@ -99,6 +99,11 @@ if celery_app is None:
                 "task": "tasks.faction.oc_refresh",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+            },
+            "auto-cancel-requests": {
+                "tasks": "tasks.faction.auto_cancel_requests",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
             },  # Guild tasks
             "refresh-guilds": {
                 "task": "tasks.guild.refresh_guilds",
@@ -178,6 +183,14 @@ if celery_app is None:
             "schedule": crontab(
                 minute=data["oc-refresh"]["schedule"]["minute"],
                 hour=data["oc-refresh"]["schedule"]["hour"],
+            ),
+        }
+    if "auto-cancel-requests" in data and data["auto-cancel-requests"]["enabled"]:
+        schedule["auto-cancel-requests"] = {
+            "task": data["auto-cancel-requests"]["task"],
+            "schedule": crontab(
+                minute=data["auto-cancel-requests"]["schedule"]["minute"],
+                hour=data["auto-cancel-requests"]["schedule"]["hour"],
             ),
         }
     if "refresh-guilds" in data and data["refresh-guilds"]["enabled"]:

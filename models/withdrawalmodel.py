@@ -22,7 +22,7 @@ class WithdrawalModel(DynamicDocument):
     amount = IntField()
     requester = IntField()
     time_requested = IntField()
-    fulfiller = IntField()  # 0: unfilled; -tid: cancelled; tid: fulfilled
+    fulfiller = IntField()  # 0: unfilled; -1: system; -tid: cancelled; tid: fulfilled
     time_fulfilled = IntField()
     withdrawal_message = IntField()
     wtype = IntField(default=0)  # 0: cash; 1: points

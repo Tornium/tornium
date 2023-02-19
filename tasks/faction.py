@@ -17,6 +17,7 @@ import datetime
 import logging
 import math
 import random
+import typing
 import uuid
 from decimal import DivisionByZero
 
@@ -26,6 +27,7 @@ from mongoengine.queryset.visitor import Q
 from pymongo.errors import BulkWriteError
 
 import redisdb
+import skynet.skyutils
 import utils
 from models.attackmodel import AttackModel
 from models.factionmodel import FactionModel
@@ -34,7 +36,8 @@ from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
-from tasks import celery_app, discordpost, logger, torn_stats_get, tornget
+from models.withdrawalmodel import WithdrawalModel
+from tasks import celery_app, discordpost, discordpatch, logger, torn_stats_get, tornget
 from tasks.user import update_user
 from utils.errors import NetworkingError, TornError
 
@@ -1087,3 +1090,114 @@ def oc_refresh():
                 except Exception as e:
                     logger.exception(e)
                     continue
+
+
+@celery_app.task
+def auto_cancel_requests():
+    withdrawal: WithdrawalModel
+    for withdrawal in WithdrawalModel.objects(time_requested__gte=utils.now() - 7200):  # Two hours before now
+        if utils.now() - withdrawal.time_requested < 3600:
+            continue
+        elif withdrawal.fulfiller != 0:
+            continue
+
+        withdrawal.fulfiller = -1
+        withdrawal.time_fulfilled = utils.now()
+        withdrawal.save()
+
+        requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+
+        if requester is None or requester.discord_id in (0, None, ""):
+            continue
+
+        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=withdrawal.factiontid).first()
+
+        try:
+            if faction is not None:
+                discordpatch(
+                    f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
+                    {
+                        "embeds": [
+                            {
+                                "title": f"Vault Request #{withdrawal.wid}",
+                                "description": "This request has timed-out and been automatically cancelled by the "
+                                "system.",
+                                "fields": [
+                                    {
+                                        "name": "Original Request Amount",
+                                        "value": utils.commas(withdrawal.amount),
+                                    },
+                                    {
+                                        "name": "Original Request Type",
+                                        "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                    },
+                                    {
+                                        "name": "Original Requester",
+                                        "value": f"{requester.name} [{requester.tid}]",
+                                    },
+                                ],
+                                "timestamp": datetime.datetime.utcnow().isoformat(),
+                                "color": skynet.skyutils.SKYNET_ERROR,
+                            }
+                        ],
+                        "components": [
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "Faction Vault",
+                                        "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                                    },
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": "Fulfill",
+                                        "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
+                                    },
+                                    {
+                                        "type": 2,
+                                        "style": 3,
+                                        "label": "Fulfill Manually",
+                                        "custom_id": "faction:vault:fulfill",
+                                    },
+                                    {
+                                        "type": 2,
+                                        "style": 4,
+                                        "label": "Cancel",
+                                        "custom_id": "faction:vault:cancel",
+                                    },
+                                ],
+                            }
+                        ],
+                    },
+                )
+        except (utils.DiscordError, utils.NetworkingError):
+            pass
+        except Exception as e:
+            logger.exception(e)
+
+        try:
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+        except (utils.DiscordError, utils.NetworkingError):
+            continue
+        except Exception as e:
+            logger.exception(e)
+            continue
+
+        discordpost.delay(
+            f"channels/{dm_channel['id']}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Cancelled",
+                        "description": f"Your vault request #{withdrawal.wid} has timed-out and has been automatically "
+                        f"cancelled. Vault requests will be automatically cancelled after about an hour. If "
+                        f"you still require this, please submit a new request.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": skynet.skyutils.SKYNET_ERROR,
+                    }
+                ]
+            },
+        )

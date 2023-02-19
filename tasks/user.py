@@ -48,7 +48,7 @@ ATTACK_RESULTS = {
 
 @celery_app.task
 def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
-    if key in ("", None):
+    if key is None or key == "":
         raise utils.MissingKeyError
     elif (tid == 0 and discordid == 0) or (tid != 0 and discordid != 0):
         raise Exception("No valid user ID passed")

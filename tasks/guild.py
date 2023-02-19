@@ -35,7 +35,9 @@ def refresh_guilds():
     guilds_not_updated = [int(server.sid) for server in ServerModel.objects()]
 
     for guild in guilds:
-        guilds_not_updated.remove(int(guild["id"]))
+        if int(guild["id"]) in guilds_not_updated:
+            guilds_not_updated.remove(int(guild["id"]))
+
         guild_db: ServerModel = ServerModel.objects(sid=guild["id"]).first()
 
         if guild_db is None:

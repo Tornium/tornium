@@ -415,7 +415,9 @@ def refresh_factions():
 def fetch_attacks_runner():
     redis = redisdb.get_redis()
 
-    if redis.exists("tornium:celery-lock:fetch-attacks"):  # Lock enabled
+    if (
+        redis.exists("tornium:celery-lock:fetch-attacks") and redis.ttl("tornium:celery-lock:fetch-attacks") > 1
+    ):  # Lock enabled
         logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
@@ -424,7 +426,7 @@ def fetch_attacks_runner():
 
     if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
         redis.expire("tornium:celery-lock:fetch-attacks", 60)  # Lock for five minutes
-    if redis.ttl("tornium:celery-lock:fetch-attacks") < 0:
+    if redis.ttl("tornium:celery-lock:fetch-attacks") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks", 1)
 
     requests_session = requests.Session()

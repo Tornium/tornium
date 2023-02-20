@@ -211,8 +211,6 @@ def fetch_attacks_user_runner():
     if redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks-user", 1)
 
-    requests_session = requests.Session()
-
     user: UserModel
     for user in UserModel.objects(key__nin=[None, ""]):
         if user.key in (None, ""):
@@ -234,10 +232,9 @@ def fetch_attacks_user_runner():
             "user/?selections=basic,attacks",
             fromts=user.last_attacks + 1,  # Timestamp is inclusive,
             key=user.key,
-            session=requests_session,
         ).apply_async(
             expires=300,
-            link=None,
+            link=stat_db_attacks_user.s(),
         )
 
 

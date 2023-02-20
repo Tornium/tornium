@@ -382,8 +382,9 @@ def stat_db_attacks_user(user_data):
         )
 
     try:
-        stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
-        StatModel._get_collection().insert_many(stats_data, ordered=False)
+        if len(stats_data) > 0:
+            stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
+            StatModel._get_collection().insert_many(stats_data, ordered=False)
     except mongoengine.errors.BulkWriteError:
         logger.warning(
             f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "

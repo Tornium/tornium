@@ -55,16 +55,18 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
     if tid != 0:
         user: UserModel = UserModel.objects(tid=tid).first()
+        user_id = tid
     else:
         user: UserModel = UserModel.objects(discord_id=discordid).first()
+        user_id = discordid
 
     if user is not None and not refresh_existing:
         return user, {"refresh": False}
 
     if user is not None and user.key not in (None, ""):
-        user_data = tornget(f"user/{tid}/?selections=profile,discord,personalstats", user.key)
+        user_data = tornget(f"user/{user_id}/?selections=profile,discord,personalstats", user.key)
     else:
-        user_data = tornget(f"user/{tid}/?selections=profile,discord,personalstats", key)
+        user_data = tornget(f"user/{user_id}/?selections=profile,discord,personalstats", key)
 
     if int(user_data["player_id"]) != int(tid) and tid != 0:
         raise Exception("TID does not match returned player_ID")

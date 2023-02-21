@@ -1,3 +1,16 @@
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+}
+
+body {
+    font-family: "JetBrains Mono", serif;
+}
+
 a:link {
     text-decoration: none;
+}
+
+.vertical-navbar {
+    min-height: 100vh;
 }

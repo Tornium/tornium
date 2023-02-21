@@ -43,6 +43,7 @@ def index():
 @mod.route("/static/faction/bankingaa.js")
 @mod.route("/static/faction/chain.js")
 @mod.route("/static/faction/members.js")
+@mod.route("/static/fonts/JetBrainsMono-Light.woff2")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

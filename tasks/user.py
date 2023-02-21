@@ -68,7 +68,11 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
     if int(user_data["player_id"]) != int(tid) and tid != 0:
         raise Exception("TID does not match returned player_ID")
-    elif discordid not in ("", 0) and int(user_data["discord"]["discordID"]) != int(discordid):
+    elif (
+        discordid not in ("", 0)
+        and user_data["discord"]["discordID"] not in ("", 0)
+        and int(user_data["discord"]["discordID"]) != int(discordid)
+    ):
         raise Exception("discordid does not match returned discordID")
 
     if user is None:

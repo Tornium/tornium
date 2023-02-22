@@ -74,6 +74,14 @@
             color: $white;
         }
 
+        & tbody th {
+            color: $white;
+        }
+
+        & i [class^="fa-"] {
+            color: $white;
+        }
+
         & input::placeholder {
             color: $white;
         }

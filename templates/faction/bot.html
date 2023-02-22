@@ -54,7 +54,7 @@ Tornium - Faction Bot Dashboard
 
         <div class="row mb-3">
             <a class="nav-link" href="/faction/bot">
-                <i class="col-1 col-sm-2 fa-solid fa-discord"></i> <span class="col">Bot Configuration</span>
+                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
             </a>
         </div>
         {% endif %}
@@ -99,11 +99,11 @@ Tornium - Faction Bot Dashboard
 
                 <form class="form-floating" method="POST" action="/faction/bot">
                     {% if config['vault'] == 0 %}
-                    <input type="submit" class="btn btn-primary" id="enabled" name="enabled" value="Enabled">
-                    <input type="submit" class="btn btn-primary active" disabled id="disabled" name="disabled" value="Disabled">
+                    <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled">
+                    <input type="submit" class="btn btn-outline-primary active" disabled id="disabled" name="disabled" value="Disabled">
                     {% else %}
-                    <input type="submit" class="btn btn-primary active" disabled id="enabled" name="enabled" value="Enabled">
-                    <input type="submit" class="btn btn-primary" id="disabled" name="disabled" value="Disabled">
+                    <input type="submit" class="btn btn-outline-primary active" disabled id="enabled" name="enabled" value="Enabled">
+                    <input type="submit" class="btn btn-outline-primary" id="disabled" name="disabled" value="Disabled">
                     {% endif %}
                 </form>
             </p>

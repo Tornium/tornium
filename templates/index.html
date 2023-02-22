@@ -4,36 +4,52 @@
 Tornium
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb active">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+</ol>
+{% endblock %}
+
 {% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <p class="card-text">
+            Tornium is a third-party Torn application developed by tiksan [2383326] to supplement existing
+            applications such as <a href="https://yata.yt">YATA</a> and <a href="https://tonstats.com/">Torn Stats</a>,
+            but is more focused on factions. Tornium is an open source project licensed under the GNU General Purpose
+            License (GPLv3).
+        </p>
 
-{% include 'navbar.html' %}
-
-<div class="container h-100">
-    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto justify-content-center">
-        <main class="px-4 py-5 my-5 text-center">
-            <p class="lead mb-4">
-                Tornium is a third-party Torn application developed by tiksan [2383326] to supplement existing
-                applications such as <a href="https://yata.yt">YATA</a> and <a href="https://tonstats.com/">Torn Stats</a>,
-                but is more focused on factions. Tornium is an open source project licensed under the GNU General Purpose
-                License (GPLv3).
-            </p>
-
-            <p class="mb-3">
-                Accessing Tornium requires logging in with your API key for verification purposes. Your API key
-                and player and faction data will not be reviewed for any reasons other than maintenance and security
-                (and only then with the owner's permission). For more information or to report any issues, bugs, or
-                suggestions, please contact tiksan [2383326] on
-                <a href="https://www.torn.com/profiles.php?XID=2383326">Torn</a> or on
-                <a href="https://discordapp.com/users/695828257949352028">Discord</a>. In-game donations are appreciated to 
-                support the running of this site and its continued development.
-            </p>
-
-            {% if extensions|length > 0 %}
-                <p class="mb-3">
-                    The following Tornium extensions are loaded: {% for extension in extensions %}{{ extension }} {% endfor %}
-                </p>
-            {% endif %}
-        </main>
+        <p class="card-text">
+            Accessing Tornium requires logging in with your API key for verification purposes. Your API key
+            and player and faction data will not be reviewed for any reasons other than maintenance and security
+            (and only then with the owner's permission). For more information or to report any issues, bugs, or
+            suggestions, please contact tiksan [2383326] on
+            <a href="https://www.torn.com/profiles.php?XID=2383326">Torn</a> or on
+            <a href="https://discordapp.com/users/695828257949352028">Discord</a>. In-game donations are appreciated
+            to support the running of this site and its continued development.
+        </p>
     </div>
 </div>
+
+{% if extensions|length > 0 %}
+<div class="card-m3">
+    <div class="card-body container-fluid">
+        <h5 class="card-title">Loaded Tornium Extensions</h5>
+        <p class="card-text">The following Tornium extensions have been loaded on this instance of Tornium.</p>
+
+        <div class="row">
+            <div class="col-sm-12 col-md-8 col-lg-4">
+                <div class="list-group list-group-flush">
+                    {% for extension in extensions %}
+                    <li class="list-group-item">{{ extension }}</li>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

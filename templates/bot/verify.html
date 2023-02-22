@@ -16,10 +16,10 @@ Tornium - Verification
         <a href="/bot/dashboard">Server Selector</a>
     </li>
     <li class="breadcrumb-item">
-        <a href="/bot/dashboard/{{ guildid }}">Server Configuration</a>
+        <a href="/bot/dashboard/{{ guild.sid }}">Server Configuration</a>
     </li>
     <li class="breadcrumb-item active">
-        <a href="/bot/dashboard/{{ guildid }}/verify">Verification Configuration</a>
+        <a href="/bot/dashboard/{{ guild.sid }}/verify">Verification Configuration</a>
     </li>
 </ol>
 {% endblock %}
@@ -49,17 +49,17 @@ Tornium - Verification
                 <div class="col-sm-12 col-md-8 col-lg-4">
                     <div class="form-floating">
                         {% if guild.config.get("verify") %}
-                        <button type="button" class="btn btn-primary" id="verification-config-enable" disabled>
+                        <button type="button" class="btn btn-outline-primary" id="verification-config-enable" disabled>
                             Enable
                         </button>
-                        <button type="button" class="btn btn-primary" id="verification-config-disable">
+                        <button type="button" class="btn btn-outline-primary" id="verification-config-disable">
                             Disable
                         </button>
                         {% else %}
-                        <button type="button" class="btn btn-primary" id="verification-config-enable">
+                        <button type="button" class="btn btn-outline-primary" id="verification-config-enable">
                             Enable
                         </button>
-                        <button type="button" class="btn btn-primary" id="verification-config-disable" disabled>
+                        <button type="button" class="btn btn-outline-primary" id="verification-config-disable" disabled>
                             Disable
                         </button>
                         {% endif %}
@@ -178,17 +178,17 @@ Tornium - Verification
 
                             <div class="mt-1">
                                 {% if guild.faction_verify[faction]["enabled"] %}
-                                <button type="button" class="btn btn-primary verification-faction-enable" data-faction="{{ faction }}" disabled>
+                                <button type="button" class="btn btn-outline-primary verification-faction-enable" data-faction="{{ faction }}" disabled>
                                     Enable
                                 </button>
-                                <button type="button" class="btn btn-primary verification-faction-disable" data-faction="{{ faction }}">
+                                <button type="button" class="btn btn-outline-primary verification-faction-disable" data-faction="{{ faction }}">
                                     Disable
                                 </button>
                                 {% else %}
-                                <button type="button" class="btn btn-primary verification-faction-enable" data-faction="{{ faction }}">
+                                <button type="button" class="btn btn-outline-primary verification-faction-enable" data-faction="{{ faction }}">
                                     Enable
                                 </button>
-                                <button type="button" class="btn btn-primary verification-faction-disable" data-faction="{{ faction }}" disabled>
+                                <button type="button" class="btn btn-outline-primary verification-faction-disable" data-faction="{{ faction }}" disabled>
                                     Disable
                                 </button>
                                 {% endif %}

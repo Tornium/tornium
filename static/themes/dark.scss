@@ -46,6 +46,14 @@
             background-color: $primary-grey;
             color: $white;
         }
+
+        & .form-text {
+            color: $white;  // TODO: change to a slightly different color
+        }
+
+        & .p {
+            color: $white;
+        }
     }
 
     .secondary {

@@ -55,15 +55,22 @@ $(document).ready(function() {
 
             xhttp = new XMLHttpRequest();
             xhttp.onload = function() {
-                console.log(typeof(xhttp.response))
-
                 xhttp.response.forEach(function(member) {
-                    membersTable.row.add([
-                        member["username"],
-                        member["level"],
-                        `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}">${member["status"]}</span>`,
-                        `<a href="https://discordapp.com/users/${member["discord_id"]}" style="color: black" target="_blank" rel="noopener noreferer">${member["discord_id"]}</a>`
-                    ]).draw();
+                    if(member["discord_id"] == 0) {
+                        membersTable.row.add([
+                            member["username"],
+                            member["level"],
+                            `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}">${member["status"]}</span>`,
+                            `Unknown`
+                        ]).draw();
+                    } else {
+                        membersTable.row.add([
+                            member["username"],
+                            member["level"],
+                            `<span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: ${member["last_action"]}">${member["status"]}</span>`,
+                            `<a href="https://discordapp.com/users/${member["discord_id"]}" style="color: black" target="_blank" rel="noopener noreferer">${member["discord_id"]}</a>`
+                        ]).draw();
+                    }
                 });
 
                 modal.show();

@@ -59,6 +59,9 @@
 [data-bs-theme=custom-dark] .primary tbody th {
   color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .primary tbody th a {
+  color: rgb(229, 229, 229);
+}
 [data-bs-theme=custom-dark] .primary i [class^=fa-] {
   color: rgb(229, 229, 229);
 }

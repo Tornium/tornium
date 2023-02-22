@@ -76,6 +76,10 @@
 
         & tbody th {
             color: $white;
+
+            & a {
+                color: $white;
+            }
         }
 
         & i [class^="fa-"] {

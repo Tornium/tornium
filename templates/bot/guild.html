@@ -4,11 +4,36 @@
 Tornium - Bot Dashboard
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/bot/dashboard/{{ guildid }}">Server Configuration</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-
-
-{% include 'bot/navbar.html' %}
-
 <div class="row">
     <div class="py-3 px-3 col text-end">
         {% if server.config['stakeouts'] == 0 %}

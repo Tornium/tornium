@@ -66,6 +66,10 @@
             border-color: $white;
         }
 
+        & thead th {
+            color: $white;
+        }
+
         & tbody td {
             color: $white;
         }
@@ -95,5 +99,9 @@
         background-color: $primary-grey;
         color: $white;
         border-color: $white;
+
+        & tr {
+            color: $white;
+        }
     }
 }

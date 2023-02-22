@@ -55,11 +55,11 @@ Tornium - Stat DB Config
             </p>
             <form class="form-floating" method="POST" action="/stats/config">
                 {% if config['stat'] == 0 %}
-                <input type="submit" class="btn btn-primary" id="statenabled" name="statenabled" value="Enabled">
-                <input type="submit" class="btn btn-primary active" disabled id="statdisabled" name="statdisabled" value="Disabled">
+                <input type="submit" class="btn btn-outline-primary" id="statenabled" name="statenabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary active" disabled id="statdisabled" name="statdisabled" value="Disabled">
                 {% else %}
-                <input type="submit" class="btn btn-primary active" disabled id="statenabled" name="statenabled" value="Enabled">
-                <input type="submit" class="btn btn-primary" id="statdisabled" name="statdisabled" value="Disabled">
+                <input type="submit" class="btn btn-outline-primary active" disabled id="statenabled" name="statenabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary" id="statdisabled" name="statdisabled" value="Disabled">
                 {% endif %}
             </form>
         </div>
@@ -76,11 +76,11 @@ Tornium - Stat DB Config
             </p>
             <form class="form-floating" method="POST" action="/stats/config">
                 {% if config['global'] == 0 %}
-                <input type="submit" class="btn btn-primary" id="enabled" name="enabled" value="Enabled">
-                <input type="submit" class="btn btn-primary active" disabled id="disabled" name="disabled" value="Disabled">
+                <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary active" disabled id="disabled" name="disabled" value="Disabled">
                 {% else %}
-                <input type="submit" class="btn btn-primary active" disabled id="enabled" name="enabled" value="Enabled">
-                <input type="submit" class="btn btn-primary" id="disabled" name="disabled" value="Disabled">
+                <input type="submit" class="btn btn-outline-primary active" disabled id="enabled" name="enabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary" id="disabled" name="disabled" value="Disabled">
                 {% endif %}
             </form>
         </div>

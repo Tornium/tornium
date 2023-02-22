@@ -50,6 +50,9 @@
   background-color: rgb(35, 35, 35);
   border-color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .primary thead th {
+  color: rgb(229, 229, 229);
+}
 [data-bs-theme=custom-dark] .primary tbody td {
   color: rgb(229, 229, 229);
 }
@@ -73,6 +76,9 @@
   background-color: rgb(35, 35, 35);
   color: rgb(229, 229, 229);
   border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .modal-content tr {
+  color: rgb(229, 229, 229);
 }
 
 /*# sourceMappingURL=dark.css.map */

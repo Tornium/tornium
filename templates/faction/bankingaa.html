@@ -4,11 +4,66 @@
 Tornium - Faction Banking AA
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/bankingaa">Banking AA</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/members">
+                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/banking">
+                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/chain">
+                <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/attacks">
+                <i class="col-1 col-sm-2 fa-solid fa-person-rifle"></i> <span class="col">Attacks</span>
+            </a>
+        </div>
+        {% if current_user.is_authenticated and current_user.is_aa() %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bot">
+                <i class="col-1 col-sm-2 fa-solid fa-discord"></i> <span class="col">Bot Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-
-
-{% include 'faction/navbar.html' %}
-
 <div class="row px-3 py-3">
     <div class="col-12">
         <div class="card">

@@ -50,7 +50,7 @@
   background-color: rgb(35, 35, 35);
   border-color: rgb(229, 229, 229);
 }
-[data-bs-theme=custom-dark] .primary th {
+[data-bs-theme=custom-dark] .primary tbody td {
   color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .primary input::placeholder {

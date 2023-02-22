@@ -2,6 +2,8 @@
     $white : rgb(229, 229, 229);
     $primary-grey: rgb(35, 35, 35);
     $secondary-grey: rgb(25, 25, 25);
+    $off-white: rgb(175, 175, 175);
+    $error: rgb(225, 10, 10);
 
     a {
         color: $white;
@@ -86,6 +88,10 @@
             color: $white;
         }
 
+        & input {
+            border-color: $white;
+        }
+
         & input::placeholder {
             color: $white;
         }
@@ -94,6 +100,14 @@
             color: $white;
             background-color: $primary-grey;
             border-color: $white;
+        }
+
+        & .form-text {
+            color: $off-white;
+        }
+
+        & .card-text {
+            color: $off-white;
         }
     }
 

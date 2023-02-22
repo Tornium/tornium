@@ -65,6 +65,9 @@
 [data-bs-theme=custom-dark] .primary i [class^=fa-] {
   color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .primary input {
+  border-color: rgb(229, 229, 229);
+}
 [data-bs-theme=custom-dark] .primary input::placeholder {
   color: rgb(229, 229, 229);
 }
@@ -72,6 +75,12 @@
   color: rgb(229, 229, 229);
   background-color: rgb(35, 35, 35);
   border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-text {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .card-text {
+  color: rgb(175, 175, 175);
 }
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);

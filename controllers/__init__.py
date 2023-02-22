@@ -31,7 +31,6 @@ def index():
 
 @mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
-@mod.route("/static/login.css")
 @mod.route("/static/utils.js")
 @mod.route("/static/bot/oc.js")
 @mod.route("/static/bot/stakeouts.js")

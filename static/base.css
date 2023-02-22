@@ -7,10 +7,6 @@ body {
     font-family: "JetBrains Mono", serif;
 }
 
-/*a:link {
-    text-decoration: none;
-}*/
-
 .vertical-navbar {
     min-height: 100vh;
 }

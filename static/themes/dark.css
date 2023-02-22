@@ -29,9 +29,11 @@
 }
 [data-bs-theme=custom-dark] .primary .list-group-item {
   background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .primary .form-control {
   background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);

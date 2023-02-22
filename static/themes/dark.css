@@ -77,7 +77,7 @@
   color: rgb(229, 229, 229);
   border-color: rgb(229, 229, 229);
 }
-[data-bs-theme=custom-dark] .modal-content tr {
+[data-bs-theme=custom-dark] .modal-content tr th {
   color: rgb(229, 229, 229);
 }
 

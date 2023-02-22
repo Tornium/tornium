@@ -38,12 +38,25 @@
 [data-bs-theme=custom-dark] .primary .form-text {
   color: rgb(229, 229, 229);
 }
-[data-bs-theme=custom-dark] .primary .p {
+[data-bs-theme=custom-dark] .primary p {
   color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .primary li .paginate-button {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);
   color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .secondary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(25, 25, 25);
 }
 
 /*# sourceMappingURL=dark.css.map */

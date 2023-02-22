@@ -51,13 +51,29 @@
             color: $white;  // TODO: change to a slightly different color
         }
 
-        & .p {
+        & p {
             color: $white;
+        }
+
+        & a {
+            color: $white;
+            background-color: $primary-grey;
+        }
+
+        & li .paginate-button {
+            color: $white;
+            background-color: $primary-grey;
+            border-color: $white;
         }
     }
 
     .secondary {
         background-color: $secondary-grey;
         color: $white;
+
+        & a {
+            color: $white;
+            background-color: $secondary-grey;
+        }
     }
 }

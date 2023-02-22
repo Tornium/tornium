@@ -36,14 +36,14 @@
         & .card {
             background-color: $primary-grey;
         }
+
+        & .list-group-item {
+            background-color: $secondary-grey;
+        }
     }
 
     .secondary {
         background-color: $secondary-grey;
         color: $white;
-
-        & .list-group-item {
-            background-color: $secondary-grey;
-        }
     }
 }

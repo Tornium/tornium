@@ -5,8 +5,8 @@ Tornium
 {% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb active">
-    <li class="breadcrumb-item">
+<ol class="breadcrumb">
+    <li class="breadcrumb-item active">
         <a href="/">Tornium</a>
     </li>
 </ol>
@@ -42,11 +42,11 @@ Tornium
 
         <div class="row">
             <div class="col-sm-12 col-md-8 col-lg-4">
-                <div class="list-group list-group-flush">
+                <ul class="list-group list-group-flush">
                     {% for extension in extensions %}
                     <li class="list-group-item">{{ extension }}</li>
                     {% endfor %}
-                </div>
+                </ul>
             </div>
         </div>
     </div>

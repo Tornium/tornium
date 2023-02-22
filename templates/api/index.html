@@ -4,29 +4,26 @@
 Tornium - API
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/api">API</a>
+    </li>
+</ol>
+{% endblock %}
+
 {% block content %}
-
-{% include 'navbar.html' %}
-{% include 'api/navbar.html' %}
-
-<div class="container h-100">
-    <div class="py-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fa-solid fa-code"></i>
-                Tornium API
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    The Tornium API is currently under construction.
-                </p>
-
-                <p class="card-text">
-                    For more information, check out the <a href="/api/documentation">documentation</a> or contact
-                    <a href="https://discordapp.com/users/695828257949352028">tiksan</a> on Discord.
-                </p>
-            </div>
-        </div>
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title">Tornium API</h5>
+        <p class="card-text">
+            The Tornium API is currently under construction and is un-documented. For more information, look at the
+            <a href="">source code</a> or contact tiksan [2383326] on
+            <a href="https://discordapp.com/users/695828257949352028">Discord</a>.
+        </p>
     </div>
 </div>
 {% endblock %}

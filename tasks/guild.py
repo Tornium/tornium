@@ -46,6 +46,7 @@ def refresh_guilds():
                 name=guild["name"],
                 admins=[],
                 config={"stakeouts": 0, "verify": 0},
+                icon=guild["icon"],
                 factions=[],
                 stakeoutconfig={"category": 0},
                 userstakeouts=[],
@@ -92,6 +93,7 @@ def refresh_guilds():
 
         admins = list(set(admins))
         guild_db.admins = admins
+        guild_db.icon = guild["icon"]
         guild_db.save()
 
         for factiontid, faction_data in guild_db.faction_verify.items():

@@ -132,6 +132,50 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
+    except utils.TornError as e:
+        if e.code == 6:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Verification Failed",
+                            "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
+                                           "Otherwise, try forcing the verification.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Torn API Error",
+                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+    except utils.NetworkingError as e:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "HTTP Error",
+                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
 
     user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
 

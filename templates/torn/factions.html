@@ -4,11 +4,39 @@
 Tornium - Factions DB
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/torn">Torn Data</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/torn/factions">Factions</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/torn/factions">
+                <i class="col-1 col-sm-2 fa-solid fa-person-military-rifle"></i> <span class="col">Factions</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/torn/users">
+                <i class="col-1 col-sm-2 fa-solid fa-person-rifle"></i> <span class="col">Users</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-
-
-{% include 'torn/navbar.html' %}
-
 <div class="px-3 py-3">
     <div class="card">
         <div class="card-body">

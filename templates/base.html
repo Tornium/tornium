@@ -6,82 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-1.13.1/r-2.4.0/datatables.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css" integrity="sha512-72OVeAaPeV8n3BdZj7hOkaPSEk/uwpDkaGyP4W2jSzAC8tfiO4LMEDWoL3uFp5mcZu+8Eehb4GhZWFwvrss69Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css" integrity="sha512-g2SduJKxa4Lbn3GW+Q7rNz+pKP9AWMR++Ta8fgwsZRCUsawjPvF/BxSMkGS61VsR9yinGoEgrHPGPn2mrj8+4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="/static/fonts/JetBrainsMono-Light.woff2">
+    <link href="/static/fonts/JetBrainsMono-Light.woff2">
     <link rel="shortcut icon" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/base.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js" integrity="sha512-6UofPqm0QupIL0kzS/UIzekR73/luZdC6i/kXDbWnLOJoqwklBK6519iUnShaYceJ0y4FaiPtX/hRnV/X/xlUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js" integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/js/bootstrap.min.js" integrity="sha512-eHx4nbBTkIr2i0m9SANm/cczPESd0DUEcfl84JpIuutE6oDxPhXvskMR08Wmvmfx5wUpVjlWdi82G5YLvqqJdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/dt-1.13.1/r-2.4.0/datatables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js" integrity="sha512-6UofPqm0QupIL0kzS/UIzekR73/luZdC6i/kXDbWnLOJoqwklBK6519iUnShaYceJ0y4FaiPtX/hRnV/X/xlUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js" integrity="sha512-yrOmjPdp8qH8hgLfWpSFhC/+R9Cj9USL8uJxYIveJZGAiedxyIxwNw4RsLDlcjNlIRR4kkHaDHSmNHAkxFTmgg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+    <link rel="stylesheet" href="/static/themes/dark.css" >
+
     <script src="/static/global/utils.js"></script>
+    <script src="/static/global/modeSelector.js"></script>
 </head>
 <body>
-    <script src="/static/toast.js"></script>
-    {% block scripts %}{% endblock %}
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'error' %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% elif category == 'warning' %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% else %}
-                <div class="alert alert-secondary alert-dismissible fade show" role="alert">
-                    <i class="fas fa-sticky-note"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 10">
-        <div class="toast-container position-absolute top-0 end-0 mx-3 my-3" id="toast-container">
-
-        </div>
-    </div>
-
     <div class="container-fluid">
         <div class="row">
-            <nav class="navbar navbar-expand-md bg-light border-bottom">
+            <nav class="navbar navbar-expand-md border-bottom secondary">
                 <div class="container-fluid">
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#verticalNav" aria-controls="verticalNav" aria-expanded="false" aria-label="Toggle Navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
                     <a class="navbar-brand" href="/">
-                        <img src="/static/favicon.svg" width="32" alt="favicon">
+                        <img src="/static/favicon.svg" width="32" alt="Favicon">
                     </a>
 
                     <div class="navbar-nav">
                         {% if not current_user.is_authenticated %}
-                        <form class="d-flex" method="POST" action="/login">
-                            <input class="form-control" type="password" aria-label="Key" id="key" name="key" placeholder="Enter your Torn API key">
-                            <button class="btn btn-outline-success" type="submit">
-                                <i class="fa-solid fa-right-to-bracket"></i>
-                                Submit
-                            </button>
-                        </form>
+                        <a href="/login" class="btn btn-outline-success" role="button">Login</a>
                         {% else %}
                         <form class="d-flex" method="POST" action="/logout">
-                            <button class="btn btn-outline-success" type="submit">
+                            <button class="btn btn-outline-danger" type="submit">
                                 <i class="fa-solid fa-right-from-bracket"></i>
                                 Logout
                             </button>
@@ -93,7 +55,7 @@
         </div>
 
         <div class="row vertical-navbar">
-            <div class="col-12 col-sm-12 col-md-4 col-lg-2 border-end">
+            <div class="col-12 col-sm-12 col-md-4 col-lg-2 border-end secondary">
                 <div class="navbar navbar-expand-md">
                     <div class="collapse navbar-collapse" id="verticalNav">
                         <div class="container-fluid">
@@ -149,7 +111,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-sm-12 col-md-8 col-lg-10">
+            <div class="col-12 col-sm-12 col-md-8 col-lg-10 primary">
                 {% block content %}{% endblock %}
             </div>
         </div>

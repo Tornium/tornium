@@ -1,0 +1,45 @@
+[data-bs-theme="custom-dark"] {
+    $white : rgb(229, 229, 229);
+    $primary-grey: rgb(35, 35, 35);
+    $secondary-grey: rgb(25, 25, 25);
+
+    a {
+        color: $white;
+        text-decoration: none;
+
+        &:visited {
+            color: $white;
+            text-decoration: none;
+        }
+        &:hover {
+            color: rgb(320, 320, 320);
+            text-decoration: none;
+        }
+        &:active {
+            color: $white;
+            text-decoration: none;
+        }
+    }
+
+    .breadcrumb-item::before {
+        color: $white;
+    }
+
+    .card {
+        border-color: $white;
+    }
+
+    .primary {
+        background-color: $primary-grey;
+        color: $white;
+
+        & .card {
+            background-color: $primary-grey;
+        }
+    }
+
+    .secondary {
+        background-color: $secondary-grey;
+        color: $white;
+    }
+}

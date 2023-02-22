@@ -50,6 +50,17 @@
   background-color: rgb(35, 35, 35);
   border-color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .primary th {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary input::placeholder {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary select {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
+}
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);
   color: rgb(229, 229, 229);
@@ -57,6 +68,11 @@
 [data-bs-theme=custom-dark] .secondary a {
   color: rgb(229, 229, 229);
   background-color: rgb(25, 25, 25);
+}
+[data-bs-theme=custom-dark] .modal-content {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border-color: rgb(229, 229, 229);
 }
 
 /*# sourceMappingURL=dark.css.map */

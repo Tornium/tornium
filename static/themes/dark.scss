@@ -65,6 +65,20 @@
             background-color: $primary-grey;
             border-color: $white;
         }
+
+        & th {
+            color: $white;
+        }
+
+        & input::placeholder {
+            color: $white;
+        }
+
+        & select {
+            color: $white;
+            background-color: $primary-grey;
+            border-color: $white;
+        }
     }
 
     .secondary {
@@ -75,5 +89,11 @@
             color: $white;
             background-color: $secondary-grey;
         }
+    }
+
+    .modal-content {
+        background-color: $primary-grey;
+        color: $white;
+        border-color: $white;
     }
 }

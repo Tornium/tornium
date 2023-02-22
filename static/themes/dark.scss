@@ -38,7 +38,11 @@
         }
 
         & .list-group-item {
-            background-color: $secondary-grey;
+            background-color: $primary-grey;
+        }
+
+        & .form-control {
+            background-color: $primary-grey;
         }
     }
 

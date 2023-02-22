@@ -41,5 +41,9 @@
     .secondary {
         background-color: $secondary-grey;
         color: $white;
+
+        & .list-group-item {
+            background-color: $secondary-grey;
+        }
     }
 }

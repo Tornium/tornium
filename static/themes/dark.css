@@ -31,5 +31,8 @@
   background-color: rgb(25, 25, 25);
   color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .secondary .list-group-item {
+  background-color: rgb(25, 25, 25);
+}
 
 /*# sourceMappingURL=dark.css.map */

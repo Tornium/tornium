@@ -4,11 +4,47 @@
 Tornium - Stat DB
 {% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/stats">Stat DB</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/stats/db">Database</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/db">
+                <i class="col-1 col-sm-2 fa-solid fa-database"></i> <span class="col">Database</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/chain">
+                <i class="col-1 col-sm-2 fa-solid fa-bars"></i> <span class="col">Chain List Generator</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.is_aa() %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/config">
+                <i class="col-1 col-sm-2 fa-solid fa-hand-fist"></i> <span class="col">Faction Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-
-
-{% include 'stats/navbar.html' %}
-
 <div class="px-3 py-3">
     <div class="card">
         <div class="card-body">

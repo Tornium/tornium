@@ -94,7 +94,7 @@
   display: none;
 }
 @media (min-width: 992px) {
-  [data-bs-theme=custom-dark] .secondary {
+  [data-bs-theme=custom-dark] .secondary #verticalNavContainer {
     display: flex;
   }
 }

@@ -125,7 +125,9 @@
         }
 
         @media (min-width: 992px) {
-            display: flex;
+            #verticalNavContainer {
+                display: flex;
+            }
         }
     }
 

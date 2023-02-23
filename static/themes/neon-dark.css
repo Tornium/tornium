@@ -21,7 +21,7 @@
   color: rgb(57, 255, 20);
 }
 [data-bs-theme=neon-dark] .card {
-  border-color: rgb(57, 255, 20);
+  border-color: rgb(229, 229, 229);
 }
 @media (max-height: 992px) {
   [data-bs-theme=neon-dark] .secondary {
@@ -63,7 +63,7 @@
 [data-bs-theme=neon-dark] .primary li .paginate-button {
   color: rgb(57, 255, 20);
   background-color: rgb(35, 35, 35);
-  border-color: rgb(57, 255, 20);
+  border-color: rgb(229, 229, 229);
 }
 [data-bs-theme=neon-dark] .primary thead th {
   color: rgb(57, 255, 20);
@@ -81,7 +81,7 @@
   color: rgb(57, 255, 20);
 }
 [data-bs-theme=neon-dark] .primary input {
-  border-color: rgb(57, 255, 20);
+  border-color: rgb(229, 229, 229);
 }
 [data-bs-theme=neon-dark] .primary input::placeholder {
   color: rgb(57, 255, 20);
@@ -89,7 +89,7 @@
 [data-bs-theme=neon-dark] .primary select {
   color: rgb(57, 255, 20);
   background-color: rgb(35, 35, 35);
-  border-color: rgb(57, 255, 20);
+  border-color: rgb(229, 229, 229);
 }
 [data-bs-theme=neon-dark] .primary .form-text {
   color: rgb(57, 255, 20);
@@ -108,7 +108,7 @@
 [data-bs-theme=neon-dark] .modal-content {
   background-color: rgb(35, 35, 35);
   color: rgb(57, 255, 20);
-  border-color: rgb(57, 255, 20);
+  border-color: rgb(229, 229, 229);
 }
 [data-bs-theme=neon-dark] .modal-content tr th {
   color: rgb(57, 255, 20);

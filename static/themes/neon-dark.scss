@@ -30,7 +30,7 @@
     }
 
     .card {
-        border-color: $neon;
+        border-color: $white;
     }
 
     @media (max-height: 992px) {
@@ -80,7 +80,7 @@
         & li .paginate-button {
             color: $neon;
             background-color: $primary-grey;
-            border-color: $neon;
+            border-color: $white;
         }
 
         & thead th {
@@ -104,7 +104,7 @@
         }
 
         & input {
-            border-color: $neon;
+            border-color: $white;
         }
 
         & input::placeholder {
@@ -114,7 +114,7 @@
         & select {
             color: $neon;
             background-color: $primary-grey;
-            border-color: $neon;
+            border-color: $white;
         }
 
         & .form-text {
@@ -139,7 +139,7 @@
     .modal-content {
         background-color: $primary-grey;
         color: $neon;
-        border-color: $neon;
+        border-color: $white;
 
         & tr th {
             color: $neon;

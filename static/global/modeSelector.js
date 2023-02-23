@@ -4,9 +4,9 @@
  * Licensed under the Creative Commons Attribution 3.0 Unported License.
  */
 
-var storedTheme = localStorage.getItem('theme');
-
 function getPreferredTheme() {
+    let storedTheme = localStorage.getItem('theme');
+
     if (storedTheme) {
         return storedTheme;
     }
@@ -28,6 +28,8 @@ $(document).ready(function() {
     setTheme(getPreferredTheme());
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        let storedTheme = localStorage.getItem('theme');
+
         if (storedTheme !== 'light' || storedTheme !== 'custom-dark') {
             setTheme(getPreferredTheme());
         }

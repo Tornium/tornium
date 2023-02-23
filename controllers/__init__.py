@@ -29,6 +29,11 @@ def index():
     return render_template("index.html", extensions=extensions)
 
 
+@mod.route("/settings")
+def settings():
+    return render_template("settings.html")
+
+
 @mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
 @mod.route("/static/utils.js")

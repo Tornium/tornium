@@ -20,6 +20,14 @@
 [data-bs-theme=custom-dark] .card {
   border-color: rgb(229, 229, 229);
 }
+@media (max-height: 992px) {
+  [data-bs-theme=custom-dark] .secondary {
+    height: fit-content;
+  }
+  [data-bs-theme=custom-dark] .primary {
+    height: 100vh;
+  }
+}
 [data-bs-theme=custom-dark] .primary {
   background-color: rgb(35, 35, 35);
   color: rgb(229, 229, 229);
@@ -89,14 +97,6 @@
 [data-bs-theme=custom-dark] .secondary a {
   color: rgb(229, 229, 229);
   background-color: rgb(25, 25, 25);
-}
-[data-bs-theme=custom-dark] .secondary #verticalNavContainer {
-  display: none;
-}
-@media (min-width: 992px) {
-  [data-bs-theme=custom-dark] .secondary #verticalNavContainer {
-    display: flex;
-  }
 }
 [data-bs-theme=custom-dark] .modal-content {
   background-color: rgb(35, 35, 35);

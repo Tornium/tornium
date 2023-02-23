@@ -31,6 +31,16 @@
         border-color: $white;
     }
 
+    @media (max-height: 992px) {
+        .secondary {
+            height: fit-content;
+        }
+
+        .primary {
+            height: 100vh;
+        }
+    }
+
     .primary {
         background-color: $primary-grey;
         color: $white;
@@ -118,16 +128,6 @@
         & a {
             color: $white;
             background-color: $secondary-grey;
-        }
-
-        #verticalNavContainer {
-            display: none;
-        }
-
-        @media (min-width: 992px) {
-            #verticalNavContainer {
-                display: flex;
-            }
         }
     }
 

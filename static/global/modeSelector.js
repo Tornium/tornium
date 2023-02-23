@@ -9,7 +9,7 @@
 
     const storedTheme = localStorage.getItem('theme');
 
-    const getPreferredTheme = () => {
+    const getPreferredTheme = function() {
         if (storedTheme) {
             return storedTheme;
         }
@@ -17,7 +17,7 @@
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'custom-dark' : 'light';
     }
 
-    const setTheme = function (theme) {
+    const setTheme = function(theme) {
         if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.setAttribute('data-bs-theme', 'custom-dark');
         } else {

@@ -38,7 +38,9 @@
     }
     @media (min-height: 992px) {
         #verticalNavContainer {
-            border-right: solid $white --bs-border-radius;
+            border-right-color: $white;
+            border-right-style: solid;
+            border-right-width: 0.375rem;
         }
     }
 

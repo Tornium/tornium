@@ -27,7 +27,9 @@
 }
 @media (min-height: 992px) {
   [data-bs-theme=custom-dark] #verticalNavContainer {
-    border-right: solid rgb(229, 229, 229) --bs-border-radius;
+    border-right-color: rgb(229, 229, 229);
+    border-right-style: solid;
+    border-right-width: 0.375rem;
   }
 }
 [data-bs-theme=custom-dark] .primary {

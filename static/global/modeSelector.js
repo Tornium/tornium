@@ -4,7 +4,7 @@
  * Licensed under the Creative Commons Attribution 3.0 Unported License.
  */
 
-let storedTheme = localStorage.getItem('theme');
+var storedTheme = localStorage.getItem('theme');
 
 function getPreferredTheme() {
     if (storedTheme) {

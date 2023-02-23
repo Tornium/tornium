@@ -141,7 +141,7 @@ def verify(interaction, *args, **kwargs):
                         {
                             "title": "Verification Failed",
                             "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
-                                           "Otherwise, try forcing the verification.",
+                            "Otherwise, try forcing the verification.",
                             "color": SKYNET_ERROR,
                         }
                     ],

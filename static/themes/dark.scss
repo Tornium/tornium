@@ -1,0 +1,146 @@
+[data-bs-theme="custom-dark"] {
+    $white : rgb(229, 229, 229);
+    $primary-grey: rgb(35, 35, 35);
+    $secondary-grey: rgb(25, 25, 25);
+    $off-white: rgb(175, 175, 175);
+    $error: rgb(225, 10, 10);
+
+    a {
+        color: $white;
+        text-decoration: none;
+
+        &:visited {
+            color: $white;
+            text-decoration: none;
+        }
+        &:hover {
+            color: rgb(320, 320, 320);
+            text-decoration: none;
+        }
+        &:active {
+            color: $white;
+            text-decoration: none;
+        }
+    }
+
+    .breadcrumb-item::before {
+        color: $white;
+    }
+
+    .card {
+        border-color: $white;
+    }
+
+    @media (max-height: 992px) {
+        .secondary {
+            height: fit-content;
+        }
+    }
+    @media (min-height: 992px) {
+        #verticalNavContainer {
+            border-right-color: $white;
+            border-right-style: solid;
+            border-right-width: 1px;
+        }
+    }
+
+    .primary {
+        background-color: $primary-grey;
+        color: $white;
+
+        & .card {
+            background-color: $primary-grey;
+        }
+
+        & .list-group-item {
+            background-color: $primary-grey;
+            color: $white;
+        }
+
+        & .form-control {
+            background-color: $primary-grey;
+            color: $white;
+        }
+
+        & .form-text {
+            color: $white;  // TODO: change to a slightly different color
+        }
+
+        & p {
+            color: $white;
+        }
+
+        & a {
+            color: $white;
+            background-color: $primary-grey;
+        }
+
+        & li .paginate-button {
+            color: $white;
+            background-color: $primary-grey;
+            border-color: $white;
+        }
+
+        & thead th {
+            color: $white;
+        }
+
+        & tbody td {
+            color: $white;
+        }
+
+        & tbody th {
+            color: $white;
+
+            & a {
+                color: $white;
+            }
+        }
+
+        & i [class^="fa-"] {
+            color: $white;
+        }
+
+        & input {
+            border-color: $white;
+        }
+
+        & input::placeholder {
+            color: $white;
+        }
+
+        & select {
+            color: $white;
+            background-color: $primary-grey;
+            border-color: $white;
+        }
+
+        & .form-text {
+            color: $off-white;
+        }
+
+        & .card-text {
+            color: $off-white;
+        }
+    }
+
+    .secondary {
+        background-color: $secondary-grey;
+        color: $white;
+
+        & a {
+            color: $white;
+            background-color: $secondary-grey;
+        }
+    }
+
+    .modal-content {
+        background-color: $primary-grey;
+        color: $white;
+        border-color: $white;
+
+        & tr th {
+            color: $white;
+        }
+    }
+}

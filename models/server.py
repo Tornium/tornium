@@ -35,6 +35,7 @@ class Server:
         self.name = server.name
         self.admins = server.admins
         self.config = server.config
+        self.icon = server.icon
 
         self.factions = server.factions
 

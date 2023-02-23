@@ -1,0 +1,9 @@
+@media (min-height: 992px) {
+  [data-bs-theme=light] #verticalNavContainer {
+    border-right-color: rgb(226, 226, 230);
+    border-right-style: solid;
+    border-right-width: 1px;
+  }
+}
+
+/*# sourceMappingURL=light.css.map */

@@ -1,3 +1,12 @@
-a:link {
-    text-decoration: none;
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+}
+
+body {
+    font-family: "JetBrains Mono", serif;
+}
+
+.vertical-navbar {
+    min-height: 100vh;
 }

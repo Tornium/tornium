@@ -1,88 +1,48 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>500 | Internal server error</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Server Error</title>
 
-    <style type="text/css">
-    body {
-      padding: 30px 20px;
-      font-family: -apple-system, BlinkMacSystemFont,
-        "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-        "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-      color: #727272;
-      line-height: 1.6;
-    }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css" integrity="sha512-72OVeAaPeV8n3BdZj7hOkaPSEk/uwpDkaGyP4W2jSzAC8tfiO4LMEDWoL3uFp5mcZu+8Eehb4GhZWFwvrss69Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/static/fonts/JetBrainsMono-Light.woff2">
+    <link rel="shortcut icon" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/base.css">
 
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-    }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/js/bootstrap.min.js" integrity="sha512-eHx4nbBTkIr2i0m9SANm/cczPESd0DUEcfl84JpIuutE6oDxPhXvskMR08Wmvmfx5wUpVjlWdi82G5YLvqqJdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    h1 {
-      margin: 0 0 40px;
-      font-size: 60px;
-      line-height: 1;
-      color: #252427;
-      font-weight: 700;
-    }
+    <link rel="stylesheet" href="/static/themes/light.css" >
+    <link rel="stylesheet" href="/static/themes/dark.css" >
+    <link rel="stylesheet" href="/static/themes/neon-dark.css" >
 
-    h2 {
-      margin: 100px 0 0;
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      color: #A299AC;
-      text-transform: uppercase;
-    }
-
-    p {
-      font-size: 16px;
-      margin: 1em 0;
-    }
-
-    .go-back a {
-      display: inline-block;
-      margin-top: 3em;
-      padding: 10px;
-      color: #1B1A1A;
-      font-weight: 700;
-      border: solid 2px #e7e7e7;
-      text-decoration: none;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .go-back a:hover {
-      border-color: #1B1A1A;
-    }
-
-    @media screen and (min-width: 768px) {
-      body {
-        padding: 50px;
-      }
-    }
-
-    @media screen and (max-width: 480px) {
-      h1 {
-        font-size: 48px;
-      }
-    }
-  </style>
+    <script src="/static/global/modeSelector.js"></script>
 </head>
-<body>
+<body class="primary">
+    <div class="container">
+        <div class="row min-vh-100">
+            <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+                <div class="card m-3">
+                    <div class="card-body container-fluid">
+                        <h2 class="card-title">Error: HTTP 500 | Internal Server Error</h2>
 
-<div class="container"><h2>500</h2>
-    <h1>Internal Server Error.</h1>
+                        <p class="card-text">
+                            The server has encountered an unexpected issue that has prevented a successful response.
+                        </p>
 
-    <p>Something went wrong. Our technical team have been notified of the issue and we are looking into it. Please try again shortly.</p>
-    
-    <p>{{ error }}</p>
+                        <p class="card-text">
+                            This error has likely been caught by Tornium's automated logging tool. However, if you need
+                            help or this error continues occuring, please contact tiksan on
+                            <a href="https://discord.com/users/695828257949352028">Discord</a>.
+                        </p>
 
-    <span class="go-back"><a href="javascript:history.back()">Go back</a></span>
-</div>
-
+                        <a class="btn btn-outline-warning" href="javascript:history.back()">Go back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

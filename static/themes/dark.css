@@ -1,0 +1,114 @@
+[data-bs-theme=custom-dark] a {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:visited {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:hover {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:active {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] .breadcrumb-item::before {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .card {
+  border-color: rgb(229, 229, 229);
+}
+@media (max-height: 992px) {
+  [data-bs-theme=custom-dark] .secondary {
+    height: fit-content;
+  }
+}
+@media (min-height: 992px) {
+  [data-bs-theme=custom-dark] #verticalNavContainer {
+    border-right-color: rgb(229, 229, 229);
+    border-right-style: solid;
+    border-right-width: 1px;
+  }
+}
+[data-bs-theme=custom-dark] .primary {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .card {
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .primary .list-group-item {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-control {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-text {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary p {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .primary li .paginate-button {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary thead th {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary tbody td {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary tbody th {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary tbody th a {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary i [class^=fa-] {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary input {
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary input::placeholder {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary select {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-text {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .card-text {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .secondary {
+  background-color: rgb(25, 25, 25);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .secondary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(25, 25, 25);
+}
+[data-bs-theme=custom-dark] .modal-content {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .modal-content tr th {
+  color: rgb(229, 229, 229);
+}
+
+/*# sourceMappingURL=dark.css.map */

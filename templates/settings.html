@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Settings
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/settings">Settings</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title">Tornium Client Settings</h5>
+        <p class="card-text">
+            Settings for Tornium clients that's stored in cookies on a per-device basis.
+        </p>
+
+        <select id="theme-selector" class="form-select" aria-label="Theme selection">
+            <option value="light">Light (Bootstrap)</option>
+            <option disabled value="dark">Dark (Bootstrap)</option>
+            <option value="custom-dark">Dark (Customized)</option>
+            <option value="neon-dark">Raz-Mode (Neon+Dark)</option>
+        </select>
+    </div>
+</div>
+
+<div class="card mx-3 mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Tornium Server Settings</h5>
+        <p class="card-text">
+            Settings for Tornium stored on the server that applies to all devices signed in with your API key.
+        </p>
+
+        <button disabled class="m-2 btn btn-outline-danger">Delete Account</button>
+        <button disabled class="m-2 btn btn-outline-danger">Purge Account</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script defer>
+    $(document).ready(function() {
+        const getTheme = function () {
+            if (localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'custom-dark' : 'light';
+        }
+
+        $("#theme-selector").on("change", function(e) {
+            localStorage.setItem("theme", this.value);
+            document.documentElement.setAttribute("data-bs-theme", this.value);
+        });
+
+        $(`option[value="${getTheme()}"]`).prop("selected", true);
+    });
+</script>
+{% endblock %}

@@ -66,17 +66,6 @@ def error404(e):
         )
 
 
-@mod.app_errorhandler(422)
-def error422(e):
-    """
-    Returns the 422 error page
-
-    :param e: HTTP error
-    """
-
-    return render_template("/errors/422.html"), 422
-
-
 @mod.app_errorhandler(500)
 def error500(e):
     """

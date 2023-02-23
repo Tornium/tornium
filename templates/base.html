@@ -2,62 +2,150 @@
 
 <html lang="en">
 <head>
-    <meta charset="URF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-1.13.1/r-2.4.0/datatables.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css" integrity="sha512-72OVeAaPeV8n3BdZj7hOkaPSEk/uwpDkaGyP4W2jSzAC8tfiO4LMEDWoL3uFp5mcZu+8Eehb4GhZWFwvrss69Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css" integrity="sha512-g2SduJKxa4Lbn3GW+Q7rNz+pKP9AWMR++Ta8fgwsZRCUsawjPvF/BxSMkGS61VsR9yinGoEgrHPGPn2mrj8+4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/static/fonts/JetBrainsMono-Light.woff2">
     <link rel="shortcut icon" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/base.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js" integrity="sha512-6UofPqm0QupIL0kzS/UIzekR73/luZdC6i/kXDbWnLOJoqwklBK6519iUnShaYceJ0y4FaiPtX/hRnV/X/xlUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.min.js" integrity="sha512-a6ctI6w1kg3J4dSjknHj3aWLEbjitAXAjLDRUxo2wyYmDFRcz2RJuQr5M3Kt8O/TtUSp8n2rAyaXYy1sjoKmrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/js/bootstrap.min.js" integrity="sha512-eHx4nbBTkIr2i0m9SANm/cczPESd0DUEcfl84JpIuutE6oDxPhXvskMR08Wmvmfx5wUpVjlWdi82G5YLvqqJdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/dt-1.13.1/r-2.4.0/datatables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js" integrity="sha512-K/oyQtMXpxI4+K0W7H25UopjM8pzq0yrVdFdG21Fh5dBe91I40pDd9A4lzNlHPHBIP2cwZuoxaUSX0GJSObvGA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js" integrity="sha512-yrOmjPdp8qH8hgLfWpSFhC/+R9Cj9USL8uJxYIveJZGAiedxyIxwNw4RsLDlcjNlIRR4kkHaDHSmNHAkxFTmgg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    
+
+    <link rel="stylesheet" href="/static/themes/light.css" >
+    <link rel="stylesheet" href="/static/themes/dark.css" >
+    <link rel="stylesheet" href="/static/themes/neon-dark.css" >
+
     <script src="/static/global/utils.js"></script>
+    <script src="/static/global/modeSelector.js"></script>
+
+    <script>
+        (function(h,o,u,n,d) {
+            h=h[d]=h[d]||{q:[],onReady:function(c){h.q.push(c)}}
+            d=o.createElement(u);d.async=1;d.src=n
+            n=o.getElementsByTagName(u)[0];n.parentNode.insertBefore(d,n)
+        })(window,document,'script','https://www.datadoghq-browser-agent.com/datadog-rum-v4.js','DD_RUM')
+        DD_RUM.onReady(function() {
+            DD_RUM.init({
+                clientToken: 'pubf7e926a26e6c9ef49e8ae2b22e2cb385',
+                applicationId: 'bd47a9b2-3ad6-4dd6-b6d4-f51183a9c998',
+                site: 'datadoghq.com',
+                service: 'tornium',
+                env: 'prod',
+                // Specify a version number to identify the deployed version of your application in Datadog
+                // version: '1.0.0',
+                sessionSampleRate: 100,
+                sessionReplaySampleRate: 0,
+                trackUserInteractions: true,
+                trackResources: true,
+                trackLongTasks: true,
+                defaultPrivacyLevel: 'mask-user-input',
+            });
+
+            DD_RUM.startSessionReplayRecording();
+        })
+      </script>
 </head>
 <body>
-    <script src="/static/toast.js"></script>
     {% block scripts %}{% endblock %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'error' %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% elif category == 'warning' %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% else %}
-                <div class="alert alert-secondary alert-dismissible fade show" role="alert">
-                    <i class="fas fa-sticky-note"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 10">
-        <div class="toast-container position-absolute top-0 end-0 mx-3 my-3" id="toast-container">
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="navbar navbar-expand-md border-bottom secondary">
+                <div class="container-fluid">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#verticalNav" aria-controls="verticalNav" aria-expanded="false" aria-label="Toggle Navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
+                    <a class="navbar-brand" href="/">
+                        <img src="/static/favicon.svg" width="32" alt="Favicon">
+                    </a>
+
+                    <div class="navbar-nav">
+                        {% if not current_user.is_authenticated %}
+                        <a href="/login" class="btn btn-outline-success" role="button">Login</a>
+                        {% else %}
+                        <form class="d-flex" method="POST" action="/logout">
+                            <button class="btn btn-outline-danger" type="submit">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Logout
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="row min-vh-100">
+            <div class="col-12 col-sm-12 col-md-4 col-lg-2 secondary" id="verticalNavContainer">
+                <nav class="navbar navbar-expand-md">
+                    <div class="collapse navbar-collapse" id="verticalNav">
+                        <div class="container-fluid">
+                            <div class="row pt-1">
+                                <nav aria-label="breadcrumb">
+                                    {% block breadcrumbs %}{% endblock %}
+                                </nav>
+                            </div>
+
+                            <div class="row pt-3 pb-2 border-top">
+                                <div class="container-fluid px-md-3">
+                                    <div class="row mb-3">
+                                        <a class="nav-link" href="/faction">
+                                            <i class="col-1 col-sm-2 fa-solid fa-hand-fist"></i> <span class="col">Faction</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <a class="nav-link" href="/bot">
+                                            <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Discord Bot</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <a class="nav-link" href="/stats">
+                                            <i class="col-1 col-sm-2 fa-solid fa-database"></i> <span class="col">Stat DB</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="row mb-1">
+                                        <a class="nav-link" href="/torn">
+                                            <i class="col-1 col-sm-2 fa-solid fa-t"></i> <span class="col">Torn Data</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if current_user.is_authenticated %}
+                            <div class="row pt-3 border-top">
+                                <div class="container-fluid px-md-3">
+                                    <div class="row mb-3">
+                                        <a class="nav-link" href="/settings">
+                                            <i class="col-1 col-sm-2 fa-solid fa-screwdriver-wrench"></i> <span class="col">User Settings</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% block subnav %}{% endblock %}
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="col-12 col-sm-12 col-md-8 col-lg-10 primary min-vh-100">
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </div>
-
-    {% block content %}{% endblock %}
 </body>
 </html>

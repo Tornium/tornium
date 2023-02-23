@@ -29,9 +29,13 @@ def index():
     return render_template("index.html", extensions=extensions)
 
 
+@mod.route("/settings")
+def settings():
+    return render_template("settings.html")
+
+
 @mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
-@mod.route("/static/login.css")
 @mod.route("/static/utils.js")
 @mod.route("/static/bot/oc.js")
 @mod.route("/static/bot/stakeouts.js")
@@ -43,6 +47,7 @@ def index():
 @mod.route("/static/faction/bankingaa.js")
 @mod.route("/static/faction/chain.js")
 @mod.route("/static/faction/members.js")
+@mod.route("/static/fonts/JetBrainsMono-Light.woff2")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

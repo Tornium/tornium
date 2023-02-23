@@ -35,14 +35,21 @@ Tornium - Settings
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/global/modeSelector.js"></script>
 <script defer>
     $(document).ready(function() {
+        const getTheme = function () {
+            if (localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'custom-dark' : 'light';
+        }
+
         $("#theme-selector").on("change", function(e) {
-            setTheme(this.value);
+            localStorage.setItem("theme", this.value);
         });
 
-        $(`option[value="${getPreferredTheme()}"]`).prop("selected", true);
+        $(`option[value="${getTheme()}"]`).prop("selected", true);
     });
 </script>
 {% endblock %}

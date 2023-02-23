@@ -90,9 +90,8 @@
   color: rgb(229, 229, 229);
   background-color: rgb(25, 25, 25);
 }
-[data-bs-theme=custom-dark] .secondary .collapse {
-  overflow: hidden;
-  max-height: 0;
+[data-bs-theme=custom-dark] .secondary #verticalNav[class=show] .verticalNavContainer {
+  display: none;
 }
 [data-bs-theme=custom-dark] .modal-content {
   background-color: rgb(35, 35, 35);

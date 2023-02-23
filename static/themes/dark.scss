@@ -120,9 +120,10 @@
             background-color: $secondary-grey;
         }
 
-        & .collapse {
-            overflow: hidden;
-            max-height: 0;
+        & #verticalNav[class="show"] {
+            .verticalNavContainer {
+                display: none;
+            }
         }
     }
 

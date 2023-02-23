@@ -1,0 +1,145 @@
+[data-bs-theme="neon-dark"] {
+    $neon: rgb(57, 255, 20);
+    $primary-grey: rgb(35, 35, 35);
+    $secondary-grey: rgb(25, 25, 25);
+    $error: rgb(225, 10, 10);
+
+    a {
+        color: $neon;
+        text-decoration: none;
+
+        &:visited {
+            color: $neon;
+            text-decoration: none;
+        }
+        &:hover {
+            color: rgb(320, 320, 320);
+            text-decoration: none;
+        }
+        &:active {
+            color: $neon;
+            text-decoration: none;
+        }
+    }
+
+    .breadcrumb-item::before {
+        color: $neon;
+    }
+
+    .card {
+        border-color: $neon;
+    }
+
+    @media (max-height: 992px) {
+        .secondary {
+            height: fit-content;
+        }
+    }
+    @media (min-height: 992px) {
+        #verticalNavContainer {
+            border-right-color: $neon;
+            border-right-style: solid;
+            border-right-width: 1px;
+        }
+    }
+
+    .primary {
+        background-color: $primary-grey;
+        color: $neon;
+
+        & .card {
+            background-color: $primary-grey;
+        }
+
+        & .list-group-item {
+            background-color: $primary-grey;
+            color: $neon;
+        }
+
+        & .form-control {
+            background-color: $primary-grey;
+            color: $neon;
+        }
+
+        & .form-text {
+            color: $neon;  // TODO: change to a slightly different color
+        }
+
+        & p {
+            color: $neon;
+        }
+
+        & a {
+            color: $neon;
+            background-color: $primary-grey;
+        }
+
+        & li .paginate-button {
+            color: $neon;
+            background-color: $primary-grey;
+            border-color: $neon;
+        }
+
+        & thead th {
+            color: $neon;
+        }
+
+        & tbody td {
+            color: $neon;
+        }
+
+        & tbody th {
+            color: $neon;
+
+            & a {
+                color: $neon;
+            }
+        }
+
+        & i [class^="fa-"] {
+            color: $neon;
+        }
+
+        & input {
+            border-color: $neon;
+        }
+
+        & input::placeholder {
+            color: $neon;
+        }
+
+        & select {
+            color: $neon;
+            background-color: $primary-grey;
+            border-color: $neon;
+        }
+
+        & .form-text {
+            color: $neon;
+        }
+
+        & .card-text {
+            color: $neon;
+        }
+    }
+
+    .secondary {
+        background-color: $secondary-grey;
+        color: $neon;
+
+        & a {
+            color: $neon;
+            background-color: $secondary-grey;
+        }
+    }
+
+    .modal-content {
+        background-color: $primary-grey;
+        color: $neon;
+        border-color: $neon;
+
+        & tr th {
+            color: $neon;
+        }
+    }
+}

@@ -47,6 +47,7 @@ Tornium - Settings
 
         $("#theme-selector").on("change", function(e) {
             localStorage.setItem("theme", this.value);
+            document.documentElement.setAttribute("data-bs-theme", this.value);
         });
 
         $(`option[value="${getTheme()}"]`).prop("selected", true);

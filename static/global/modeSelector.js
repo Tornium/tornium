@@ -15,12 +15,14 @@ function getPreferredTheme() {
 }
 
 function setTheme(theme) {
-        if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-bs-theme', 'custom-dark');
-        } else {
-            document.documentElement.setAttribute('data-bs-theme', theme);
-        }
+    if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-bs-theme', 'custom-dark');
+        localStorage.setItem("theme", "custom-dark");
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        localStorage.setItem("theme", theme);
     }
+}
 
 $(document).ready(function() {
     setTheme(getPreferredTheme());

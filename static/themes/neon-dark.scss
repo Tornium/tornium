@@ -1,8 +1,11 @@
 [data-bs-theme="neon-dark"] {
+    $white : rgb(229, 229, 229);
     $neon: rgb(57, 255, 20);
     $primary-grey: rgb(35, 35, 35);
     $secondary-grey: rgb(25, 25, 25);
     $error: rgb(225, 10, 10);
+
+    border-color: $white;
 
     a {
         color: $neon;

@@ -1,3 +1,6 @@
+[data-bs-theme=neon-dark] {
+  border-color: rgb(229, 229, 229);
+}
 [data-bs-theme=neon-dark] a {
   color: rgb(57, 255, 20);
   text-decoration: none;

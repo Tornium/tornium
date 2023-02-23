@@ -32,7 +32,7 @@ Tornium - Settings
 
 {% block scripts %}
 <script src="/static/global/modeSelector.js"></script>
-<script>
+<script defer>
     $(document).ready(function() {
         $("#theme-selector").on("change", function(e) {
             setTheme(this.value);

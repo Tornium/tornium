@@ -4,6 +4,8 @@
  * Licensed under the Creative Commons Attribution 3.0 Unported License.
  */
 
+let storedTheme = localStorage.getItem('theme');
+
 function getPreferredTheme() {
     if (storedTheme) {
         return storedTheme;
@@ -21,8 +23,6 @@ function setTheme(theme) {
     }
 
 $(document).ready(function() {
-    const storedTheme = localStorage.getItem('theme');
-
     setTheme(getPreferredTheme());
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

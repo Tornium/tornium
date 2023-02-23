@@ -120,10 +120,12 @@
             background-color: $secondary-grey;
         }
 
-        & #verticalNav[class="show"] {
-            .verticalNavContainer {
-                display: none;
-            }
+        #verticalNavContainer {
+            display: none;
+        }
+
+        @media (min-width: 992px) {
+            display: flex;
         }
     }
 

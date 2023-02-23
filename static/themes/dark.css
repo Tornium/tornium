@@ -90,8 +90,13 @@
   color: rgb(229, 229, 229);
   background-color: rgb(25, 25, 25);
 }
-[data-bs-theme=custom-dark] .secondary #verticalNav[class=show] .verticalNavContainer {
+[data-bs-theme=custom-dark] .secondary #verticalNavContainer {
   display: none;
+}
+@media (min-width: 992px) {
+  [data-bs-theme=custom-dark] .secondary {
+    display: flex;
+  }
 }
 [data-bs-theme=custom-dark] .modal-content {
   background-color: rgb(35, 35, 35);

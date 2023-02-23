@@ -34,10 +34,7 @@
     @media (max-height: 992px) {
         .secondary {
             height: fit-content;
-        }
-
-        .primary {
-            height: 100vh;
+            border-right: none;
         }
     }
 

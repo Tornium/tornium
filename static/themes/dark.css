@@ -23,9 +23,7 @@
 @media (max-height: 992px) {
   [data-bs-theme=custom-dark] .secondary {
     height: fit-content;
-  }
-  [data-bs-theme=custom-dark] .primary {
-    height: 100vh;
+    border-right: none;
   }
 }
 [data-bs-theme=custom-dark] .primary {

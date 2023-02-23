@@ -37,6 +37,8 @@ Tornium - Settings
         $("#theme-selector").on("change", function(e) {
             setTheme(this.value);
         });
+
+        $(`option[value="${getPreferredTheme()}"]`).prop("selected", true);
     });
 </script>
 {% endblock %}

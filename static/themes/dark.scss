@@ -34,7 +34,11 @@
     @media (max-height: 992px) {
         .secondary {
             height: fit-content;
-            border-right: none;
+        }
+    }
+    @media (min-height: 992px) {
+        #verticalNavContainer {
+            border-right: $white;
         }
     }
 

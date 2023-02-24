@@ -167,9 +167,7 @@ def topt_verification():
 
     if user is None:
         return redirect("/login")
-    elif not secrets.compare_digest(request.form.get("totp-token"), utils.totp.totp(user.otp_secret)):
-        print(utils.totp.totp(user.otp_secret))
-
+    elif not secrets.compare_digest(totp_token, utils.totp.totp(user.otp_secret)):
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
 
         return (

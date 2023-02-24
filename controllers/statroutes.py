@@ -68,9 +68,9 @@ def stats_data():
             )
     else:
         if utils.get_tid(search_value):
-            stat_entries = StatModel.objects(Q(tid=utils.get_tid(search_value)) & Q(globalstats=True))
+            stat_entries = StatModel.objects(Q(tid=utils.get_tid(search_value)) & Q(globalstat=True))
         else:
-            stat_entries = StatModel.objects(globalstats=True)
+            stat_entries = StatModel.objects(globalstat=True)
 
     if min_bs != "" and max_bs != "":
         stat_entries = stat_entries.filter(Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs)))

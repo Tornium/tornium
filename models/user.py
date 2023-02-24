@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
+import os
 import secrets
 
 from flask_login import UserMixin, current_user
@@ -175,7 +176,7 @@ class User(UserMixin):
 
     def generate_otp_secret(self):
         user: UserModel = UserModel.objects(tid=self.tid).first()
-        user.otp_secret = secrets.token_urlsafe(10)
+        user.otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
         user.save()
         self.otp_secret = user.otp_secret
 

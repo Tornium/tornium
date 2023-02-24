@@ -35,9 +35,7 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    user: typing.Optional = UserModel.objects(key=request.form["key"]).first()
-
-    print(f"User: {user.tid if user is not None else None}")
+    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
 
     if user is None:
         try:
@@ -58,7 +56,7 @@ def login():
                     "errors/error.html",
                     title="Bad API Key",
                     error="Only Torn API keys that are full or limited access can currently be used. "
-                          "Keys with custom permissions are not currently supported either.",
+                    "Keys with custom permissions are not currently supported either.",
                 ),
                 400,
             )
@@ -89,6 +87,8 @@ def login():
         elif user.key != request.form["key"]:
             user.key = request.form["key"]
             user.save()
+
+    tasks.user.update_user(key=request.form["key"], tid=user.tid, refresh_existing=True)
 
     if user.security == 0:
         login_user(User(user.tid), remember=True)
@@ -129,7 +129,7 @@ def login():
                 "errors/error.html",
                 title="Unknown Security",
                 error="The security mode attached to this account is not valid. Please contact the server administrator to "
-                      "fix this in the database.",
+                "fix this in the database.",
             ),
             500,
         )
@@ -167,7 +167,12 @@ def topt_verification():
 
     if user is None:
         return redirect("/login")
-    elif not secrets.compare_digest(totp_token, utils.totp.totp(user.otp_secret)):
+
+    server_totp_tokens = utils.totp.totp(user.otp_secret)
+
+    if not secrets.compare_digest(totp_token, server_totp_tokens[0]) and not secrets.compare_digest(
+        totp_token, server_totp_tokens[1]
+    ):
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
 
         return (

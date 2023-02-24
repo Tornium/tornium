@@ -42,4 +42,6 @@ def hotp(key, counter, digits=6, digest="sha1"):
 
 
 def totp(key, time_step=30, digits=6, digest="sha1"):
-    return hotp(key, int(time.time() / time_step), digits, digest)
+    return hotp(key, int(time.time() / time_step), digits, digest), hotp(
+        key, int(time.time() / time_step) - 1, digits, digest
+    )

@@ -141,29 +141,27 @@ def topt_verification():
     client_token = request.form.get("client-token")
     totp_token = request.form.get("totp-token")
 
-    print(client_token)
-    print(totp_token)
-
     if client_token is None:
         return redirect("/login")
 
     redis_client = redisdb.get_redis()
 
-    if totp_token is None:
+    if totp_token is None or not totp_token.isdigit():
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
         return redirect("/login")
     elif redis_client.get(f"tornium:login:{client_token}") is None:
-        print("invalid client token")
         return redirect("/login")
 
+    totp_token = int(totp_token)
     user: typing.Optional[UserModel] = UserModel.objects(
         tid=redis_client.get(f"tornium:login:{client_token}:tid")
     ).first()
 
     if user is None:
-        print("invalid client user")
         return redirect("/login")
     elif not secrets.compare_digest(request.form.get("totp-token"), utils.totp.totp(user.otp_secret)):
+        print(utils.totp.totp(user.otp_secret))
+
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
 
         return (

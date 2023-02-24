@@ -61,34 +61,11 @@ def login():
                 400,
             )
 
-        try:
-            torn_user = tasks.tornget(endpoint="user/?selections=profile,discord", key=request.form["key"])
-        except utils.TornError as e:
-            return utils.handle_torn_error(e)
-        except utils.NetworkingError as e:
-            return utils.handle_networking_error(e)
-        except Exception as e:
-            return render_template("errors/error.html", title="Error", error=str(e))
-
-        user = UserModel.objects(tid=torn_user["player_id"]).first()
-
-        if user is None:
-            user = UserModel(
-                key=request.form["key"],
-                name=torn_user["name"],
-                level=torn_user["level"],
-                discord_id=torn_user["discord"]["discordID"] if torn_user["discord"]["discordID"] != "" else 0,
-                factionid=torn_user["faction"]["faction_id"],
-                status=torn_user["last_action"]["status"],
-                last_action=torn_user["last_action"]["timestamp"],
-                last_refresh=utils.now(),
-            )
-            user.save()
-        elif user.key != request.form["key"]:
-            user.key = request.form["key"]
-            user.save()
-
-    tasks.user.update_user(key=request.form["key"], tid=user.tid, refresh_existing=True)
+    tasks.user.update_user(
+        key=request.form["key"],
+        tid=0,
+        refresh_existing=True
+    )
 
     if user.security == 0:
         login_user(User(user.tid), remember=True)
@@ -168,6 +145,10 @@ def topt_verification():
         return redirect("/login")
 
     server_totp_tokens = utils.totp.totp(user.otp_secret)
+
+    print(totp_token)
+    print(server_totp_tokens[0])
+    print(server_totp_tokens[1])
 
     if not secrets.compare_digest(totp_token, server_totp_tokens[0]) and not secrets.compare_digest(
         totp_token, server_totp_tokens[1]

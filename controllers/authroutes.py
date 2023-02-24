@@ -160,7 +160,6 @@ def topt_verification():
     elif redis_client.get(f"tornium:login:{client_token}") is None:
         return redirect("/login")
 
-    totp_token = int(totp_token)
     user: typing.Optional[UserModel] = UserModel.objects(
         tid=redis_client.get(f"tornium:login:{client_token}:tid")
     ).first()

@@ -141,6 +141,9 @@ def topt_verification():
     client_token = request.form.get("token")
     totp_token = request.form.get("totp-token")
 
+    print(client_token)
+    print(totp_token)
+
     if client_token is None:
         return redirect("/login")
 

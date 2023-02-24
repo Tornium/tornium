@@ -70,17 +70,17 @@ def login():
         except Exception as e:
             return render_template("errors/error.html", title="Error", error=str(e))
 
-        user: UserModel = UserModel.objects(tid=torn_user["player_id"]).modify(
-            upsert=True,
-            new=True,
-            set__name=torn_user["name"],
-            set__level=torn_user["level"],
-            set__discord_id=torn_user["discord"]["discordID"] if torn_user["discord"]["discordID"] != "" else 0,
-            set__factionid=torn_user["faction"]["faction_id"],
-            set__status=torn_user["last_action"]["status"],
-            set__last_action=torn_user["last_action"]["timestamp"],
-            set__last_refresh=utils.now(),
-        )
+        if UserModel.objects(tid=torn_user["player_id"]) is None:
+            user = UserModel(
+                name=torn_user["name"],
+                level=torn_user["level"],
+                discord_id=torn_user["discord"]["discordID"] if torn_user["discord"]["discordID"] != "" else 0,
+                factionid=torn_user["faction"]["faction_id"],
+                status=torn_user["last_action"]["status"],
+                last_action=torn_user["last_action"]["timestamp"],
+                last_refresh=utils.now(),
+            )
+            user.save()
 
     if user.security == 0:
         login_user(User(user.tid), remember=True)

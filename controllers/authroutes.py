@@ -138,11 +138,8 @@ def topt_verification():
             {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
         )
 
-    client_token = request.args.get("token")
+    client_token = request.form.get("token")
     totp_token = request.form.get("totp-token")
-
-    print(client_token)
-    print(totp_token)
 
     if client_token is None:
         return redirect("/login")

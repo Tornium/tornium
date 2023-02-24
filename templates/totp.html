@@ -31,6 +31,8 @@
                                 <div class="input-group">
                                     <input type="text" minlength="0" maxlength="6" required class="form-control" id="totp-token" name="totp-token">
                                     <button type="submit" class="btn btn-outline-success input-group-text">Validate</button>
+
+                                    <input type="hidden" id="client-token">
                                 </div>
 
                                 <div class="form-text pt-1">
@@ -45,5 +47,15 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+
+            $("#client-token").setAttribute("value", params.token)
+        });
+    </script>
 </body>
 </html>

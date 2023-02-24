@@ -29,6 +29,17 @@ def error400(e):
     return render_template("/errors/400.html"), 400
 
 
+@mod.app_errorhandler(401)
+def error401(e):
+    """
+    Returns the 401 error page
+
+    :param e: HTTP error
+    """
+
+    return render_template("/errors/401.html"), 401
+
+
 @mod.app_errorhandler(403)
 def error403(e):
     """

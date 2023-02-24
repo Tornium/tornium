@@ -87,6 +87,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
+            set__last_refresh=utils.now(),
         )
     else:
         user.name = user_data["name"]

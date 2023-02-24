@@ -13,12 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import login_user, logout_user
+import secrets
+import typing
 
+from flask import abort, Blueprint, redirect, render_template, request, url_for
+from flask_login import login_user, logout_user, fresh_login_required
+
+import redisdb
 import tasks
+import tasks.user
 import utils
+import utils.totp
 from models.user import User
+from models.usermodel import UserModel
 
 mod = Blueprint("authroutes", __name__)
 
@@ -28,63 +35,148 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    global torn_user
+    user: typing.Optional = UserModel.objects(key=request.form["key"]).first()
 
-    try:
-        key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])
-    except utils.TornError as e:
-        return utils.handle_torn_error(e)
-    except utils.NetworkingError as e:
-        return utils.handle_networking_error(e)
-    except Exception as e:
-        return render_template("errors/error.html", title="Error", error=str(e))
+    if user is None:
+        try:
+            key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])
+        except utils.TornError as e:
+            return utils.handle_torn_error(e)
+        except utils.NetworkingError as e:
+            return utils.handle_networking_error(e)
+        except Exception as e:
+            return render_template("errors/error.html", title="Error", error=str(e))
 
-    if "error" in key_info:
-        return utils.handle_torn_error(utils.TornError(key_info["error"]["code"], "key/?selections=info"))
+        if "error" in key_info:
+            return utils.handle_torn_error(utils.TornError(key_info["error"]["code"], "key/?selections=info"))
 
-    if key_info["access_level"] < 3:
-        return render_template(
-            "errors/error.html",
-            title="Bad API Key",
-            error="Only Torn API keys that are full or limited access can currently be used. "
-            "Keys with custom permissions are not currently supported either.",
-        )
-
-    try:
-        torn_user = tasks.tornget(endpoint="user/?selections=", key=request.form["key"])
-    except utils.TornError as e:
-        return utils.handle_torn_error(e)
-    except utils.NetworkingError as e:
-        return utils.handle_networking_error(e)
-    except Exception as e:
-        return render_template("errors/error.html", title="Error", error=str(e))
-
-    user = User(torn_user["player_id"])
-
-    if user.key != request.form["key"]:
-        user.set_key(request.form["key"])
-
-    try:
-        user.refresh()
-        user.faction_refresh()
-    except utils.TornError as e:
-        return utils.handle_torn_error(e)
-    except utils.NetworkingError as e:
-        if e.code == 408:
-            return render_template(
-                "errors/error.html",
-                title="Torn API Timeout",
-                error="The Torn API has taken too long to respond to the API request. Please try again.",
+        if key_info["access_level"] < 3:
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Bad API Key",
+                    error="Only Torn API keys that are full or limited access can currently be used. "
+                    "Keys with custom permissions are not currently supported either.",
+                ),
+                400,
             )
 
-        return render_template("errors/error.html", title="Networking Error", error=e.message)
+        try:
+            torn_user = tasks.tornget(endpoint="user/?selections=profile,discord", key=request.form["key"])
+        except utils.TornError as e:
+            return utils.handle_torn_error(e)
+        except utils.NetworkingError as e:
+            return utils.handle_networking_error(e)
+        except Exception as e:
+            return render_template("errors/error.html", title="Error", error=str(e))
 
-    login_user(user, remember=True)
+        user: UserModel = UserModel.objects(tid=torn_user["player_id"]).modify(
+            upsert=True,
+            new=True,
+            set__name=torn_user["name"],
+            set__level=torn_user["level"],
+            set__discord_id=torn_user["discord"]["discordID"] if torn_user["discord"]["discordID"] != "" else 0,
+            set__factionid=torn_user["faction"]["faction_id"],
+            set__status=torn_user["last_action"]["status"],
+            set__last_action=torn_user["last_action"]["timestamp"],
+            set__last_refresh=utils.now(),
+        )
 
-    return redirect(url_for("baseroutes.index"))
+    if user.security == 0:
+        login_user(User(user.tid), remember=True)
+    elif user.security == 1:
+        if not user.admin:
+            return abort(501)
+
+        if user.otp_secret == "":
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Security Error",
+                    error="The shared secret for OTP could not be located in the database.",
+                ),
+                401,
+            )
+
+        redis_client = redisdb.get_redis()
+        client_token = secrets.token_urlsafe()
+
+        if redis_client.exists(f"tornium:login:{client_token}"):
+            return render_template(
+                "errors/error.html",
+                title="Security Error",
+                error="The generated client token already exists. Please try again.",
+            )
+
+        redis_client.setnx(f"tornium:login:{client_token}", utils.now())
+        redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
+
+        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
+        redis_client.expire(f"tornium:login:{client_token}:tid", 180)
+
+        return redirect(f"/login&token={client_token}")
+    else:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unknown Security",
+                error="The security mode attached to this account is not valid. Please contact the server administrator to "
+                "fix this in the database.",
+            ),
+            500,
+        )
+
+    return redirect(url_for("baseroutes.index"), 200)
+
+
+@mod.route("/login/totp", methods=["GET", "POST"])
+def topt_verification():
+    if request.method == "GET":
+        return (
+            render_template("totp.html"),
+            200,
+            {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+        )
+
+    client_token = request.args.get("token")
+    totp_token = request.form.get("totp-token")
+
+    if client_token is None:
+        return redirect("/login"), 401
+
+    redis_client = redisdb.get_redis()
+
+    if totp_token is None:
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
+        return redirect("/login"), 401
+    elif redis_client.get(f"tornium:login:{client_token}") is None:
+        return redirect("/login"), 401
+
+    user: typing.Optional[UserModel] = UserModel.objects(
+        tid=redis_client.get(f"tornium:login:{client_token}:tid")
+    ).first()
+
+    if user is None:
+        return redirect("/login"), 500
+    elif not secrets.compare_digest(request.form.get("totp-token"), utils.totp.totp(user.otp_secret)):
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
+
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid TOTP Code",
+                error="The provided TOTP code did not match the one stored on the server.",
+            ),
+            401,
+        )
+
+    login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
+    redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
+
+    return redirect(url_for("baseroutes.index"), 200)
 
 
 @mod.route("/logout", methods=["POST"])
 def logout():
     logout_user()
-    return redirect(url_for("baseroutes.index"))
+    return redirect(url_for("baseroutes.index"), 200)

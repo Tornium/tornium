@@ -21,24 +21,22 @@
 <body class="primary">
     <div class="container">
         <div class="row min-vh-100">
-            <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+            <div class="col-sm-12 col-md-8 col-lg-4 mx-auto my-auto">
                 <div class="card m-3">
                     <div class="card-body container-fluid">
-                        <h5 class="card-title">Log into Tornium</h5>
+                        <h5 class="card-title">Tornium TOTP</h5>
 
-                        <p class="card-text">
-                            Tornium keeps all your data protected and secured on its servers. No data or API keys will be accessed without permission beyond for security and maintenance.  It is recommended to use a separate API for each service you utilize.
-                        </p>
-
-                        <form method="POST" action="/login">
+                        <form method="POST" action="/login/totp">
                             <div class="form-floating">
                                 <div class="input-group">
-                                    <input type="password" minlength="16" maxlength="16" required class="form-control" id="key" name="key" placeholder="Torn API key">
-                                    <button type="submit" class="btn btn-outline-success input-group-text">Submit</button>
+                                    <input type="text" minlength="0" maxlength="6" required class="form-control" id="totp-token" name="totp-token">
+                                    <button type="submit" class="btn btn-outline-success input-group-text">Validate</button>
                                 </div>
 
                                 <div class="form-text pt-1">
-                                    <b>NOTE:</b> Tornium will only accept limited or full access API keys. Any other API key access (including specific permissions) will not be accepted.
+                                    If you are locked out of your device that handles TOTP, please use a backup code
+                                    (not yet implemented) or contact <a href="https://torn.com/profiles.php?XID=2383326">tiksan [2383326]</a>
+                                    on Torn only.
                                 </div>
                             </div>
                         </form>

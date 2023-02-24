@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
+import secrets
 
 from flask_login import UserMixin, current_user
 from mongoengine.queryset.visitor import Q
@@ -36,6 +37,9 @@ class User(UserMixin):
         if user is None:
             user = UserModel(tid=tid)
             user.save()
+
+        self.security = user.security
+        self.otp_secret = user.otp_secret
 
         self.tid = tid
         self.name = user.name
@@ -168,3 +172,15 @@ class User(UserMixin):
         user.key = key
         self.key = key
         user.save()
+
+    def generate_otp_secret(self):
+        user: UserModel = UserModel.objects(tid=self.tid).first()
+        user.otp_secret = secrets.token_urlsafe(10)
+        user.save()
+        self.otp_secret = user.otp_secret
+
+    def generate_otp_url(self):
+        if self.otp_secret == "" or self.security != 1:
+            raise Exception("Illegal OTP secret or security mode")
+
+        return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"

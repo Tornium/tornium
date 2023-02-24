@@ -19,6 +19,9 @@ from mongoengine import BooleanField, DynamicDocument, FloatField, IntField, Str
 class UserModel(DynamicDocument):
     meta = {"indexes": ["#discord_id", ("+factionaa", "factionid"), "#key", "factionid"]}
 
+    security = IntField(default=0)  # 0: disabled; 1: totp
+    otp_secret = StringField(default="")
+
     tid = IntField(primary_key=True)
     name = StringField(default="")
     level = IntField(default=0)

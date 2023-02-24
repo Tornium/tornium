@@ -58,7 +58,7 @@ def login():
                     "errors/error.html",
                     title="Bad API Key",
                     error="Only Torn API keys that are full or limited access can currently be used. "
-                    "Keys with custom permissions are not currently supported either.",
+                          "Keys with custom permissions are not currently supported either.",
                 ),
                 400,
             )
@@ -72,8 +72,11 @@ def login():
         except Exception as e:
             return render_template("errors/error.html", title="Error", error=str(e))
 
-        if UserModel.objects(tid=torn_user["player_id"]).first() is None:
+        user = UserModel.objects(tid=torn_user["player_id"]).first()
+
+        if user is None:
             user = UserModel(
+                key=request.form["key"],
                 name=torn_user["name"],
                 level=torn_user["level"],
                 discord_id=torn_user["discord"]["discordID"] if torn_user["discord"]["discordID"] != "" else 0,
@@ -82,6 +85,9 @@ def login():
                 last_action=torn_user["last_action"]["timestamp"],
                 last_refresh=utils.now(),
             )
+            user.save()
+        elif user.key != request.form["key"]:
+            user.key = request.form["key"]
             user.save()
 
     if user.security == 0:
@@ -123,7 +129,7 @@ def login():
                 "errors/error.html",
                 title="Unknown Security",
                 error="The security mode attached to this account is not valid. Please contact the server administrator to "
-                "fix this in the database.",
+                      "fix this in the database.",
             ),
             500,
         )

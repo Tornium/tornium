@@ -37,6 +37,8 @@ def login():
 
     user: typing.Optional = UserModel.objects(key=request.form["key"]).first()
 
+    print(f"User: {user.tid if user is not None else None}")
+
     if user is None:
         try:
             key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])

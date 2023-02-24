@@ -114,7 +114,7 @@ def login():
         redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
         redis_client.expire(f"tornium:login:{client_token}:tid", 180)
 
-        return redirect(f"/login&token={client_token}")
+        return redirect(f"/login/totp?token={client_token}")
     else:
         return (
             render_template(

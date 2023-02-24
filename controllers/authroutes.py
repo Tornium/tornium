@@ -72,7 +72,7 @@ def login():
         except Exception as e:
             return render_template("errors/error.html", title="Error", error=str(e))
 
-        if UserModel.objects(tid=torn_user["player_id"]) is None:
+        if UserModel.objects(tid=torn_user["player_id"]).first() is None:
             user = UserModel(
                 name=torn_user["name"],
                 level=torn_user["level"],

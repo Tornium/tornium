@@ -126,7 +126,7 @@ def login():
             500,
         )
 
-    return redirect(url_for("baseroutes.index"), 200)
+    return redirect(url_for("baseroutes.index"))
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
@@ -142,22 +142,22 @@ def topt_verification():
     totp_token = request.form.get("totp-token")
 
     if client_token is None:
-        return redirect("/login"), 401
+        return redirect("/login")
 
     redis_client = redisdb.get_redis()
 
     if totp_token is None:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
-        return redirect("/login"), 401
+        return redirect("/login")
     elif redis_client.get(f"tornium:login:{client_token}") is None:
-        return redirect("/login"), 401
+        return redirect("/login")
 
     user: typing.Optional[UserModel] = UserModel.objects(
         tid=redis_client.get(f"tornium:login:{client_token}:tid")
     ).first()
 
     if user is None:
-        return redirect("/login"), 500
+        return redirect("/login")
     elif not secrets.compare_digest(request.form.get("totp-token"), utils.totp.totp(user.otp_secret)):
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
 
@@ -173,10 +173,10 @@ def topt_verification():
     login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
     redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
 
-    return redirect(url_for("baseroutes.index"), 200)
+    return redirect(url_for("baseroutes.index"))
 
 
 @mod.route("/logout", methods=["POST"])
 def logout():
     logout_user()
-    return redirect(url_for("baseroutes.index"), 200)
+    return redirect(url_for("baseroutes.index"))

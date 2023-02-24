@@ -37,13 +37,14 @@ def index():
 
 
 @mod.route("/stats/db")
-@login_required
 def stats():
-    return render_template("stats/db.html", battlescore=current_user.battlescore, key=current_user.key)
+    if current_user.is_authenticated:
+        return render_template("stats/db.html", battlescore=current_user.battlescore, key=current_user.key)
+    else:
+        return render_template("stats/db.html", battlescore=-1, key=-1)
 
 
 @mod.route("/stats/dbdata")
-@login_required
 def stats_data():
     start = int(request.args.get("start"))
     length = int(request.args.get("length"))
@@ -55,15 +56,21 @@ def stats_data():
 
     stats = []
 
-    if utils.get_tid(search_value):
-        stat_entries = StatModel.objects(
-            Q(tid__startswith=utils.get_tid(search_value))
-            & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
-        )
+    if current_user.is_authenticated:
+        if utils.get_tid(search_value):
+            stat_entries = StatModel.objects(
+                Q(tid=utils.get_tid(search_value))
+                & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
+            )
+        else:
+            stat_entries = StatModel.objects(
+                Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid)
+            )
     else:
-        stat_entries = StatModel.objects(
-            Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid)
-        )
+        if utils.get_tid(search_value):
+            stat_entries = StatModel.objects(Q(tid=utils.get_tid(search_value)) & Q(globalstats=True))
+        else:
+            stat_entries = StatModel.objects(globalstats=True)
 
     if min_bs != "" and max_bs != "":
         stat_entries = stat_entries.filter(Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs)))

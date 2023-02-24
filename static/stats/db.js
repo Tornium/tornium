@@ -37,6 +37,11 @@ $(document).ready(function() {
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
     $('#stats-table tbody').on('click', 'tr', function() {
+        if(battlescore === "-1" || key === "-1") {
+            generateToast("Permission Denied", "You must be signed in to access this feature.", "Error");
+            return;
+        }
+
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             let response = xhttp.response;

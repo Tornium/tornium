@@ -63,9 +63,11 @@ Tornium - Stat DB
                 on the Torn Forums.
             </p>
 
+            {% if current_user.is_authenticated %}
             <p>
-                Your current battlescore is {{ battlescore|round|int|commas }}.
+                Your current battle score is {{ battlescore|round|int|commas }}.
             </p>
+            {% endif %}
 
             <div class="col-sm-12 col-md-8 col-lg-4">
                 <div class="input-group my-3">
@@ -111,5 +113,9 @@ Tornium - Stat DB
     </div>
 </div>
 
-<script src="/static/stats/db.js" data-battlescore="{{ current_user.battlescore }}" data-key="{{ current_user.key }}"></script>
+{% if current_user.is_authenticated %}
+    <script src="/static/stats/db.js" data-battlescore="{{ current_user.battlescore }}" data-key="{{ current_user.key }}"></script>
+{% else %}
+    <script src="/static/stats/db.js" data-battlescore="-1" data-key="-1"></script>
+{% endif %}
 {% endblock %}

@@ -54,14 +54,20 @@ $(document).ready(function() {
 
             $("#settings-modal-label").val("TOTP QR Code");
             $("#settings-modal-body").empty();
-            $("#settings-modal-body").append($("<p>")).text("You can set up Tornium to use any TOTP provider such as Google Authenticator and Duo Mobile. To set up TOTP, scan the below QR code in an authenticator and follow the provided instructions.");
+            $("#settings-modal-body").append($("<p>", {
+                "id": "qr-text-1"
+            }));
+            $("#qr-text-1").text("You can set up Tornium to use any TOTP provider such as Google Authenticator and Duo Mobile. To set up TOTP, scan the below QR code in an authenticator and follow the provided instructions.");
             $("#settings-modal-body").append($("<div>", {
                 "id": "qr-code-container"
             }));
 
             new QRCode(document.getElementById("qr-code-container"), response["url"]);
 
-            $("#settings-modal-body").append($("<p>")).text(`You can also set up TOTP by manually entering the code into the authenticator app: ${response['secret']}.`);
+            $("#settings-modal-body").append($("<p>", {
+                "id": "qr-text-2"
+            }));
+            $("#qr-text-2").text(`You can also set up TOTP by manually entering the code into the authenticator app: ${response['secret']}.`);
 
             let modal = new bootstrap.Modal($("#settings-modal"));
             modal.show();

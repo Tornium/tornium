@@ -203,3 +203,32 @@ def totp_secret_regen(*args, **kwargs):
         "name": response["name"],
         "message": response["message"],
     }, 200
+
+
+@mod.route("/security", methods=["POST"])
+@fresh_login_required
+@token_required(setnx=False)
+def set_security_mode(*args, **kwargs):
+    mode = request.args.get("mode")
+
+    if mode not in (0, 1):
+        response = json_api_exception("1000", details={"message": "Invalid security mode"})
+
+        return {
+            "code": response["code"],
+            "name": response["name"],
+            "message": response["message"],
+            "details": response["details"],
+        }, 400
+
+    user: UserModel = UserModel.objects(tid=current_user.tid).first()
+    user.security = mode
+    user.save()
+
+    response = json_api_exception("0001")
+
+    return {
+        "code": response["code"],
+        "name": response["name"],
+        "message": response["message"],
+    }, 200

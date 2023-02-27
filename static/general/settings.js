@@ -35,6 +35,61 @@ $(document).ready(function() {
 
     $(`option[value="${getTheme()}"]`).prop("selected", true);
 
+    // Security mode selector
+    $("#disable-mfa").on("click", function() {
+        if(token === null) {
+            generateToast("Permission Denied", "Invalid token", "Error");
+            return;
+        }
+
+        let xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Security Mode Switch Failed", response["message"]);
+                return;
+            } else {
+                $("#disable-mfa").attr("disabled", true);
+                $("#enable-totp").attr("disabled", false);
+            }
+
+            xhttp.responseType = "json";
+            xhttp.open("POST", `/security?token=${token}`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(JSON.stringify({
+                "mode": 0
+            }));
+        }
+    });
+
+    $("#enable-totp").on("click", function() {
+        if(token === null) {
+            generateToast("Permission Denied", "Invalid token", "Error");
+            return;
+        }
+
+        let xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Security Mode Switch Failed", response["message"]);
+                return;
+            } else {
+                $("#disable-mfa").attr("disabled", false);
+                $("#enable-totp").attr("disabled", true);
+            }
+
+            xhttp.responseType = "json";
+            xhttp.open("POST", `/security?token=${token}`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(JSON.stringify({
+                "mode": 1
+            }));
+        }
+    });
+
     // TOTP QR code
     $("#show-totp-qr").on("click", function() {
         if(token === null) {
@@ -85,8 +140,6 @@ $(document).ready(function() {
             generateToast("Permission Denied", "Invalid token", "Error");
             return;
         }
-
-        generateToast("Not Yet Implemented", "TOTP secret regeneration has not yet been fully implemented and tested.", "Warning");
 
         let xhttp = new XMLHttpRequest();
         xhttp.onload = function() {

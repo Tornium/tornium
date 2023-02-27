@@ -46,6 +46,7 @@ Tornium - Settings
                     Multi-faction authentication currently only supports TOTP. TOTP also includes support for backup
                     codes that are to be stored offline in case your 2Fa device can't be used.
                 </p>
+                <p class="card-text">If you encounter any issues, please contact tiksan on Torn or Discord ASAP.</p>
 
                 <div class="form-control my-1">
                     <button id="disable-mfa" class="m-2 btn btn-outline-danger {% if enabled_mfa == 0 %}disabled{% endif %}">Disabled</button>
@@ -56,7 +57,7 @@ Tornium - Settings
                 <div class="form-control my-1">
                     <button id="show-totp-qr" class="m-2 btn btn-outline-success">Show TOTP QR Code</button>
                     <button id="regen-totp-secret" class="m-2 btn btn-outline-danger">Regenerate TOTP Secret</button>
-                    <button id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>
+                    <button disabled id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>
                 </div>
                 {% endif %}
             </div>

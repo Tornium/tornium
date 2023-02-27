@@ -64,6 +64,16 @@ def login():
 
     tasks.user.update_user(key=request.form["key"], tid=0, refresh_existing=True)
 
+    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
+
+    if user is None:
+        return render_template(
+            "errors/error.html",
+            title="User Not Found",
+            error="Even after an update, the user and their key could not be located in the database. Please contact "
+            "tiksan [2383326] for support.",
+        )
+
     if user.security == 0:
         login_user(User(user.tid), remember=True)
     elif user.security == 1:

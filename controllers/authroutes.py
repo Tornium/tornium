@@ -17,14 +17,15 @@ import secrets
 import typing
 
 from flask import abort, Blueprint, redirect, render_template, request, url_for
-from flask_login import current_user, login_user, logout_user, fresh_login_required
+from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
 
-from controllers.decorators import token_required
 import redisdb
 import tasks
 import tasks.user
 import utils
 import utils.totp
+from controllers.api.utils import json_api_exception
+from controllers.decorators import token_required
 from models.user import User
 from models.usermodel import UserModel
 
@@ -174,6 +175,7 @@ def topt_verification():
 
 
 @mod.route("/logout", methods=["POST"])
+@login_required
 def logout():
     logout_user()
     return redirect(url_for("baseroutes.index"))
@@ -186,4 +188,18 @@ def totp_secret(*args, **kwargs):
     return {
         "secret": current_user.otp_secret,
         "url": current_user.generate_otp_url(),
+    }, 200
+
+
+@mod.route("/totp/secret", methods=["POST"])
+@fresh_login_required
+@token_required(setnx=False)
+def totp_secret_regen(*args, **kwargs):
+    current_user.generate_otp_secret()
+    response = json_api_exception("0001")
+
+    return {
+        "code": response["code"],
+        "name": response["name"],
+        "message": response["message"],
     }, 200

@@ -59,19 +59,7 @@ $(document).ready(function() {
                 "id": "qr-code-container"
             }));
 
-            let qrSuccess = false;
-            QRCode.toCanvas($("#qr-code-container"), response["url"], function(e) {
-                if(e) {
-                    generateToast("QR Code Generation Failed", response["message"]);
-                    return;
-                }
-
-                qrSuccess = true;
-            });
-
-            if(!qrSuccess) {
-                return;
-            }
+            new QRCode(document.getElementById("qr-code-container"), response["url"]);
 
             $("#settings-modal-body").append($("<p>")).text(`You can also set up TOTP by manually entering the code into the authenticator app: ${response['secret']}.`);
 
@@ -93,6 +81,22 @@ $(document).ready(function() {
         }
 
         generateToast("Not Yet Implemented", "TOTP secret regeneration has not yet been fully implemented and tested.", "Warning");
+
+        let xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response && response["code"] !== 1) {
+                generateToast("TOTP Secret Generation Failed", response["message"]);
+            } else {
+                generateToast("TOTP Secret Generation Successful", "The TOTP secret was successfully generated. To add the secret to your authenticator app, press the \"Show TOTP QR Code\" button.");
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/totp/secret?token=${token}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send();
     });
 
     // TOTP Regenerate Backup Codes

@@ -39,7 +39,7 @@ Tornium - Settings
             Settings for Tornium stored on the server that applies to all devices signed in with your API key.
         </p>
 
-        <div class="card mx-3 mt-3">
+        <div class="card mx-3 my-3">
             <div class="card-body">
                 <h5 class="card-title">Multi-Factor Authentication (ALPHA)</h5>
                 <p class="card-text">
@@ -47,13 +47,13 @@ Tornium - Settings
                     codes that are to be stored offline in case your 2Fa device can't be used.
                 </p>
 
-                <div class="form-control">
+                <div class="form-control my-1">
                     <button id="disable-mfa" class="m-2 btn btn-outline-danger {% if enabled_mfa == 0 %}disabled{% endif %}">Disabled</button>
                     <button id="enable-totp" class="m-2 btn btn-outline-success {% if enabled_mfa == 1 %}disabled{% endif %}">TOTP</button>
                 </div>
 
                 {% if enabled_mfa == 1 %}
-                <div class="form-control">
+                <div class="form-control my-1">
                     <button id="show-totp-qr" class="m-2 btn btn-outline-success">Show TOTP QR Code</button>
                     <button id="regen-totp-secret" class="m-2 btn btn-outline-danger">Regenerate TOTP Secret</button>
                     <button id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>

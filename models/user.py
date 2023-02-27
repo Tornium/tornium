@@ -35,10 +35,9 @@ class User(UserMixin):
         :param tid: Torn user ID
         """
 
-        user = UserModel.objects(_id=tid).first()
+        user = UserModel.objects(_id=int(tid)).first()
         if user is None:
-            user = UserModel(tid=tid)
-            user.save()
+            raise ValueError("Unknown User")
 
         self.security = user.security
         self.otp_secret = user.otp_secret

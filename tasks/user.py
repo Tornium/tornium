@@ -108,7 +108,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         user.last_action = user_data["last_action"]["timestamp"]
         user.save()
 
-    if user == 0 and discordid == 0:
+    if tid == 0 and discordid == 0:
         user.key = key
         user.save()
 

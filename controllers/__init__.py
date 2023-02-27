@@ -34,7 +34,7 @@ def index():
 @mod.route("/settings")
 @fresh_login_required
 @token_required(setnx=True)
-def settings():
+def settings(*args, **kwargs):
     return render_template(
         "settings.html",
         enabled_mfa=current_user.security,

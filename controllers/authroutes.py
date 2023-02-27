@@ -182,7 +182,7 @@ def logout():
 @mod.route("/totp/secret", methods=["GET"])
 @fresh_login_required
 @token_required(setnx=False)
-def totp_secret():
+def totp_secret(*args, **kwargs):
     return {
         "secret": current_user.otp_secret,
         "url": current_user.generate_otp_url(),

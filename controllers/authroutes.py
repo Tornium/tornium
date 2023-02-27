@@ -17,8 +17,9 @@ import secrets
 import typing
 
 from flask import abort, Blueprint, redirect, render_template, request, url_for
-from flask_login import login_user, logout_user, fresh_login_required
+from flask_login import current_user, login_user, logout_user, fresh_login_required
 
+from controllers.decorators import token_required
 import redisdb
 import tasks
 import tasks.user
@@ -61,11 +62,7 @@ def login():
                 400,
             )
 
-    tasks.user.update_user(
-        key=request.form["key"],
-        tid=0,
-        refresh_existing=True
-    )
+    tasks.user.update_user(key=request.form["key"], tid=0, refresh_existing=True)
 
     if user.security == 0:
         login_user(User(user.tid), remember=True)
@@ -146,10 +143,6 @@ def topt_verification():
 
     server_totp_tokens = utils.totp.totp(user.otp_secret)
 
-    print(totp_token)
-    print(server_totp_tokens[0])
-    print(server_totp_tokens[1])
-
     if not secrets.compare_digest(totp_token, server_totp_tokens[0]) and not secrets.compare_digest(
         totp_token, server_totp_tokens[1]
     ):
@@ -174,3 +167,13 @@ def topt_verification():
 def logout():
     logout_user()
     return redirect(url_for("baseroutes.index"))
+
+
+@mod.route("/totp/secret", methods=["GET"])
+@fresh_login_required
+@token_required(setnx=False)
+def totp_secret():
+    return {
+        "secret": current_user.otp_secret,
+        "url": current_user.generate_otp_url(),
+    }, 200

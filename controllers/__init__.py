@@ -14,8 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, render_template, request, send_from_directory
+from flask_login import current_user, fresh_login_required
 
-from controllers.decorators import admin_required
+from controllers.decorators import token_required
+
 import utils
 
 mod = Blueprint("baseroutes", __name__)
@@ -30,8 +32,13 @@ def index():
 
 
 @mod.route("/settings")
+@fresh_login_required
+@token_required(setnx=True)
 def settings():
-    return render_template("settings.html")
+    return render_template(
+        "settings.html",
+        enabled_mfa=current_user.security,
+    )
 
 
 @mod.route("/static/toast.js")

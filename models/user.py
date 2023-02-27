@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import base64
+import hashlib
 import math
 import os
 
@@ -41,6 +42,7 @@ class User(UserMixin):
 
         self.security = user.security
         self.otp_secret = user.otp_secret
+        self.otp_backups = user.otp_backups
 
         self.tid = tid
         self.name = user.name
@@ -176,7 +178,7 @@ class User(UserMixin):
 
     def generate_otp_secret(self):
         user: UserModel = UserModel.objects(tid=self.tid).first()
-        user.otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
+        user.otp_secret = base64.b32encode(os.urandom(10)).decode("utf-8")
         user.save()
         self.otp_secret = user.otp_secret
 
@@ -185,3 +187,21 @@ class User(UserMixin):
             raise Exception("Illegal OTP secret or security mode")
 
         return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
+
+    def generate_otp_backups(self, num_codes=5):
+        if self.otp_secret == "" or self.security != 1:
+            raise Exception("Illegal OTP secret or security mode")
+
+        codes = []
+
+        for _ in range(num_codes):
+            codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
+
+        for code in codes:
+            self.otp_backups.append(hashlib.sha256(code.encode("utf-8")))
+
+        user: UserModel = UserModel.objects(tid=self.tid).first()
+        user.otp_backups = self.otp_backups
+        user.save()
+
+        return codes

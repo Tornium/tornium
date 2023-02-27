@@ -13,18 +13,58 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from functools import wraps
+from functools import partial, wraps
+import secrets
 
-from flask import abort
-from flask_login import current_user
+from flask import abort, redirect, request, render_template, url_for
+from flask_login import current_user, login_fresh
+
+import redisdb
+import utils
 
 
-def admin_required(f):
+def token_required(f=None, setnx=False):
+    if not f:
+        return partial(token_required, setnx=setnx)
+
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.admin:
-            return abort(403)
-        else:
-            return f(*args, **kwargs)
+        if not login_fresh():
+            return redirect(url_for("authroutes.login"))
+
+        if request.args.get("token") is None and setnx:
+            redis_client = redisdb.get_redis()
+            client_token = secrets.token_urlsafe()
+
+            if redis_client.exists(f"tornium:token:{client_token}"):
+                return render_template(
+                    "errors/error.html",
+                    title="Security Error",
+                    error="The generated client token already exists. Please try again.",
+                )
+
+            redis_client.setnx(f"tornium:token:{client_token}", utils.now())
+            redis_client.expire(f"tornium:token:{client_token}", 300)  # Expires after five minutes
+
+            redis_client.setnx(f"tornium:token:{client_token}:tid", current_user.tid)
+            redis_client.expire(f"tornium:token:{client_token}:tid", 300)
+
+            return redirect(url_for(request.url_rule.endpoint), token=client_token)
+        elif request.args.get("token") is None and not setnx:
+            return abort(401)
+
+        redis_client = redisdb.get_redis()
+        client_token = request.args.get("token")
+
+        if redis_client.get(f"tornium:token:{client_token}") is None:
+            return redirect(url_for(request.url_rule.endpoint))
+        elif redis_client.get(f"tornium:token:{client_token}:tid") != current_user.tid:
+            redis_client.delete(f"tornium:token:{client_token}", f"tornium:token:{client_token}:tid")
+
+            return redirect(url_for(request.url_rule.endpoint))
+
+        kwargs["token"] = client_token
+
+        return f(*args, **kwargs)
 
     return wrapper

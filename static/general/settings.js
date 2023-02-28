@@ -180,7 +180,8 @@ $(document).ready(function() {
             $("#settings-modal-body").empty();
             $("#settings-modal-body").append($("<p>", {
                 "text": "TOTP backup codes are to be used in case your primary authenticator is missing or damaged. " +
-                    "Once generated, backup codes are hashed and can never be viewed again so be sure to save them."
+                    "Once generated, backup codes are hashed and can never be viewed again so be sure to save them. " +
+                    "Once a backup code is used, it is permanently deleted."
             }));
             $("#settings-modal-body").append($("<ul>", {
                 "class": "list-group mb-2",

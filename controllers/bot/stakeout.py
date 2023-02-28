@@ -17,7 +17,7 @@ import datetime
 import json
 
 from flask import flash, jsonify, redirect, render_template, request
-from flask_login import current_user, login_required
+from flask_login import current_user, fresh_login_required, login_required
 
 import tasks
 import utils
@@ -30,7 +30,7 @@ from models.user import User
 from models.userstakeoutmodel import UserStakeoutModel
 
 
-@login_required
+@fresh_login_required
 def stakeouts_dashboard(guildid: str):
     server: ServerModel = ServerModel.objects(sid=guildid).first()
 
@@ -165,7 +165,7 @@ def stakeouts_dashboard(guildid: str):
     return render_template("bot/stakeouts.html", guildid=guildid)
 
 
-@login_required
+@fresh_login_required
 def stakeouts(guildid: str, stype: int):
     server: ServerModel = ServerModel.objects(sid=guildid).first()
 
@@ -298,7 +298,7 @@ def stakeout_data(guildid: str):
         )
 
 
-@login_required
+@fresh_login_required
 def stakeout_update(guildid):
     server: ServerModel = ServerModel.objects(sid=guildid).first()
 

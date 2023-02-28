@@ -1,13 +1,15 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="URF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tornium - Login</title>
+    <title>Unauthorized</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css" integrity="sha512-72OVeAaPeV8n3BdZj7hOkaPSEk/uwpDkaGyP4W2jSzAC8tfiO4LMEDWoL3uFp5mcZu+8Eehb4GhZWFwvrss69Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="/static/fonts/JetBrainsMono-Light.woff2">
     <link rel="shortcut icon" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/base.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/js/bootstrap.min.js" integrity="sha512-eHx4nbBTkIr2i0m9SANm/cczPESd0DUEcfl84JpIuutE6oDxPhXvskMR08Wmvmfx5wUpVjlWdi82G5YLvqqJdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -24,24 +26,14 @@
             <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
                 <div class="card m-3">
                     <div class="card-body container-fluid">
-                        <h5 class="card-title">Log into Tornium</h5>
+                        <h2 class="card-title">Error: HTTP 401 | Unauthorized</h2>
 
                         <p class="card-text">
-                            Tornium keeps all your data protected and secured on its servers. No data or API keys will be accessed without permission beyond for security and maintenance.  It is recommended to use a separate API for each service you utilize.
+                            The server has received the request but will not authenticate it due to lack of valid
+                            credentials. Please make sure that you're logged in properly.
                         </p>
 
-                        <form method="POST" action="/login">
-                            <div class="form-floating">
-                                <div class="input-group">
-                                    <input type="password" minlength="16" maxlength="16" required class="form-control" id="key" name="key" placeholder="Torn API key">
-                                    <button type="submit" class="btn btn-outline-success input-group-text">Submit</button>
-                                </div>
-
-                                <div class="form-text pt-1">
-                                    <b>NOTE:</b> Tornium will only accept limited or full access API keys. Any other API key access (including specific permissions) will not be accepted.
-                                </div>
-                            </div>
-                        </form>
+                        <a class="btn btn-outline-warning" href="javascript:history.back()">Go back</a>
                     </div>
                 </div>
             </div>

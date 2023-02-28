@@ -13,11 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import BooleanField, DynamicDocument, FloatField, IntField, StringField, UUIDField
+from mongoengine import BooleanField, DynamicDocument, FloatField, IntField, ListField, StringField, UUIDField
 
 
 class UserModel(DynamicDocument):
     meta = {"indexes": ["#discord_id", ("+factionaa", "factionid"), "#key", "factionid"]}
+
+    security = IntField(default=0)  # 0: disabled; 1: totp
+    otp_secret = StringField(default="")
+    otp_backups = ListField(StringField())
 
     tid = IntField(primary_key=True)
     name = StringField(default="")

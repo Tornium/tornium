@@ -39,29 +39,50 @@ Tornium - Settings
             Settings for Tornium stored on the server that applies to all devices signed in with your API key.
         </p>
 
+        <div class="card mx-3 my-3">
+            <div class="card-body">
+                <h5 class="card-title">Multi-Factor Authentication (ALPHA)</h5>
+                <p class="card-text">
+                    Multi-faction authentication currently only supports TOTP. TOTP also includes support for backup
+                    codes that are to be stored offline in case your 2Fa device can't be used.
+                </p>
+                <p class="card-text">If you encounter any issues, please contact tiksan [2383326] on Torn or Discord ASAP.</p>
+
+                <div class="form-control my-2">
+                    <button id="disable-mfa" class="m-2 btn btn-outline-danger {% if enabled_mfa == 0 %}disabled{% endif %}">Disabled</button>
+                    <button id="enable-totp" class="m-2 btn btn-outline-success {% if enabled_mfa == 1 %}disabled{% endif %}">TOTP</button>
+                </div>
+
+                {% if enabled_mfa == 1 %}
+                <div class="form-control my-2">
+                    <button id="show-totp-qr" class="m-2 btn btn-outline-success">Show TOTP QR Code</button>
+                    <button id="regen-totp-secret" class="m-2 btn btn-outline-danger">Regenerate TOTP Secret</button>
+                    <button id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <button disabled class="m-2 btn btn-outline-danger">Delete Account</button>
         <button disabled class="m-2 btn btn-outline-danger">Purge Account</button>
+    </div>
+</div>
+
+<div class="modal fade" id="settings-modal" tabindex="-1" aria-labelledby="settings-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settings-modal-label"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" id="settings-modal-body"></div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script defer>
-    $(document).ready(function() {
-        const getTheme = function () {
-            if (localStorage.getItem('theme')) {
-                return localStorage.getItem('theme');
-            }
-
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'custom-dark' : 'light';
-        }
-
-        $("#theme-selector").on("change", function(e) {
-            localStorage.setItem("theme", this.value);
-            document.documentElement.setAttribute("data-bs-theme", this.value);
-        });
-
-        $(`option[value="${getTheme()}"]`).prop("selected", true);
-    });
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/static/general/settings.js"></script>
 {% endblock %}

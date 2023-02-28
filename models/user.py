@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import base64
+import hashlib
 import math
+import os
 
 from flask_login import UserMixin, current_user
 from mongoengine.queryset.visitor import Q
@@ -32,10 +35,13 @@ class User(UserMixin):
         :param tid: Torn user ID
         """
 
-        user = UserModel.objects(_id=tid).first()
+        user = UserModel.objects(_id=int(tid)).first()
         if user is None:
-            user = UserModel(tid=tid)
-            user.save()
+            raise ValueError("Unknown User")
+
+        self.security = user.security
+        self.otp_secret = user.otp_secret
+        self.otp_backups = user.otp_backups
 
         self.tid = tid
         self.name = user.name
@@ -168,3 +174,35 @@ class User(UserMixin):
         user.key = key
         self.key = key
         user.save()
+
+    def generate_otp_secret(self):
+        user: UserModel = UserModel.objects(tid=self.tid).first()
+        user.otp_secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+        user.save()
+        self.otp_secret = user.otp_secret
+
+    def generate_otp_url(self):
+        if self.otp_secret == "" or self.security != 1:  # nosec B105
+            raise Exception("Illegal OTP secret or security mode")
+
+        return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
+
+    def generate_otp_backups(self, num_codes=5):
+        if self.otp_secret == "" or self.security != 1:  # nosec B105
+            raise Exception("Illegal OTP secret or security mode")
+
+        codes = []
+        hashed_codes = []
+
+        for _ in range(num_codes):
+            codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
+
+        for code in codes:
+            hashed_codes.append(hashlib.sha256(code.encode("utf-8")).hexdigest())
+
+        user: UserModel = UserModel.objects(tid=self.tid).first()
+        user.otp_backups = hashed_codes
+        user.save()
+        self.otp_backups = hashed_codes
+
+        return codes

@@ -29,7 +29,7 @@
                         <form method="POST" action="/login/totp">
                             <div class="form-floating">
                                 <div class="input-group">
-                                    <input type="text" minlength="0" maxlength="6" required class="form-control" id="totp-token" name="totp-token">
+                                    <input type="text" minlength="0" maxlength="6" required class="form-control" id="totp-token" name="totp-token" onsubmit="hash()">
                                     <button type="submit" class="btn btn-outline-success input-group-text">Validate</button>
 
                                     <input type="hidden" id="client-token" name="client-token">
@@ -54,7 +54,15 @@
               get: (searchParams, prop) => searchParams.get(prop),
             });
 
-            $("#client-token").attr("value", params.token)
+            $("#client-token").attr("value", params.token);
+
+            $("#totp-token").onsubmit = async function () {
+                const textAsBuffer = new TextEncoder().encode(this.value);
+                const hashBuffer = await window.crypto.subtle.digest('SHA-256', textAsBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer))
+                const digest = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                this.value = digest;
+            }
         });
     </script>
 </body>

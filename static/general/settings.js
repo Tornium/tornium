@@ -107,22 +107,21 @@ $(document).ready(function() {
                 return;
             }
 
-            $("#settings-modal-label").val("TOTP QR Code");
+            $("#settings-modal-label").text("TOTP QR Code");
             $("#settings-modal-body").empty();
             $("#settings-modal-body").append($("<p>", {
-                "id": "qr-text-1"
+                "text": "You can set up Tornium to use any TOTP provider such as Google Authenticator and Duo Mobile. To set up TOTP, scan the below QR code in an authenticator and follow the provided instructions."
             }));
-            $("#qr-text-1").text("You can set up Tornium to use any TOTP provider such as Google Authenticator and Duo Mobile. To set up TOTP, scan the below QR code in an authenticator and follow the provided instructions.");
             $("#settings-modal-body").append($("<div>", {
-                "id": "qr-code-container"
+                "id": "qr-code-container",
+                "class": "d-flex flex-column justify-content-center mx-2"
             }));
 
             new QRCode(document.getElementById("qr-code-container"), response["url"]);
 
             $("#settings-modal-body").append($("<p>", {
-                "id": "qr-text-2"
+                "text": `You can also set up TOTP by manually entering the code into the authenticator app: ${response['secret']}.`
             }));
-            $("#qr-text-2").text(`You can also set up TOTP by manually entering the code into the authenticator app: ${response['secret']}.`);
 
             let modal = new bootstrap.Modal($("#settings-modal"));
             modal.show();
@@ -148,7 +147,10 @@ $(document).ready(function() {
             if("code" in response && response["code"] !== 1) {
                 generateToast("TOTP Secret Generation Failed", response["message"]);
             } else {
-                generateToast("TOTP Secret Generation Successful", "The TOTP secret was successfully generated. To add the secret to your authenticator app, press the \"Show TOTP QR Code\" button.");
+                generateToast(
+                    "TOTP Secret Generation Successful",
+                    "The TOTP secret was successfully generated. To add the secret to your authenticator app, " +
+                    "press the \"Show TOTP QR Code\" button.");
             }
         }
 
@@ -165,6 +167,57 @@ $(document).ready(function() {
             return;
         }
 
-        generateToast("Not Yet Implemented", "TOTP backup codes have not yet been fully implemented and tested.", "Warning");
+        let xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Backup Generation Failed", response["message"]);
+                return;
+            }
+
+            $("#settings-modal-label").text("TOTP Backup Codes");
+            $("#settings-modal-body").empty();
+            $("#settings-modal-body").append($("<p>", {
+                "text": "TOTP backup codes are to be used in case your primary authenticator is missing or damaged. " +
+                    "Once generated, backup codes are hashed and can never be viewed again so be sure to save them."
+            }));
+            $("#settings-modal-body").append($("<ul>", {
+                "class": "list-group",
+                "id": "totp-backup-container"
+            }));
+
+            $.each(response["codes"], function(index, code) {
+                $("#totp-backup-container").append($("<li>", {
+                    "class": "list-group-item",
+                    "text": code
+                }));
+            });
+
+            $("#settings-modal-body").append($("<button>", {
+                "class": "btn btn-outline-success m-1",
+                "type": "button",
+                "text": "Copy",
+                "onclick": function() {
+                    navigator.clipboard.writeText(response["codes"].join("\n")).then(function() {
+                        generateToast("Codes Copied", "The TOTP backup codes have been copied to your clipboard");
+                    });
+                }
+            }));
+
+            $("#settings-modal-body").append($("<button>", {
+                "class": "btn btn-outline-success m-1",
+                "type": "button",
+                "text": "Save as File",
+                "onclick": function() {
+                    window.open("data:text/plain;charset=utf-8," + response["codes"].join("\n"));
+                }
+            }));
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/totp/backup?token=${token}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send();
     });
 });

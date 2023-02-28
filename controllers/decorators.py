@@ -55,10 +55,6 @@ def token_required(f=None, setnx=False):
 
         redis_client = redisdb.get_redis()
         client_token = request.args.get("token")
-        print(client_token)
-        print(redis_client.get(f"tornium:token:{client_token}"))
-        print(redis_client.get(f"tornium:token:{client_token}:tid"))
-        print(current_user.tid)
 
         if redis_client.get(f"tornium:token:{client_token}") is None:
             return redirect(url_for(request.url_rule.endpoint))

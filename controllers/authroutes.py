@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import hashlib
 import secrets
 import typing
 
@@ -78,9 +79,6 @@ def login():
     if user.security == 0:
         login_user(User(user.tid), remember=True)
     elif user.security == 1:
-        if not user.admin:
-            return abort(501)
-
         if user.otp_secret == "":
             return (
                 render_template(
@@ -152,12 +150,20 @@ def topt_verification():
     if user is None:
         return redirect("/login")
 
-    server_totp_tokens = utils.totp.totp(user.otp_secret)
+    server_totp_tokens = [hashlib.sha256(token) for token in utils.totp.totp(user.otp_secret)]
 
-    if not secrets.compare_digest(totp_token, server_totp_tokens[0]) and not secrets.compare_digest(
+    if secrets.compare_digest(totp_token, server_totp_tokens[0]) or not secrets.compare_digest(
         totp_token, server_totp_tokens[1]
     ):
-        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
+        login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
+        return redirect(url_for("baseroutes.index"))
+    elif totp_token in user.otp_backups:
+        login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
+        return redirect(url_for("baseroutes.index"))
+    else:
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
         return (
             render_template(
@@ -167,11 +173,6 @@ def topt_verification():
             ),
             401,
         )
-
-    login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
-    redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}")
-
-    return redirect(url_for("baseroutes.index"))
 
 
 @mod.route("/logout", methods=["POST"])
@@ -203,6 +204,15 @@ def totp_secret_regen(*args, **kwargs):
         "name": response["name"],
         "message": response["message"],
     }, 200
+
+
+@mod.route("/totp/backup", methods=["POST"])
+@fresh_login_required
+@token_required(setnx=False)
+def totp_backup_regen(*args, **kwargs):
+    codes = current_user.generate_otp_codes()
+
+    return {"codes": codes}, 200
 
 
 @mod.route("/security", methods=["POST"])

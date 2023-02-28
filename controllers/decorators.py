@@ -57,7 +57,7 @@ def token_required(f=None, setnx=False):
         client_token = request.args.get("token")
         print(client_token)
         print(redis_client.get(f"tornium:token:{client_token}"))
-        print(redis_client.get(f"tornium:token:{client_token}:token"))
+        print(redis_client.get(f"tornium:token:{client_token}:tid"))
         print(current_user.tid)
 
         if redis_client.get(f"tornium:token:{client_token}") is None:

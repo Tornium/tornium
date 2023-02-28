@@ -62,7 +62,7 @@ def token_required(f=None, setnx=False):
 
         if redis_client.get(f"tornium:token:{client_token}") is None:
             return redirect(url_for(request.url_rule.endpoint))
-        elif int(redis_client.get(f"tornium:token:{client_token}:tid")) != current_user.tid:
+        elif int(redis_client.get(f"tornium:token:{client_token}:tid")) != int(current_user.tid):
             redis_client.delete(f"tornium:token:{client_token}", f"tornium:token:{client_token}:tid")
 
             return redirect(url_for(request.url_rule.endpoint))

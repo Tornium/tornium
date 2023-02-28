@@ -37,6 +37,8 @@ $(document).ready(function() {
 
     $("#chainform").submit(function(e) {
         e.preventDefault();
+        $("chain-list-button").attr("disabled", true);
+
         const xhttp = new XMLHttpRequest();
         var value = Number($("#chainff").val());
 
@@ -79,6 +81,7 @@ $(document).ready(function() {
                     });
 
                     targetTable.sort();
+                    $("#chain-list-button").attr("disabled", false);
                 }
             }
         }
@@ -88,6 +91,8 @@ $(document).ready(function() {
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
+
+        generateToast("Chain List Request Sent", "The request for the chain list has been sent to the Tornium API server.");
     });
 
     $('#targets-table tbody').on('click', 'tr', function() {

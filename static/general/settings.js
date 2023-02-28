@@ -183,7 +183,7 @@ $(document).ready(function() {
                     "Once generated, backup codes are hashed and can never be viewed again so be sure to save them."
             }));
             $("#settings-modal-body").append($("<ul>", {
-                "class": "list-group",
+                "class": "list-group mb-2",
                 "id": "totp-backup-container"
             }));
 
@@ -205,8 +205,9 @@ $(document).ready(function() {
                 "class": "btn btn-outline-success m-1",
                 "id": "save-totp-backup",
                 "type": "button",
-                "text": "Save as File",
+                "text": "Save as File"
             }));
+            $("#save-totp-backup").attr("disabled", true);
 
             $("#copy-totp-backup").on("click", function() {
                 navigator.clipboard.writeText(response["codes"].join("\n")).then(function() {

@@ -21,7 +21,7 @@ class UserModel(DynamicDocument):
 
     security = IntField(default=0)  # 0: disabled; 1: totp
     otp_secret = StringField(default="")
-    otp_backups = ListField(StringField)
+    otp_backups = ListField(StringField())
 
     tid = IntField(primary_key=True)
     name = StringField(default="")

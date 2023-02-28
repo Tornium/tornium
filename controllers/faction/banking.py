@@ -85,7 +85,7 @@ def bankingdata():
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal:,} points",
+                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
                 requester,
                 utils.torn_timestamp(withdrawal.time_requested),
                 fulfiller,
@@ -216,7 +216,7 @@ def userbankingdata():
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal:,} points",
+                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
                 utils.torn_timestamp(withdrawal.time_requested),
                 fulfiller,
                 timefulfilled,

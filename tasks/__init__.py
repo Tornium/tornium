@@ -16,8 +16,6 @@
 import importlib.util
 import sys
 
-import orjson
-
 for module in ("ddtrace", "orjson"):
     try:
         globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
@@ -38,12 +36,16 @@ import math
 import time
 import typing
 
+import kombu
 import requests
 from celery import Celery
 from celery.schedules import crontab
 from mongoengine import connect
 from mongoengine.queryset import QuerySet
 from redis.commands.json.path import Path
+
+if globals().get("orjson:loaded"):
+    import orjson
 
 from models.factionmodel import FactionModel
 from models.factionstakeoutmodel import FactionStakeoutModel
@@ -71,7 +73,7 @@ FORMAT = (
     "(dd.span_id)s] - %(message)s"
 )
 
-celery_app: Celery = None
+celery_app: typing.Optional[Celery] = None
 logger: logging.Logger = logging.getLogger("celeryerrors")
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename="celeryerrors.log", encoding="utf-8", mode="a")
@@ -158,6 +160,72 @@ if celery_app is None:
     )
     celery_app.conf.update(task_serializer="json", result_serializer="json")
     celery_app.conf.timezone = "UTC"
+    celery_app.conf.task_queues = (
+        kombu.Queue("default", routing_key="tasks.#"),
+        kombu.Queue("quick", routing_key="quick.#"),
+        kombu.Queue("api", routing_key="api.#"),
+    )
+    celery_app.conf.task_default_queue = "default"
+    celery_app.conf.task_default_routing_key = "task.default"
+    celery_app.conf.task_routes = {
+        "tasks.tornget": {
+            "queue": "api",
+            "routing_key": "api.torn",
+        },
+        "tasks.discord*": {
+            "queue": "api",
+            "routing_key": "api.discord",
+        },
+        "tasks.torn_stats_get": {
+            "queue": "api",
+            "routing_key": "api.tornstats",
+        },
+        "tasks.faction.refresh_factions": {
+            "queue": "default",
+            "routing_key": "tasks.refresh_factions",
+        },
+        "tasks.faction.fetch_attacks_runner": {
+            "queue": "default",
+            "routing_key": "tasks.fetch_attacks_runner",
+        },
+        "tasks.faction.retal_attacks": {
+            "queue": "default",
+            "routing_key": "quick.retal_attacks",
+        },
+        "tasks.faction.stat_db_attacks": {
+            "queue": "default",
+            "routing_key": "quick.stat_db_attacks",
+        },
+        "tasks.faction.oc_refresh": {
+            "queue": "default",
+            "routing_key": "tasks.oc_refresh",
+        },
+        "tasks.faction.auto_cancel_requests": {"queue": "default", "routing_key": "quick.auto_cancel_requests"},
+        "tasks.guild.refresh_guilds": {
+            "queue": "default",
+            "routing_key": "tasks.refresh_guilds",
+        },
+        "tasks.stocks.fetch_stock_ticks": {
+            "queue": "default",
+            "routing": "tasks.fetch_stock_ticks",
+        },
+        "tasks.user.update_user": {
+            "queue": "default",
+            "routing": "tasks.update_user",
+        },
+        "tasks.user.refresh_users": {
+            "queue": "default",
+            "routing": "tasks.refresh_users",
+        },
+        "tasks.user.fetch_attacks_user_runner": {
+            "queue": "quick",
+            "routing": "quick.fetch_attacks_user_runner",
+        },
+        "tasks.user.stat_db_attacks_user": {
+            "queue": "default",
+            "routing": "tasks.stat_db_attacks_user",
+        },
+    }
 
     schedule = {}
 

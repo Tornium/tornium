@@ -18,6 +18,7 @@ import random
 
 import redisdb
 import tasks
+import tasks.api
 import utils
 from models.faction import Faction
 from models.server import Server
@@ -253,7 +254,7 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     try:
-        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
+        faction_balances = tasks.api.tornget("faction/?selections=donations", random.choice(aa_keys))
     except utils.TornError as e:
         return {
             "type": 4,
@@ -430,7 +431,7 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    message = tasks.discordpost(
+    message = tasks.api.discordpost(
         f'channels/{faction.vault_config["banking"]}/messages',
         payload=message_payload,
     )

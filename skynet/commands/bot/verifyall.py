@@ -18,6 +18,7 @@ import random
 import jinja2
 
 import tasks
+import tasks.api
 import utils
 from models.server import Server
 from models.user import User
@@ -154,7 +155,7 @@ def verifyall(interaction, *args, **kwargs):
     #     }
 
     try:
-        server_data = tasks.discordget(
+        server_data = tasks.api.discordget(
             f"guilds/{server.sid}?with_counts=true",
             bucket=f"guilds/{server.sid}",
             retry=True,
@@ -204,7 +205,7 @@ def verifyall(interaction, *args, **kwargs):
         and member_fetch_run < 100
     ):
         try:
-            guild_members = tasks.discordget(
+            guild_members = tasks.api.discordget(
                 f"guilds/{server.sid}/members?limit=1000",
                 bucket=f"guilds/{server.sid}",
                 retry=True,
@@ -246,7 +247,7 @@ def verifyall(interaction, *args, **kwargs):
 
             if user is None:
                 try:
-                    user_data = tasks.tornget(
+                    user_data = tasks.api.tornget(
                         f"user/{guild_member['user']['id']}?selections=profile,discord",
                         random.choice(admin_keys),
                     )
@@ -288,7 +289,7 @@ def verifyall(interaction, *args, **kwargs):
                         }
 
                     if log_channel_found:
-                        tasks.discordpost.delay(
+                        tasks.api.discordpost.delay(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             bucket=f"channels/{server.verify_log_channel}",
@@ -313,7 +314,7 @@ def verifyall(interaction, *args, **kwargs):
                     }
 
                     if log_channel_found:
-                        tasks.discordpost.delay(
+                        tasks.api.discordpost.delay(
                             f"channels/{server.verify_log_channel}/messages",
                             payload=payload,
                             bucket=f"channels/{server.verify_log_channel}",
@@ -352,7 +353,7 @@ def verifyall(interaction, *args, **kwargs):
                 }
 
                 if log_channel_found:
-                    tasks.discordpost.delay(
+                    tasks.api.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         bucket=f"channels/{server.verify_log_channel}",
@@ -390,7 +391,7 @@ def verifyall(interaction, *args, **kwargs):
                 }
 
                 if log_channel_found:
-                    tasks.discordpost.delay(
+                    tasks.api.discordpost.delay(
                         f"channels/{server.verify_log_channel}/messages",
                         payload=payload,
                         bucket=f"channels/{server.verify_log_channel}",
@@ -459,7 +460,7 @@ def verifyall(interaction, *args, **kwargs):
 
             print(patch_json)
 
-            tasks.discordpatch.delay(
+            tasks.api.discordpatch.delay(
                 f"guilds/{server.sid}/members/{user.discord_id}",
                 patch_json,
                 bucket=f"guilds/{server.sid}",
@@ -486,7 +487,7 @@ def verifyall(interaction, *args, **kwargs):
             }
 
             if log_channel_found:
-                tasks.discordpost.delay(
+                tasks.api.discordpost.delay(
                     f"channels/{server.verify_log_channel}/messages",
                     payload=payload,
                     bucket=f"channels/{server.verify_log_channel}",

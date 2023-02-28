@@ -21,6 +21,7 @@ from nacl.signing import VerifyKey
 
 import redisdb
 import tasks
+import tasks.api
 import utils
 from models.faction import Faction
 from models.factionmodel import FactionModel
@@ -141,7 +142,7 @@ def check_invoker_exists(interaction):
         }
 
     try:
-        user_data = tasks.tornget(
+        user_data = tasks.api.tornget(
             f"user/{discord_id}?selections=profile,discord",
             random.choice(admin_keys),
         )
@@ -258,7 +259,7 @@ def invoker_exists(f):
             }
 
         try:
-            user_data = tasks.tornget(
+            user_data = tasks.api.tornget(
                 f"user/{discord_id}?selections=profile,discord",
                 random.choice(kwargs["admin_keys"]),
             )

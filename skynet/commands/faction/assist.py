@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, urlparse
 
 import redisdb
 import tasks
+import tasks.api
 import utils
 from models.factionmodel import FactionModel
 from models.servermodel import ServerModel
@@ -277,7 +278,7 @@ def assist(interaction, *args, **kwargs):
         }
 
         try:
-            tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
+            tasks.api.discordpost(f"channels/{server.assistschannel}/messages", data)
         except utils.DiscordError:
             continue
         except utils.NetworkingError:

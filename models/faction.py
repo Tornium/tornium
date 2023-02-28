@@ -19,6 +19,7 @@ from flask_login import current_user
 from mongoengine.queryset.visitor import Q
 
 import tasks
+import tasks.api
 import utils
 from models.factionmodel import FactionModel
 from models.positionmodel import PositionModel
@@ -37,7 +38,7 @@ class Faction:
 
         faction = FactionModel.objects(tid=tid).first()
         if faction is None:
-            faction_data = tasks.tornget(
+            faction_data = tasks.api.tornget(
                 f"faction/{tid}?selections=basic",
                 key if key != "" else current_user.key,
             )
@@ -62,7 +63,7 @@ class Faction:
             )
 
             try:
-                tasks.tornget(
+                tasks.api.tornget(
                     f"faction/{tid}?selections=positions",
                     key if key != "" else current_user.key,
                 )
@@ -151,7 +152,7 @@ class Faction:
                 if key == "":
                     raise Exception  # TODO: Make exception more descriptive
 
-            faction_data = tasks.tornget(f"faction/{self.tid}?selections=basic", key)
+            faction_data = tasks.api.tornget(f"faction/{self.tid}?selections=basic", key)
 
             faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]

@@ -19,6 +19,7 @@ import random
 import jinja2
 
 import tasks
+import tasks.api
 import tasks.user
 import utils
 from models.factionmodel import FactionModel
@@ -211,7 +212,7 @@ def verify(interaction, *args, **kwargs):
 
     if member != -1:
         try:
-            discord_member = tasks.discordget(f"guilds/{server.sid}/members/{user.discord_id}")
+            discord_member = tasks.api.discordget(f"guilds/{server.sid}/members/{user.discord_id}")
         except utils.DiscordError as e:
             return {
                 "type": 4,
@@ -356,7 +357,7 @@ def verify(interaction, *args, **kwargs):
         patch_json["roles"] = list(set(patch_json["roles"]))
 
     try:
-        response = tasks.discordpatch(
+        response = tasks.api.discordpatch(
             f"guilds/{server.sid}/members/{user.discord_id}",
             patch_json,
         )

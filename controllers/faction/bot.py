@@ -17,6 +17,7 @@ from flask import flash, render_template, request
 from flask_login import current_user, fresh_login_required
 
 import tasks
+import tasks.api
 import utils
 from controllers.faction.decorators import aa_required, fac_required
 from models.faction import Faction
@@ -72,7 +73,7 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("banking")}')
+                channel = tasks.api.discordget(f'channels/{request.form.get("banking")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:
@@ -97,7 +98,7 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                roles = tasks.discordget(f"guilds/{faction.guild}/roles")
+                roles = tasks.api.discordget(f"guilds/{faction.guild}/roles")
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

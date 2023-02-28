@@ -20,6 +20,7 @@ from flask import jsonify, request
 
 import redisdb
 import tasks
+import tasks.api
 import utils
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -49,7 +50,7 @@ def vault_balance(*args, **kwargs):
         return make_exception_response("1201", key)
 
     try:
-        vault_balances = tasks.tornget("faction/?selections=donations", faction.rand_key())
+        vault_balances = tasks.api.tornget("faction/?selections=donations", faction.rand_key())
     except utils.TornError as e:
         return make_exception_response(
             "4100",
@@ -150,7 +151,7 @@ def banking_request(*args, **kwargs):
         )
 
     try:
-        vault_balances = tasks.tornget("faction/?selections=donations", faction.rand_key())
+        vault_balances = tasks.api.tornget("faction/?selections=donations", faction.rand_key())
     except utils.TornError as e:
         return make_exception_response(
             "4100",
@@ -280,7 +281,7 @@ def banking_request(*args, **kwargs):
                     },
                 ],
             }
-        message = tasks.discordpost(
+        message = tasks.api.discordpost(
             f'channels/{vault_config["banking"]}/messages',
             payload=message_payload,
         )

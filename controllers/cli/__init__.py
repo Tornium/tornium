@@ -21,6 +21,7 @@ import requests
 from flask import Blueprint
 
 import tasks
+import tasks.api
 import utils
 from redisdb import get_redis
 
@@ -72,7 +73,7 @@ def update_commands(verbose=False):
     botlogger.debug(commands_data)
 
     try:
-        commands_data = tasks.discordput(
+        commands_data = tasks.api.discordput(
             f"applications/{application_id}/commands",
             commands_data,
             session=session,

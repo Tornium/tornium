@@ -19,6 +19,7 @@ import json
 from flask import jsonify, request
 
 import tasks
+import tasks.api
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.factionstakeoutmodel import FactionStakeoutModel
@@ -128,7 +129,7 @@ def create_stakeout(stype, *args, **kwargs):
         "parent_id": guild.stakeoutconfig["category"] if category is None else category,
     }
 
-    channel = tasks.discordpost(f"guilds/{guildid}/channels", payload=payload)
+    channel = tasks.api.discordpost(f"guilds/{guildid}/channels", payload=payload)
 
     stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
 
@@ -163,7 +164,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     db_stakeout.guilds = stakeout.guilds
     db_stakeout.save()
-    tasks.discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
+    tasks.api.discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
 
     return (
         jsonify(

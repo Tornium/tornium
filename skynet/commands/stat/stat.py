@@ -19,6 +19,7 @@ from mongoengine.queryset.visitor import Q
 
 import skynet.skyutils
 import tasks
+import tasks.api
 import utils
 from models.faction import Faction
 from models.statmodel import StatModel
@@ -88,7 +89,7 @@ def stat(interaction, *args, **kwargs):
 
     if user is None:
         try:
-            user_data = tasks.tornget(
+            user_data = tasks.api.tornget(
                 f"user/{interaction['member']['user']['id']}?selections=profile,discord",
                 random.choice(admin_keys),
             )

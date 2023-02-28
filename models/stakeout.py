@@ -16,6 +16,7 @@
 from flask_login import current_user
 
 import tasks
+import tasks.api
 import utils
 from models.factionstakeoutmodel import FactionStakeoutModel
 from models.userstakeoutmodel import UserStakeoutModel
@@ -34,7 +35,7 @@ class Stakeout:
 
             if user:
                 try:
-                    data = tasks.tornget(
+                    data = tasks.api.tornget(
                         f"user/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )
@@ -45,7 +46,7 @@ class Stakeout:
 
             else:
                 try:
-                    data = tasks.tornget(
+                    data = tasks.api.tornget(
                         f"faction/{tid}?selections=",
                         key if key != "" else current_user.key,
                     )

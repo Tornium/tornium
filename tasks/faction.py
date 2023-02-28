@@ -37,7 +37,8 @@ from models.servermodel import ServerModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
 from models.withdrawalmodel import WithdrawalModel
-from tasks import celery_app, discordpost, discordpatch, logger, torn_stats_get, tornget
+from tasks import celery_app, logger
+from tasks.api import tornget, discordpatch, discordpost, torn_stats_get
 from tasks.user import update_user
 from utils.errors import NetworkingError, TornError
 

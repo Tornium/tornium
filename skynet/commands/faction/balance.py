@@ -16,6 +16,7 @@
 import random
 
 import tasks
+import tasks.api
 import utils
 from models.faction import Faction
 from models.user import User
@@ -164,7 +165,7 @@ def balance(interaction, *args, **kwargs):
         }
 
     try:
-        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
+        faction_balances = tasks.api.tornget("faction/?selections=donations", random.choice(aa_keys))
     except utils.TornError as e:
         return {
             "type": 4,

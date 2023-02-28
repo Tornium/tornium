@@ -24,7 +24,8 @@ from models.factionstakeoutmodel import FactionStakeoutModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
 from models.userstakeoutmodel import UserStakeoutModel
-from tasks import celery_app, discordpost, logger, tornget
+from tasks import celery_app, logger
+from tasks.api import tornget, discordpost
 
 
 @celery_app.task

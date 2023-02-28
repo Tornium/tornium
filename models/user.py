@@ -22,6 +22,7 @@ from flask_login import UserMixin, current_user
 from mongoengine.queryset.visitor import Q
 
 import tasks
+import tasks.api
 import utils
 from models.positionmodel import PositionModel
 from models.usermodel import UserModel
@@ -80,9 +81,9 @@ class User(UserMixin):
                     raise utils.MissingKeyError
 
             if key == self.key:
-                user_data = tasks.tornget("user/?selections=profile,battlestats,discord", key)
+                user_data = tasks.api.tornget("user/?selections=profile,battlestats,discord", key)
             else:
-                user_data = tasks.tornget(f"user/{self.tid}?selections=profile,discord", key)
+                user_data = tasks.api.tornget(f"user/{self.tid}?selections=profile,discord", key)
 
             user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
             user.factionid = user_data["faction"]["faction_id"]
@@ -148,7 +149,7 @@ class User(UserMixin):
         user = UserModel.objects(tid=self.tid).first()
 
         try:
-            tasks.tornget("faction/?selections=positions", self.key)
+            tasks.api.tornget("faction/?selections=positions", self.key)
         except utils.TornError as e:
             if e.code == 7:
                 self.aa = False

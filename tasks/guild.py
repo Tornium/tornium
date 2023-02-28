@@ -19,7 +19,8 @@ import utils
 from models.positionmodel import PositionModel
 from models.servermodel import ServerModel
 from models.usermodel import UserModel
-from tasks import celery_app, discordget, logger
+from tasks import celery_app, logger
+from tasks.api import discordget
 
 
 @celery_app.task

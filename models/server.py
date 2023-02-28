@@ -16,6 +16,7 @@
 import operator
 
 import tasks
+import tasks.api
 from models.servermodel import ServerModel
 
 
@@ -63,7 +64,7 @@ class Server:
             else:
                 return value
 
-        channels_query = tasks.discordget(f"guilds/{self.sid}/channels")
+        channels_query = tasks.api.discordget(f"guilds/{self.sid}/channels")
         channels = {"0": {"name": "", "channels": {}, "position": -1}}
 
         for channel in channels_query:
@@ -115,7 +116,7 @@ class Server:
             else:
                 return value
 
-        roles_query = tasks.discordget(f"guilds/{self.sid}")
+        roles_query = tasks.api.discordget(f"guilds/{self.sid}")
         roles = {}
 
         for role in roles_query.get("roles"):

@@ -28,7 +28,8 @@ from models.factionmodel import FactionModel
 from models.personalstatmodel import PersonalStatModel
 from models.statmodel import StatModel
 from models.usermodel import UserModel
-from tasks import celery_app, logger, tornget
+from tasks import celery_app, logger
+from tasks.api import tornget
 
 ATTACK_RESULTS = {
     "Lost": 0,

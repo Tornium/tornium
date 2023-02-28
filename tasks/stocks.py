@@ -26,7 +26,8 @@ import utils
 from models.notificationmodel import NotificationModel
 from models.tickmodel import TickModel
 from models.usermodel import UserModel
-from tasks import celery_app, discordpost, logger, tornget
+from tasks import celery_app, logger
+from tasks.api import tornget, discordpost
 
 
 def _map_stock_image(acronym: str):

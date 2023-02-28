@@ -17,6 +17,7 @@ import datetime
 import random
 
 import tasks
+import tasks.api
 import utils
 from models.faction import Faction
 from models.server import Server
@@ -232,7 +233,7 @@ def cancel_command(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.discordpatch(
+        tasks.api.discordpatch(
             f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
@@ -534,7 +535,7 @@ def cancel_button(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.discordpatch(
+        tasks.api.discordpatch(
             f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [

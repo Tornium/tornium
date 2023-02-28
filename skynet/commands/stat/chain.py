@@ -25,6 +25,7 @@ from mongoengine.queryset.visitor import Q
 
 import skynet.skyutils
 import tasks
+import tasks.api
 import utils
 from models.statmodel import StatModel
 from models.user import User
@@ -82,7 +83,7 @@ def chain(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.discordpost(
+        tasks.api.discordpost(
             f"interactions/{interaction['id']}/{interaction['token']}/callback",
             payload={"type": 5},
         )
@@ -132,7 +133,7 @@ def chain(interaction, *args, **kwargs):
         )
 
     if stat_entries.count() == 0:
-        tasks.discordpatch(
+        tasks.api.discordpatch(
             f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={
                 "embeds": [
@@ -264,7 +265,7 @@ def chain(interaction, *args, **kwargs):
     embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
     embed["footer"] = {"text": f"Run time: {round(time.time() - start, 2)} seconds"}
 
-    tasks.discordpatch(
+    tasks.api.discordpatch(
         f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
         payload={"embeds": [embed]},
     )

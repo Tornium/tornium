@@ -20,6 +20,7 @@ from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
 import tasks
+import tasks.api
 import utils
 from controllers.faction.decorators import aa_required
 from models.factionmodel import FactionModel
@@ -303,7 +304,7 @@ def fulfill(wid: int):
             error="The faction's Discord server could not be located in the database.",
         )
 
-    channels = tasks.discordget(f"guilds/{faction.guild}/channels")
+    channels = tasks.api.discordget(f"guilds/{faction.guild}/channels")
     banking_channel = None
 
     for channel in channels:
@@ -322,7 +323,7 @@ def fulfill(wid: int):
         )
 
     try:
-        tasks.discordpatch(
+        tasks.api.discordpatch(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
                 "embeds": [

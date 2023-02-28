@@ -17,6 +17,7 @@ from flask import abort, render_template, request
 from flask_login import current_user, login_required
 
 import tasks
+import tasks.api
 import utils
 from controllers.faction.decorators import fac_required
 from models.faction import Faction
@@ -46,7 +47,7 @@ def chain(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("odchannel")}')
+                channel = tasks.api.discordget(f'channels/{request.form.get("odchannel")}')
             except utils.DiscordError as e:
                 return utils.handle_discord_error(e)
             except utils.NetworkingError as e:

@@ -22,6 +22,7 @@ from flask_login import current_user, login_required, login_user, logout_user, f
 
 import redisdb
 import tasks
+import tasks.api
 import tasks.user
 import utils
 import utils.totp
@@ -42,7 +43,7 @@ def login():
 
     if user is None:
         try:
-            key_info = tasks.tornget(endpoint="key/?selections=info", key=request.form["key"])
+            key_info = tasks.api.tornget(endpoint="key/?selections=info", key=request.form["key"])
         except utils.TornError as e:
             return utils.handle_torn_error(e)
         except utils.NetworkingError as e:

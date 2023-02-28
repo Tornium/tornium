@@ -21,6 +21,7 @@ from flask import jsonify, request
 
 import redisdb
 import tasks
+import tasks.api
 import utils
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -152,7 +153,7 @@ def forward_assist(*args, **kwargs):
         }
 
         try:
-            tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
+            tasks.api.discordpost(f"channels/{server.assistschannel}/messages", data)
         except utils.DiscordError:
             continue
         except utils.NetworkingError:

@@ -17,7 +17,7 @@ import datetime
 import math
 
 from flask import Blueprint, render_template, request
-from flask_login import current_user, login_required
+from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
 
 import utils
@@ -194,7 +194,7 @@ def chain():
 
 
 @mod.route("/stats/config", methods=["GET", "POST"])
-@login_required
+@fresh_login_required
 @aa_required
 def config():
     faction = Faction(current_user.factiontid)

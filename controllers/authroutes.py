@@ -17,7 +17,7 @@ import hashlib
 import secrets
 import typing
 
-from flask import abort, Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
 
 import redisdb

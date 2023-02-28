@@ -14,12 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import jsonify, redirect, request
-from flask_login import login_required
+from flask_login import fresh_login_required
 
 from models.servermodel import ServerModel
 
 
-@login_required
+@fresh_login_required
 def assists_update(guildid):
     action = request.args.get("action")
     value = request.args.get("value")

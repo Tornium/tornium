@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import abort, flash, redirect, render_template, request
-from flask_login import current_user, login_required
+from flask import abort, redirect, render_template, request
+from flask_login import current_user, fresh_login_required, login_required
 
 from models.faction import Faction
 from models.server import Server
@@ -34,7 +34,7 @@ def dashboard():
     return render_template("bot/dashboard.html", servers=list(set(servers)))
 
 
-@login_required
+@fresh_login_required
 def guild_dashboard(guildid: str):
     server = Server(guildid)
 
@@ -68,7 +68,7 @@ def guild_dashboard(guildid: str):
     )
 
 
-@login_required
+@fresh_login_required
 def update_guild(guildid: str, factiontid: int):
     server_model = ServerModel.objects(sid=guildid).first()
 

@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import flash, render_template, request
-from flask_login import current_user, login_required
+from flask_login import current_user, fresh_login_required
 
 import tasks
 import utils
@@ -25,7 +25,7 @@ from models.server import Server
 from models.servermodel import ServerModel
 
 
-@login_required
+@fresh_login_required
 @fac_required
 @aa_required
 def bot(*args, **kwargs):

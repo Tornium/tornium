@@ -79,7 +79,7 @@ def login():
     if user.security == 0:
         login_user(User(user.tid), remember=True)
     elif user.security == 1:
-        if user.otp_secret == "":
+        if user.otp_secret == "":  # nosec B105
             return (
                 render_template(
                     "errors/error.html",

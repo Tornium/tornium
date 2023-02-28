@@ -182,13 +182,13 @@ class User(UserMixin):
         self.otp_secret = user.otp_secret
 
     def generate_otp_url(self):
-        if self.otp_secret == "" or self.security != 1:
+        if self.otp_secret == "" or self.security != 1:  # nosec B105
             raise Exception("Illegal OTP secret or security mode")
 
         return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
 
     def generate_otp_backups(self, num_codes=5):
-        if self.otp_secret == "" or self.security != 1:
+        if self.otp_secret == "" or self.security != 1:  # nosec B105
             raise Exception("Illegal OTP secret or security mode")
 
         codes = []

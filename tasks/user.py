@@ -394,6 +394,8 @@ def stat_db_attacks_user(user_data):
             f"Attack data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
+    except Exception as e:
+        logger.exception(e)
 
     try:
         if len(stats_data) > 0:
@@ -404,6 +406,8 @@ def stat_db_attacks_user(user_data):
             f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
+    except Exception as e:
+        logger.exception(e)
 
     user.last_attacks = list(user_data["attacks"].values())[-1]["timestamp_ended"]
     user.save()

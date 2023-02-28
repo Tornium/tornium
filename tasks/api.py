@@ -13,10 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import datetime
 import json
 import math

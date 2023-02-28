@@ -37,7 +37,7 @@ $(document).ready(function() {
 
     $("#chainform").submit(function(e) {
         e.preventDefault();
-        $("chain-list-button").attr("disabled", true);
+        $("#chain-list-button").attr("disabled", true);
 
         const xhttp = new XMLHttpRequest();
         var value = Number($("#chainff").val());

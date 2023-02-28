@@ -137,7 +137,7 @@ def topt_verification():
 
     redis_client = redisdb.get_redis()
 
-    if totp_token is None or not totp_token.isdigit():
+    if totp_token is None:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
         return redirect("/login")
     elif redis_client.get(f"tornium:login:{client_token}") is None:
@@ -152,7 +152,7 @@ def topt_verification():
 
     server_totp_tokens = [hashlib.sha256(token).hexdigest() for token in utils.totp.totp(user.otp_secret)]
 
-    if secrets.compare_digest(totp_token, server_totp_tokens[0]) or not secrets.compare_digest(
+    if secrets.compare_digest(totp_token, server_totp_tokens[0]) or secrets.compare_digest(
         totp_token, server_totp_tokens[1]
     ):
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)

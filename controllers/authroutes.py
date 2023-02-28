@@ -210,7 +210,7 @@ def totp_secret_regen(*args, **kwargs):
 @fresh_login_required
 @token_required(setnx=False)
 def totp_backup_regen(*args, **kwargs):
-    codes = current_user.generate_otp_codes()
+    codes = current_user.generate_otp_backups()
 
     return {"codes": codes}, 200
 

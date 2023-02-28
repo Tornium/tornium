@@ -196,23 +196,30 @@ $(document).ready(function() {
 
             $("#settings-modal-body").append($("<button>", {
                 "class": "btn btn-outline-success m-1",
+                "id": "copy-totp-backup",
                 "type": "button",
                 "text": "Copy",
-                "onclick": function() {
-                    navigator.clipboard.writeText(response["codes"].join("\n")).then(function() {
-                        generateToast("Codes Copied", "The TOTP backup codes have been copied to your clipboard");
-                    });
-                }
             }));
 
             $("#settings-modal-body").append($("<button>", {
                 "class": "btn btn-outline-success m-1",
+                "id": "save-totp-backup",
                 "type": "button",
                 "text": "Save as File",
-                "onclick": function() {
-                    window.open("data:text/plain;charset=utf-8," + response["codes"].join("\n"));
-                }
             }));
+
+            $("#copy-totp-backup").on("click", function() {
+                navigator.clipboard.writeText(response["codes"].join("\n")).then(function() {
+                    generateToast("Codes Copied", "The TOTP backup codes have been copied to your clipboard");
+                });
+            });
+
+            $("#save-totp-backup").on("click", function() {
+                window.open("data:text/plain;charset=utf-8," + response["codes"].join("\n"));
+            });
+
+            let modal = new bootstrap.Modal($("#settings-modal"));
+            modal.show();
         }
 
         xhttp.responseType = "json";

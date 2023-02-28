@@ -150,7 +150,7 @@ def topt_verification():
     if user is None:
         return redirect("/login")
 
-    server_totp_tokens = [hashlib.sha256(token) for token in utils.totp.totp(user.otp_secret)]
+    server_totp_tokens = [hashlib.sha256(token).hexdigest() for token in utils.totp.totp(user.otp_secret)]
 
     if secrets.compare_digest(totp_token, server_totp_tokens[0]) or not secrets.compare_digest(
         totp_token, server_totp_tokens[1]

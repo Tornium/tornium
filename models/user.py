@@ -198,7 +198,7 @@ class User(UserMixin):
             codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
 
         for code in codes:
-            hashed_codes.append(hashlib.sha256(code.encode("utf-8")))
+            hashed_codes.append(hashlib.sha256(code.encode("utf-8")).hexdigest())
 
         user: UserModel = UserModel.objects(tid=self.tid).first()
         user.otp_backups = hashed_codes

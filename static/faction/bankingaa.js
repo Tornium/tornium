@@ -17,13 +17,15 @@ $(document).ready(function() {
     $('#banking-table').DataTable({
         "processing": true,
         "serverSide": true,
-        "ordering": false,
+        "ordering": true,
         "responsive": false,
+        "searching": false,
         "ajax": {
             url: "/faction/bankingdata"
         },
+        "order": [[3, "desc"]],
         "scrollX": true
     });
 
-    $.fn.dataTable.ext.pager.numbers_length = 5;
+    $.fn.dataTable.ext.pager.numbers_length = 3;
 });

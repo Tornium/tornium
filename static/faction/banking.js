@@ -23,15 +23,17 @@ $(document).ready(function() {
     $('#banking-table').DataTable({
         "processing": true,
         "serverSide": true,
-        "ordering": false,
+        "ordering": true,
         "responsive": false,
+        "searching": false,
         "ajax": {
             url: "/faction/userbankingdata"
         },
+        "order": [[2, "desc"]],
         "scrollX": true
     });
 
-    $.fn.dataTable.ext.pager.numbers_length = 5;
+    $.fn.dataTable.ext.pager.numbers_length = 3;
 
     var xhttp = new XMLHttpRequest();
     xhttp.onload = function() {

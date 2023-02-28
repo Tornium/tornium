@@ -42,17 +42,50 @@ def bankingaa():
 def bankingdata():
     start = int(request.args.get("start"))
     length = int(request.args.get("length"))
+    ordering = int(request.args.get("order[0][column]"))
+    ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    for withdrawal in WithdrawalModel.objects(factiontid=current_user.factiontid)[start : start + length]:
+    if ordering_direction == "asc":
+        ordering_direction = "+"
+    else:
+        ordering_direction = "-"
+
+    withdrawals_db = WithdrawalModel.objects(factiontid=current_user.factiontid)
+
+    if ordering == 0:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}wid")
+    elif ordering == 1:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}amount")
+    elif ordering == 2:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}requester")
+    elif ordering == 4:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}fulfiller")
+    elif ordering == 5:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_fulfilled")
+    else:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_requested")
+
+    withdrawals_db = withdrawals_db[start : start + length]
+
+    for withdrawal in withdrawals_db:
         requester = f"{User(withdrawal.requester).name} [{withdrawal.requester}]"
-        fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]" if withdrawal.fulfiller != 0 else ""
+
+        if withdrawal.fulfiller > 0:
+            fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        elif withdrawal.fulfiller == -1:
+            fulfiller = "Cancelled by System"
+        elif withdrawal.fulfiller < -1:
+            fulfiller = f"Cancelled by {User(-withdrawal.fulfiller).name} [{-withdrawal.fulfiller}]"
+        else:
+            fulfiller = ""
+
         timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
 
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}",
+                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal:,} points",
                 requester,
                 utils.torn_timestamp(withdrawal.time_requested),
                 fulfiller,
@@ -144,16 +177,46 @@ def banking():
 def userbankingdata():
     start = int(request.args.get("start"))
     length = int(request.args.get("length"))
+    ordering = int(request.args.get("order[0][column]"))
+    ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    for withdrawal in WithdrawalModel.objects(requester=current_user.tid)[start : start + length]:
-        fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]" if withdrawal.fulfiller != 0 else ""
+    if ordering_direction == "asc":
+        ordering_direction = "+"
+    else:
+        ordering_direction = "-"
+
+    withdrawals_db = WithdrawalModel.objects(factiontid=current_user.factiontid)
+
+    if ordering == 0:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}wid")
+    elif ordering == 1:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}amount")
+    elif ordering == 3:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}fulfiller")
+    elif ordering == 4:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_fulfilled")
+    else:
+        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_requested")
+
+    withdrawals_db = withdrawals_db[start : start + length]
+
+    for withdrawal in withdrawals_db:
+        if withdrawal.fulfiller > 0:
+            fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        elif withdrawal.fulfiller == -1:
+            fulfiller = "Cancelled by System"
+        elif withdrawal.fulfiller < -1:
+            fulfiller = f"Cancelled by {User(-withdrawal.fulfiller).name} [{-withdrawal.fulfiller}]"
+        else:
+            fulfiller = ""
+
         timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
 
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}",
+                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal:,} points",
                 utils.torn_timestamp(withdrawal.time_requested),
                 fulfiller,
                 timefulfilled,

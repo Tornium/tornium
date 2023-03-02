@@ -31,11 +31,20 @@ from pymongo.errors import BulkWriteError
 from tornium_commons import rds
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
-from tornium_commons.models import AttackModel, FactionModel, OCModel, PositionModel, ServerModel, StatModel, UserModel, WithdrawalModel
+from tornium_commons.models import (
+    AttackModel,
+    FactionModel,
+    OCModel,
+    PositionModel,
+    ServerModel,
+    StatModel,
+    UserModel,
+    WithdrawalModel,
+)
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from tasks.api import tornget, discordpatch, discordpost, torn_stats_get
-from tasks.user import update_user
+from tornium_celery.tasks.api import tornget, discordpatch, discordpost, torn_stats_get
+from tornium_celery.tasks.user import update_user
 
 ORGANIZED_CRIMES = {
     1: "Blackmail",
@@ -686,7 +695,9 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             )
         except DiscordError as e:
             if e.code == 10003:
-                logging.getLogger("celery").warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
+                logging.getLogger("celery").warning(
+                    f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}"
+                )
                 return
 
             logging.getLogger("celery").exception(e)
@@ -1144,7 +1155,8 @@ def auto_cancel_requests():
                                         "type": 2,
                                         "style": 5,
                                         "label": "Faction Vault",
-                                        "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                                        "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option="
+                                               "give-to-user",
                                     },
                                     {
                                         "type": 2,

@@ -25,7 +25,7 @@ from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import remove_html, torn_timestamp
 from tornium_commons.models import FactionModel, FactionStakeoutModel, ServerModel, UserModel, UserStakeoutModel
 
-from tasks.api import tornget, discordpost
+from tornium_celery.tasks.api import tornget, discordpost
 
 
 @celery.shared_task

@@ -20,7 +20,7 @@ import requests
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import PositionModel, ServerModel, UserModel
 
-from tasks.api import discordget
+from tornium_celery.tasks.api import discordget
 
 
 @celery.shared_task
@@ -119,5 +119,7 @@ def refresh_guilds():
         if guild is None:
             continue
 
-        logging.getLogger("celery").info(f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)")
+        logging.getLogger("celery").info(
+            f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)"
+        )
         guild.delete()

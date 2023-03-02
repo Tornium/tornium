@@ -30,7 +30,7 @@ from redis.commands.json.path import Path
 from tornium_commons import Config, rds
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
-from tasks.misc import remove_unknown_channel, remove_unknown_role
+from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_role
 
 
 @celery.shared_task(time_limit=5)
@@ -52,7 +52,7 @@ def tornget(
 
     if key is None or key == "":
         raise MissingKeyError
-    
+
     redis_client = rds()
 
     if redis_client.exists(f"tornium:torn-cache:{url}") and not nocache:
@@ -81,7 +81,8 @@ def tornget(
                     raise RatelimitError
     except TypeError:
         logging.getLogger("celery").warning(
-            f"Error raised on API key {key} with redis return value {redis_client.get(redis_key)} and redis key {redis_key}"
+            f"Error raised on API key {key} with redis return value {redis_client.get(redis_key)} and redis "
+            f"key {redis_key}"
         )
 
     try:
@@ -94,7 +95,9 @@ def tornget(
         raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
-        logging.getLogger("celery").warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
+        logging.getLogger("celery").warning(
+            f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".'
+        )
         raise NetworkingError(code=request.status_code, url=url)
 
     if globals().get("orjson:loaded"):

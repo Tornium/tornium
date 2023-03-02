@@ -1,14 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-py-modules = []
 
 [project]
 authors = [
-    {name="tiksan"},
-    {name="SR_"}
+    {name="tiksan"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -27,19 +23,16 @@ classifiers = [
 dependencies = [
     "celery ~= 5.2.7",
     "cryptography ~= 39.0.1",
-    "flask ~= 2.2.2",
-    "flask-cors ~= 3.0.10",
-    "flask-login ~= 0.6.2",
     "gevent ~= 22.10.2",
     "mongoengine ~= 0.26.0",
     "pynacl ~= 1.5.0",
     "redis ~= 4.5.1",
     "requests ~= 2.28.2",
-    "tornium_commons >= 0.1.0",
+    "tornium_commons @ git+ssh://git@github.com/Tornium/tornium-commons@master#egg=tornium-commons",
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]
-name = "tornium-celery"
+name = "tornium_celery"
 version = "0.2.0"
 
 [project.optional-dependencies]
@@ -72,8 +65,8 @@ extra = [
 
 [project.urls]
 homepage = "https://tornium.com"
-repository = "https://github.com/dssecret/tornium-pro"
-changelog = "https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc"
+repository = "https://github.com/Tornium/tornium-celery"
+changelog = "https://github.com/Tornium/tornium-celery/blob/master/CHANGELOG.adoc"
 
 [tool.bandit]
 exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv"]

@@ -26,9 +26,9 @@ from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import NotificationModel, TickModel, UserModel
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from tasks.api import tornget, discordpost
+from tornium_celery.tasks.api import tornget, discordpost
 
 
 def _map_stock_image(acronym: str):
@@ -107,7 +107,9 @@ def fetch_stock_ticks():
         tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
         TickModel._get_collection().insert_many(tick_data, ordered=False)
     except BulkWriteError:
-        logging.getLogger("celery").warning("Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
+        logging.getLogger("celery").warning(
+            "Stock tick data bulk insert failed. Duplicates may have been found and were skipped."
+        )
     except Exception as e:
         logging.getLogger("celery").exception(e)
 

@@ -28,7 +28,7 @@ from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, StatModel, UserModel
 
-from tasks.api import tornget
+from tornium_celery.tasks.api import tornget
 
 ATTACK_RESULTS = {
     "Lost": 0,
@@ -100,7 +100,9 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         try:
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logging.getLogger("celery").error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
+            logging.getLogger("celery").error(
+                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
+            )
             logging.getLogger("celery").info(user_data)
 
         user.last_refresh = int(time.time())
@@ -141,7 +143,11 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     try:
         PersonalStatModel(
             **dict(
-                {"pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2), "tid": user.tid, "timestamp": int(time.time())},
+                {
+                    "pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2),
+                    "tid": user.tid,
+                    "timestamp": int(time.time()),
+                },
                 **user_data["personalstats"],
             )
         ).save()
@@ -181,7 +187,9 @@ def refresh_users():
         try:  # Torn API debug
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logging.getLogger("celery").error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
+            logging.getLogger("celery").error(
+                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
+            )
             logging.getLogger("celery").info(user_data)
 
         user.name = user_data["name"]

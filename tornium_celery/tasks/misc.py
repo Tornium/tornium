@@ -20,6 +20,7 @@ from mongoengine import QuerySet
 
 from tornium_commons.models import FactionModel, FactionStakeoutModel, NotificationModel, ServerModel, UserStakeoutModel
 
+
 @celery.shared_task
 def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)

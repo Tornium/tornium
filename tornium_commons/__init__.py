@@ -15,18 +15,3 @@
 
 from .redisconnection import rds
 from .config import Config
-
-from models.attackmodel import AttackModel
-from models.factionmodel import FactionModel
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.keymodel import KeyModel
-from models.notificationmodel import NotificationModel
-from models.ocmodel import OCModel
-from models.personalstatmodel import PersonalStatModel
-from models.positionmodel import PositionModel
-from models.servermodel import ServerModel
-from models.statmodel import StatModel
-from models.tickmodel import TickModel
-from models.usermodel import UserModel
-from models.userstakeoutmodel import UserStakeoutModel
-from models.withdrawalmodel import WithdrawalModel

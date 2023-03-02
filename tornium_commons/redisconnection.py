@@ -18,7 +18,7 @@ import redis
 
 _connection_pool = redis.ConnectionPool(
     host="localhost",
-    posrt=6379,
+    port=6379,
     charset="utf-8",
     decode_response=True
 )

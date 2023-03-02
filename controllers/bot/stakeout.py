@@ -19,15 +19,15 @@ import json
 from flask import flash, jsonify, redirect, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 
-import tornium_celery.tasks.api
-import utils
+from tornium_celery.tasks.api import discorddelete, discordpost
+from tornium_commons.errors import DiscordError
+from tornium_commons.formatters import rel_time
+from tornium_commons.models import FactionStakeoutModel, ServerModel, UserStakeoutModel
+
 from models.faction import Faction
-from models.factionstakeoutmodel import FactionStakeoutModel
 from models.server import Server
-from models.servermodel import ServerModel
 from models.stakeout import Stakeout
 from models.user import User
-from models.userstakeoutmodel import UserStakeoutModel
 
 
 @fresh_login_required
@@ -80,7 +80,7 @@ def stakeouts_dashboard(guildid: str):
                         f'[{stakeout.data["ID"]}] by the Tornium bot.',
                     }  # TODO: Add permission overwrite: everyone write false
 
-                channel = tornium_celery.tasks.api.discordpost(f"guilds/{guildid}/channels", payload=payload)
+                channel = discordpost(f"guilds/{guildid}/channels", payload=payload)
 
                 db_stakeout = FactionStakeoutModel.objects(tid=request.form.get("factionid")).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
@@ -98,7 +98,7 @@ def stakeouts_dashboard(guildid: str):
                         }
                     ]
                 }
-                tornium_celery.tasks.api.discordpost(
+                discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
                 )
@@ -134,7 +134,7 @@ def stakeouts_dashboard(guildid: str):
                         f'[{stakeout.data["player_id"]}] by the Tornium bot.',
                     }  # TODO: Add permission overwrite: everyone write false
 
-                channel = tornium_celery.tasks.api.discordpost(f"guilds/{guildid}/channels", payload=payload)
+                channel = discordpost(f"guilds/{guildid}/channels", payload=payload)
 
                 db_stakeout = UserStakeoutModel.objects(tid=request.form.get("userid")).first()
                 db_stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
@@ -152,7 +152,7 @@ def stakeouts_dashboard(guildid: str):
                         }
                     ]
                 }
-                tornium_celery.tasks.api.discordpost(
+                discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
                 )
@@ -207,7 +207,7 @@ def stakeouts(guildid: str, stype: int):
                 [
                     stakeout.tid,
                     stakeout.guilds[str(guildid)]["keys"],
-                    utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
+                    rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
                 ]
             )
     elif stype == 1:  # faction
@@ -226,7 +226,7 @@ def stakeouts(guildid: str, stype: int):
                 [
                     stakeout.tid,
                     stakeout.guilds[str(guildid)]["keys"],
-                    utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
+                    rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
                 ]
             )
     else:
@@ -277,7 +277,7 @@ def stakeout_data(guildid: str):
         return render_template(
             "bot/factionstakeoutmodal.html",
             faction=f"{Faction(int(faction), key=current_user.key).name} [{faction}]",
-            lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
+            lastupdate=rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
             keys=stakeout.guilds[str(guildid)]["keys"],
             guildid=guildid,
             tid=faction,
@@ -291,7 +291,7 @@ def stakeout_data(guildid: str):
         return render_template(
             "bot/userstakeoutmodal.html",
             user=f"{User(int(user)).name} [{user}]",
-            lastupdate=utils.rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
+            lastupdate=rel_time(datetime.datetime.fromtimestamp(stakeout.last_update)),
             keys=stakeout.guilds[str(guildid)]["keys"],
             guildid=guildid,
             tid=user,
@@ -336,8 +336,8 @@ def stakeout_update(guildid):
 
             stakeout = FactionStakeoutModel.objects(tid=faction).first()
             try:
-                tornium_celery.tasks.api.discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
-            except utils.DiscordError as e:
+                discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
+            except DiscordError as e:
                 if e.code == 10003:
                     pass
                 else:
@@ -353,10 +353,10 @@ def stakeout_update(guildid):
 
             stakeout = UserStakeoutModel.objects(tid=user).first()
             try:
-                tornium_celery.tasks.api.discorddelete(
+                discorddelete(
                     f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
                 )
-            except utils.DiscordError as e:
+            except DiscordError as e:
                 if e.code == 10003:
                     pass
                 else:

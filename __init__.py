@@ -136,10 +136,10 @@ if celery_app is None:
         backend="redis://localhost:6379/0",
         broker="redis://localhost:6379/0",
         include=[
-            "tasks",
             "tasks.api",
             "tasks.faction",
             "tasks.guild",
+            "tasks.misc",
             "tasks.stakeouts",
             "tasks.stocks",
             "tasks.user",

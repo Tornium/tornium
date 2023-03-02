@@ -30,7 +30,7 @@ from redis.commands.json.path import Path
 from tornium_commons import Config, rds
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
-from tasks.guild import remove_unknown_channel, remove_unknown_role
+from tasks.misc import remove_unknown_channel, remove_unknown_role
 
 
 @celery.shared_task(time_limit=5)

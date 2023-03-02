@@ -120,7 +120,7 @@ def tornget(
     return request
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery.shared_task(bind=True, max_retries=3)
 def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {"Authorization": f'Bot {Config()["skynet-bottoken"]}'}
@@ -239,7 +239,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
     return request_json
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery.shared_task(bind=True, max_retries=3)
 def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -366,7 +366,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
     return request_json
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery.shared_task(bind=True, max_retries=3)
 def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -493,7 +493,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
     return request_json
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery.shared_task(bind=True, max_retries=3)
 def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -620,7 +620,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
     return request_json
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery.shared_task(bind=True, max_retries=3)
 def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -742,7 +742,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
     return request_json
 
 
-@celery_app.task(time_limit=5)
+@celery.shared_task(time_limit=5)
 def torn_stats_get(endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
     redis_key = f"tornium:ts-ratelimit:{key}"

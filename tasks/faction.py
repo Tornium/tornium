@@ -17,32 +17,25 @@ import datetime
 import logging
 import math
 import random
+import time
 import typing
 import uuid
 from decimal import DivisionByZero
 
+import celery
 import mongoengine
 import requests
 from mongoengine.queryset.visitor import Q
 from pymongo.errors import BulkWriteError
 
-import redisdb
-import skynet.skyutils
-import utils
-from models.attackmodel import AttackModel
-from models.factionmodel import FactionModel
-from models.ocmodel import OCModel
-from models.positionmodel import PositionModel
-from models.servermodel import ServerModel
-from models.statmodel import StatModel
-from models.usermodel import UserModel
-from models.withdrawalmodel import WithdrawalModel
-from tasks import celery_app, logger
+from tornium_commons import rds
+from tornium_commons.formatters import commas, torn_timestamp
+from tornium_commons.errors import DiscordError, NetworkingError, TornError
+from tornium_commons.models import AttackModel, FactionModel, OCModel, PositionModel, ServerModel, StatModel, UserModel, WithdrawalModel
+from tornium_commons.skyutils import SKYNET_ERROR
+
 from tasks.api import tornget, discordpatch, discordpost, torn_stats_get
 from tasks.user import update_user
-from utils.errors import NetworkingError, TornError
-
-logger: logging.Logger
 
 ORGANIZED_CRIMES = {
     1: "Blackmail",
@@ -71,7 +64,7 @@ ATTACK_RESULTS = {
 }
 
 
-@celery_app.task
+@celery.shared_task
 def refresh_factions():
     requests_session = requests.Session()
 
@@ -105,7 +98,7 @@ def refresh_factions():
         except (TornError, NetworkingError):
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         if faction_data is None:
@@ -117,7 +110,7 @@ def refresh_factions():
         faction.capacity = faction_data["capacity"]
         faction.leader = faction_data["leader"]
         faction.coleader = faction_data["co-leader"]
-        faction.last_members = utils.now()
+        faction.last_members = int(time.time())
 
         positions = PositionModel.objects(factiontid=faction.tid)
         positions_names = [position.name for position in positions]
@@ -240,7 +233,7 @@ def refresh_factions():
             except NetworkingError:
                 continue
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 continue
 
             if not user_ts_data["status"]:
@@ -282,7 +275,7 @@ def refresh_factions():
                     new=True,
                     set__name=member["name"],
                     set__level=member["level"],
-                    set__last_refresh=utils.now(),
+                    set__last_refresh=int(time.time()),
                     set__factionid=faction.tid,
                     set__factionaa=positions_data[member["position"]]["aa"],
                     set__faction_position=positions_data[member["position"]]["uuid"],
@@ -292,7 +285,7 @@ def refresh_factions():
             else:
                 user.name = member["name"]
                 user.level = member["level"]
-                user.last_refresh = utils.now()
+                user.last_refresh = int(time.time())
                 user.factionid = faction.tid
                 user.factionaa = positions_data[member["position"]]["aa"]
                 user.faction_position = positions_data[member["position"]]["uuid"]
@@ -320,7 +313,7 @@ def refresh_factions():
             except (TornError, NetworkingError):
                 continue
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 continue
 
             if len(faction.chainod) > 0:
@@ -340,7 +333,7 @@ def refresh_factions():
                                         "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
                                         f"of faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                                        "footer": {"text": utils.torn_timestamp()},
+                                        "footer": {"text": torn_timestamp()},
                                     }
                                 ],
                                 "components": [
@@ -364,7 +357,7 @@ def refresh_factions():
                                     payload=payload,
                                 )
                             except Exception as e:
-                                logger.exception(e)
+                                logging.getLogger("celery").exception(e)
                                 continue
                         elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(
                             tid
@@ -377,7 +370,7 @@ def refresh_factions():
                                         "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
                                         f"of faction {faction.name} has overdosed.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                                        "footer": {"text": utils.torn_timestamp()},
+                                        "footer": {"text": torn_timestamp()},
                                     }
                                 ],
                                 "components": [
@@ -401,10 +394,10 @@ def refresh_factions():
                                     payload=payload,
                                 )
                             except Exception as e:
-                                logger.exception(e)
+                                logging.getLogger("celery").exception(e)
                                 continue
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         continue
 
             faction.chainod = faction_od["contributors"]["drugoverdoses"]
@@ -412,14 +405,14 @@ def refresh_factions():
         faction.save()
 
 
-@celery_app.task
+@celery.shared_task
 def fetch_attacks_runner():
-    redis = redisdb.get_redis()
+    redis = rds()
 
     if (
         redis.exists("tornium:celery-lock:fetch-attacks") and redis.ttl("tornium:celery-lock:fetch-attacks") > 1
     ):  # Lock enabled
-        logger.debug("Fetch attacks task terminated due to pre-existing task")
+        logging.getLogger("celery").debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
             f"{redis.ttl('tornium:celery-lock:fetch-attacks')} seconds."
@@ -437,7 +430,7 @@ def fetch_attacks_runner():
         if len(faction.aa_keys) == 0:
             continue
         elif faction.last_attacks == 0:
-            faction.last_attacks = utils.now()
+            faction.last_attacks = int(time.time())
             faction.save()
             continue
 
@@ -464,7 +457,7 @@ def fetch_attacks_runner():
         except NetworkingError:
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
@@ -478,10 +471,10 @@ def fetch_attacks_runner():
                 faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
                 faction.save()
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
 
 
-@celery_app.task
+@celery.shared_task
 def retal_attacks(factiontid, faction_data, last_attacks=None):
     if "attacks" not in faction_data:
         return
@@ -506,7 +499,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
     elif guild.retal_config[str(faction.tid)] == 0:
         return
 
-    if last_attacks is None or last_attacks >= utils.now():
+    if last_attacks is None or last_attacks >= int(time.time()):
         last_attacks = faction.last_attacks
 
     for attack in faction_data["attacks"].values():
@@ -567,7 +560,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
         if attack["modifiers"]["fair_fight"] != 3:
             if (
-                user is not None and user.battlescore != 0 and utils.now() - user.battlescore_update <= 259200
+                user is not None and user.battlescore != 0 and int(time.time()) - user.battlescore_update <= 259200
             ):  # Three days
                 try:
                     opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
@@ -579,12 +572,12 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                         (
                             {
                                 "name": "Estimated Stat Score",
-                                "value": utils.commas(round(opponent_score)),
+                                "value": commas(round(opponent_score)),
                                 "inline": True,
                             },
                             {
                                 "name": "Stat Score Update",
-                                "value": f"<t:{utils.now()}:R>",
+                                "value": f"<t:{int(time.time())}:R>",
                                 "inline": True,
                             },
                         )
@@ -604,7 +597,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                         StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True)).order_by("-timeadded").first()
                     )
             except AttributeError as e:
-                logger.exception(e),
+                logging.getLogger("celery").exception(e),
                 stat = None
 
             if stat is not None:
@@ -612,7 +605,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                     (
                         {
                             "name": "Estimated Stat Score",
-                            "value": utils.commas(stat.battlescore),
+                            "value": commas(stat.battlescore),
                             "inline": True,
                         },
                         {
@@ -644,7 +637,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                     f"[{user.tid}] (-{attack['respect_loss']})",
                     "fields": fields,
                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {"text": utils.torn_timestamp()},
+                    "footer": {"text": torn_timestamp()},
                 }
             ],
             "components": [
@@ -691,19 +684,19 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                 payload,
                 bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
             )
-        except utils.DiscordError as e:
+        except DiscordError as e:
             if e.code == 10003:
-                logger.warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
+                logging.getLogger("celery").warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
                 return
 
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
 
-@celery_app.task
+@celery.shared_task
 def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     if len(faction_data) == 0:
         return
@@ -719,7 +712,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     elif faction.config.get("stats") in (0, None):
         return
 
-    if last_attacks is None or last_attacks >= utils.now():
+    if last_attacks is None or last_attacks >= int(time.time()):
         last_attacks = faction.last_attacks
 
     attacks_data = []
@@ -781,14 +774,14 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 continue
 
             try:
-                if user.battlescore_update - utils.now() <= 259200:  # Three days
+                if user.battlescore_update - int(time.time()) <= 259200:  # Three days
                     user_score = user.battlescore
                 else:
                     continue
             except IndexError:
                 continue
             except AttributeError as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 continue
 
             if user_score == 0:
@@ -812,14 +805,14 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
                 continue
 
             try:
-                if user.battlescore_update - utils.now() <= 259200:  # Three days
+                if user.battlescore_update - int(time.time()) <= 259200:  # Three days
                     user_score = user.battlescore
                 else:
                     continue
             except IndexError:
                 continue
             except AttributeError as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 continue
 
             if user_score == 0:
@@ -841,7 +834,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except (TornError, NetworkingError):
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         try:
@@ -875,7 +868,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except mongoengine.errors.NotUniqueError:
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
@@ -883,13 +876,13 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
         AttackModel._get_collection().insert_many(attacks_data, ordered=False)
     except BulkWriteError:
-        logger.warning(
+        logging.getLogger("celery").warning(
             f"Attack data (from TID {factiontid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
 
 
-@celery_app.task
+@celery.shared_task
 def oc_refresh():
     requests_session = requests.Session()
 
@@ -931,7 +924,7 @@ def oc_refresh():
         except NetworkingError:
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
@@ -960,7 +953,7 @@ def oc_refresh():
                 continue
             elif oc_db.time_completed != 0:
                 continue
-            elif oc_db.time_ready > utils.now():
+            elif oc_db.time_ready > int(time.time()):
                 continue
 
             ready = list(
@@ -1057,7 +1050,7 @@ def oc_refresh():
                         payload=payload,
                     )
                 except Exception as e:
-                    logger.exception(e)
+                    logging.getLogger("celery").exception(e)
                     continue
             elif OC_READY and not oc_db.notified and all(ready):
                 # OC is ready
@@ -1091,21 +1084,21 @@ def oc_refresh():
                         payload=payload,
                     )
                 except Exception as e:
-                    logger.exception(e)
+                    logging.getLogger("celery").exception(e)
                     continue
 
 
-@celery_app.task
+@celery.shared_task
 def auto_cancel_requests():
     withdrawal: WithdrawalModel
-    for withdrawal in WithdrawalModel.objects(time_requested__gte=utils.now() - 7200):  # Two hours before now
-        if utils.now() - withdrawal.time_requested < 3600:
+    for withdrawal in WithdrawalModel.objects(time_requested__gte=int(time.time()) - 7200):  # Two hours before now
+        if int(time.time()) - withdrawal.time_requested < 3600:
             continue
         elif withdrawal.fulfiller != 0:
             continue
 
         withdrawal.fulfiller = -1
-        withdrawal.time_fulfilled = utils.now()
+        withdrawal.time_fulfilled = int(time.time())
         withdrawal.save()
 
         requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
@@ -1128,7 +1121,7 @@ def auto_cancel_requests():
                                 "fields": [
                                     {
                                         "name": "Original Request Amount",
-                                        "value": utils.commas(withdrawal.amount),
+                                        "value": commas(withdrawal.amount),
                                     },
                                     {
                                         "name": "Original Request Type",
@@ -1140,7 +1133,7 @@ def auto_cancel_requests():
                                     },
                                 ],
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "color": skynet.skyutils.SKYNET_ERROR,
+                                "color": SKYNET_ERROR,
                             }
                         ],
                         "components": [
@@ -1176,17 +1169,17 @@ def auto_cancel_requests():
                         ],
                     },
                 )
-        except (utils.DiscordError, utils.NetworkingError):
+        except (DiscordError, NetworkingError):
             pass
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
 
         try:
             dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except (utils.DiscordError, utils.NetworkingError):
+        except (DiscordError, NetworkingError):
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         discordpost.delay(
@@ -1199,7 +1192,7 @@ def auto_cancel_requests():
                         f"cancelled. Vault requests will be automatically cancelled after about an hour. If "
                         f"you still require this, please submit a new request.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "color": SKYNET_ERROR,
                     }
                 ]
             },

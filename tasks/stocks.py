@@ -17,16 +17,17 @@ import datetime
 import random
 import time
 
+import celery
+import logging
 from pymongo.errors import BulkWriteError
 from redis.commands.json.path import Path
 
-import redisdb
-import skynet.skyutils
-import utils
-from models.notificationmodel import NotificationModel
-from models.tickmodel import TickModel
-from models.usermodel import UserModel
-from tasks import celery_app, logger
+from tornium_commons import rds
+from tornium_commons.errors import DiscordError, NetworkingError, TornError
+from tornium_commons.formatters import commas, torn_timestamp
+from tornium_commons.models import NotificationModel, TickModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+
 from tasks.api import tornget, discordpost
 
 
@@ -34,7 +35,7 @@ def _map_stock_image(acronym: str):
     return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
 
 
-@celery_app.task
+@celery.shared_task
 def fetch_stock_ticks():
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 
@@ -48,12 +49,12 @@ def fetch_stock_ticks():
     while stocks_data is None:
         try:
             stocks_data = tornget("torn/?selections=stocks", key=torn_key, nocache=True)
-        except utils.TornError as e:
+        except TornError as e:
             if e.code in (1, 2, 3, 4, 6, 7, 8, 9):
                 return
 
             torn_key = random.choice(auth_users)
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             if e.code == 408 and not timeout_retry:
                 timeout_retry = True
                 continue
@@ -99,16 +100,16 @@ def fetch_stock_ticks():
 
         stocks[stock["stock_id"]] = stock["acronym"]
 
-    redisdb.get_redis().json().set("tornium:stocks", Path.root_path(), stocks)
+    rds().json().set("tornium:stocks", Path.root_path(), stocks)
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
     try:
         tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
         TickModel._get_collection().insert_many(tick_data, ordered=False)
     except BulkWriteError:
-        logger.warning("Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
+        logging.getLogger("celery").warning("Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
 
     notification: NotificationModel
     for notification in NotificationModel.objects(ntype=0):
@@ -131,23 +132,23 @@ def fetch_stock_ticks():
                     "fields": [
                         {
                             "name": "Original Price",
-                            "value": f"${utils.commas(stock_tick.price, stock_price=True)}"
+                            "value": f"${commas(stock_tick.price, stock_price=True)}"
                             if stock_tick is not None
                             else "Unknown",
                             "inline": True,
                         },
                         {
                             "name": "Target Price",
-                            "value": f"${utils.commas(notification.value, stock_price=True)}",
+                            "value": f"${commas(notification.value, stock_price=True)}",
                             "inline": True,
                         },
                         {
                             "name": "Current Price",
-                            "value": f"${utils.commas(target_stock['current_price'], stock_price=True)}",
+                            "value": f"${commas(target_stock['current_price'], stock_price=True)}",
                             "inline": True,
                         },
                     ],
-                    "footer": {"text": utils.torn_timestamp()},
+                    "footer": {"text": torn_timestamp()},
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ]
@@ -155,13 +156,13 @@ def fetch_stock_ticks():
 
         if notification.options.get("equality") == ">" and target_stock["current_price"] > notification.value:
             payload["embeds"][0]["title"] = "Above Target Price"
-            payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
+            payload["embeds"][0]["color"] = SKYNET_GOOD
         elif notification.options.get("equality") == "<" and target_stock["current_price"] < notification.value:
             payload["embeds"][0]["title"] = "Below Target Price"
-            payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_ERROR
+            payload["embeds"][0]["color"] = SKYNET_ERROR
         elif notification.options.get("equality") == "=" and target_stock["current_price"] == notification.value:
             payload["embeds"][0]["title"] = "Reached Target Price"
-            payload["embeds"][0]["color"] = skynet.skyutils.SKYNET_GOOD
+            payload["embeds"][0]["color"] = SKYNET_GOOD
         else:
             continue
 
@@ -176,9 +177,9 @@ def fetch_stock_ticks():
                         "recipient_id": notification.recipient,
                     },
                 )
-            except utils.DiscordError:
+            except DiscordError:
                 continue
-            except utils.NetworkingError:
+            except NetworkingError:
                 continue
 
             discordpost.delay(f"channels/{dm_channel['id']}/messages", payload=payload)

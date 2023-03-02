@@ -15,20 +15,19 @@
 
 import datetime
 import math
+import time
 import typing
 from decimal import DivisionByZero
 
+import celery
+import logging
 import mongoengine.errors
 import requests
 
-import redisdb
-import utils
-from models.attackmodel import AttackModel
-from models.factionmodel import FactionModel
-from models.personalstatmodel import PersonalStatModel
-from models.statmodel import StatModel
-from models.usermodel import UserModel
-from tasks import celery_app, logger
+from tornium_commons import rds
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, StatModel, UserModel
+
 from tasks.api import tornget
 
 ATTACK_RESULTS = {
@@ -47,10 +46,10 @@ ATTACK_RESULTS = {
 }
 
 
-@celery_app.task
+@celery.shared_task
 def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key is None or key == "":
-        raise utils.MissingKeyError
+        raise MissingKeyError
     elif tid != 0 and discordid != 0:
         raise Exception("No valid user ID passed")
 
@@ -91,7 +90,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],
             set__last_action=user_data["last_action"]["timestamp"],
-            set__last_refresh=utils.now(),
+            set__last_refresh=int(time.time()),
         )
     else:
         user.name = user_data["name"]
@@ -101,10 +100,10 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         try:
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
-            logger.info(user_data)
+            logging.getLogger("celery").error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
+            logging.getLogger("celery").info(user_data)
 
-        user.last_refresh = utils.now()
+        user.last_refresh = int(time.time())
         user.status = user_data["last_action"]["status"]
         user.last_action = user_data["last_action"]["timestamp"]
         user.save()
@@ -142,19 +141,19 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     try:
         PersonalStatModel(
             **dict(
-                {"pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2), "tid": user.tid, "timestamp": utils.now()},
+                {"pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2), "tid": user.tid, "timestamp": int(time.time())},
                 **user_data["personalstats"],
             )
         ).save()
     except mongoengine.errors.OperationError:
         pass
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
 
     return user_data
 
 
-@celery_app.task
+@celery.shared_task
 def refresh_users():
     requests_session = requests.Session()
 
@@ -169,7 +168,7 @@ def refresh_users():
                 user.key,
                 session=requests_session,
             )
-        except utils.TornError as e:
+        except TornError as e:
             if e.code in (2, 13):
                 user.key = ""
                 user.save()
@@ -182,11 +181,11 @@ def refresh_users():
         try:  # Torn API debug
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
-            logger.info(user_data)
+            logging.getLogger("celery").error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
+            logging.getLogger("celery").info(user_data)
 
         user.name = user_data["name"]
-        user.last_refresh = utils.now()
+        user.last_refresh = int(time.time())
         user.status = user_data["last_action"]["status"]
         user.last_action = user_data["last_action"]["timestamp"]
         user.level = user_data["level"]
@@ -203,19 +202,19 @@ def refresh_users():
             + math.sqrt(user_data["dexterity"])
         )
         user.battlescore = battlescore
-        user.battlescore_update = utils.now()
+        user.battlescore_update = int(time.time())
         user.save()
 
 
-@celery_app.task
+@celery.shared_task
 def fetch_attacks_user_runner():
-    redis = redisdb.get_redis()
+    redis = rds()
 
     if (
         redis.exists("tornium:celery-lock:fetch-attacks-user")
         and redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1
     ):  # Lock enabled
-        logger.debug("Fetch attacks task terminated due to pre-existing task")
+        logging.getLogger("celery").debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
             f"{redis.ttl('tornium:celery-lock:fetch-attacks-user')} seconds."
@@ -233,7 +232,7 @@ def fetch_attacks_user_runner():
         elif user.factionaa:
             continue
         if user.last_attacks == 0:
-            user.last_attacks = utils.now()
+            user.last_attacks = int(time.time())
             user.save()
             continue
 
@@ -253,7 +252,7 @@ def fetch_attacks_user_runner():
         )
 
 
-@celery_app.task
+@celery.shared_task
 def stat_db_attacks_user(user_data):
     if "attacks" not in user_data:
         return
@@ -314,14 +313,14 @@ def stat_db_attacks_user(user_data):
             continue
 
         try:
-            if user.battlescore_update - utils.now() <= 259200:  # Three days
+            if user.battlescore_update - int(time.time()) <= 259200:  # Three days
                 user_score = user.battlescore
             else:
                 continue
         except IndexError:
             continue
         except AttributeError as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         if user_score == 0:
@@ -358,10 +357,10 @@ def stat_db_attacks_user(user_data):
 
         try:
             update_user.delay(tid=opponent_id, key=user.key)
-        except (utils.TornError, utils.NetworkingError):
+        except (TornError, NetworkingError):
             continue
         except Exception as e:
-            logger.exception(e)
+            logging.getLogger("celery").exception(e)
             continue
 
         try:
@@ -391,24 +390,24 @@ def stat_db_attacks_user(user_data):
         attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
         AttackModel._get_collection().insert_many(attacks_data, ordered=False)
     except mongoengine.errors.BulkWriteError:
-        logger.warning(
+        logging.getLogger("celery").warning(
             f"Attack data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
 
     try:
         if len(stats_data) > 0:
             stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
             StatModel._get_collection().insert_many(stats_data, ordered=False)
     except mongoengine.errors.BulkWriteError:
-        logger.warning(
+        logging.getLogger("celery").warning(
             f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
 
     user.last_attacks = list(user_data["attacks"].values())[-1]["timestamp_ended"]
     user.save()

@@ -14,35 +14,35 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import logging
 import random
+import time
 
+import celery
 from mongoengine.queryset.visitor import Q
 
-import utils
-from models.factionmodel import FactionModel
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.servermodel import ServerModel
-from models.usermodel import UserModel
-from models.userstakeoutmodel import UserStakeoutModel
-from tasks import celery_app, logger
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.formatters import remove_html, torn_timestamp
+from tornium_commons.models import FactionModel, FactionStakeoutModel, ServerModel, UserModel, UserStakeoutModel
+
 from tasks.api import tornget, discordpost
 
 
-@celery_app.task
+@celery.shared_task
 def user_stakeouts():
     stakeout: UserStakeoutModel
     for stakeout in UserStakeoutModel.objects():
         user_stakeout.delay(stakeout=stakeout.tid)
 
 
-@celery_app.task
+@celery.shared_task
 def faction_stakeouts():
     stakeout: FactionStakeoutModel
     for stakeout in FactionStakeoutModel.objects():
         faction_stakeout.delay(stakeout=stakeout.tid)
 
 
-@celery_app.task
+@celery.shared_task
 def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
     stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
 
@@ -95,16 +95,16 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 session=requests_session,
                 nocache=True,
             )
-    except utils.TornError:
+    except TornError:
         return
-    except utils.MissingKeyError:
+    except MissingKeyError:
         return
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
         return
 
     stakeout_data = stakeout.data
-    stakeout.last_update = utils.now()
+    stakeout.last_update = int(time.time())
     stakeout.data = data
     stakeout.save()
 
@@ -129,7 +129,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                         "description": f'The level of staked out user {data["name"]} has changed from '
                         f'{stakeout_data["level"]} to {data["level"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": utils.torn_timestamp()},
+                        "footer": {"text": torn_timestamp()},
                     }
                 ],
                 "components": [
@@ -152,7 +152,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 return
 
         if "status" in guild_stakeout["keys"] and data["status"]["state"] != stakeout_data["status"]["state"]:
@@ -163,7 +163,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                         "description": f'The status of staked out user {data["name"]} has changed from '
                         f'{stakeout_data["status"]["state"]} to {data["status"]["state"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": utils.torn_timestamp()},
+                        "footer": {"text": torn_timestamp()},
                     }
                 ],
                 "components": [
@@ -186,7 +186,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 return
 
         if (
@@ -204,7 +204,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                         "description": f'The flying status of staked out user {data["name"]} has changed from '
                         f'{stakeout_data["status"]["state"]} to {data["status"]["state"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": utils.torn_timestamp()},
+                        "footer": {"text": torn_timestamp()},
                     }
                 ],
                 "components": [
@@ -227,7 +227,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 return
 
         if (
@@ -242,7 +242,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                         "description": f'The activity of staked out user {data["name"]} has changed from '
                         f'{stakeout_data["last_action"]["status"]} to {data["last_action"]["status"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": utils.torn_timestamp()},
+                        "footer": {"text": torn_timestamp()},
                     }
                 ],
                 "components": [
@@ -265,7 +265,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 return
 
         if (
@@ -289,7 +289,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                         "description": f'The activity of staked out user {data["name"]} has changed from '
                         f'{stakeout_data["last_action"]["status"]} to {data["last_action"]["status"]}.',
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": utils.torn_timestamp()},
+                        "footer": {"text": torn_timestamp()},
                     }
                 ],
                 "components": [
@@ -312,11 +312,11 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logger.exception(e)
+                logging.getLogger("celery").exception(e)
                 return
 
 
-@celery_app.task
+@celery.shared_task
 def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
     stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
 
@@ -365,17 +365,17 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 session=requests_session,
                 nocache=True,
             )
-    except utils.TornError as e:
-        logger.exception(e)
+    except TornError as e:
+        logging.getLogger("celery").exception(e)
         return
-    except utils.MissingKeyError:
+    except MissingKeyError:
         return
     except Exception as e:
-        logger.exception(e)
+        logging.getLogger("celery").exception(e)
         return
 
     stakeout_data = stakeout.data
-    stakeout.last_update = utils.now()
+    stakeout.last_update = int(time.time())
     stakeout.data = data
     stakeout.save()
 
@@ -403,7 +403,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "description": f'The territory {territoryid} of faction {data["name"]} has '
                                 f"been dropped.",
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -433,7 +433,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
                 elif "racket" in territory and "racket" not in data["territory"][territoryid]:
                     payload = {
@@ -444,7 +444,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'{data["name"]}. The racket was {data["territory"]["racket"]["name"]} '
                                 f'and gave {territory["territory"]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -474,7 +474,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
 
             for territoryid, territory in data["territory"].items():
@@ -486,7 +486,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "description": f"The territory {territoryid} has been claimed by "
                                 f'faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -516,7 +516,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
                 if "racket" in territory and "racket" not in stakeout_data["territory"][territoryid]:
                     payload = {
@@ -528,7 +528,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'{territory["racket"]["name"]} and '
                                 f'gives {territory["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -558,7 +558,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
                 elif (
                     "racket" in territory
@@ -574,7 +574,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'gives {territory["racket"]["reward"]} from '
                                 f'{stakeout_data["territory"][territoryid]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -604,7 +604,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
                 elif (
                     "racket" in territory
@@ -620,7 +620,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'gives {territory["racket"]["reward"]} from '
                                 f'{stakeout_data["territory"][territoryid]["racket"]["reward"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -650,7 +650,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
         if "members" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -661,7 +661,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "title": "Member Left",
                                 "description": f'Member {member["name"]} has left faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -691,7 +691,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
 
             for memberid, member in data["members"].items():
@@ -702,7 +702,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "title": "Member Joined",
                                 "description": f'Member {member["name"]} has joined faction {data["name"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -732,7 +732,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
         if "memberstatus" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -755,9 +755,9 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 "description": f'Member {member["name"]} of faction {data["name"]} is now '
                                 f'{data["members"][memberid]["status"]["description"]} from '
                                 f'{member["status"]["description"]}'
-                                f'{"" if member["status"]["details"] == "" else " because " + utils.remove_html(member["status"]["details"])}.',
+                                f'{"" if member["status"]["details"] == "" else " because " + remove_html(member["status"]["details"])}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -787,7 +787,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
         if "memberactivity" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -814,7 +814,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'{data["members"][memberid]["last_action"]["status"]} from '
                                 f'{member["last_action"]["status"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -844,7 +844,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
                 elif member["last_action"]["status"] in ("Online", "Idle") and data["members"][memberid]["last_action"][
                     "status"
@@ -870,7 +870,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'{data["members"][memberid]["last_action"]["status"]} from '
                                 f'{member["last_action"]["status"]}.',
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -900,7 +900,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
         if "assault" in guild_stakeout["keys"] and data["territory_wars"] != stakeout_data["territory_wars"]:
             for war in data["territory_wars"]:
@@ -924,7 +924,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f" has been assaulted by faction "
                                 f'{war["assaulting_faction"] if assaulting is None else assaulting.name}.',
                                 "timestamp": datetime.datetime.fromtimestamp(war["start_time"]).isoformat(),
-                                "footer": {"text": utils.torn_timestamp(war["start_time"])},
+                                "footer": {"text": torn_timestamp(war["start_time"])},
                             }
                         ],
                         "components": [
@@ -954,7 +954,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
             for war in stakeout_data["territory_wars"]:
                 existing = False
@@ -977,7 +977,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 f'{war["assaulting_faction"] if assaulting is None else assaulting.name}.'
                                 f"has ended.",
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
-                                "footer": {"text": utils.torn_timestamp()},
+                                "footer": {"text": torn_timestamp()},
                             }
                         ],
                         "components": [
@@ -1007,7 +1007,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logger.exception(e)
+                        logging.getLogger("celery").exception(e)
                         return
         if "armory" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1020,7 +1020,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=key,
                             session=requests_session,
-                            fromts=utils.now() - 60,
+                            fromts=int(time.time()) - 60,
                             nocache=True,
                         )
                     else:
@@ -1033,13 +1033,13 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=random.choice(keys).key,
                             session=requests_session,
-                            fromts=utils.now() - 60,
+                            fromts=int(time.time()) - 60,
                             nocache=True,
                         )
-                except (utils.NetworkingError, utils.TornError):
+                except (NetworkingError, TornError):
                     return
                 except Exception as e:
-                    logger.exception(e)
+                    logging.getLogger("celery").exception(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1047,7 +1047,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
 
                 for news in data["armorynews"].values():
                     timestamp = news["timestamp"]
-                    news = utils.remove_html(news["news"])
+                    news = remove_html(news["news"])
 
                     if any(word in news.lower() for word in ["loaned", "returned", "retrieved"]):
                         payload = {
@@ -1056,7 +1056,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                     "title": "Armory Change",
                                     "description": news,
                                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                                    "footer": {"text": utils.torn_timestamp(timestamp)},
+                                    "footer": {"text": torn_timestamp(timestamp)},
                                 }
                             ]
                         }
@@ -1067,7 +1067,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 payload=payload,
                             )
                         except Exception as e:
-                            logger.exception(e)
+                            logging.getLogger("celery").exception(e)
                             return
         if "armorydeposit" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1079,7 +1079,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=key,
                             session=requests_session,
-                            fromts=utils.now() - 60,
+                            fromts=int(time.time()) - 60,
                             nocache=True,
                         )
                     else:
@@ -1104,13 +1104,13 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=random.choice(keys),
                             session=requests_session,
-                            fromts=utils.now() - 60,
+                            fromts=int(time.time()) - 60,
                             nocache=True,
                         )
-                except (utils.NetworkingError, utils.TornError):
+                except (NetworkingError, TornError):
                     return
                 except Exception as e:
-                    logger.exception(e)
+                    logging.getLogger("celery").exception(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1118,7 +1118,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
 
                 for news in data["armorynews"].values():
                     timestamp = news["timestamp"]
-                    news = utils.remove_html(news["news"])
+                    news = remove_html(news["news"])
 
                     if any(word in news.lower() for word in ["deposited"]):
                         payload = {
@@ -1127,7 +1127,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                     "title": "Armory Deposit",
                                     "description": news,
                                     "timestamp": datetime.datetime.utcnow().isoformat(),
-                                    "footer": {"text": utils.torn_timestamp(timestamp)},
+                                    "footer": {"text": torn_timestamp(timestamp)},
                                 }
                             ]
                         }
@@ -1138,5 +1138,5 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 payload=payload,
                             )
                         except Exception as e:
-                            logger.exception(e)
+                            logging.getLogger("celery").exception(e)
                             return

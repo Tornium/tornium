@@ -45,7 +45,7 @@ Tornium - Faction Attack Dashboard
                 <i class="col-1 col-sm-2 fa-solid fa-person-rifle"></i> <span class="col">Attacks</span>
             </a>
         </div>
-        {% if current_user.is_authenticated and current_user.is_aa() %}
+        {% if current_user.is_authenticated and current_user.aa %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/bankingaa">
                 <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>

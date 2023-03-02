@@ -15,14 +15,6 @@
 
 import redis
 
-
-_connection_pool = redis.ConnectionPool(
-    host="localhost",
-    port=6379,
-    charset="utf-8",
-    decode_response=True
-)
-
 def rds() -> redis.Redis:
     """
     Returns a redis connection from the connection pool.
@@ -32,4 +24,4 @@ def rds() -> redis.Redis:
     connection : redis.Redis
     """
 
-    return redis.Redis(connection_pool=_connection_pool)
+    return redis.Redis(host="localhost", port=6379, charset="utf-8", decode_responses=True)

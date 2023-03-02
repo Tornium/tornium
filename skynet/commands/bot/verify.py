@@ -18,14 +18,14 @@ import random
 
 import jinja2
 
-import tasks
-import tasks.api
-import tasks.user
-import utils
-from models.factionmodel import FactionModel
-from models.server import Server
-from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO, get_admin_keys, invoker_exists
+from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_celery.tasks.user import update_user
+from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, TornError
+from tornium_commons.formatters import find_list
+from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+
+from skynet.skyutils import get_admin_keys, invoker_exists
 
 
 @invoker_exists
@@ -45,8 +45,22 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    server = Server(interaction["guild_id"])
+    server = ServerModel.objects(sid=interaction["guild_id"]).first()
 
+    if server is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
     if server.config.get("verify") in (None, 0):
         return {
             "type": 4,
@@ -80,8 +94,8 @@ def verify(interaction, *args, **kwargs):
     user: UserModel = kwargs["invoker"]
 
     if "options" in interaction["data"]:
-        member = utils.find_list(interaction["data"]["options"], "name", "member")
-        force = utils.find_list(interaction["data"]["options"], "name", "force")
+        member = find_list(interaction["data"]["options"], "name", "member")
+        force = find_list(interaction["data"]["options"], "name", "force")
     else:
         member = -1
         force = -1
@@ -118,8 +132,8 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = user.discord_id
 
     try:
-        user_data = tasks.user.update_user(**update_user_kwargs)
-    except utils.MissingKeyError:
+        user_data = update_user(**update_user_kwargs)
+    except MissingKeyError:
         return {
             "type": 4,
             "data": {
@@ -133,7 +147,7 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.TornError as e:
+    except TornError as e:
         if e.code == 6:
             return {
                 "type": 4,
@@ -163,7 +177,7 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -212,8 +226,8 @@ def verify(interaction, *args, **kwargs):
 
     if member != -1:
         try:
-            discord_member = tasks.api.discordget(f"guilds/{server.sid}/members/{user.discord_id}")
-        except utils.DiscordError as e:
+            discord_member = discordget(f"guilds/{server.sid}/members/{user.discord_id}")
+        except DiscordError as e:
             return {
                 "type": 4,
                 "data": {
@@ -227,7 +241,7 @@ def verify(interaction, *args, **kwargs):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             return {
                 "type": 4,
                 "data": {
@@ -357,12 +371,11 @@ def verify(interaction, *args, **kwargs):
         patch_json["roles"] = list(set(patch_json["roles"]))
 
     try:
-        response = tasks.api.discordpatch(
+        discordpatch(
             f"guilds/{server.sid}/members/{user.discord_id}",
             patch_json,
         )
-        print(response)
-    except utils.DiscordError as e:
+    except DiscordError as e:
         return {
             "type": 4,
             "data": {
@@ -376,7 +389,7 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {

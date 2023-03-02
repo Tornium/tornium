@@ -14,17 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import random
+import time
 
+import celery
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
 
-import tasks
-import tasks.api
-import utils
-from models.factionmodel import FactionModel
-from models.positionmodel import PositionModel
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.models import FactionModel, PositionModel, UserModel
+
 from models.server import Server
-from models.usermodel import UserModel
 
 
 class Faction:
@@ -38,11 +37,14 @@ class Faction:
 
         faction = FactionModel.objects(tid=tid).first()
         if faction is None:
-            faction_data = tasks.api.tornget(
-                f"faction/{tid}?selections=basic",
-                key if key != "" else current_user.key,
+            faction_data = celery.current_app.send_task(
+                "tasks.api.tornget",
+                kwargs={
+                    "endpoint": f"faction/{tid}?selections=basic",
+                    "key": key if key != "" else current_user.key,
+                },
             )
-            now = utils.now()
+            now = int(time.time())
 
             faction = FactionModel(
                 tid=faction_data["ID"],
@@ -61,14 +63,6 @@ class Faction:
                 chainconfig={"od": 0, "odchannel": 0},
                 chainod={},
             )
-
-            try:
-                tasks.api.tornget(
-                    f"faction/{tid}?selections=positions",
-                    key if key != "" else current_user.key,
-                )
-            except (utils.NetworkingError, utils.TornError):
-                pass
 
             faction.save()
 
@@ -143,16 +137,22 @@ class Faction:
         return self.config
 
     def refresh(self, key=None, force=False):
-        now = utils.now()
+        now = int(time.time())
 
         if force or (now - self.last_members) > 1800:
             if key is None:
                 key = current_user.key
 
                 if key == "":
-                    raise Exception  # TODO: Make exception more descriptive
+                    raise MissingKeyError
 
-            faction_data = tasks.api.tornget(f"faction/{self.tid}?selections=basic", key)
+            faction_data = celery.current_app.send_task(
+                "tasks.api.tornget",
+                kwargs={
+                    "endpoint": f"faction/{self.tid}?selections=basic",
+                    "key": key,
+                },
+            )
 
             faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]

@@ -15,18 +15,18 @@
 
 import datetime
 import math
+import time
+import typing
 
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
 
-import utils
+from tornium_celery.tasks.user import update_user
+from tornium_commons.formatters import commas, get_tid, rel_time
+from tornium_commons.models import FactionModel, StatModel, UserModel
+
 from controllers.faction.decorators import aa_required
-from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.statmodel import StatModel
-from models.user import User
-from models.usermodel import UserModel
 
 mod = Blueprint("statroutes", __name__)
 
@@ -57,9 +57,9 @@ def stats_data():
     stats = []
 
     if current_user.is_authenticated:
-        if utils.get_tid(search_value):
+        if get_tid(search_value):
             stat_entries = StatModel.objects(
-                Q(tid=utils.get_tid(search_value))
+                Q(tid=get_tid(search_value))
                 & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
             )
         else:
@@ -67,8 +67,8 @@ def stats_data():
                 Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid)
             )
     else:
-        if utils.get_tid(search_value):
-            stat_entries = StatModel.objects(Q(tid=utils.get_tid(search_value)) & Q(globalstat=True))
+        if get_tid(search_value):
+            stat_entries = StatModel.objects(Q(tid=get_tid(search_value)) & Q(globalstat=True))
         else:
             stat_entries = StatModel.objects(globalstat=True)
 
@@ -104,8 +104,8 @@ def stats_data():
         stats.append(
             [
                 stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
-                utils.commas(int(stat_entry.battlescore)),
-                utils.rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
+                commas(int(stat_entry.battlescore)),
+                rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
             ]
         )
 
@@ -122,7 +122,7 @@ def stats_data():
 @mod.route("/stats/userdata")
 @login_required
 def user_data():
-    tid = int(utils.get_tid(request.args.get("user")))
+    tid = int(get_tid(request.args.get("user")))
     stats = []
     stat_entries = StatModel.objects(
         Q(tid=tid) & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
@@ -160,18 +160,19 @@ def user_data():
             }
         )
 
-    user = User(tid=tid)
+    user: UserModel = UserModel.objects(tid=tid).first()
 
     # If user's last action was over a month ago and last refresh was over a week ago
-    if utils.now() - user.last_action > 30 * 24 * 60 * 60 and utils.now() - user.last_refresh > 604800:
-        user.refresh(key=current_user.key)
-    elif utils.now() - user.last_action <= 30 * 24 * 60 * 60:
-        user.refresh(key=current_user.key)
+    if int(time.time()) - user.last_action > 30 * 24 * 60 * 60 and int(time.time()) - user.last_refresh > 604800:
+        update_user(current_user.key, tid=tid)
+        user.reload()
 
-    if user.factiontid != 0:
-        faction = Faction(tid=user.factiontid)
-    else:
-        faction = None
+    # If user's last action was over a month ago and last refresh was over an hour ago
+    elif int(time.time()) - user.last_action <= 30 * 24 * 60 * 60 and int(time.time() - user.last_refresh > 3600):
+        update_user(current_user.key, tid=tid)
+        user.reload()
+
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid)
 
     ff = 1 + (8 / 3 * stats[-1]["battlescore"] / current_user.battlescore)
     ff = ff if ff <= 3 else 3
@@ -197,11 +198,9 @@ def chain():
 @fresh_login_required
 @aa_required
 def config():
-    faction = Faction(current_user.factiontid)
+    faction_model = FactionModel.objects(tid=current_user.factiontid).first()
 
     if request.method == "POST":
-        faction_model = FactionModel.objects(tid=current_user.factiontid).first()
-
         if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
             if request.form.get("enabled") is not None:
                 faction_model.statconfig["global"] = 1
@@ -210,4 +209,4 @@ def config():
 
             faction_model.save()
 
-    return render_template("stats/config.html", config=faction.stat_config)
+    return render_template("stats/config.html", config=faction_model.statconfig)

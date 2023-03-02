@@ -13,13 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
+
+import celery
 from flask_login import current_user
 
-import tasks
-import tasks.api
-import utils
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.userstakeoutmodel import UserStakeoutModel
+from tornium_commons.errors import TornError, NetworkingError
+from tornium_commons.models import FactionStakeoutModel, UserStakeoutModel
 
 
 class Stakeout:
@@ -30,27 +30,33 @@ class Stakeout:
             stakeout = FactionStakeoutModel.objects(tid=tid).first()
 
         if stakeout is None:
-            now = utils.now()
+            now = int(time.time())
             guilds = {} if guild is None else {str(guild): {"keys": [], "channel": 0}}
 
             if user:
                 try:
-                    data = tasks.api.tornget(
-                        f"user/{tid}?selections=",
-                        key if key != "" else current_user.key,
+                    data = celery.current_app.send_task(
+                        "tasks.api.tornget",
+                        kwargs={
+                            "endpoint": f"user/{tid}?selections=",
+                            "key": key if key != "" else current_user.key,
+                        },
                     )
-                except (utils.TornError, utils.NetworkingError):
+                except (TornError, NetworkingError):
                     data = {}
 
                 stakeout = UserStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)
 
             else:
                 try:
-                    data = tasks.api.tornget(
-                        f"faction/{tid}?selections=",
-                        key if key != "" else current_user.key,
+                    data = celery.current_app.send_task(
+                        "tasks.api.tornget",
+                        kwargs={
+                            "endpoint": f"faction/{tid}?selections=",
+                            "key": key if key != "" else current_user.key,
+                        },
                     )
-                except (utils.TornError, utils.NetworkingError):
+                except (TornError, NetworkingError):
                     data = {}
 
                 stakeout = FactionStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)

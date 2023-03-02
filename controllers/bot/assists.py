@@ -16,7 +16,7 @@
 from flask import jsonify, redirect, request
 from flask_login import fresh_login_required
 
-from models.servermodel import ServerModel
+from tornium_commons.models import ServerModel
 
 
 @fresh_login_required

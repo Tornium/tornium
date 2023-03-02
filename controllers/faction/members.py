@@ -19,8 +19,9 @@ from flask import render_template
 from flask_login import login_required
 from mongoengine.queryset.visitor import Q
 
+from tornium_commons.models import UserModel
+
 from controllers.faction.decorators import fac_required
-from models.usermodel import UserModel
 
 
 @login_required

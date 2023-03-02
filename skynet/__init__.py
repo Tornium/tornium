@@ -18,6 +18,8 @@ import logging
 from flask import Blueprint, abort, jsonify, request
 from nacl.exceptions import BadSignatureError
 
+from tornium_commons.skyutils import SKYNET_INFO
+
 import skynet.commands
 import skynet.skyutils
 import utils.tornium_ext
@@ -79,7 +81,7 @@ def skynet_interactions():
                     {
                         "title": "Command In Development",
                         "description": "This command is not yet ready for production use.",
-                        "color": skynet.skyutils.SKYNET_INFO,
+                        "color": SKYNET_INFO,
                     }
                 ]
             },

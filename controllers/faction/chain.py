@@ -16,13 +16,13 @@
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
 
-import tasks
-import tasks.api
+from tornium_celery.tasks.api import discordget
+from tornium_commons.errors import DiscordError, NetworkingError
+from tornium_commons.models import FactionModel, ServerModel
+
 import utils
 from controllers.faction.decorators import fac_required
 from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.servermodel import ServerModel
 
 
 @login_required
@@ -47,14 +47,14 @@ def chain(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.api.discordget(f'channels/{request.form.get("odchannel")}')
-            except utils.DiscordError as e:
+                channel = discordget(f'channels/{request.form.get("odchannel")}')
+            except DiscordError as e:
                 return utils.handle_discord_error(e)
-            except utils.NetworkingError as e:
+            except NetworkingError as e:
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code " f"{e.code}.",
+                    error=f"The Discord API has responded with HTTP error code {e.code}.",
                 )
             except Exception as e:
                 raise e

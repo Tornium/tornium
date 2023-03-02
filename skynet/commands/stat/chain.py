@@ -17,31 +17,31 @@ import json
 import math
 import random
 import time
+import typing
 
 import mongoengine
-import orjson
 import requests
 from mongoengine.queryset.visitor import Q
 
-import skynet.skyutils
-import tasks
-import tasks.api
-import utils
-from models.statmodel import StatModel
+from tornium_celery.tasks.api import discordpatch, discordpost
+from tornium_celery.tasks.user import update_user
+from tornium_commons.errors import TornError, NetworkingError
+from tornium_commons.formatters import commas, find_list, rel_time
+from tornium_commons.models import StatModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
 from models.user import User
-from models.usermodel import UserModel
+from skynet.skyutils import get_admin_keys, invoker_exists
 
 
-@skynet.skyutils.invoker_exists
+@invoker_exists
 def chain(interaction, *args, **kwargs):
-    print(interaction)
-
     start = time.time()
     user: UserModel = kwargs["invoker"]
 
     if "options" in interaction["data"]:
-        length = utils.find_list(interaction["data"]["options"], "name", "length")
-        ff = utils.find_list(interaction["data"]["options"], "name", "fairfight")
+        length = find_list(interaction["data"]["options"], "name", "length")
+        ff = find_list(interaction["data"]["options"], "name", "fairfight")
         variance = 0.01
     else:
         length = 12
@@ -64,7 +64,7 @@ def chain(interaction, *args, **kwargs):
     admin_keys = kwargs.get("admin_keys")
 
     if admin_keys is None:
-        admin_keys = skynet.skyutils.get_admin_keys(interaction)
+        admin_keys = get_admin_keys(interaction)
 
     if len(admin_keys) == 0:
         return {
@@ -75,7 +75,7 @@ def chain(interaction, *args, **kwargs):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -83,7 +83,7 @@ def chain(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.api.discordpost(
+        discordpost(
             f"interactions/{interaction['id']}/{interaction['token']}/callback",
             payload={"type": 5},
         )
@@ -101,7 +101,7 @@ def chain(interaction, *args, **kwargs):
                         "title": "Stats Missing",
                         "description": "The user's battle stats could not be located in the database. Please sign into "
                         "Tornium.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
@@ -133,14 +133,14 @@ def chain(interaction, *args, **kwargs):
         )
 
     if stat_entries.count() == 0:
-        tasks.api.discordpatch(
+        discordpatch(
             f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={
                 "embeds": [
                     {
                         "title": "No Targets Located",
                         "description": "No chain targets could be located with the following settings.",
-                        "color": skynet.skyutils.SKYNET_ERROR,
+                        "color": SKYNET_ERROR,
                         "fields": [
                             {
                                 "name": "Length",
@@ -185,20 +185,21 @@ def chain(interaction, *args, **kwargs):
         if stat_entry in targets:
             target = targets[stat_entry]
         else:
-            target = User(tid=stat.tid)
+            target: typing.Optional[UserModel] = None
 
             if targets_updated <= 50:
                 try:
-                    if target.refresh(key=random.choice(admin_keys), minimize=True):
-                        targets_updated += 1
-                except utils.TornError:
-                    if utils.now() - target.last_refresh <= 2592000:  # One day
+                    update_user(random.choice(admin_keys), tid=stat.tid)
+                    target = UserModel.objects(tid=stat.tid).first()
+                    targets_updated += 1
+                except TornError:
+                    if int(time.time()) - target.last_refresh <= 2592000:  # One day
                         pass
                     else:
                         continue
-                except utils.NetworkingError as e:
+                except NetworkingError as e:
                     if e.code == 408:
-                        if utils.now() - target.last_refresh <= 2592000:  # One day
+                        if int(time.time()) - target.last_refresh <= 2592000:  # One day
                             pass
                         else:
                             continue
@@ -231,7 +232,7 @@ def chain(interaction, *args, **kwargs):
                     "username": f"{target.name} [{target.tid}]",
                     "level": target.level,
                     "last_refresh": target.last_refresh,
-                    "factionid": target.factiontid,
+                    "factionid": target.factionid,
                     "status": target.status,
                     "last_action": target.last_action,
                 },
@@ -241,7 +242,7 @@ def chain(interaction, *args, **kwargs):
     embed = {
         "title": f"Chain List for {user.name} [{user.tid}]",
         "fields": [],
-        "color": skynet.skyutils.SKYNET_GOOD,
+        "color": SKYNET_GOOD,
         "footer": {"text": ""},
     }
 
@@ -255,7 +256,7 @@ def chain(interaction, *args, **kwargs):
         embed["fields"].append(
             {
                 "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
-                "value": f"Stat Score: {utils.commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}\nLast Update: {utils.rel_time(stat_entry['timeadded'])}",
+                "value": f"Stat Score: {commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}\nLast Update: {rel_time(stat_entry['timeadded'])}",
                 "inline": True,
             }
         )
@@ -265,7 +266,7 @@ def chain(interaction, *args, **kwargs):
     embed["description"] = f"Showing {stat_count} of {len(jsonified_stat_entries)} chain targets..."
     embed["footer"] = {"text": f"Run time: {round(time.time() - start, 2)} seconds"}
 
-    tasks.api.discordpatch(
+    discordpatch(
         f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
         payload={"embeds": [embed]},
     )

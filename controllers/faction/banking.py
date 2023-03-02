@@ -14,22 +14,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import time
 
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
-import tasks
-import tasks.api
+from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_commons.errors import DiscordError
+from tornium_commons.formatters import commas, torn_timestamp
+from tornium_commons.models import FactionModel, PositionModel, ServerModel, UserModel, WithdrawalModel
+
 import utils
 from controllers.faction.decorators import aa_required
-from models.factionmodel import FactionModel
-from models.positionmodel import PositionModel
-from models.servermodel import ServerModel
 from models.user import User
-from models.usermodel import UserModel
-from models.withdrawalmodel import WithdrawalModel
-from utils.errors import DiscordError
 
 
 @login_required
@@ -81,14 +79,14 @@ def bankingdata():
         else:
             fulfiller = ""
 
-        timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
+        timefulfilled = torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
 
         withdrawals.append(
             [
                 withdrawal.wid,
                 f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
                 requester,
-                utils.torn_timestamp(withdrawal.time_requested),
+                torn_timestamp(withdrawal.time_requested),
                 fulfiller,
                 timefulfilled,
             ]
@@ -212,13 +210,13 @@ def userbankingdata():
         else:
             fulfiller = ""
 
-        timefulfilled = utils.torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
+        timefulfilled = torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
 
         withdrawals.append(
             [
                 withdrawal.wid,
                 f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
-                utils.torn_timestamp(withdrawal.time_requested),
+                torn_timestamp(withdrawal.time_requested),
                 fulfiller,
                 timefulfilled,
             ]
@@ -282,7 +280,6 @@ def fulfill(wid: int):
     elif (
         faction.vaultconfig.get("banking") in [0, None]
         or faction.vaultconfig.get("banker") in [0, None]
-        or faction.config.get("vault") in [0, None]
         or faction.guild == 0
     ):
         return (
@@ -304,7 +301,7 @@ def fulfill(wid: int):
             error="The faction's Discord server could not be located in the database.",
         )
 
-    channels = tasks.api.discordget(f"guilds/{faction.guild}/channels")
+    channels = discordget(f"guilds/{faction.guild}/channels")
     banking_channel = None
 
     for channel in channels:
@@ -323,7 +320,7 @@ def fulfill(wid: int):
         )
 
     try:
-        tasks.api.discordpatch(
+        discordpatch(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
                 "embeds": [
@@ -333,7 +330,7 @@ def fulfill(wid: int):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": utils.commas(withdrawal.amount),
+                                "value": commas(withdrawal.amount),
                             },
                             {
                                 "name": "Original Request Type",
@@ -380,7 +377,7 @@ def fulfill(wid: int):
         return utils.handle_discord_error(e)
 
     withdrawal.fulfiller = current_user.tid
-    withdrawal.time_fulfilled = utils.now()
+    withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
 
     return redirect(send_link)

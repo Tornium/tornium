@@ -14,15 +14,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import time
 
 from flask import jsonify, request
 
-import utils
+from tornium_commons.models import FactionModel, PositionModel, ServerModel
+
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.factionmodel import FactionModel
-from models.positionmodel import PositionModel
-from models.servermodel import ServerModel
 
 
 @key_required
@@ -66,7 +65,7 @@ def get_positions(*args, **kwargs):
 
     if faction is None:
         return make_exception_response("1102", key)
-    elif utils.now() - faction.last_members >= 86400:  # one day
+    elif int(time.time()) - faction.last_members >= 86400:  # one day
         return make_exception_response(
             "0000",
             key,

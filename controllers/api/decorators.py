@@ -20,15 +20,14 @@ from functools import partial, wraps
 
 from flask import jsonify, request
 
-import redisdb
-from models.keymodel import KeyModel
-from models.usermodel import UserModel
+from tornium_commons import rds
+from tornium_commons.models import KeyModel, UserModel
 
 
 def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        client = redisdb.get_redis()
+        client = rds()
         key = f'tornium:ratelimit:{kwargs["user"].tid}'
         limit = 250
 
@@ -70,7 +69,7 @@ def requires_scopes(func=None, scopes=None):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        client = redisdb.get_redis()
+        client = rds()
         key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
         if kwargs["keytype"] == "Tornium" and not set(KeyModel.objects(key=kwargs["key"]).first().scopes) & scopes:

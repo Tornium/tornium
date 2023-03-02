@@ -18,16 +18,13 @@ import json
 
 from flask import jsonify, request
 
-import tasks
-import tasks.api
+from tornium_celery.tasks.api import discordpost
+from tornium_commons.models import FactionStakeoutModel, KeyModel, ServerModel, UserStakeoutModel
+
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.keymodel import KeyModel
-from models.servermodel import ServerModel
 from models.stakeout import Stakeout
 from models.user import User
-from models.userstakeoutmodel import UserStakeoutModel
 
 
 @key_required
@@ -129,7 +126,7 @@ def create_stakeout(stype, *args, **kwargs):
         "parent_id": guild.stakeoutconfig["category"] if category is None else category,
     }
 
-    channel = tasks.api.discordpost(f"guilds/{guildid}/channels", payload=payload)
+    channel = discordpost(f"guilds/{guildid}/channels", payload=payload)
 
     stakeout.guilds[str(guildid)]["channel"] = int(channel["id"])
 
@@ -164,7 +161,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     db_stakeout.guilds = stakeout.guilds
     db_stakeout.save()
-    tasks.api.discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
+    discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
 
     return (
         jsonify(

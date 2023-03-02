@@ -21,9 +21,8 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
 
 import redisdb
-import tasks
-import tasks.api
-import tasks.user
+import tornium_celery.tasks.api
+import tornium_celery.tasks.user
 import utils
 import utils.totp
 from controllers.api.utils import json_api_exception
@@ -43,7 +42,7 @@ def login():
 
     if user is None:
         try:
-            key_info = tasks.api.tornget(endpoint="key/?selections=info", key=request.form["key"])
+            key_info = tornium_celery.tasks.api.tornget(endpoint="key/?selections=info", key=request.form["key"])
         except utils.TornError as e:
             return utils.handle_torn_error(e)
         except utils.NetworkingError as e:
@@ -65,7 +64,7 @@ def login():
                 400,
             )
 
-    tasks.user.update_user(key=request.form["key"], tid=0, refresh_existing=True)
+    tornium_celery.tasks.user.update_user(key=request.form["key"], tid=0, refresh_existing=True)
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
 

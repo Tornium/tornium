@@ -15,19 +15,19 @@
 
 import math
 import random
+import time
+import typing
 
 from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 
-import utils
+from tornium_celery.tasks.user import update_user
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.models import FactionModel, StatModel, UserModel
+
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.statmodel import StatModel
-from models.user import User
-from models.usermodel import UserModel
 
 
 @key_required
@@ -119,20 +119,21 @@ def generate_chain_list(*args, **kwargs):
         if stat_entry in targets:
             target = targets[stat_entry]
         else:
-            target = User(tid=stat.tid)
+            target: typing.Optional[UserModel] = None
 
             if targets_updated <= 50:
                 try:
-                    if target.refresh(key=kwargs["key"], minimize=True):
-                        targets_updated += 1
-                except utils.TornError:
-                    if utils.now() - target.last_refresh <= 2592000:  # One day
+                    update_user(kwargs["user"].key, tid=stat.tid)
+                    target = UserModel.objects(tid=stat.tid).first()
+                    targets_updated += 1
+                except TornError:
+                    if int(time.time()) - target.last_refresh <= 2592000:  # One day
                         pass
                     else:
                         continue
-                except utils.NetworkingError as e:
+                except NetworkingError as e:
                     if e.code == 408:
-                        if utils.now() - target.last_refresh <= 2592000:  # One day
+                        if int(time.time()) - target.last_refresh <= 2592000:  # One day
                             pass
                         else:
                             continue
@@ -165,7 +166,7 @@ def generate_chain_list(*args, **kwargs):
                     "username": f"{target.name} [{target.tid}]",
                     "level": target.level,
                     "last_refresh": target.last_refresh,
-                    "factionid": target.factiontid,
+                    "factionid": target.factionid,
                     "status": target.status,
                     "last_action": target.last_action,
                 },
@@ -203,10 +204,16 @@ def get_stat_user(tid, *args, **kwargs):
 
     data = {"user": {}, "stat_entries": {}}
 
-    user = User(tid)
-    user.refresh(key=kwargs["user"].key)
+    update_user(kwargs["user"].key, tid=tid)
+    user: UserModel = UserModel.objects(tid=tid).first()
 
-    faction = Faction(user.factiontid)
+    if user is None:
+        return make_exception_response("1100", key)
+
+    if user.factionid == 0:
+        faction = FactionModel.objects(tid=user.factionid).first()
+    else:
+        faction = None
 
     data["user"] = {
         "tid": user.tid,
@@ -214,7 +221,7 @@ def get_stat_user(tid, *args, **kwargs):
         "level": user.level,
         "last_refresh": user.last_refresh,
         "discord_id": user.discord_id,
-        "faction": {"tid": faction.tid, "name": faction.name},
+        "faction": {"tid": faction.tid, "name": faction.name} if faction is not None else {"tid": 0, "name": "None"},
         "status": user.status,
         "last_action": user.last_action,
     }

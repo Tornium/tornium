@@ -18,10 +18,11 @@ import random
 
 from flask import jsonify, request
 
+from tornium_commons.models import ServerModel
+
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
-from models.servermodel import ServerModel
 from models.user import User
 
 

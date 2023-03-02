@@ -16,15 +16,15 @@
 import base64
 import json
 import secrets
+import time
 
 from flask import jsonify, request
 
-import redisdb
-import utils
+from tornium_commons import rds
+from tornium_commons.models import KeyModel, UserModel
+
 from controllers.api.decorators import key_required, ratelimit, torn_key_required
 from controllers.api.utils import make_exception_response
-from models.keymodel import KeyModel
-from models.user import User
 
 
 @key_required
@@ -37,16 +37,16 @@ def test_key(*args, **kwargs):
 @torn_key_required
 @ratelimit
 def create_key(*args, **kwargs):
-    user = User(kwargs["user"].tid)
+    user: UserModel = kwargs["user"]
     data = json.loads(request.get_data().decode("utf-8"))
 
     scopes = data.get("scopes")
     expires = data.get("expires")
 
-    client = redisdb.get_redis()
+    client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-    if expires is not None and expires <= utils.now():
+    if expires is not None and expires <= int(time.time()):
         return (
             jsonify(
                 {
@@ -105,7 +105,7 @@ def create_key(*args, **kwargs):
 def remove_key(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = data.get("key")
-    client = redisdb.get_redis()
+    client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     if key is None:

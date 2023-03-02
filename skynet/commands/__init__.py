@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from tornium_commons.skyutils import SKYNET_INFO
+
 from skynet.commands import bot, faction, stat, stocks, user
-from skynet.skyutils import SKYNET_INFO
 
 
 def ping(interaction):

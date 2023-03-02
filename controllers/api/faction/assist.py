@@ -16,19 +16,18 @@
 import datetime
 import json
 import time
+import typing
 
 from flask import jsonify, request
 
-import redisdb
-import tasks
-import tasks.api
+from tornium_commons import rds
+from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_celery.tasks.api import discordpost
+from tornium_celery.tasks.user import update_user
+
 import utils
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.servermodel import ServerModel
-from models.user import User
 
 
 @key_required
@@ -36,12 +35,14 @@ from models.user import User
 @requires_scopes(scopes={"admin", "read:bot", "bot:admin"})
 def forward_assist(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = redisdb.get_redis()
+    client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     assist_key = f'tornium:assist-ratelimit:{kwargs["user"].tid}'
-    user = User(kwargs["user"].tid)
-    target = User(data.get("target_tid"))
-    target.refresh(key=user.key)
+
+    if data.get("target_tid") is None:
+        return make_exception_response("1100", key, redis_client=client)
+
+    target_data = update_user(key=kwargs["user"].key, tid=data.get("target_tid"))
 
     if client.get(assist_key) is not None:
         return make_exception_response("4291", key, redis_client=client)
@@ -49,7 +50,7 @@ def forward_assist(*args, **kwargs):
         client.set(assist_key, 1)
         client.expire(assist_key, 30)
 
-    if user.tid == target.tid:
+    if target_data["player_id"] == data.get("target_tid"):
         return make_exception_response(
             "0000",
             key,
@@ -57,16 +58,30 @@ def forward_assist(*args, **kwargs):
             redis_client=client,
         )
 
-    target_faction = Faction(target.factiontid)
+    target: UserModel = UserModel.objects(tid=target_data["player_id"]).first()
+
+    if target is None:
+        return make_exception_response("1100", key, redis_client=client)
+
+    target_faction: typing.Optional[FactionModel]
+
+    if target.factionid != 0:
+        target_faction = FactionModel.objects(tid=target.factionid).first()
+
+        if target_faction is None:
+            return make_exception_response("1102", key, redis_client=client)
+    else:
+        target_faction = None
+
     servers_forwarded = []
 
     server: ServerModel
     for server in ServerModel.objects(assistchannel__ne=0):
         if server.assistschannel == 0:
             continue
-        elif server.assist_mod == 1 and user.factiontid not in server.assist_factions:
+        elif server.assist_mod == 1 and kwargs["user"].factiontid not in server.assist_factions:
             continue
-        elif server.assist_mod == 2 and user.factiontid in server.assist_factions:
+        elif server.assist_mod == 2 and kwargs["user"].factiontid in server.assist_factions:
             continue
 
         data = {
@@ -74,7 +89,7 @@ def forward_assist(*args, **kwargs):
                 {
                     "title": "Assist Request",
                     "description": f"An assist request has been forwarded to {server.name} by "
-                    f"{user.name} [{user.tid}].",
+                    f"{kwargs['user'].name} [{kwargs['user'].tid}].",
                     "fields": [
                         {
                             "name": "User",
@@ -95,12 +110,12 @@ def forward_assist(*args, **kwargs):
                         },
                         {
                             "name": "Requesting User",
-                            "value": f"{user.name} [{user.tid}]",
+                            "value": f"{kwargs['user'].name} [{kwargs['user'].tid}]",
                             "inline": True,
                         },
                         {
                             "name": "Requesting Faction",
-                            "value": f"{FactionModel.objects(tid=user.factiontid).first().name} [{user.factiontid}]",
+                            "value": f"{FactionModel.objects(tid=kwargs['user'].factiontid).first().name} [{kwargs['user'].factiontid}]",
                             "inline": True,
                         },
                     ],
@@ -128,7 +143,7 @@ def forward_assist(*args, **kwargs):
                             "type": 2,
                             "style": 5,
                             "label": "Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={target.factiontid}#/",
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={target.factionid}#/",
                         },
                     ],
                 },
@@ -139,13 +154,13 @@ def forward_assist(*args, **kwargs):
                             "type": 2,
                             "style": 5,
                             "label": "Requesting User",
-                            "url": f"https://www.torn.com/profiles.php?XID={user.tid}",
+                            "url": f"https://www.torn.com/profiles.php?XID={kwargs['user'].tid}",
                         },
                         {
                             "type": 2,
                             "style": 5,
                             "label": "Requesting Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={user.factiontid}#/",
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={kwargs['user'].factiontid}#/",
                         },
                     ],
                 },
@@ -153,7 +168,7 @@ def forward_assist(*args, **kwargs):
         }
 
         try:
-            tasks.api.discordpost(f"channels/{server.assistschannel}/messages", data)
+            discordpost.delay(f"channels/{server.assistschannel}/messages", data)
         except utils.DiscordError:
             continue
         except utils.NetworkingError:

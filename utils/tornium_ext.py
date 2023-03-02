@@ -45,5 +45,7 @@ class TorniumExt:
         for package in pkgutil.iter_modules():
             if not package.name.startswith("tornium_"):
                 continue
+            elif package.name in ("tornium_commons", "tornium_celery"):
+                continue
 
             yield cls.from_package(package)

@@ -15,12 +15,12 @@
 
 from functools import partial, wraps
 import secrets
+import time
 
 from flask import abort, redirect, request, render_template, url_for
 from flask_login import current_user, login_fresh
 
-import redisdb
-import utils
+from tornium_commons import rds
 
 
 def token_required(f=None, setnx=False):
@@ -33,7 +33,7 @@ def token_required(f=None, setnx=False):
             return redirect(url_for("authroutes.login"))
 
         if request.args.get("token") is None and setnx:
-            redis_client = redisdb.get_redis()
+            redis_client = rds()
             client_token = secrets.token_urlsafe()
 
             if redis_client.exists(f"tornium:token:{client_token}"):
@@ -43,7 +43,7 @@ def token_required(f=None, setnx=False):
                     error="The generated client token already exists. Please try again.",
                 )
 
-            redis_client.setnx(f"tornium:token:{client_token}", utils.now())
+            redis_client.setnx(f"tornium:token:{client_token}", int(time.time()))
             redis_client.expire(f"tornium:token:{client_token}", 300)  # Expires after five minutes
 
             redis_client.setnx(f"tornium:token:{client_token}:tid", current_user.tid)
@@ -53,7 +53,7 @@ def token_required(f=None, setnx=False):
         elif request.args.get("token") is None and not setnx:
             return abort(401)
 
-        redis_client = redisdb.get_redis()
+        redis_client = rds()
         client_token = request.args.get("token")
 
         if redis_client.get(f"tornium:token:{client_token}") is None:

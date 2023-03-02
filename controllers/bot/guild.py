@@ -16,9 +16,10 @@
 from flask import abort, redirect, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 
+from tornium_commons.models import ServerModel
+
 from models.faction import Faction
 from models.server import Server
-from models.servermodel import ServerModel
 
 
 @login_required

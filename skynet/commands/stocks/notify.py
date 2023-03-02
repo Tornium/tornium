@@ -13,28 +13,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import random
+import time
 
 import mongoengine.queryset
 from bson.objectid import ObjectId
 from mongoengine.queryset.visitor import Q
 
-import redisdb
-import tasks
-import utils
-from models.notificationmodel import NotificationModel
-from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO, get_admin_keys, invoker_exists
+from tornium_commons import rds
+from tornium_commons.formatters import commas, find_list
+from tornium_commons.models import NotificationModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+
+from skynet.skyutils import invoker_exists
 
 
 @invoker_exists
 def notify(interaction, *args, **kwargs):
     def create():
-        stock = utils.find_list(subcommand_data, "name", "stock")
-        price = utils.find_list(subcommand_data, "name", "price")
-        equality = utils.find_list(subcommand_data, "name", "equality")
-        private = utils.find_list(subcommand_data, "name", "private")
-        channel = utils.find_list(subcommand_data, "name", "channel")
+        stock = find_list(subcommand_data, "name", "stock")
+        price = find_list(subcommand_data, "name", "price")
+        equality = find_list(subcommand_data, "name", "equality")
+        private = find_list(subcommand_data, "name", "private")
+        channel = find_list(subcommand_data, "name", "channel")
 
         if stock == -1 or price == -1:
             return {
@@ -122,7 +122,7 @@ def notify(interaction, *args, **kwargs):
                 },
             }
 
-        stocks: dict = redisdb.get_redis().json().get("tornium:stocks")
+        stocks: dict = rds().json().get("tornium:stocks")
 
         if stocks is None:
             return {
@@ -175,7 +175,7 @@ def notify(interaction, *args, **kwargs):
 
         notification = NotificationModel(
             invoker=user.tid,
-            time_created=utils.now(),
+            time_created=int(time.time()),
             recipient=user.discord_id if private else channel,
             recipient_type=int(not private),
             ntype=0,
@@ -213,7 +213,7 @@ def notify(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Stock Price",
-                                "value": f"${utils.commas(price)}",
+                                "value": f"${commas(price)}",
                                 "inline": True,
                             },
                             {
@@ -232,7 +232,7 @@ def notify(interaction, *args, **kwargs):
         }
 
     def delete():
-        notification_id = utils.find_list(subcommand_data, "name", "notification")
+        notification_id = find_list(subcommand_data, "name", "notification")
 
         if notification_id == -1:
             return {

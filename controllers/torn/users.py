@@ -17,12 +17,11 @@ from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
-import utils
+from tornium_celery.tasks.user import update_user
+from tornium_commons.formatters import commas, rel_time
+from tornium_commons.models import FactionModel, PersonalStatModel, UserModel
+
 from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.personalstatmodel import PersonalStatModel
-from models.user import User
-from models.usermodel import UserModel
 
 USER_ORDERING = {
     0: "tid",
@@ -90,11 +89,11 @@ def users_data():
                     "level": user.level,
                     "faction": "None",
                     "last_action": {
-                        "display": utils.rel_time(user.last_action),
+                        "display": rel_time(user.last_action),
                         "timestamp": user.last_action,
                     },
                     "last_refresh": {
-                        "display": utils.rel_time(user.last_refresh),
+                        "display": rel_time(user.last_refresh),
                         "timestamp": user.last_refresh,
                     },
                 }
@@ -110,11 +109,11 @@ def users_data():
                 "level": user.level,
                 "faction": "Unknown" if faction is None else f"{faction.name} [{faction.tid}]",
                 "last_action": {
-                    "display": utils.rel_time(user.last_action),
+                    "display": rel_time(user.last_action),
                     "timestamp": user.last_action,
                 },
                 "last_refresh": {
-                    "display": utils.rel_time(user.last_refresh),
+                    "display": rel_time(user.last_refresh),
                     "timestamp": user.last_refresh,
                 },
             }
@@ -174,11 +173,11 @@ def users_ps_data():
             "statenhancersused": ps.statenhancersused,
             "xanused": ps.xantaken,
             "lsdused": ps.lsdtaken,
-            "networth": f"${utils.commas(ps.networth)}",
+            "networth": f"${commas(ps.networth)}",
             "energydrinkused": ps.energydrinkused,
             "refills": ps.refills,
             "update": {
-                "display": utils.rel_time(ps.timestamp),
+                "display": rel_time(ps.timestamp),
                 "timestamp": ps.timestamp,
             },
         }
@@ -203,7 +202,7 @@ def user_data(tid: int):
     if tid == 0:
         abort(400)
 
-    User(tid).refresh(key=current_user.key, force=True)
+    update_user(current_user.key, tid=tid)
     user: UserModel = UserModel.objects(tid=tid).first()
     Faction(user.factionid).refresh(key=current_user.key)
     faction: FactionModel = FactionModel.objects(tid=user.factionid).first()

@@ -15,20 +15,23 @@
 
 import hashlib
 import secrets
+import time
 import typing
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
 
-import redisdb
-import tornium_celery.tasks.api
-import tornium_celery.tasks.user
+from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.user import update_user
+from tornium_commons import rds
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.models import UserModel
+
 import utils
 import utils.totp
 from controllers.api.utils import json_api_exception
 from controllers.decorators import token_required
 from models.user import User
-from models.usermodel import UserModel
 
 mod = Blueprint("authroutes", __name__)
 
@@ -42,16 +45,16 @@ def login():
 
     if user is None:
         try:
-            key_info = tornium_celery.tasks.api.tornget(endpoint="key/?selections=info", key=request.form["key"])
-        except utils.TornError as e:
+            key_info = tornget(endpoint="key/?selections=info", key=request.form["key"])
+        except TornError as e:
             return utils.handle_torn_error(e)
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             return utils.handle_networking_error(e)
         except Exception as e:
             return render_template("errors/error.html", title="Error", error=str(e))
 
         if "error" in key_info:
-            return utils.handle_torn_error(utils.TornError(key_info["error"]["code"], "key/?selections=info"))
+            return utils.handle_torn_error(TornError(key_info["error"]["code"], "key/?selections=info"))
 
         if key_info["access_level"] < 3:
             return (
@@ -64,7 +67,7 @@ def login():
                 400,
             )
 
-    tornium_celery.tasks.user.update_user(key=request.form["key"], tid=0, refresh_existing=True)
+    update_user(key=request.form["key"], tid=0, refresh_existing=True)
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
 
@@ -89,7 +92,7 @@ def login():
                 401,
             )
 
-        redis_client = redisdb.get_redis()
+        redis_client = rds()
         client_token = secrets.token_urlsafe()
 
         if redis_client.exists(f"tornium:login:{client_token}"):
@@ -99,7 +102,7 @@ def login():
                 error="The generated client token already exists. Please try again.",
             )
 
-        redis_client.setnx(f"tornium:login:{client_token}", utils.now())
+        redis_client.setnx(f"tornium:login:{client_token}", time.time())
         redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
 
         redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
@@ -135,7 +138,7 @@ def topt_verification():
     if client_token is None:
         return redirect("/login")
 
-    redis_client = redisdb.get_redis()
+    redis_client = rds()
 
     if totp_token is None:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")

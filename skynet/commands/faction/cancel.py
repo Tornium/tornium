@@ -129,7 +129,7 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    if faction.vault_config.get("banking") in [0, None] or faction.vault_config.get("banker") in [0, None]:
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -220,7 +220,7 @@ def cancel_command(interaction, *args, **kwargs):
 
     try:
         discordpatch(
-            f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -430,7 +430,7 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    if faction.vault_config.get("banking") in [0, None] or faction.vault_config.get("banker") in [0, None]:
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -509,7 +509,7 @@ def cancel_button(interaction, *args, **kwargs):
 
     try:
         discordpatch(
-            f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {

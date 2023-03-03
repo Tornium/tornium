@@ -35,7 +35,7 @@ def _map_stock_image(acronym: str):
     return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
 
 
-@celery.shared_task(routing_key="default.fetch_stock_ticks")
+@celery.shared_task(routing_key="default.fetch_stock_ticks", queue="default")
 def fetch_stock_ticks():
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 

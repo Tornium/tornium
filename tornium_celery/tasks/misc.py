@@ -21,7 +21,7 @@ from mongoengine import QuerySet
 from tornium_commons.models import FactionModel, FactionStakeoutModel, NotificationModel, ServerModel, UserStakeoutModel
 
 
-@celery.shared_task(routing_key="quick.remove_unknown_channel")
+@celery.shared_task(routing_key="quick.remove_unknown_channel", queue="quick")
 def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)
 
@@ -95,7 +95,7 @@ def remove_unknown_channel(channel_id: int):
         server.save()
 
 
-@celery.shared_task(routing_key="quick.remove_unknown_role")
+@celery.shared_task(routing_key="quick.remove_unknown_role", queue="quick")
 def remove_unknown_role(role_id: int):
     role_id = int(role_id)
 

@@ -73,7 +73,7 @@ ATTACK_RESULTS = {
 }
 
 
-@celery.shared_task(routing_key="default.refresh_factions")
+@celery.shared_task(routing_key="default.refresh_factions", queue="default")
 def refresh_factions():
     requests_session = requests.Session()
 
@@ -414,7 +414,7 @@ def refresh_factions():
         faction.save()
 
 
-@celery.shared_task(routing_key="default.fetch_attacks_runner")
+@celery.shared_task(routing_key="default.fetch_attacks_runner", queue="default")
 def fetch_attacks_runner():
     redis = rds()
 
@@ -483,7 +483,7 @@ def fetch_attacks_runner():
                 logging.getLogger("celery").exception(e)
 
 
-@celery.shared_task(routing_key="quick.retal_attacks")
+@celery.shared_task(routing_key="quick.retal_attacks", queue="quick")
 def retal_attacks(factiontid, faction_data, last_attacks=None):
     if "attacks" not in faction_data:
         return
@@ -707,7 +707,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             continue
 
 
-@celery.shared_task(routing_key="quick.stat_db_attacks")
+@celery.shared_task(routing_key="quick.stat_db_attacks", queue="quick")
 def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     if len(faction_data) == 0:
         return
@@ -893,7 +893,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         )
 
 
-@celery.shared_task(routing_key="default.oc_refresh")
+@celery.shared_task(routing_key="default.oc_refresh", queue="default")
 def oc_refresh():
     requests_session = requests.Session()
 
@@ -1099,7 +1099,7 @@ def oc_refresh():
                     continue
 
 
-@celery.shared_task
+@celery.shared_task(routing_key="quick.auto_cancel_requests", queue="quick")
 def auto_cancel_requests():
     withdrawal: WithdrawalModel
     for withdrawal in WithdrawalModel.objects(time_requested__gte=int(time.time()) - 7200):  # Two hours before now

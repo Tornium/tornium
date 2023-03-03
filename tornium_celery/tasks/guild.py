@@ -23,7 +23,7 @@ from tornium_commons.models import PositionModel, ServerModel, UserModel
 from tornium_celery.tasks.api import discordget
 
 
-@celery.shared_task(routing_key="default.refresh_guilds")
+@celery.shared_task(routing_key="default.refresh_guilds", queue="default")
 def refresh_guilds():
     requests_session = requests.Session()
 

@@ -33,7 +33,7 @@ from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingErro
 from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_role
 
 
-@celery.shared_task(time_limit=5, routing_key="api.tornget")
+@celery.shared_task(time_limit=5, routing_key="api.tornget", queue="api")
 def tornget(
     endpoint,
     key,
@@ -123,7 +123,7 @@ def tornget(
     return request
 
 
-@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordget")
+@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordget", queue="api")
 def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {"Authorization": f'Bot {Config()["skynet-bottoken"]}'}
@@ -242,7 +242,7 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
     return request_json
 
 
-@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordpatch")
+@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordpatch", queue="api")
 def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -369,7 +369,7 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
     return request_json
 
 
-@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordpost")
+@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordpost", queue="api")
 def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -496,7 +496,7 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
     return request_json
 
 
-@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordput")
+@celery.shared_task(bind=True, max_retries=3, routing_key="api.discordput", queue="api")
 def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -623,7 +623,7 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
     return request_json
 
 
-@celery.shared_task(bind=True, max_retries=3, routing_key="api.discorddelete")
+@celery.shared_task(bind=True, max_retries=3, routing_key="api.discorddelete", queue="api")
 def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
@@ -745,7 +745,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
     return request_json
 
 
-@celery.shared_task(time_limit=5, routing_key="api.torn_stats_get")
+@celery.shared_task(time_limit=5, routing_key="api.torn_stats_get", queue="api")
 def torn_stats_get(endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
     redis_key = f"tornium:ts-ratelimit:{key}"

@@ -46,7 +46,7 @@ ATTACK_RESULTS = {
 }
 
 
-@celery.shared_task(routing_key="default.update_user")
+@celery.shared_task(routing_key="default.update_user", queue="default")
 def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key is None or key == "":
         raise MissingKeyError
@@ -159,7 +159,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     return user_data
 
 
-@celery.shared_task(routing_key="default.refresh_users")
+@celery.shared_task(routing_key="default.refresh_users", queue="default")
 def refresh_users():
     requests_session = requests.Session()
 
@@ -214,7 +214,7 @@ def refresh_users():
         user.save()
 
 
-@celery.shared_task(routing_key="quick.fetch_user_attacks")
+@celery.shared_task(routing_key="quick.fetch_user_attacks", queue="quick")
 def fetch_attacks_user_runner():
     redis = rds()
 
@@ -260,7 +260,7 @@ def fetch_attacks_user_runner():
         )
 
 
-@celery.shared_task(routing_key="quick.stat_db_attacks_user")
+@celery.shared_task(routing_key="quick.stat_db_attacks_user", queue="quick")
 def stat_db_attacks_user(user_data):
     if "attacks" not in user_data:
         return

@@ -250,10 +250,12 @@ def fetch_attacks_user_runner():
             if faction is not None and len(faction.aa_keys) > 0:
                 continue
 
-        tornget.s(
-            "user/?selections=basic,attacks",
-            fromts=user.last_attacks + 1,  # Timestamp is inclusive,
-            key=user.key,
+        tornget.signature(
+            kwargs={
+                "endpoint": "user/?selections=basic,attacks",
+                "fromts": user.last_attacks + 1,  # Timestamp is inclusive,
+                "key": user.key
+            },
             queue="api",
         ).apply_async(
             expires=300,

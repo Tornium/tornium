@@ -205,7 +205,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    if faction.vault_config.get("banking") in [0, None] or faction.vault_config.get("banker") in [0, None]:
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -337,7 +337,7 @@ def withdraw(interaction, *args, **kwargs):
 
     if withdrawal_amount != "all":
         message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -377,7 +377,7 @@ def withdraw(interaction, *args, **kwargs):
         }
     else:
         message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -418,7 +418,7 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     message = discordpost(
-        f'channels/{faction.vault_config["banking"]}/messages',
+        f'channels/{faction.vaultconfig["banking"]}/messages',
         payload=message_payload,
     )
 

@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from gevent import monkey
-
-monkey.patch_all()
+# from gevent import monkey
+#
+# monkey.patch_all()
 
 import importlib.util
 import sys
@@ -153,66 +153,66 @@ if celery_app is None:
         kombu.Queue("api", routing_key="api.#"),
     )
     celery_app.conf.task_default_queue = "default"
-    celery_app.conf.task_default_routing_key = "task.default"
-    celery_app.conf.task_routes = {
-        "tasks.api.tornget": {
-            "queue": "api",
-            "routing_key": "api.torn",
-        },
-        "tasks.api.discord*": {
-            "queue": "api",
-            "routing_key": "api.discord",
-        },
-        "tasks.api.torn_stats_get": {
-            "queue": "api",
-            "routing_key": "api.tornstats",
-        },
-        "tasks.faction.refresh_factions": {
-            "queue": "default",
-            "routing_key": "tasks.refresh_factions",
-        },
-        "tasks.faction.fetch_attacks_runner": {
-            "queue": "default",
-            "routing_key": "tasks.fetch_attacks_runner",
-        },
-        "tasks.faction.retal_attacks": {
-            "queue": "default",
-            "routing_key": "quick.retal_attacks",
-        },
-        "tasks.faction.stat_db_attacks": {
-            "queue": "default",
-            "routing_key": "quick.stat_db_attacks",
-        },
-        "tasks.faction.oc_refresh": {
-            "queue": "default",
-            "routing_key": "tasks.oc_refresh",
-        },
-        "tasks.faction.auto_cancel_requests": {"queue": "default", "routing_key": "quick.auto_cancel_requests"},
-        "tasks.guild.refresh_guilds": {
-            "queue": "default",
-            "routing_key": "tasks.refresh_guilds",
-        },
-        "tasks.stocks.fetch_stock_ticks": {
-            "queue": "default",
-            "routing": "tasks.fetch_stock_ticks",
-        },
-        "tasks.user.update_user": {
-            "queue": "default",
-            "routing": "tasks.update_user",
-        },
-        "tasks.user.refresh_users": {
-            "queue": "default",
-            "routing": "tasks.refresh_users",
-        },
-        "tasks.user.fetch_attacks_user_runner": {
-            "queue": "quick",
-            "routing": "quick.fetch_attacks_user_runner",
-        },
-        "tasks.user.stat_db_attacks_user": {
-            "queue": "default",
-            "routing": "tasks.stat_db_attacks_user",
-        },
-    }
+    # celery_app.conf.task_default_routing_key = "task.default"
+    # celery_app.conf.task_routes = {
+    #     "tasks.api.tornget": {
+    #         "queue": "api",
+    #         "routing_key": "api.torn",
+    #     },
+    #     "tasks.api.discord*": {
+    #         "queue": "api",
+    #         "routing_key": "api.discord",
+    #     },
+    #     "tasks.api.torn_stats_get": {
+    #         "queue": "api",
+    #         "routing_key": "api.tornstats",
+    #     },
+    #     "tasks.faction.refresh_factions": {
+    #         "queue": "default",
+    #         "routing_key": "tasks.refresh_factions",
+    #     },
+    #     "tasks.faction.fetch_attacks_runner": {
+    #         "queue": "default",
+    #         "routing_key": "tasks.fetch_attacks_runner",
+    #     },
+    #     "tasks.faction.retal_attacks": {
+    #         "queue": "default",
+    #         "routing_key": "quick.retal_attacks",
+    #     },
+    #     "tasks.faction.stat_db_attacks": {
+    #         "queue": "default",
+    #         "routing_key": "quick.stat_db_attacks",
+    #     },
+    #     "tasks.faction.oc_refresh": {
+    #         "queue": "default",
+    #         "routing_key": "tasks.oc_refresh",
+    #     },
+    #     "tasks.faction.auto_cancel_requests": {"queue": "default", "routing_key": "quick.auto_cancel_requests"},
+    #     "tasks.guild.refresh_guilds": {
+    #         "queue": "default",
+    #         "routing_key": "tasks.refresh_guilds",
+    #     },
+    #     "tasks.stocks.fetch_stock_ticks": {
+    #         "queue": "default",
+    #         "routing": "tasks.fetch_stock_ticks",
+    #     },
+    #     "tasks.user.update_user": {
+    #         "queue": "default",
+    #         "routing": "tasks.update_user",
+    #     },
+    #     "tasks.user.refresh_users": {
+    #         "queue": "default",
+    #         "routing": "tasks.refresh_users",
+    #     },
+    #     "tasks.user.fetch_attacks_user_runner": {
+    #         "queue": "quick",
+    #         "routing": "quick.fetch_attacks_user_runner",
+    #     },
+    #     "tasks.user.stat_db_attacks_user": {
+    #         "queue": "default",
+    #         "routing": "tasks.stat_db_attacks_user",
+    #     },
+    # }
 
     schedule = {}
 

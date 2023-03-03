@@ -28,21 +28,21 @@ from tornium_commons.models import FactionModel, FactionStakeoutModel, ServerMod
 from tornium_celery.tasks.api import tornget, discordpost
 
 
-@celery.shared_task
+@celery.shared_task(routing_key="quick.user_stakeouts")
 def user_stakeouts():
     stakeout: UserStakeoutModel
     for stakeout in UserStakeoutModel.objects():
         user_stakeout.delay(stakeout=stakeout.tid)
 
 
-@celery.shared_task
+@celery.shared_task(routing_key="quick.faction_stakeouts")
 def faction_stakeouts():
     stakeout: FactionStakeoutModel
     for stakeout in FactionStakeoutModel.objects():
         faction_stakeout.delay(stakeout=stakeout.tid)
 
 
-@celery.shared_task
+@celery.shared_task(routing_key="default.user_stakeouts")
 def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
     stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
 
@@ -316,7 +316,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 return
 
 
-@celery.shared_task
+@celery.shared_task(routing_key="default.faction_stakeouts")
 def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
     stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
 

@@ -254,6 +254,7 @@ def fetch_attacks_user_runner():
             "user/?selections=basic,attacks",
             fromts=user.last_attacks + 1,  # Timestamp is inclusive,
             key=user.key,
+            queue="api",
         ).apply_async(
             expires=300,
             link=stat_db_attacks_user.s(),

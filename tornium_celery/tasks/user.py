@@ -49,7 +49,7 @@ ATTACK_RESULTS = {
 
 
 @celery.shared_task(routing_key="default.update_user", queue="default")
-def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
+def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True, wait=False):
     if key is None or key == "":
         raise MissingKeyError
     elif tid != 0 and discordid != 0:
@@ -74,7 +74,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         return None, {"refresh": False}
 
     if update_self:
-        tornget.signature(
+        result = tornget.signature(
             kwargs={
                 "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats,battlestats",
                 "key": user.key
@@ -85,7 +85,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             link=update_user_self.s()
         )
     else:
-        tornget.signature(
+        result = tornget.signature(
             kwargs={
                 "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats",
                 "key": user.key if user is not None and user.key not in (None, "") else key
@@ -95,6 +95,9 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             expires=300,
             link=update_user_other.s()
         )
+
+    if wait:
+        result.get()
 
 
 @celery.shared_task(routing_key="quick.update_user_self", queue="quick")

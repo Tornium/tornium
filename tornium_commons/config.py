@@ -31,7 +31,7 @@ class Config:
         self._data = {}
 
     def __getitem__(self, item):
-        return self._data.get(item)
+        return self._data.get(item, rds().get(f"tornium:settings:{item}"))
 
     def __setitem__(self, key, value):
         self._data[key] = value

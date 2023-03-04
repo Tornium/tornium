@@ -50,7 +50,7 @@ def fetch_stock_ticks():
 
     while stocks_data is None:
         try:
-            stocks_data = tornget("torn/?selections=stocks", key=torn_key, nocache=True)
+            stocks_data = tornget("torn/?selections=stocks", key=torn_key)
         except TornError as e:
             if e.code in (1, 2, 3, 4, 6, 7, 8, 9):
                 return

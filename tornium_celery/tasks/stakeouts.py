@@ -62,7 +62,6 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 f"user/{stakeout.tid}?selections=",
                 key=key,
                 session=requests_session,
-                nocache=True,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -95,7 +94,6 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 f"user/{stakeout.tid}?selections=",
                 key=admin.key,
                 session=requests_session,
-                nocache=True,
             )
     except TornError:
         return
@@ -336,7 +334,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=key,
                 session=requests_session,
-                nocache=True,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -365,7 +362,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=admin.key,
                 session=requests_session,
-                nocache=True,
             )
     except TornError as e:
         logger.exception(e)
@@ -1023,7 +1019,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             key=key,
                             session=requests_session,
                             fromts=int(time.time()) - 60,
-                            nocache=True,
                         )
                     else:
                         keys = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
@@ -1036,7 +1031,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             key=random.choice(keys).key,
                             session=requests_session,
                             fromts=int(time.time()) - 60,
-                            nocache=True,
                         )
                 except (NetworkingError, TornError):
                     return
@@ -1082,7 +1076,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             key=key,
                             session=requests_session,
                             fromts=int(time.time()) - 60,
-                            nocache=True,
                         )
                     else:
                         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
@@ -1107,7 +1100,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             key=random.choice(keys),
                             session=requests_session,
                             fromts=int(time.time()) - 60,
-                            nocache=True,
                         )
                 except (NetworkingError, TornError):
                     return

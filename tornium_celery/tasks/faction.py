@@ -129,7 +129,7 @@ def refresh_factions():
                 queue="api",
             ).apply_async(
                 expires=300,
-                link=update_faction_ts.s(faction.tid),
+                link=update_faction_ts.s(),
             )
 
         if faction.chainconfig["od"] == 1 and faction.guild not in (0, None):

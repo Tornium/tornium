@@ -439,16 +439,16 @@ def fetch_attacks_runner():
 
         aa_key = random.choice(faction.aa_keys)
 
-        celery.chain(
-            tornget.signature(
-                kwargs={
-                    "endpoint": "faction/?selections=basic,attacks",
-                    "fromts": faction.last_attacks + 1,  # timetsamp is inclusive
-                    "key": aa_key,
-                },
-                queue="api",
-            ),
-            celery.group(
+        tornget.signature(
+            kwargs={
+                "endpoint": "faction/?selections=basic,attacks",
+                "fromts": faction.last_attacks + 1,  # timetsamp is inclusive
+                "key": aa_key,
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=celery.group(
                 retal_attacks.signature(
                     kwargs={
                         "last_attacks": faction.last_attacks,

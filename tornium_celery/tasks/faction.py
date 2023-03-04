@@ -130,7 +130,7 @@ def refresh_factions():
             try:
                 tornget.signature(
                     kwargs={
-                        "endpoint": "faction/?selections=contributors",
+                        "endpoint": "faction/?selections=basic,contributors",
                         "stat": "drugoverdoses",
                         "key": random.choice(keys),
                     },
@@ -322,7 +322,8 @@ def update_faction_ts(faction_ts_data):
 
 
 @celery.shared_task(routing_key="quick.check_faction_ods", queue="quick")
-def check_faction_ods(factionid, faction_od_data):
+def check_faction_ods(faction_od_data):
+    factionid = faction_od_data["ID"]
     faction: FactionModel = FactionModel.objects(tid=factionid).first()
 
     if faction is None:
@@ -409,7 +410,7 @@ def check_faction_ods(factionid, faction_od_data):
     faction.save()
 
 
-@celery.shared_task(routing_key="default.fetch_attacks_runner", queue="default")
+@celery.shared_task(routing_key="quick.fetch_attacks_runner", queue="quick")
 def fetch_attacks_runner():
     redis = rds()
 

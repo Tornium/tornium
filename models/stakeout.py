@@ -15,9 +15,9 @@
 
 import time
 
-import celery
 from flask_login import current_user
 
+from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import TornError, NetworkingError
 from tornium_commons.models import FactionStakeoutModel, UserStakeoutModel
 
@@ -35,13 +35,7 @@ class Stakeout:
 
             if user:
                 try:
-                    data = celery.current_app.send_task(
-                        "tasks.api.tornget",
-                        kwargs={
-                            "endpoint": f"user/{tid}?selections=",
-                            "key": key if key != "" else current_user.key,
-                        },
-                    )
+                    data = tornget(f"user/{tid}?selections=", key if key != "" else current_user.key)
                 except (TornError, NetworkingError):
                     data = {}
 
@@ -49,13 +43,7 @@ class Stakeout:
 
             else:
                 try:
-                    data = celery.current_app.send_task(
-                        "tasks.api.tornget",
-                        kwargs={
-                            "endpoint": f"faction/{tid}?selections=",
-                            "key": key if key != "" else current_user.key,
-                        },
-                    )
+                    data = tornget(f"faction/{tid}?selections=", key if key != "" else current_user.key)
                 except (TornError, NetworkingError):
                     data = {}
 

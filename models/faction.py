@@ -16,10 +16,10 @@
 import random
 import time
 
-import celery
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
 
+from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import FactionModel, PositionModel, UserModel
 
@@ -37,13 +37,7 @@ class Faction:
 
         faction = FactionModel.objects(tid=tid).first()
         if faction is None:
-            faction_data = celery.current_app.send_task(
-                "tasks.api.tornget",
-                kwargs={
-                    "endpoint": f"faction/{tid}?selections=basic",
-                    "key": key if key != "" else current_user.key,
-                },
-            )
+            faction_data = tornget(f"faction/{tid}?selections=basic", key=key if key != "" else current_user.key)
             now = int(time.time())
 
             faction = FactionModel(
@@ -146,13 +140,7 @@ class Faction:
                 if key == "":
                     raise MissingKeyError
 
-            faction_data = celery.current_app.send_task(
-                "tasks.api.tornget",
-                kwargs={
-                    "endpoint": f"faction/{self.tid}?selections=basic",
-                    "key": key,
-                },
-            )
+            faction_data = tornget(f"faction/{self.tid}?selections=basic", key=key)
 
             faction: FactionModel = FactionModel.objects(tid=self.tid).first()
             faction.name = faction_data["name"]

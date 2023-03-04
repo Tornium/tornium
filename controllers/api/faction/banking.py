@@ -45,7 +45,7 @@ def vault_balance(*args, **kwargs):
         if user.factionid == 0:
             return make_exception_response("1102", key)
 
-    faction: FactionModel = FactionModel.objects(tid=user.factionid)
+    faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
 
     if faction is None:
         return make_exception_response("1102", key)

@@ -14,13 +14,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import celery
-import logging
 import requests
+from celery.utils.log import get_task_logger
 
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import PositionModel, ServerModel, UserModel
 
 from tornium_celery.tasks.api import discordget
+
+logger = get_task_logger(__name__)
 
 
 @celery.shared_task(routing_key="default.refresh_guilds", queue="default")
@@ -30,7 +32,7 @@ def refresh_guilds():
     try:
         guilds = discordget("users/@me/guilds", session=requests_session)
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
         return
 
     guilds_not_updated = [int(server.sid) for server in ServerModel.objects()]
@@ -64,16 +66,16 @@ def refresh_guilds():
             if e.code == 10007:
                 continue
             else:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         try:
             guild = discordget(f'guilds/{guild["id"]}', session=requests_session)
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         admins = []
@@ -119,7 +121,7 @@ def refresh_guilds():
         if guild is None:
             continue
 
-        logging.getLogger("celery").info(
+        logger.info(
             f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)"
         )
         guild.delete()

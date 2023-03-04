@@ -14,11 +14,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import logging
 import random
 import time
 
 import celery
+from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
 
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
@@ -26,6 +26,8 @@ from tornium_commons.formatters import remove_html, torn_timestamp
 from tornium_commons.models import FactionModel, FactionStakeoutModel, ServerModel, UserModel, UserStakeoutModel
 
 from tornium_celery.tasks.api import tornget, discordpost
+
+logger = get_task_logger(__name__)
 
 
 @celery.shared_task(routing_key="quick.user_stakeouts", queue="quick")
@@ -100,7 +102,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
     except MissingKeyError:
         return
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
         return
 
     stakeout_data = stakeout.data
@@ -152,7 +154,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 return
 
         if "status" in guild_stakeout["keys"] and data["status"]["state"] != stakeout_data["status"]["state"]:
@@ -186,7 +188,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 return
 
         if (
@@ -227,7 +229,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 return
 
         if (
@@ -265,7 +267,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 return
 
         if (
@@ -312,7 +314,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                     payload=payload,
                 )
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 return
 
 
@@ -366,12 +368,12 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 nocache=True,
             )
     except TornError as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
         return
     except MissingKeyError:
         return
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
         return
 
     stakeout_data = stakeout.data
@@ -433,7 +435,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
                 elif "racket" in territory and "racket" not in data["territory"][territoryid]:
                     payload = {
@@ -474,7 +476,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
 
             for territoryid, territory in data["territory"].items():
@@ -516,7 +518,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
                 if "racket" in territory and "racket" not in stakeout_data["territory"][territoryid]:
                     payload = {
@@ -558,7 +560,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
                 elif (
                     "racket" in territory
@@ -604,7 +606,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
                 elif (
                     "racket" in territory
@@ -650,7 +652,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
         if "members" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -691,7 +693,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
 
             for memberid, member in data["members"].items():
@@ -732,7 +734,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
         if "memberstatus" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -787,7 +789,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
         if "memberactivity" in guild_stakeout["keys"] and data["members"] != stakeout_data["members"]:
             for memberid, member in stakeout_data["members"].items():
@@ -844,7 +846,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
                 elif member["last_action"]["status"] in ("Online", "Idle") and data["members"][memberid]["last_action"][
                     "status"
@@ -900,7 +902,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
         if "assault" in guild_stakeout["keys"] and data["territory_wars"] != stakeout_data["territory_wars"]:
             for war in data["territory_wars"]:
@@ -954,7 +956,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
             for war in stakeout_data["territory_wars"]:
                 existing = False
@@ -1007,7 +1009,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             payload=payload,
                         )
                     except Exception as e:
-                        logging.getLogger("celery").exception(e)
+                        logger.exception(e)
                         return
         if "armory" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1039,7 +1041,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 except (NetworkingError, TornError):
                     return
                 except Exception as e:
-                    logging.getLogger("celery").exception(e)
+                    logger.exception(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1067,7 +1069,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 payload=payload,
                             )
                         except Exception as e:
-                            logging.getLogger("celery").exception(e)
+                            logger.exception(e)
                             return
         if "armorydeposit" in guild_stakeout["keys"]:
             server = ServerModel.objects(sid=guildid).first()
@@ -1110,7 +1112,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                 except (NetworkingError, TornError):
                     return
                 except Exception as e:
-                    logging.getLogger("celery").exception(e)
+                    logger.exception(e)
                     break
 
                 if len(data["armorynews"]) == 0:
@@ -1138,5 +1140,5 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                                 payload=payload,
                             )
                         except Exception as e:
-                            logging.getLogger("celery").exception(e)
+                            logger.exception(e)
                             return

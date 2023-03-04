@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import logging
 import math
 import random
 import time
@@ -25,6 +24,7 @@ from decimal import DivisionByZero
 import celery
 import mongoengine
 import requests
+from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
 from pymongo.errors import BulkWriteError
 
@@ -45,6 +45,8 @@ from tornium_commons.skyutils import SKYNET_ERROR
 
 from tornium_celery.tasks.api import tornget, discordpatch, discordpost, torn_stats_get
 from tornium_celery.tasks.user import update_user
+
+logger = get_task_logger(__name__)
 
 ORGANIZED_CRIMES = {
     1: "Blackmail",
@@ -75,8 +77,6 @@ ATTACK_RESULTS = {
 
 @celery.shared_task(routing_key="default.refresh_factions", queue="default")
 def refresh_factions():
-    requests_session = requests.Session()
-
     faction: FactionModel
     for faction in FactionModel.objects():
         aa_users = UserModel.objects(Q(factionaa=True) & Q(factionid=faction.tid))
@@ -98,320 +98,321 @@ def refresh_factions():
         if len(keys) == 0:
             continue
 
-        try:
-            faction_data = tornget(
-                "faction/?selections=basic,positions",
-                key=random.choice(keys),
-                session=requests_session,
-            )
-        except (TornError, NetworkingError):
-            continue
-        except Exception as e:
-            logging.getLogger("celery").exception(e)
-            continue
-
-        if faction_data is None:
-            continue
-
-        faction = FactionModel.objects(tid=faction.tid).first()
-        faction.name = faction_data["name"]
-        faction.respect = faction_data["respect"]
-        faction.capacity = faction_data["capacity"]
-        faction.leader = faction_data["leader"]
-        faction.coleader = faction_data["co-leader"]
-        faction.last_members = int(time.time())
-
-        positions = PositionModel.objects(factiontid=faction.tid)
-        positions_names = [position.name for position in positions]
-        positions_data = {
-            "Recruit": {
-                "uuid": None,
-                "aa": False,
+        tornget.signature(
+            kwargs={
+                "endpoint": "faction/?selections=basic,positions",
+                "key": random.choice(keys),
             },
-            "Leader": {
-                "uuid": None,
-                "aa": True,
-            },
-            "Co-leader": {
-                "uuid": None,
-                "aa": True,
-            },
-        }
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=update_faction.s()
+        )
 
-        position: PositionModel
-        for position in positions:
-            if (
-                position.name not in ("Leader", "Co-leader", "Recruit")
-                and position.name not in faction_data["positions"].keys()
-            ):
-                positions_names.remove(position.name)
-                position.delete()
-                continue
-
-            positions_data[position.name] = {
-                "uuid": position.pid,
-                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
-            }
-
-            position.default = bool(faction_data["positions"][position.name]["default"])
-            position.canUseMedicalItem = bool(faction_data["positions"][position.name]["canUseMedicalItem"])
-            position.canUseBoosterItem = bool(faction_data["positions"][position.name]["canUseBoosterItem"])
-            position.canUseDrugItem = bool(faction_data["positions"][position.name]["canUseDrugItem"])
-            position.canUseEnergyRefill = bool(faction_data["positions"][position.name]["canUseEnergyRefill"])
-            position.canUseNerveRefill = bool(faction_data["positions"][position.name]["canUseNerveRefill"])
-            position.canLoanTemporaryItem = bool(faction_data["positions"][position.name]["canLoanTemporaryItem"])
-            position.canLoanWeaponAndArmory = bool(faction_data["positions"][position.name]["canLoanWeaponAndArmory"])
-            position.canRetrieveLoanedArmory = bool(faction_data["positions"][position.name]["canRetrieveLoanedArmory"])
-            position.canPlanAndInitiateOrganisedCrime = bool(
-                faction_data["positions"][position.name]["canPlanAndInitiateOrganisedCrime"]
-            )
-            position.canAccessFactionApi = bool(faction_data["positions"][position.name]["canAccessFactionApi"])
-            position.canGiveItem = bool(faction_data["positions"][position.name]["canGiveItem"])
-            position.canGiveMoney = bool(faction_data["positions"][position.name]["canGiveMoney"])
-            position.canGivePoints = bool(faction_data["positions"][position.name]["canGivePoints"])
-            position.canManageForum = bool(faction_data["positions"][position.name]["canManageForum"])
-            position.canManageApplications = bool(faction_data["positions"][position.name]["canManageApplications"])
-            position.canKickMembers = bool(faction_data["positions"][position.name]["canKickMembers"])
-            position.canAdjustMemberBalance = bool(faction_data["positions"][position.name]["canAdjustMemberBalance"])
-            position.canManageWars = bool(faction_data["positions"][position.name]["canManageWars"])
-            position.canManageUpgrades = bool(faction_data["positions"][position.name]["canManageUpgrades"])
-            position.canSendNewsletter = bool(faction_data["positions"][position.name]["canSendNewsletter"])
-            position.canChangeAnnouncement = bool(faction_data["positions"][position.name]["canChangeAnnouncement"])
-            position.canChangeDescription = bool(faction_data["positions"][position.name]["canChangeDescription"])
-            position.save()
-
-        for position_name, position_data in faction_data["positions"].items():
-            if position_name in positions_names:
-                continue
-
-            position = PositionModel(
-                pid=uuid.uuid4().hex,
-                name=position_name,
-                factiontid=faction.tid,
-            )
-
-            positions_data[position.name] = {
-                "uuid": position.pid,
-                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
-            }
-
-            position.default = bool(faction_data["positions"][position.name]["default"])
-            position.canUseMedicalItem = bool(faction_data["positions"][position.name]["canUseMedicalItem"])
-            position.canUseBoosterItem = bool(faction_data["positions"][position.name]["canUseBoosterItem"])
-            position.canUseDrugItem = bool(faction_data["positions"][position.name]["canUseDrugItem"])
-            position.canUseEnergyRefill = bool(faction_data["positions"][position.name]["canUseEnergyRefill"])
-            position.canUseNerveRefill = bool(faction_data["positions"][position.name]["canUseNerveRefill"])
-            position.canLoanTemporaryItem = bool(faction_data["positions"][position.name]["canLoanTemporaryItem"])
-            position.canLoanWeaponAndArmory = bool(faction_data["positions"][position.name]["canLoanWeaponAndArmory"])
-            position.canRetrieveLoanedArmory = bool(faction_data["positions"][position.name]["canRetrieveLoanedArmory"])
-            position.canPlanAndInitiateOrganisedCrime = bool(
-                faction_data["positions"][position.name]["canPlanAndInitiateOrganisedCrime"]
-            )
-            position.canAccessFactionApi = bool(faction_data["positions"][position.name]["canAccessFactionApi"])
-            position.canGiveItem = bool(faction_data["positions"][position.name]["canGiveItem"])
-            position.canGiveMoney = bool(faction_data["positions"][position.name]["canGiveMoney"])
-            position.canGivePoints = bool(faction_data["positions"][position.name]["canGivePoints"])
-            position.canManageForum = bool(faction_data["positions"][position.name]["canManageForum"])
-            position.canManageApplications = bool(faction_data["positions"][position.name]["canManageApplications"])
-            position.canKickMembers = bool(faction_data["positions"][position.name]["canKickMembers"])
-            position.canAdjustMemberBalance = bool(faction_data["positions"][position.name]["canAdjustMemberBalance"])
-            position.canManageWars = bool(faction_data["positions"][position.name]["canManageWars"])
-            position.canManageUpgrades = bool(faction_data["positions"][position.name]["canManageUpgrades"])
-            position.canSendNewsletter = bool(faction_data["positions"][position.name]["canSendNewsletter"])
-            position.canChangeAnnouncement = bool(faction_data["positions"][position.name]["canChangeAnnouncement"])
-            position.canChangeDescription = bool(faction_data["positions"][position.name]["canChangeDescription"])
-            position.save()
-
-            positions_names.append(position.name)
-
-        print(positions_data)
-
-        lead_keys = []
-
+        ts_key = ""
         leader = UserModel.objects(tid=faction.leader).first()
-        coleader = UserModel.objects(tid=faction.coleader).first()
 
         if leader is not None and leader.key != "":
-            lead_keys.append(leader.key)
-        if coleader is not None and coleader.key != "":
-            lead_keys.append(coleader.key)
+            ts_key = leader.key
+        else:
+            coleader = UserModel.objects(tid=faction.coleader).first()
 
-        if len(lead_keys) != 0:
+            if coleader is not None and coleader.key != "":
+                ts_key = coleader.key
+
+        if ts_key != "":
+            torn_stats_get.signature(
+                kwargs={
+                    "endpoint": f"spy/faction/{faction.tid}",
+                    "key": ts_key
+                },
+                queue="api",
+            ).apply_async(
+                expires=300,
+                link=update_faction_ts.s(faction.tid),
+            )
+
+        if faction.chainconfig["od"] == 1 and faction.guild not in (0, None):
             try:
-                user_ts_data = torn_stats_get(f"spy/faction/{faction.tid}", random.choice(lead_keys))
-            except NetworkingError:
-                continue
-            except Exception as e:
-                logging.getLogger("celery").exception(e)
-                continue
-
-            if not user_ts_data["status"]:
-                continue
-
-            for user_id, user_data in user_ts_data["faction"]["members"].items():
-                if "spy" not in user_data:
-                    continue
-
-                user: UserModel = UserModel.objects(tid=int(user_id)).first()
-
-                if user is None:
-                    continue
-                elif user_data["spy"]["timestamp"] <= user.battlescore_update:
-                    continue
-
-                user.battlescore = (
-                    math.sqrt(user_data["spy"]["strength"])
-                    + math.sqrt(user_data["spy"]["defense"])
-                    + math.sqrt(user_data["spy"]["speed"])
-                    + math.sqrt(user_data["spy"]["dexterity"])
-                )
-                user.strength = user_data["spy"]["strength"]
-                user.defense = user_data["spy"]["defense"]
-                user.speed = user_data["spy"]["speed"]
-                user.dexterity = user_data["spy"]["dexterity"]
-                user.battlescore_update = user_data["spy"]["timestamp"]
-                user.save()
-
-        users = []
-
-        for member_id, member in faction_data["members"].items():
-            user = UserModel.objects(tid=int(member_id)).first()
-            users.append(int(member_id))
-
-            if user is None:
-                user: UserModel = UserModel.objects(tid=int(member_id)).modify(
-                    upsert=True,
-                    new=True,
-                    set__name=member["name"],
-                    set__level=member["level"],
-                    set__last_refresh=int(time.time()),
-                    set__factionid=faction.tid,
-                    set__factionaa=positions_data[member["position"]]["aa"],
-                    set__faction_position=positions_data[member["position"]]["uuid"],
-                    set__status=member["last_action"]["status"],
-                    set__last_action=member["last_action"]["timestamp"],
-                )
-            else:
-                user.name = member["name"]
-                user.level = member["level"]
-                user.last_refresh = int(time.time())
-                user.factionid = faction.tid
-                user.factionaa = positions_data[member["position"]]["aa"]
-                user.faction_position = positions_data[member["position"]]["uuid"]
-                user.status = member["last_action"]["status"]
-                user.last_action = member["last_action"]["timestamp"]
-                user.save()
-
-        for user in UserModel.objects(factionid=faction.tid):
-            if user.tid in users:
-                continue
-
-            user.factionid = 0
-            user.faction_position = None
-            user.factionaa = False
-            user.save()
-
-        if faction.chainconfig["od"] == 1 and len(keys) != 0:
-            try:
-                faction_od = tornget(
-                    "faction/?selections=contributors",
-                    stat="drugoverdoses",
-                    key=random.choice(keys),
-                    session=requests_session,
+                tornget.signature(
+                    kwargs={
+                        "endpoint": "faction/?selections=contributors",
+                        "stat": "drugoverdoses",
+                        "key": random.choice(keys),
+                    },
+                    queue="api",
+                ).apply_async(
+                    expires=300,
+                    link=check_faction_ods.s(),
                 )
             except (TornError, NetworkingError):
                 continue
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 continue
 
-            if len(faction.chainod) > 0:
-                guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 
-                for tid, user_od in faction_od["contributors"]["drugoverdoses"].items():
-                    if guild is None:
-                        continue
+@celery.shared_task(routing_key="quick.update_faction")
+def update_faction(faction_data):
+    if faction_data is None:
+        return
 
-                    try:
-                        if faction.chainod.get(tid) is None and user_od["contributed"] == 1:
-                            overdosed_user = UserModel.objects(tid=tid).first()
-                            payload = {
-                                "embeds": [
-                                    {
-                                        "title": "User Overdose",
-                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
-                                        f"of faction {faction.name} has overdosed.",
-                                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                                        "footer": {"text": torn_timestamp()},
-                                    }
-                                ],
-                                "components": [
-                                    {
-                                        "type": 1,
-                                        "components": [
-                                            {
-                                                "type": 2,
-                                                "style": 5,
-                                                "label": "User",
-                                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
-                                            }
-                                        ],
-                                    }
-                                ],
-                            }
+    faction = FactionModel.objects(tid=faction_data["ID"]).modify(
+        upsert=True,
+        new=True,
+        set__name=faction_data["name"],
+        set__respect=faction_data["respect"],
+        set__capacity=faction_data["capacity"],
+        set__leader=faction_data["leader"],
+        set__coleader=faction_data["coleader"],
+        set__last_members=int(time.time()),
+    )
+    
+    positions = PositionModel.objects(factiontid=faction.tid)
+    positions_names = [position.name for position in positions]
+    positions_data = {
+        "Recruit": {
+            "uuid": None,
+            "aa": False,
+        },
+        "Leader": {
+            "uuid": None,
+            "aa": True,
+        },
+        "Co-leader": {
+            "uuid": None,
+            "aa": True,
+        },
+    }
+    
+    position: PositionModel
+    for position in positions:
+        if (
+                position.name not in ("Leader", "Co-leader", "Recruit")
+                and position.name not in faction_data["positions"].keys()
+        ):
+            positions_names.remove(position.name)
+            position.delete()
+            continue
+        
+        position_perms = faction_data["positions"][position.name]
+        positions_data[position.name] = {
+            "uuid": position.pid,
+            "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+        }
 
-                            try:
-                                discordpost.delay(
-                                    f'channels/{faction.chainconfig["odchannel"]}/messages',
-                                    payload=payload,
-                                )
-                            except Exception as e:
-                                logging.getLogger("celery").exception(e)
-                                continue
-                        elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(
-                            tid
-                        ).get("contributed"):
-                            overdosed_user = UserModel.objects(tid=tid).first()
-                            payload = {
-                                "embeds": [
-                                    {
-                                        "title": "User Overdose",
-                                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
-                                        f"of faction {faction.name} has overdosed.",
-                                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                                        "footer": {"text": torn_timestamp()},
-                                    }
-                                ],
-                                "components": [
-                                    {
-                                        "type": 1,
-                                        "components": [
-                                            {
-                                                "type": 2,
-                                                "style": 5,
-                                                "label": "User",
-                                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
-                                            }
-                                        ],
-                                    }
-                                ],
-                            }
+        position.default = bool(position_perms["default"])
+        position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
+        position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
+        position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
+        position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
+        position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
+        position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
+        position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
+        position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
+        position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
+        position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
+        position.canGiveItem = bool(position_perms["canGiveItem"])
+        position.canGiveMoney = bool(position_perms["canGiveMoney"])
+        position.canGivePoints = bool(position_perms["canGivePoints"])
+        position.canManageForum = bool(position_perms["canManageForum"])
+        position.canManageApplications = bool(position_perms["canManageApplications"])
+        position.canKickMembers = bool(position_perms["canKickMembers"])
+        position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
+        position.canManageWars = bool(position_perms["canManageWars"])
+        position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
+        position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
+        position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
+        position.canChangeDescription = bool(position_perms["canChangeDescription"])
+        position.save()
 
-                            try:
-                                discordpost.delay(
-                                    f'channels/{faction.chainconfig["odchannel"]}/messages',
-                                    payload=payload,
-                                )
-                            except Exception as e:
-                                logging.getLogger("celery").exception(e)
-                                continue
-                    except Exception as e:
-                        logging.getLogger("celery").exception(e)
-                        continue
+    for position_name, position_data in faction_data["positions"].items():
+        if position_name in positions_names:
+            continue
 
-            faction.chainod = faction_od["contributors"]["drugoverdoses"]
+        position = PositionModel(
+            pid=uuid.uuid4().hex,
+            name=position_name,
+            factiontid=faction.tid,
+        )
 
+        position_perms = faction_data["positions"][position.name]
+        positions_data[position.name] = {
+            "uuid": position.pid,
+            "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+        }
+
+        position.default = bool(position_perms["default"])
+        position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
+        position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
+        position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
+        position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
+        position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
+        position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
+        position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
+        position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
+        position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
+        position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
+        position.canGiveItem = bool(position_perms["canGiveItem"])
+        position.canGiveMoney = bool(position_perms["canGiveMoney"])
+        position.canGivePoints = bool(position_perms["canGivePoints"])
+        position.canManageForum = bool(position_perms["canManageForum"])
+        position.canManageApplications = bool(position_perms["canManageApplications"])
+        position.canKickMembers = bool(position_perms["canKickMembers"])
+        position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
+        position.canManageWars = bool(position_perms["canManageWars"])
+        position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
+        position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
+        position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
+        position.canChangeDescription = bool(position_perms["canChangeDescription"])
+        position.save()
+
+    users = []
+
+    for member_id, member in faction_data["members"].items():
+        users.append(int(member_id))
+
+        UserModel.objects(tid=int(member_id)).modify(
+            upsert=True,
+            new=True,
+            set__name=member["name"],
+            set__level=member["level"],
+            set__last_refresh=int(time.time()),
+            set__factionid=faction.tid,
+            set__factionaa=positions_data[member["position"]]["aa"],
+            set__faction_position=positions_data[member["position"]]["uuid"],
+            set__status=member["last_action"]["status"],
+            set__last_action=member["last_action"]["timestamp"],
+        )
+
+    for user in UserModel.objects(factionid=faction.tid):
+        if user.tid in users:
+            continue
+
+        user.factionid = 0
+        user.faction_position = None
+        user.factionaa = False
+        user.save()
+
+
+@celery.shared_task(routing_key="default.update_faction_ts", queue="default")
+def update_faction_ts(faction_ts_data):
+    if not faction_ts_data["status"]:
+        return
+
+    for user_id, user_data in faction_ts_data["faction"]["members"].items():
+        if "spy" not in user_data:
+            continue
+
+        user: UserModel = UserModel.objects(tid=int(user_id)).first()
+
+        if user is None:
+            continue
+        elif user.key not in ("", None):
+            continue
+        elif user_data["spy"]["timestamp"] <= user.battlescore_update:
+            continue
+
+        user.battlescore = (
+                math.sqrt(user_data["spy"]["strength"])
+                + math.sqrt(user_data["spy"]["defense"])
+                + math.sqrt(user_data["spy"]["speed"])
+                + math.sqrt(user_data["spy"]["dexterity"])
+        )
+        user.strength = user_data["spy"]["strength"]
+        user.defense = user_data["spy"]["defense"]
+        user.speed = user_data["spy"]["speed"]
+        user.dexterity = user_data["spy"]["dexterity"]
+        user.battlescore_update = user_data["spy"]["timestamp"]
+        user.save()
+
+
+@celery.shared_task(routing_key="quick.check_faction_ods", queue="quick")
+def check_faction_ods(factionid, faction_od_data):
+    faction: FactionModel = FactionModel.objects(tid=factionid).first()
+
+    if faction is None:
+        return
+    if len(faction.chainod) == 0:
+        faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
         faction.save()
+        return
+
+    guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
+
+    if guild is None:
+        faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
+        faction.save()
+        return
+
+    for tid, user_od in faction_od_data["contributors"]["drugoverdoses"].items():
+        if faction.chainod.get(tid) is None and user_od["contributed"] > 0:
+            overdosed_user = UserModel.objects(tid=tid).first()
+            payload = {
+                "embeds": [
+                    {
+                        "title": "User Overdose",
+                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                                       f"of faction {faction.name} has overdosed.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": torn_timestamp()},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "User",
+                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                            }
+                        ],
+                    }
+                ],
+            }
+
+            discordpost.delay(
+                f'channels/{faction.chainconfig["odchannel"]}/messages',
+                payload=payload,
+            )
+        elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(
+            tid
+        ).get("contributed"):
+            overdosed_user = UserModel.objects(tid=tid).first()
+            payload = {
+                "embeds": [
+                    {
+                        "title": "User Overdose",
+                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                                       f"of faction {faction.name} has overdosed.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": torn_timestamp()},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "User",
+                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                            }
+                        ],
+                    }
+                ],
+            }
+
+            discordpost.delay(
+                f'channels/{faction.chainconfig["odchannel"]}/messages',
+                payload=payload,
+            )
+
+    faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
+    faction.save()
 
 
 @celery.shared_task(routing_key="default.fetch_attacks_runner", queue="default")
@@ -421,7 +422,7 @@ def fetch_attacks_runner():
     if (
         redis.exists("tornium:celery-lock:fetch-attacks") and redis.ttl("tornium:celery-lock:fetch-attacks") > 1
     ):  # Lock enabled
-        logging.getLogger("celery").debug("Fetch attacks task terminated due to pre-existing task")
+        logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
             f"{redis.ttl('tornium:celery-lock:fetch-attacks')} seconds."
@@ -466,7 +467,7 @@ def fetch_attacks_runner():
         except NetworkingError:
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
@@ -480,7 +481,7 @@ def fetch_attacks_runner():
                 faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
                 faction.save()
             except Exception as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
 
 
 @celery.shared_task(routing_key="quick.retal_attacks", queue="quick")
@@ -606,7 +607,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
                         StatModel.objects(Q(tid=opponent.tid) & Q(globalstat=True)).order_by("-timeadded").first()
                     )
             except AttributeError as e:
-                logging.getLogger("celery").exception(e),
+                logger.exception(e),
                 stat = None
 
             if stat is not None:
@@ -695,15 +696,15 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             )
         except DiscordError as e:
             if e.code == 10003:
-                logging.getLogger("celery").warning(
+                logger.warning(
                     f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}"
                 )
                 return
 
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
 
@@ -792,7 +793,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             except IndexError:
                 continue
             except AttributeError as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 continue
 
             if user_score == 0:
@@ -823,7 +824,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             except IndexError:
                 continue
             except AttributeError as e:
-                logging.getLogger("celery").exception(e)
+                logger.exception(e)
                 continue
 
             if user_score == 0:
@@ -845,7 +846,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except (TornError, NetworkingError):
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         try:
@@ -879,7 +880,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         except mongoengine.errors.NotUniqueError:
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
@@ -887,7 +888,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
         attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
         AttackModel._get_collection().insert_many(attacks_data, ordered=False)
     except BulkWriteError:
-        logging.getLogger("celery").warning(
+        logger.warning(
             f"Attack data (from TID {factiontid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
@@ -935,7 +936,7 @@ def oc_refresh():
         except NetworkingError:
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
@@ -1061,7 +1062,7 @@ def oc_refresh():
                         payload=payload,
                     )
                 except Exception as e:
-                    logging.getLogger("celery").exception(e)
+                    logger.exception(e)
                     continue
             elif OC_READY and not oc_db.notified and all(ready):
                 # OC is ready
@@ -1095,7 +1096,7 @@ def oc_refresh():
                         payload=payload,
                     )
                 except Exception as e:
-                    logging.getLogger("celery").exception(e)
+                    logger.exception(e)
                     continue
 
 
@@ -1184,14 +1185,14 @@ def auto_cancel_requests():
         except (DiscordError, NetworkingError):
             pass
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
 
         try:
             dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
         except (DiscordError, NetworkingError):
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         discordpost.delay(

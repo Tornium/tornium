@@ -20,7 +20,7 @@ import typing
 from decimal import DivisionByZero
 
 import celery
-import logging
+from celery.utils.log import get_task_logger
 import mongoengine.errors
 import requests
 
@@ -29,6 +29,8 @@ from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, StatModel, UserModel
 
 from tornium_celery.tasks.api import tornget
+
+logger = get_task_logger(__name__)
 
 ATTACK_RESULTS = {
     "Lost": 0,
@@ -100,10 +102,10 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         try:
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logging.getLogger("celery").error(
+            logger.error(
                 f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
             )
-            logging.getLogger("celery").info(user_data)
+            logger.info(user_data)
 
         user.last_refresh = int(time.time())
         user.status = user_data["last_action"]["status"]
@@ -154,7 +156,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     except mongoengine.errors.OperationError:
         pass
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
 
     return user_data
 
@@ -187,10 +189,10 @@ def refresh_users():
         try:  # Torn API debug
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logging.getLogger("celery").error(
+            logger.error(
                 f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
             )
-            logging.getLogger("celery").info(user_data)
+            logger.info(user_data)
 
         user.name = user_data["name"]
         user.last_refresh = int(time.time())
@@ -222,7 +224,7 @@ def fetch_attacks_user_runner():
         redis.exists("tornium:celery-lock:fetch-attacks-user")
         and redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1
     ):  # Lock enabled
-        logging.getLogger("celery").debug("Fetch attacks task terminated due to pre-existing task")
+        logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
             f"Can not run task as task is already being run. Try again in "
             f"{redis.ttl('tornium:celery-lock:fetch-attacks-user')} seconds."
@@ -331,7 +333,7 @@ def stat_db_attacks_user(user_data):
         except IndexError:
             continue
         except AttributeError as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         if user_score == 0:
@@ -371,7 +373,7 @@ def stat_db_attacks_user(user_data):
         except (TornError, NetworkingError):
             continue
         except Exception as e:
-            logging.getLogger("celery").exception(e)
+            logger.exception(e)
             continue
 
         try:
@@ -401,24 +403,24 @@ def stat_db_attacks_user(user_data):
         attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
         AttackModel._get_collection().insert_many(attacks_data, ordered=False)
     except mongoengine.errors.BulkWriteError:
-        logging.getLogger("celery").warning(
+        logger.warning(
             f"Attack data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
 
     try:
         if len(stats_data) > 0:
             stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
             StatModel._get_collection().insert_many(stats_data, ordered=False)
     except mongoengine.errors.BulkWriteError:
-        logging.getLogger("celery").warning(
+        logger.warning(
             f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
 
     user.last_attacks = list(user_data["attacks"].values())[-1]["timestamp_ended"]
     user.save()

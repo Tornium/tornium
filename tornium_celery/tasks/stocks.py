@@ -18,7 +18,7 @@ import random
 import time
 
 import celery
-import logging
+from celery.utils.log import get_task_logger
 from pymongo.errors import BulkWriteError
 from redis.commands.json.path import Path
 
@@ -29,6 +29,8 @@ from tornium_commons.models import NotificationModel, TickModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from tornium_celery.tasks.api import tornget, discordpost
+
+logger = get_task_logger(__name__)
 
 
 def _map_stock_image(acronym: str):
@@ -107,11 +109,11 @@ def fetch_stock_ticks():
         tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
         TickModel._get_collection().insert_many(tick_data, ordered=False)
     except BulkWriteError:
-        logging.getLogger("celery").warning(
+        logger.warning(
             "Stock tick data bulk insert failed. Duplicates may have been found and were skipped."
         )
     except Exception as e:
-        logging.getLogger("celery").exception(e)
+        logger.exception(e)
 
     notification: NotificationModel
     for notification in NotificationModel.objects(ntype=0):

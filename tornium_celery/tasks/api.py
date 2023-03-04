@@ -97,9 +97,7 @@ def tornget(
         raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
-        logger.warning(
-            f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-        )
+        logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
     if globals().get("orjson:loaded"):

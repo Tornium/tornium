@@ -104,10 +104,7 @@ def refresh_factions():
                 "key": random.choice(keys),
             },
             queue="api",
-        ).apply_async(
-            expires=300,
-            link=update_faction.s()
-        )
+        ).apply_async(expires=300, link=update_faction.s())
 
         ts_key = ""
         leader = UserModel.objects(tid=faction.leader).first()
@@ -122,10 +119,7 @@ def refresh_factions():
 
         if ts_key != "":
             torn_stats_get.signature(
-                kwargs={
-                    "endpoint": f"spy/faction/{faction.tid}",
-                    "key": ts_key
-                },
+                kwargs={"endpoint": f"spy/faction/{faction.tid}", "key": ts_key},
                 queue="api",
             ).apply_async(
                 expires=300,
@@ -167,7 +161,7 @@ def update_faction(faction_data):
         set__coleader=faction_data["co-leader"],
         set__last_members=int(time.time()),
     )
-    
+
     positions = PositionModel.objects(factiontid=faction.tid)
     positions_names = [position.name for position in positions]
     positions_data = {
@@ -184,17 +178,17 @@ def update_faction(faction_data):
             "aa": True,
         },
     }
-    
+
     position: PositionModel
     for position in positions:
         if (
-                position.name not in ("Leader", "Co-leader", "Recruit")
-                and position.name not in faction_data["positions"].keys()
+            position.name not in ("Leader", "Co-leader", "Recruit")
+            and position.name not in faction_data["positions"].keys()
         ):
             positions_names.remove(position.name)
             position.delete()
             continue
-        
+
         position_perms = faction_data["positions"][position.name]
         positions_data[position.name] = {
             "uuid": position.pid,
@@ -314,10 +308,10 @@ def update_faction_ts(faction_ts_data):
             continue
 
         user.battlescore = (
-                math.sqrt(user_data["spy"]["strength"])
-                + math.sqrt(user_data["spy"]["defense"])
-                + math.sqrt(user_data["spy"]["speed"])
-                + math.sqrt(user_data["spy"]["dexterity"])
+            math.sqrt(user_data["spy"]["strength"])
+            + math.sqrt(user_data["spy"]["defense"])
+            + math.sqrt(user_data["spy"]["speed"])
+            + math.sqrt(user_data["spy"]["dexterity"])
         )
         user.strength = user_data["spy"]["strength"]
         user.defense = user_data["spy"]["defense"]
@@ -353,7 +347,7 @@ def check_faction_ods(factionid, faction_od_data):
                     {
                         "title": "User Overdose",
                         "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
-                                       f"of faction {faction.name} has overdosed.",
+                        f"of faction {faction.name} has overdosed.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": torn_timestamp()},
                     }
@@ -377,16 +371,16 @@ def check_faction_ods(factionid, faction_od_data):
                 f'channels/{faction.chainconfig["odchannel"]}/messages',
                 payload=payload,
             )
-        elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(
-            tid
-        ).get("contributed"):
+        elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(tid).get(
+            "contributed"
+        ):
             overdosed_user = UserModel.objects(tid=tid).first()
             payload = {
                 "embeds": [
                     {
                         "title": "User Overdose",
                         "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
-                                       f"of faction {faction.name} has overdosed.",
+                        f"of faction {faction.name} has overdosed.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": torn_timestamp()},
                     }
@@ -429,11 +423,9 @@ def fetch_attacks_runner():
         )
 
     if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
-        redis.expire("tornium:celery-lock:fetch-attacks", 60)  # Lock for five minutes
+        redis.expire("tornium:celery-lock:fetch-attacks", 60)  # Lock for one minute
     if redis.ttl("tornium:celery-lock:fetch-attacks") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks", 1)
-
-    requests_session = requests.Session()
 
     faction: FactionModel
     for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
@@ -446,51 +438,40 @@ def fetch_attacks_runner():
 
         aa_key = random.choice(faction.aa_keys)
 
-        try:
-            faction_data = tornget(
-                "faction/?selections=basic,attacks",
-                fromts=faction.last_attacks + 1,  # Timestamp is inclusive
-                key=aa_key,
-                session=requests_session,
-            )
-        except TornError as e:
-            if e.code == 7:
-                db_aa_keys = list(faction.aa_keys)
-
-                try:
-                    db_aa_keys.remove(aa_key)
-                    faction.aa_keys = db_aa_keys
-                    faction.save()
-                except ValueError:
-                    pass
-            continue
-        except NetworkingError:
-            continue
-        except Exception as e:
-            logger.exception(e)
-            continue
-
-        if "attacks" not in faction_data or len(faction_data["attacks"]) == 0:
-            continue
-
-        retal_attacks.delay(faction.tid, faction_data, last_attacks=faction.last_attacks)
-        stat_db_attacks.delay(faction.tid, faction_data, last_attacks=faction.last_attacks)
-
-        if len(faction_data["attacks"].values()) > 0:
-            try:
-                faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
-                faction.save()
-            except Exception as e:
-                logger.exception(e)
+        celery.chain(
+            tornget.signature(
+                kwargs={
+                    "endpoint": "faction/?selections=basic,attacks",
+                    "fromts": faction.last_attacks + 1,  # timetsamp is inclusive
+                    "key": aa_key,
+                },
+                queue="api",
+            ),
+            celery.group(
+                retal_attacks.signature(
+                    kwargs={
+                        "last_attacks": faction.last_attacks,
+                    },
+                    queue="quick",
+                ),
+                stat_db_attacks.signature(
+                    kwargs={
+                        "last_attacks": faction.last_attacks,
+                    },
+                    queue="quick",
+                ),
+            ),
+        )
 
 
 @celery.shared_task(routing_key="quick.retal_attacks", queue="quick")
-def retal_attacks(factiontid, faction_data, last_attacks=None):
+def retal_attacks(faction_data, last_attacks=None):
     if "attacks" not in faction_data:
         return
     elif len(faction_data["attacks"]) == 0:
         return
 
+    factiontid = faction_data["ID"]
     faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
     if faction is None:
@@ -696,9 +677,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
             )
         except DiscordError as e:
             if e.code == 10003:
-                logger.warning(
-                    f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}"
-                )
+                logger.warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
                 return
 
             logger.exception(e)
@@ -709,7 +688,7 @@ def retal_attacks(factiontid, faction_data, last_attacks=None):
 
 
 @celery.shared_task(routing_key="quick.stat_db_attacks", queue="quick")
-def stat_db_attacks(factiontid, faction_data, last_attacks=None):
+def stat_db_attacks(faction_data, last_attacks=None):
     if len(faction_data) == 0:
         return
     elif "attacks" not in faction_data:
@@ -717,6 +696,7 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
     elif len(faction_data["attacks"]) == 0:
         return
 
+    factiontid = faction_data["ID"]
     faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
     if faction is None:
@@ -892,6 +872,9 @@ def stat_db_attacks(factiontid, faction_data, last_attacks=None):
             f"Attack data (from TID {factiontid}) bulk insert failed. Duplicates may have been found and "
             f"were skipped."
         )
+
+    faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
+    faction.save()
 
 
 @celery.shared_task(routing_key="default.oc_refresh", queue="default")
@@ -1157,7 +1140,7 @@ def auto_cancel_requests():
                                         "style": 5,
                                         "label": "Faction Vault",
                                         "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option="
-                                               "give-to-user",
+                                        "give-to-user",
                                     },
                                     {
                                         "type": 2,

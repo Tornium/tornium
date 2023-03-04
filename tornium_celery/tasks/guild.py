@@ -121,7 +121,5 @@ def refresh_guilds():
         if guild is None:
             continue
 
-        logger.info(
-            f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)"
-        )
+        logger.info(f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)")
         guild.delete()

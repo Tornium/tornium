@@ -102,9 +102,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
         try:
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(
-                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
-            )
+            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
             logger.info(user_data)
 
         user.last_refresh = int(time.time())
@@ -189,9 +187,7 @@ def refresh_users():
         try:  # Torn API debug
             user.factionid = user_data["faction"]["faction_id"]
         except KeyError:
-            logger.error(
-                f"User {user_data['name']} [{user_data['player_id']}] has missing faction."
-            )
+            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
             logger.info(user_data)
 
         user.name = user_data["name"]
@@ -256,7 +252,7 @@ def fetch_attacks_user_runner():
             kwargs={
                 "endpoint": "user/?selections=basic,attacks",
                 "fromts": user.last_attacks + 1,  # Timestamp is inclusive,
-                "key": user.key
+                "key": user.key,
             },
             queue="api",
         ).apply_async(

@@ -90,16 +90,17 @@ _LOGGING = {
             "handlers": ["celery", "console"],
             "level": "INFO",
         }
-    }
+    },
 }
-
 
 
 celery_app: typing.Optional[Celery] = None
 
+
 @after_setup_logger.connect
 def config_loggers(logger, *args, **kwargs):
     from logging.config import dictConfig
+
     dictConfig(_LOGGING)
 
 

@@ -16,7 +16,6 @@
 import datetime
 import json
 import math
-import sys
 import time
 
 if globals().get("orjson:loaded"):
@@ -25,7 +24,6 @@ if globals().get("orjson:loaded"):
 import celery
 import requests
 from celery.utils.log import get_task_logger
-from redis.commands.json.path import Path
 
 from tornium_commons import Config, rds
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
@@ -44,8 +42,6 @@ def tornget(
     stat="",
     session=None,
     autosleep=True,
-    cache=30,
-    nocache=False,
 ):
     url = (
         f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
@@ -56,9 +52,6 @@ def tornget(
         raise MissingKeyError
 
     redis_client = rds()
-
-    if redis_client.exists(f"tornium:torn-cache:{url}") and not nocache:
-        return redis_client.get(f"tornium:torn-cache:{url}")
 
     redis_key = f"tornium:torn-ratelimit:{key}"
 
@@ -111,14 +104,6 @@ def tornget(
             f'({request["error"]["error"]}) to {url}).'
         )
         raise TornError(code=request["error"]["code"], endpoint=url)
-
-    if cache <= 0 or cache >= 60:
-        return request
-    elif sys.getsizeof(request) >= 500000:  # Half a megabyte
-        return request
-
-    redis_client.json().set(f"tornium:torn-cache:{url}", Path.root_path(), request)
-    redis_client.expire(f"tornium:torn-cache:{url}", cache)
 
     return request
 

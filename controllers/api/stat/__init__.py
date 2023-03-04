@@ -144,7 +144,7 @@ def generate_chain_list(*args, **kwargs):
 
         if target_ff > 3:
             target_ff = 3
-        if target.level == 0:
+        if target is None or target.level == 0:
             continue
 
         try:

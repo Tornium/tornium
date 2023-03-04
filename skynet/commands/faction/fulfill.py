@@ -22,6 +22,7 @@ from tornium_commons.formatters import commas, find_list, torn_timestamp
 from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
+from models.faction import Faction
 from models.user import User
 from skynet.skyutils import get_admin_keys, invoker_exists
 
@@ -129,7 +130,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 ]
             },
         }
-    elif user.tid not in faction.get_bankers():
+    elif user.tid not in Faction(faction.tid).get_bankers():
         return {
             "type": 4,
             "data": {
@@ -439,7 +440,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 ]
             },
         }
-    elif user.tid not in faction.get_bankers():
+    elif user.tid not in Faction(faction.tid).get_bankers():
         return {
             "type": 4,
             "data": {

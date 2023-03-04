@@ -212,8 +212,6 @@ def update_user_other(user_data):
 
 @celery.shared_task(routing_key="default.refresh_users", queue="default")
 def refresh_users():
-    requests_session = requests.Session()
-
     user: UserModel
     for user in UserModel.objects(key__nin=[None, ""]):
         if user.key == "":
@@ -229,49 +227,6 @@ def refresh_users():
             expires=300,
             link=update_user_self.s(),
         )
-
-        try:
-            user_data = tornget(
-                "user/?selections=profile,battlestats,discord",
-                user.key,
-                session=requests_session,
-            )
-        except TornError as e:
-            if e.code in (2, 13):
-                user.key = ""
-                user.save()
-                continue
-
-            continue
-        except Exception:
-            continue
-
-        try:  # Torn API debug
-            user.factionid = user_data["faction"]["faction_id"]
-        except KeyError:
-            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
-            logger.info(user_data)
-
-        user.name = user_data["name"]
-        user.last_refresh = int(time.time())
-        user.status = user_data["last_action"]["status"]
-        user.last_action = user_data["last_action"]["timestamp"]
-        user.level = user_data["level"]
-        user.discord_id = user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0
-        user.strength = user_data["strength"]
-        user.defense = user_data["defense"]
-        user.speed = user_data["speed"]
-        user.dexterity = user_data["dexterity"]
-
-        battlescore = (
-            math.sqrt(user_data["strength"])
-            + math.sqrt(user_data["defense"])
-            + math.sqrt(user_data["speed"])
-            + math.sqrt(user_data["dexterity"])
-        )
-        user.battlescore = battlescore
-        user.battlescore_update = int(time.time())
-        user.save()
 
 
 @celery.shared_task(routing_key="quick.fetch_user_attacks", queue="quick")

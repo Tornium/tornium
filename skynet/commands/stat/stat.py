@@ -89,7 +89,7 @@ def stat(interaction, *args, **kwargs):
     if tid != -1:
         target = (
             StatModel.objects(
-                Q(tid=tid[1]["value"]) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
+                Q(tid=tid[1]["value"]) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
             )
             .order_by("-timeadded")
             .first()
@@ -113,7 +113,7 @@ def stat(interaction, *args, **kwargs):
 
         target = (
             StatModel.objects(
-                Q(tid=target_user.tid) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factiontid))
+                Q(tid=target_user.tid) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
             )
             .order_by("-timeadded")
             .first()

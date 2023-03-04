@@ -148,7 +148,7 @@ def assist(interaction, *args, **kwargs):
                 },
             }
 
-        update_user(random.choice(get_admin_keys(interaction)), tid=target_id)
+        update_user(random.choice(get_admin_keys(interaction)), tid=target_id, wait=True)
     else:
         return {
             "type": 4,

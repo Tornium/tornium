@@ -123,7 +123,7 @@ def generate_chain_list(*args, **kwargs):
 
             if targets_updated <= 50:
                 try:
-                    update_user(kwargs["user"].key, tid=stat.tid)
+                    update_user(kwargs["user"].key, tid=stat.tid, wait=True)
                     target = UserModel.objects(tid=stat.tid).first()
                     targets_updated += 1
                 except TornError:
@@ -204,7 +204,7 @@ def get_stat_user(tid, *args, **kwargs):
 
     data = {"user": {}, "stat_entries": {}}
 
-    update_user(kwargs["user"].key, tid=tid)
+    update_user(kwargs["user"].key, tid=tid, wait=True)
     user: UserModel = UserModel.objects(tid=tid).first()
 
     if user is None:

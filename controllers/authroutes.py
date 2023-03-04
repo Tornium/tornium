@@ -67,7 +67,7 @@ def login():
                 400,
             )
 
-    update_user(key=request.form["key"], tid=0, refresh_existing=True)
+    update_user(key=request.form["key"], tid=0, refresh_existing=True, wait=True)
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
 

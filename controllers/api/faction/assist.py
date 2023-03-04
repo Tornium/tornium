@@ -42,7 +42,7 @@ def forward_assist(*args, **kwargs):
     if data.get("target_tid") is None:
         return make_exception_response("1100", key, redis_client=client)
 
-    update_user(key=kwargs["user"].key, tid=data.get("target_tid"))
+    update_user(key=kwargs["user"].key, tid=data.get("target_tid"), wait=True)
 
     if client.get(assist_key) is not None:
         return make_exception_response("4291", key, redis_client=client)

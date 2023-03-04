@@ -138,7 +138,7 @@ def stat(interaction, *args, **kwargs):
         }
 
     try:
-        update_user(random.choice(admin_keys), tid=target.tid)
+        update_user(random.choice(admin_keys), tid=target.tid, wait=True)
     except TornError as e:
         return {
             "type": 4,

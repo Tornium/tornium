@@ -164,7 +164,7 @@ def update_faction(faction_data):
         set__respect=faction_data["respect"],
         set__capacity=faction_data["capacity"],
         set__leader=faction_data["leader"],
-        set__coleader=faction_data["coleader"],
+        set__coleader=faction_data["co-leader"],
         set__last_members=int(time.time()),
     )
     

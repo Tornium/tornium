@@ -132,7 +132,7 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = user.discord_id
 
     try:
-        user_data = update_user(**update_user_kwargs)
+        update_user(**update_user_kwargs)
     except MissingKeyError:
         return {
             "type": 4,
@@ -192,7 +192,7 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = UserModel.objects(tid=user_data["player_id"]).first()
+    user: UserModel = UserModel.objects(discord_id=update_user_kwargs["discordid"]).first()
 
     if user is None:
         return {

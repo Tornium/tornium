@@ -21,11 +21,11 @@ import typing
 from flask import jsonify, request
 
 from tornium_commons import rds
+from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_celery.tasks.api import discordpost
 from tornium_celery.tasks.user import update_user
 
-import utils
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
@@ -42,7 +42,7 @@ def forward_assist(*args, **kwargs):
     if data.get("target_tid") is None:
         return make_exception_response("1100", key, redis_client=client)
 
-    target_data = update_user(key=kwargs["user"].key, tid=data.get("target_tid"))
+    update_user(key=kwargs["user"].key, tid=data.get("target_tid"))
 
     if client.get(assist_key) is not None:
         return make_exception_response("4291", key, redis_client=client)
@@ -50,15 +50,7 @@ def forward_assist(*args, **kwargs):
         client.set(assist_key, 1)
         client.expire(assist_key, 30)
 
-    if target_data["player_id"] == data.get("target_tid"):
-        return make_exception_response(
-            "0000",
-            key,
-            details={"message": "The target was the same as the requesting user."},
-            redis_client=client,
-        )
-
-    target: UserModel = UserModel.objects(tid=target_data["player_id"]).first()
+    target: UserModel = UserModel.objects(tid=data.get("target_tid")).first()
 
     if target is None:
         return make_exception_response("1100", key, redis_client=client)
@@ -169,9 +161,9 @@ def forward_assist(*args, **kwargs):
 
         try:
             discordpost.delay(f"channels/{server.assistschannel}/messages", data)
-        except utils.DiscordError:
+        except DiscordError:
             continue
-        except utils.NetworkingError:
+        except NetworkingError:
             continue
 
         servers_forwarded.append(server)

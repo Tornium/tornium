@@ -55,76 +55,78 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     elif tid != 0 and discordid != 0:
         raise Exception("No valid user ID passed")
 
+    update_self = False
+
     if tid != 0:
         user: UserModel = UserModel.objects(tid=tid).first()
         user_id = tid
     elif tid == 0 and discordid == 0:
         user: UserModel = UserModel.objects(key=key).first()
         user_id = 0
+        update_self = True
     else:
         user: UserModel = UserModel.objects(discord_id=discordid).first()
         user_id = discordid
 
     if user is not None and not refresh_existing:
         return user, {"refresh": False}
+    if update_self and user is None:
+        return None, {"refresh": False}
 
-    if user is not None and user.key not in (None, ""):
-        user_data = tornget(f"user/{user_id}/?selections=profile,discord,personalstats", user.key)
-    else:
-        user_data = tornget(f"user/{user_id}/?selections=profile,discord,personalstats", key)
-
-    if int(user_data["player_id"]) != int(tid) and tid != 0:
-        raise Exception("TID does not match returned player_ID")
-    elif (
-        discordid not in ("", 0)
-        and user_data["discord"]["discordID"] not in ("", 0)
-        and int(user_data["discord"]["discordID"]) != int(discordid)
-    ):
-        raise Exception("discordid does not match returned discordID")
-
-    if user is None:
-        user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
-            upsert=True,
-            new=True,
-            set__name=user_data["name"],
-            set__level=user_data["level"],
-            set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
-            set__factionid=user_data["faction"]["faction_id"],
-            set__status=user_data["last_action"]["status"],
-            set__last_action=user_data["last_action"]["timestamp"],
-            set__last_refresh=int(time.time()),
+    if update_self:
+        tornget.signature(
+            kwargs={
+                "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats,battlestats",
+                "key": user.key
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=update_user_self.s()
         )
     else:
-        user.name = user_data["name"]
-        user.level = user_data["level"]
-        user.discord_id = user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0
-
-        try:
-            user.factionid = user_data["faction"]["faction_id"]
-        except KeyError:
-            logger.error(f"User {user_data['name']} [{user_data['player_id']}] has missing faction.")
-            logger.info(user_data)
-
-        user.last_refresh = int(time.time())
-        user.status = user_data["last_action"]["status"]
-        user.last_action = user_data["last_action"]["timestamp"]
-        user.save()
-
-    if tid == 0 and discordid == 0:
-        user.key = key
-        user.save()
-
-    faction: FactionModel = FactionModel.objects(tid=user_data["faction"]["faction_id"]).first()
-
-    if faction is None:
-        faction: FactionModel = FactionModel(
-            tid=user_data["faction"]["faction_id"],
-            name=user_data["faction"]["faction_name"],
+        tornget.signature(
+            kwargs={
+                "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats",
+                "key": user.key if user is not None and user.key not in (None, "") else key
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=update_user.s()
         )
-        faction.save()
-    elif faction.name != user_data["faction"]["faction_name"]:
-        faction.name = user_data["faction"]["faction_name"]
-        faction.save()
+
+
+@celery.shared_task(routing_key="quick.update_user_self", queue="quick")
+def update_user_self(user_data):
+    user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
+        upsert=True,
+        new=True,
+        set__name=user_data["name"],
+        set__level=user_data["level"],
+        set__last_refresh=int(time.time()),
+        set__battlescore=(
+            math.sqrt(user_data["strength"])
+            + math.sqrt(user_data["defense"])
+            + math.sqrt(user_data["speed"])
+            + math.sqrt(user_data["dexterity"])
+        ),
+        set__strength=user_data["strength"],
+        set__defense=user_data["defense"],
+        set__speed=user_data["speed"],
+        set__dexterity=user_data["dexterity"],
+        set__battlescore_update=int(time.time()),
+        set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        set__factionid=user_data["faction"]["faction_id"],
+        set__status=user_data["last_action"]["status"],
+        set__last_action=user_data["last_action"]["timestamp"],
+    )
+
+    FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
+        upsert=True,
+        new=True,
+        set__name=user_data["faction"]["faction_name"]
+    )
 
     now = datetime.datetime.utcnow()
     now = int(
@@ -156,7 +158,56 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     except Exception as e:
         logger.exception(e)
 
-    return user_data
+
+@celery.shared_task(routing_key="quick.update_user_other", queue="quick")
+def update_user_other(user_data):
+    user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
+        upsert=True,
+        new=True,
+        set__name=user_data["name"],
+        set__level=user_data["level"],
+        set__last_refresh=int(time.time()),
+        set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        set__factionid=user_data["faction"]["faction_id"],
+        set__status=user_data["last_action"]["status"],
+        set__last_action=user_data["last_action"]["timestamp"],
+    )
+
+    FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
+        upsert=True,
+        new=True,
+        set__name=user_data["faction"]["faction_name"]
+    )
+
+    now = datetime.datetime.utcnow()
+    now = int(
+        datetime.datetime(
+            year=now.year,
+            month=now.month,
+            day=now.day,
+            hour=now.hour,
+            minute=0,
+            second=0,
+        )
+        .replace(tzinfo=datetime.timezone.utc)
+        .timestamp()
+    )
+
+    try:
+        PersonalStatModel(
+            **dict(
+                {
+                    "pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2),
+                    "tid": user.tid,
+                    "timestamp": int(time.time()),
+                },
+                **user_data["personalstats"],
+            )
+        ).save()
+    except mongoengine.errors.OperationError:
+        pass
+    except Exception as e:
+        logger.exception(e)
 
 
 @celery.shared_task(routing_key="default.refresh_users", queue="default")
@@ -167,6 +218,17 @@ def refresh_users():
     for user in UserModel.objects(key__nin=[None, ""]):
         if user.key == "":
             continue
+
+        tornget.signature(
+            kwargs={
+                "endpoint": "user/?selections=profile,battlestats,discord",
+                "key": user.key,
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=update_user_self.s(),
+        )
 
         try:
             user_data = tornget(

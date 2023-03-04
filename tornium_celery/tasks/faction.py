@@ -877,10 +877,8 @@ def stat_db_attacks(faction_data, last_attacks=None):
     faction.save()
 
 
-@celery.shared_task(routing_key="default.oc_refresh", queue="default")
+@celery.shared_task(routing_key="quick.oc_refresh", queue="quick")
 def oc_refresh():
-    requests_session = requests.Session()
-
     faction: FactionModel
     for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
         if len(faction.aa_keys) == 0:
@@ -899,191 +897,192 @@ def oc_refresh():
 
         aa_key = random.choice(faction.aa_keys)
 
-        try:
-            oc_data = tornget(
-                "faction/?selections=crimes",
-                key=aa_key,
-                session=requests_session,
+        tornget.signature(
+            kwargs={
+                "endpoint": "faction/?selections=basic,crimes",
+                "key": aa_key,
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=oc_refresh_subtask.s(),
+        )
+
+
+@celery.shared_task(routing_key="default.oc_refresh_subtask", queue="default")
+def oc_refresh_subtask(oc_data):
+    faction: FactionModel = FactionModel.objects(tid=oc_data["ID"]).first()
+
+    if faction is None:
+        return
+
+    guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
+
+    if guild is None:
+        return
+
+    OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
+    OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
+
+    for oc_id, oc_data in oc_data["crimes"].items():
+        oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
+
+        oc_db: OCModel = oc_db_original.modify(
+            upsert=True,
+            new=True,
+            set__crime_id=oc_data["crime_id"],
+            set__participants=[int(list(participant.keys())[0]) for participant in oc_data["participants"]],
+            set__time_started=oc_data["time_started"],
+            set__time_ready=oc_data["time_ready"],
+            set__time_completed=oc_data["time_completed"],
+            set__planned_by=oc_data["planned_by"],
+            set__initiated_by=oc_data["initiated_by"],
+            set__money_gain=oc_data["money_gain"],
+            set__respect_gain=oc_data["respect_gain"],
+        )
+
+        oc_db_original = oc_db_original.first()
+
+        if oc_db_original is None:
+            continue
+        elif oc_db.time_completed != 0:
+            continue
+        elif oc_db.time_ready > int(time.time()):
+            continue
+
+        ready = list(
+            map(
+                lambda participant: list(participant.values())[0]["color"] == "green",
+                oc_data["participants"],
             )
-        except TornError as e:
-            if e.code == 7:
-                db_aa_keys = list(faction.aa_keys)
+        )
 
-                try:
-                    db_aa_keys.remove(aa_key)
-                    faction.aa_keys = db_aa_keys
-                    faction.save()
-                except ValueError:
-                    pass
-            continue
-        except NetworkingError:
-            continue
-        except Exception as e:
-            logger.exception(e)
-            continue
+        if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
+            # OC has been delayed
+            oc_db.notified = False
 
-        OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
-        OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
+            payload = {
+                "embeds": [
+                    {
+                        "title": f"OC of {faction.name} Delayed",
+                        "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
+                        f"({ready.count(True)}/{len(oc_data['participants'])}).",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": f"#{oc_db.ocid}"},
+                    }
+                ],
+                "components": [],
+            }
 
-        for oc_id, oc_data in oc_data["crimes"].items():
-            oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
+            roles = guild.oc_config[str(faction.tid)]["delay"]["roles"]
 
-            oc_db: OCModel = oc_db_original.modify(
-                upsert=True,
-                new=True,
-                set__crime_id=oc_data["crime_id"],
-                set__participants=[int(list(participant.keys())[0]) for participant in oc_data["participants"]],
-                set__time_started=oc_data["time_started"],
-                set__time_ready=oc_data["time_ready"],
-                set__time_completed=oc_data["time_completed"],
-                set__planned_by=oc_data["planned_by"],
-                set__initiated_by=oc_data["initiated_by"],
-                set__money_gain=oc_data["money_gain"],
-                set__respect_gain=oc_data["respect_gain"],
-            )
+            if len(roles) != 0:
+                roles_str = ""
 
-            oc_db_original = oc_db_original.first()
+                for role in roles:
+                    roles_str += f"<@&{role}>"
 
-            if oc_db_original is None:
-                continue
-            elif oc_db.time_completed != 0:
-                continue
-            elif oc_db.time_ready > int(time.time()):
-                continue
+                payload["content"] = roles_str
 
-            ready = list(
-                map(
-                    lambda participant: list(participant.values())[0]["color"] == "green",
-                    oc_data["participants"],
+            for participant in oc_data["participants"]:
+                participant_id = list(participant.keys())[0]
+                participant = participant[participant_id]
+
+                if participant["color"] != "green":
+                    oc_db.delayers.append(participant_id)
+
+                    participant_db: UserModel = UserModel.objects(tid=participant_id).first()
+
+                    if participant_db is None:
+                        payload["components"].append(
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": f"Unknown [{participant_id}]",
+                                        "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                    },
+                                    {
+                                        "type": 2,
+                                        "style": 2,
+                                        "label": f"{participant['description']}",
+                                        "custom_id": f"participant:delay:{participant_id}",
+                                        "disabled": True,
+                                    },
+                                ],
+                            }
+                        )
+                    else:
+                        payload["components"].append(
+                            {
+                                "type": 1,
+                                "components": [
+                                    {
+                                        "type": 2,
+                                        "style": 5,
+                                        "label": f"{participant_db.name} [{participant_id}]",
+                                        "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                    },
+                                    {
+                                        "type": 2,
+                                        "style": 2,
+                                        "label": f"{participant['description']}",
+                                        "custom_id": f"participant:delay:{participant_id}",
+                                        "disabled": True,
+                                    },
+                                ],
+                            }
+                        )
+
+            oc_db.save()
+
+            try:
+                discordpost.delay(
+                    f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
+                    payload=payload,
                 )
-            )
+            except Exception as e:
+                logger.exception(e)
+                continue
+        elif OC_READY and not oc_db.notified and all(ready):
+            # OC is ready
+            oc_db.notified = True
+            oc_db.save()
 
-            if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
-                # OC has been delayed
-                oc_db.notified = False
+            payload = {
+                "embeds": [
+                    {
+                        "title": f"OC of {faction.name} Ready",
+                        "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": f"#{oc_db.ocid}"},
+                    }
+                ],
+            }
 
-                payload = {
-                    "embeds": [
-                        {
-                            "title": f"OC of {faction.name} Delayed",
-                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
-                            f"({ready.count(True)}/{len(oc_data['participants'])}).",
-                            "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": f"#{oc_db.ocid}"},
-                        }
-                    ],
-                    "components": [],
-                }
+            roles = guild.oc_config[str(faction.tid)]["ready"]["roles"]
 
-                roles = guild.oc_config[str(faction.tid)]["delay"]["roles"]
+            if len(roles) != 0:
+                roles_str = ""
 
-                if len(roles) != 0:
-                    roles_str = ""
+                for role in roles:
+                    roles_str += f"<@&{role}>"
 
-                    for role in roles:
-                        roles_str += f"<@&{role}>"
+                payload["content"] = roles_str
 
-                    payload["content"] = roles_str
-
-                for participant in oc_data["participants"]:
-                    participant_id = list(participant.keys())[0]
-                    participant = participant[participant_id]
-
-                    if participant["color"] != "green":
-                        oc_db.delayers.append(participant_id)
-
-                        participant_db: UserModel = UserModel.objects(tid=participant_id).first()
-
-                        if participant_db is None:
-                            payload["components"].append(
-                                {
-                                    "type": 1,
-                                    "components": [
-                                        {
-                                            "type": 2,
-                                            "style": 5,
-                                            "label": f"Unknown [{participant_id}]",
-                                            "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
-                                        },
-                                        {
-                                            "type": 2,
-                                            "style": 2,
-                                            "label": f"{participant['description']}",
-                                            "custom_id": f"participant:delay:{participant_id}",
-                                            "disabled": True,
-                                        },
-                                    ],
-                                }
-                            )
-                        else:
-                            payload["components"].append(
-                                {
-                                    "type": 1,
-                                    "components": [
-                                        {
-                                            "type": 2,
-                                            "style": 5,
-                                            "label": f"{participant_db.name} [{participant_id}]",
-                                            "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
-                                        },
-                                        {
-                                            "type": 2,
-                                            "style": 2,
-                                            "label": f"{participant['description']}",
-                                            "custom_id": f"participant:delay:{participant_id}",
-                                            "disabled": True,
-                                        },
-                                    ],
-                                }
-                            )
-
-                oc_db.save()
-
-                try:
-                    discordpost.delay(
-                        f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
-                        payload=payload,
-                    )
-                except Exception as e:
-                    logger.exception(e)
-                    continue
-            elif OC_READY and not oc_db.notified and all(ready):
-                # OC is ready
-                oc_db.notified = True
-                oc_db.save()
-
-                payload = {
-                    "embeds": [
-                        {
-                            "title": f"OC of {faction.name} Ready",
-                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
-                            "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": f"#{oc_db.ocid}"},
-                        }
-                    ],
-                }
-
-                roles = guild.oc_config[str(faction.tid)]["ready"]["roles"]
-
-                if len(roles) != 0:
-                    roles_str = ""
-
-                    for role in roles:
-                        roles_str += f"<@&{role}>"
-
-                    payload["content"] = roles_str
-
-                try:
-                    discordpost.delay(
-                        f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
-                        payload=payload,
-                    )
-                except Exception as e:
-                    logger.exception(e)
-                    continue
+            try:
+                discordpost.delay(
+                    f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
+                    payload=payload,
+                )
+            except Exception as e:
+                logger.exception(e)
+                continue
 
 
-@celery.shared_task(routing_key="quick.auto_cancel_requests", queue="quick")
+@celery.shared_task(routing_key="default.auto_cancel_requests", queue="default")
 def auto_cancel_requests():
     withdrawal: WithdrawalModel
     for withdrawal in WithdrawalModel.objects(time_requested__gte=int(time.time()) - 7200):  # Two hours before now

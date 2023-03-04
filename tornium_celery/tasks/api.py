@@ -33,7 +33,7 @@ from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_rol
 logger = get_task_logger(__name__)
 
 
-@celery.shared_task(routing_key="api.tornget", queue="api")
+@celery.shared_task(time_limit=15, routing_key="api.tornget", queue="api")
 def tornget(
     endpoint,
     key,
@@ -730,7 +730,7 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
     return request_json
 
 
-@celery.shared_task(time_limit=5, routing_key="api.torn_stats_get", queue="api")
+@celery.shared_task(time_limit=15, routing_key="api.torn_stats_get", queue="api")
 def torn_stats_get(endpoint, key, session=None, autosleep=False):
     url = f"https://www.tornstats.com/api/v2/{key}/{endpoint}"
     redis_key = f"tornium:ts-ratelimit:{key}"

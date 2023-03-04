@@ -390,7 +390,7 @@ def stat_db_attacks_user(user_data):
             continue
 
         try:
-            if attack["attacker_id"] == user.tid:
+            if attack["defender_id"] == user.tid:
                 opponent_score = user_score / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
             else:
                 opponent_score = (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user_score

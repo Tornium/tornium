@@ -93,7 +93,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             queue="api",
         ).apply_async(
             expires=300,
-            link=update_user.s()
+            link=update_user_other.s()
         )
 
 

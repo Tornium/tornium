@@ -128,6 +128,6 @@ def recent_attacks(*args, **kwargs):
     return {
         "draw": request.args.get("draw"),
         "recordsTotal": AttackModel.objects().count(),
-        "recordsFiltered": attacks.count(),
+        "recordsFiltered": AttackModel.objects().count(),
         "data": returned_attacks_data,
     }

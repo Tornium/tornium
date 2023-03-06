@@ -18,6 +18,7 @@ import random
 import time
 import typing
 
+from billiard.exceptions import TimeLimitExceeded
 from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
@@ -137,6 +138,11 @@ def generate_chain_list(*args, **kwargs):
                             pass
                         else:
                             continue
+                    else:
+                        continue
+                except TimeLimitExceeded:
+                    if int(time.time()) - target.last_refresh <= 2592000:  # One day
+                        pass
                     else:
                         continue
 

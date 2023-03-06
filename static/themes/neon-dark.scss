@@ -31,6 +31,10 @@
 
     .card {
         border-color: $white;
+
+        .card-header {
+            border-color: $white;
+        }
     }
 
     @media (max-height: 992px) {

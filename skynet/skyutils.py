@@ -62,7 +62,7 @@ def get_admin_keys(interaction):
         return tuple([invoker.key])
 
     if "guild_id" in interaction:
-        server = ServerModel.objects(interaction["guild_id"]).first()
+        server = ServerModel.objects(sid=interaction["guild_id"]).first()
 
         if server is None:
             return tuple(admin_keys)

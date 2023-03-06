@@ -274,4 +274,5 @@ if celery_app is None:
         }
 
     celery_app.conf.beat_schedule = schedule
+    celery_app.conf.result_expires = 180  # Results are evicted from Redis cache after three minutes
     celery_app.set_default()

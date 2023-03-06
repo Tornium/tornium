@@ -33,7 +33,7 @@ from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_rol
 logger = get_task_logger(__name__)
 
 
-@celery.shared_task(time_limit=15, routing_key="api.tornget", queue="api")
+@celery.shared_task(time_limit=5, routing_key="api.tornget", queue="api")
 def tornget(
     endpoint,
     key,
@@ -82,9 +82,9 @@ def tornget(
 
     try:
         if session is None:
-            request = requests.get(url, timeout=15)
+            request = requests.get(url, timeout=5)
         else:
-            request = session.get(url, timeout=15)
+            request = session.get(url, timeout=5)
     except requests.exceptions.Timeout:
         logger.info(f'The Torn API has timed out on endpoint "{endpoint}"')
         raise NetworkingError(code=408, url=url)

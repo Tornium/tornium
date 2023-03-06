@@ -70,8 +70,6 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
     if user is not None and not refresh_existing:
         return user, {"refresh": False}
-    if update_self and user is None:
-        return None, {"refresh": False}
 
     if update_self:
         result = tornget.signature(

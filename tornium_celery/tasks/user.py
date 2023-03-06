@@ -82,7 +82,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             queue="api",
         ).apply_async(
             expires=300,
-            link=update_user_self.s()
+            link=update_user_self.s(key)
         )
     else:
         result = tornget.signature(
@@ -101,12 +101,13 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
 
 @celery.shared_task(routing_key="quick.update_user_self", queue="quick")
-def update_user_self(user_data):
+def update_user_self(key, user_data):
     user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
         upsert=True,
         new=True,
         set__name=user_data["name"],
         set__level=user_data["level"],
+        set__key=key,
         set__last_refresh=int(time.time()),
         set__battlescore=(
             math.sqrt(user_data["strength"])
@@ -228,7 +229,7 @@ def refresh_users():
             queue="api",
         ).apply_async(
             expires=300,
-            link=update_user_self.s(),
+            link=update_user_self.s(user.key),
         )
 
 

@@ -370,7 +370,7 @@ def check_faction_ods(faction_od_data):
             discordpost.delay(
                 f'channels/{faction.chainconfig["odchannel"]}/messages',
                 payload=payload,
-            )
+            ).forget()
         elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(tid).get(
             "contributed"
         ):
@@ -403,7 +403,7 @@ def check_faction_ods(faction_od_data):
             discordpost.delay(
                 f'channels/{faction.chainconfig["odchannel"]}/messages',
                 payload=payload,
-            )
+            ).forget()
 
     faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
     faction.save()
@@ -674,7 +674,7 @@ def retal_attacks(faction_data, last_attacks=None):
                 f"channels/{guild.retal_config[str(faction.tid)]}/messages",
                 payload,
                 bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
-            )
+            ).forget()
         except DiscordError as e:
             if e.code == 10003:
                 logger.warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
@@ -822,7 +822,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
                 )
 
         try:
-            update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys))
+            update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys)).forget()
         except (TornError, NetworkingError):
             continue
         except Exception as e:
@@ -1042,7 +1042,7 @@ def oc_refresh_subtask(oc_data):
                 discordpost.delay(
                     f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 continue
@@ -1191,4 +1191,4 @@ def auto_cancel_requests():
                     }
                 ]
             },
-        )
+        ).forget()

@@ -34,14 +34,14 @@ logger = get_task_logger(__name__)
 def user_stakeouts():
     stakeout: UserStakeoutModel
     for stakeout in UserStakeoutModel.objects():
-        user_stakeout.delay(stakeout=stakeout.tid)
+        user_stakeout.delay(stakeout=stakeout.tid).forget()
 
 
 @celery.shared_task(routing_key="quick.faction_stakeouts", queue="quick")
 def faction_stakeouts():
     stakeout: FactionStakeoutModel
     for stakeout in FactionStakeoutModel.objects():
-        faction_stakeout.delay(stakeout=stakeout.tid)
+        faction_stakeout.delay(stakeout=stakeout.tid).forget()
 
 
 @celery.shared_task(routing_key="default.user_stakeouts", queue="default")
@@ -150,7 +150,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 discordpost.delay(
                     f'channels/{guild_stakeout["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 return
@@ -184,7 +184,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 discordpost.delay(
                     f'channels/{guild_stakeout["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 return
@@ -225,7 +225,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 discordpost.delay(
                     f'channels/{guild_stakeout["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 return
@@ -263,7 +263,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 discordpost.delay(
                     f'channels/{guild_stakeout["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 return
@@ -310,7 +310,7 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 discordpost.delay(
                     f'channels/{guild_stakeout["channel"]}/messages',
                     payload=payload,
-                )
+                ).forget()
             except Exception as e:
                 logger.exception(e)
                 return
@@ -429,7 +429,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -470,7 +470,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -512,7 +512,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -554,7 +554,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -600,7 +600,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -646,7 +646,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -687,7 +687,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -728,7 +728,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -783,7 +783,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -840,7 +840,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -896,7 +896,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -950,7 +950,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -1003,7 +1003,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         discordpost.delay(
                             f'channels/{guild_stakeout["channel"]}/messages',
                             payload=payload,
-                        )
+                        ).forget()
                     except Exception as e:
                         logger.exception(e)
                         return
@@ -1061,7 +1061,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             discordpost.delay(
                                 f'channels/{guild_stakeout["channel"]}/messages',
                                 payload=payload,
-                            )
+                            ).forget()
                         except Exception as e:
                             logger.exception(e)
                             return
@@ -1130,7 +1130,7 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                             discordpost.delay(
                                 f'channels/{guild_stakeout["channel"]}/messages',
                                 payload=payload,
-                            )
+                            ).forget()
                         except Exception as e:
                             logger.exception(e)
                             return

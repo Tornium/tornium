@@ -48,7 +48,7 @@ ATTACK_RESULTS = {
 
 
 @celery.shared_task(routing_key="default.update_user", queue="default")
-def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True, wait=False):
+def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key is None or key == "":
         raise MissingKeyError
     elif tid != 0 and discordid != 0:
@@ -84,8 +84,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
             queue="api",
         ).apply_async(expires=300, link=update_user_other.s())
 
-    if wait:
-        result.get()
+    return result
 
 
 @celery.shared_task(routing_key="quick.update_user_self", queue="quick")
@@ -217,6 +216,7 @@ def refresh_users():
         ).apply_async(
             expires=300,
             link=update_user_self.s(),
+            ignore_result=True,
         )
 
 
@@ -373,7 +373,7 @@ def stat_db_attacks_user(user_data):
                 )
 
         try:
-            update_user.delay(tid=opponent_id, key=user.key)
+            update_user.delay(tid=opponent_id, key=user.key).forget()
         except (TornError, NetworkingError):
             continue
         except Exception as e:

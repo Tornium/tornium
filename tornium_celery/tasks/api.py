@@ -23,14 +23,11 @@ if globals().get("orjson:loaded"):
 
 import celery
 import requests
-from celery.utils.log import get_task_logger
 
 from tornium_commons import Config, rds
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
 from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_role
-
-logger = get_task_logger(__name__)
 
 
 @celery.shared_task(time_limit=5, routing_key="api.tornget", queue="api")
@@ -75,10 +72,7 @@ def tornget(
                 else:
                     raise RatelimitError
     except TypeError:
-        logger.warning(
-            f"Error raised on API key {key} with redis return value {redis_client.get(redis_key)} and redis "
-            f"key {redis_key}"
-        )
+        pass
 
     try:
         if session is None:
@@ -86,11 +80,9 @@ def tornget(
         else:
             request = session.get(url, timeout=5)
     except requests.exceptions.Timeout:
-        logger.info(f'The Torn API has timed out on endpoint "{endpoint}"')
         raise NetworkingError(code=408, url=url)
 
     if request.status_code != 200:
-        logger.warning(f'The Torn API has responded with status code {request.status_code} to endpoint "{endpoint}".')
         raise NetworkingError(code=request.status_code, url=url)
 
     if globals().get("orjson:loaded"):
@@ -99,10 +91,6 @@ def tornget(
         request = request.json()
 
     if "error" in request:
-        logger.info(
-            f'The Torn API has responded with error code {request["error"]["code"]} '
-            f'({request["error"]["error"]}) to {url}).'
-        )
         raise TornError(code=request["error"]["code"], endpoint=url)
 
     return request
@@ -136,8 +124,6 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
         request = session.get(url, headers=headers)
 
     if request.status_code == 429:
-        logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
-
         if (
             bucket is not None
             and "X-RateLimit-Global" in request.headers
@@ -149,7 +135,6 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
@@ -168,7 +153,6 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
@@ -195,9 +179,6 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            logger.warning(
-                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-            )
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
@@ -206,22 +187,15 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
-        logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
-            f"to {url})."
-        )
-        logger.debug(request_json)
-
         if request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
-                remove_unknown_channel.delay(kwargs.get("channel"))
+                remove_unknown_channel.delay(kwargs.get("channel")).forget()
         elif request_json["code"] == 10011:
             if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role"))
+                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -263,8 +237,6 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         request = session.patch(url, headers=headers, data=payload)
 
     if request.status_code == 429:
-        logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
-
         if (
             bucket is not None
             and "X-RateLimit-Global" in request.headers
@@ -276,7 +248,6 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
@@ -295,7 +266,6 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
@@ -322,9 +292,6 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            logger.warning(
-                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-            )
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
@@ -333,22 +300,15 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
-        logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
-            f"to {url})."
-        )
-        logger.debug(request_json)
-
         if request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
-                remove_unknown_channel.delay(kwargs.get("channel"))
+                remove_unknown_channel.delay(kwargs.get("channel")).forget()
         elif request_json["code"] == 10011:
             if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role"))
+                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -390,8 +350,6 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
         request = session.post(url, headers=headers, data=payload)
 
     if request.status_code == 429:
-        logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
-
         if (
             bucket is not None
             and "X-RateLimit-Global" in request.headers
@@ -403,7 +361,6 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
@@ -422,7 +379,6 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
@@ -449,9 +405,6 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            logger.warning(
-                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-            )
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
@@ -460,22 +413,15 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
-        logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
-            f"to {url})."
-        )
-        logger.debug(request_json)
-
         if request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
-                remove_unknown_channel.delay(kwargs.get("channel"))
+                remove_unknown_channel.delay(kwargs.get("channel")).forget()
         elif request_json["code"] == 10011:
             if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role"))
+                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -517,8 +463,6 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
         request = session.put(url, headers=headers, data=payload)
 
     if request.status_code == 429:
-        logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
-
         if (
             bucket is not None
             and "X-RateLimit-Global" in request.headers
@@ -530,7 +474,6 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
@@ -549,7 +492,6 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
@@ -576,9 +518,6 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            logger.warning(
-                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-            )
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
@@ -587,22 +526,15 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
-        logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]}) '
-            f"to {url})."
-        )
-        logger.debug(request_json)
-
         if request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
-                remove_unknown_channel.delay(kwargs.get("channel"))
+                remove_unknown_channel.delay(kwargs.get("channel")).forget()
         elif request_json["code"] == 10011:
             if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role"))
+                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -639,8 +571,6 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
         request = session.delete(url, headers=headers)
 
     if request.status_code == 429:
-        logger.warning(f"The Discord API has ratelimited endpoint {endpoint}.")
-
         if (
             bucket is not None
             and "X-RateLimit-Global" in request.headers
@@ -652,7 +582,6 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
                 "tornium:discord:ratelimit:global",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning("The Discord API has enabled a global ratelimit.")
 
             if retry:
                 self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
@@ -671,7 +600,6 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
                 f"tornium:discord:ratelimit:bucket:{bucket}",
                 math.ceil(float(request.headers["X-RateLimit-ResetAfter"])),
             )
-            logger.warning(f"The Discord API has enabled a bucket ratelimit on bucket {bucket}")
 
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
@@ -698,9 +626,6 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            logger.warning(
-                f'The Discord API has responded with status code {request.status_code} to endpoint "{endpoint}".'
-            )
             raise NetworkingError(code=request.status_code, url=url)
         else:
             raise e
@@ -709,22 +634,15 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
         # See https://discord.com/developers/docs/topics/opcodes-and-status-codes#json for a full list of error codes
         # explanations
 
-        logger.warning(
-            f'The Discord API has responded with error code {request_json["code"]} ({request_json["message"]} '
-            f"to {url})."
-        )
-        logger.debug(request_json)
-
         if request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
-                remove_unknown_channel.delay(kwargs.get("channel"))
+                remove_unknown_channel.delay(kwargs.get("channel")).forget()
         elif request_json["code"] == 10011:
             if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role"))
+                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
-        logger.warning(f"The Discord API has responded with HTTP {request.status_code} to {url}).")
         raise NetworkingError(code=request.status_code, url=url)
 
     return request_json
@@ -756,13 +674,9 @@ def torn_stats_get(endpoint, key, session=None, autosleep=False):
         else:
             request = session.get(url, timeout=15)
     except requests.exceptions.Timeout:
-        logger.info(f'The Torn Stats API has timed out on endpoint "{endpoint}"')
         raise NetworkingError(code=408, url=url)
 
     if request.status_code // 100 != 2:
-        logger.warning(
-            f'The Torn Stats API has responded with HTTP status code {request.status_code} to endpoint "{endpoint}".'
-        )
         raise NetworkingError(code=request.status_code, url=url)
 
     if globals().get("orjson:loaded"):

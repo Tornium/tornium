@@ -184,9 +184,9 @@ def fetch_stock_ticks():
             except NetworkingError:
                 continue
 
-            discordpost.delay(f"channels/{dm_channel['id']}/messages", payload=payload)
+            discordpost.delay(f"channels/{dm_channel['id']}/messages", payload=payload).forget()
         elif notification.recipient_type == 1:
-            discordpost.delay(f"channels/{notification.recipient}/messages", payload=payload)
+            discordpost.delay(f"channels/{notification.recipient}/messages", payload=payload).forget()
         else:
             continue
 

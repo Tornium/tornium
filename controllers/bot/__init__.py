@@ -80,8 +80,3 @@ mod.add_url_rule(
 @mod.route("/bot")
 def index():
     return render_template("bot/index.html")
-
-
-@mod.route("/bot/host")
-def hosting():
-    return render_template("bot/host.html")

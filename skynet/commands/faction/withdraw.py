@@ -15,22 +15,20 @@
 
 import datetime
 import random
+import time
 
-import redisdb
-import tasks
-import utils
-from models.faction import Faction
-from models.server import Server
-from models.user import User
-from models.usermodel import UserModel
-from models.withdrawalmodel import WithdrawalModel
-from skynet.skyutils import SKYNET_ERROR, get_admin_keys, get_faction_keys, invoker_exists
+from tornium_celery.tasks.api import discordpost, tornget
+from tornium_commons import rds
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.formatters import commas, find_list, text_to_num
+from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.skyutils import SKYNET_ERROR
+
+from skynet.skyutils import get_admin_keys, get_faction_keys, invoker_exists
 
 
 @invoker_exists
 def withdraw(interaction, *args, **kwargs):
-    print(interaction)
-
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -46,7 +44,23 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    server = Server(interaction["guild_id"])
+    server = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+    if server is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+
     user: UserModel = kwargs["invoker"]
 
     if "options" not in interaction["data"]:
@@ -68,7 +82,7 @@ def withdraw(interaction, *args, **kwargs):
     # -1: default
     # 0: cash (default)
     # 1: points
-    withdrawal_option = utils.find_list(interaction["data"]["options"], "name", "option")
+    withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
     if withdrawal_option == -1:
         withdrawal_option = 0
@@ -113,44 +127,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys))
-
-        if user.factiontid == 0:
-            user.refresh(key=random.choice(admin_keys), force=True)
-
-            if user.factiontid == 0:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Faction ID Error",
-                                "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                f"set regardless of a force refresh.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,  # Ephemeral
-                    },
-                }
-    except utils.MissingKeyError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    client = redisdb.get_redis()
+    client = rds()
 
     if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
         return {
@@ -171,7 +148,7 @@ def withdraw(interaction, *args, **kwargs):
         client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
         client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
 
-    withdrawal_amount = utils.find_list(interaction["data"]["options"], "name", "amount")
+    withdrawal_amount = find_list(interaction["data"]["options"], "name", "amount")
 
     if withdrawal_amount == -1:
         return {
@@ -194,11 +171,25 @@ def withdraw(interaction, *args, **kwargs):
         if withdrawal_amount.lower() == "all":
             withdrawal_amount = "all"
         else:
-            withdrawal_amount = utils.text_to_num(withdrawal_amount)
+            withdrawal_amount = text_to_num(withdrawal_amount)
 
-    faction = Faction(user.factiontid)
+    faction = FactionModel.objects(tid=user.factionid).first()
 
-    if user.factiontid not in server.factions:
+    if faction is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+    elif user.factionid not in server.factions:
         return {
             "type": 4,
             "data": {
@@ -214,11 +205,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    if (
-        faction.vault_config.get("banking") in [0, None]
-        or faction.vault_config.get("banker") in [0, None]
-        or faction.config.get("vault") in [0, None]
-    ):
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -253,8 +240,8 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     try:
-        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
-    except utils.TornError as e:
+        faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))
+    except TornError as e:
         return {
             "type": 4,
             "data": {
@@ -268,7 +255,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -350,11 +337,11 @@ def withdraw(interaction, *args, **kwargs):
 
     if withdrawal_amount != "all":
         message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting {utils.commas(withdrawal_amount)} "
+                    "description": f"{user.name} [{user.tid}] is requesting {commas(withdrawal_amount)} "
                     f"in {'points' if withdrawal_option == 1 else 'cash'}"
                     f" from the faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
@@ -390,12 +377,12 @@ def withdraw(interaction, *args, **kwargs):
         }
     else:
         message_payload = {
-            "content": f'<@&{faction.vault_config["banker"]}>',
+            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
                     "description": f"{user.name} [{user.tid}] is requesting "
-                    f"{utils.commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
+                    f"{commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
                     f"{'points' if withdrawal_option == 1 else 'cash'}"
                     f" from the faction vault. "
                     f"To fulfill this request, enter `?f {request_id}` in this channel.",
@@ -430,8 +417,8 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    message = tasks.discordpost(
-        f'channels/{faction.vault_config["banking"]}/messages',
+    message = discordpost(
+        f'channels/{faction.vaultconfig["banking"]}/messages',
         payload=message_payload,
     )
 
@@ -441,8 +428,8 @@ def withdraw(interaction, *args, **kwargs):
         if withdrawal_amount != "all"
         else faction_balances[str(user.tid)][withdrawal_option_str],
         requester=user.tid,
-        factiontid=user.factiontid,
-        time_requested=utils.now(),
+        factiontid=user.factionid,
+        time_requested=int(time.time()),
         fulfiller=0,
         time_fulfilled=0,
         withdrawal_message=message["id"],

@@ -34,6 +34,7 @@ $(document).ready(function() {
             {data: "result"},
             {data: "timestamp"}
         ],
+        "pagingType": "simple",
         "scrollX": true
     });
 

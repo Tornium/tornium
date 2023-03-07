@@ -18,20 +18,19 @@ import random
 import time
 from urllib.parse import parse_qs, urlparse
 
-import redisdb
-import tasks
-import utils
-from models.factionmodel import FactionModel
-from models.servermodel import ServerModel
-from models.user import User
-from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, get_admin_keys, invoker_exists
+from tornium_celery.tasks.api import discordpost
+from tornium_celery.tasks.user import update_user
+from tornium_commons import rds
+from tornium_commons.errors import DiscordError, NetworkingError
+from tornium_commons.formatters import find_list
+from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR
+
+from skynet.skyutils import get_admin_keys, invoker_exists
 
 
 @invoker_exists
 def assist(interaction, *args, **kwargs):
-    print(interaction)
-
     start_time = time.time()
     user: UserModel = kwargs["invoker"]
 
@@ -50,8 +49,8 @@ def assist(interaction, *args, **kwargs):
             },
         }
 
-    tid = utils.find_list(interaction["data"]["options"], "name", "tornid")
-    url = utils.find_list(interaction["data"]["options"], "name", "url")
+    tid = find_list(interaction["data"]["options"], "name", "tornid")
+    url = find_list(interaction["data"]["options"], "name", "url")
 
     if (tid == -1 and url == -1) or (tid != -1 and url != -1):
         return {
@@ -68,7 +67,7 @@ def assist(interaction, *args, **kwargs):
             },
         }
     elif tid != -1:
-        target: User = User(tid[1]["value"])
+        target_id = tid[1]["value"]
     elif url != -1:
         # https://www.torn.com/loader.php?sid=attack&user2ID=1
         parsed_url = urlparse(url[1]["value"])
@@ -78,7 +77,7 @@ def assist(interaction, *args, **kwargs):
             and parsed_url.path in ("/loader.php", "/loader2.php")
             and parse_qs(parsed_url.query)["sid"][0] in ("attack", "getInAttack")
         ):
-            target: User = User(parse_qs(parsed_url.query)["user2ID"][0])
+            target_id = parse_qs(parsed_url.query)["user2ID"][0]
         else:
             return {
                 "type": 4,
@@ -108,6 +107,25 @@ def assist(interaction, *args, **kwargs):
             },
         }
 
+    if rds().get(f"tornium:assist-ratelimit:{user.tid}") is not None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Ratelimit Reached",
+                        "description": "You have reached the ratelimit for assist requests (once every thirty "
+                        "seconds).",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+    else:
+        rds().set(f"tornium:assist-ratelimit:{user.tid}", 1)
+        rds().expire(f"tornium:assist-ratelimit:{user.tid}", 30)
+
     if user.key != "" or "guild_id" in interaction:
         keys = kwargs.get("admin_keys")
 
@@ -130,7 +148,7 @@ def assist(interaction, *args, **kwargs):
                 },
             }
 
-        target.refresh(key=random.choice(get_admin_keys(interaction)))
+        update_user(random.choice(get_admin_keys(interaction)), tid=target_id, wait=True)
     else:
         return {
             "type": 4,
@@ -147,24 +165,22 @@ def assist(interaction, *args, **kwargs):
             },
         }
 
-    if redisdb.get_redis().get(f"tornium:assist-ratelimit:{user.tid}") is not None:
+    target: UserModel = UserModel.objects(tid=target_id).first()
+
+    if target is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Ratelimit Reached",
-                        "description": "You have reached the ratelimit for assist requests (once every thirty "
-                        "seconds).",
+                        "title": "User Not Located",
+                        "description": "The target could not be found in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
             },
         }
-    else:
-        redisdb.get_redis().set(f"tornium:assist-ratelimit:{user.tid}", 1)
-        redisdb.get_redis().expire(f"tornium:assist-ratelimit:{user.tid}", 30)
 
     if target.tid == user.tid:
         return {
@@ -181,7 +197,7 @@ def assist(interaction, *args, **kwargs):
             },
         }
 
-    target_faction: FactionModel = FactionModel.objects(tid=target.factiontid).first()
+    target_faction: FactionModel = FactionModel.objects(tid=target.factionid).first()
     servers_forwarded = []
 
     server: ServerModel
@@ -252,7 +268,7 @@ def assist(interaction, *args, **kwargs):
                             "type": 2,
                             "style": 5,
                             "label": "Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={target.factiontid}#/",
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={target.factionid}#/",
                         },
                     ],
                 },
@@ -277,10 +293,10 @@ def assist(interaction, *args, **kwargs):
         }
 
         try:
-            tasks.discordpost(f"channels/{server.assistschannel}/messages", data)
-        except utils.DiscordError:
+            discordpost(f"channels/{server.assistschannel}/messages", data)
+        except DiscordError:
             continue
-        except utils.NetworkingError:
+        except NetworkingError:
             continue
 
         servers_forwarded.append(server)

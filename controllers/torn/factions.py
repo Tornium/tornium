@@ -17,11 +17,10 @@ from flask import abort, jsonify, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
-import utils
+from tornium_commons.formatters import commas
+from tornium_commons.models import FactionModel, UserModel
+
 from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.user import User
-from models.usermodel import UserModel
 
 
 @login_required
@@ -61,7 +60,7 @@ def factions_data():
 
     faction: FactionModel
     for faction in factions_db:
-        factions.append([faction.tid, faction.name, utils.commas(faction.respect)])
+        factions.append([faction.tid, faction.name, commas(faction.respect)])
 
     data = {
         "draw": request.args.get("draw"),
@@ -80,12 +79,6 @@ def faction_data(tid: int):
 
     Faction(tid).refresh(key=current_user.key, force=True)
     faction: FactionModel = FactionModel.objects(tid=tid).first()
-
-    leader: User = User(faction.leader)
-    leader.refresh(key=current_user.key)
-    if faction.coleader != 0:
-        coleader: User = User(faction.coleader)
-        coleader.refresh(key=current_user.key)
 
     leader: UserModel = UserModel.objects(tid=faction.leader).first()
     coleader: UserModel = UserModel.objects(tid=faction.coleader).first()

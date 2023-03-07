@@ -20,9 +20,11 @@ import click
 import requests
 from flask import Blueprint
 
-import tasks
-import utils
-from redisdb import get_redis
+from tornium_celery.tasks.api import discordput
+from tornium_commons import rds
+from tornium_commons.errors import DiscordError
+
+from utils.tornium_ext import TorniumExt
 
 mod = Blueprint("cli", __name__)
 
@@ -42,7 +44,7 @@ def update_commands(verbose=False):
     botlogger.addHandler(handler)
 
     session = requests.Session()
-    application_id = get_redis().get("tornium:settings:skynet-applicationid")
+    application_id = rds().get("tornium:settings:skynet-applicationid")
     botlogger.debug(application_id)
 
     commands_data = []
@@ -58,8 +60,8 @@ def update_commands(verbose=False):
     if verbose:
         click.echo("Searching for installed Tornium extensions...")
 
-    tornium_ext: utils.tornium_ext.TorniumExt
-    for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
+    tornium_ext: TorniumExt
+    for tornium_ext in TorniumExt.__iter__():
         if verbose:
             click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
 
@@ -72,13 +74,13 @@ def update_commands(verbose=False):
     botlogger.debug(commands_data)
 
     try:
-        commands_data = tasks.discordput(
+        commands_data = discordput(
             f"applications/{application_id}/commands",
             commands_data,
             session=session,
         )
         botlogger.info(commands_data)
-    except utils.DiscordError as e:
+    except DiscordError as e:
         botlogger.error(e)
         click.echo(f"Command export failed due to Discord API error {e.code}")
         raise e

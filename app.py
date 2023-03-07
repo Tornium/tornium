@@ -42,10 +42,10 @@ from flask_cors import CORS
 from flask_login import LoginManager
 from mongoengine import connect
 
-from redisdb import get_redis
-from utils.config import Config
+from tornium_commons import Config, rds
+from tornium_commons.formatters import commas, rel_time, torn_timestamp
 
-redis = get_redis()
+redis = rds()
 config = Config().load()
 
 if not hasattr(sys, "_called_from_test"):
@@ -139,17 +139,17 @@ def load_user(user_id):
 
 @app.template_filter("reltime")
 def relative_time(s):
-    return utils.rel_time(datetime.datetime.fromtimestamp(s))
+    return rel_time(datetime.datetime.fromtimestamp(s))
 
 
 @app.template_filter("tcttime")
 def tct_time(s):
-    return utils.torn_timestamp(int(s))
+    return torn_timestamp(int(s))
 
 
 @app.template_filter("commas")
-def commas(s):
-    return utils.commas(int(s))
+def commas_filter(s):
+    return commas(int(s))
 
 
 @app.before_request

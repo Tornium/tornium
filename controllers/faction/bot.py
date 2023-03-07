@@ -16,13 +16,14 @@
 from flask import flash, render_template, request
 from flask_login import current_user, fresh_login_required
 
-import tasks
+from tornium_celery.tasks.api import discordget
+from tornium_commons.errors import DiscordError, NetworkingError
+from tornium_commons.models import FactionModel, ServerModel
+
 import utils
 from controllers.faction.decorators import aa_required, fac_required
 from models.faction import Faction
-from models.factionmodel import FactionModel
 from models.server import Server
-from models.servermodel import ServerModel
 
 
 @fresh_login_required
@@ -72,14 +73,14 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                channel = tasks.discordget(f'channels/{request.form.get("banking")}')
-            except utils.DiscordError as e:
+                channel = discordget(f'channels/{request.form.get("banking")}')
+            except DiscordError as e:
                 return utils.handle_discord_error(e)
-            except utils.NetworkingError as e:
+            except NetworkingError as e:
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code " f"{utils.remove_str(str(e))}.",
+                    error=f"The Discord API has responded with HTTP error code {e.code}.",
                 )
             except Exception as e:
                 return render_template("errors/error.html", title="Error", error=str(e))
@@ -97,14 +98,14 @@ def bot(*args, **kwargs):
                 )
 
             try:
-                roles = tasks.discordget(f"guilds/{faction.guild}/roles")
-            except utils.DiscordError as e:
+                roles = discordget(f"guilds/{faction.guild}/roles")
+            except DiscordError as e:
                 return utils.handle_discord_error(e)
-            except utils.NetworkingError as e:
+            except NetworkingError as e:
                 return render_template(
                     "errors/error.html",
                     title="Discord Networking Error",
-                    error=f"The Discord API has responded with HTTP error code " f"{utils.remove_str(str(e))}.",
+                    error=f"The Discord API has responded with HTTP error code {e.code}.",
                 )
             except Exception as e:
                 return render_template("errors/error.html", title="Error", error=str(e))

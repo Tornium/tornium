@@ -117,8 +117,3 @@ mod.add_url_rule("/api/stat/<int:tid>", view_func=stat.get_stat_user, methods=["
 
 # /api/user
 mod.add_url_rule("/api/user", view_func=user.get_user, methods=["GET"])
-
-
-@mod.route("/api")
-def index():
-    return render_template("api/index.html")

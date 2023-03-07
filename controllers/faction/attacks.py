@@ -17,11 +17,11 @@ from flask import render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 
-import utils
+from tornium_commons.formatters import commas, rel_time
+from tornium_commons.models import AttackModel, FactionModel, UserModel
+
 from controllers.faction.decorators import fac_required
-from models.attackmodel import AttackModel
-from models.factionmodel import FactionModel
-from models.usermodel import UserModel
+
 
 ATTACK_RESULTS = {
     "Lost": 0,
@@ -84,11 +84,11 @@ def recent_attacks(*args, **kwargs):
             "attacker_faction": "",
             "defender": "",
             "defender_faction": "",
-            "respect": utils.commas(attack.respect),
+            "respect": commas(attack.respect),
             "result": next(
                 (result for result, result_id in ATTACK_RESULTS.items() if result_id == attack.result), "Unknown"
             ),
-            "timestamp": utils.rel_time(attack.timestamp_ended),
+            "timestamp": rel_time(attack.timestamp_ended),
         }
 
         if attacker is not None:
@@ -128,6 +128,6 @@ def recent_attacks(*args, **kwargs):
     return {
         "draw": request.args.get("draw"),
         "recordsTotal": AttackModel.objects().count(),
-        "recordsFiltered": attacks.count(),
+        "recordsFiltered": AttackModel.objects().count(),
         "data": returned_attacks_data,
     }

@@ -15,8 +15,8 @@
 
 import operator
 
-import tasks
-from models.servermodel import ServerModel
+from tornium_celery.tasks.api import discordget
+from tornium_commons.models import ServerModel
 
 
 class Server:
@@ -63,7 +63,7 @@ class Server:
             else:
                 return value
 
-        channels_query = tasks.discordget(f"guilds/{self.sid}/channels")
+        channels_query = discordget(f"guilds/{self.sid}/channels")
         channels = {"0": {"name": "", "channels": {}, "position": -1}}
 
         for channel in channels_query:
@@ -115,7 +115,7 @@ class Server:
             else:
                 return value
 
-        roles_query = tasks.discordget(f"guilds/{self.sid}")
+        roles_query = discordget(f"guilds/{self.sid}")
         roles = {}
 
         for role in roles_query.get("roles"):

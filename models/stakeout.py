@@ -13,12 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
+
 from flask_login import current_user
 
-import tasks
-import utils
-from models.factionstakeoutmodel import FactionStakeoutModel
-from models.userstakeoutmodel import UserStakeoutModel
+from tornium_celery.tasks.api import tornget
+from tornium_commons.errors import TornError, NetworkingError
+from tornium_commons.models import FactionStakeoutModel, UserStakeoutModel
 
 
 class Stakeout:
@@ -29,27 +30,21 @@ class Stakeout:
             stakeout = FactionStakeoutModel.objects(tid=tid).first()
 
         if stakeout is None:
-            now = utils.now()
+            now = int(time.time())
             guilds = {} if guild is None else {str(guild): {"keys": [], "channel": 0}}
 
             if user:
                 try:
-                    data = tasks.tornget(
-                        f"user/{tid}?selections=",
-                        key if key != "" else current_user.key,
-                    )
-                except (utils.TornError, utils.NetworkingError):
+                    data = tornget(f"user/{tid}?selections=", key if key != "" else current_user.key)
+                except (TornError, NetworkingError):
                     data = {}
 
                 stakeout = UserStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)
 
             else:
                 try:
-                    data = tasks.tornget(
-                        f"faction/{tid}?selections=",
-                        key if key != "" else current_user.key,
-                    )
-                except (utils.TornError, utils.NetworkingError):
+                    data = tornget(f"faction/{tid}?selections=", key if key != "" else current_user.key)
+                except (TornError, NetworkingError):
                     data = {}
 
                 stakeout = FactionStakeoutModel(tid=tid, data=data, guilds=guilds, last_update=now)

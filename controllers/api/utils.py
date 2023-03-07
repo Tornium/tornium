@@ -18,7 +18,7 @@ import json
 import redis
 from flask import Response
 
-import redisdb
+from tornium_commons import rds
 
 API_EXCEPTIONS = {
     "0000": {
@@ -232,9 +232,7 @@ def json_api_exception(code: str, details=None):
 
 def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
     if client is None:
-        client = redisdb.get_redis()
-    else:
-        assert client.ping()  # nosec B101
+        client = rds()
 
     return {
         "X-RateLimit-Limit": 250,

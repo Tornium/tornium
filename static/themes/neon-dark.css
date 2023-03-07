@@ -23,6 +23,9 @@
 [data-bs-theme=neon-dark] .card {
   border-color: rgb(229, 229, 229);
 }
+[data-bs-theme=neon-dark] .card .card-header {
+  border-color: rgb(229, 229, 229);
+}
 @media (max-height: 992px) {
   [data-bs-theme=neon-dark] .secondary {
     height: fit-content;

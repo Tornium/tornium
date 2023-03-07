@@ -30,10 +30,13 @@ dependencies = [
     "flask ~= 2.2.2",
     "flask-cors ~= 3.0.10",
     "flask-login ~= 0.6.2",
+    "gevent ~= 22.10.2",
     "mongoengine ~= 0.26.0",
     "pynacl ~= 1.5.0",
     "redis ~= 4.5.1",
-    "requests ~= 2.28.2"
+    "requests ~= 2.28.2",
+    "tornium_commons @ git+https://github.com/Tornium/tornium-commons@master#egg=tornium-commons",
+    "tornium_celery @ git+https://github.com/Tornium/tornium-celery@master#egg=tornium-celery"
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]

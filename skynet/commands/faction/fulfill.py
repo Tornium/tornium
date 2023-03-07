@@ -14,22 +14,21 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import random
+import time
 
-import tasks
-import utils
+from tornium_celery.tasks.api import discordpatch
+from tornium_commons.errors import DiscordError, NetworkingError
+from tornium_commons.formatters import commas, find_list, torn_timestamp
+from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
 from models.faction import Faction
-from models.server import Server
 from models.user import User
-from models.usermodel import UserModel
-from models.withdrawalmodel import WithdrawalModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys, invoker_exists
 
 
 @invoker_exists
 def fulfill_command(interaction, *args, **kwargs):
-    print(interaction)
-
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -45,7 +44,23 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    server = Server(interaction["guild_id"])
+    server = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+    if server is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+
     user: UserModel = kwargs["invoker"]
     admin_keys = kwargs.get("admin_keys")
 
@@ -84,46 +99,23 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys))
+    faction = FactionModel.objects(tid=user.factionid).first()
 
-        if user.factiontid == 0:
-            user.refresh(key=random.choice(admin_keys), force=True)
-
-            if user.factiontid == 0:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Faction ID Error",
-                                "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                f"set regardless of a force refresh.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,  # Ephemeral
-                    },
-                }
-    except utils.errors.MissingKeyError:
+    if faction is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
             },
         }
-
-    faction = Faction(user.factiontid)
-
-    if user.factiontid not in server.factions:
+    elif user.factionid not in server.factions:
         return {
             "type": 4,
             "data": {
@@ -138,7 +130,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 ]
             },
         }
-    elif user.tid not in faction.get_bankers():
+    elif user.tid not in Faction(faction.tid).get_bankers():
         return {
             "type": 4,
             "data": {
@@ -154,11 +146,7 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    if (
-        faction.vault_config.get("banking") in [0, None]
-        or faction.vault_config.get("banker") in [0, None]
-        or faction.config.get("vault") in [0, None]
-    ):
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -174,7 +162,7 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal_id = utils.find_list(interaction["data"]["options"], "name", "id")
+    withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
 
     if withdrawal_id == -1:
         return {
@@ -233,7 +221,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -248,7 +236,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -257,8 +245,8 @@ def fulfill_command(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.discordpatch(
-            f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
+        discordpatch(
+            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -267,7 +255,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": utils.commas(withdrawal.amount),
+                                "value": commas(withdrawal.amount),
                             },
                             {
                                 "name": "Original Request Type",
@@ -311,7 +299,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 ],
             },
         )
-    except utils.DiscordError as e:
+    except DiscordError as e:
         return {
             "type": 4,
             "data": {
@@ -328,7 +316,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -347,7 +335,7 @@ def fulfill_command(interaction, *args, **kwargs):
         }
 
     withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = utils.now()
+    withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
 
     return {
@@ -367,8 +355,6 @@ def fulfill_command(interaction, *args, **kwargs):
 
 @invoker_exists
 def fulfill_button(interaction, *args, **kwargs):
-    print(interaction)
-
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -384,7 +370,23 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    server = Server(interaction["guild_id"])
+    server = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+    if server is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,  # Ephemeral
+            },
+        }
+
     user: UserModel = kwargs["invoker"]
     admin_keys = kwargs.get("admin_keys")
 
@@ -407,46 +409,23 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys))
+    faction = FactionModel.objects(tid=user.factionid).first()
 
-        if user.factiontid == 0:
-            user.refresh(key=random.choice(admin_keys), force=True)
-
-            if user.factiontid == 0:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Faction ID Error",
-                                "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                f"set regardless of a force refresh.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,  # Ephemeral
-                    },
-                }
-    except utils.MissingKeyError:
+    if faction is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,  # Ephemeral
             },
         }
-
-    faction = Faction(user.factiontid)
-
-    if user.factiontid not in server.factions:
+    elif user.factionid not in server.factions:
         return {
             "type": 4,
             "data": {
@@ -461,7 +440,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 ]
             },
         }
-    elif user.tid not in faction.get_bankers():
+    elif user.tid not in Faction(faction.tid).get_bankers():
         return {
             "type": 4,
             "data": {
@@ -477,11 +456,7 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    if (
-        faction.vault_config.get("banking") in [0, None]
-        or faction.vault_config.get("banker") in [0, None]
-        or faction.config.get("vault") in [0, None]
-    ):
+    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
         return {
             "type": 4,
             "data": {
@@ -535,7 +510,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -550,7 +525,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {utils.torn_timestamp(withdrawal.time_fulfilled)}.",
+                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -559,8 +534,8 @@ def fulfill_button(interaction, *args, **kwargs):
         }
 
     try:
-        tasks.discordpatch(
-            f"channels/{faction.vault_config['banking']}/messages/{withdrawal.withdrawal_message}",
+        discordpatch(
+            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -569,7 +544,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": utils.commas(withdrawal.amount),
+                                "value": commas(withdrawal.amount),
                             },
                             {
                                 "name": "Original Request Type",
@@ -613,7 +588,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 ],
             },
         )
-    except utils.DiscordError as e:
+    except DiscordError as e:
         return {
             "type": 4,
             "data": {
@@ -630,7 +605,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -649,7 +624,7 @@ def fulfill_button(interaction, *args, **kwargs):
         }
 
     withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = utils.now()
+    withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
 
     return {

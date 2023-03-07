@@ -15,19 +15,19 @@
 
 import random
 
-import utils
-from models.factionmodel import FactionModel
-from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys
-from tasks.user import update_user
+from tornium_celery.tasks.user import update_user
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.formatters import find_list
+from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
+from skynet.skyutils import get_admin_keys
 
 
 def who(interaction):
-    print(interaction)
-
     if "options" in interaction["data"]:
-        member = utils.find_list(interaction["data"]["options"], "name", "member")
-        tid = utils.find_list(interaction["data"]["options"], "name", "tid")
+        member = find_list(interaction["data"]["options"], "name", "member")
+        tid = find_list(interaction["data"]["options"], "name", "tid")
 
         if (member == -1 and tid == -1) or (member != -1 and tid != -1):
             return {
@@ -69,8 +69,9 @@ def who(interaction):
                 key=random.choice(admin_keys),
                 discordid=member[1]["value"] if member != 1 else tid[1]["value"],
                 refresh_existing=True,
+                wait=True,
             )
-        except utils.TornError as e:
+        except TornError as e:
             return {
                 "type": 4,
                 "data": {
@@ -84,7 +85,7 @@ def who(interaction):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             return {
                 "type": 4,
                 "data": {
@@ -200,8 +201,8 @@ def who(interaction):
             }
 
         try:
-            update_user(key=user.key, tid=user.tid, refresh_existing=True)
-        except utils.TornError as e:
+            update_user(key=user.key, tid=user.tid, refresh_existing=True, wait=True)
+        except TornError as e:
             return {
                 "type": 4,
                 "data": {
@@ -215,7 +216,7 @@ def who(interaction):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             return {
                 "type": 4,
                 "data": {

@@ -14,28 +14,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import random
+import time
 from functools import wraps
 
 import flask
 from nacl.signing import VerifyKey
 
-import redisdb
-import tasks
-import utils
-from models.faction import Faction
-from models.factionmodel import FactionModel
-from models.server import Server
-from models.usermodel import UserModel
+from tornium_celery.tasks.api import tornget
+from tornium_commons import rds
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR
 
-SKYNET_ERROR = 0xC83F49
-SKYNET_GOOD = 0x32CD32
-SKYNET_INFO = 0x7DF9FF
+from models.faction import Faction
 
 
 def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
 
-    redis = redisdb.get_redis()
+    redis = rds()
     public_key = redis.get("tornium:settings:skynet-applicationpublic")
 
     verify_key = VerifyKey(bytes.fromhex(public_key))
@@ -65,7 +62,10 @@ def get_admin_keys(interaction):
         return tuple([invoker.key])
 
     if "guild_id" in interaction:
-        server = Server(interaction["guild_id"])
+        server = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+        if server is None:
+            return tuple(admin_keys)
 
         for admin in server.admins:
             admin_user: UserModel = UserModel.objects(tid=admin).first()
@@ -141,11 +141,11 @@ def check_invoker_exists(interaction):
         }
 
     try:
-        user_data = tasks.tornget(
+        user_data = tornget(
             f"user/{discord_id}?selections=profile,discord",
             random.choice(admin_keys),
         )
-    except utils.TornError as e:
+    except TornError as e:
         return {
             "type": 4,
             "data": {
@@ -159,7 +159,7 @@ def check_invoker_exists(interaction):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -179,7 +179,7 @@ def check_invoker_exists(interaction):
         new=True,
         set__name=user_data["name"],
         set__level=user_data["level"],
-        set__last_refresh=utils.now(),
+        set__last_refresh=int(time.time()),
         set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
         set__factionid=user_data["faction"]["faction_id"],
         set__status=user_data["last_action"]["status"],
@@ -258,11 +258,11 @@ def invoker_exists(f):
             }
 
         try:
-            user_data = tasks.tornget(
+            user_data = tornget(
                 f"user/{discord_id}?selections=profile,discord",
                 random.choice(kwargs["admin_keys"]),
             )
-        except utils.TornError as e:
+        except TornError as e:
             return {
                 "type": 4,
                 "data": {
@@ -276,7 +276,7 @@ def invoker_exists(f):
                     "flags": 64,  # Ephemeral
                 },
             }
-        except utils.NetworkingError as e:
+        except NetworkingError as e:
             return {
                 "type": 4,
                 "data": {
@@ -296,7 +296,7 @@ def invoker_exists(f):
             new=True,
             set__name=user_data["name"],
             set__level=user_data["level"],
-            set__last_refresh=utils.now(),
+            set__last_refresh=int(time.time()),
             set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
             set__factionid=user_data["faction"]["faction_id"],
             set__status=user_data["last_action"]["status"],

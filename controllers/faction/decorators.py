@@ -18,8 +18,7 @@ from functools import wraps
 from flask import abort
 from flask_login import current_user
 
-import utils
-from models.factionmodel import FactionModel
+from tornium_commons.models import FactionModel
 
 
 def aa_required(f):

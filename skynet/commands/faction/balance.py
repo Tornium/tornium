@@ -15,23 +15,23 @@
 
 import random
 
-import tasks
-import utils
-from models.faction import Faction
-from models.user import User
-from models.usermodel import UserModel
-from skynet.skyutils import SKYNET_ERROR, SKYNET_GOOD, get_admin_keys, get_faction_keys, invoker_exists
+from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.user import update_user
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.formatters import commas, find_list
+from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
+from skynet.skyutils import get_admin_keys, get_faction_keys, invoker_exists
 
 
 @invoker_exists
 def balance(interaction, *args, **kwargs):
-    print(interaction)
-
     user: UserModel = kwargs["invoker"]
     member = -1
 
     if "options" in interaction["data"]:
-        member = utils.find_list(interaction["data"]["options"], "name", "member")
+        member = find_list(interaction["data"]["options"], "name", "member")
 
         if member != -1:
             member_db: UserModel = UserModel.objects(discord_id=int(member[1]["value"])).first()
@@ -75,44 +75,7 @@ def balance(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        user: User = User(user.tid)
-        user.refresh(key=random.choice(admin_keys))
-
-        if user.factiontid == 0:
-            user.refresh(key=random.choice(admin_keys), force=True)
-
-            if user.factiontid == 0:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Faction ID Error",
-                                "description": f"The faction ID of {interaction['message']['user']['username']} is not "
-                                f"set regardless of a force refresh.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,  # Ephemeral
-                    },
-                }
-    except utils.MissingKeyError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    if user.factiontid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
+    if user.factionid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
         return {
             "type": 4,
             "data": {
@@ -127,21 +90,20 @@ def balance(interaction, *args, **kwargs):
             },
         }
 
-    faction = Faction(user.factiontid)
+    faction = FactionModel.objects(tid=user.factionid).first()
 
-    if faction.config.get("vault") in [0, None]:
+    if faction is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
-                ]
+                ],
+                "flags": 64,  # Ephemeral
             },
         }
 
@@ -164,8 +126,8 @@ def balance(interaction, *args, **kwargs):
         }
 
     try:
-        faction_balances = tasks.tornget("faction/?selections=donations", random.choice(aa_keys))
-    except utils.TornError as e:
+        faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))
+    except TornError as e:
         return {
             "type": 4,
             "data": {
@@ -179,7 +141,7 @@ def balance(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    except utils.NetworkingError as e:
+    except NetworkingError as e:
         return {
             "type": 4,
             "data": {
@@ -224,11 +186,11 @@ def balance(interaction, *args, **kwargs):
                     "fields": [
                         {
                             "name": "Cash Balance",
-                            "value": f"${utils.commas(faction_balances[str(user.tid)]['money_balance'])}",
+                            "value": f"${commas(faction_balances[str(user.tid)]['money_balance'])}",
                         },
                         {
                             "name": "Points Balance",
-                            "value": f"{utils.commas(faction_balances[str(user.tid)]['points_balance'])}",
+                            "value": f"{commas(faction_balances[str(user.tid)]['points_balance'])}",
                         },
                     ],
                     "color": SKYNET_GOOD,

@@ -303,6 +303,7 @@ $(document).ready(function() {
                 html: true
             });
 
+            modal.show();
             $('#stats-modal-user-table').DataTable({
                 "paging": true,
                 "ordering": true,
@@ -311,7 +312,6 @@ $(document).ready(function() {
                 "order": [[1, "desc"]],
                 "scrollX": true
             });
-            modal.show();
         }
 
         xhttp.responseType = "json";

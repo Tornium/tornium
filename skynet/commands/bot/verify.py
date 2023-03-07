@@ -133,7 +133,7 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = user.discord_id
 
     try:
-        update_user(**update_user_kwargs)
+        update_user(**update_user_kwargs).get()
     except MissingKeyError:
         return {
             "type": 4,

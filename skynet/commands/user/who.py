@@ -69,8 +69,7 @@ def who(interaction):
                 key=random.choice(admin_keys),
                 discordid=member[1]["value"] if member != 1 else tid[1]["value"],
                 refresh_existing=True,
-                wait=True,
-            )
+            ).get()
         except TornError as e:
             return {
                 "type": 4,
@@ -201,7 +200,7 @@ def who(interaction):
             }
 
         try:
-            update_user(key=user.key, tid=user.tid, refresh_existing=True, wait=True)
+            update_user(key=user.key, tid=user.tid, refresh_existing=True).get()
         except TornError as e:
             return {
                 "type": 4,

@@ -18,6 +18,7 @@ import secrets
 import time
 import typing
 
+import celery.exceptions
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
 
@@ -67,7 +68,14 @@ def login():
                 400,
             )
 
-    update_user(key=request.form["key"], tid=0, refresh_existing=True, wait=True)
+    try:
+        update_user(key=request.form["key"], tid=0, refresh_existing=True).get(timeout=5)
+    except celery.exceptions.TimeoutError:
+        return render_template(
+            "errors/error.html",
+            title="Timeout",
+            error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
+        )
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
 

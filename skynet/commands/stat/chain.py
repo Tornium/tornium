@@ -189,7 +189,7 @@ def chain(interaction, *args, **kwargs):
 
             if targets_updated <= 50:
                 try:
-                    update_user(random.choice(admin_keys), tid=stat.tid, wait=True)
+                    update_user(random.choice(admin_keys), tid=stat.tid).get()
                     target = UserModel.objects(tid=stat.tid).first()
                     targets_updated += 1
                 except TornError:

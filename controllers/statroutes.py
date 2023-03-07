@@ -164,12 +164,12 @@ def user_data():
 
     # If user's last action was over a month ago and last refresh was over a week ago
     if int(time.time()) - user.last_action > 30 * 24 * 60 * 60 and int(time.time()) - user.last_refresh > 604800:
-        update_user(current_user.key, tid=tid, wait=True)
+        update_user(current_user.key, tid=tid).get()
         user.reload()
 
     # If user's last action was over a month ago and last refresh was over an hour ago
     elif int(time.time()) - user.last_action <= 30 * 24 * 60 * 60 and int(time.time() - user.last_refresh > 3600):
-        update_user(current_user.key, tid=tid, wait=True)
+        update_user(current_user.key, tid=tid).get()
         user.reload()
 
     faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid)

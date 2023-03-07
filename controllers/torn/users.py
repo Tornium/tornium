@@ -202,7 +202,7 @@ def user_data(tid: int):
     if tid == 0:
         abort(400)
 
-    update_user(current_user.key, tid=tid, wait=True)
+    update_user(current_user.key, tid=tid).get()
     user: UserModel = UserModel.objects(tid=tid).first()
     Faction(user.factionid).refresh(key=current_user.key)
     faction: FactionModel = FactionModel.objects(tid=user.factionid).first()

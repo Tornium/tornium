@@ -39,7 +39,7 @@ def vault_balance(*args, **kwargs):
     user: UserModel = kwargs["user"]
 
     if user.factionid == 0:
-        update_user(key=user.key, tid=user.tid, wait=True)
+        update_user(key=user.key, tid=user.tid).get()
         user.reload()
 
         if user.factionid == 0:
@@ -125,7 +125,7 @@ def banking_request(*args, **kwargs):
     else:
         amount_requested = "all"
 
-    update_user(key=user.key, tid=user.tid, wait=True)
+    update_user(key=user.key, tid=user.tid).get()
     user.reload()
 
     if user.factionid == 0:

@@ -73,7 +73,7 @@ def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
         return "A long time ago"
 
 
-def commas(number: int, stock_price: bool=False):
+def commas(number: int, stock_price: bool = False):
     if stock_price:
         return "{:,.2f}".format(number)
     return "{:,}".format(number)

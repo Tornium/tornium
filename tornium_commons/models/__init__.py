@@ -30,7 +30,18 @@ from .withdrawalmodel import WithdrawalModel
 
 
 __all__ = [
-    "AttackModel", "FactionModel", "FactionStakeoutModel", "KeyModel", "NotificationModel", "OCModel",
-    "PersonalStatModel", "PositionModel", "ServerModel", "StatModel", "TickModel", "UserModel", "UserStakeoutModel",
-    "WithdrawalModel"
+    "AttackModel",
+    "FactionModel",
+    "FactionStakeoutModel",
+    "KeyModel",
+    "NotificationModel",
+    "OCModel",
+    "PersonalStatModel",
+    "PositionModel",
+    "ServerModel",
+    "StatModel",
+    "TickModel",
+    "UserModel",
+    "UserStakeoutModel",
+    "WithdrawalModel",
 ]

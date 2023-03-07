@@ -15,6 +15,7 @@
 
 import redis
 
+
 def rds() -> redis.Redis:
     """
     Returns a redis connection from the connection pool.

@@ -23,7 +23,6 @@ from decimal import DivisionByZero
 
 import celery
 import mongoengine
-import requests
 from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
 from pymongo.errors import BulkWriteError

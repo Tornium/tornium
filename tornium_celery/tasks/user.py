@@ -22,7 +22,6 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 import mongoengine.errors
-import requests
 
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
@@ -73,28 +72,17 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
     if update_self:
         result = tornget.signature(
-            kwargs={
-                "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats,battlestats",
-                "key": key
-            },
+            kwargs={"endpoint": f"user/{user_id}/?selections=profile,discord,personalstats,battlestats", "key": key},
             queue="api",
-        ).apply_async(
-            expires=300,
-            link=update_user_self.signature(kwargs={
-                "key": key
-            })
-        )
+        ).apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
     else:
         result = tornget.signature(
             kwargs={
                 "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats",
-                "key": user.key if user is not None and user.key not in (None, "") else key
+                "key": user.key if user is not None and user.key not in (None, "") else key,
             },
             queue="api",
-        ).apply_async(
-            expires=300,
-            link=update_user_other.s()
-        )
+        ).apply_async(expires=300, link=update_user_other.s())
 
     if wait:
         result.get()
@@ -130,9 +118,7 @@ def update_user_self(user_data, key=None):
         user.save()
 
     FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-        upsert=True,
-        new=True,
-        set__name=user_data["faction"]["faction_name"]
+        upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
     )
 
     now = datetime.datetime.utcnow()
@@ -181,9 +167,7 @@ def update_user_other(user_data):
     )
 
     FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-        upsert=True,
-        new=True,
-        set__name=user_data["faction"]["faction_name"]
+        upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
     )
 
     now = datetime.datetime.utcnow()

@@ -21,6 +21,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Change Tornium to split into three projects
  - [tornium-celery] Changed `tasks.api.#` tasks to support gevent
 
+=== Deprecated
+ - Deprecated pre-existing stakeouts (to be removed in the v0.4.x release cycle)
+
 === Fixed
  - Fixed Tox CI runs (due to broken dependency installation)
  - Fixed `bot/verify` when `user` is None

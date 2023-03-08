@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import operator
 import random
 import time
 import typing
@@ -47,14 +48,20 @@ def members_switchboard(interaction, *args, **kwargs):
 
     def online():
         payload[0]["title"] = f"Online Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
 
             if member["last_action"]["status"] == "Online":
                 line_payload = f"{member['name']} [{tid}] - Online - {member['last_action']['relative']}"
-            elif member["last_action"]["status"] == "Idle" and int(time.time()) - member["last_action"][
-                "timestamp"] < 600:  # Ten minutes
+            elif (
+                member["last_action"]["status"] == "Idle"
+                and int(time.time()) - member["last_action"]["timestamp"] < 600
+            ):  # Ten minutes
                 line_payload = f"{member['name']} [{tid}] - Idle - {member['last_action']['relative']}"
             else:
                 continue
@@ -79,14 +86,20 @@ def members_switchboard(interaction, *args, **kwargs):
 
     def offline():
         payload[0]["title"] = f"Offline Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
 
             if member["last_action"]["status"] == "Offline":
                 line_payload = f"{member['name']} [{tid}] - Offline - {member['last_action']['relative']}"
-            elif member["last_action"]["status"] == "Idle" and int(time.time()) - member["last_action"][
-                "timestamp"] <= 600:  # Ten minutes
+            elif (
+                member["last_action"]["status"] == "Idle"
+                and int(time.time()) - member["last_action"]["timestamp"] <= 600
+            ):  # Ten minutes
                 line_payload = f"{member['name']} [{tid}] - Idle - {member['last_action']['relative']}"
             else:
                 continue
@@ -111,6 +124,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
     def flying():
         payload[0]["title"] = f"Abroad Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
@@ -140,6 +157,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
     def okay():
         payload[0]["title"] = f"Okay Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
@@ -179,6 +200,10 @@ def members_switchboard(interaction, *args, **kwargs):
             days = days[1]["value"]
 
         payload[0]["title"] = f"Inactive Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
@@ -238,7 +263,7 @@ def members_switchboard(interaction, *args, **kwargs):
                         {
                             "title": "Faction Not Found",
                             "description": "The faction could not be located in the database. This error is not "
-                                           "currently handled.",
+                            "currently handled.",
                             "color": SKYNET_ERROR,
                         }
                     ],
@@ -294,7 +319,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            }
+            },
         }
 
     try:

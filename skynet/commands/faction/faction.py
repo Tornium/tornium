@@ -23,8 +23,6 @@ from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
-from skynet.skyutils import get_admin_keys, invoker_exists
-
 def faction_data_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] == "members":
         return members_switchboard(interaction, *args, **kwargs)
@@ -110,7 +108,7 @@ def members_switchboard(interaction, *args, **kwargs):
     if faction is None:
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
 
-        if faction is None:
+        if faction == -1:
             return {
                 "type": 4,
                 "data": {

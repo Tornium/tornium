@@ -170,6 +170,42 @@ def members_switchboard(interaction, *args, **kwargs):
     def hospital():
         return {}
 
+    def inactive():
+        days: typing.Union[dict, int] = find_list(subcommand_data, "name", "days")
+
+        if days == -1:
+            days = 3
+        else:
+            days = days[1]["value"]
+
+        payload[0]["title"] = f"Inactive Members of {member_data['name']}"
+
+        for tid, member in member_data["members"].items():
+            tid = int(tid)
+
+            if int(time.time()) - member["last_action"]["timestamp"] >= days * 24 * 60 * 60:
+                line_payload = f"{member['name']} [{tid}] - {member['last_action']['relative']}"
+            else:
+                continue
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Inactive Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
+
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
@@ -190,8 +226,6 @@ def members_switchboard(interaction, *args, **kwargs):
 
     user: UserModel = kwargs["invoker"]
     faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
-    print(faction)
-    print(interaction)
 
     if faction == -1:
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
@@ -317,6 +351,8 @@ def members_switchboard(interaction, *args, **kwargs):
         return okay()
     elif subcommand == "hospital":
         return hospital()
+    elif subcommand == "inactive":
+        return inactive()
     else:
         return {
             "type": 4,

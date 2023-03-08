@@ -25,15 +25,13 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.skyutils import get_admin_keys, invoker_exists
 
-def faction_data_switchboard(interaction):
+def faction_data_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] == "members":
-        print(interaction)
-        return members_switchboard(interaction)
+        return members_switchboard(interaction, *args, **kwargs)
 
     return {}
 
 
-@invoker_exists
 def members_switchboard(interaction, *args, **kwargs):
     payload = {
         "type": 4,
@@ -53,7 +51,6 @@ def members_switchboard(interaction, *args, **kwargs):
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
-            line_payload = ""
 
             if member["last_action"]["status"] == "Online":
                 line_payload = f"{member['name']} [{tid}] - Online - {member['last_action']['relative']}"
@@ -163,7 +160,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-    admin_keys = get_admin_keys(interaction)
+    admin_keys = kwargs["admin_keys"]
     try:
         member_data = tornget(
             "faction/?selections=",

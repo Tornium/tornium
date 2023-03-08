@@ -14,8 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import operator
 import random
+import re
 import time
 import typing
 
@@ -128,11 +128,16 @@ def members_switchboard(interaction, *args, **kwargs):
             member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
+        abroad_hospital_regex = re.compile("^In a .* hospital.*$")
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
 
             if member["status"]["state"] in ("Traveling", "Abroad"):
+                line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
+            elif member["status"]["state"] == "Hospital" and abroad_hospital_regex.match(
+                member["status"]["description"]
+            ):
                 line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
             else:
                 continue

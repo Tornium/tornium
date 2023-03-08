@@ -309,11 +309,6 @@ def notify(interaction, *args, **kwargs):
             },
         }
 
-    if "member" in interaction:
-        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
-
     user: UserModel = kwargs["invoker"]
 
     try:

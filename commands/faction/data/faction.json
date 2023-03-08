@@ -1,0 +1,78 @@
+{
+    "name": "faction",
+    "description": "Lists faction-related data",
+    "options": [
+        {
+            "type": 2,
+            "name": "members",
+            "description": "Member status-related data",
+            "options": [
+                {
+                    "type": 1,
+                    "name": "online",
+                    "description": "Lists online players in the specified faction",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "offline",
+                    "description": "Lists offline players in the specified faction",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "flying",
+                    "description": "Lists players currently flying or abroad in the specified faction",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "okay",
+                    "description": "Lists players currently okay in the specified faction",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "hospital",
+                    "description": "Lists players currently in the Torn hospital in the specified faction",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -38,6 +38,7 @@ _commands = {
     "assist": skynet.commands.faction.assist.assist,
     "balance": skynet.commands.faction.balance.balance,
     "cancel": skynet.commands.faction.cancel.cancel_command,
+    "faction": skynet.commands.faction.faction.faction_data_switchboard,
     "fulfill": skynet.commands.faction.fulfill.fulfill_command,
     "withdraw": skynet.commands.faction.withdraw.withdraw,
     # Bot Commands

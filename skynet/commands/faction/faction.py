@@ -13,15 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import random
 import time
 import typing
 
-from tornium_celery.tasks.api import tornget
+import requests
+
+from tornium_celery.tasks.api import discordpatch, discordpost, tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+
+from skynet.skyutils import get_admin_keys
+
 
 def faction_data_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] == "members":
@@ -31,34 +37,30 @@ def faction_data_switchboard(interaction, *args, **kwargs):
 
 
 def members_switchboard(interaction, *args, **kwargs):
-    payload = {
-        "type": 4,
-        "data": {
-            "embeds": [
-                {
-                    "title": "",
-                    "description": "",
-                    "color": SKYNET_INFO,
-                }
-            ]
+    payload = [
+        {
+            "title": "",
+            "description": "",
+            "color": SKYNET_INFO,
         }
-    }
+    ]
 
     def online():
-        payload["data"]["embeds"][0]["title"] = f"Online Members of {member_data['name']}"
+        payload[0]["title"] = f"Online Members of {member_data['name']}"
 
         for tid, member in member_data["members"].items():
             tid = int(tid)
 
             if member["last_action"]["status"] == "Online":
                 line_payload = f"{member['name']} [{tid}] - Online - {member['last_action']['relative']}"
-            elif member["last_action"]["status"] == "Idle" and int(time.time()) - member["last_action"]["timestamp"] < 600:  # Ten minutes
+            elif member["last_action"]["status"] == "Idle" and int(time.time()) - member["last_action"][
+                "timestamp"] < 600:  # Ten minutes
                 line_payload = f"{member['name']} [{tid}] - Idle - {member['last_action']['relative']}"
             else:
                 continue
 
-            if(len(payload["data"]["embeds"][-1]["descriptiom"]) + 1 + len(line_payload)) > 4096:
-                payload["data"]["embeds"].append(
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
                     {
                         "title": f"Online Members of {member_data['name']}",
                         "description": "",
@@ -68,18 +70,102 @@ def members_switchboard(interaction, *args, **kwargs):
             else:
                 line_payload = "\n" + line_payload
 
-            payload["data"]["embeds"][-1]["description"] += line_payload
+            payload[-1]["description"] += line_payload
 
-        return payload
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
 
     def offline():
-        return {}
+        payload[0]["title"] = f"Offline Members of {member_data['name']}"
+
+        for tid, member in member_data["members"].items():
+            tid = int(tid)
+
+            if member["last_action"]["status"] == "Offline":
+                line_payload = f"{member['name']} [{tid}] - Offline - {member['last_action']['relative']}"
+            elif member["last_action"]["status"] == "Idle" and int(time.time()) - member["last_action"][
+                "timestamp"] <= 600:  # Ten minutes
+                line_payload = f"{member['name']} [{tid}] - Idle - {member['last_action']['relative']}"
+            else:
+                continue
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Offline Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
 
     def flying():
-        return {}
+        payload[0]["title"] = f"Abroad Members of {member_data['name']}"
+
+        for tid, member in member_data["members"].items():
+            tid = int(tid)
+
+            if member["status"]["state"] in ("Traveling", "Abroad"):
+                line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
+            else:
+                continue
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Abroad Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
 
     def okay():
-        return {}
+        payload[0]["title"] = f"Okay Members of {member_data['name']}"
+
+        for tid, member in member_data["members"].items():
+            tid = int(tid)
+
+            if member["last_action"]["status"] == "Okay":
+                line_payload = f"{member['name']} [{tid}] - {member['last_action']['status']} - {member['last_action']['relative']}"
+            else:
+                continue
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Okay Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
 
     def hospital():
         return {}
@@ -103,12 +189,14 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
     user: UserModel = kwargs["invoker"]
-    faction: typing.Optional[str] = find_list(subcommand_data, "name", "faction")
+    faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
+    print(faction)
+    print(interaction)
 
-    if faction is None:
+    if faction == -1:
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
 
-        if faction == -1:
+        if faction is None:
             return {
                 "type": 4,
                 "data": {
@@ -123,8 +211,8 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,  # Ephemeral
                 },
             }
-    elif type(faction) == int or faction.isdigit():
-        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(faction)).first()
+    elif faction[1]["value"].isdigit():
+        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(faction[1]["value"])).first()
 
         if faction is None:
             return {
@@ -141,7 +229,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
     else:
-        faction: typing.Optional[FactionModel] = FactionModel.objects(name__iexact=faction).first()
+        faction: typing.Optional[FactionModel] = FactionModel.objects(name__iexact=faction[1]["value"]).first()
 
         if faction is None:
             return {
@@ -158,10 +246,36 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-    admin_keys = kwargs["admin_keys"]
+    admin_keys = get_admin_keys(interaction)
+
+    if len(admin_keys) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No API Keys",
+                        "description": "No API keys of admins could be located. Please sign into Tornium or ask a server admin to sign in.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            }
+        }
+
+    try:
+        discordpost(
+            f"interactions/{interaction['id']}/{interaction['token']}/callback",
+            payload={"type": 5},
+        )
+    except requests.exceptions.JSONDecodeError:
+        pass
+    except json.JSONDecodeError:
+        pass
+
     try:
         member_data = tornget(
-            "faction/?selections=",
+            f"faction/{faction.tid}?selections=",
             key=random.choice(admin_keys),
         )
     except TornError as e:
@@ -196,13 +310,13 @@ def members_switchboard(interaction, *args, **kwargs):
     if subcommand == "online":
         return online()
     elif subcommand == "offline":
-        return {}
+        return offline()
     elif subcommand == "flying":
-        return {}
+        return flying()
     elif subcommand == "okay":
-        return {}
+        return okay()
     elif subcommand == "hospital":
-        return {}
+        return hospital()
     else:
         return {
             "type": 4,

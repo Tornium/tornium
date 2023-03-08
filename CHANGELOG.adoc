@@ -1,6 +1,6 @@
 = Changelog
 
-All notable changes to all core projects (https://github.com/dssecret/tornium-pro[tornium-pro], https://github.com/Tornium/tornium-celery[tornium-celery], and http://github.com/Tornium/tornium-commons[tornium-commons]) will be documented in this file.
+All notable changes to all core projects (https://github.com/dssecret/tornium-pro[tornium], https://github.com/Tornium/tornium-celery[tornium-celery], and http://github.com/Tornium/tornium-commons[tornium-commons]) will be documented in this file.
 
 The format is based on https://keepachangelog.com/en/1.0.0/[Keep a Changelog],
 and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Versioning].
@@ -14,6 +14,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added color theme support
  - Added account settings endpoint
  - Added TOTP support
+ - Added /faction member slash commands to Skynet
 
 === Changed
  - Changed `/stats/db` to allow unauthenticated users

@@ -125,7 +125,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,  # Ephemeral
                 },
             }
-    elif faction.isdigit():
+    elif type(faction) == int or faction.isdigit():
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(faction)).first()
 
         if faction is None:

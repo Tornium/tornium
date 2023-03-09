@@ -32,6 +32,29 @@ botlogger.addHandler(handler)
 
 mod = Blueprint("botinteractions", __name__)
 
+
+def in_dev_command(interaction):
+    print(interaction)
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Command In Development",
+                    "description": "This command is not yet ready for production use.",
+                    "color": SKYNET_INFO,
+                }
+            ]
+        },
+    }
+
+
+_autocomplete = {}
+_buttons = {
+    "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
+    "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
+}
 _commands = {
     "ping": skynet.commands.ping,
     # Faction Commands
@@ -44,18 +67,15 @@ _commands = {
     # Bot Commands
     "verify": skynet.commands.bot.verify.verify,
     "verifyall": skynet.commands.bot.verifyall.verifyall,
-    # User Commands
-    "who": skynet.commands.user.who.who,
+    # Notification Commands
+    "notify": in_dev_command,
     # Stat DB Commands
     "chainlist": skynet.commands.stat.chain.chain,
     "stat": skynet.commands.stat.stat.stat,
     # Stocks Commands
     "stocks": skynet.commands.stocks.stocks_switchboard,
-}
-
-_buttons = {
-    "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
-    "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
+    # User Commands
+    "who": skynet.commands.user.who.who,
 }
 
 tornium_ext: utils.tornium_ext.TorniumExt
@@ -72,22 +92,6 @@ for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
 
 @mod.route("/skynet", methods=["POST"])
 def skynet_interactions():
-    def in_dev_command(interaction):
-        print(interaction)
-
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Command In Development",
-                        "description": "This command is not yet ready for production use.",
-                        "color": SKYNET_INFO,
-                    }
-                ]
-            },
-        }
-
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
     except BadSignatureError:
@@ -110,5 +114,9 @@ def skynet_interactions():
             return jsonify(
                 _commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
             )
+    elif request.json["type"] == 4:
+        print(request.json)
+        if request.json["data"]["name"] in _autocomplete:
+            return {}
 
     return jsonify(in_dev_command(request.json))

@@ -9,6 +9,7 @@
         "faction/banking/fulfill",
         "faction/banking/withdraw",
         "faction/data/faction",
+        "notify/notify",
         "stats/chainlist",
         "stats/stat",
         "stocks/stocks",

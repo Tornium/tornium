@@ -123,7 +123,6 @@ def verify(interaction, *args, **kwargs):
     update_user_kwargs = {
         "key": random.choice(admin_keys),
         "refresh_existing": True,
-        "wait": True,
     }
 
     if member != -1:

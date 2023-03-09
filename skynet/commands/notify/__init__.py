@@ -20,6 +20,6 @@ _notify_commands = {"stakeout": stakeouts.stakeouts}
 
 def notify_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] in _notify_commands:
-        return _notify_commands[interaction["data"]["options"][0]["name"]](interaction)
+        return _notify_commands[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
 
     return {}

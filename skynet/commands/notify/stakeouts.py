@@ -73,17 +73,25 @@ def stakeouts(interaction, *args, **kwargs):
             embeds.append(
                 {
                     "title": f"{title}",
-                    "description": f"{notification_object.name if notification_object is not None else 'N/A'} [{notification.target}]",
                     "color": SKYNET_INFO,
                     "fields": [
                         {
+                            "name": "Target",
+                            "value": f"{notification_object.name if notification_object is not None else 'N/A'} [{notification.target}]",
+                        },
+                        {
                             "name": "Staked-out Categories",
-                            "value": notification.value,
+                            "value": ", ".join(notification.value) if len(notification.value) > 0 else "None",
                             "inline": True,
                         },
                         {
                             "name": "Enabled",
                             "value": notification.options["enabled"],
+                            "inline": True,
+                        },
+                        {
+                            "name": "\u200B",
+                            "value": "\u200B",
                             "inline": True,
                         },
                         {
@@ -194,7 +202,7 @@ def stakeouts(interaction, *args, **kwargs):
                             {
                                 "title": "Permission Denied",
                                 "description": "You must be a server admin to run this command in this server. Please "
-                                "try in another server where you admin or in a DM.",
+                                               "try in another server where you admin or in a DM.",
                                 "color": SKYNET_ERROR,
                             }
                         ],

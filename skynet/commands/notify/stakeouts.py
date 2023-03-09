@@ -27,36 +27,139 @@ _STYPE_NID_MAP = {
     "user": 1,
     "faction": 2,
 }
+_SCATS = {
+    "user": {
+        "online": 0,
+        "offline": 1,
+        "landed": 2,
+        "okay": 3,
+        "hospital": 4,
+    },
+    "faction": {
+        "members": 0,
+        "member status": 1,
+        "member online": 2,
+        "member flying": 3,
+    },
+}
 
 
 def stakeouts(interaction, *args, **kwargs):
-    def info():
-        notifications: QuerySet = NotificationModel.objects(target=tid)
-
-        if stype is not None:
-            notifications.filter(ntype=_STYPE_NID_MAP[stype])
-
+    def category():
         if notifications.count() > 1:
-            if "guild_id" in interaction:
-                notifications.filter(Q(recipient_type=1) & Q(recipient_guild=int(interaction["guild_id"])))
-            else:
-                notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
-
-        if notifications.count() == 0:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
-                            "title": "No Stakeout Found",
-                            "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
-                            "color": SKYNET_ERROR,
+                            "title": "Too Many Stakeouts",
+                            "description": f"{notifications.count()} stakeouts were located with the passed "
+                            f"configuration.",
+                            "color": SKYNET_INFO,
                         }
                     ],
-                    "flag": 64,
+                    "flags": 64,
                 },
             }
 
+        passed_scat = find_list(interaction, "name", "category")[1]["value"].lower()
+        notification: NotificationModel = notifications.first()
+
+        if notification.ntype == 1:
+            scat_id = _SCATS["user"][passed_scat]
+        elif notification.ntype == 2:
+            scat_id = _SCATS["faction"][passed_scat]
+        else:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Illegal Stakeout Type",
+                            "description": "The stakeout type was not identified.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if scat_id in notification.value:
+            notification.value.remove(scat_id)
+            notification.save()
+
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Stakeout Category Removed",
+                            "description": f"The {passed_scat} stakeout category has been removed from the stakeout.",
+                            "color": SKYNET_GOOD,
+                            "footer": {
+                                "text": f"DB ID: {notification.id}",
+                            },
+                        }
+                    ]
+                },
+            }
+        else:
+            notification.value.append(scat_id)
+            notification.save()
+
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Stakeout Category Added",
+                            "description": f"The {passed_scat} stakeout category has been added to the stakeout.",
+                            "color": SKYNET_GOOD,
+                            "footer": {
+                                "text": f"DB ID: {notification.id}",
+                            },
+                        }
+                    ]
+                },
+            }
+
+    def delete():
+        if notifications.count() > 1:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Too Many Stakeouts",
+                            "description": f"{notifications.count()} stakeouts were located with the passed "
+                            f"configuration.",
+                            "color": SKYNET_INFO,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        notification: NotificationModel = notifications.first()
+        notification.delete()
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": f"Notification Deleted",
+                        "description": f"The specified notification has been deleted.",
+                        "color": SKYNET_GOOD,
+                        "footer": {
+                            "text": f"DB ID: {notification.id}",
+                        },
+                    }
+                ]
+            },
+        }
+
+    def info():
         embeds = []
 
         notification: NotificationModel
@@ -89,7 +192,7 @@ def stakeouts(interaction, *args, **kwargs):
                             "value": notification.options["enabled"],
                             "inline": True,
                         },
-                        {
+                        {  # Newline in fields
                             "name": "\u200B",
                             "value": "\u200B",
                             "inline": True,
@@ -202,7 +305,7 @@ def stakeouts(interaction, *args, **kwargs):
                             {
                                 "title": "Permission Denied",
                                 "description": "You must be a server admin to run this command in this server. Please "
-                                               "try in another server where you admin or in a DM.",
+                                "try in another server where you admin or in a DM.",
                                 "color": SKYNET_ERROR,
                             }
                         ],
@@ -265,6 +368,62 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
+    def toggle(mode: str):
+        if notifications.count() > 1:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Too Many Stakeouts",
+                            "description": f"{notifications.count()} stakeouts were located with the passed "
+                            f"configuration.",
+                            "color": SKYNET_INFO,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        notification: NotificationModel = notifications.first()
+
+        if mode == "enable":
+            mode_bool = True
+        else:
+            mode_bool = False
+
+        if notification.options.get("enabled") == mode_bool:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": f"Stakeout Issue",
+                            "description": f"Stakeout is already {mode}d.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        notification.options["enabled"] = mode_bool
+        notification.save()
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": f"Stakeout {mode.capitalize()}d",
+                        "description": f"The stakeout on ID {notification.target} has been {mode}d. For more "
+                        f"information, check out the `/notify stakeout info` command.",
+                        "color": SKYNET_GOOD,
+                    }
+                ]
+            },
+        }
+
     user: UserModel = kwargs["invoker"]
 
     try:
@@ -294,14 +453,38 @@ def stakeouts(interaction, *args, **kwargs):
         stype = stype[1]["value"]
 
     if subcommand != "initialize":
-        pass
+        notifications: QuerySet = NotificationModel.objects(target=tid)
+
+        if stype is not None:
+            notifications.filter(ntype=_STYPE_NID_MAP[stype])
+
+        if notifications.count() > 1:
+            if "guild_id" in interaction:
+                notifications.filter(Q(recipient_type=1) & Q(recipient_guild=int(interaction["guild_id"])))
+            else:
+                notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+
+        if notifications.count() == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No Stakeout Found",
+                            "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flag": 64,
+                },
+            }
 
     if subcommand == "category":
-        pass
+        return category()
     elif subcommand == "delete":
-        pass
+        return delete()
     elif subcommand in ("enable", "disable"):
-        pass
+        return toggle(subcommand)
     elif subcommand == "info":
         return info()
     elif subcommand == "initialize":

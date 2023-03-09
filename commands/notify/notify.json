@@ -196,11 +196,6 @@
                                     "value": "faction"
                                 }
                             ]
-                        },
-                        {
-                            "type": 3,
-                            "name": "value",
-                            "description": "Value to look for if necessary"
                         }
                     ]
                 }

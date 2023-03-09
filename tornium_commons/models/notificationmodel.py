@@ -21,12 +21,15 @@ class NotificationModel(DynamicDocument):
     # Notification types
     #
     # 0: stocks price reach
+    # 1: user stakeout
+    # 2: faction stakeout
     ###############
 
     invoker = IntField(required=True)  # TID of notification creator
     time_created = IntField(required=True)
 
     recipient = IntField(required=True)
+    recipient_guild = IntField()  # 0: DM
     recipient_type = IntField(required=True)  # 0: DM; 1: channel
 
     ntype = IntField(required=True)

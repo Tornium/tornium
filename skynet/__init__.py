@@ -33,9 +33,7 @@ botlogger.addHandler(handler)
 mod = Blueprint("botinteractions", __name__)
 
 
-def in_dev_command(interaction):
-    print(interaction)
-
+def in_dev_command(interaction, *args, **kwargs):
     return {
         "type": 4,
         "data": {
@@ -68,7 +66,7 @@ _commands = {
     "verify": skynet.commands.bot.verify.verify,
     "verifyall": skynet.commands.bot.verifyall.verifyall,
     # Notification Commands
-    "notify": in_dev_command,
+    "notify": skynet.commands.notify.notify_switchboard,
     # Stat DB Commands
     "chainlist": skynet.commands.stat.chain.chain,
     "stat": skynet.commands.stat.stat.stat,

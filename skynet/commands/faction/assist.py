@@ -26,10 +26,9 @@ from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.skyutils import get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys
 
 
-@invoker_exists
 def assist(interaction, *args, **kwargs):
     start_time = time.time()
     user: UserModel = kwargs["invoker"]

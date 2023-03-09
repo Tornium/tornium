@@ -24,10 +24,9 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from models.faction import Faction
 from models.user import User
-from skynet.skyutils import get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys
 
 
-@invoker_exists
 def cancel_command(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
@@ -328,7 +327,6 @@ def cancel_command(interaction, *args, **kwargs):
     }
 
 
-@invoker_exists
 def cancel_button(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

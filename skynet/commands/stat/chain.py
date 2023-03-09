@@ -30,11 +30,9 @@ from tornium_commons.formatters import commas, find_list, rel_time
 from tornium_commons.models import StatModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from models.user import User
-from skynet.skyutils import get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys
 
 
-@invoker_exists
 def chain(interaction, *args, **kwargs):
     start = time.time()
     user: UserModel = kwargs["invoker"]

@@ -16,16 +16,14 @@
 import random
 
 from tornium_celery.tasks.api import tornget
-from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import FactionModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from skynet.skyutils import get_admin_keys, get_faction_keys, invoker_exists
+from skynet.skyutils import get_admin_keys, get_faction_keys
 
 
-@invoker_exists
 def balance(interaction, *args, **kwargs):
     user: UserModel = kwargs["invoker"]
     member = -1

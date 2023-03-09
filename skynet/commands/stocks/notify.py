@@ -24,10 +24,7 @@ from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import NotificationModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
-from skynet.skyutils import invoker_exists
 
-
-@invoker_exists
 def notify(interaction, *args, **kwargs):
     def create():
         stock = find_list(subcommand_data, "name", "stock")

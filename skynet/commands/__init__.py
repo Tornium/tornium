@@ -18,7 +18,7 @@ from tornium_commons.skyutils import SKYNET_INFO
 from skynet.commands import bot, faction, stat, stocks, user
 
 
-def ping(interaction):
+def ping(interaction, *args, **kwargs):
     return {
         "type": 4,
         "data": {

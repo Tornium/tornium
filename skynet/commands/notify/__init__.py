@@ -18,7 +18,7 @@ from skynet.commands.notify import stakeouts
 _notify_commands = {"stakeout": stakeouts.stakeouts}
 
 
-def notify_switchboard(interaction):
+def notify_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] in _notify_commands:
         return _notify_commands[interaction["data"]["options"][0]["name"]](interaction)
 

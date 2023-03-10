@@ -527,7 +527,7 @@ def stakeouts(interaction, *args, **kwargs):
     if tid == -1:
         tid = None
     else:
-        tid = stype[1]["value"]
+        tid = tid[1]["value"]
 
     if stype == -1:
         stype = None

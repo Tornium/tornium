@@ -199,6 +199,11 @@ def stakeouts(interaction, *args, **kwargs):
                 ).first()
                 title = "Faction Stakeout"
 
+            if len(notification.value) == 0:
+                categories = "None"
+            else:
+                categories = ", ".join([_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]][value] for value in notification.value])
+
             embeds.append(
                 {
                     "title": f"{title}",
@@ -210,7 +215,7 @@ def stakeouts(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Staked-out Categories",
-                            "value": ", ".join(notification.value) if len(notification.value) > 0 else "None",
+                            "value": categories,
                             "inline": True,
                         },
                         {
@@ -434,7 +439,7 @@ def stakeouts(interaction, *args, **kwargs):
 
         notification: NotificationModel
         for notification in notifications:
-            if notification.recipient == 0:
+            if notification.recipient_type == 0:
                 payload["data"]["embeds"][0][
                     "description"
                 ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.ntype]} stakeout on {notification.target} - DM"

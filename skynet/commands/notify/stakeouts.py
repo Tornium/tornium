@@ -521,8 +521,13 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
-    tid = find_list(subcommand_data, "name", "tid")[1]["value"]
+    tid = find_list(subcommand_data, "name", "tid")
     stype = find_list(subcommand_data, "name", "type")
+
+    if tid == -1:
+        tid = None
+    else:
+        tid = stype[1]["value"]
 
     if stype == -1:
         stype = None

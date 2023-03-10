@@ -395,6 +395,30 @@ def stakeouts(interaction, *args, **kwargs):
         }
 
     def list():
+        notifications: QuerySet
+        if "guild_id" in interaction:
+            notifications = NotificationModel.objects(
+                Q(recipient_type=1)
+                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+            )
+        else:
+            notifications = NotificationModel.objects(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+
+        if notifications.count() == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No Stakeout Found",
+                            "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flag": 64,
+                },
+            }
+
         payload = {
             "type": 4,
             "data": {
@@ -505,8 +529,8 @@ def stakeouts(interaction, *args, **kwargs):
     else:
         stype = stype[1]["value"]
 
-    if subcommand != "initialize":
-        if "guild_id" in interaction and subcommand != "list":
+    if subcommand not in ("initialize", "list"):
+        if "guild_id" in interaction:
             guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
 
             if guild is None:
@@ -544,14 +568,13 @@ def stakeouts(interaction, *args, **kwargs):
         if stype is not None:
             notifications.filter(ntype=_STYPE_NID_MAP[stype])
 
-        if notifications.count() > 1:
-            if "guild_id" in interaction:
-                notifications.filter(
-                    Q(recipient_type=1)
-                    & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
-                )
-            else:
-                notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+        if "guild_id" in interaction:
+            notifications.filter(
+                Q(recipient_type=1)
+                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+            )
+        else:
+            notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
 
         if notifications.count() == 0:
             return {

@@ -27,6 +27,10 @@ _STYPE_NID_MAP = {
     "user": 1,
     "faction": 2,
 }
+_REVERSE_STYPE_NID_MAP = {
+    1: "user",
+    2: "faction",
+}
 _SCATS = {
     "user": {
         "online": 0,
@@ -39,7 +43,24 @@ _SCATS = {
         "members": 0,
         "member status": 1,
         "member online": 2,
-        "member flying": 3,
+        "member offline": 3,
+        "member flying": 4,
+    },
+}
+_REVERSE_SCATS = {
+    "user": {
+        0: "online",
+        1: "offline",
+        2: "landed",
+        3: "okay",
+        4: "hospital",
+    },
+    "faction": {
+        0: "members",
+        1: "member status",
+        2: "member online",
+        3: "member offline",
+        4: "member flying",
     },
 }
 
@@ -62,7 +83,7 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        passed_scat = find_list(interaction, "name", "category")[1]["value"].lower()
+        passed_scat = find_list(subcommand_data, "name", "category")[1]["value"].lower()
         notification: NotificationModel = notifications.first()
 
         if notification.ntype == 1:
@@ -84,8 +105,11 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
+        # notification.value: list or ListField
         if scat_id in notification.value:
-            notification.value.remove(scat_id)
+            values = list(notification.value)
+            values.remove(scat_id)
+            notification.value = values
             notification.save()
 
             return {
@@ -104,7 +128,9 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
         else:
-            notification.value.append(scat_id)
+            values = list(notification.value)
+            values.append(scat_id)
+            notification.value = values
             notification.save()
 
             return {
@@ -368,6 +394,33 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
+    def list():
+        payload = {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "List of Stakeouts",
+                        "description": f"{notifications.count()} stakeouts located...\n",
+                        "color": SKYNET_INFO,
+                    }
+                ]
+            },
+        }
+
+        notification: NotificationModel
+        for notification in notifications:
+            if notification.recipient == 0:
+                payload["data"]["embeds"][0][
+                    "description"
+                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.ntype]} stakeout on {notification.target} - DM"
+            else:
+                payload["data"]["embeds"][0][
+                    "description"
+                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.ntype]} stakeout on {notification.target} - <#{notification.recipient}>"
+
+        return payload
+
     def toggle(mode: str):
         if notifications.count() > 1:
             return {
@@ -453,6 +506,39 @@ def stakeouts(interaction, *args, **kwargs):
         stype = stype[1]["value"]
 
     if subcommand != "initialize":
+        if "guild_id" in interaction and subcommand != "list":
+            guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+            if guild is None:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Server Not Located",
+                                "description": "This server could not be located in Tornium's database.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+            elif user.tid not in guild.admins:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Permission Denied",
+                                "description": "You must be an admin in this server to run this command. Run in a DM "
+                                "or in a server where you are an admin.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
         notifications: QuerySet = NotificationModel.objects(target=tid)
 
         if stype is not None:
@@ -460,7 +546,10 @@ def stakeouts(interaction, *args, **kwargs):
 
         if notifications.count() > 1:
             if "guild_id" in interaction:
-                notifications.filter(Q(recipient_type=1) & Q(recipient_guild=int(interaction["guild_id"])))
+                notifications.filter(
+                    Q(recipient_type=1)
+                    & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+                )
             else:
                 notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
 
@@ -489,6 +578,8 @@ def stakeouts(interaction, *args, **kwargs):
         return info()
     elif subcommand == "initialize":
         return initialize()
+    elif subcommand == "list":
+        return list()
     else:
         return {
             "type": 4,

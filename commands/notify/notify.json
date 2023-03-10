@@ -198,6 +198,35 @@
                             ]
                         }
                     ]
+                },
+                {
+                    "type": 1,
+                    "name": "list",
+                    "description": "Lists all applicable stakeouts",
+                    "options": [
+                        {
+                            "type": 4,
+                            "name": "tid",
+                            "description": "Torn ID of the staked-out element",
+                            "required": true,
+                            "min_value": 1
+                        },
+                        {
+                            "type": 3,
+                            "name": "type",
+                            "description": "Stakeout type",
+                            "choices": [
+                                {
+                                    "name": "User Stakeout",
+                                    "value": "user"
+                                },
+                                {
+                                    "name": "Faction Stakeout",
+                                    "value": "faction"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }

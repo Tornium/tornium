@@ -17,6 +17,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers"
 ]
 dependencies = [
+    "boltons ~= 21.0.0",
     "mongoengine~=0.26.0",
     "redis ~= 4.5.1"
 ]

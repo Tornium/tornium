@@ -16,9 +16,10 @@
 import datetime
 import math
 import re
-import time
 import typing
 from decimal import Decimal
+
+from boltons.timeutils import relative_time
 
 
 def get_tid(name: str) -> int:
@@ -40,38 +41,16 @@ def remove_str(text: str) -> int:
 
 
 def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
-    if type(ts) == datetime.datetime:
-        delta = time.time() - int(ts.timestamp())
-    elif type(ts) in (int, float):
-        delta = time.time() - ts
+    if type(ts) == int:
+        datetime_obj = datetime.datetime.fromtimestamp(ts)
+    elif type(ts) == float:
+        datetime_obj = datetime.datetime.fromtimestamp(math.floor(ts))
+    elif type(ts) == datetime.datetime:
+        datetime_obj = ts
     else:
         raise AttributeError
 
-    if delta < 60:  # One minute
-        return "Now"
-    elif delta < 3600:  # Sixty minutes
-        if int(round(delta / 60)) == 1:
-            return f"{int(round(delta/60))} minute ago"
-        else:
-            return f"{int(round(delta/60))} minutes ago"
-    elif delta < 86400:  # One day
-        if int(round(delta / 3600)) == 1:
-            return f"{int(round(delta/3600))} hours ago"
-        else:
-            return f"{int(round(delta/3600))} hours ago"
-    elif delta < 2592000:  # Thirty days
-        if int(round(delta / 86400)) == 1:
-            return f"{int(round(delta/86400))} day ago"
-        else:
-            return f"{int(round(delta/86400))} days ago"
-    elif delta < 31104000:  # Twelve months
-        if int(round(delta / 2592000)) == 1:
-            return f"{int(round(delta/2592000))} month ago"
-        else:
-            return f"{int(round(delta/2592000))} months ago"
-    else:
-        return "A long time ago"
-
+    return relative_time(datetime_obj)
 
 def commas(number: int, stock_price: bool = False):
     if stock_price:

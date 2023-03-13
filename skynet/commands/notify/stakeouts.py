@@ -401,7 +401,7 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
-    def list():
+    def list_notfs():
         notifications: QuerySet
         if "guild_id" in interaction:
             notifications = NotificationModel.objects(
@@ -614,7 +614,7 @@ def stakeouts(interaction, *args, **kwargs):
     elif subcommand == "initialize":
         return initialize()
     elif subcommand == "list":
-        return list()
+        return list_notfs()
     else:
         return {
             "type": 4,

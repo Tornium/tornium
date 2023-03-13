@@ -35,7 +35,7 @@ _SCATS = {
     "user": {
         "online": 0,
         "offline": 1,
-        "landed": 2,
+        "flying": 2,
         "okay": 3,
         "hospital": 4,
     },
@@ -51,7 +51,7 @@ _REVERSE_SCATS = {
     "user": {
         0: "online",
         1: "offline",
-        2: "landed",
+        2: "flying",
         3: "okay",
         4: "hospital",
     },
@@ -202,7 +202,9 @@ def stakeouts(interaction, *args, **kwargs):
             if len(notification.value) == 0:
                 categories = "None"
             else:
-                categories = ", ".join([_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]][value] for value in notification.value])
+                categories = ", ".join(
+                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]][value] for value in notification.value]
+                )
 
             embeds.append(
                 {

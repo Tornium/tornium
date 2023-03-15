@@ -668,7 +668,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
                         "choices": [
                             category
                             for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]].keys()
-                            if option["value"] in category
+                            if category.startswith(option["value"])
                         ],
                     }
                 }
@@ -686,17 +686,9 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
     except Exception:
         return {
-            "type": 4,
             "data": {
-                "embeds": [
-                    {
-                        "title": "Invalid Interaction Format",
-                        "description": "Discord has returned an invalidly formatted interaction.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
+                "choices": [],
+            }
         }
 
     tid = find_list(subcommand_data, "name", "tid")

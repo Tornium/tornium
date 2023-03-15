@@ -150,22 +150,6 @@ def stakeouts(interaction, *args, **kwargs):
             }
 
     def delete():
-        if notifications.count() > 1:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Too Many Stakeouts",
-                            "description": f"{notifications.count()} stakeouts were located with the passed "
-                            f"configuration.",
-                            "color": SKYNET_INFO,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
         notification: NotificationModel = notifications.first()
         notification.delete()
 
@@ -175,7 +159,7 @@ def stakeouts(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Notification Deleted",
-                        "description": f"The specified notification has been deleted.",
+                        "description": f"The first specified notification has been deleted.",
                         "color": SKYNET_GOOD,
                         "footer": {
                             "text": f"DB ID: {notification.id}",
@@ -346,11 +330,59 @@ def stakeouts(interaction, *args, **kwargs):
                     },
                 }
 
+        if private:
+            if (
+                NotificationModel.objects(
+                    Q(invoker=user.tid)
+                    & Q(recipient=user.discord_id)
+                    & Q(recipient_type=0)
+                    & Q(target=tid)
+                    & Q(ntype=_STYPE_NID_MAP[stype])
+                ).count()
+                > 0
+            ):
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Notification Exists",
+                                "description": "This notification already exists.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+        else:
+            if (
+                NotificationModel.objects(
+                    Q(recipient=int(interaction["guild_id"]))
+                    & Q(recipient_type=1)
+                    & Q(target=tid)
+                    & Q(ntype=_STYPE_NID_MAP[stype])
+                ).count()
+                > 0
+            ):
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Notification Exists",
+                                "description": "This notification already exists.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
         notification = NotificationModel(
             invoker=user.tid,
             time_created=int(time.time()),
             recipient=user.discord_id if private else channel,
-            recipient_guild=int(interaction["guild_id"]) if "guild_id" in interaction else 0,
+            recipient_guild=int(interaction["guild_id"]) if not private else 0,
             recipient_type=int(not private),
             ntype=_STYPE_NID_MAP[stype],
             target=tid,

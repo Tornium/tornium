@@ -15,9 +15,6 @@
 
 from gevent import monkey
 
-#
-# monkey.patch_all()
-
 import importlib.util
 import sys
 
@@ -165,6 +162,16 @@ if celery_app is None:
                 "task": "tasks.stocks.fetch_stock_ticks",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },  # Stakeout hooks/tasks
+            "run-user-stakeouts": {
+                "task": "tasks.stakeout_hooks.run_user_stakeouts",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },
+            "run-faction-stakeouts": {
+                "task": "tasks.stakeout_hooks.run_faction_stakeouts",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },
         }
 
@@ -183,6 +190,7 @@ if celery_app is None:
             "tasks.faction",
             "tasks.guild",
             "tasks.misc",
+            "tasks.stakeout_hooks",
             "tasks.stakeouts",
             "tasks.stocks",
             "tasks.user",
@@ -278,7 +286,23 @@ if celery_app is None:
                 hour=data["fetch-stock-ticks"]["schedule"]["hour"],
             ),
         }
+    if "run-user-stakeouts" in data and data["run-user-stakeouts"]["enabled"]:
+        schedule["run-user-stakeouts"] = {
+            "task": data["run-user-stakeouts"]["task"],
+            "schedule": crontab(
+                minute=data["run-user-stakeouts"]["schedule"]["minute"],
+                hour=data["run-user-stakeouts"]["schedule"]["hour"],
+            ),
+        }
+    if "run-faction-stakeouts" in data and data["run-faction-stakeouts"]["enabled"]:
+        schedule["run-faction-stakeouts"] = {
+            "task": data["run-faction-stakeouts"]["task"],
+            "schedule": crontab(
+                minute=data["run-faction-stakeouts"]["schedule"]["minute"],
+                hour=data["run-faction-stakeouts"]["schedule"]["hour"],
+            ),
+        }
 
     celery_app.conf.beat_schedule = schedule
-    celery_app.conf.result_expires = 180  # Results are evicted from Redis cache after three minutes
+    celery_app.conf.result_expires = 300  # Results are evicted from Redis cache after five minutes
     celery_app.set_default()

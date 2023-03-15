@@ -158,8 +158,8 @@ def stakeouts(interaction, *args, **kwargs):
             "data": {
                 "embeds": [
                     {
-                        "title": f"Notification Deleted",
-                        "description": f"The first specified notification has been deleted.",
+                        "title": "Notification Deleted",
+                        "description": "The first specified notification has been deleted.",
                         "color": SKYNET_GOOD,
                         "footer": {
                             "text": f"DB ID: {notification.id}",
@@ -510,7 +510,7 @@ def stakeouts(interaction, *args, **kwargs):
                 "data": {
                     "embeds": [
                         {
-                            "title": f"Stakeout Issue",
+                            "title": "Stakeout Issue",
                             "description": f"Stakeout is already {mode}d.",
                             "color": SKYNET_ERROR,
                         }
@@ -671,14 +671,14 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
                             for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]].keys()
                             if category.startswith(option["value"])
                         ]
-                    }
+                    },
                 }
 
         return {
             "type": 8,
             "data": {
                 "choices": [],
-            }
+            },
         }
 
     user: UserModel = kwargs["invoker"]
@@ -691,7 +691,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
             "type": 8,
             "data": {
                 "choices": [],
-            }
+            },
         }
 
     tid = find_list(subcommand_data, "name", "tid")
@@ -725,7 +725,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
             "type": 8,
             "data": {
                 "choices": [],
-            }
+            },
         }
 
     notification: NotificationModel = notifications.first()
@@ -737,5 +737,5 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
             "type": 8,
             "data": {
                 "choices": [],
-            }
+            },
         }

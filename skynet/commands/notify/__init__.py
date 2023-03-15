@@ -34,5 +34,5 @@ def notify_autocomplete_switchboard(interaction, *args, **kwargs):
         "type": 8,
         "data": {
             "choices": [],
-        }
+        },
     }

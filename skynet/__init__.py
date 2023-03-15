@@ -48,7 +48,9 @@ def in_dev_command(interaction, *args, **kwargs):
     }
 
 
-_autocomplete = {}
+_autocomplete = {
+    "notify": skynet.commands.notify.notify_autocomplete_switchboard
+}
 _buttons = {
     "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
     "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,

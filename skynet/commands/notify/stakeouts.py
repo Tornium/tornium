@@ -662,14 +662,15 @@ def stakeouts(interaction, *args, **kwargs):
 def stakeout_autocomplete(interaction, *args, **kwargs):
     def category_autocomplete():
         for option in subcommand_data:
-            if option["focused"]:
+            if option.get("focused"):
                 return {
+                    "type": 8,
                     "data": {
                         "choices": [
-                            category
+                            {"value": category, "name": category}
                             for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]].keys()
                             if category.startswith(option["value"])
-                        ],
+                        ]
                     }
                 }
 

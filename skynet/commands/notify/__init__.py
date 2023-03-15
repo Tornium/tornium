@@ -27,5 +27,11 @@ def notify_switchboard(interaction, *args, **kwargs):
 
 
 def notify_autocomplete_switchboard(interaction, *args, **kwargs):
-    if interaction["data"]["options"][0]["nane"] in _notify_autocomplete:
+    if interaction["data"]["options"][0]["name"] in _notify_autocomplete:
         return _notify_autocomplete[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
+
+    return {
+        "data": {
+            "choices": [],
+        }
+    }

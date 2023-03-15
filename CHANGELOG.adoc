@@ -30,7 +30,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Fixed `bot/verify` when `user` is None
 
 === Removed
- - Removed `autosleep` parameter from `tasks.api.tornget` and `tasks.api.torn_stats_get`
+ - [tornium-celery] Removed `autosleep` parameter from `tasks.api.tornget` and `tasks.api.torn_stats_get`
 
 
 == 0.2.0

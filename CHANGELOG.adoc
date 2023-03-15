@@ -29,6 +29,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Fixed Tox CI runs (due to broken dependency installation)
  - Fixed `bot/verify` when `user` is None
 
+=== Removed
+ - Removed `autosleep` parameter from `tasks.api.tornget` and `tasks.api.torn_stats_get`
+
 
 == 0.2.0
 === Added

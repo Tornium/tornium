@@ -21,6 +21,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Changed `/stats/db` to allow unauthenticated users
  - Change Tornium to split into three projects
  - [tornium-celery] Changed `tasks.api.#` tasks to support gevent
+ - [tornium-celery] Changed `tasks.api.#` tasks to decrease redis usage
+
+=== Deprecated
+ - Deprecated pre-existing stakeouts (to be removed in the v0.4.x release cycle)
 
 === Deprecated
  - Deprecated pre-existing stakeouts (to be removed in the v0.4.x release cycle)
@@ -28,6 +32,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Fixed
  - Fixed Tox CI runs (due to broken dependency installation)
  - Fixed `bot/verify` when `user` is None
+
+=== Removed
+ - [tornium-celery] Removed `autosleep` parameter from `tasks.api.tornget` and `tasks.api.torn_stats_get`
 
 
 == 0.2.0

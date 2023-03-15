@@ -36,11 +36,6 @@
                             "min_value": 1
                         },
                         {
-                            "type": 5,
-                            "name": "private",
-                            "description": "Notifications are sent via a DM"
-                        },
-                        {
                             "type": 7,
                             "name": "channel",
                             "description": "Notifications are sent to a specific channel"

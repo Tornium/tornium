@@ -241,18 +241,14 @@ def stakeouts(interaction, *args, **kwargs):
         }
 
     def initialize():
-        private = find_list(subcommand_data, "name", "private")
         channel = find_list(subcommand_data, "name", "channel")
-
-        if private == -1:
-            private = True
-        else:
-            private = private[1]["value"]
 
         if channel == -1:
             channel = None
+            private = True
         else:
             channel = channel[1]["value"]
+            private = False
 
         if not private and channel is None:
             return {
@@ -647,6 +643,99 @@ def stakeouts(interaction, *args, **kwargs):
         return initialize()
     elif subcommand == "list":
         return list_notfs()
+    else:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Command Not Found",
+                        "description": "This command does not exist.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+
+def stakeout_autocomplete(interaction, *args, **kwargs):
+    def category_autocomplete():
+        for option in subcommand_data:
+            if option["focused"]:
+                return {
+                    "data": {
+                        "choices": [
+                            category
+                            for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]].keys()
+                            if option["value"] in category
+                        ],
+                    }
+                }
+
+        return {
+            "data": {
+                "choices": [],
+            }
+        }
+
+    user: UserModel = kwargs["invoker"]
+
+    try:
+        subcommand = interaction["data"]["options"][0]["options"][0]["name"]
+        subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
+    except Exception:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Invalid Interaction Format",
+                        "description": "Discord has returned an invalidly formatted interaction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    tid = find_list(subcommand_data, "name", "tid")
+    stype = find_list(subcommand_data, "name", "type")
+
+    if tid == -1:
+        tid = None
+    else:
+        tid = tid[1]["value"]
+
+    if stype == -1:
+        stype = None
+    else:
+        stype = stype[1]["value"]
+
+    notifications: QuerySet = NotificationModel.objects(target=tid)
+
+    if stype is not None:
+        notifications.filter(ntype=_STYPE_NID_MAP[stype])
+
+    if "guild_id" in interaction:
+        notifications.filter(
+            Q(recipient_type=1)
+            & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+        )
+    else:
+        notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+
+    if notifications.count() != 1:
+        return {
+            "data": {
+                "choices": [],
+            }
+        }
+
+    notification: NotificationModel = notifications.first()
+
+    if subcommand == "category":
+        return category_autocomplete()
     else:
         return {
             "type": 4,

@@ -115,6 +115,8 @@ def skynet_interactions():
     elif request.json["type"] == 4:
         print(request.json)
         if request.json["data"]["name"] in _autocomplete:
-            return {}
+            return jsonify(
+                _autocomplete[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
+            )
 
     return jsonify(in_dev_command(request.json))

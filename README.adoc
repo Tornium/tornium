@@ -13,6 +13,9 @@ A third party, general-purpose website and Discord bot dedicated to simplifying 
 - Stat database
 - Chain list generator
 
+== Deprecation Notice
+IMPORTANT: Pre-existing stakeouts will be deprecated in the v0.4.x release cycle. Pre-existing stakeouts will not be migrated.
+
 == Installation
 Not yet supported.
 

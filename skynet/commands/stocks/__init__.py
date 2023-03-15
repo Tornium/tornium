@@ -18,9 +18,8 @@ from skynet.commands.stocks import notify
 _stocks_commands = {"notify": notify.notify}
 
 
-def stocks_switchboard(interaction):
+def stocks_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] in _stocks_commands:
-        print(interaction)
         return _stocks_commands[interaction["data"]["options"][0]["name"]](interaction)
 
     return {}

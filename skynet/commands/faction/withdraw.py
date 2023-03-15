@@ -24,10 +24,9 @@ from tornium_commons.formatters import commas, find_list, text_to_num
 from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.skyutils import get_admin_keys, get_faction_keys, invoker_exists
+from skynet.skyutils import get_admin_keys, get_faction_keys
 
 
-@invoker_exists
 def withdraw(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

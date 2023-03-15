@@ -24,10 +24,9 @@ from tornium_commons.formatters import commas, bs_to_range, find_list
 from tornium_commons.models import FactionModel, StatModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.skyutils import get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys
 
 
-@invoker_exists
 def stat(interaction, *args, **kwargs):
     user = kwargs["invoker"]
 

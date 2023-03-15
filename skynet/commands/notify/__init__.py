@@ -13,22 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from tornium_commons.skyutils import SKYNET_INFO
+from skynet.commands.notify import stakeouts
 
-from skynet.commands import bot, faction, notify, stat, stocks, user
+_notify_commands = {"stakeout": stakeouts.stakeouts}
+_notify_autocomplete = {"stakeout": stakeouts.stakeout_autocomplete}
 
 
-def ping(interaction, *args, **kwargs):
+def notify_switchboard(interaction, *args, **kwargs):
+    if interaction["data"]["options"][0]["name"] in _notify_commands:
+        return _notify_commands[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
+
+    return {}
+
+
+def notify_autocomplete_switchboard(interaction, *args, **kwargs):
+    if interaction["data"]["options"][0]["name"] in _notify_autocomplete:
+        return _notify_autocomplete[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
+
     return {
-        "type": 4,
+        "type": 8,
         "data": {
-            "embeds": [
-                {
-                    "title": "Pong",
-                    "image": {"url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"},
-                    "color": SKYNET_INFO,
-                }
-            ],
-            "flags": 64,  # Ephemeral
+            "choices": [],
         },
     }

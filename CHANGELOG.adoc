@@ -15,11 +15,15 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added account settings endpoint
  - Added TOTP support
  - Added /faction member slash commands to Skynet
+ - Added support for stakeouts rework
 
 === Changed
  - Changed `/stats/db` to allow unauthenticated users
  - Change Tornium to split into three projects
  - [tornium-celery] Changed `tasks.api.#` tasks to support gevent
+
+=== Deprecated
+ - Deprecated pre-existing stakeouts (to be removed in the v0.4.x release cycle)
 
 === Fixed
  - Fixed Tox CI runs (due to broken dependency installation)

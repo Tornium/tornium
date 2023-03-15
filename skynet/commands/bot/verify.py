@@ -25,10 +25,9 @@ from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
-from skynet.skyutils import get_admin_keys, invoker_exists
+from skynet.skyutils import get_admin_keys
 
 
-@invoker_exists
 def verify(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
@@ -124,7 +123,6 @@ def verify(interaction, *args, **kwargs):
     update_user_kwargs = {
         "key": random.choice(admin_keys),
         "refresh_existing": True,
-        "wait": True,
     }
 
     if member != -1:

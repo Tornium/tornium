@@ -24,7 +24,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 from skynet.skyutils import get_admin_keys
 
 
-def who(interaction):
+def who(interaction, *args, **kwargs):
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
         tid = find_list(interaction["data"]["options"], "name", "tid")

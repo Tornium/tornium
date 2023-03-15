@@ -15,10 +15,7 @@
 
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.skyutils import invoker_exists
 
-
-@invoker_exists
 def verifyall(interaction, *args, **kwargs):
     return {
         "type": 4,

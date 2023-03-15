@@ -52,6 +52,7 @@ def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
 
     return relative_time(datetime_obj)
 
+
 def commas(number: int, stock_price: bool = False):
     if stock_price:
         return "{:,.2f}".format(number)
@@ -97,3 +98,10 @@ def torn_timestamp(timestamp=None):
 def remove_html(text):
     cleaner = re.compile("<.*?>")
     return re.sub(cleaner, "", text)
+
+
+def str_matches(input_str: str, items:typing.Union[list, set], starts: bool=False) -> list:
+    if starts:
+        return [item for item in items if input_str.startswith(item)]
+    else:
+        return [item for item in items if item in input_str]

@@ -31,6 +31,7 @@ def notify_autocomplete_switchboard(interaction, *args, **kwargs):
         return _notify_autocomplete[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
 
     return {
+        "type": 8,
         "data": {
             "choices": [],
         }

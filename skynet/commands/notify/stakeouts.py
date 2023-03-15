@@ -675,6 +675,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
                 }
 
         return {
+            "type": 8,
             "data": {
                 "choices": [],
             }
@@ -687,6 +688,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
     except Exception:
         return {
+            "type": 8,
             "data": {
                 "choices": [],
             }
@@ -720,6 +722,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
 
     if notifications.count() != 1:
         return {
+            "type": 8,
             "data": {
                 "choices": [],
             }
@@ -731,15 +734,8 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
         return category_autocomplete()
     else:
         return {
-            "type": 4,
+            "type": 8,
             "data": {
-                "embeds": [
-                    {
-                        "title": "Command Not Found",
-                        "description": "This command does not exist.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
+                "choices": [],
+            }
         }

@@ -164,7 +164,7 @@ def assist(interaction, *args, **kwargs):
             },
         }
 
-    target: UserModel = UserModel.objects(tid=target_id).first()
+    target: UserModel = UserModel.objects(tid=target_id).no_cache().first()
 
     if target is None:
         return {

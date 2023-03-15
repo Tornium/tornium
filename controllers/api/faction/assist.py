@@ -50,7 +50,7 @@ def forward_assist(*args, **kwargs):
         client.set(assist_key, 1)
         client.expire(assist_key, 30)
 
-    target: UserModel = UserModel.objects(tid=data.get("target_tid")).first()
+    target: UserModel = UserModel.objects(tid=data.get("target_tid")).no_cache().first()
 
     if target is None:
         return make_exception_response("1100", key, redis_client=client)

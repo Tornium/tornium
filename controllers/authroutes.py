@@ -77,7 +77,7 @@ def login():
             error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
         )
 
-    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
+    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).no_cache().first()
 
     if user is None:
         return render_template(

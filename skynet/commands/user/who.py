@@ -115,7 +115,7 @@ def who(interaction, *args, **kwargs):
             }
 
         if member != -1:
-            user: UserModel = UserModel.objects(discord_id=member[1]["value"]).first()
+            user: UserModel = UserModel.objects(discord_id=member[1]["value"]).no_cache().first()
 
             if user is None:
                 return {
@@ -246,7 +246,7 @@ def who(interaction, *args, **kwargs):
             }
 
     if user.factionid != 0:
-        faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
+        faction: FactionModel = FactionModel.objects(tid=user.factionid).no_cache().first()
 
         if faction is not None:
             faction_str = f"{faction.name} [{faction.tid}]"

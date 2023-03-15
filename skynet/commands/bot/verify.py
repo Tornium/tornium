@@ -191,7 +191,7 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = UserModel.objects(discord_id=update_user_kwargs["discordid"]).first()
+    user: UserModel = UserModel.objects(discord_id=update_user_kwargs["discordid"]).no_cache().first()
 
     if user is None:
         return {

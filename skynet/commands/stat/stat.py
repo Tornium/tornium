@@ -167,7 +167,7 @@ def stat(interaction, *args, **kwargs):
             },
         }
 
-    target_user = UserModel.objects(tid=target.tid).first()
+    target_user = UserModel.objects(tid=target.tid).no_cache().first()
 
     if target_user is None:
         return {

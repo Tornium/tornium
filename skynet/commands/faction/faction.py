@@ -205,9 +205,7 @@ def members_switchboard(interaction, *args, **kwargs):
             days = days[1]["value"]
 
         payload[0]["title"] = f"Inactive Members of {member_data['name']}"
-        indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
-        )
+        indices = sorted(member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"])
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():

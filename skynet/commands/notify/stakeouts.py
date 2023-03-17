@@ -13,13 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import time
 import typing
 
+import celery
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 
-from tornium_commons.formatters import find_list
+from tornium_celery.tasks.api import discordpost
+from tornium_commons.errors import DiscordError, NetworkingError
+from tornium_commons.formatters import find_list, torn_timestamp
 from tornium_commons.models import FactionModel, NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
@@ -739,3 +743,111 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
                 "choices": [],
             },
         }
+
+
+def stakeout_flying_button(interaction, *args, **kwargs):
+    button_data = interaction["data"]["name"].split(":")
+    tid = int(button_data[2])
+    flying_type = button_data[3]
+    arrival_ts = int(button_data[4])
+
+    if arrival_ts - 60 >= int(time.time()):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Arrival Too Soon",
+                        "description": "This user has already landed or is close to landing.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    user = UserModel.objects(tid=tid).only("tid,name").first()
+    _flying_type_str = {
+        0: "Standard",
+        1: "Airstrip",
+        2: "Wind Lines Travel",
+        3: "Business Class Ticket",
+    }
+
+    try:
+        dm_channel = discordpost(
+            "users/@me/channels",
+            payload={
+                "recipient_id": interaction["member"]["user"]["id"]
+                if "guild_id" in interaction
+                else interaction["user"]["id"],
+            },
+        )
+    except (DiscordError, NetworkingError) as e:
+        return {
+            "type": 4,
+            "embeds": [
+                {
+                    "title": "Unable to Create DM",
+                    "description": f"The bot was unable to create a DM with you due to code {e.code}.",
+                    "color": SKYNET_ERROR,
+                },
+            ],
+            "flags": 64,
+        }
+
+    payload = {
+        "embeds": [
+            {
+                "title": f"{'Unknown' if user is None else user.name} is Landing",
+                "description": (
+                    f"{'Unknown' if user is None else user.name} [{tid}] is landing within the next minute if they're"
+                    f"flying with {_flying_type_str[flying_type]}."
+                ),
+                "color": SKYNET_INFO,
+            },
+        ],
+        "components": [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Profile",
+                        "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                    },
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Attack Link",
+                        "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={tid}",
+                    },
+                ],
+            }
+        ],
+    }
+
+    task = discordpost.delay(
+        endpoint=f"channels/{dm_channel['id']}/messages",
+        payload=payload,
+        bucket=f"channels/{dm_channel['id']}",
+        eta=datetime.datetime.utcfromtimestamp(arrival_ts),
+    )
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Notification Queued",
+                    "description": f"The selected notification has been enqueued for {torn_timestamp(arrival_ts)}",
+                    "color": SKYNET_GOOD,
+                    "footer": {
+                        "text": f"Task ID: {task.id}",
+                    },
+                },
+            ],
+            "flags": 64,
+        },
+    }

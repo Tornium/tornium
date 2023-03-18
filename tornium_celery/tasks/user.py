@@ -22,10 +22,11 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 import mongoengine.errors
+from mongoengine.queryset.visitor import Q
 
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, StatModel, UserModel
+from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, PositionModel, StatModel, UserModel
 
 from tornium_celery.tasks.api import tornget
 
@@ -116,9 +117,19 @@ def update_user_self(user_data, key=None):
         user.key = key
         user.save()
 
-    FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-        upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
-    )
+    if user_data["faction"]["faction_id"] != 0:
+        FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
+            upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
+        )
+
+        if user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
+            faction_position: typing.Optional[PositionModel] = PositionModel.objects(
+                Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
+            ).first()
+
+            if faction_position.pid != user.faction_position:
+                user.faction_position = faction_position.pid
+                user.save()
 
     now = datetime.datetime.utcnow()
     now = int(
@@ -165,9 +176,19 @@ def update_user_other(user_data):
         set__last_action=user_data["last_action"]["timestamp"],
     )
 
-    FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-        upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
-    )
+    if user_data["faction"]["faction_id"] != 0:
+        FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
+            upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
+        )
+
+        if user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
+            faction_position: typing.Optional[PositionModel] = PositionModel.objects(
+                Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
+            ).first()
+
+            if faction_position.pid != user.faction_position:
+                user.faction_position = faction_position.pid
+                user.save()
 
     now = datetime.datetime.utcnow()
     now = int(

@@ -189,7 +189,10 @@ def update_user_other(user_data):
                 Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
             ).first()
 
-            if faction_position.pid != user.faction_position:
+            if faction_position is None:
+                user.faction_position = None
+                user.save()
+            elif faction_position.pid != user.faction_position:
                 user.faction_position = faction_position.pid
                 user.save()
 

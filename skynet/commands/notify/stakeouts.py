@@ -751,7 +751,7 @@ def stakeout_flying_button(interaction, *args, **kwargs):
     flying_type = button_data[3]
     arrival_ts = int(button_data[4])
 
-    if arrival_ts - 60 >= int(time.time()):
+    if arrival_ts - 60 < int(time.time()):
         return {
             "type": 4,
             "data": {
@@ -766,7 +766,7 @@ def stakeout_flying_button(interaction, *args, **kwargs):
             },
         }
 
-    user = UserModel.objects(tid=tid).only("tid,name").first()
+    user = UserModel.objects(tid=tid).first()
     _flying_type_str = {
         0: "Standard",
         1: "Airstrip",
@@ -801,8 +801,8 @@ def stakeout_flying_button(interaction, *args, **kwargs):
             {
                 "title": f"{'Unknown' if user is None else user.name} is Landing",
                 "description": (
-                    f"{'Unknown' if user is None else user.name} [{tid}] is landing within the next minute if they're"
-                    f"flying with {_flying_type_str[flying_type]}."
+                    f"{'Unknown' if user is None else user.name} [{tid}] is landing within the next minute if they're "
+                    f"flying with {_flying_type_str[int(flying_type)]}."
                 ),
                 "color": SKYNET_INFO,
             },
@@ -828,12 +828,15 @@ def stakeout_flying_button(interaction, *args, **kwargs):
         ],
     }
 
-    task = discordpost.delay(
-        endpoint=f"channels/{dm_channel['id']}/messages",
-        payload=payload,
-        bucket=f"channels/{dm_channel['id']}",
+    task = discordpost.apply_async(
+        kwargs={
+            "endpoint": f"channels/{dm_channel['id']}/messages",
+            "payload": payload,
+            "bucket": f"channels/{dm_channel['id']}",
+        },
         eta=datetime.datetime.utcfromtimestamp(arrival_ts),
     )
+    task.forget()
 
     return {
         "type": 4,

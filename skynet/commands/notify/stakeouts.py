@@ -746,7 +746,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
 
 
 def stakeout_flying_button(interaction, *args, **kwargs):
-    button_data = interaction["data"]["name"].split(":")
+    button_data = interaction["data"]["custom_id"].split(":")
     tid = int(button_data[2])
     flying_type = button_data[3]
     arrival_ts = int(button_data[4])

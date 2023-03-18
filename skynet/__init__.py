@@ -107,7 +107,7 @@ def skynet_interactions():
             return jsonify(
                 _buttons[request.json["data"]["custom_id"]](request.json, invoker=invoker, admin_keys=admin_keys)
             )
-        elif request.json["data"]["custom_id"].beginswith("stakeout:flying:"):
+        elif request.json["data"]["custom_id"].startswith("stakeout:flying:"):
             return jsonify(
                 skynet.commands.notify.stakeouts.stakeout_flying_button(
                     request.json, invoker=invoker, admin_keys=admin_keys

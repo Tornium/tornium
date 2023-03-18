@@ -185,7 +185,7 @@ def userbankingdata():
     else:
         ordering_direction = "-"
 
-    withdrawals_db = WithdrawalModel.objects(rqeuester=current_user.tid)
+    withdrawals_db = WithdrawalModel.objects(requester=current_user.tid)
 
     if ordering == 0:
         withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}wid")

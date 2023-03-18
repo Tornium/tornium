@@ -216,7 +216,7 @@ def get_stat_user(tid, *args, **kwargs):
     if user is None:
         return make_exception_response("1100", key)
 
-    if user.factionid == 0:
+    if user.factionid != 0:
         faction = FactionModel.objects(tid=user.factionid).first()
     else:
         faction = None

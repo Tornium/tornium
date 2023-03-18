@@ -18,7 +18,7 @@ import typing
 import celery
 from mongoengine import QuerySet
 
-from tornium_commons.models import FactionModel, FactionStakeoutModel, NotificationModel, ServerModel, UserStakeoutModel
+from tornium_commons.models import FactionModel, FactionStakeoutModel, NotificationModel, ServerModel, UserModel, UserStakeoutModel
 
 
 @celery.shared_task(routing_key="quick.remove_unknown_channel", queue="quick")
@@ -132,3 +132,19 @@ def remove_unknown_role(role_id: int):
 
         server.oc_config = server_oc_config
         server.save()
+
+
+@celery.shared_task(routing_key="quick.remove_key_error", queue="quick")
+def remove_key_error(key: str, error: int):
+    user: typing.Optional[UserModel] = UserModel.objects(key=key).first()
+
+    if user is None:
+        return
+
+    if error == 7:
+        user.factionaa = False
+        user.faction_position = None
+        user.save()
+    elif error in (10, 13):
+        user.key = ""
+        user.save()

@@ -27,7 +27,7 @@ import requests
 from tornium_commons import Config, rds
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
 
-from tornium_celery.tasks.misc import remove_unknown_channel, remove_unknown_role
+from tornium_celery.tasks.misc import remove_key_error, remove_unknown_channel, remove_unknown_role
 
 
 @celery.shared_task(time_limit=5, routing_key="api.tornget", queue="api")
@@ -81,6 +81,9 @@ def tornget(
         request = request.json()
 
     if "error" in request:
+        if request["error"]["code"] in (7, 10, 13):
+            remove_key_error.delay(key, request["error"]["code"]).forget()
+
         raise TornError(code=request["error"]["code"], endpoint=url)
 
     return request

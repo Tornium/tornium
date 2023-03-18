@@ -173,7 +173,7 @@ $(document).ready(function() {
 
             $("#stat-modal-body").append($("<table>", {
                 "id": "stats-modal-user-table",
-                "class": "table table-striped table-bordered mt-3 w-100"
+                "class": "table table-striped table-bordered mt-3"
             }));
             $("#stats-modal-user-table").append($("<thead>"));
             $("#stats-modal-user-table thead").append($("<tr>"));
@@ -241,7 +241,7 @@ $(document).ready(function() {
             });
 
             modal.show();
-            $('#stats-modal-user-table').DataTable({
+            var statsTable = $('#stats-modal-user-table').DataTable({
                 "paging": true,
                 "ordering": true,
                 "responsive": false,
@@ -249,6 +249,11 @@ $(document).ready(function() {
                 "order": [[1, "desc"]],
                 "scrollX": true,
             });
+
+            setTimeout(function() {
+                statsTable.columns.adjust();
+                statsTable.responsive.recalc();
+            }, 200);
         }
 
         xhttp.responseType = "json";

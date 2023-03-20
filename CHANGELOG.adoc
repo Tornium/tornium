@@ -9,6 +9,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 == [UNRELEASED]
 === Added
  - [dev] Added pre-commit support
+ - Added post-login redirection
 
 == 0.3.0
 === Added

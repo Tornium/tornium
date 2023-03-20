@@ -19,7 +19,7 @@ import time
 import typing
 
 import celery.exceptions
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import (
     current_user,
     fresh_login_required,
@@ -32,6 +32,7 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import UserModel
+from werkzeug.routing import BuildError
 
 import utils
 import utils.totp
@@ -92,6 +93,8 @@ def login():
             "tiksan [2383326] for support.",
         )
 
+    next_route = request.args.get("next")
+
     if user.security == 0:
         login_user(User(user.tid), remember=True)
     elif user.security == 1:
@@ -121,7 +124,7 @@ def login():
         redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
         redis_client.expire(f"tornium:login:{client_token}:tid", 180)
 
-        return redirect(f"/login/totp?token={client_token}")
+        return redirect(f"/login/totp?token={client_token}&next={next_route}")
     else:
         return (
             render_template(
@@ -133,7 +136,13 @@ def login():
             500,
         )
 
-    return redirect(url_for("baseroutes.index"))
+    if next_route is None or next_route == "None":
+        return redirect(url_for("baseroutes.index"))
+
+    try:
+        return redirect(url_for(next_route))
+    except BuildError:
+        abort(400)
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
@@ -167,20 +176,35 @@ def topt_verification():
         return redirect("/login")
 
     server_totp_tokens = utils.totp.totp(user.otp_secret)
+    next_route = request.args.get("next")
 
     if secrets.compare_digest(totp_token, server_totp_tokens[0]) or secrets.compare_digest(
         totp_token, server_totp_tokens[1]
     ):
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
-        return redirect(url_for("baseroutes.index"))
+
+        if next_route is None or next_route == "None":
+            return redirect(url_for("baseroutes.index"))
+
+        try:
+            return redirect(url_for(next_route))
+        except BuildError:
+            abort(400)
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
         user.save()
 
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
-        return redirect(url_for("baseroutes.index"))
+
+        if next_route is None or next_route == "None":
+            return redirect(url_for("baseroutes.index"))
+
+        try:
+            return redirect(url_for(next_route))
+        except BuildError:
+            abort(400)
     else:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 

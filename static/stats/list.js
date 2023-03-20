@@ -241,7 +241,10 @@ $(document).ready(function() {
             $("#stats-modal-user-table").append($("<thead>"));
             $("#stats-modal-user-table thead").append($("<tr>"));
             $("#stats-modal-user-table thead tr").append($("<th>", {
-                "text": "Battlescore"
+                "text": "Minimum Stats"
+            }));
+            $("#stats-modal-user-table thead tr").append($("<th>", {
+                "text": "Maximum Stats"
             }));
             $("#stats-modal-user-table thead tr").append($("<th>", {
                 "text": "Time Added"
@@ -264,7 +267,10 @@ $(document).ready(function() {
                 let statRow = $(`tr[data-statid="${stat_id}"]`);
 
                 statRow.append($("<th>", {
-                    "text": commas(stat.stat_score)
+                    "text": commas(bsRange(stat.stat_score)[0])
+                }));
+                statRow.append($("<th>", {
+                    "text": commas(bsRange(stat.stat_score)[1])
                 }));
                 statRow.append($("<th>", {
                     "text": reltime(stat.timeadded),
@@ -309,7 +315,7 @@ $(document).ready(function() {
                 "ordering": true,
                 "responsive": false,
                 "autoWidth": false,
-                "order": [[1, "desc"]],
+                "order": [[2, "desc"]],
                 "scrollX": true
             });
 

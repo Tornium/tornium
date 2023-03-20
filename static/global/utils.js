@@ -55,5 +55,9 @@ function reltime(timestamp) {
 function tcttime(timestamp) {
     let tsAdded = new Date(timestamp * 1000);
     tsAdded = tsAdded.toUTCString();
-    return tsAdded.substring(0, tsAdded.length - 3) + "TCT"
+    return tsAdded.substring(0, tsAdded.length - 3) + "TCT";
+}
+
+function bsRange(battlescore) {
+    return [Math.floor(Math.pow(battlescore, 2) / 4), Math.floor(Math.pow(battlescore, 2) / 2.75)];
 }

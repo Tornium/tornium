@@ -16,7 +16,6 @@
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.user import update_user
 from tornium_commons.formatters import commas, rel_time
 from tornium_commons.models import FactionModel, PersonalStatModel, UserModel

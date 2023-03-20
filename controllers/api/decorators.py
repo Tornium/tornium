@@ -19,7 +19,6 @@ import time
 from functools import partial, wraps
 
 from flask import jsonify, request
-
 from tornium_commons import rds
 from tornium_commons.models import KeyModel, UserModel
 

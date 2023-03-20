@@ -18,7 +18,6 @@ import hashlib
 import os
 
 from flask_login import UserMixin
-
 from tornium_commons.models import UserModel
 
 

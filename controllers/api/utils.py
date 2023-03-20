@@ -17,7 +17,6 @@ import json
 
 import redis
 from flask import Response
-
 from tornium_commons import rds
 
 API_EXCEPTIONS = {

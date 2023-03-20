@@ -18,7 +18,6 @@ import time
 import mongoengine.queryset
 from bson.objectid import ObjectId
 from mongoengine.queryset.visitor import Q
-
 from tornium_commons import rds
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import NotificationModel, UserModel

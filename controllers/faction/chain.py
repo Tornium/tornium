@@ -15,7 +15,6 @@
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
-
 from tornium_celery.tasks.api import discordget
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.models import FactionModel, ServerModel

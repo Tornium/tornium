@@ -19,7 +19,6 @@ from functools import wraps
 
 import flask
 from nacl.signing import VerifyKey
-
 from tornium_celery.tasks.api import tornget
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError

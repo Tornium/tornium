@@ -18,7 +18,6 @@ import json
 
 from flask import flash, jsonify, redirect, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
-
 from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import rel_time

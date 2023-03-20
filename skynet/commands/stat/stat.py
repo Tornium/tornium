@@ -17,10 +17,9 @@ import random
 import typing
 
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, TornError
-from tornium_commons.formatters import commas, bs_to_range, find_list
+from tornium_commons.formatters import bs_to_range, commas, find_list
 from tornium_commons.models import FactionModel, StatModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR
 

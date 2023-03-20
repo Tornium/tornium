@@ -19,13 +19,12 @@ import random
 import time
 
 from flask import jsonify, request
-
+from tornium_celery.tasks.api import discordpost, tornget
+from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas
 from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
-from tornium_celery.tasks.api import discordpost, tornget
-from tornium_celery.tasks.user import update_user
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response

@@ -16,12 +16,10 @@
 from flask import render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
-
 from tornium_commons.formatters import commas, rel_time
 from tornium_commons.models import AttackModel, FactionModel, UserModel
 
 from controllers.faction.decorators import fac_required
-
 
 ATTACK_RESULTS = {
     "Lost": 0,

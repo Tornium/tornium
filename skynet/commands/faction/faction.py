@@ -20,7 +20,6 @@ import time
 import typing
 
 import requests
-
 from tornium_celery.tasks.api import discordpatch, discordpost, tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import find_list

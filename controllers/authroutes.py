@@ -20,8 +20,13 @@ import typing
 
 import celery.exceptions
 from flask import Blueprint, redirect, render_template, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user, fresh_login_required
-
+from flask_login import (
+    current_user,
+    fresh_login_required,
+    login_required,
+    login_user,
+    logout_user,
+)
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds

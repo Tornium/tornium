@@ -17,9 +17,13 @@ import datetime
 import json
 
 from flask import jsonify, request
-
 from tornium_celery.tasks.api import discordpost
-from tornium_commons.models import FactionStakeoutModel, KeyModel, ServerModel, UserStakeoutModel
+from tornium_commons.models import (
+    FactionStakeoutModel,
+    KeyModel,
+    ServerModel,
+    UserStakeoutModel,
+)
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response

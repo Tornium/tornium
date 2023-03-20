@@ -41,7 +41,6 @@ import flask
 from flask_cors import CORS
 from flask_login import LoginManager
 from mongoengine import connect
-
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 

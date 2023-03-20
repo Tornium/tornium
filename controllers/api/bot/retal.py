@@ -16,7 +16,6 @@
 import json
 
 from flask import jsonify, request
-
 from tornium_commons.models import FactionModel, ServerModel
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes

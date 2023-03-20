@@ -19,12 +19,11 @@ import time
 import typing
 
 from flask import jsonify, request
-
+from tornium_celery.tasks.api import discordpost
+from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.models import FactionModel, ServerModel, UserModel
-from tornium_celery.tasks.api import discordpost
-from tornium_celery.tasks.user import update_user
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
 from controllers.api.utils import api_ratelimit_response, make_exception_response

@@ -16,9 +16,8 @@
 import time
 
 from flask_login import current_user
-
 from tornium_celery.tasks.api import tornget
-from tornium_commons.errors import TornError, NetworkingError
+from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import FactionStakeoutModel, UserStakeoutModel
 
 

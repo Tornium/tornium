@@ -22,7 +22,6 @@ from billiard.exceptions import TimeLimitExceeded
 from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import FactionModel, StatModel, UserModel

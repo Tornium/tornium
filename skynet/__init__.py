@@ -17,7 +17,6 @@ import logging
 
 from flask import Blueprint, abort, jsonify, request
 from nacl.exceptions import BadSignatureError
-
 from tornium_commons.skyutils import SKYNET_INFO
 
 import skynet.commands

@@ -19,11 +19,16 @@ import time
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
-from tornium_commons.models import FactionModel, PositionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.models import (
+    FactionModel,
+    PositionModel,
+    ServerModel,
+    UserModel,
+    WithdrawalModel,
+)
 
 import utils
 from controllers.faction.decorators import aa_required

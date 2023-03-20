@@ -17,7 +17,6 @@ import json
 import random
 
 from flask import jsonify, request
-
 from tornium_commons.models import ServerModel
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes

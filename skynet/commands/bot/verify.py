@@ -17,10 +17,14 @@ import inspect
 import random
 
 import jinja2
-
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, TornError
+from tornium_commons.errors import (
+    DiscordError,
+    MissingKeyError,
+    NetworkingError,
+    TornError,
+)
 from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO

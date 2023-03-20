@@ -13,13 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from functools import partial, wraps
 import secrets
 import time
+from functools import partial, wraps
 
-from flask import abort, redirect, request, render_template, url_for
+from flask import abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_fresh
-
 from tornium_commons import rds
 
 

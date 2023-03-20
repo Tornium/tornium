@@ -20,11 +20,15 @@ import typing
 import celery
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.api import discordpost
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import find_list, torn_timestamp
-from tornium_commons.models import FactionModel, NotificationModel, ServerModel, UserModel
+from tornium_commons.models import (
+    FactionModel,
+    NotificationModel,
+    ServerModel,
+    UserModel,
+)
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 _STYPE_NID_MAP = {

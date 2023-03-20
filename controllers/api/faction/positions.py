@@ -17,7 +17,6 @@ import json
 import time
 
 from flask import jsonify, request
-
 from tornium_commons.models import FactionModel, PositionModel, ServerModel
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes

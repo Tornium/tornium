@@ -19,7 +19,6 @@ import logging
 import click
 import requests
 from flask import Blueprint
-
 from tornium_celery.tasks.api import discordput
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError

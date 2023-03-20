@@ -16,9 +16,8 @@
 from flask import Blueprint, render_template, request, send_from_directory
 from flask_login import current_user, fresh_login_required
 
-from controllers.decorators import token_required
-
 import utils
+from controllers.decorators import token_required
 
 mod = Blueprint("baseroutes", __name__)
 

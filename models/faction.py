@@ -18,7 +18,6 @@ import time
 
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
-
 from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import FactionModel, PositionModel, UserModel

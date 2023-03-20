@@ -136,11 +136,6 @@ def load_user(user_id):
     return User(user_id)
 
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    return flask.redirect(f"/login?next={flask.request.url_rule}")
-
-
 @app.template_filter("reltime")
 def relative_time(s):
     return rel_time(datetime.datetime.fromtimestamp(s))

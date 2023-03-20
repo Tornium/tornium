@@ -23,7 +23,7 @@ from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
 
 from tornium_celery.tasks.user import update_user
-from tornium_commons.formatters import commas, get_tid, rel_time
+from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import FactionModel, StatModel, UserModel
 
 from controllers.faction.decorators import aa_required
@@ -94,6 +94,7 @@ def stats_data():
     stat_entries_subset = stat_entries[start : start + length]
     users = {}
 
+    stat_entry: StatModel
     for stat_entry in stat_entries_subset:
         if stat_entry.tid in users:
             user: UserModel = users[stat_entry.tid]
@@ -104,7 +105,7 @@ def stats_data():
         stats.append(
             [
                 stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
-                commas(int(stat_entry.battlescore)),
+                commas(int(sum(bs_to_range(stat_entry.battlescore))/2)),
                 rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
             ]
         )

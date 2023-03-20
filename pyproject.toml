@@ -74,3 +74,6 @@ skips = ["B201", "B311", "B112"]
 
 [tool.black]
 line-length = 120
+
+[tool.isort]
+profile = "black"

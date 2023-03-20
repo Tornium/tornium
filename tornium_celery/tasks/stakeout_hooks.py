@@ -284,7 +284,7 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
             r"(Traveling|Returning)", description
         ):
             if user_data["status"]["state"] != "Abroad":
-                description_suffix = f"has returned to Torn"
+                description_suffix = "has returned to Torn"
             else:
                 description_suffix = f"has landed in {user_data['status']['description'][3:]}"
 
@@ -338,7 +338,7 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
 
                 send_notification(notification, payload)
 
-        if "In Hospital" in user_data["status"]["description"] and not "In Hospital" in description:
+        if "In Hospital" in user_data["status"]["description"] and "In Hospital" not in description:
             if any(
                 str_matches(
                     user_data["status"]["details"],

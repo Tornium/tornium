@@ -23,11 +23,20 @@ if globals().get("orjson:loaded"):
 
 import celery
 import requests
-
 from tornium_commons import Config, rds
-from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError, RatelimitError, TornError
+from tornium_commons.errors import (
+    DiscordError,
+    MissingKeyError,
+    NetworkingError,
+    RatelimitError,
+    TornError,
+)
 
-from tornium_celery.tasks.misc import remove_key_error, remove_unknown_channel, remove_unknown_role
+from tornium_celery.tasks.misc import (
+    remove_key_error,
+    remove_unknown_channel,
+    remove_unknown_role,
+)
 
 
 @celery.shared_task(time_limit=5, routing_key="api.tornget", queue="api")

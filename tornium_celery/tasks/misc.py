@@ -17,7 +17,6 @@ import typing
 
 import celery
 from mongoengine import QuerySet
-
 from tornium_commons.models import (
     FactionModel,
     FactionStakeoutModel,

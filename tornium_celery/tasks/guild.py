@@ -16,7 +16,6 @@
 import celery
 import requests
 from celery.utils.log import get_task_logger
-
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import PositionModel, ServerModel, UserModel
 

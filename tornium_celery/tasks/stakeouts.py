@@ -20,12 +20,17 @@ import time
 import celery
 from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
-
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import remove_html, torn_timestamp
-from tornium_commons.models import FactionModel, FactionStakeoutModel, ServerModel, UserModel, UserStakeoutModel
+from tornium_commons.models import (
+    FactionModel,
+    FactionStakeoutModel,
+    ServerModel,
+    UserModel,
+    UserStakeoutModel,
+)
 
-from tornium_celery.tasks.api import tornget, discordpost
+from tornium_celery.tasks.api import discordpost, tornget
 
 logger = get_task_logger(__name__)
 

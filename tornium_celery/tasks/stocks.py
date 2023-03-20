@@ -21,14 +21,13 @@ import celery
 from celery.utils.log import get_task_logger
 from pymongo.errors import BulkWriteError
 from redis.commands.json.path import Path
-
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import NotificationModel, TickModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from tornium_celery.tasks.api import tornget, discordpost
+from tornium_celery.tasks.api import discordpost, tornget
 
 logger = get_task_logger(__name__)
 

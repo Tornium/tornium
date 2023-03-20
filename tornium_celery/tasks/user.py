@@ -20,13 +20,19 @@ import typing
 from decimal import DivisionByZero
 
 import celery
-from celery.utils.log import get_task_logger
 import mongoengine.errors
+from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
-
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import AttackModel, FactionModel, PersonalStatModel, PositionModel, StatModel, UserModel
+from tornium_commons.models import (
+    AttackModel,
+    FactionModel,
+    PersonalStatModel,
+    PositionModel,
+    StatModel,
+    UserModel,
+)
 
 from tornium_celery.tasks.api import tornget
 

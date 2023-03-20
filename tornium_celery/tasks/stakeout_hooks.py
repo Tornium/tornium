@@ -23,13 +23,13 @@ import typing
 import celery
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-
-from tornium_celery.tasks.api import discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import rel_time, str_matches, torn_timestamp
 from tornium_commons.models import NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_INFO
+
+from tornium_celery.tasks.api import discordpost, tornget
 
 _TRAVEL_DESTINATIONS = {
     # Destination: [Standard, Airstrip, WLT, BCT]

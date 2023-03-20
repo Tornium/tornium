@@ -13,10 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from gevent import monkey
-
 import importlib.util
 import sys
+
+from gevent import monkey
 
 for module in ("ddtrace", "orjson"):
     if monkey.is_anything_patched():

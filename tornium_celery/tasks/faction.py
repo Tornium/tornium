@@ -26,10 +26,9 @@ import mongoengine
 from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
 from pymongo.errors import BulkWriteError
-
 from tornium_commons import rds
-from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
+from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
     AttackModel,
     FactionModel,
@@ -42,7 +41,7 @@ from tornium_commons.models import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from tornium_celery.tasks.api import tornget, discordpatch, discordpost, torn_stats_get
+from tornium_celery.tasks.api import discordpatch, discordpost, torn_stats_get, tornget
 from tornium_celery.tasks.user import update_user
 
 logger = get_task_logger(__name__)

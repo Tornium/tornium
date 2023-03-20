@@ -100,7 +100,7 @@ def remove_html(text):
     return re.sub(cleaner, "", text)
 
 
-def str_matches(input_str: str, items:typing.Union[list, set], starts: bool=False) -> list:
+def str_matches(input_str: str, items: typing.Union[list, set], starts: bool = False) -> list:
     if starts:
         return [item for item in items if input_str.startswith(item)]
     else:

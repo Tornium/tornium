@@ -28,7 +28,6 @@ from .usermodel import UserModel
 from .userstakeoutmodel import UserStakeoutModel
 from .withdrawalmodel import WithdrawalModel
 
-
 __all__ = [
     "AttackModel",
     "FactionModel",

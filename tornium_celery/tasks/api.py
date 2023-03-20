@@ -66,12 +66,12 @@ def tornget(
         redis_client.set(redis_key, 50, nx=True, ex=60 - datetime.datetime.utcnow().second)
 
     try:
-        if redis_client.exists(redis_key) and int(redis_client.get(redis_key)) > 0:
+        if int(redis_client.get(redis_key)) > 0:
             redis_client.decrby(redis_key, 1)
         else:
             raise RatelimitError
     except TypeError:
-        pass
+        raise RatelimitError
 
     try:
         if session is None:
@@ -109,15 +109,14 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
-    elif (
-        bucket is not None
-        and redis_client.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
-        and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-    ):
-        if retry:
-            self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
-        else:
-            raise RatelimitError
+    try:
+        if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+            if retry:
+                self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
+            else:
+                raise RatelimitError
+    except TypeError:
+        raise RatelimitError
 
     if session is None:
         request = requests.get(url, headers=headers)
@@ -213,15 +212,14 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
-    elif (
-        bucket is not None
-        and redis_client.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
-        and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-    ):
-        if retry:
-            self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
-        else:
-            raise RatelimitError
+    try:
+        if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+            if retry:
+                self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
+            else:
+                raise RatelimitError
+    except TypeError:
+        raise RatelimitError
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -322,15 +320,14 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
-    elif (
-        bucket is not None
-        and redis_client.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
-        and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-    ):
-        if retry:
-            self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
-        else:
-            raise RatelimitError
+    try:
+        if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+            if retry:
+                self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
+            else:
+                raise RatelimitError
+    except TypeError:
+        raise RatelimitError
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -431,15 +428,14 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
-    elif (
-        bucket is not None
-        and redis_client.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
-        and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-    ):
-        if retry:
-            self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
-        else:
-            raise RatelimitError
+    try:
+        if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+            if retry:
+                self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
+            else:
+                raise RatelimitError
+    except TypeError:
+        raise RatelimitError
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -540,15 +536,14 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
-    elif (
-        bucket is not None
-        and redis_client.exists(f"tornium:discord:ratelimit:bucket:{bucket}")
-        and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0
-    ):
-        if retry:
-            self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
-        else:
-            raise RatelimitError
+    try:
+        if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
+            if retry:
+                self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
+            else:
+                raise RatelimitError
+    except TypeError:
+        raise RatelimitError
 
     if session is None:
         request = requests.delete(url, headers=headers)
@@ -642,7 +637,7 @@ def torn_stats_get(endpoint, key, session=None):
         redis_client.expire(redis_key, 1)
         redis_client.set(redis_key, 50, nx=True, ex=60 - datetime.datetime.utcnow().second)
 
-    if redis_client.exists(redis_key) and int(redis_client.get(redis_key)) > 0:
+    if int(redis_client.get(redis_key)) > 0:
         redis_client.decrby(redis_key, 1)
     else:
         raise RatelimitError

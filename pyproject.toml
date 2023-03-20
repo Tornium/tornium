@@ -37,3 +37,6 @@ line-length = 120
 
 [tool.bandit]
 exclude_dirs = ["./.git", "__pycache__", "./venv"]
+
+[tool.isort]
+profile = "black"

@@ -105,7 +105,7 @@ def stats_data():
         stats.append(
             [
                 stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
-                commas(int(sum(bs_to_range(stat_entry.battlescore))/2)),
+                commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
                 rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
             ]
         )

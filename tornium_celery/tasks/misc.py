@@ -18,7 +18,14 @@ import typing
 import celery
 from mongoengine import QuerySet
 
-from tornium_commons.models import FactionModel, FactionStakeoutModel, NotificationModel, ServerModel, UserModel, UserStakeoutModel
+from tornium_commons.models import (
+    FactionModel,
+    FactionStakeoutModel,
+    NotificationModel,
+    ServerModel,
+    UserModel,
+    UserStakeoutModel,
+)
 
 
 @celery.shared_task(routing_key="quick.remove_unknown_channel", queue="quick")

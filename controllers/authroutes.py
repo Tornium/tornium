@@ -74,7 +74,7 @@ def login():
             )
 
     try:
-        update_user(key=request.form["key"], tid=0, refresh_existing=True).get(timeout=5)
+        update_user(key=request.form["key"], tid=0, refresh_existing=True).get()
     except celery.exceptions.TimeoutError:
         return render_template(
             "errors/error.html",

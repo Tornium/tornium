@@ -79,13 +79,13 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
 
     if update_self:
         result = tornget.signature(
-            kwargs={"endpoint": f"user/{user_id}/?selections=profile,discord,personalstats,battlestats", "key": key},
+            kwargs={"endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats", "key": key},
             queue="api",
         ).apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
     else:
         result = tornget.signature(
             kwargs={
-                "endpoint": f"user/{user_id}/?selections=profile,discord,personalstats",
+                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats",
                 "key": user.key if user is not None and user.key not in (None, "") else key,
             },
             queue="api",

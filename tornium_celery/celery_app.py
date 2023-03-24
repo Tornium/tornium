@@ -40,6 +40,7 @@ import typing
 
 import kombu
 from celery import Celery
+from celery.app import trace
 from celery.schedules import crontab
 from celery.signals import after_setup_logger
 from mongoengine import connect
@@ -306,3 +307,7 @@ if celery_app is None:
     celery_app.conf.beat_schedule = schedule
     celery_app.conf.result_expires = 300  # Results are evicted from Redis cache after five minutes
     celery_app.set_default()
+
+    trace.LOG_SUCCESS = """\
+    Task %(name)s[%(id)s] succeeded in %(runtime)ss
+    """

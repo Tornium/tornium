@@ -23,7 +23,7 @@ from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.errors import NetworkingError, RatelimitError, TornError
 from tornium_commons.models import FactionModel, StatModel, UserModel
 
 from controllers.api.decorators import key_required, ratelimit, requires_scopes
@@ -102,6 +102,7 @@ def generate_chain_list(*args, **kwargs):
 
     targets = {}
     targets_updated = 0
+    ratelimit_reached = False
 
     for stat_entry in stat_entries:
         stat: StatModel = (
@@ -121,12 +122,12 @@ def generate_chain_list(*args, **kwargs):
         else:
             target: typing.Optional[UserModel] = None
 
-            if targets_updated <= 50:
+            if targets_updated <= 50 and not ratelimit_reached:
                 try:
                     update_user(kwargs["user"].key, tid=stat.tid).get()
                     target = UserModel.objects(tid=stat.tid).no_cache().first()
                     targets_updated += 1
-                except TornError:
+                except (TornError, TimeLimitExceeded):
                     if int(time.time()) - target.last_refresh <= 2592000:  # One day
                         pass
                     else:
@@ -139,11 +140,11 @@ def generate_chain_list(*args, **kwargs):
                             continue
                     else:
                         continue
-                except TimeLimitExceeded:
-                    if int(time.time()) - target.last_refresh <= 2592000:  # One day
-                        pass
-                    else:
-                        continue
+                except RatelimitError:
+                    ratelimit_reached = True
+                except Exception as e:
+                    print(e)
+                    continue
 
         target_ff = 1 + 8 / 3 * (stat.battlescore / kwargs["user"].battlescore)
 

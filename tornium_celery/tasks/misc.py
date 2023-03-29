@@ -154,7 +154,7 @@ def remove_key_error(key: str, error: int):
 
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
 
-        if faction is not None:
+        if faction is not None and user.factionid != 0:
             try:
                 keys = list(faction.aa_keys)
                 keys.remove(key)
@@ -162,6 +162,17 @@ def remove_key_error(key: str, error: int):
                 faction.save()
             except ValueError:
                 pass
-    elif error in (10, 13):
+    elif error in (2, 10, 13):
         user.key = ""
         user.save()
+
+        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
+
+        if faction is not None and user.factionid != 0:
+            try:
+                keys = list(faction.aa_keys)
+                keys.remove(key)
+                faction.aa_keys = keys
+                faction.save()
+            except ValueError:
+                pass

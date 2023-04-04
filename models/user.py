@@ -37,7 +37,7 @@ class User(UserMixin):
         self.otp_secret = user.otp_secret
         self.otp_backups = user.otp_backups
 
-        self.tid = tid
+        self.tid = int(tid)
         self.name = user.name
         self.level = user.level
         self.last_refresh = user.last_refresh
@@ -60,7 +60,7 @@ class User(UserMixin):
         self.last_action = user.last_action
 
     def get_id(self):
-        return self.tid
+        return int(self.tid)
 
     def generate_otp_secret(self):
         user: UserModel = UserModel.objects(tid=self.tid).first()

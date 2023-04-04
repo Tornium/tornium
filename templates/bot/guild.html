@@ -37,12 +37,12 @@ Tornium - Bot Dashboard
 <div class="row">
     <div class="py-3 px-3 col text-end">
         {% if server.config['stakeouts'] == 0 %}
-        <button type="button" class="btn btn-primary" disabled>
-            <a href="#" style="color: white">Go to Guild Stakeouts</a>
+        <button type="button" class="btn btn-outline-secondary" disabled>
+            <a href="#">Go to Guild Stakeouts</a>
         </button>
         {% else %}
-        <button type="button" class="btn btn-primary">
-            <a href="/bot/stakeouts/{{ guildid }}" style="color: white">Go to Guild Stakeouts</a>
+        <button type="button" class="btn btn-outline-secondary">
+            <a href="/bot/stakeouts/{{ guildid }}">Go to Guild Stakeouts</a>
         </button>
         {% endif %}
     </div>
@@ -59,7 +59,7 @@ Tornium - Bot Dashboard
 
             <div class="col-sm-12 col-md-8 col-lg-4">
                 <form class="form-floating" method="POST" action="/bot/dashboard/{{ server.sid }}">
-                    <input class="form-control" id="factionid" name="factionid" placeholder="Enter the Torn Faction ID">
+                    <input class="form-control" id="factionid" name="factionid">
                     <label for="factionid">Faction ID</label>
                     <button class="btn btn-primary my-2" type="submit">Add</button>
                 </form>
@@ -106,6 +106,11 @@ Tornium - Bot Dashboard
                 The stakeouts that are run in the particular Discord guild.
                 The stakeout category is the category in which the stakeout channels are automatically created in the server. By default, the stakeout channels are created at the top of the server without a category (but can be moved or renamed).
             </p>
+            <p class="card-text">
+                <b>Warning: </b> Stakeouts are deprecated and will be removed in the v.0.4.x release cycle.<br />
+                <br />
+                An updated version of stakeouts can be found with the /notify stakeout commands (not fully implemented yet).
+            </p>
 
             <div class="col-sm-12 col-md-8 col-lg-4 mb-3">
                 <div class="form-floating">
@@ -115,18 +120,18 @@ Tornium - Bot Dashboard
             </div>
 
             {% if server.config['stakeouts'] == 0 %}
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/stakeouts/{{ guildid }}/update?action=enable" style="color: white;">Enabled</a>
+            <button type="button" class="btn btn-outline-secondary">
+                <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">Enabled</a>
             </button>
-            <button type="button" class="btn btn-primary" disabled>
-                <a href="#" style="color: white;">Disabled</a>
+            <button type="button" class="btn btn-outline-secondary" disabled>
+                <a href="#">Disabled</a>
             </button>
             {% else %}
-            <button type="button" class="btn btn-primary" disabled>
-                <a href="#" style="color: white;">Enabled</a>
+            <button type="button" class="btn btn-outline-secondary" disabled>
+                <a href="#">Enabled</a>
             </button>
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/stakeouts/{{ guildid }}/update?action=disable" style="color: white;">Disabled</a>
+            <button type="button" class="btn btn-outline-secondary">
+                <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">Disabled</a>
             </button>
             {% endif %}
         </div>
@@ -153,7 +158,7 @@ Tornium - Bot Dashboard
             </p>
 
             <div class="col-sm-12 col-md-8 col-lg-4 my-3 form-floating">
-                <input class="form-control" id="assistfactionid" name="assistfactionid" placeholder="Enter the Torn Faction ID">
+                <input class="form-control" id="assistfactionid" name="assistfactionid">
                 <label for="assistfactionid">Faction ID</label>
                 <!-- <button class="btn btn-primary my-2" type="submit">Add</button> -->
             </div>
@@ -242,8 +247,8 @@ Tornium - Bot Dashboard
                 Verification of users in a Torn Discord server using the Torn API.
             </p>
 
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/dashboard/{{ guildid }}/verify" style="color: white;">Go To Verification Settings</a>
+            <button type="button" class="btn btn-outline-secondary">
+                <a href="/bot/dashboard/{{ guildid }}/verify">Go To Verification Settings</a>
             </button>
         </div>
     </div>
@@ -255,8 +260,8 @@ Tornium - Bot Dashboard
                 Notifications of faction organized crime readiness and delayers of organized crimes via Discord.
             </p>
 
-            <button type="button" class="btn btn-primary">
-                <a href="/bot/dashboard/{{ guildid }}/oc" style="color: white;">Go to Organized Crime Settings</a>
+            <button type="button" class="btn btn-outline-secondary">
+                <a href="/bot/dashboard/{{ guildid }}/oc">Go to Organized Crime Settings</a>
             </button>
         </div>
     </div>

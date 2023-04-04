@@ -42,6 +42,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/retal/faction/roles",
+    view_func=bot.retal.faction_retal_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/bot/server/<int:guildid>",
     view_func=bot.config.server_config,
     methods=["GET"],

@@ -49,7 +49,7 @@ $(document).ready(function() {
         rolesRequest().then(function() {
 
         }).finally(function() {
-            $(".discord-channel-selector").selectpicker();
+            $(".discord-role-selector").selectpicker();
         });
     }
     
@@ -154,4 +154,35 @@ $(document).ready(function() {
             "channel": this.options[this.selectedIndex].value
         }));
     });
+
+    $(".faction-retal-roles").on("change", function() {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function(index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Role Add Failed");
+            } else {
+                generateToast("Role Add Successful");
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/retal/faction/roles");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "factiontid": this.getAttribute("data-faction"),
+            "roles": selectedRoles
+        }));
+    })
 });

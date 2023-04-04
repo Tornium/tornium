@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 const assistMod = document.currentScript.getAttribute('data-assist-mod');
 
 $(document).ready(function() {
+    let serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function() {
@@ -44,6 +45,12 @@ $(document).ready(function() {
         }).finally(function() {
             $(".discord-channel-selector").selectpicker();
         });
+
+        rolesRequest().then(function() {
+
+        }).finally(function() {
+            $(".discord-channel-selector").selectpicker();
+        });
     }
     
     xhttp.responseType = "json";
@@ -55,8 +62,6 @@ $(document).ready(function() {
     $('[data-bs-toggle="tooltip"]').tooltip({
         container: '.list-group'
     });
-
-    let serverConfig = null;
 
     $('#assist-type-select').find('option').each(function(i, e) {
         if($(e).val() === String(assistMod)) {

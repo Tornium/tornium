@@ -126,6 +126,10 @@
         & .card-text {
             color: $off-white;
         }
+
+        & .dropdown-menu {
+            background-color: $primary-grey;
+        }
     }
 
     .secondary {

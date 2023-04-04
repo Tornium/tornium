@@ -100,6 +100,9 @@
 [data-bs-theme=neon-dark] .primary .card-text {
   color: rgb(57, 255, 20);
 }
+[data-bs-theme=neon-dark] .primary .dropdown-menu {
+  background-color: rgb(35, 35, 35);
+}
 [data-bs-theme=neon-dark] .secondary {
   background-color: rgb(25, 25, 25);
   color: rgb(57, 255, 20);

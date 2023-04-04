@@ -18,7 +18,7 @@ import os
 import pathlib
 import typing
 
-from . import rds
+from .redisconnection import rds
 
 
 class Config:

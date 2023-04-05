@@ -47,7 +47,7 @@ $(document).ready(function() {
         });
 
         rolesRequest().then(function() {
-            $.each(serverConfig["retal"], function(factionid, factionConfig) {
+            $.each(serverConfig["retals"], function(factionid, factionConfig) {
                 $.each(factionConfig["roles"], function(index, role) {
                     let option = $(`.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`);
 

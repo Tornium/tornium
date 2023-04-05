@@ -118,12 +118,12 @@ def verifyall(interaction, *args, **kwargs):
     if "options" in interaction["data"]:
         force = find_list(interaction["data"]["options"], "name", "force")
     else:
-        force = -1
+        force = False
 
     admin_keys = kwargs.get("admin_keys")
 
     if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
+        admin_keys = get_admin_keys(interaction, all_keys=True)
 
     if len(admin_keys) == 0:
         return {

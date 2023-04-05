@@ -14,9 +14,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import math
 import typing
 
 from tornium_celery.tasks.guild import verify_users
+from tornium_commons import rds
 from tornium_commons.formatters import find_list
 from tornium_commons.models import ServerModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
@@ -140,6 +142,28 @@ def verifyall(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
+    elif rds().exists(f"tornium:verify:{guild.sid}:member_count"):
+        ttl = rds().ttl(f"tornium:verify:{guild.sid}:member_count")
+        payload = {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Too Many Requests",
+                        "description": "Server-wide verification can be run every five minutes. Please try again in ",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+        if ttl > 60:
+            payload["data"]["embeds"][0]["description"] += f"{math.ceil(ttl / 60)} minutes."
+        else:
+            payload["data"]["embeds"][0]["description"] += f"{ttl} seconds."
+
+        return payload
 
     task = verify_users.delay(
         guild_id=guild.sid,

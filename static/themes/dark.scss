@@ -139,6 +139,7 @@
 
     .secondary {
         background-color: $secondary-grey;
+        height: inherit;
         color: $white;
 
         & a {

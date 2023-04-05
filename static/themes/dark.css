@@ -106,6 +106,7 @@
 }
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);
+  height: inherit;
   color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .secondary a {

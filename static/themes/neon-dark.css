@@ -110,6 +110,7 @@
 [data-bs-theme=neon-dark] .secondary {
   background-color: rgb(25, 25, 25);
   color: rgb(57, 255, 20);
+  height: inherit;
 }
 [data-bs-theme=neon-dark] .secondary a {
   color: rgb(57, 255, 20);

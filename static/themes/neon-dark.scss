@@ -142,6 +142,7 @@
     .secondary {
         background-color: $secondary-grey;
         color: $neon;
+        height: inherit;
 
         & a {
             color: $neon;

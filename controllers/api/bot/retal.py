@@ -59,10 +59,10 @@ def faction_retal_channel(*args, **kwargs):
         return make_exception_response("1102", key)
 
     try:
-        guild.retal_config[str(factiontid)]["channel"] = channelid
+        guild.retal_config[str(factiontid)]["channel"] = str(channelid)
     except KeyError:
         guild.retal_config[str(factiontid)] = {
-            "channel": channelid,
+            "channel": str(channelid),
             "roles": [],
         }
 

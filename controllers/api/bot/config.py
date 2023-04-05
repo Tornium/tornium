@@ -38,7 +38,7 @@ def jsonified_server_config(guild: ServerModel):
             "faction_verify": guild.faction_verify,
             "log_channel": str(guild.verify_log_channel),
         },
-        "retals": dict(zip(guild.retal_config.keys(), map(str, guild.retal_config.values()))),
+        "retals": dict(zip(guild.retal_config.keys(), map(dict, guild.retal_config.values()))),
         "assists": {
             "channel": str(guild.assistschannel),
             "factions": guild.assist_factions,

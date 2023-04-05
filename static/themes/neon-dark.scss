@@ -132,6 +132,11 @@
         & .dropdown-menu {
             background-color: $primary-grey;
         }
+
+        & .dropdown-toggle {
+            background-color: $primary-grey;
+            color: $neon;
+        }
     }
 
     .secondary {

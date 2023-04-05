@@ -100,6 +100,10 @@
 [data-bs-theme=custom-dark] .primary .dropdown-menu {
   background-color: rgb(35, 35, 35);
 }
+[data-bs-theme=custom-dark] .primary .dropdown-toggle {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);
   color: rgb(229, 229, 229);

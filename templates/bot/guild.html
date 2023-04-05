@@ -214,28 +214,35 @@ Tornium - Bot Dashboard
                 <ul class="list-group list-group-flush">
                     {% for faction in factions %}
                     <li class="list-group-item d-flex">
-                        <p>{{ faction.name }} [{{ faction.tid }}]</p>
-                        <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select">
-                            <option value="0">Disabled</option>
-                            {% for category in channels.values() %}
-                                {% if category["name"] == "" %}
-                                <optgroup label="No Category">
-                                {% else %}
-                                <optgroup label="{{ category["name"] }}">
-                                {% endif %}
-
-                                    {% for channel in category["channels"].values() %}
-                                        {% if faction.tid|string in server.retal_config and server.retal_config[faction.tid|string]|int == channel["id"]|int %}
-                                        <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6 col-lg-4">
+                                <p>{{ faction.name }} [{{ faction.tid }}]</p>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-lg-4">
+                                <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select">
+                                    <option value="0">Disabled</option>
+                                    {% for category in channels.values() %}
+                                        {% if category["name"] == "" %}
+                                        <optgroup label="No Category">
                                         {% else %}
-                                        <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
+                                        <optgroup label="{{ category["name"] }}">
                                         {% endif %}
-                                    {% endfor %}
-                                </optgroup>
-                            {% endfor %}
-                        </select>
 
-                        <select class="discord-role-selector faction-retal-roles" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                                            {% for channel in category["channels"].values() %}
+                                                {% if faction.tid|string in server.retal_config and server.retal_config[faction.tid|string]|int == channel["id"]|int %}
+                                                <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
+                                                {% else %}
+                                                <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-4">
+                                <select class="discord-role-selector faction-retal-roles" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </div>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>

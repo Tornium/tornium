@@ -214,11 +214,11 @@ Tornium - Bot Dashboard
                 <ul class="list-group list-group-flush">
                     {% for faction in factions %}
                     <li class="list-group-item d-flex">
-                        <div class="row">
+                        <div class="row w-100">
                             <div class="col-sm-12 col-md-6 col-lg-4">
                                 <p>{{ faction.name }} [{{ faction.tid }}]</p>
                             </div>
-                            <div class="col-sm-12 col-md-6 col-lg-4">
+                            <div class="col-sm-12 col-md-6 col-lg-4 mt-sm-2 mt-lg-0">
                                 <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select">
                                     <option value="0">Disabled</option>
                                     {% for category in channels.values() %}
@@ -239,7 +239,7 @@ Tornium - Bot Dashboard
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-sm-12 col-md-12 col-lg-4">
+                            <div class="col-sm-12 col-md-12 col-lg-4 mt-sm-2 mt-lg-0">
                                 <select class="discord-role-selector faction-retal-roles" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                             </div>
                         </div>

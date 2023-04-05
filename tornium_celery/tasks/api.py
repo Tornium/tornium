@@ -109,14 +109,17 @@ def discordget(self, endpoint, session=None, bucket=None, retry=False, *args, **
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
+
     try:
         if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError
+        elif bucket is not None:  # and bucket > 0
+            redis_client.decrby(f"tornium:discord:ratelimit:bucket:{bucket}", 1)
     except TypeError:
-        raise RatelimitError
+        pass
 
     if session is None:
         request = requests.get(url, headers=headers)
@@ -212,14 +215,17 @@ def discordpatch(self, endpoint, payload, session=None, bucket=None, retry=False
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
+
     try:
         if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError
+        elif bucket is not None:  # and bucket > 0
+            redis_client.decrby(f"tornium:discord:ratelimit:bucket:{bucket}", 1)
     except TypeError:
-        raise RatelimitError
+        pass
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -320,14 +326,17 @@ def discordpost(self, endpoint, payload, session=None, bucket=None, retry=False,
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
+
     try:
         if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError
+        elif bucket is not None:  # and bucket > 0
+            redis_client.decrby(f"tornium:discord:ratelimit:bucket:{bucket}", 1)
     except TypeError:
-        raise RatelimitError
+        pass
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -428,14 +437,17 @@ def discordput(self, endpoint, payload, session=None, bucket=None, retry=False, 
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
+
     try:
         if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError
+        elif bucket is not None:  # and bucket > 0
+            redis_client.decrby(f"tornium:discord:ratelimit:bucket:{bucket}", 1)
     except TypeError:
-        raise RatelimitError
+        pass
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -536,14 +548,17 @@ def discorddelete(self, endpoint, session=None, bucket=None, retry=False, *args,
             self.retry(countdown=redis_client.ttl("tornium:discord:ratelimit:global"))
         else:
             raise RatelimitError
+
     try:
         if bucket is not None and int(redis_client.get(f"tornium:discord:ratelimit:bucket:{bucket}")) <= 0:
             if retry:
                 self.retry(countdown=redis_client.ttl(f"tornium:discord:ratelimit:bucket:{bucket}") + 1)
             else:
                 raise RatelimitError
+        elif bucket is not None:  # and bucket > 0
+            redis_client.decrby(f"tornium:discord:ratelimit:bucket:{bucket}", 1)
     except TypeError:
-        raise RatelimitError
+        pass
 
     if session is None:
         request = requests.delete(url, headers=headers)

@@ -127,6 +127,8 @@ def verifyall(interaction, *args, **kwargs):
     if admin_keys is None:
         admin_keys = get_admin_keys(interaction, all_keys=True)
 
+    redis_client = rds()
+
     if len(admin_keys) == 0:
         return {
             "type": 4,
@@ -142,8 +144,8 @@ def verifyall(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif rds().exists(f"tornium:verify:{guild.sid}:member_count"):
-        ttl = rds().ttl(f"tornium:verify:{guild.sid}:member_count")
+    if redis_client.exists(f"tornium:verify:{guild.sid}:member_count"):
+        ttl = redis_client.ttl(f"tornium:verify:{guild.sid}:member_count")
         payload = {
             "type": 4,
             "data": {

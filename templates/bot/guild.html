@@ -219,27 +219,11 @@ Tornium - Bot Dashboard
                                 <p>{{ faction.name }} [{{ faction.tid }}]</p>
                             </div>
                             <div class="col-sm-12 col-md-6 col-lg-4 mt-sm-2 mt-lg-0">
-                                <select class="form-select faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Faction Retal Channel Select">
+                                <select class="discord-channel-selector faction-retal-channel" data-faction="{{ faction.tid }}" aria-label="Retal Channel" data-live-search="true">
                                     <option value="0">Disabled</option>
-                                    {% for category in channels.values() %}
-                                        {% if category["name"] == "" %}
-                                        <optgroup label="No Category">
-                                        {% else %}
-                                        <optgroup label="{{ category["name"] }}">
-                                        {% endif %}
-
-                                            {% for channel in category["channels"].values() %}
-                                                {% if faction.tid|string in server.retal_config and server.retal_config[faction.tid|string]|int == channel["id"]|int %}
-                                                <option value="{{ channel["id"] }}" selected="selected">#{{ channel["name"] }}</option>
-                                                {% else %}
-                                                <option value="{{ channel["id"] }}">#{{ channel["name"] }}</option>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </optgroup>
-                                    {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-sm-12 col-md-12 col-lg-4 mt-sm-2 mt-lg-0">
+                            <div class="col-sm-12 col-md-12 col-lg-4 mt-sm-2 mt-lg-0 w-100">
                                 <select class="discord-role-selector faction-retal-roles" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                             </div>
                         </div>

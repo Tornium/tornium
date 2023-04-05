@@ -32,16 +32,21 @@ $(document).ready(function() {
         serverConfig = response;
 
         channelsRequest().then(function() {
-            console.log(serverConfig["assists"]["channel"]);
-            console.log(`#assist-channel option[value="${serverConfig['assists']['channel']}"]`);
-    
             let assistsChannel = $(`#assist-channel option[value="${serverConfig['assists']['channel']}"]`);
-    
-            console.log(assistsChannel);
     
             if(assistsChannel.length !== 0) {
                 assistsChannel.attr("selected", "");
-            }    
+            }
+
+            $.each(serverConfig["retals"], function(factionid, factionConfig) {
+                let option = $(`.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`);
+
+                if(option.length !== 1) {
+                    return;
+                }
+
+                option.attr("selected", "");
+            })
         }).finally(function() {
             $(".discord-channel-selector").selectpicker();
         });
@@ -150,7 +155,6 @@ $(document).ready(function() {
                 generateToast("Channel Set Failed");
             } else {
                 generateToast("Channel Set Successful");
-                window.location.reload();
             }
         }
 

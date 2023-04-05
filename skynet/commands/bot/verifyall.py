@@ -143,7 +143,7 @@ def verifyall(interaction, *args, **kwargs):
 
     task = verify_users.delay(
         guild_id=guild.sid,
-        admin_keys=set(admin_keys),
+        admin_keys=admin_keys,
         force=force,
     )
     task_id = task.id

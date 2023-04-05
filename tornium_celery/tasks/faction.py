@@ -517,6 +517,10 @@ def retal_attacks(faction_data, last_attacks=None):
             continue
         elif attack["respect"] == 0:  # Attack by fac member or recruit
             continue
+        elif (
+            attack["modifiers"]["overseas"] == 1.25 and attack["modifiers"]["war"] == 1
+        ):  # Overseas attack when not in war
+            continue
 
         user: UserModel = UserModel.objects(tid=attack["defender_id"]).first()
         opponent: UserModel = UserModel.objects(tid=attack["attacker_id"]).first()
@@ -672,15 +676,24 @@ def retal_attacks(faction_data, last_attacks=None):
             ],
         }
 
+        if len(guild.retal_config[str(faction.tid)]["roles"]) != 0:
+            for role in guild.retal_config[str(faction.tid)]["roles"]:
+                if "content" not in payload:
+                    payload["content"] = ""
+
+                payload["content"] += f"<@&{role}>"
+
         try:
             discordpost.delay(
-                f"channels/{guild.retal_config[str(faction.tid)]}/messages",
+                f"channels/{guild.retal_config[str(faction.tid)]['channel']}/messages",
                 payload,
                 bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
             ).forget()
         except DiscordError as e:
             if e.code == 10003:
-                logger.warning(f"Unknown retal channel {guild.retal_config[str(faction.tid)]} in guild {guild.sid}")
+                logger.warning(
+                    f"Unknown retal channel {guild.retal_config[str(faction.tid)]['channel']} in guild {guild.sid}"
+                )
                 return
 
             logger.exception(e)

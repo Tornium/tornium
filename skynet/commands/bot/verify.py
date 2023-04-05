@@ -280,18 +280,10 @@ def verify(interaction, *args, **kwargs):
         for verified_role in server.verified_roles:
             if str(verified_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(verified_role))
-    elif user.discord_id == 0 and len(server.verified_roles) != 0:
-        verified_role: int
-        for verified_role in server.verified_roles:
-            if str(verified_role) in user_roles:
-                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
-                    patch_json["roles"] = user_roles
-
-                patch_json["roles"].remove(str(verified_role))
 
     if (
         user.factionid != 0
@@ -304,7 +296,7 @@ def verify(interaction, *args, **kwargs):
         for faction_role in server.faction_verify[str(user.factionid)]["roles"]:
             if str(faction_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(faction_role))
@@ -312,7 +304,7 @@ def verify(interaction, *args, **kwargs):
     for factiontid, faction_verify_data in server.faction_verify.items():
         for faction_role in faction_verify_data["roles"]:
             if str(faction_role) in user_roles and int(factiontid) != user.factionid:
-                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                if patch_json.get("roles") is None:
                     patch_json["roles"] = user_roles
 
                 patch_json["roles"].remove(str(faction_role))
@@ -330,7 +322,7 @@ def verify(interaction, *args, **kwargs):
         for position_role in server.faction_verify[str(user.factionid)]["positions"][str(user.faction_position)]:
             if str(position_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(position_role))
@@ -349,7 +341,7 @@ def verify(interaction, *args, **kwargs):
                     ):
                         valid_position_roles.append(position_role)
                         continue
-                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    elif patch_json.get("roles") is None:
                         patch_json["roles"] = user_roles
 
                     patch_json["roles"].remove(str(position_role))

@@ -14,4 +14,5 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .config import Config
+from .dbucket import DBucket
 from .redisconnection import rds

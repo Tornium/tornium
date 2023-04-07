@@ -108,7 +108,7 @@ class DBucket:
             print(f"{PREFIX}:{bhash}:limit")
 
         if "X-RateLimit-Reset" in headers:
-            client.set(f"{PREFIX}:{bhash}:expires", math.ceil(headers["X-RateLimit-Reset"]), ex=60)
+            client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)
 
 
 class DBucketNull(DBucket):

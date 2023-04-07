@@ -71,10 +71,10 @@ class DBucket:
     def call(self):
         if time.time() >= self.expires:
             client = rds()
-            client.set(f"{self.prefix}:{self.id}:remaining", self.limit - 1, ex=self.expires)
-            client.set(f"{self.prefix}:{self.id}:expires", self.expires)
             self.remaining = self.limit - 1
             self.expires = math.ceil(time.time())
+            client.set(f"{self.prefix}:{self.id}:remaining", self.limit - 1, ex=self.expires)
+            client.set(f"{self.prefix}:{self.id}:expires", self.expires)
         else:
             try:
                 self.remaining = int(rds().decrby(f"{self.prefix}:{self.id}:remaining", 1))
@@ -108,7 +108,7 @@ class DBucket:
             print(f"{PREFIX}:{bhash}:limit")
 
         if "X-RateLimit-Reset" in headers:
-            client.set(f"{PREFIX}:{bhash}:expires", headers["X-RateLimit-Reset"], ex=60)
+            client.set(f"{PREFIX}:{bhash}:expires", math.ceil(headers["X-RateLimit-Reset"]), ex=60)
 
 
 class DBucketNull(DBucket):

@@ -42,7 +42,6 @@ def update_commands(verbose=False):
     handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     botlogger.addHandler(handler)
 
-    session = requests.Session()
     application_id = rds().get("tornium:settings:skynet-applicationid")
     botlogger.debug(application_id)
 
@@ -76,7 +75,6 @@ def update_commands(verbose=False):
         commands_data = discordput(
             f"applications/{application_id}/commands",
             commands_data,
-            session=session,
         )
         botlogger.info(commands_data)
     except DiscordError as e:

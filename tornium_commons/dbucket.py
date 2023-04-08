@@ -26,7 +26,7 @@ PREFIX = "tornium:discord:ratelimit:bucket"
 class DBucket:
     def __init__(self, bhash: typing.Optional[str]):
         self._id = bhash
-        self.remaining = 1
+        self._remaining = 1
         self.limit = 1
         self.expires = math.ceil(time.time()) + 1
         self.prefix = PREFIX
@@ -34,6 +34,16 @@ class DBucket:
     @property
     def id(self):
         return self._id
+
+    @property
+    def remaining(self):
+        if self.expires < time.time():
+            self._remaining = self.limit
+            self.expires = math.ceil(time.time())
+            rds().set(f"{self.prefix}:{self.id}:remaining", self._remaining, ex=10)
+            rds().set(f"{self.prefix}:{self.id}:expires", self.expires, ex=10)
+
+        return self._remaining
 
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
@@ -44,9 +54,9 @@ class DBucket:
         client = rds()
 
         try:
-            self.remaining = int(client.get(f"{self.prefix}:{self.id}:remaining"))
+            self._remaining = int(client.get(f"{self.prefix}:{self.id}:remaining"))
         except TypeError:
-            self.remaining = 1
+            self._remaining = 1
 
         try:
             self.limit = int(client.get(f"{self.prefix}:{self.id}:limit"))
@@ -58,28 +68,15 @@ class DBucket:
         except TypeError:
             self.expires = math.ceil(time.time())
 
-        if self.expires <= time.time():
-            self.remaining = self.limit
-            self.expires = math.ceil(time.time())
-            client.set(f"{self.prefix}:{self.id}:expires", self.expires)
-            client.set(f"{self.prefix}:{self.id}:remaining", self.limit, ex=self.expires)
-
     def verify(self):
-        if self.remaining < 1 and time.time() <= self.expires:
+        if self.remaining <= 0:
             raise RatelimitError
 
     def call(self):
         if time.time() >= self.expires:
-            client = rds()
-            self.remaining = self.limit - 1
-            self.expires = math.ceil(time.time())
-            client.set(f"{self.prefix}:{self.id}:remaining", self.limit - 1, ex=self.expires)
-            client.set(f"{self.prefix}:{self.id}:expires", self.expires)
+            rds().set(f"{self.prefix}:{self.id}:remaining", self.remaining - 1, ex=10)
         else:
-            try:
-                self.remaining = int(rds().decrby(f"{self.prefix}:{self.id}:remaining", 1))
-            except TypeError:
-                self.remaining -= 1
+            self._remaining = int(rds().decrby(f"{self.prefix}:{self.id}:remaining", 1))
 
     def expire(self):
         client = rds()

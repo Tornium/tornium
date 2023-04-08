@@ -53,6 +53,7 @@ class DBucket:
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
         bhash = rds().get(f"{PREFIX}:{method}|{endpoint.split('?')[0]}")
+        print(f"{PREFIX}:{method}|{endpoint.split('?')[0]} :: {bhash}")
         return DBucketNull(method, endpoint) if bhash is None else cls(bhash)
 
     def refresh_bucket(self):

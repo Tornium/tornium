@@ -42,22 +42,21 @@ class DBucket:
             self.expires = math.ceil(time.time())
             rds().set(f"{self.prefix}:{self.id}:remaining", self._remaining, ex=10)
             rds().set(f"{self.prefix}:{self.id}:expires", self.expires, ex=10)
+        elif self._remaining < 0:
+            self._remaining = 1
+            self.expires = math.ceil(time.time())
+            rds().set(f"{self.prefix}:{self.id}:remaining", self._remaining, ex=10)
+            rds().set(f"{self.prefix}:{self.id}:expires", self.expires, ex=10)
 
         return self._remaining
 
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
         bhash = rds().get(f"{PREFIX}:{method}|{endpoint.split('?')[0]}")
-        print(f"{method}|{endpoint.split('?')[0]} is in bucket {bhash}")
         return DBucketNull(method, endpoint) if bhash is None else cls(bhash)
 
     def refresh_bucket(self):
         client = rds()
-
-        try:
-            self._remaining = int(client.get(f"{self.prefix}:{self.id}:remaining"))
-        except TypeError:
-            self._remaining = 1
 
         try:
             self.limit = int(client.get(f"{self.prefix}:{self.id}:limit"))
@@ -65,13 +64,17 @@ class DBucket:
             self.limit = 1
 
         try:
+            self._remaining = int(client.get(f"{self.prefix}:{self.id}:remaining"))
+        except TypeError:
+            self._remaining = self.limit
+            client.set(f"{self.prefix}:{self.id}:remaining", self.limit, nx=True, ex=10)
+
+        try:
             self.expires = int(client.get(f"{self.prefix}:{self.id}:expires"))
         except TypeError:
             self.expires = math.ceil(time.time())
 
     def verify(self):
-        print(f"{self.remaining} calls left in {self._id} bucket")
-
         if self.remaining <= 0:
             raise RatelimitError
 
@@ -101,11 +104,12 @@ class DBucket:
         client = rds()
         bhash = headers["X-RateLimit-Bucket"]
         client.set(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", bhash, nx=True, ex=3600)
-        print(f"{PREFIX}:{method}|{endpoint.split('?')[0]}")
 
         if "X-RateLimit-Limit" in headers:
+            if client.get(f"{PREFIX}:{bhash}:limit") == 1:
+                client.set(f"{PREFIX}:{bhash}:remaining", headers["X-RateLimit-Limit"] - 1, ex=10)
+
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
-            print(f"{PREFIX}:{bhash}:limit")
 
         if "X-RateLimit-Reset" in headers:
             client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)

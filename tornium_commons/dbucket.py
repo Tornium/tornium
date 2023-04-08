@@ -48,6 +48,7 @@ class DBucket:
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
         bhash = rds().get(f"{PREFIX}:{method}|{endpoint.split('?')[0]}")
+        print(f"{method}|{endpoint.split('?')[0]} is in bucket {bhash}")
         return DBucketNull(method, endpoint) if bhash is None else cls(bhash)
 
     def refresh_bucket(self):
@@ -69,6 +70,8 @@ class DBucket:
             self.expires = math.ceil(time.time())
 
     def verify(self):
+        print(f"{self.remaining} calls left in {self._id} bucket")
+
         if self.remaining <= 0:
             raise RatelimitError
 

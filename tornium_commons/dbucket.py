@@ -29,11 +29,14 @@ class DBucket:
         self._remaining = 1
         self.limit = 1
         self.expires = math.ceil(time.time()) + 1
-        self.prefix = PREFIX
 
     @property
     def id(self):
         return self._id
+
+    @property
+    def prefix(self):
+        return PREFIX
 
     @property
     def remaining(self):
@@ -91,8 +94,7 @@ class DBucket:
         client.delete(f"{self.prefix}:{self.id}:limit")
         client.delete(f"{self.prefix}:{self.id}:expires")
 
-    @staticmethod
-    def update_bucket(headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+    def update_bucket(self, headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
         # X-RateLimit-Limit: 5
         # X-RateLimit-Remaining: 0
         # X-RateLimit-Reset: 1470173023
@@ -107,13 +109,16 @@ class DBucket:
         client.set(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", bhash, nx=True, ex=3600)
 
         if "X-RateLimit-Limit" in headers:
-            if client.get(f"{PREFIX}:{bhash}:limit") == 1:
-                client.set(f"{PREFIX}:{bhash}:remaining", headers["X-RateLimit-Limit"] - 1, ex=10)
-
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
+            self.limit = headers["X-RateLimit-Limit"]
 
         if "X-RateLimit-Reset" in headers:
             client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)
+            self.expires = float(headers["X-RateLimit-Reset"])
+
+        if "X-RateLimit-Remaining" in headers:
+            client.set(f"{PREFIX}:{bhash}:remaining", min(headers["X-RateLimit-Remaining"], self._remaining), ex=60)
+            self._remaining = min(headers["X-RateLimit-Remaining"], self._remaining)
 
 
 class DBucketNull(DBucket):
@@ -122,12 +127,35 @@ class DBucketNull(DBucket):
 
         self.method = method
         self.endpoint = endpoint.split("?")[0]
-        self.prefix = PREFIX + ":temp"
 
     @property
     def id(self):
         return f"{self.method}|{self.endpoint}"
 
+    @property
+    def prefix(self):
+        return PREFIX + ":temp"
+
     def refresh_bucket(self):
         super().refresh_bucket()
         self.limit = 1
+
+    def update_bucket(self, headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+        if "X-RateLimit-Bucket" not in headers:
+            return
+
+        client = rds()
+        bhash = headers["X-RateLimit-Bucket"]
+        client.set(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", bhash, nx=True, ex=3600)
+
+        if "X-RateLimit-Limit" in headers:
+            client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
+            self.limit = headers["X-RateLimit-Limit"]
+
+        if "X-RateLimit-Reset" in headers:
+            client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)
+            self.expires = float(headers["X-RateLimit-Reset"])
+
+        if "X-RateLimit-Remaining" in headers:
+            client.set(f"{PREFIX}:{bhash}:remaining", min(headers["X-RateLimit-Remaining"], self.limit - 1), ex=60)
+            self._remaining = min(headers["X-RateLimit-Remaining"], self.limit - 1)

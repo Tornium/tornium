@@ -110,15 +110,17 @@ class DBucket:
 
         if "X-RateLimit-Limit" in headers:
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
-            self.limit = headers["X-RateLimit-Limit"]
+            self.limit = int(headers["X-RateLimit-Limit"])
 
         if "X-RateLimit-Reset" in headers:
             client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)
             self.expires = float(headers["X-RateLimit-Reset"])
 
         if "X-RateLimit-Remaining" in headers:
-            client.set(f"{PREFIX}:{bhash}:remaining", min(headers["X-RateLimit-Remaining"], self._remaining), ex=60)
-            self._remaining = min(headers["X-RateLimit-Remaining"], self._remaining)
+            client.set(
+                f"{PREFIX}:{bhash}:remaining", min(int(headers["X-RateLimit-Remaining"]), self._remaining), ex=60
+            )
+            self._remaining = min(int(headers["X-RateLimit-Remaining"]), self._remaining)
 
 
 class DBucketNull(DBucket):
@@ -150,12 +152,12 @@ class DBucketNull(DBucket):
 
         if "X-RateLimit-Limit" in headers:
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
-            self.limit = headers["X-RateLimit-Limit"]
+            self.limit = int(headers["X-RateLimit-Limit"])
 
         if "X-RateLimit-Reset" in headers:
             client.set(f"{PREFIX}:{bhash}:expires", math.ceil(float(headers["X-RateLimit-Reset"])), ex=60)
             self.expires = float(headers["X-RateLimit-Reset"])
 
         if "X-RateLimit-Remaining" in headers:
-            client.set(f"{PREFIX}:{bhash}:remaining", min(headers["X-RateLimit-Remaining"], self.limit - 1), ex=60)
-            self._remaining = min(headers["X-RateLimit-Remaining"], self.limit - 1)
+            client.set(f"{PREFIX}:{bhash}:remaining", min(int(headers["X-RateLimit-Remaining"]), self.limit - 1), ex=60)
+            self._remaining = min(int(headers["X-RateLimit-Remaining"]), self.limit - 1)

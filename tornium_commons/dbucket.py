@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
 import math
 import time
 import typing
@@ -28,7 +29,7 @@ class DBucket:
         self._id = bhash
         self._remaining = 1
         self.limit = 1
-        self.expires = math.ceil(time.time()) + 1
+        self.expires = math.ceil(time.time())
 
     @property
     def id(self):
@@ -55,9 +56,32 @@ class DBucket:
 
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
-        bhash = rds().get(f"{PREFIX}:{method}|{endpoint.split('?')[0]}")
-        print(f"{PREFIX}:{method}|{endpoint.split('?')[0]} :: {bhash}")
-        return DBucketNull(method, endpoint) if bhash is None else cls(bhash)
+        if rds().exists(f"{PREFIX}:{method}|{endpoint.split('?')[0]}:lock") == 1:
+            raise RatelimitError
+
+        client = rds()
+
+        bhash = client.eval(
+            inspect.cleandoc(
+                """
+        local bhash = redis.call("GET", KEYS[1])
+
+        if bhash == false then
+            redis.call("SET", KEYS[1] .. ":lock", 1)
+            return bhash
+        end
+
+        return bhash
+        """
+            ),
+            1,
+            f"{PREFIX}:{method}|{endpoint.split('?')[0]}",
+        )
+
+        if bhash is None:
+            return DBucketNull(method, endpoint)
+        else:
+            return cls(bhash)
 
     def refresh_bucket(self):
         client = rds()
@@ -161,3 +185,5 @@ class DBucketNull(DBucket):
         if "X-RateLimit-Remaining" in headers:
             client.set(f"{PREFIX}:{bhash}:remaining", min(int(headers["X-RateLimit-Remaining"]), self.limit - 1), ex=60)
             self._remaining = min(int(headers["X-RateLimit-Remaining"]), self.limit - 1)
+
+        rds().delete(f"{PREFIX}:{method}|{endpoint.split('?')[0]}:lock")

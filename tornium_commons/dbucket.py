@@ -78,6 +78,8 @@ class DBucket:
             f"{PREFIX}:{method}|{endpoint.split('?')[0]}",
         )
 
+        client.expire(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", 5, nx=True)
+
         if bhash is None:
             return DBucketNull(method, endpoint)
         else:

@@ -22,7 +22,20 @@ from .redisconnection import rds
 
 
 class Config:
+    """
+    A Redis-based config caching system.
+    """
+
     def __init__(self, file: typing.Union[pathlib.Path, str] = "settings.json"):
+        """
+        Initialize config with file path.
+
+        Parameters
+        ----------
+        file : str, pathlib.Path
+            Path to the config file
+        """
+
         if type(file) == pathlib.Path:
             self._file = file
         else:
@@ -44,6 +57,10 @@ class Config:
         self.save()
 
     def load(self):
+        """
+        Load data from config file into Redis cache.
+        """
+
         if not self._file.exists():
             raise FileNotFoundError
 
@@ -60,6 +77,10 @@ class Config:
         return self
 
     def save(self):
+        """
+        Save temporarily config data that can be read from `__getitem__` to the config file persistently.
+        """
+
         if not self._file.exists():
             raise FileNotFoundError
 
@@ -69,5 +90,9 @@ class Config:
         return self
 
     def regen_secret(self):
+        """
+        Regenerate and save the Flask secret to the config file and Redis cache.
+        """
+
         self.__setitem__("secret", str(os.urandom(32)))
         return self.__getitem__("secret")

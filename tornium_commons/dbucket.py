@@ -62,6 +62,11 @@ class DBucket:
     Implementation of the Discord ratelimiter.
 
     This class provides support for both global and per-route rate limits via Lua scripts in the Redis server.
+
+    References
+    ----------
+    https://discord.com/developers/docs/topics/rate-limits
+    https://wumpy.readthedocs.io/en/latest/extending/rest-ratelimiter/
     """
 
     def __init__(self, bhash: typing.Optional[str]):

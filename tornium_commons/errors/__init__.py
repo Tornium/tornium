@@ -19,4 +19,8 @@ from .torn import MissingKeyError, TornError
 
 
 class RatelimitError(Exception):
+    """
+    The request has resulted in a pre-emptive ratelimit handling or a rate-limited response.
+    """
+
     pass

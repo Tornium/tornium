@@ -15,9 +15,11 @@
 
 import json
 import logging
+import pathlib
+import traceback
 
 import click
-import requests
+import importlib_resources
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
 from tornium_commons import rds
@@ -87,3 +89,42 @@ def update_commands(verbose=False):
         raise e
 
     click.echo("Commands have been successfully exported")
+
+
+@mod.cli.command("load-scripts")
+@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
+def load_scripts(verbose=False):
+    client = rds()
+    client.echo("1")
+
+    if verbose:
+        click.echo("Redis connection established")
+
+    client.script_flush()
+    client.echo("Existing Redis scripts flushed")
+
+    scripts = importlib_resources.files("rds-lua").iterdir()
+    click.echo(f"{sum(1 for _ in scripts)} Redis scripts discovered\n")
+
+    script_map = {}
+
+    script: pathlib.Path
+    for script in scripts:
+        script_data = script.read_text().encode("utf-8")
+        try:
+            script_map[script.name] = client.script_load(script_data)
+        except Exception as e:
+            click.echo(f'Loading of Redis script "{script.name}" has failed')
+
+            if verbose:
+                click.echo(traceback.format_exception(e))
+
+            continue
+
+        if verbose:
+            click.echo(f'Redis script "{script.name}" has been successfully loaded')
+
+    click.echo(f"\n{len(script_map)} Redis scripts loaded with the following SHA1 hashes...")
+
+    for script_name, script_hash in script_map.items():
+        click.echo(f"{script_name}: {script_hash}")

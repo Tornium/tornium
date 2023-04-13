@@ -13,14 +13,34 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import (
+    annotations,  # For return type annotation of methods returning the class
+)
+
 import time
 import typing
+
+import requests.structures
 
 from .errors import RatelimitError
 from .redisconnection import rds
 
 
-def _strip_endpoint(endpoint):
+def _strip_endpoint(endpoint) -> str:
+    """
+    Remove extra routing information from the endpoint for use in ratelimiting Redis keys.
+
+    Parameters
+    ----------
+    endpoint : str
+        Request endpoint as passed to Celery tasks
+
+    Returns
+    -------
+    stripped_endpoint : str
+        Endpoint used for Discord bucket hashes
+    """
+
     without_query = endpoint.split("?")[0]
 
     # The Discord API utilizes top-level resources for certain bucket identifiers
@@ -38,10 +58,25 @@ _se = _strip_endpoint
 
 
 class DBucket:
+    """
+    Implementation of the Discord ratelimiter.
+
+    This class provides support for both global and per-route rate limits via Lua scripts in the Redis server.
+    """
+
     def __init__(self, bhash: typing.Optional[str]):
+        """
+        Initialize a new Discord ratelimiting bucket from the per-route bucket hash.
+
+        Parameters
+        ----------
+        bhash : str, optional
+            Discord per-route bucket hash
+        """
+
         self._id = bhash
-        self.remaining = 1
-        self.expires = int(time.time())
+        self.remaining = 1  # Default value in case hash is not found
+        self.expires = int(time.time())  # bucket's data is only valid for the second
 
     @property
     def id(self):
@@ -52,7 +87,26 @@ class DBucket:
         return PREFIX
 
     @classmethod
-    def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+    def from_endpoint(
+        cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str
+    ) -> typing.Union[DBucket, DBucketNull]:
+        """
+        Initialize a new Discord ratelimiting bucket from the method and endpoint being called.
+
+        Parameters
+        ----------
+        method : str
+            Request method
+        endpoint : str
+            Request endpoint as passed to Celery tasks
+
+        Returns
+        -------
+        bucket : DBucket, DBucketNull
+            Discord ratelimiting bucket
+        """
+
+        # Prevents requests from being made on new endpoints that are currently being called and updated
         if rds().exists(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}") == 1:
             raise RatelimitError
 
@@ -72,6 +126,15 @@ class DBucket:
             return cls(bhash)
 
     def call(self):
+        """
+        Indicate Discord API call being made in the Redis ratelimiting keys.
+
+        Raises
+        ------
+        RatelimitError
+            If the bucket has reached a ratelimit.
+        """
+
         # bhash-call.lua
         response = rds().evalsha(
             "470c9c6ac61fc06cd6a2f10dcc61292476cf20b8",
@@ -84,12 +147,25 @@ class DBucket:
         if response == 0:
             raise RatelimitError
 
-    def expire(self):
-        client = rds()
-        client.delete(f"{self.prefix}:{self.id}:remaining:{int(time.time())}")
-        client.delete(f"{self.prefix}:{self.id}:limit")
+    def update_bucket(
+        self,
+        headers: requests.structures.CaseInsensitiveDict,
+        method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
+        endpoint: str,
+    ):
+        """
+        Update bucket's limit and remaining Redis ratelimiting keys with the Discord response's headers.
 
-    def update_bucket(self, headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+        Parameters
+        ----------
+        headers : requests.structures.CaseInsensitiveDict
+            Response headers from Discord API call
+        method : str
+            Request method
+        endpoint : str
+            Request endpoint as passed to Celery tasks
+        """
+
         if "X-RateLimit-Bucket" not in headers:
             return
 
@@ -108,7 +184,24 @@ class DBucket:
 
 
 class DBucketNull(DBucket):
+    """
+    Implementation of the Discord ratelimiter for when the bucket hash for the routing is not cached.
+
+    This class provides support for both global and per-route rate limits via Lua scripts in the Redis server.
+    """
+
     def __init__(self, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+        """
+        Initialize a new Discord ratelimiting bucket from the method and endpoint of the request.
+
+        Parameters
+        ----------
+        method : str
+            Request method
+        endpoint : str
+            Request endpoint as passed to Celery tasks
+        """
+
         super().__init__(bhash=None)
 
         self.method = method
@@ -123,6 +216,19 @@ class DBucketNull(DBucket):
         return PREFIX + ":temp"
 
     def update_bucket(self, headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+        """
+        Update bucket's limit and remaining Redis ratelimiting keys with the Discord response's headers.
+
+        Parameters
+        ----------
+        headers : requests.structures.CaseInsensitiveDict
+            Response headers from Discord API call
+        method : str
+            Request method
+        endpoint : str
+            Request endpoint as passed to Celery tasks
+        """
+
         if "X-RateLimit-Bucket" not in headers:
             return
 

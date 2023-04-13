@@ -102,15 +102,16 @@ def load_scripts(verbose=False):
 
     client.script_flush()
     client.echo("Existing Redis scripts flushed")
+    click.echo(
+        f"{sum(1 for _ in importlib_resources.files('tornium_commons.rds_lua').iterdir())} Redis scripts discovered\n"
+    )
 
     scripts = importlib_resources.files("tornium_commons.rds_lua").iterdir()
-    click.echo(f"{sum(1 for _ in scripts)} Redis scripts discovered\n")
-
     script_map = {}
 
     script: pathlib.Path
     for script in scripts:
-        script_data = script.read_text().encode("utf-8")
+        script_data = script.read_text()
         try:
             script_map[script.name] = client.script_load(script_data)
         except Exception as e:

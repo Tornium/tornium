@@ -45,19 +45,8 @@ class DBucket:
         client = rds()
 
         # bhash.lua
-        bhash = client.eval(
-            inspect.cleandoc(
-                """
-        local bhash = redis.call("GET", KEYS[1])
-
-        if bhash == false then
-            redis.call("SET", KEYS[1] .. ":lock:" .. ARGV[1], 1, "NX", "EX", 2)
-            return bhash
-        end
-
-        return bhash
-        """
-            ),
+        bhash = client.evalsha(
+            "6bbd164e23cda5b6366755bc514ecb976d62e93f",
             1,
             f"{PREFIX}:{method}|{endpoint.split('?')[0]}",
             int(time.time()),
@@ -70,53 +59,8 @@ class DBucket:
 
     def call(self):
         # bhash-call.lua
-        response = rds().eval(
-            inspect.cleandoc(
-                """
-            if redis.call("SET", KEYS[3], 49, "NX", "EX", 60) == "OK" then
-                return 1
-            elseif tonumber(redis.call("GET", KEYS[3])) < 1 then
-                return 1
-            end
-            
-            local remaining = redis.call("GET", KEYS[1])
-            local limit = false
-            
-            if remaining == false then
-                if limit == false then
-                    limit = redis.call("GET", KEYS[2])
-                    
-                    if limit == false then
-                        limit = 1
-                    else
-                        limit = tonumber(limit)
-                    end
-                end
-            
-                redis.call("SET", KEYS[1], limit, "NX", "EX", 2)
-            end
-            
-            if redis.call("EXISTS", KEYS[1]) == "0" then
-                if limit == false then
-                    limit = redis.call("GET", KEYS[2])
-                    
-                    if limit == false then
-                        limit = 1
-                    else
-                        limit = tonumber(limit)
-                    end
-                end
-            
-                redis.call("SET", KEYS[1], limit - 1, "NX", "EX", 2)
-            elseif tonumber(redis.call("GET", KEYS[1])) < 1 then
-                return 0
-            else
-                redis.call("DECR", KEYS[1])
-            end
-            
-            return 1
-            """  # noqa: W293
-            ),
+        response = rds().evalsha(
+            "470c9c6ac61fc06cd6a2f10dcc61292476cf20b8",
             3,
             f"{self.prefix}:{self.id}:remaining:{int(time.time())}",
             f"{self.prefix}:{self.id}:limit",

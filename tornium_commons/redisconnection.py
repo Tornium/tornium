@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pathlib
+
+import importlib_resources
 import redis
 
 
@@ -26,3 +29,26 @@ def rds() -> redis.Redis:
     """
 
     return redis.Redis(host="127.0.0.1", port=6379, charset="utf-8", decode_responses=True)
+
+
+def load_scripts() -> dict:
+    """
+    Loads Lua scripts into Redis server
+
+    Returns
+    -------
+    scripts : mapping of script names to hashes
+    """
+
+    scripts = {}
+    client = rds()
+
+    client.script_flush()
+
+    script: pathlib.Path
+    for script in importlib_resources.files("rds-lua").iterdir():
+        script_data = script.read_text().encode("utf-8")
+
+        scripts[script.name[:-4]] = client.script_load(script_data)
+
+    return scripts

@@ -123,10 +123,10 @@ class DBucketNull(DBucket):
         if "X-RateLimit-Remaining" in headers and "X-RateLimit-Limit" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining:{int(time.time())}",
-                min(int(headers["X-RateLimit-Remaining"]), headers["X-RateLimit-Limit"] - 1),
+                min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1),
                 ex=60,
             )
-            self.remaining = min(int(headers["X-RateLimit-Remaining"]), headers["X-RateLimit-Limit"] - 1)
+            self.remaining = min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1)
         elif "X-RateLimit_Remaining" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining:{int(time.time())}",

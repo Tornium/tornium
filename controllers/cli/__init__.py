@@ -103,7 +103,7 @@ def load_scripts(verbose=False):
     client.script_flush()
     client.echo("Existing Redis scripts flushed")
 
-    scripts = importlib_resources.files("rds-lua").iterdir()
+    scripts = importlib_resources.files("tornium_commons.rds-lua").iterdir()
     click.echo(f"{sum(1 for _ in scripts)} Redis scripts discovered\n")
 
     script_map = {}

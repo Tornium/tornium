@@ -46,7 +46,7 @@ def load_scripts() -> dict:
     client.script_flush()
 
     script: pathlib.Path
-    for script in importlib_resources.files("rds-lua").iterdir():
+    for script in importlib_resources.files("rds_lua").iterdir():
         script_data = script.read_text().encode("utf-8")
 
         scripts[script.name[:-4]] = client.script_load(script_data)

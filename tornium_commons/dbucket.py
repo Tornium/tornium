@@ -13,14 +13,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import inspect
 import time
 import typing
 
 from .errors import RatelimitError
 from .redisconnection import rds
 
+
+def _strip_endpoint(endpoint):
+    without_query = endpoint.split("?")[0]
+
+    # The Discord API utilizes top-level resources for certain bucket identifiers
+    # Top-level resources included are currently limited to
+    # "channel/", "guild/", "/webhooks" (last not utilized in Tornium)
+    if without_query.split("/")[0] in ("channel", "guild"):
+        only_resource = "/".join(without_query.split("/")[:2])
+        return only_resource
+    else:
+        return without_query
+
+
 PREFIX = "tornium:discord:ratelimit:bucket"
+_se = _strip_endpoint
 
 
 class DBucket:
@@ -39,7 +53,7 @@ class DBucket:
 
     @classmethod
     def from_endpoint(cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
-        if rds().exists(f"{PREFIX}:{method}|{endpoint.split('?')[0]}:lock:{int(time.time())}") == 1:
+        if rds().exists(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}") == 1:
             raise RatelimitError
 
         client = rds()
@@ -48,7 +62,7 @@ class DBucket:
         bhash = client.evalsha(
             "6bbd164e23cda5b6366755bc514ecb976d62e93f",
             1,
-            f"{PREFIX}:{method}|{endpoint.split('?')[0]}",
+            f"{PREFIX}:{method}|{_se(endpoint)}",
             int(time.time()),
         )
 
@@ -81,7 +95,7 @@ class DBucket:
 
         client = rds()
         bhash = headers["X-RateLimit-Bucket"]
-        client.set(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", bhash, nx=True, ex=3600)
+        client.set(f"{PREFIX}:{method}|{_se(endpoint)}", bhash, nx=True, ex=3600)
 
         if "X-RateLimit-Limit" in headers:
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"])
@@ -90,7 +104,7 @@ class DBucket:
             client.set(f"{PREFIX}:{bhash}:remaining", min(int(headers["X-RateLimit-Remaining"]), self.remaining), ex=60)
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{endpoint.split('?')[0]}:lock:{int(time.time())}")
+        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}")
 
 
 class DBucketNull(DBucket):
@@ -114,7 +128,7 @@ class DBucketNull(DBucket):
 
         client = rds()
         bhash = headers["X-RateLimit-Bucket"]
-        client.set(f"{PREFIX}:{method}|{endpoint.split('?')[0]}", bhash, nx=True, ex=3600)
+        client.set(f"{PREFIX}:{method}|{_se(endpoint)}", bhash, nx=True, ex=3600)
 
         if "X-RateLimit-Limit" in headers:
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
@@ -135,4 +149,4 @@ class DBucketNull(DBucket):
             )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{endpoint.split('?')[0]}:lock:{int(time.time())}")
+        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}")

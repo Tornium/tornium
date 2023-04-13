@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 where = ["tornium_commons"]
 
 [tool.setuptools.package-data]
-"rds-lua" = ["*.lua"]
+"tornium_commons" = ["rds-lua/*.lua"]
 
 [project]
 authors = [

@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["rds-lua"]
+where = ["tornium_commons"]
 
 [tool.setuptools.package-data]
-"tornium_commons" = ["*.lua"]
+"rds-lua" = ["*.lua"]
 
 [project]
 authors = [

@@ -19,5 +19,9 @@ repos:
         language: python
       - id: add-rds-lua-hasher
         name: add-rds-lua-hasher
-        entry: /bin/bash -c "git add tornium_commons/rds_lua_hashes.py && git commit --no-verify -m "[AUTOMATED] rds-lua hash update" && git push"
+        entry: /bin/bash -c "git add --ignore-errors tornium_commons/rds_lua_hashes.py"
+        language: script
+      - id: commit-rds-lua-hasher
+        name: commit-rds-lua-hasher
+        entry: /bin/bash -c "git commit --no-verify -m '[AUTOMATED] rds-lua hash update' tornium_commons/rds_lua_hashes.py || true"
         language: script

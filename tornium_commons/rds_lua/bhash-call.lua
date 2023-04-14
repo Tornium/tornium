@@ -32,6 +32,7 @@ elseif tonumber(redis.call("GET", KEYS[3])) < 1 then
     return 1
 end
 
+local remaining = redis.call("GET", KEYS[1])
 local limit = false  -- per-route ratelimit limit
 
 if remaining == false then

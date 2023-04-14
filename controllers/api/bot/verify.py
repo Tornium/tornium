@@ -231,6 +231,39 @@ def guild_verification_roles(*args, **kwargs):
 @key_required
 @ratelimit
 @requires_scopes(scopes={"admin", "bot:admin"})
+def guild_exclusion_roles(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    guildid = data.get("guildid")
+    roles = data.get("roles")
+
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif roles is None or type(roles) != list:
+        return make_exception_response("1000", key)
+
+    guildid = int(guildid)
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    try:
+        guild.exclusion_roles = [int(role) for role in roles]
+    except ValueError:
+        return make_exception_response("1003", key)
+
+    guild.save()
+
+    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+
+
+@key_required
+@ratelimit
+@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_roles(factiontid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

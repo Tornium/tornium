@@ -46,6 +46,16 @@ $(document).ready(function() {
                 option.attr("selected", "");
             });
 
+            $.each(serverConfig["verify"]["exclusion_roles"], function(index, role) {
+                let option = $(`#exclusion-roles option[value="${role}"]`);
+
+                if(option.length === 0) {
+                    return;
+                }
+
+                option.attr("selected", "");
+            });
+
             $.each(serverConfig["verify"]["faction_verify"], function(factionid, factionConfig) {
                 $.each(factionConfig["roles"], function(index, role) {
                     let option = $(`.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`);
@@ -303,6 +313,36 @@ $(document).ready(function() {
 
         xhttp.responseType = "json";
         xhttp.open("POST", "/api/bot/verify/roles");
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify({
+            "guildid": guildid,
+            "roles": selectedRoles
+        }));
+    });
+
+    $("#exclusion-roles").on("change", function() {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function(index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function() {
+            let response = xhttp.response;
+
+            if("code" in response) {
+                generateToast("Role Add Failed");
+            } else {
+                generateToast("Role Add Successful");
+            }
+        }
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/exclusion");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(JSON.stringify({

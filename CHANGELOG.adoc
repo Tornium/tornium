@@ -9,6 +9,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 == [UNRELEASED]
 === Added
  - [dev] Added pre-commit support
+ - [tornium-commons] Added docstrings
+ - [tornium-commons] Added Discord rateliming buckets
+ - [tornium-commons] Added support for Redis Lua scripts
 
 === Deprecated
  - Deprecated assist request forwarding options (to be removed in the v0.5.x release cycle)

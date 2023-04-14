@@ -46,10 +46,13 @@ def save_hashes():
             continue
 
         with open(os.path.join("tornium_commons/rds_lua", file), "r") as f:
-            _TEMPLATE += f"{file[:-4].upper().replace('-', '_')} = \"{hashlib.sha1(f.read().encode('utf-8')).hexdigest()}\"\n"
+            _TEMPLATE += (
+                f"{file[:-4].upper().replace('-', '_')} = \"{hashlib.sha1(f.read().encode('utf-8')).hexdigest()}\"\n"
+            )
 
     with open("tornium_commons/rds_lua_hashes.py", "w") as f:
         f.write(_TEMPLATE)
+
 
 if __name__ == "__main__":
     save_hashes()

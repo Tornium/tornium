@@ -52,3 +52,7 @@ def load_scripts() -> dict:
         scripts[script.name[:-4]] = client.script_load(script_data)
 
     return scripts
+
+
+if __name__ == "__main__":
+    load_scripts()

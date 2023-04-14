@@ -46,8 +46,8 @@ def _strip_endpoint(endpoint) -> str:
 
     # The Discord API utilizes top-level resources for certain bucket identifiers
     # Top-level resources included are currently limited to
-    # "channel/", "guild/", "/webhooks" (last not utilized in Tornium)
-    if without_query.split("/")[0] in ("channel", "guild"):
+    # "channels/", "guilds/", "/webhooks" (last not utilized in Tornium)
+    if without_query.split("/")[0] in ("channels", "guilds"):
         only_resource = "/".join(without_query.split("/")[:2])
         return only_resource
     else:
@@ -155,7 +155,7 @@ class DBucket:
 
     def update_bucket(
         self,
-        headers: requests.structures.CaseInsensitiveDict,
+        headers: typing.Union[dict, requests.structures.CaseInsensitiveDict],
         method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
         endpoint: str,
     ):
@@ -164,7 +164,7 @@ class DBucket:
 
         Parameters
         ----------
-        headers : requests.structures.CaseInsensitiveDict
+        headers : requests.structures.CaseInsensitiveDict, dict
             Response headers from Discord API call
         method : str
             Request method
@@ -221,13 +221,18 @@ class DBucketNull(DBucket):
     def prefix(self):
         return PREFIX + ":temp"
 
-    def update_bucket(self, headers, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+    def update_bucket(
+        self,
+        headers: typing.Union[dict, requests.structures.CaseInsensitiveDict],
+        method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
+        endpoint: str,
+    ):
         """
         Update bucket's limit and remaining Redis ratelimiting keys with the Discord response's headers.
 
         Parameters
         ----------
-        headers : requests.structures.CaseInsensitiveDict
+        headers : requests.structures.CaseInsensitiveDict, dict
             Response headers from Discord API call
         method : str
             Request method

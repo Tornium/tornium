@@ -15,6 +15,7 @@
 
 import inspect
 import random
+import typing
 
 import jinja2
 from tornium_celery.tasks.api import discordget, discordpatch
@@ -44,11 +45,11 @@ def verify(interaction, *args, **kwargs):
                         "and enabled.",
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
+    server: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
 
     if server is None:
         return {
@@ -61,7 +62,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     if server.config.get("verify") in (None, 0):
@@ -75,7 +76,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif server.verify_template == "" and len(server.verified_roles) == 0 and len(server.faction_verify) == 0:
@@ -90,7 +91,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -120,7 +121,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -133,6 +134,57 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = int(member[1]["value"])
     else:
         update_user_kwargs["discordid"] = user.discord_id
+
+    if member != -1:
+        try:
+            discord_member = discordget(f"guilds/{server.sid}/members/{update_user_kwargs['discordid']}")
+        except DiscordError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        except NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        user_roles = discord_member["roles"]
+    else:
+        user_roles = interaction["member"]["roles"]
+
+    if set(user_roles) & set(map(str, server.exclusion_roles)):  # Exclusion role in member's roles
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Failed",
+                        "description": "The user has an exclusion role which prevents automatic verification. Contact a server admin to remove this exclusion role or to manually set roles.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     try:
         update_user(**update_user_kwargs).get()
@@ -147,7 +199,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except TornError as e:
@@ -163,7 +215,7 @@ def verify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -177,7 +229,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -191,7 +243,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -208,7 +260,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     if user.discord_id in (0, None):
@@ -223,45 +275,9 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-
-    if member != -1:
-        try:
-            discord_member = discordget(f"guilds/{server.sid}/members/{user.discord_id}")
-        except DiscordError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Discord API Error",
-                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-        except NetworkingError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
-        user_roles = discord_member["roles"]
-    else:
-        user_roles = interaction["member"]["roles"]
 
     patch_json = {}
 
@@ -358,7 +374,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_INFO,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -381,7 +397,7 @@ def verify(interaction, *args, **kwargs):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -395,7 +411,7 @@ def verify(interaction, *args, **kwargs):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 

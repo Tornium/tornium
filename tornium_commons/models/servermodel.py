@@ -38,6 +38,7 @@ class ServerModel(DynamicDocument):
 
     verify_template = StringField(default="{{ name }} [{{ tid }}]")
     verified_roles = ListField(default=[])
+    exclusion_roles = ListField(default=[])
     faction_verify = DictField(default={})
     verify_log_channel = IntField(default=0)
 

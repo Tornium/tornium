@@ -34,6 +34,20 @@ end
 
 local limit = false  -- per-route ratelimit limit
 
+if remaining == false then
+    if limit == false then
+        limit = redis.call("GET", KEYS[2])
+
+        if limit == false then
+            limit = 1
+        else
+            limit = tonumber(limit)
+        end
+    end
+
+    redis.call("SET", KEYS[1], limit, "NX", "EX", 2)
+end
+
 -- Checks
 if redis.call("EXISTS", KEYS[1]) == "0" then
     if limit == false then

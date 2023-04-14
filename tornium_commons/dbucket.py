@@ -23,6 +23,7 @@ import typing
 import requests.structures
 
 from .errors import RatelimitError
+from .rds_lua_hashes import BHASH, BHASH_CALL
 from .redisconnection import rds
 
 
@@ -119,7 +120,7 @@ class DBucket:
 
         # bhash.lua
         bhash = client.evalsha(
-            "6bbd164e23cda5b6366755bc514ecb976d62e93f",
+            BHASH,
             1,
             f"{PREFIX}:{method}|{_se(endpoint)}",
             int(time.time()),
@@ -142,7 +143,7 @@ class DBucket:
 
         # bhash-call.lua
         response = rds().evalsha(
-            "470c9c6ac61fc06cd6a2f10dcc61292476cf20b8",
+            BHASH_CALL,
             3,
             f"{self.prefix}:{self.id}:remaining:{int(time.time())}",
             f"{self.prefix}:{self.id}:limit",

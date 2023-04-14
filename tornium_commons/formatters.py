@@ -106,7 +106,7 @@ def commas(number: typing.Union[int, float], stock_price: bool = False) -> str:
     return "{:,}".format(number)
 
 
-def find_list(lst: list, key, value) -> typing.Union[int, typing.List[int, typing.Dict[str, typing.Any]]]:
+def find_list(lst: list, key, value) -> typing.Union[int, typing.List[typing.Union[int, typing.Dict[str, typing.Any]]]]:
     """
     Locate a dictionary in a list of dictionaries by a value in the dictionary.
 

@@ -195,7 +195,7 @@ def bs_to_range(battlescore: typing.Union[int, float]) -> tuple:
     return math.floor(pow(battlescore, 2) / 4), math.floor(pow(battlescore, 2) / 2.75)
 
 
-def torn_timestamp(timestamp: typing.Optional[int, float] = None) -> str:
+def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float]] = None) -> str:
     """
     Return a formatted timestamp string of the passed timestamp or current time in the UTC timezone.
 

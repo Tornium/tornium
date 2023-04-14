@@ -43,15 +43,24 @@ def _strip_endpoint(endpoint) -> str:
     """
 
     without_query = endpoint.split("?")[0]
+    only_resource = None
 
     # The Discord API utilizes top-level resources for certain bucket identifiers
     # Top-level resources included are currently limited to
     # "channels/", "guilds/", "/webhooks" (last not utilized in Tornium)
-    if without_query.split("/")[0] in ("channels", "guilds"):
-        only_resource = "/".join(without_query.split("/")[:2])
+    if without_query.split("/")[0] == "guilds":
+        # Per resource implementation
+        # Defaults to per endpoint if not implemented below
+
+        if without_query.split("/")[2] == "members":
+            only_resource = "/".join(without_query.split("/")[:3])
+    elif without_query.split("/")[0] == "channels":
+        pass
+
+    if only_resource is not None:
         return only_resource
-    else:
-        return without_query
+
+    return without_query
 
 
 PREFIX = "tornium:discord:ratelimit:bucket"

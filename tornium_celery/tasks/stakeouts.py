@@ -30,33 +30,28 @@ from tornium_commons.models import (
     UserStakeoutModel,
 )
 
-from tornium_celery.tasks.api import discordpost, tornget
+from .api import discordpost, tornget
 
 logger = get_task_logger(__name__)
 
 
-@celery.shared_task(routing_key="quick.user_stakeouts", queue="quick")
+@celery.shared_task(name="tasks.stakeouts.user_stakeouts", routing_key="quick.user_stakeouts", queue="quick")
 def user_stakeouts():
     stakeout: UserStakeoutModel
     for stakeout in UserStakeoutModel.objects():
         user_stakeout.delay(stakeout=stakeout.tid).forget()
 
 
-@celery.shared_task(routing_key="quick.faction_stakeouts", queue="quick")
+@celery.shared_task(name="tasks.stakeouts.faction_stakeouts", routing_key="quick.faction_stakeouts", queue="quick")
 def faction_stakeouts():
     stakeout: FactionStakeoutModel
     for stakeout in FactionStakeoutModel.objects():
         faction_stakeout.delay(stakeout=stakeout.tid).forget()
 
 
-@celery.shared_task(routing_key="default.user_stakeouts", queue="default")
-def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
+@celery.shared_task(name="tasks.stakeouts.user_stakeout", routing_key="default.user_stakeouts", queue="default")
+def user_stakeout(stakeout: int, key=None):
     stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
-
-    # if stakeout_data is None:
-    #     stakeout: UserStakeoutModel = UserStakeoutModel.objects(tid=stakeout).first()
-    # else:
-    #     stakeout: UserStakeoutModel = UserStakeoutModel.from_json(stakeout_data)
 
     if stakeout is None:
         return
@@ -66,7 +61,6 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
             data = tornget(
                 f"user/{stakeout.tid}?selections=",
                 key=key,
-                session=requests_session,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -98,7 +92,6 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
             data = tornget(
                 f"user/{stakeout.tid}?selections=",
                 key=admin.key,
-                session=requests_session,
             )
     except TornError:
         return
@@ -321,14 +314,9 @@ def user_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=
                 return
 
 
-@celery.shared_task(routing_key="default.faction_stakeouts", queue="default")
-def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, key=None):
+@celery.shared_task(name="tasks.stakeouts.faction_stakeout", routing_key="default.faction_stakeouts", queue="default")
+def faction_stakeout(stakeout: int, key=None):
     stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
-
-    # if stakeout_data is None:
-    #     stakeout: FactionStakeoutModel = FactionStakeoutModel.objects(tid=stakeout).first()
-    # else:
-    #     stakeout: FactionStakeoutModel = FactionStakeoutModel.from_json(stakeout_data)
 
     if stakeout is None:
         return
@@ -338,7 +326,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
             data = tornget(
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=key,
-                session=requests_session,
             )
         else:
             if len(stakeout.guilds) == 0:
@@ -366,7 +353,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
             data = tornget(
                 f"faction/{stakeout.tid}?selections=basic,territory",
                 key=admin.key,
-                session=requests_session,
             )
     except TornError as e:
         logger.exception(e)
@@ -1022,7 +1008,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=key,
-                            session=requests_session,
                             fromts=int(time.time()) - 60,
                         )
                     else:
@@ -1034,7 +1019,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=random.choice(keys).key,
-                            session=requests_session,
                             fromts=int(time.time()) - 60,
                         )
                 except (NetworkingError, TornError):
@@ -1079,7 +1063,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=key,
-                            session=requests_session,
                             fromts=int(time.time()) - 60,
                         )
                     else:
@@ -1103,7 +1086,6 @@ def faction_stakeout(stakeout: int, stakeout_data=None, requests_session=None, k
                         data = tornget(
                             f"faction/{stakeout.tid}?selections=armorynews",
                             key=random.choice(keys),
-                            session=requests_session,
                             fromts=int(time.time()) - 60,
                         )
                 except (NetworkingError, TornError):

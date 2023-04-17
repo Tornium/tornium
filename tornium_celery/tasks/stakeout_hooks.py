@@ -29,7 +29,7 @@ from tornium_commons.formatters import rel_time, str_matches, torn_timestamp
 from tornium_commons.models import NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_INFO
 
-from tornium_celery.tasks.api import discordpost, tornget
+from .api import discordpost, tornget
 
 _TRAVEL_DESTINATIONS = {
     # Destination: [Standard, Airstrip, WLT, BCT]
@@ -64,14 +64,11 @@ def send_notification(notification: NotificationModel, payload: dict):
         except NetworkingError:
             return
 
-        discordpost.delay(
-            endpoint=f"channels/{dm_channel['id']}/messages", payload=payload, bucket=f"channels/{dm_channel['id']}"
-        ).forget()
+        discordpost.delay(endpoint=f"channels/{dm_channel['id']}/messages", payload=payload).forget()
     elif notification.recipient_type == 1:
         discordpost.delay(
             endpoint=f"channels/{notification.recipient}/messages",
             payload=payload,
-            bucket=f"channels/{notification.recipient}",
         ).forget()
     else:
         return
@@ -93,7 +90,9 @@ def first_landing(duration):
     return torn_timestamp(int(time.time()) + math.ceil(duration * 0.97))
 
 
-@celery.shared_task(routing_key="quick.stakeouts.run_user", queue="quick")
+@celery.shared_task(
+    name="tasks.stakeout_hooks.run_user_stakeouts", routing_key="quick.stakeouts.run_user", queue="quick"
+)
 def run_user_stakeouts():
     notifications: QuerySet = NotificationModel.objects(Q(ntype=1) & Q(options__enabled=True))
 
@@ -131,7 +130,7 @@ def run_user_stakeouts():
         ).apply_async(expires=300, link=user_hook.s())
 
 
-@celery.shared_task(routing_key="quick.stakeouts.user_hook", queue="quick")
+@celery.shared_task(name="tasks.stakeout_hooks.user_hook", routing_key="quick.stakeouts.user_hook", queue="quick")
 def user_hook(user_data, faction: typing.Optional[int] = None):
     if "player_id" not in user_data:
         return
@@ -410,7 +409,9 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
         redis_client.set(redis_key + ":status:until", user_data["status"]["until"], ex=300)
 
 
-@celery.shared_task(routing_key="quick.stakeouts.run_faction", queue="quick")
+@celery.shared_task(
+    name="tasks.stakeout_hooks.run_faction_stakeouts", routing_key="quick.stakeouts.run_faction", queue="quick"
+)
 def run_faction_stakeouts():
     target: int
     for target in (
@@ -455,7 +456,7 @@ def run_faction_stakeouts():
         ).apply_async(expires=300, link=faction_hook.s())
 
 
-@celery.shared_task(routing_key="quick.stakeouts.faction_hook", queue="quick")
+@celery.shared_task(name="tasks.stakeout_hooks.faction_hook", routing_key="quick.stakeouts.faction_hook", queue="quick")
 def faction_hook(faction_data):
     if "ID" not in faction_data:
         return

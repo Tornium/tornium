@@ -27,7 +27,7 @@ from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import NotificationModel, TickModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from tornium_celery.tasks.api import discordpost, tornget
+from .api import discordpost, tornget
 
 logger = get_task_logger(__name__)
 
@@ -36,7 +36,7 @@ def _map_stock_image(acronym: str):
     return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
 
 
-@celery.shared_task(routing_key="default.fetch_stock_ticks", queue="default")
+@celery.shared_task(name="tasks.stocks.fetch_stock_ticks", routing_key="default.fetch_stock_ticks", queue="default")
 def fetch_stock_ticks():
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 

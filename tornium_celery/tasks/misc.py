@@ -27,7 +27,7 @@ from tornium_commons.models import (
 )
 
 
-@celery.shared_task(routing_key="quick.remove_unknown_channel", queue="quick")
+@celery.shared_task(name="tasks.misc.remove_unknown_channel", routing_key="quick.remove_unknown_channel", queue="quick")
 def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)
 
@@ -101,7 +101,7 @@ def remove_unknown_channel(channel_id: int):
         server.save()
 
 
-@celery.shared_task(routing_key="quick.remove_unknown_role", queue="quick")
+@celery.shared_task(name="tasks.misc.remove_unknown_role", routing_key="quick.remove_unknown_role", queue="quick")
 def remove_unknown_role(role_id: int):
     role_id = int(role_id)
 
@@ -140,7 +140,7 @@ def remove_unknown_role(role_id: int):
         server.save()
 
 
-@celery.shared_task(routing_key="quick.remove_key_error", queue="quick")
+@celery.shared_task(name="tasks.misc.remove_key_error", routing_key="quick.remove_key_error", queue="quick")
 def remove_key_error(key: str, error: int):
     user: typing.Optional[UserModel] = UserModel.objects(key=key).first()
 

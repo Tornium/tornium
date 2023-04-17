@@ -41,8 +41,8 @@ from tornium_commons.models import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from tornium_celery.tasks.api import discordpatch, discordpost, torn_stats_get, tornget
-from tornium_celery.tasks.user import update_user
+from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .user import update_user
 
 logger = get_task_logger(__name__)
 
@@ -73,7 +73,7 @@ ATTACK_RESULTS = {
 }
 
 
-@celery.shared_task(routing_key="default.refresh_factions", queue="default")
+@celery.shared_task(name="tasks.faction.refresh_factions", routing_key="default.refresh_factions", queue="default")
 def refresh_factions():
     faction: FactionModel
     for faction in FactionModel.objects():
@@ -144,7 +144,7 @@ def refresh_factions():
                 continue
 
 
-@celery.shared_task(routing_key="quick.update_faction")
+@celery.shared_task(name="tasks.faction.update_faction", routing_key="quick.update_faction", queue="quick")
 def update_faction(faction_data):
     if faction_data is None:
         return
@@ -287,7 +287,7 @@ def update_faction(faction_data):
         user.save()
 
 
-@celery.shared_task(routing_key="default.update_faction_ts", queue="default")
+@celery.shared_task(name="tasks.faction.update_faction_ts", routing_key="default.update_faction_ts", queue="default")
 def update_faction_ts(faction_ts_data):
     if not faction_ts_data["status"]:
         return
@@ -319,7 +319,7 @@ def update_faction_ts(faction_ts_data):
         user.save()
 
 
-@celery.shared_task(routing_key="quick.check_faction_ods", queue="quick")
+@celery.shared_task(name="tasks.faction.check_faction_ods", routing_key="quick.check_faction_ods", queue="quick")
 def check_faction_ods(faction_od_data):
     factionid = faction_od_data["ID"]
     faction: FactionModel = FactionModel.objects(tid=factionid).first()
@@ -408,7 +408,7 @@ def check_faction_ods(faction_od_data):
     faction.save()
 
 
-@celery.shared_task(routing_key="quick.fetch_attacks_runner", queue="quick")
+@celery.shared_task(name="tasks.faction.fetch_attacks_runner", routing_key="quick.fetch_attacks_runner", queue="quick")
 def fetch_attacks_runner():
     redis = rds()
 
@@ -463,7 +463,7 @@ def fetch_attacks_runner():
         )
 
 
-@celery.shared_task(routing_key="quick.retal_attacks", queue="quick")
+@celery.shared_task(name="tasks.faction.retal_attacks", routing_key="quick.retal_attacks", queue="quick")
 def retal_attacks(faction_data, last_attacks=None):
     if "attacks" not in faction_data:
         return
@@ -488,7 +488,7 @@ def retal_attacks(faction_data, last_attacks=None):
         return
 
     try:
-        if guild.retal_config[str(faction.tid)]["channel"] == 0:
+        if guild.retal_config[str(faction.tid)]["channel"] in ("0", 0, None, ""):
             return
     except KeyError:
         return
@@ -687,7 +687,6 @@ def retal_attacks(faction_data, last_attacks=None):
             discordpost.delay(
                 f"channels/{guild.retal_config[str(faction.tid)]['channel']}/messages",
                 payload,
-                bucket=f"channels/{guild.retal_config[str(faction.tid)]}",
             ).forget()
         except DiscordError as e:
             if e.code == 10003:
@@ -703,7 +702,7 @@ def retal_attacks(faction_data, last_attacks=None):
             continue
 
 
-@celery.shared_task(routing_key="quick.stat_db_attacks", queue="quick")
+@celery.shared_task(name="tasks.faction.stat_db_attacks", routing_key="quick.stat_db_attacks", queue="quick")
 def stat_db_attacks(faction_data, last_attacks=None):
     if len(faction_data) == 0:
         return
@@ -893,7 +892,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
     faction.save()
 
 
-@celery.shared_task(routing_key="quick.oc_refresh", queue="quick")
+@celery.shared_task(name="tasks.faction.oc_refresh", routing_key="quick.oc_refresh", queue="quick")
 def oc_refresh():
     faction: FactionModel
     for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
@@ -925,7 +924,7 @@ def oc_refresh():
         )
 
 
-@celery.shared_task(routing_key="default.oc_refresh_subtask", queue="default")
+@celery.shared_task(name="tasks.faction.oc_refresh_subtask", routing_key="default.oc_refresh_subtask", queue="default")
 def oc_refresh_subtask(oc_data):
     faction: FactionModel = FactionModel.objects(tid=oc_data["ID"]).first()
 
@@ -1098,7 +1097,9 @@ def oc_refresh_subtask(oc_data):
                 continue
 
 
-@celery.shared_task(routing_key="default.auto_cancel_requests", queue="default")
+@celery.shared_task(
+    name="tasks.faction.auto_cancel_requests", routing_key="default.auto_cancel_requests", queue="default"
+)
 def auto_cancel_requests():
     withdrawal: WithdrawalModel
     for withdrawal in WithdrawalModel.objects(time_requested__gte=int(time.time()) - 7200):  # Two hours before now

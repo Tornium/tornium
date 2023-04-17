@@ -34,7 +34,7 @@ from tornium_commons.models import (
     UserModel,
 )
 
-from tornium_celery.tasks.api import tornget
+from .api import tornget
 
 logger = get_task_logger(__name__)
 
@@ -54,7 +54,7 @@ ATTACK_RESULTS = {
 }
 
 
-@celery.shared_task(routing_key="default.update_user", queue="default")
+@celery.shared_task(name="tasks.user.update_user", routing_key="default.update_user", queue="default")
 def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key is None or key == "":
         raise MissingKeyError
@@ -94,7 +94,7 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     return result
 
 
-@celery.shared_task(routing_key="quick.update_user_self", queue="quick")
+@celery.shared_task(name="tasks.user.update_user_self", routing_key="quick.update_user_self", queue="quick")
 def update_user_self(user_data, key=None):
     user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
         upsert=True,
@@ -171,7 +171,7 @@ def update_user_self(user_data, key=None):
         logger.exception(e)
 
 
-@celery.shared_task(routing_key="quick.update_user_other", queue="quick")
+@celery.shared_task(name="tasks.user.update_user_other", routing_key="quick.update_user_other", queue="quick")
 def update_user_other(user_data):
     user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
         upsert=True,
@@ -233,7 +233,7 @@ def update_user_other(user_data):
         logger.exception(e)
 
 
-@celery.shared_task(routing_key="default.refresh_users", queue="default")
+@celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")
 def refresh_users():
     user: UserModel
     for user in UserModel.objects(key__nin=[None, ""]):
@@ -253,7 +253,7 @@ def refresh_users():
         )
 
 
-@celery.shared_task(routing_key="quick.fetch_user_attacks", queue="quick")
+@celery.shared_task(name="tasks.user.fetch_attacks_user_runner", routing_key="quick.fetch_user_attacks", queue="quick")
 def fetch_attacks_user_runner():
     redis = rds()
 
@@ -302,7 +302,7 @@ def fetch_attacks_user_runner():
         )
 
 
-@celery.shared_task(routing_key="quick.stat_db_attacks_user", queue="quick")
+@celery.shared_task(name="tasks.user.stat_db_attacks_user", routing_key="quick.stat_db_attacks_user", queue="quick")
 def stat_db_attacks_user(user_data):
     if "attacks" not in user_data:
         return

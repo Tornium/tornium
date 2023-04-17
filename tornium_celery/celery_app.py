@@ -200,7 +200,7 @@ if celery_app is None:
     celery_app.conf.update(task_serializer="json", result_serializer="json")
     celery_app.conf.timezone = "UTC"
     celery_app.conf.task_queues = (
-        kombu.Queue("default", routing_key="tasks.#"),
+        kombu.Queue("default", routing_key="default.#"),
         kombu.Queue("quick", routing_key="quick.#"),
         kombu.Queue("api", routing_key="api.#"),
     )

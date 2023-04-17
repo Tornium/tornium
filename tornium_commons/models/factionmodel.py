@@ -34,5 +34,5 @@ class FactionModel(DynamicDocument):
 
     statconfig = DictField(default={"global": 0})  # Dictionary of target config
 
-    chainconfig = DictField(default={"od": 0, "odchannel": 0})  # Dictionary of chain config
+    od_channel = IntField(default=0)
     chainod = DictField(default={})  # Dictionary of faction member overdoses

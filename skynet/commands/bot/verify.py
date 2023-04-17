@@ -202,44 +202,15 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    except TornError as e:
-        if e.code == 6:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Verification Failed",
-                            "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
-                            "Otherwise, try forcing the verification.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
+    except Exception:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                        "title": "Verification Failed",
+                        "description": "API call failed. Please verify that you are officially verified by Torn. "
+                        "Otherwise, try forcing the verification.",
                         "color": SKYNET_ERROR,
                     }
                 ],

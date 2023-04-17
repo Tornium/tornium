@@ -20,12 +20,7 @@ import typing
 import jinja2
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import (
-    DiscordError,
-    MissingKeyError,
-    NetworkingError,
-    TornError,
-)
+from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -168,8 +163,18 @@ def verify(interaction, *args, **kwargs):
             }
 
         user_roles = discord_member["roles"]
+
+        if discord_member.get("nick") in (None, ""):
+            current_nick = discord_member["user"]["username"]
+        else:
+            current_nick = discord_member["nick"]
     else:
         user_roles = interaction["member"]["roles"]
+
+        if interaction["member"].get("nick") in (None, ""):
+            current_nick = interaction["user"]["username"]
+        else:
+            current_nick = interaction["member"]["nick"]
 
     if set(user_roles) & set(map(str, server.exclusion_roles)):  # Exclusion role in member's roles
         return {
@@ -259,7 +264,7 @@ def verify(interaction, *args, **kwargs):
             .render(name=user.name, tid=user.tid, tag="")
         )
 
-        if nick != interaction["member"]["nick"]:
+        if nick != current_nick:
             patch_json["nick"] = nick
 
     if len(server.verified_roles) != 0 and user.discord_id != 0:

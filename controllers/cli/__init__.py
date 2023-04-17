@@ -15,9 +15,11 @@
 
 import json
 import logging
+import pathlib
+import traceback
 
 import click
-import requests
+import importlib_resources
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
 from tornium_commons import rds
@@ -42,7 +44,6 @@ def update_commands(verbose=False):
     handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     botlogger.addHandler(handler)
 
-    session = requests.Session()
     application_id = rds().get("tornium:settings:skynet-applicationid")
     botlogger.debug(application_id)
 
@@ -76,7 +77,6 @@ def update_commands(verbose=False):
         commands_data = discordput(
             f"applications/{application_id}/commands",
             commands_data,
-            session=session,
         )
         botlogger.info(commands_data)
     except DiscordError as e:
@@ -89,3 +89,43 @@ def update_commands(verbose=False):
         raise e
 
     click.echo("Commands have been successfully exported")
+
+
+@mod.cli.command("load-scripts")
+@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
+def load_scripts(verbose=False):
+    client = rds()
+    client.echo("1")
+
+    if verbose:
+        click.echo("Redis connection established")
+
+    client.script_flush()
+    client.echo("Existing Redis scripts flushed")
+    click.echo(
+        f"{sum(1 for _ in importlib_resources.files('tornium_commons.rds_lua').iterdir())} Redis scripts discovered\n"
+    )
+
+    scripts = importlib_resources.files("tornium_commons.rds_lua").iterdir()
+    script_map = {}
+
+    script: pathlib.Path
+    for script in scripts:
+        script_data = script.read_text()
+        try:
+            script_map[script.name] = client.script_load(script_data)
+        except Exception as e:
+            click.echo(f'Loading of Redis script "{script.name}" has failed')
+
+            if verbose:
+                click.echo(traceback.format_exception(e))
+
+            continue
+
+        if verbose:
+            click.echo(f'Redis script "{script.name}" has been successfully loaded')
+
+    click.echo(f"\n{len(script_map)} Redis scripts loaded with the following SHA1 hashes...")
+
+    for script_name, script_hash in script_map.items():
+        click.echo(f"{script_name}: {script_hash}")

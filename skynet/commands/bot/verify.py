@@ -15,16 +15,12 @@
 
 import inspect
 import random
+import typing
 
 import jinja2
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import (
-    DiscordError,
-    MissingKeyError,
-    NetworkingError,
-    TornError,
-)
+from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -44,11 +40,11 @@ def verify(interaction, *args, **kwargs):
                         "and enabled.",
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
+    server: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
 
     if server is None:
         return {
@@ -61,7 +57,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     if server.config.get("verify") in (None, 0):
@@ -75,7 +71,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif server.verify_template == "" and len(server.verified_roles) == 0 and len(server.faction_verify) == 0:
@@ -90,7 +86,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -120,7 +116,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -133,6 +129,67 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = int(member[1]["value"])
     else:
         update_user_kwargs["discordid"] = user.discord_id
+
+    if member != -1:
+        try:
+            discord_member = discordget(f"guilds/{server.sid}/members/{update_user_kwargs['discordid']}")
+        except DiscordError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Discord API Error",
+                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        except NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        user_roles = discord_member["roles"]
+
+        if discord_member.get("nick") in (None, ""):
+            current_nick = discord_member["user"]["username"]
+        else:
+            current_nick = discord_member["nick"]
+    else:
+        user_roles = interaction["member"]["roles"]
+
+        if interaction["member"].get("nick") in (None, ""):
+            current_nick = interaction["user"]["username"]
+        else:
+            current_nick = interaction["member"]["nick"]
+
+    if set(user_roles) & set(map(str, server.exclusion_roles)):  # Exclusion role in member's roles
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Failed",
+                        "description": "The user has an exclusion role which prevents automatic verification. Contact a server admin to remove this exclusion role or to manually set roles.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     try:
         update_user(**update_user_kwargs).get()
@@ -147,51 +204,22 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    except TornError as e:
-        if e.code == 6:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Verification Failed",
-                            "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
-                            "Otherwise, try forcing the verification.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
+    except Exception:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
+                        "title": "Verification Failed",
+                        "description": "API call failed. Please verify that you are officially verified by Torn. "
+                        "Otherwise, try forcing the verification.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -208,7 +236,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     if user.discord_id in (0, None):
@@ -223,45 +251,9 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-
-    if member != -1:
-        try:
-            discord_member = discordget(f"guilds/{server.sid}/members/{user.discord_id}")
-        except DiscordError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Discord API Error",
-                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-        except NetworkingError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
-        user_roles = discord_member["roles"]
-    else:
-        user_roles = interaction["member"]["roles"]
 
     patch_json = {}
 
@@ -272,7 +264,7 @@ def verify(interaction, *args, **kwargs):
             .render(name=user.name, tid=user.tid, tag="")
         )
 
-        if nick != interaction["member"]["nick"]:
+        if nick != current_nick:
             patch_json["nick"] = nick
 
     if len(server.verified_roles) != 0 and user.discord_id != 0:
@@ -280,18 +272,10 @@ def verify(interaction, *args, **kwargs):
         for verified_role in server.verified_roles:
             if str(verified_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(verified_role))
-    elif user.discord_id == 0 and len(server.verified_roles) != 0:
-        verified_role: int
-        for verified_role in server.verified_roles:
-            if str(verified_role) in user_roles:
-                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
-                    patch_json["roles"] = user_roles
-
-                patch_json["roles"].remove(str(verified_role))
 
     if (
         user.factionid != 0
@@ -304,7 +288,7 @@ def verify(interaction, *args, **kwargs):
         for faction_role in server.faction_verify[str(user.factionid)]["roles"]:
             if str(faction_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(faction_role))
@@ -312,7 +296,7 @@ def verify(interaction, *args, **kwargs):
     for factiontid, faction_verify_data in server.faction_verify.items():
         for faction_role in faction_verify_data["roles"]:
             if str(faction_role) in user_roles and int(factiontid) != user.factionid:
-                if patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                if patch_json.get("roles") is None:
                     patch_json["roles"] = user_roles
 
                 patch_json["roles"].remove(str(faction_role))
@@ -330,7 +314,7 @@ def verify(interaction, *args, **kwargs):
         for position_role in server.faction_verify[str(user.factionid)]["positions"][str(user.faction_position)]:
             if str(position_role) in user_roles:
                 continue
-            elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+            elif patch_json.get("roles") is None:
                 patch_json["roles"] = user_roles
 
             patch_json["roles"].append(str(position_role))
@@ -338,6 +322,9 @@ def verify(interaction, *args, **kwargs):
     valid_position_roles = []
 
     for factiontid, faction_positions_data in server.faction_verify.items():
+        if "positions" not in faction_positions_data:
+            continue
+
         for position_uuid, position_data in faction_positions_data["positions"].items():
             for position_role in position_data:
                 if position_role in valid_position_roles:
@@ -349,7 +336,7 @@ def verify(interaction, *args, **kwargs):
                     ):
                         valid_position_roles.append(position_role)
                         continue
-                    elif patch_json.get("roles") is None or len(patch_json["roles"]) == 0:
+                    elif patch_json.get("roles") is None:
                         patch_json["roles"] = user_roles
 
                     patch_json["roles"].remove(str(position_role))
@@ -366,7 +353,7 @@ def verify(interaction, *args, **kwargs):
                         "color": SKYNET_INFO,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -389,7 +376,7 @@ def verify(interaction, *args, **kwargs):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -403,7 +390,7 @@ def verify(interaction, *args, **kwargs):
                         "color": 0xC83F49,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 

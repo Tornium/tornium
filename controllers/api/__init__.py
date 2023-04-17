@@ -86,6 +86,7 @@ mod.add_url_rule(
     view_func=bot.verify.faction_roles,
     methods=["POST"],
 )
+mod.add_url_rule("/api/bot/verify/exclusion", view_func=bot.verify.guild_exclusion_roles, methods=["POST"])
 mod.add_url_rule("/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"])
 mod.add_url_rule(
     "/api/bot/verify/roles",

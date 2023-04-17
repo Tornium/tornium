@@ -43,11 +43,12 @@ def verify_headers(request: flask.Request):
     verify_key.verify(f"{timestamp}{body}".encode(), bytes.fromhex(signature))
 
 
-def get_admin_keys(interaction):
+def get_admin_keys(interaction, all_keys: bool = False):
     """
     Retrieves the keys to be used for a Discord interaction
 
     :param interaction: Discord interaction
+    :param all_keys: Flag for whether all applicable keys should be included
     """
 
     admin_keys = []
@@ -57,7 +58,7 @@ def get_admin_keys(interaction):
     else:
         invoker: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
 
-    if invoker is not None and invoker.key not in ("", None):
+    if invoker is not None and invoker.key not in ("", None) and not all_keys:
         return tuple([invoker.key])
 
     if "guild_id" in interaction:

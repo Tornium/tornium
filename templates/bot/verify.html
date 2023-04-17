@@ -115,14 +115,36 @@ Tornium - Verification
             </div>
 
             <div class="row">
-                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                <div class="col-sm-12 col-md-8 col-lg-4 mt-2">
                     <div class="card my-3">
                         <div class="card-header">
                             Verified Roles
                         </div>
 
+                        <p class="card-text px-3 pt-3">
+                            These roles are added to members who are officially verified by Torn via the <a href="">Torn Discord server</a>.
+                        </p>
+
                         <div class="form-floating px-3 py-3">
                             <select class="discord-role-selector" id="verification-roles" aria-label="Verification Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-lg-4 my-2">
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Exclusion Roles
+                        </div>
+
+                        <p class="card-text px-3 pt-3">
+                            Members with these roles will not have their roles or nickname changed.
+                        </p>
+
+                        <div class="form-floating px-3 py-3">
+                            <select class="discord-role-selector" id="exclusion-roles" aria-label="Exclusion Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                         </div>
                     </div>
                 </div>

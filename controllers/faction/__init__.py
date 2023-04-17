@@ -34,7 +34,7 @@ mod.add_url_rule("/faction/userbankingdata", view_func=banking.userbankingdata, 
 mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 
 # Chain Routes
-mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET", "POST"])
+mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET"])
 
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])

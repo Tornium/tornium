@@ -20,6 +20,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Deprecated
  - Deprecated assist request forwarding options (to be removed in the v0.5.x release cycle)
 
+=== Fixed
+ - Fixed OD logger enable/disable configuration
+
 == 0.3.0
 === Added
  - Migrated config to use `utils.config.Config` from `settings.py` (#117)

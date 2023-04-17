@@ -53,7 +53,7 @@ class Faction:
                 config={"vault": 0, "stats": 1},
                 vaultconfig={"banking": 0, "banker": 0},
                 statconfig={"global": 0},
-                chainconfig={"od": 0, "odchannel": 0},
+                od_channel=0,
                 chainod={},
             )
 
@@ -86,7 +86,7 @@ class Faction:
 
         self.stat_config = faction.statconfig
 
-        self.chain_config = faction.chainconfig
+        self.od_channel = faction.od_channel
         self.chain_od = faction.chainod
 
     def refresh_keys(self):

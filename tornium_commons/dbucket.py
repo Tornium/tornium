@@ -52,8 +52,11 @@ def _strip_endpoint(endpoint) -> str:
         # Per resource implementation
         # Defaults to per endpoint if not implemented below
 
-        if without_query.split("/")[2] == "members":
-            only_resource = "/".join(without_query.split("/")[:3])
+        try:
+            if without_query.split("/")[2] == "members":
+                only_resource = "/".join(without_query.split("/")[:3])
+        except IndexError:
+            pass
     elif without_query.split("/")[0] == "channels":
         pass
 

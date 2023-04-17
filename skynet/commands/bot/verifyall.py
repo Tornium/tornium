@@ -27,21 +27,6 @@ from skynet.skyutils import get_admin_keys
 
 
 def verifyall(interaction, *args, **kwargs):
-    if int(interaction["guild_id"]) != 701115188924907600:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Command Disabled",
-                        "description": "This command has been disabled pending re-implemenation.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -152,7 +137,7 @@ def verifyall(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Too Many Requests",
-                        "description": "Server-wide verification can be run every five minutes. Please try again in ",
+                        "description": "Server-wide verification can be run every ten minutes. Please try again in ",
                         "color": SKYNET_ERROR,
                     }
                 ],

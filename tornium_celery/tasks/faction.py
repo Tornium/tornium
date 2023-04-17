@@ -124,7 +124,7 @@ def refresh_factions():
                 link=update_faction_ts.s(),
             )
 
-        if faction.chainconfig["od"] == 1 and faction.guild not in (0, None):
+        if faction.od_channel != 0 and faction.guild not in (0, None):
             try:
                 tornget.signature(
                     kwargs={
@@ -367,7 +367,7 @@ def check_faction_ods(faction_od_data):
             }
 
             discordpost.delay(
-                f'channels/{faction.chainconfig["odchannel"]}/messages',
+                f"channels/{faction.od_channel}/messages",
                 payload=payload,
             ).forget()
         elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(tid).get(
@@ -400,7 +400,7 @@ def check_faction_ods(faction_od_data):
             }
 
             discordpost.delay(
-                f'channels/{faction.chainconfig["odchannel"]}/messages',
+                f"channels/{faction.od_channel}/messages",
                 payload=payload,
             ).forget()
 

@@ -32,7 +32,7 @@ def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)
 
     faction_vault_channel: QuerySet = FactionModel.objects(vaultconfig__banking=channel_id)
-    faction_od_channel: QuerySet = FactionModel.objects(chainconfig__odchannel=channel_id)
+    faction_od_channel: QuerySet = FactionModel.objects(od_channel=channel_id)
 
     notifications: QuerySet = NotificationModel.objects(target=channel_id)
 

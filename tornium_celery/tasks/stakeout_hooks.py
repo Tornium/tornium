@@ -68,13 +68,14 @@ def send_notification(notification: NotificationModel, payload: dict):
                     },
                 )
 
-                rds().set(f"tornium:discord:dm:{notification.recipient}", dm_channel["id"], nx=True, ex=86400)
+                dm_channel = dm_channel["id"]
+                rds().set(f"tornium:discord:dm:{notification.recipient}", dm_channel, nx=True, ex=86400)
             except DiscordError:
                 return
             except NetworkingError:
                 return
 
-        discordpost.delay(endpoint=f"channels/{dm_channel['id']}/messages", payload=payload).forget()
+        discordpost.delay(endpoint=f"channels/{dm_channel}/messages", payload=payload).forget()
     elif notification.recipient_type == 1:
         discordpost.delay(
             endpoint=f"channels/{notification.recipient}/messages",

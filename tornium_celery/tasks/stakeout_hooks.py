@@ -25,7 +25,12 @@ from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import rel_time, str_matches, torn_timestamp
+from tornium_commons.formatters import (
+    rel_time,
+    remove_html,
+    str_matches,
+    torn_timestamp,
+)
 from tornium_commons.models import NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_INFO
 
@@ -53,16 +58,21 @@ def send_notification(notification: NotificationModel, payload: dict):
 
     if notification.recipient_type == 0:
         try:
-            dm_channel = discordpost(
-                "users/@me/channels",
-                payload={
-                    "recipient_id": notification.recipient,
-                },
-            )
-        except DiscordError:
-            return
-        except NetworkingError:
-            return
+            dm_channel = int(rds().get(f"tornium:discord:dm:{notification.recipient}"))
+        except TypeError:
+            try:
+                dm_channel = discordpost(
+                    "users/@me/channels",
+                    payload={
+                        "recipient_id": notification.recipient,
+                    },
+                )
+
+                rds().set(f"tornium:discord:dm:{notification.recipient}", dm_channel["id"], nx=True, ex=86400)
+            except DiscordError:
+                return
+            except NetworkingError:
+                return
 
         discordpost.delay(endpoint=f"channels/{dm_channel['id']}/messages", payload=payload).forget()
     elif notification.recipient_type == 1:
@@ -310,14 +320,14 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
 
                 send_notification(notification, payload)
 
-        if user_data["status"]["description"] == "Okay" and any(str_matches(description, ["Hospital", "Jail"])):
+        if user_data["status"]["description"] == "Okay" and any(str_matches(description.lower(), ["hospital", "jail"])):
             payload = {
                 "embeds": [
                     {
                         "title": f"{user_data['name']} is Okay",
                         "description": (
                             f"{user_data['name']} [{user_data['player_id']}] is now okay after being in the "
-                            f"{'hospital' if re.match(r'In Hospital.*', description) else 'jail'}."
+                            f"{'hospital' if 'In hospital' in description else 'jail'}."
                         ),
                         "color": SKYNET_INFO,
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -337,7 +347,7 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
 
                 send_notification(notification, payload)
 
-        if "In Hospital" in user_data["status"]["description"] and "In Hospital" not in description:
+        if "In hospital" in user_data["status"]["description"] and "In hospital" not in description:
             if any(
                 str_matches(
                     user_data["status"]["details"],
@@ -356,7 +366,11 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
                     starts=True,
                 )
             ):
-                payload_description = f"have been {user_data['status']['details'].lower()}"
+                payload_description = f"have been {remove_html(user_data['status']['details']).lower()}"
+            elif user_data["status"]["details"].startswith("Suffering"):
+                # Valid hosp reasons
+                # Suffering from an acute hemolytic transfusion reaction
+                payload_description = "are suffering from an acute hemolytic transfusion reaction"
             elif user_data["status"]["details"].startswith("Was shot"):
                 # Valid hosp reasons
                 # Was shot while resisting arrest
@@ -371,7 +385,7 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
                 # Crashed his [Car]
                 # Exploded
                 # Lost to [User]
-                payload_description = f"have {user_data['status']['details'].lower()}"
+                payload_description = f"have {remove_html(user_data['status']['details']).lower()}"
 
             payload = {
                 "embeds": [
@@ -472,9 +486,9 @@ def faction_hook(faction_data):
     redis_client = rds()
 
     if "members" in faction_data:
-        for member_id in redis_client.smembers(redis_key + ":members"):
+        for member_id in redis_client.smembers(f"{redis_key}:members"):
             if str(member_id) not in faction_data["members"].keys():
-                redis_client.srem(redis_key + ":members", member_id)
+                redis_client.srem(f"{redis_key}:members", member_id)
                 member: typing.Optional[UserModel] = UserModel.objects(tid=int(member_id)).first()
 
                 payload = {
@@ -509,20 +523,20 @@ def faction_hook(faction_data):
 
                     send_notification(notification, payload)
 
+        skip_member_notifs = redis_client.scard(f"{redis_key}:members") == 0
+
         for member_id, member_data in faction_data["members"].items():
             member_data["player_id"] = int(member_id)
             user_hook.delay(member_data, faction_data["ID"]).forget()
 
-            skip_member_notifs = redis_client.scard(redis_key + ":members") == 0
-
-            if not redis_client.sismember(redis_key + ":members", member_id):
-                redis_client.sadd(redis_key + ":members", member_id)
+            if not redis_client.sismember(f"{redis_key}:members", member_id):
+                redis_client.sadd(f"{redis_key}:members", member_id)
 
                 if not skip_member_notifs:
                     payload = {
                         "embeds": [
                             {
-                                "title": "Member Joined Faction",
+                                "title": f"{member_data['name']} Joined Faction",
                                 "description": f"{member_data['name']} [{member_data['player_id']} has joined {faction_data['name']} [{faction_data['ID']}].",
                                 "color": SKYNET_INFO,
                                 "timestamp": datetime.datetime.utcnow().isoformat(),

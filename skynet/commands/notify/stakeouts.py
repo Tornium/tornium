@@ -17,10 +17,10 @@ import datetime
 import time
 import typing
 
-import celery
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_celery.tasks.api import discordpost
+from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import find_list, torn_timestamp
 from tornium_commons.models import (
@@ -511,6 +511,9 @@ def stakeouts(interaction, *args, **kwargs):
             mode_bool = True
         else:
             mode_bool = False
+
+            if notification.ntype == 2 and 0 in notification.value:
+                rds().delete(f"tornium:stakeout-data:faction:{notification.target}:members")
 
         if notification.options.get("enabled") == mode_bool:
             return {

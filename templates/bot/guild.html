@@ -34,19 +34,15 @@ Tornium - Bot Dashboard
 {% endblock %}
 
 {% block content %}
+{% if server.config['stakeouts'] != 0 %}
 <div class="row">
     <div class="py-3 px-3 col text-end">
-        {% if server.config['stakeouts'] == 0 %}
-        <button type="button" class="btn btn-outline-secondary" disabled>
-            <a href="#">Go to Guild Stakeouts</a>
-        </button>
-        {% else %}
-        <button type="button" class="btn btn-outline-secondary">
-            <a href="/bot/stakeouts/{{ guildid }}">Go to Guild Stakeouts</a>
-        </button>
-        {% endif %}
+        <a href="/bot/stakeouts/{{ guildid }}">
+            <button type="button" class="btn btn-outline">Go to Guild Stakeouts</button>
+        </a>
     </div>
 </div>
+{% endif %}
 
 <div class="pb-3 px-3">
     <div class="card mt-3">
@@ -120,19 +116,27 @@ Tornium - Bot Dashboard
             </div>
 
             {% if server.config['stakeouts'] == 0 %}
-            <button type="button" class="btn btn-outline-secondary">
-                <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">Enabled</a>
-            </button>
-            <button type="button" class="btn btn-outline-secondary" disabled>
-                <a href="#">Disabled</a>
-            </button>
+            <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">
+                <button type="button" class="btn btn-outline">
+                    Enabled
+                </button>
+            </a>
+            <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">
+                <button type="button" class="btn btn-outline" disabled>
+                    Disabled
+                </button>
+            </a>
             {% else %}
-            <button type="button" class="btn btn-outline-secondary" disabled>
-                <a href="#">Enabled</a>
-            </button>
-            <button type="button" class="btn btn-outline-secondary">
-                <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">Disabled</a>
-            </button>
+            <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">
+                <button type="button" class="btn btn-outline" disabled>
+                    Enabled
+                </button>
+            </a>
+            <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">
+                <button type="button" class="btn btn-outline">
+                    Disabled
+                </button>
+            </a>
             {% endif %}
         </div>
     </div>
@@ -164,7 +168,6 @@ Tornium - Bot Dashboard
             <div class="col-sm-12 col-md-8 col-xl-4 my-3 form-floating">
                 <input class="form-control" id="assistfactionid" name="assistfactionid">
                 <label for="assistfactionid">Faction ID</label>
-                <!-- <button class="btn btn-primary my-2" type="submit">Add</button> -->
             </div>
 
             <div class="col-sm-12 col-md-8 col-xl-4 my-3">
@@ -178,9 +181,11 @@ Tornium - Bot Dashboard
                             </p>
     
                             <div class="px-5 float-end">
-                                <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
-                                    <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">Remove</a>
-                                </button>
+                                <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">
+                                    <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
+                                        Remove
+                                    </button>
+                                </a>
                             </div>
                         </li>
                         {% endfor %}
@@ -239,12 +244,14 @@ Tornium - Bot Dashboard
         <div class="card-body">
             <h5 class="card-title">Verification</h5>
             <p class="card-text">
-                Verification of users in a Torn Discord server using the Torn API.
+                Verification of users in a Discord server using the Torn API.
             </p>
 
-            <button type="button" class="btn btn-outline-secondary">
-                <a href="/bot/dashboard/{{ guildid }}/verify">Go To Verification Settings</a>
-            </button>
+            <a href="/bot/dashboard/{{ guildid }}/verify">
+                <button type="button" class="btn btn-outline">
+                    Go To Verification Settings
+                </button>
+            </a>
         </div>
     </div>
 
@@ -255,9 +262,11 @@ Tornium - Bot Dashboard
                 Notifications of faction organized crime readiness and delayers of organized crimes via Discord.
             </p>
 
-            <button type="button" class="btn btn-outline-secondary">
-                <a href="/bot/dashboard/{{ guildid }}/oc">Go to Organized Crime Settings</a>
-            </button>
+            <a href="/bot/dashboard/{{ guildid }}/oc">
+                <button type="button" class="btn btn-outline">
+                    Go to Organized Crime Settings
+                </button>
+            </a>
         </div>
     </div>
 </div>

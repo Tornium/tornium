@@ -5,5 +5,14 @@
     border-right-width: 1px;
   }
 }
+[data-bs-theme=light] .primary button .btn-outline {
+  color: rgb(35, 35, 35);
+  border-color: rgb(35, 35, 35);
+}
+[data-bs-theme=light] .primary button .btn-outline:hover {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border-color: rgb(25, 25, 25);
+}
 
 /*# sourceMappingURL=light.css.map */

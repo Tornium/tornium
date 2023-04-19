@@ -52,7 +52,9 @@ Tornium - Server Selector
                     <img width="128" src="https://cdn.discordapp.com/icons/{{ server.sid }}/{{ server.icon }}" class="rounded img-thumbnail" alt="server icon">
                 {% endif %}
 
-                <a href="/bot/dashboard/{{ server.sid }}" class="my-2 btn btn-outline-primary">Edit Server</a>
+                <a href="/bot/dashboard/{{ server.sid }}">
+                    <button type="button" class="btn btn-outline my-2">Edit Server</button>
+                </a>
             </div>
         </div>
         {% endfor %}

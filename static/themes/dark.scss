@@ -105,10 +105,9 @@
             color: $white;
         }
 
-        & button {
-            & i [class^="fa-"] {
-                color: $white;
-            }
+        & button .btn-outline {
+            color: $white;
+            border-color: $white;
         }
 
         & input {

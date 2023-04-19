@@ -107,10 +107,9 @@
             color: $neon;
         }
 
-        & button {
-            & i [class^="fa-"] {
-                color: $neon;
-            }
+        & button .btn-outline {
+            color: $neon;
+            border-color: $white;
         }
 
         & input {

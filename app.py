@@ -103,6 +103,7 @@ def init__app():
     login_manager.login_view = "authroutes.login"
     login_manager.refresh_view = "authroutes.login"
     login_manager.session_protection = "strong"
+    login_manager.login_message = ""
 
     tornium_ext: utils.tornium_ext.TorniumExt
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():

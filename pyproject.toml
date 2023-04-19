@@ -71,6 +71,10 @@ extra = [
     "orjson",
     "pytoml"
 ]
+docs = [
+    "Sphinx >= 5,<6",
+    "sphinx_rtd_theme"
+]
 
 [project.urls]
 homepage = "https://tornium.com"
@@ -78,11 +82,12 @@ repository = "https://github.com/dssecret/tornium-pro"
 changelog = "https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc"
 
 [tool.bandit]
-exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv"]
+exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv", "./docs"]
 skips = ["B201", "B311", "B112"]
 
 [tool.black]
 line-length = 120
+exclude = ["./docs"]
 
 [tool.isort]
 profile = "black"

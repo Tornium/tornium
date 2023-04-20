@@ -434,6 +434,11 @@ def fetch_attacks_runner():
             faction.last_attacks = int(time.time())
             faction.save()
             continue
+        elif time.time() - faction.last_attacks > 86400:  # One day
+            # Prevents old data from being added (especially for retals)
+            faction.last_attacks = int(time.time())
+            faction.save()
+            continue
 
         aa_key = random.choice(faction.aa_keys)
 

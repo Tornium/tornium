@@ -80,7 +80,7 @@
 [data-bs-theme=custom-dark] .primary i [class^=fa-] {
   color: rgb(229, 229, 229);
 }
-[data-bs-theme=custom-dark] .primary button .btn-outline {
+[data-bs-theme=custom-dark] .primary .btn-outline {
   color: rgb(229, 229, 229);
   border-color: rgb(229, 229, 229);
 }

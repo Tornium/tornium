@@ -172,7 +172,7 @@ def verify(interaction, *args, **kwargs):
         user_roles = interaction["member"]["roles"]
 
         if interaction["member"].get("nick") in (None, ""):
-            current_nick = interaction["user"]["username"]
+            current_nick = interaction["member"]["user"]["username"]
         else:
             current_nick = interaction["member"]["nick"]
 

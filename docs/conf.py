@@ -19,6 +19,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.napoleon",  # For NumPy DocString parsing
 ]
 
@@ -36,3 +37,5 @@ exclude_patterns = []
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
+html_logo = "_static/banner.png"
+html_css_files = ["_static/custom.css"]

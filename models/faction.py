@@ -178,7 +178,7 @@ class Faction:
                     set__status=member_data["last_action"]["status"],
                     set__factionid=faction_data["ID"],
                     set__faction_position=position_pid,
-                    set__faction_aa=faction_aa,
+                    set__factionaa=faction_aa,
                 )
 
     def get_bankers(self):

@@ -342,8 +342,7 @@ def withdraw(interaction, *args, **kwargs):
                     "title": f"Vault Request #{request_id}",
                     "description": f"{user.name} [{user.tid}] is requesting {commas(withdrawal_amount)} "
                     f"in {'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault. "
-                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                    f" from the faction vault.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
@@ -383,8 +382,7 @@ def withdraw(interaction, *args, **kwargs):
                     "description": f"{user.name} [{user.tid}] is requesting "
                     f"{commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
                     f"{'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault. "
-                    f"To fulfill this request, enter `?f {request_id}` in this channel.",
+                    f" from the faction vault.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],

@@ -119,6 +119,9 @@ def check_invoker_exists(interaction):
         user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
         discord_id = interaction["user"]["id"]
 
+    print(type(user))
+    print(user)
+
     if user is not None and user.tid != 0:
         return user, None
 
@@ -185,6 +188,10 @@ def check_invoker_exists(interaction):
         set__status=user_data["last_action"]["status"],
         set__last_action=user_data["last_action"]["timestamp"],
     )
+
+    print(user)
+    print(type(user))
+    print(user.discord_id)
 
     if user.discord_id == 0:
         return {

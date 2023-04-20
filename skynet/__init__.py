@@ -100,6 +100,8 @@ def skynet_interactions():
         return jsonify({})
 
     invoker, admin_keys = skynet.skyutils.check_invoker_exists(request.json)
+    print(invoker)
+    print(type(invoker))
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:

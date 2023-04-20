@@ -91,6 +91,8 @@ def verify(interaction, *args, **kwargs):
         }
 
     user: UserModel = kwargs["invoker"]
+    print(type(user))
+    print(user)
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")

@@ -95,7 +95,7 @@ def banking_getter(guildid: int, factiontid: int, *args, **kwargs):
     banking_config = guild.banking_config.get(
         str(faction.tid),
         {
-            "channel": 0,
+            "channel": "0",
             "roles": [],
         },
     )

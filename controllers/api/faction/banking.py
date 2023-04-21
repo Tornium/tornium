@@ -111,7 +111,7 @@ def banking_request(*args, **kwargs):
             redis_client=client,
         )
 
-    if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
+    if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
         return make_exception_response("4292", key, redis_client=client)
     else:
         client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
@@ -146,10 +146,7 @@ def banking_request(*args, **kwargs):
     elif faction.tid not in server.factions:
         return make_exception_response("4021", key, redis_client=client)
 
-    vault_config = faction.vaultconfig
-    config = faction.config
-
-    if vault_config.get("banking") == 0 or vault_config.get("banker") == 0 or config.get("vault") == 0:
+    if str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
         return make_exception_response(
             "0000",
             key,
@@ -201,7 +198,6 @@ def banking_request(*args, **kwargs):
 
         if amount_requested != "all":
             message_payload = {
-                "content": f'<@&{vault_config["banker"]}>',
                 "embeds": [
                     {
                         "title": f"Vault Request #{request_id}",
@@ -244,7 +240,6 @@ def banking_request(*args, **kwargs):
             }
         else:
             message_payload = {
-                "content": f'<@&{vault_config["banker"]}>',
                 "embeds": [
                     {
                         "title": f"Vault Request #{request_id}",
@@ -286,8 +281,15 @@ def banking_request(*args, **kwargs):
                     },
                 ],
             }
+
+        for role in server.banking_config[str(faction.tid)]["roles"]:
+            if "content" not in message_payload:
+                message_payload["content"] = ""
+
+            message_payload["content"] += f"<@&{role}>"
+
         message = discordpost(
-            f'channels/{vault_config["banking"]}/messages',
+            f'channels/{server.banking_config[str(faction.tid)]["channel"]}/messages',
             payload=message_payload,
         )
 
@@ -312,8 +314,8 @@ def banking_request(*args, **kwargs):
                     "id": request_id,
                     "amount": withdrawal.amount,
                     "requester": user.tid,
-                    "timerequested": withdrawal.time_requested,
-                    "withdrawalmessage": message["id"],
+                    "time_requested": withdrawal.time_requested,
+                    "withdrawal_message": message["id"],
                 }
             ),
             200,

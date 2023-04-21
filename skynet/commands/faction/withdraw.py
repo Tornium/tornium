@@ -128,7 +128,7 @@ def withdraw(interaction, *args, **kwargs):
 
     client = rds()
 
-    if client.get(f"tornium:banking-ratelimit:{user.tid}") is not None:
+    if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
         return {
             "type": 4,
             "data": {
@@ -188,7 +188,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif user.factionid not in server.factions:
+    elif user.factionid not in server.factions or faction.guild != server.sid:
         return {
             "type": 4,
             "data": {
@@ -203,16 +203,15 @@ def withdraw(interaction, *args, **kwargs):
                 ]
             },
         }
-
-    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
+    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
+                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
+                        f"the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -336,7 +335,6 @@ def withdraw(interaction, *args, **kwargs):
 
     if withdrawal_amount != "all":
         message_payload = {
-            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -375,7 +373,6 @@ def withdraw(interaction, *args, **kwargs):
         }
     else:
         message_payload = {
-            "content": f'<@&{faction.vaultconfig["banker"]}>',
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -414,8 +411,14 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
+    for role in server.banking_config[str(faction.tid)]["roles"]:
+        if "content" not in message_payload:
+            message_payload["content"] = ""
+
+        message_payload["content"] += f"<@&{role}>"
+
     message = discordpost(
-        f'channels/{faction.vaultconfig["banking"]}/messages',
+        f'channels/{server.banking_config[str(faction.tid)]["channel"]}/messages',
         payload=message_payload,
     )
 

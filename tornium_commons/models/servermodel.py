@@ -44,6 +44,8 @@ class ServerModel(DynamicDocument):
 
     retal_config = DictField(default={})  # Configuration of retals for the server
 
+    banking_config = DictField(default={})  # Configuration for faction banking
+
     assistschannel = IntField(default=0)
     assist_factions = ListField(default=[])  # List of factions that can send assists to the server
     assist_mod = IntField(default=0)  # 0: Everyone; 1: Whitelist; 2: Blacklist

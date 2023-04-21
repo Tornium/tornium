@@ -55,17 +55,17 @@ def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
     banking_config = guild.banking_config.get(
         str(faction.tid),
         {
-            "channel": 0,
+            "channel": "0",
             "roles": [],
         },
     )
 
     if channel_id is not None:
-        banking_config["channel"] = int(channel_id)
+        banking_config["channel"] = channel_id
 
     if roles_id is not None:
         try:
-            banking_config["roles"] = list(set(roles_id))
+            banking_config["roles"] = list(set(map(str, roles_id)))
         except TypeError:
             return make_exception_response("1003", key)
 

@@ -75,8 +75,12 @@ Tornium - Faction Bot Dashboard
                     here
                 </a>. In order to set other bot configurations, please set the faction's guild ID first.
             </p>
+
+            <p class="card-text">
+                This section is currently being migrated to the bot dashboard. Please check back later.
+            </p>
             <form class="form-floating" method="POST" action="/faction/bot">
-                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
+                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}" disabled>
                 <label for="guildid">Guild ID</label>
             </form>
         </div>
@@ -88,22 +92,22 @@ Tornium - Faction Bot Dashboard
             <h5 class="card-title">Vault Configuration</h5>
             <p class="card-text">
                 <form class="form-floating my-3" method="POST" action="/faction/bot">
-                    <input class="form-control" id="banking" name="banking" value="{{ vault_config['banking'] }}">
+                    <input class="form-control" id="banking" name="banking" value="{{ vault_config['banking'] }}" disabled>
                     <label for="banking">Banking Channel</label>
                 </form>
 
                 <form class="form-floating my-3" method="POST" action="/faction/bot">
-                    <input class="form-control" id="banker" name="banker" value="{{ vault_config['banker'] }}">
+                    <input class="form-control" id="banker" name="banker" value="{{ vault_config['banker'] }}" disabled>
                     <label for="banker">Banker Role</label>
                 </form>
 
                 <form class="form-floating" method="POST" action="/faction/bot">
                     {% if config['vault'] == 0 %}
-                    <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled">
+                    <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled" disabled>
                     <input type="submit" class="btn btn-outline-primary active" disabled id="disabled" name="disabled" value="Disabled">
                     {% else %}
                     <input type="submit" class="btn btn-outline-primary active" disabled id="enabled" name="enabled" value="Enabled">
-                    <input type="submit" class="btn btn-outline-primary" id="disabled" name="disabled" value="Disabled">
+                    <input type="submit" class="btn btn-outline-primary" id="disabled" name="disabled" value="Disabled" disabled>
                     {% endif %}
                 </form>
             </p>

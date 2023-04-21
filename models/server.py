@@ -50,6 +50,8 @@ class Server:
 
         self.retal_config = server.retal_config
 
+        self.banking_config = server.banking_config
+
         self.assistschannel = server.assistschannel
         self.assist_factions = server.assist_factions
         self.assist_mod = server.assist_mod

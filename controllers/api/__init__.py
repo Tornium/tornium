@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Blueprint, render_template
+from flask import Blueprint
 
 from controllers.api import bot, faction, key, stakeout, stat, user
 
@@ -30,6 +30,11 @@ mod.add_url_rule(
     "/api/bot/<int:guildid>/assists/channel",
     view_func=bot.assists.assists_channel,
     methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/faction/<int:factiontid>/banking",
+    view_func=bot.banking.banking_setter,
+    methods=["GET", "POST"],
 )
 mod.add_url_rule(
     "/api/bot/<int:guildid>/faction/<int:factiontid>/oc/<string:notif>/<string:element>",

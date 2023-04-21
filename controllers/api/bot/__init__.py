@@ -13,4 +13,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.bot import assists, config, oc, retal, utils, verify
+from controllers.api.bot import assists, banking, config, oc, retal, utils, verify

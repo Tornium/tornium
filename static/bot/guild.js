@@ -13,61 +13,75 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-// const key = document.currentScript.getAttribute('data-key');
-// const guildid = document.currentScript.getAttribute('data-guildid');
-const assistMod = document.currentScript.getAttribute('data-assist-mod');
+const assistMod = document.currentScript.getAttribute("data-assist-mod");
 
-$(document).ready(function() {
+$(document).ready(function () {
     let serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
-    xhttp.onload = function() {
+    xhttp.onload = function () {
         let response = xhttp.response;
 
-        if("code" in response) {
+        if ("code" in response) {
             generateToast("Server Config Not Loaded", response["message"]);
             throw new Error("Server config error");
         }
 
         serverConfig = response;
 
-        channelsRequest().then(function() {
-            let assistsChannel = $(`#assist-channel option[value="${serverConfig['assists']['channel']}"]`);
-    
-            if(assistsChannel.length !== 0) {
-                assistsChannel.attr("selected", "");
-            }
+        channelsRequest()
+            .then(function () {
+                let assistsChannel = $(
+                    `#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`
+                );
 
-            $.each(serverConfig["retals"], function(factionid, factionConfig) {
-                let option = $(`.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`);
-
-                if(option.length !== 1) {
-                    return;
+                if (assistsChannel.length !== 0) {
+                    assistsChannel.attr("selected", "");
                 }
 
-                option.attr("selected", "");
-            })
-        }).finally(function() {
-            $(".discord-channel-selector").selectpicker();
-        });
+                $.each(
+                    serverConfig["retals"],
+                    function (factionid, factionConfig) {
+                        let option = $(
+                            `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                        );
 
-        rolesRequest().then(function() {
-            $.each(serverConfig["retals"], function(factionid, factionConfig) {
-                $.each(factionConfig["roles"], function(index, role) {
-                    let option = $(`.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`);
+                        if (option.length !== 1) {
+                            return;
+                        }
 
-                    if(option.length !== 1) {
-                        return;
+                        option.attr("selected", "");
                     }
-
-                    option.attr("selected", "");
-                });
+                );
+            })
+            .finally(function () {
+                $(".discord-channel-selector").selectpicker();
             });
-        }).finally(function() {
-            $(".discord-role-selector").selectpicker();
-        });
-    }
-    
+
+        rolesRequest()
+            .then(function () {
+                $.each(
+                    serverConfig["retals"],
+                    function (factionid, factionConfig) {
+                        $.each(factionConfig["roles"], function (index, role) {
+                            let option = $(
+                                `.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`
+                            );
+
+                            if (option.length !== 1) {
+                                return;
+                            }
+
+                            option.attr("selected", "");
+                        });
+                    }
+                );
+            })
+            .finally(function () {
+                $(".discord-role-selector").selectpicker();
+            });
+    };
+
     xhttp.responseType = "json";
     xhttp.open("GET", `/api/bot/server/${guildid}`);
     xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
@@ -75,36 +89,41 @@ $(document).ready(function() {
     xhttp.send();
 
     $('[data-bs-toggle="tooltip"]').tooltip({
-        container: '.list-group'
+        container: ".list-group",
     });
 
-    $('#assist-type-select').find('option').each(function(i, e) {
-        if($(e).val() === String(assistMod)) {
-            $('#assist-type-select').prop('selectedIndex', i);
-        }
-    });
+    $("#assist-type-select")
+        .find("option")
+        .each(function (i, e) {
+            if ($(e).val() === String(assistMod)) {
+                $("#assist-type-select").prop("selectedIndex", i);
+            }
+        });
 
-    $('#stakeoutcategory').on('keypress', function(e) {
-        if(e.which === 13) {
-            const id = $('#stakeoutcategory').val();
+    $("#stakeoutcategory").on("keypress", function (e) {
+        if (e.which === 13) {
+            const id = $("#stakeoutcategory").val();
             const xhttp = new XMLHttpRequest();
 
-            xhttp.onload = function() {
+            xhttp.onload = function () {
                 window.location.reload();
-            }
+            };
 
-            xhttp.open('POST', `/bot/stakeouts/${guildid}/update?action=category&value=${id}`);
+            xhttp.open(
+                "POST",
+                `/bot/stakeouts/${guildid}/update?action=category&value=${id}`
+            );
             xhttp.send();
         }
     });
 
-    $("#assist-channel").on("change", function() {
+    $("#assist-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();
 
-        xhttp.onload = function() {
+        xhttp.onload = function () {
             let response = xhttp.response;
 
-            if("code" in response) {
+            if ("code" in response) {
                 generateToast("Assists Channel Failed", response["message"]);
                 return;
             }
@@ -113,90 +132,167 @@ $(document).ready(function() {
             xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
             xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
             xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(JSON.stringify({
-                "channel": this.options[this.selectedIndex].value
-            }));
-        }
-    })
+            xhttp.send(
+                JSON.stringify({
+                    channel: this.options[this.selectedIndex].value,
+                })
+            );
+        };
+    });
 
-    $('#assistfactionid').on('keypress', function(e) {
-        if(e.which === 13) {
-            const id = $('#assistfactionid').val();
+    $("#assistfactionid").on("keypress", function (e) {
+        if (e.which === 13) {
+            const id = $("#assistfactionid").val();
             const xhttp = new XMLHttpRequest();
 
-            xhttp.onload = function() {
+            xhttp.onload = function () {
                 window.location.reload();
-            }
+            };
 
-            xhttp.open('POST', `/bot/assists/${guildid}/update?action=faction&value=${id}`);
+            xhttp.open(
+                "POST",
+                `/bot/assists/${guildid}/update?action=faction&value=${id}`
+            );
             xhttp.send();
         }
     });
 
-    $('#submit-assist-mod').click(function() {
-        const assistMod = $('#assist-type-select').val();
+    $("#submit-assist-mod").click(function () {
+        const assistMod = $("#assist-type-select").val();
         const xhttp = new XMLHttpRequest();
 
-        xhttp.onload = function() {
+        xhttp.onload = function () {
             window.location.reload();
-        }
+        };
 
-        xhttp.open('POST', `/bot/assists/${guildid}/update?action=mod&value=${assistMod}`);
+        xhttp.open(
+            "POST",
+            `/bot/assists/${guildid}/update?action=mod&value=${assistMod}`
+        );
         xhttp.send();
     });
 
-    $(".faction-retal-channel").on("change", function() {
+    $(".faction-retal-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();
 
-        xhttp.onload = function() {
+        xhttp.onload = function () {
             let response = xhttp.response;
 
-            if("code" in response) {
+            if ("code" in response) {
                 generateToast("Channel Set Failed");
             } else {
                 generateToast("Channel Set Successful");
             }
-        }
+        };
 
         xhttp.responseType = "json";
         xhttp.open("POST", "/api/bot/retal/faction/channel");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify({
-            "guildid": guildid,
-            "factiontid": this.getAttribute("data-faction"),
-            "channel": this.options[this.selectedIndex].value
-        }));
+        xhttp.send(
+            JSON.stringify({
+                guildid: guildid,
+                factiontid: this.getAttribute("data-faction"),
+                channel: this.options[this.selectedIndex].value,
+            })
+        );
     });
 
-    $(".faction-retal-roles").on("change", function() {
+    $(".faction-retal-roles").on("change", function () {
         var selectedOptions = $(this).find(":selected");
         var selectedRoles = [];
 
-        $.each(selectedOptions, function(index, item) {
+        $.each(selectedOptions, function (index, item) {
             selectedRoles.push(item.getAttribute("value"));
         });
 
         const xhttp = new XMLHttpRequest();
 
-        xhttp.onload = function() {
+        xhttp.onload = function () {
             let response = xhttp.response;
 
-            if("code" in response) {
+            if ("code" in response) {
                 generateToast("Role Add Failed");
             } else {
                 generateToast("Role Add Successful");
             }
-        }
+        };
 
         xhttp.responseType = "json";
         xhttp.open("POST", "/api/bot/retal/faction/roles");
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify({
-            "guildid": guildid,
-            "factiontid": this.getAttribute("data-faction"),
-            "roles": selectedRoles
-        }));
-    })
+        xhttp.send(
+            JSON.stringify({
+                guildid: guildid,
+                factiontid: this.getAttribute("data-faction"),
+                roles: selectedRoles,
+            })
+        );
+    });
+
+    $(".faction-banking-channel").on("change", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Channel Set Failed");
+            } else {
+                generateToast("Channel Set Successful");
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open(
+            "POST",
+            `/api/bot/${guildid}/faction/${this.getAttribute(
+                "data-faction"
+            )}/banking`
+        );
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                channel: this.options[this.selectedIndex].value,
+            })
+        );
+    });
+
+    $(".faction-banking-role").on("change", function () {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function (index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Role Set Failed");
+            } else {
+                generateToast("Role Set Successful");
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open(
+            "POST",
+            `/api/bot/${guildid}/faction/${this.getAttribute(
+                "data-faction"
+            )}/banking`
+        );
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                roles: selectedRoles,
+            })
+        );
+    });
 });

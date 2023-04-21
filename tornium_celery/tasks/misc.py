@@ -31,18 +31,12 @@ from tornium_commons.models import (
 def remove_unknown_channel(channel_id: int):
     channel_id = int(channel_id)
 
-    faction_vault_channel: QuerySet = FactionModel.objects(vaultconfig__banking=channel_id)
     faction_od_channel: QuerySet = FactionModel.objects(od_channel=channel_id)
 
     notifications: QuerySet = NotificationModel.objects(target=channel_id)
 
     server_verify_channel: typing.Optional[ServerModel] = ServerModel.objects(verify_log_channel=channel_id).first()
     server_assist_channel: typing.Optional[ServerModel] = ServerModel.objects(assistschannel=channel_id).first()
-
-    faction: FactionModel
-    for faction in faction_vault_channel:
-        faction.vaultconfig["banking"] = 0
-        faction.save()
 
     faction: FactionModel
     for faction in faction_od_channel:
@@ -105,14 +99,7 @@ def remove_unknown_channel(channel_id: int):
 def remove_unknown_role(role_id: int):
     role_id = int(role_id)
 
-    faction_vault_role: QuerySet = FactionModel.objects(vaultconfig__banker=role_id)
-
     server_verify_roles: typing.Optional[ServerModel] = ServerModel.objects(verified_roles=role_id).first()
-
-    faction: FactionModel
-    for faction in faction_vault_role:
-        faction.vaultconfig["banker"] = 0
-        faction.save()
 
     server: ServerModel
     for server in server_verify_roles:

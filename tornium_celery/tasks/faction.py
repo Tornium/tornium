@@ -1123,11 +1123,12 @@ def auto_cancel_requests():
             continue
 
         faction: typing.Optional[FactionModel] = FactionModel.objects(tid=withdrawal.factiontid).first()
+        server: typing.Optional[ServerModel] = ServerModel.objects(sid=faction.guild).first()
 
         try:
-            if faction is not None:
+            if server is not None and str(faction.tid) in server.banking_config:
                 discordpatch(
-                    f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
+                    f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
                     {
                         "embeds": [
                             {

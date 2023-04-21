@@ -53,6 +53,21 @@ $(document).ready(function () {
                         option.attr("selected", "");
                     }
                 );
+
+                $.each(
+                    serverConfig["banking"],
+                    function (factionid, factionConfig) {
+                        let option = $(
+                            `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                        );
+
+                        if (option.length !== 1) {
+                            return;
+                        }
+
+                        option.attr("selected", "");
+                    }
+                );
             })
             .finally(function () {
                 $(".discord-channel-selector").selectpicker();
@@ -66,6 +81,23 @@ $(document).ready(function () {
                         $.each(factionConfig["roles"], function (index, role) {
                             let option = $(
                                 `.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`
+                            );
+
+                            if (option.length !== 1) {
+                                return;
+                            }
+
+                            option.attr("selected", "");
+                        });
+                    }
+                );
+
+                $.each(
+                    serverConfig["banking"],
+                    function (factionid, factionConfig) {
+                        $.each(factionConfig["roles"], function (index, role) {
+                            let option = $(
+                                `.faction-banking-roles[data-faction="${factionid}"] option[value="${role}"]`
                             );
 
                             if (option.length !== 1) {
@@ -260,7 +292,7 @@ $(document).ready(function () {
         );
     });
 
-    $(".faction-banking-role").on("change", function () {
+    $(".faction-banking-roles").on("change", function () {
         var selectedOptions = $(this).find(":selected");
         var selectedRoles = [];
 

@@ -185,7 +185,7 @@ def after_request(response: flask.Response):
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
     # Content Security Policy
-    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    # response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     response.headers["X-XSS-Protection"] = "1; mode=block"
 
     # X-Content-Type-Options

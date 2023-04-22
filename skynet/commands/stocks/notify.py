@@ -350,12 +350,14 @@ def notify(interaction, *args, **kwargs):
             },
         }
 
+        stocks = rds().json().get("tornium:stocks")
+
         notification: NotificationModel
         for notification in notifications[page * 9 : (page + 1) * 9]:
             payload["data"]["embeds"][0]["fields"].append(
                 {
-                    "name": f"{notification.target} {notification.objects['equality']} ${commas(notification.value)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
-                    "value": notification.id,
+                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.value)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
+                    "value": f"DB ID: {notification.id}",
                 }
             )
 

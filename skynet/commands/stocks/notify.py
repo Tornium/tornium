@@ -14,13 +14,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import time
+import typing
 
 import mongoengine.queryset
 from bson.objectid import ObjectId
+from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
 from tornium_commons.formatters import commas, find_list
-from tornium_commons.models import NotificationModel, UserModel
+from tornium_commons.models import NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 
@@ -43,7 +45,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -73,7 +75,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
         if not private and channel is None:
@@ -87,7 +89,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
         elif private and user.discord_id == 0:
@@ -101,10 +103,10 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
-        elif not private and "member" not in interaction:
+        elif not private and ("member" not in interaction or "guild_id" not in interaction):
             return {
                 "type": 4,
                 "data": {
@@ -115,9 +117,42 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
+
+        if not private:
+            guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+            if guild is None:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Server Not Located",
+                                "description": "This server could not be located in Tornium's database.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+            elif user.tid not in guild.admins:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Permission Denied",
+                                "description": "You must be a server admin to run this command in this server. Please "
+                                "try in another server where you admin or in a DM.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
 
         stocks: dict = rds().json().get("tornium:stocks")
 
@@ -133,7 +168,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
         elif stock not in stocks.values():
@@ -147,7 +182,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -164,7 +199,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
         else:
@@ -174,6 +209,7 @@ def notify(interaction, *args, **kwargs):
             invoker=user.tid,
             time_created=int(time.time()),
             recipient=user.discord_id if private else channel,
+            recipient_guild=0 if private else int(interaction["guild_id"]),
             recipient_type=int(not private),
             ntype=0,
             target=stock_id,
@@ -224,7 +260,7 @@ def notify(interaction, *args, **kwargs):
                         },
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -244,7 +280,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_INFO,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -267,7 +303,7 @@ def notify(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
         else:
@@ -287,24 +323,42 @@ def notify(interaction, *args, **kwargs):
                         "color": SKYNET_GOOD,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    def list():
-        return {
+    def list_stocks():
+        payload = {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Command Not Yet Implemented",
-                        "description": "This command is currently under construction.",
-                        "color": SKYNET_ERROR,
+                        "title": "List of Stakeouts",
+                        "description": f"{notifications.count()} stakeouts located...\n",
+                        "color": SKYNET_INFO,
+                        "fields": [],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
+
+        notification: NotificationModel
+        for notification in notifications:
+            if len(payload) >= 25:
+                payload["data"]["embeds"][0]["footer"] = {
+                    "text": "List of notifications have been truncated due to Discord limits. Please try to stay under 25 stock notifications."
+                }
+                break
+
+            payload["data"]["embeds"][0]["fields"].append(
+                {
+                    "name": f"{notification.target} {notification.objects['equality']} ${commas(notification.value)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
+                    "value": notification.id,
+                }
+            )
+
+        return payload
 
     user: UserModel = kwargs["invoker"]
 
@@ -322,16 +376,98 @@ def notify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
+
+    if subcommand != "initialize":
+        guild: typing.Optional[ServerModel]
+
+        if "guild_id" in interaction:
+            guild = ServerModel.objects(sid=interaction["guild_id"]).first()
+
+            if guild is None:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Server Not Located",
+                                "description": "This server could not be located in Tornium's database.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+            elif user.tid not in guild.admins:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Permission Denied",
+                                "description": "You must be an admin in this server to run this command. Run in a DM "
+                                "or in a server where you are an admin.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+        else:
+            guild = None
+
+        if subcommand not in ("initialize", "delete"):
+            notification_id = find_list(subcommand_data, "name", "notification")
+
+            if notification_id == -1:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Not Yet Implemented",
+                                "description": "This feature has not been implemented yet. Use `all` to delete all "
+                                "notifications or use `/stocks notify list` to show the ID from which to "
+                                "delete.",
+                                "color": SKYNET_INFO,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
+            notifications: QuerySet = NotificationModel.objects(ntype=0)
+
+            if guild is not None:
+                notifications.filter(
+                    Q(recipient_type=1) & (Q(recipient_guild=guild.sid)) | (Q(recipient_guild=0) & Q(invoker=user.tid))
+                )
+            else:
+                notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+
+            if notifications.count() == 0:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "No Stakeout Found",
+                                "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flag": 64,
+                    },
+                }
 
     if subcommand == "create":
         return create()
     elif subcommand == "delete":
         return delete()
     elif subcommand == "list":
-        return list()
+        return list_stocks()
     else:
         return {
             "type": 4,
@@ -343,6 +479,6 @@ def notify(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }

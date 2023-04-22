@@ -328,13 +328,20 @@ def notify(interaction, *args, **kwargs):
         }
 
     def list_stocks():
+        page = find_list(subcommand_data, "name", "page")
+
+        if page == -1:
+            page = 0
+        else:
+            page = int(page[1]["value"])
+
         payload = {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "List of Stakeouts",
-                        "description": f"{notifications.count()} stakeouts located...\n",
+                        "description": f"{notifications[page * 9 : (page + 1) * 9].count()} stakeouts located...\n",
                         "color": SKYNET_INFO,
                         "fields": [],
                     }
@@ -344,13 +351,7 @@ def notify(interaction, *args, **kwargs):
         }
 
         notification: NotificationModel
-        for notification in notifications:
-            if len(payload) >= 25:
-                payload["data"]["embeds"][0]["footer"] = {
-                    "text": "List of notifications have been truncated due to Discord limits. Please try to stay under 25 stock notifications."
-                }
-                break
-
+        for notification in notifications[page * 9 : (page + 1) * 9]:
             payload["data"]["embeds"][0]["fields"].append(
                 {
                     "name": f"{notification.target} {notification.objects['equality']} ${commas(notification.value)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
@@ -419,25 +420,6 @@ def notify(interaction, *args, **kwargs):
             guild = None
 
         if subcommand not in ("initialize", "delete"):
-            notification_id = find_list(subcommand_data, "name", "notification")
-
-            if notification_id == -1:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Not Yet Implemented",
-                                "description": "This feature has not been implemented yet. Use `all` to delete all "
-                                "notifications or use `/stocks notify list` to show the ID from which to "
-                                "delete.",
-                                "color": SKYNET_INFO,
-                            }
-                        ],
-                        "flags": 64,
-                    },
-                }
-
             notifications: QuerySet = NotificationModel.objects(ntype=0)
 
             if guild is not None:

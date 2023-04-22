@@ -60,6 +60,7 @@ def notify(interaction, *args, **kwargs):
             channel = None
         else:
             channel = channel[1]["value"]
+            private = False
 
         if price <= 0:
             return {

@@ -89,6 +89,9 @@ def init__app():
         app.secret_key = config["secret"]
 
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 
     CORS(
         app,
@@ -182,11 +185,13 @@ def after_request(response: flask.Response):
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
     # Content Security Policy
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
 
     # X-Content-Type-Options
     response.headers["X-Content-Type-Options"] = "nosniff"
 
     # X-Frame-Options
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Frame-Options"] = "DENY"
 
     return response

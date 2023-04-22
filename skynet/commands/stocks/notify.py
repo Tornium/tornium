@@ -340,8 +340,8 @@ def notify(interaction, *args, **kwargs):
             "data": {
                 "embeds": [
                     {
-                        "title": "List of Stakeouts",
-                        "description": f"{notifications[page * 9 : (page + 1) * 9].count()} stakeouts located...\n",
+                        "title": "List of Notifications",
+                        "description": f"{notifications[page * 9 : (page + 1) * 9].count()} notification(s) located...\n",
                         "color": SKYNET_INFO,
                         "fields": [],
                     }
@@ -356,7 +356,7 @@ def notify(interaction, *args, **kwargs):
         for notification in notifications[page * 9 : (page + 1) * 9]:
             payload["data"]["embeds"][0]["fields"].append(
                 {
-                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.value)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
+                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.value, stock_price=True)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
                     "value": f"DB ID: {notification.id}",
                 }
             )
@@ -437,8 +437,8 @@ def notify(interaction, *args, **kwargs):
                     "data": {
                         "embeds": [
                             {
-                                "title": "No Stakeout Found",
-                                "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
+                                "title": "No Notification Found",
+                                "description": "No notifications could be located with the passed Torn ID and notifications type.",
                                 "color": SKYNET_ERROR,
                             }
                         ],

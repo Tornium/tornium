@@ -142,7 +142,7 @@ def unauthorized():
     if flask.request.blueprint == "api":
         flask.abort(401)
 
-    flask.session["next"] = flask.request.endpoint
+    flask.session["next"] = flask.request.url
     return flask.redirect(flask.url_for(login_manager.login_view)), 401
 
 
@@ -151,7 +151,7 @@ def refresh_needed():
     if flask.request.blueprint == "api":
         flask.abort(401)
 
-    flask.session["next"] = flask.request.endpoint
+    flask.session["next"] = flask.request.url
     return flask.redirect(flask.url_for(login_manager.refresh_view)), 401
 
 

@@ -136,7 +136,7 @@ def login():
     if session.get("next") is None:
         return redirect(url_for("baseroutes.index"))
     else:
-        return redirect(url_for(session.get("next")))
+        return redirect(session.get("next"))
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
@@ -180,7 +180,7 @@ def topt_verification():
         if session.get("next") is None:
             return redirect(url_for("baseroutes.index"))
         else:
-            return redirect(url_for(session.get("next")))
+            return redirect(session.get("next"))
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
         user.save()
@@ -191,7 +191,7 @@ def topt_verification():
         if session.get("next") is None:
             return redirect(url_for("baseroutes.index"))
         else:
-            return redirect(url_for(session.get("next")))
+            return redirect(session.get("next"))
     else:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 

@@ -146,7 +146,7 @@ def unauthorized():
         flask.abort(401)
 
     flask.session["next"] = flask.request.url
-    return flask.redirect(flask.url_for(login_manager.login_view)), 401
+    return flask.redirect(flask.url_for(login_manager.login_view))
 
 
 @login_manager.needs_refresh_handler
@@ -155,7 +155,7 @@ def refresh_needed():
         flask.abort(401)
 
     flask.session["next"] = flask.request.url
-    return flask.redirect(flask.url_for(login_manager.refresh_view)), 401
+    return flask.redirect(flask.url_for(login_manager.refresh_view))
 
 
 @app.template_filter("reltime")

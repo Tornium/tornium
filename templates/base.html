@@ -58,32 +58,6 @@
 <body>
     {% block scripts %}{% endblock %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'error' %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% elif category == 'warning' %}
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% else %}
-                <div class="alert alert-secondary alert-dismissible fade show" role="alert">
-                    <i class="fas fa-sticky-note"></i>
-                    {{ message }}
-                    <button type="button" class="btn btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
     <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 10">
         <div class="toast-container position-absolute top-0 end-0 mx-3 my-3" id="toast-container">
 

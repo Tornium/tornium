@@ -43,6 +43,9 @@ https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]
 == Release Notes
 This project follows https://semver.org/[semver v2.0] so all bug fixes, breaking changes, features, etc. can be found in the https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc[changelog].
 
+== Contributing to Tornium
+All commits must be signed with a `Signed-off-by` line in the commit description matching the commit author. This certifies (under the Developer Certificate of Origin) that you have written the code or have the right to submit the code to the project. Full details can be found https://developercertificate.org/[here].
+
 == Contact
  - tiksan on Discord at tiksan(hastag)9110
  - tiksan on Torn at https://www.torn.com/profiles.php?XID=2383326[tiksan [2383326\]]

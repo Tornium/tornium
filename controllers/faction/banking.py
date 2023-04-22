@@ -15,6 +15,7 @@
 
 import datetime
 import time
+import typing
 
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
@@ -168,9 +169,16 @@ def banking():
                 }
             )
 
+    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=faction.guild).first() if faction.guild != 0 else None
+
+    if guild is None or str(faction.tid) not in guild.banking_config:
+        banking_enabled = False
+    else:
+        banking_enabled = guild.banking_config[str(faction.tid)]["channel"]
+
     return render_template(
         "faction/banking.html",
-        bankingenabled=faction.vaultconfig["banking"] != 0 and faction.vaultconfig["banker"] != 0,
+        bankingenabled=banking_enabled,
         key=current_user.key,
         faction=faction,
         bankers=bankers,
@@ -282,11 +290,7 @@ def fulfill(wid: int):
             ),
             400,
         )
-    elif (
-        faction.vaultconfig.get("banking") in [0, None]
-        or faction.vaultconfig.get("banker") in [0, None]
-        or faction.guild == 0
-    ):
+    elif faction.guild == 0:
         return (
             render_template(
                 "errors/error.html",
@@ -305,12 +309,31 @@ def fulfill(wid: int):
             title="Unknown Server",
             error="The faction's Discord server could not be located in the database.",
         )
+    elif faction.tid not in guild.factions:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="The faction is not set up to be in the specified server.",
+            ),
+            403,
+        )
+    elif guild.banking_config.get(str(faction.tid), {"channel": "0"})["channel"] == "0":
+        return (
+            render_template(
+                "errors/error.html",
+                title="Missing Configuration",
+                error="The server's vault configuration is not properly set. Please contact a server administrator or "
+                "faction AA member to do so.",
+            ),
+            400,
+        )
 
     channels = discordget(f"guilds/{faction.guild}/channels")
     banking_channel = None
 
     for channel in channels:
-        if channel["id"] == str(faction.vaultconfig.get("banking")):
+        if channel["id"] == guild.banking_config[str(faction.tid)]["channel"]:
             banking_channel = channel
             break
 

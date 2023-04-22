@@ -114,7 +114,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif user.factionid not in server.factions:
+    elif user.factionid not in server.factions or faction.guild != server.sid:
         return {
             "type": 4,
             "data": {
@@ -144,16 +144,15 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-
-    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
+    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
+                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
+                        f"the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -245,7 +244,7 @@ def fulfill_command(interaction, *args, **kwargs):
 
     try:
         discordpatch(
-            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -423,7 +422,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif user.factionid not in server.factions:
+    elif user.factionid not in server.factions or faction.guild != server.sid:
         return {
             "type": 4,
             "data": {
@@ -453,8 +452,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-
-    if faction.vaultconfig.get("banking") in [0, None] or faction.vaultconfig.get("banker") in [0, None]:
+    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
         return {
             "type": 4,
             "data": {
@@ -533,7 +531,7 @@ def fulfill_button(interaction, *args, **kwargs):
 
     try:
         discordpatch(
-            f"channels/{faction.vaultconfig['banking']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {

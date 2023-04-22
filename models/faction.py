@@ -50,8 +50,7 @@ class Faction:
                 last_attacks=0,
                 last_members=now,
                 guild=0,
-                config={"vault": 0, "stats": 1},
-                vaultconfig={"banking": 0, "banker": 0},
+                config={"stats": 1},
                 statconfig={"global": 0},
                 od_channel=0,
                 chainod={},
@@ -82,7 +81,6 @@ class Faction:
 
         self.guild = faction.guild
         self.config = faction.config
-        self.vault_config = faction.vaultconfig
 
         self.stat_config = faction.statconfig
 

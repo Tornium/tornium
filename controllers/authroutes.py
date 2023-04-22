@@ -19,7 +19,7 @@ import time
 import typing
 
 import celery.exceptions
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
     fresh_login_required,
@@ -133,7 +133,10 @@ def login():
             500,
         )
 
-    return redirect(url_for("baseroutes.index"))
+    if session.get("next") is None:
+        return redirect(url_for("baseroutes.index"))
+    else:
+        return redirect(url_for(session.get("next")))
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
@@ -173,14 +176,22 @@ def topt_verification():
     ):
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
-        return redirect(url_for("baseroutes.index"))
+
+        if session.get("next") is None:
+            return redirect(url_for("baseroutes.index"))
+        else:
+            return redirect(url_for(session.get("next")))
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
         user.save()
 
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
-        return redirect(url_for("baseroutes.index"))
+
+        if session.get("next") is None:
+            return redirect(url_for("baseroutes.index"))
+        else:
+            return redirect(url_for(session.get("next")))
     else:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 

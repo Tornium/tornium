@@ -137,6 +137,24 @@ def load_user(user_id):
     return User(user_id)
 
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    if flask.request.blueprint == "api":
+        flask.abort(401)
+
+    flask.session["next"] = flask.request.endpoint
+    return flask.redirect(flask.url_for(login_manager.login_view)), 401
+
+
+@login_manager.needs_refresh_handler
+def refresh_needed():
+    if flask.request.blueprint == "api":
+        flask.abort(401)
+
+    flask.session["next"] = flask.request.endpoint
+    return flask.redirect(flask.url_for(login_manager.refresh_view)), 401
+
+
 @app.template_filter("reltime")
 def relative_time(s):
     return rel_time(datetime.datetime.fromtimestamp(s))

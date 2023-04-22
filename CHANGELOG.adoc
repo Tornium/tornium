@@ -13,6 +13,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - [tornium-commons] Added Discord rateliming buckets
  - [tornium-commons] Added support for Redis Lua scripts
  - [dev] Added prettier support
+ - Added next support via session for authentication
 
 === Changed
  - [tornium-celery] Changed Discord ratelimiting to use Discord buckets that follow spec

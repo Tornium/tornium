@@ -207,11 +207,6 @@ def chain(interaction, *args, **kwargs):
 
         if target_ff > 3:
             target_ff = 3
-        elif target is None:
-            target.reload()
-            
-            if target is None:
-                continue
             
         if target is None or target.level == 0:
             continue

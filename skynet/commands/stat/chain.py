@@ -78,18 +78,7 @@ def chain(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-
-    try:
-        discordpost(
-            f"interactions/{interaction['id']}/{interaction['token']}/callback",
-            payload={"type": 5},
-        )
-    except requests.exceptions.JSONDecodeError:
-        pass
-    except json.JSONDecodeError:
-        pass
-
-    if user.battlescore == 0:
+    elif user.battlescore == 0:
         return {
             "type": 4,
             "data": {
@@ -104,6 +93,16 @@ def chain(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
+
+    try:
+        discordpost(
+            f"interactions/{interaction['id']}/{interaction['token']}/callback",
+            payload={"type": 5},
+        )
+    except requests.exceptions.JSONDecodeError:
+        pass
+    except json.JSONDecodeError:
+        pass
 
     # f = fair fight
     # v = variance
@@ -159,6 +158,7 @@ def chain(interaction, *args, **kwargs):
                 ]
             },
         )
+        return
 
     stat_entries: list = list(set(stat_entries.all().values_list("tid")))
     random.shuffle(stat_entries)

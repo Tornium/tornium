@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bad Request</title>
+    <title>Discord Error</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css" integrity="sha512-72OVeAaPeV8n3BdZj7hOkaPSEk/uwpDkaGyP4W2jSzAC8tfiO4LMEDWoL3uFp5mcZu+8Eehb4GhZWFwvrss69Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="/static/fonts/JetBrainsMono-Light.woff2">
@@ -26,10 +26,10 @@
             <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
                 <div class="card m-3">
                     <div class="card-body container-fluid">
-                        <h2 class="card-title">Error: HTTP 400 | Bad Request</h2>
+                        <h2 class="card-title">Discord Error Code: {{ code }}</h2>
 
                         <p class="card-text">
-                            The server will not process this request due to a client issue.
+                            {{ message }}
                         </p>
 
                         <p class="card-text">

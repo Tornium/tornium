@@ -186,8 +186,8 @@ def chain(interaction, *args, **kwargs):
 
             if targets_updated <= 50:
                 try:
-                    update_user(random.choice(admin_keys), tid=stat.tid).get()
-                    target = UserModel.objects(tid=stat.tid).no_cache().first()
+                    update_user(random.choice(admin_keys), tid=stat.tid)
+                    target = UserModel.objects(tid=stat.tid).first()
                     targets_updated += 1
                 except TornError:
                     if int(time.time()) - target.last_refresh <= 2592000:  # One day
@@ -203,13 +203,13 @@ def chain(interaction, *args, **kwargs):
                     else:
                         raise e
 
+        if target is None or target.level == 0:
+            continue
+
         target_ff = 1 + 8 / 3 * (stat.battlescore / user.battlescore)
 
         if target_ff > 3:
             target_ff = 3
-            
-        if target is None or target.level == 0:
-            continue
 
         try:
             base_respect = round((math.log(target.level) + 1) / 4, 2)

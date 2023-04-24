@@ -213,7 +213,7 @@ def chain(interaction, *args, **kwargs):
             if target is None:
                 continue
             
-        if target.level == 0:
+        if target is None or target.level == 0:
             continue
 
         try:

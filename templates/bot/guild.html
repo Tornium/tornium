@@ -281,13 +281,14 @@ Tornium - Bot Dashboard
                 Miscellaneous stock related features. Currently under development; disabled for now.
             </p>
 
+            {% if current_user.admin %}
             <div class="row w-100">
                 <div class="col-sm-12 col-md-6 col-xl-4">
 
                     <div class="card mb-3">
                         <div class="card-header">Stock Feed Channel:</div>
 
-                        <select class="discord-channel-selector w-100 m-2" id="feed-channel" aria-label="Stock Feed Channel" data-live-search="true">
+                        <select class="discord-channel-selector w-100 px-2 my-2" id="feed-channel" aria-label="Stock Feed Channel" data-live-search="true">
                             <option value="0">Disabled</option>
                         </select>
                     </div>
@@ -349,6 +350,7 @@ Tornium - Bot Dashboard
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 

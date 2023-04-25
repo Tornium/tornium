@@ -82,6 +82,11 @@
                     ]
                 }
             ]
+        },
+        {
+            "type": 2,
+            "name": "feed",
+            "description": "Stock feed configuration"
         }
     ]
 }

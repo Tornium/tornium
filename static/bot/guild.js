@@ -362,11 +362,14 @@ $(document).ready(function () {
     });
 
     $(".stock-switch").on("change", function () {
-        const percentChange = $("#percent-change-switch").first().checked;
-        const capChange = $("#cap-change-switch").first().checked;
-        const newDayPrice = $("#new-day-price-switch").first().checked;
-        const minPrice = $("#min-price-switch").first().checked;
-        const maxPrice = $("#max-price-switch").first().checked;
+        if (this.checked) {
+        }
+
+        const percentChange = $("#percent-change-switch")[0].checked;
+        const capChange = $("#cap-change-switch")[0].checked;
+        const newDayPrice = $("#new-day-price-switch")[0].checked;
+        const minPrice = $("#min-price-switch")[0].checked;
+        const maxPrice = $("#max-price-switch")[0].checked;
 
         const xhttp = new XMLHttpRequest();
 

@@ -13,9 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from skynet.commands.stocks import notify
+from skynet.commands.stocks import feed, notify
 
-_stocks_commands = {"notify": notify.notify}
+_stocks_commands = {
+    "feed": feed.feed,
+    "notify": notify.notify,
+}
 
 
 def stocks_switchboard(interaction, *args, **kwargs):

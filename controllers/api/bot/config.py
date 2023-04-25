@@ -47,6 +47,10 @@ def jsonified_server_config(guild: ServerModel):
             "modifier": guild.assist_mod,
         },
         "oc": guild.oc_config,
+        "stocks": {
+            "channel": guild.stocks_channel,
+            **guild.stocks_config,
+        },
     }
 
     for faction in data["verify"]["faction_verify"]:

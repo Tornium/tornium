@@ -58,6 +58,9 @@ class Server:
 
         self.oc_config = server.oc_config
 
+        self.stocks_channel = server.stocks_channel
+        self.stocks_config = server.stocks_config
+
     def get_text_channels(self, api=False):
         def parse(value):
             if api:

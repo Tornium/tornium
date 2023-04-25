@@ -39,6 +39,14 @@ $(document).ready(function () {
                     assistsChannel.attr("selected", "");
                 }
 
+                let stockFeedChannel = $(
+                    `#feed-channel option[value="${serverConfig["stocks"]["feed"]["channel"]}"]`
+                );
+
+                if (stockFeedChannel.length !== 0) {
+                    stockFeedChannel.attr("selected", "");
+                }
+
                 $.each(
                     serverConfig["retals"],
                     function (factionid, factionConfig) {
@@ -324,6 +332,40 @@ $(document).ready(function () {
         xhttp.send(
             JSON.stringify({
                 roles: selectedRoles,
+            })
+        );
+    });
+
+    $(".stock-switch").on("change", function () {
+        const percentChange = $("#percent-change-switch").first().checked;
+        const capChange = $("#cap-change-switch").first().checked;
+        const newDayPrice = $("#new-day-price-switch").first().checked;
+        const minPrice = $("#min-price-switch").first().checked;
+        const maxPrice = $("#max-price-switch").first().checked;
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Stock Config Update Failed");
+            } else {
+                generateToast("Stock Config Update Successful");
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/api/bot/${guildid}/stock/feed`);
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                percent_change: percentChange,
+                cap_change: capChange,
+                new_day_price: newDayPrice,
+                min_price: minPrice,
+                max_price: maxPrice,
             })
         );
     });

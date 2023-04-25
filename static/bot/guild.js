@@ -356,7 +356,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/stock/feed`);
+        xhttp.open("POST", `/api/bot/${guildid}/stocks/feed`);
         xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
@@ -366,6 +366,30 @@ $(document).ready(function () {
                 new_day_price: newDayPrice,
                 min_price: minPrice,
                 max_price: maxPrice,
+            })
+        );
+    });
+
+    $("#feed-channel").on("change", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Channel Set Failed");
+            } else {
+                generateToast("Channel Set Successful");
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/api/bot/${guildid}/stocks/feed/channel`);
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                channel: this.options[this.selectedIndex].value,
             })
         );
     });

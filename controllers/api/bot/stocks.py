@@ -16,7 +16,7 @@
 
 import json
 
-from flask import jsonify, request
+from flask import request
 from tornium_commons.models import ServerModel
 
 from controllers.api.bot.config import jsonified_server_config

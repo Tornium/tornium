@@ -42,6 +42,16 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/<int:guildid>/stocks/feed",
+    view_func=bot.stocks.stocks_feed_options,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/stocks/feed/channel",
+    view_func=bot.stocks.stocks_feed_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/bot/retal/faction/channel",
     view_func=bot.retal.faction_retal_channel,
     methods=["POST"],

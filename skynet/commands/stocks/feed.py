@@ -17,7 +17,7 @@ import inspect
 import typing
 
 from tornium_commons.models import ServerModel
-from tornium_commons.skyutils import SKYNET_ERROR
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 
 def feed(interaction, *args, **kwargs):
@@ -54,11 +54,13 @@ def feed(interaction, *args, **kwargs):
         }
 
     return {
-        "embeds": [
-            {
-                "title": "Stocks Feed Configuration",
-                "description": inspect.cleandoc(
-                    f"""Stocks feed configuration for {server.name}...
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Stocks Feed Configuration",
+                    "description": inspect.cleandoc(
+                        f"""Stocks feed configuration for {server.name}...
 
                 Percent Change: {"Enabled" if server.stocks_config.get("percent_change", False) else "Disabled"}
                 Market Cap Change: {"Enabled" if server.stocks_config.get("cap_change", False) else "Disabled"}
@@ -66,9 +68,11 @@ def feed(interaction, *args, **kwargs):
                 Minimum Price: {"Enabled" if server.stocks_config.get("min_price", False) else "Disabled"}
                 Maximum Price: {"Enabled" if server.stocks_config.get("max_price", False) else "Disabled"}
                 """
-                ),
-                "footer": {"text": "To modify the feed configuration, visit the guild dashboard."},
-            }
-        ],
-        "flags": 64,
+                    ),
+                    "footer": {"text": "To modify the feed configuration, visit the guild dashboard."},
+                    "color": SKYNET_INFO,
+                }
+            ],
+            "flags": 64,
+        },
     }

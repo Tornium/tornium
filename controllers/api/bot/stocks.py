@@ -63,15 +63,15 @@ def stocks_feed_options(guildid: int, *args, **kwargs):
     max_price = data.get("max_price")
 
     if type(percent_change) not in (bool, None):
-        return make_exception_response("0", key, details={"key": "percent_change"})
+        return make_exception_response("0000", key, details={"key": "percent_change"})
     elif type(cap_change) not in (bool, None):
-        return make_exception_response("0", key, details={"key": "cap_change"})
+        return make_exception_response("0000", key, details={"key": "cap_change"})
     elif type(new_day_price) not in (bool, None):
-        return make_exception_response("0", key, details={"key": "new_day_price"})
+        return make_exception_response("0000", key, details={"key": "new_day_price"})
     elif type(min_price) not in (bool, None):
-        return make_exception_response("0", key, details={"key": "min_price"})
+        return make_exception_response("0000", key, details={"key": "min_price"})
     elif type(max_price) not in (bool, None):
-        return make_exception_response("0", key, details={"key": "max_price"})
+        return make_exception_response("0000", key, details={"key": "max_price"})
 
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 

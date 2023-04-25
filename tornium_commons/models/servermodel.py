@@ -51,3 +51,6 @@ class ServerModel(DynamicDocument):
     assist_mod = IntField(default=0)  # 0: Everyone; 1: Whitelist; 2: Blacklist
 
     oc_config = DictField(default={})
+
+    stocks_channel = IntField(default=0)  # 0 = disabled
+    stocks_config = DictField(default={})

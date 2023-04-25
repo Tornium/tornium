@@ -84,7 +84,7 @@
             ]
         },
         {
-            "type": 2,
+            "type": 1,
             "name": "feed",
             "description": "Stock feed configuration"
         }

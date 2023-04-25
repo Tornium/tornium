@@ -362,7 +362,34 @@ $(document).ready(function () {
     });
 
     $(".stock-switch").on("change", function () {
-        if (this.checked) {
+        if ($("#percent-change-switch")[0].checked) {
+            $("#percent-change-enabled").text("Enabled");
+        } else {
+            $("#percent-change-enabled").text("Disabled");
+        }
+
+        if ($("#cap-change-switch")[0].checked) {
+            $("#cap-change-enabled").text("Enabled");
+        } else {
+            $("#cap-change-enabled").text("Disabled");
+        }
+
+        if ($("#new-day-price-switch")[0].checked) {
+            $("#new-day-price-enabled").text("Enabled");
+        } else {
+            $("#new-day-price-enabled").text("Disabled");
+        }
+
+        if ($("#min-price-switch")[0].checked) {
+            $("#min-price-enabled").text("Enabled");
+        } else {
+            $("#min-price-enabled").text("Disabled");
+        }
+
+        if ($("#max-price-switch")[0].checked) {
+            $("#max-price-enabled").text("Enabled");
+        } else {
+            $("#max-price-enabled").text("Disabled");
         }
 
         const percentChange = $("#percent-change-switch")[0].checked;

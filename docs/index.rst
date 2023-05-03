@@ -13,11 +13,6 @@ Tornium
 
 Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`_ built from scratch with love <3.
 
-.. image:: https://i.giphy.com/media/1XgIXQEzBu6ZWappVu/giphy.webp
-   :alt: Under construction
-
-Tornium's documentation is currently under construction.
-
 Features
 ========
  * Faction banking
@@ -67,5 +62,6 @@ If you need any help setting up or contributing to Tornium, please contact tiksa
 
 Deprecation Notices
 ===================
+
  * Pre-existing stakeouts will be removed (without migration) in the v0.4.x release cycle. Please use stakeouts via Discord slash commands in the future.
  * Assist request forwarding options will be removed in the v0.5.x release cycle in favor of a permanent whitelist.

@@ -3,6 +3,7 @@
 Themes
 ======
 Through the `User Settings` section on the website, Tornium currently supports three themes:
+
  * :ref:`Boostrap Light`
  * :ref:`Custom Dark`
  * :ref:`Raz-Mode`

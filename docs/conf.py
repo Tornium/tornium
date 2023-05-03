@@ -37,5 +37,17 @@ exclude_patterns = []
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
-html_logo = "_static/banner.png"
-html_css_files = ["_static/custom.css"]
+html_sidebars = {
+    "index": [
+        "sidebarintro.html",
+        "searchbox.html",
+        "overwrites.html",
+    ],
+    "**": [
+        "sidebarintro.html",
+        "localtoc.html",
+        "relations.html",
+        "searchbox.html",
+        "overwrites.html",
+    ],
+}

@@ -40,4 +40,4 @@ This documentation will also include descriptions and other details about SkyNet
 
 API Key Usage
 -------------
-Depending on the slash command, Tornium will either use the faction AA API keys or the server administrators' API keys. However, if you're signed into Tornium, the bot will give preference to your API key over any other applicable keys to minimize usage on those keys for most commands.
+Depending on the slash command, Tornium will either use the faction AA API keys or the server administrators' API keys. However for most commands, if you're signed into Tornium, the bot will give preference to your API key over any other applicable keys to minimize usage on those keys.

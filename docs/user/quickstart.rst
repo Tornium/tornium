@@ -9,6 +9,7 @@ Setting Up SkyNet
 SkyNet is the latest iteration of Discord bots built for Tornium. More information on how SkyNet works and detailed setup information can be found :ref:`here<skynet>`.
 
 #. Invite the bot using one of the following links:
+
     * An invitation link with specific, required permissions: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=469969968&scope=bot%20applications.commands>`_
     * An invitation link with administrator permissions: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 #. Make sure that a server administrator is signed into Tornium.

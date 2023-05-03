@@ -3,6 +3,7 @@
 Navigating Tornium
 ==================
 There are four main sections to Tornium:
+
  * Faction
  * Discord Bot
  * Stat DB

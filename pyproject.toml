@@ -24,7 +24,7 @@ description = "Reusable components for Tornium"
 keywords = ["tornium"]
 license = {file = "LICENSE"}
 name = "tornium_commons"
-version = "0.2.0"
+version = "0.3.1"
 
 [project.urls]
 homepage = "https://tornium.com"

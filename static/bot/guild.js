@@ -192,17 +192,17 @@ $(document).ready(function () {
                 generateToast("Assists Channel Failed", response["message"]);
                 return;
             }
-
-            xhttp.responseType = "json";
-            xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
-            xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
-                JSON.stringify({
-                    channel: this.options[this.selectedIndex].value,
-                })
-            );
         };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
+        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                channel: this.options[this.selectedIndex].value,
+            })
+        );
     });
 
     $("#assistfactionid").on("keypress", function (e) {

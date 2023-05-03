@@ -70,9 +70,9 @@ def forward_assist(*args, **kwargs):
     for server in ServerModel.objects(assistchannel__ne=0):
         if server.assistschannel == 0:
             continue
-        elif server.assist_mod == 1 and kwargs["user"].factiontid not in server.assist_factions:
+        elif server.assist_mod == 1 and kwargs["user"].factionid not in server.assist_factions:
             continue
-        elif server.assist_mod == 2 and kwargs["user"].factiontid in server.assist_factions:
+        elif server.assist_mod == 2 and kwargs["user"].factionid in server.assist_factions:
             continue
 
         data = {
@@ -106,7 +106,7 @@ def forward_assist(*args, **kwargs):
                         },
                         {
                             "name": "Requesting Faction",
-                            "value": f"{FactionModel.objects(tid=kwargs['user'].factiontid).first().name} [{kwargs['user'].factiontid}]",
+                            "value": f"{FactionModel.objects(tid=kwargs['user'].factionid).first().name} [{kwargs['user'].factionid}]",
                             "inline": True,
                         },
                     ],
@@ -151,7 +151,7 @@ def forward_assist(*args, **kwargs):
                             "type": 2,
                             "style": 5,
                             "label": "Requesting Faction",
-                            "url": f"https://www.torn.com/factions.php?step=profile&ID={kwargs['user'].factiontid}#/",
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={kwargs['user'].factionid}#/",
                         },
                     ],
                 },

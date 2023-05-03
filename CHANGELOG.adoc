@@ -7,6 +7,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 
 == [UNRELEASED]
+
+== 0.3.1 - May 3, 2023
 === Added
  - [dev] Added pre-commit support
  - [tornium-commons] Added docstrings
@@ -14,17 +16,19 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - [tornium-commons] Added support for Redis Lua scripts
  - [dev] Added prettier support
  - Added next support via session for authentication
+ - [in-prog] Added frontend support for stocks notifications
 
 === Changed
  - [tornium-celery] Changed Discord ratelimiting to use Discord buckets that follow spec
 
 === Deprecated
  - Deprecated assist request forwarding options (to be removed in the v0.5.x release cycle)
+ - Deprecated AttackModel and related endpoints (to be removed in the v0.4.x release cycle)
 
 === Fixed
  - Fixed OD logger enable/disable configuration
 
-== 0.3.0
+== 0.3.0 - Mar 17, 2023
 === Added
  - Migrated config to use `utils.config.Config` from `settings.py` (#117)
  - Added `user.fetch_attacks_runner` and `user.stat_db_attacks_user`
@@ -52,7 +56,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - [tornium-celery] Removed `autosleep` parameter from `tasks.api.tornget` and `tasks.api.torn_stats_get`
 
 
-== 0.2.0
+== 0.2.0 - Feb 14, 2023
 === Added
  - Added attack saving into DB via AttackModel
  - Added personal stat model
@@ -88,5 +92,5 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Removed ddtrace required dependency (now optional)
  - Removed admin endpoints
 
-== 0.1.0 - Initial Public Release
+== 0.1.0 - Jan 26, 2023
  - Added all pre-existing features

@@ -1,4 +1,4 @@
-.. _skynet
+.. _skynet:
 
 SkyNet
 ===============

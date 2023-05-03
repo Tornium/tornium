@@ -34,19 +34,13 @@ This part of the documentation contains details useful for end users who merely 
 
 Tutorials
 =========
-.. toctree::
-   :maxdepth: 2
-
-   tutorials
+This section is currently under construction.
 
 References
 ==========
 This part of the documentation contains API documentation for Tornium functions, classes, and methods.
 
-.. toctree::
-   :maxdepth: 2
-
-   api
+This section is currently under construction.
 
 Tornium Extensions
 ==================

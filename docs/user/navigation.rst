@@ -21,11 +21,11 @@ This section includes various information and components regarding the faction.
 .. toctree::
     :maxdepth: 3
 
-    features/faction/members
-    features/faction/banking
-    features/faction/chains
-    features/faction/attacks
-    features/faction/bot
+    faction/members
+    faction/banking
+    faction/chains
+    faction/attacks
+    faction/bot
 
 Discord Bot
 -----------

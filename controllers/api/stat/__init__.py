@@ -232,54 +232,11 @@ def get_stat_user(tid, *args, **kwargs):
         "last_action": user.last_action,
     }
 
-    factions = {}
-    added_users = {}
-
     stat_entry: StatModel
     for stat_entry in stat_entries:
-        if stat_entry.addedfactiontid == 0:
-            faction = None
-        elif str(stat_entry.addedfactiontid) in factions:
-            faction = factions[str(stat_entry.addedfactiontid)]
-        else:
-            faction_db: FactionModel = FactionModel.objects(tid=stat_entry.addedfactiontid).first()
-
-            if faction_db is None:
-                faction = None
-                factions[str(stat_entry.addedfactiontid)] = None
-            else:
-                faction = {
-                    "name": faction_db.name,
-                    "respect": faction_db.respect,
-                    "capacity": faction_db.capacity,
-                    "leader": faction_db.leader,
-                    "coleader": faction_db.coleader,
-                }
-                factions[str(stat_entry.addedfactiontid)] = faction
-
-        if stat_entry.addedid == 0:
-            added_user = None
-        elif str(stat_entry.addedid) in added_users:
-            added_user = added_users[str(stat_entry.addedid)]
-        else:
-            added_user_db: UserModel = UserModel.objects(tid=stat_entry.addedid).first()
-
-            if added_user_db is None:
-                added_user = None
-                added_users[str(stat_entry.addedid)] = None
-            else:
-                added_user = {
-                    "name": added_user_db.name,
-                }
-                added_users[str(stat_entry.addedid)] = added_user
-
         data["stat_entries"][str(stat_entry.id)] = {
             "stat_score": stat_entry.battlescore,
             "timeadded": stat_entry.timeadded,
-            "addeduser": added_user,
-            "addedid": stat_entry.addedid,
-            "addedfaction": faction,
-            "addedfactiontid": stat_entry.addedfactiontid,
             "globalstat": stat_entry.globalstat,
         }
 

@@ -131,17 +131,22 @@
                                 </div>
                             </div>
 
-                            {% if current_user.is_authenticated %}
                             <div class="row pt-3 border-top">
                                 <div class="container-fluid px-md-3">
+                                    {% if current_user.is_authenticated %}
                                     <div class="row mb-3">
                                         <a class="nav-link" href="/settings">
                                             <i class="col-1 col-sm-2 fa-solid fa-screwdriver-wrench"></i> <span class="col">User Settings</span>
                                         </a>
                                     </div>
+                                    {% endif %}
+                                    <div class="row mb-1">
+                                        <a class="nav-link" href="https://docs.tornium.com">
+                                            <i class="col-1 col-sm-2 fa-solid fa-file"> <span class="col">Documentation</span></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                            {% endif %}
 
                             {% block subnav %}{% endblock %}
                         </div>

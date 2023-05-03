@@ -13,6 +13,8 @@ Tornium
 
 Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`_ built from scratch with love <3.
 
+This documentation is still under construction and thus is not yet complete. If you find a missing section and need some help, contact the developer via the links found in the sidebar.
+
 Features
 ========
  * Faction banking

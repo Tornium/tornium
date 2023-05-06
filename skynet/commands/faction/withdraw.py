@@ -16,6 +16,7 @@
 import datetime
 import random
 import time
+import uuid
 
 from tornium_celery.tasks.api import discordpost, tornget
 from tornium_commons import rds
@@ -331,7 +332,8 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     request_id = WithdrawalModel.objects().count()
-    send_link = f"https://tornium.com/faction/banking/fulfill/{request_id}"
+    guid = uuid.uuid4().hex
+    send_link = f"https://tornium.com/faction/banking/fulfill/{guid}"
 
     if withdrawal_amount != "all":
         message_payload = {
@@ -424,6 +426,7 @@ def withdraw(interaction, *args, **kwargs):
 
     withdrawal = WithdrawalModel(
         wid=request_id,
+        guid=guid,
         amount=withdrawal_amount
         if withdrawal_amount != "all"
         else faction_balances[str(user.tid)][withdrawal_option_str],

@@ -244,9 +244,9 @@ def userbankingdata():
     return data
 
 
-@login_required
-def fulfill(wid: int):
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=wid).first()
+def fulfill(uuid: str):
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(uuid=uuid).first()
+
     if withdrawal.wtype in [0, None]:
         send_link = (
             f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo="
@@ -263,11 +263,11 @@ def fulfill(wid: int):
             render_template(
                 "errors/error.html",
                 title="Unknown Withdrawal",
-                error="The passed withdrawal could not be found in the database.",
+                error="The passed withdrawal could not be found in the database. If this request is older than May 6th, the request is no longer supported after backend schema update.",
             ),
             400,
         )
-    elif withdrawal.fulfiller != 0:
+    elif withdrawal.fulfiller != 0:  # Already fulfilled or cancelled
         return redirect(send_link)
     elif current_user.factiontid != withdrawal.factiontid:
         return (

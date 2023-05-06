@@ -50,11 +50,7 @@ let rolesRequest = (obj) => {
         xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
         xhttp.setRequestHeader("Content-Type", "application/json");
 
-        if (
-            guildid !== null &&
-            key !== null &&
-            $(".discord-role-selector").length !== 0
-        ) {
+        if (guildid !== null && $(".discord-role-selector").length !== 0) {
             xhttp.send();
         }
     });
@@ -103,11 +99,7 @@ let channelsRequest = (obj) => {
         xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
         xhttp.setRequestHeader("Content-Type", "application/json");
 
-        if (
-            guildid !== null &&
-            key !== null &&
-            $(".discord-channel-selector").length !== 0
-        ) {
+        if (guildid !== null && $(".discord-channel-selector").length !== 0) {
             xhttp.send();
         }
     });

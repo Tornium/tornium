@@ -14,7 +14,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const battlescore = document.currentScript.getAttribute("data-battlescore");
-const key = document.currentScript.getAttribute("data-key");
 
 $(document).ready(function () {
     var table = $("#stats-table").DataTable({
@@ -40,7 +39,7 @@ $(document).ready(function () {
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
     $("#stats-table tbody").on("click", "tr", function () {
-        if (battlescore === "-1" || key === "-1") {
+        if (battlescore === "-1") {
             generateToast(
                 "Permission Denied",
                 "You must be signed in to access this feature.",
@@ -321,7 +320,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("GET", `/api/stat/${getTID(table.row(this).data()[0])}`);
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
     });

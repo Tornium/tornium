@@ -13,29 +13,27 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-const key = document.currentScript.getAttribute('data-key');
-
-$(document).ready(function() {
-    $('#recent-attacks-table').DataTable({
-        "processing": true,
-        "serverSide": true,
-        "ordering": false,
-        "responsive": false,
-        "searching": false,
-        "ajax": {
+$(document).ready(function () {
+    $("#recent-attacks-table").DataTable({
+        processing: true,
+        serverSide: true,
+        ordering: false,
+        responsive: false,
+        searching: false,
+        ajax: {
             url: "/faction/attacks/recent",
         },
-        "columns": [
-            {data: "attacker"},
-            {data: "attacker_faction"},
-            {data: "defender"},
-            {data: "defender_faction"},
-            {data: "respect"},
-            {data: "result"},
-            {data: "timestamp"}
+        columns: [
+            { data: "attacker" },
+            { data: "attacker_faction" },
+            { data: "defender" },
+            { data: "defender_faction" },
+            { data: "respect" },
+            { data: "result" },
+            { data: "timestamp" },
         ],
-        "pagingType": "simple",
-        "scrollX": true
+        pagingType: "simple",
+        scrollX: true,
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 5;

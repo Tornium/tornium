@@ -13,7 +13,6 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-const key = document.currentScript.getAttribute("data-key");
 let battlescore = null;
 
 $(document).ready(function () {
@@ -117,7 +116,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("GET", `/api/stat?ff=${value}`);
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 
@@ -415,7 +413,6 @@ $(document).ready(function () {
             "GET",
             `/api/stat/${getTID(targetTable.row(this).data().name)}`
         );
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
     });

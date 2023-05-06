@@ -108,8 +108,8 @@ Tornium - Stat DB
 </div>
 
 {% if current_user.is_authenticated %}
-    <script src="/static/stats/db.js" data-battlescore="{{ current_user.battlescore }}" data-key="{{ current_user.key }}"></script>
+    <script src="/static/stats/db.js" data-battlescore="{{ current_user.battlescore }}"></script>
 {% else %}
-    <script src="/static/stats/db.js" data-battlescore="-1" data-key="-1"></script>
+    <script src="/static/stats/db.js" data-battlescore="-1"></script>
 {% endif %}
 {% endblock %}

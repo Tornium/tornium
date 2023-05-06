@@ -149,7 +149,6 @@ $(document).ready(function () {
 
     xhttp.responseType = "json";
     xhttp.open("GET", `/api/bot/server/${guildid}`);
-    xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 
@@ -196,7 +195,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -252,7 +250,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("POST", "/api/bot/retal/faction/channel");
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -285,7 +282,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("POST", "/api/bot/retal/faction/roles");
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -316,7 +312,6 @@ $(document).ready(function () {
                 "data-faction"
             )}/banking`
         );
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -352,7 +347,6 @@ $(document).ready(function () {
                 "data-faction"
             )}/banking`
         );
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -412,7 +406,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("POST", `/api/bot/${guildid}/stocks/feed`);
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -440,7 +433,6 @@ $(document).ready(function () {
 
         xhttp.responseType = "json";
         xhttp.open("POST", `/api/bot/${guildid}/stocks/feed/channel`);
-        xhttp.setRequestHeader("Authorization", `Basic ${btoa(`${key}:`)}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({

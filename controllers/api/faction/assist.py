@@ -25,11 +25,11 @@ from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.models import FactionModel, ServerModel, UserModel
 
-from controllers.api.decorators import ratelimit, torn_key_required
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@torn_key_required
+@authentication_required
 @ratelimit
 def forward_assist(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

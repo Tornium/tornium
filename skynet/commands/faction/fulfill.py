@@ -369,7 +369,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "title": "Vault Request Fulfilled",
                         "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {user.name} [{user.tid}]",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
+                        "color": SKYNET_GOOD,
                     }
                 ]
             },
@@ -694,7 +694,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "title": "Vault Request Fulfilled",
                         "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {user.name} [{user.tid}]",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
+                        "color": SKYNET_GOOD,
                     }
                 ]
             },

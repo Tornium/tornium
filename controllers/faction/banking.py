@@ -30,7 +30,7 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required
@@ -450,7 +450,7 @@ def fulfill(guid: str):
                         "title": "Vault Request Fulfilled",
                         "description": f"Your vault request #{withdrawal.wid} has been fulfilled by someone.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
+                        "color": SKYNET_GOOD,
                     }
                 ]
             },

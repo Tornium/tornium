@@ -20,7 +20,7 @@ import typing
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
-from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_celery.tasks.api import discordget, discordpatch, discordpost
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
@@ -30,7 +30,7 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
-from tornium_commons.skyutils import SKYNET_GOOD
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required
@@ -343,10 +343,12 @@ def fulfill(uuid: str):
             render_template(
                 "errors/error.html",
                 title="Unknown Channel",
-                error="The banking channnel withdrawal requests are sent to could not be found.",
+                error="The banking channel withdrawal requests are sent to could not be found.",
             ),
             400,
         )
+
+    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
 
     try:
         discordpatch(
@@ -367,7 +369,7 @@ def fulfill(uuid: str):
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{User(withdrawal.requester).name} [{withdrawal.requester}]",
+                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -388,7 +390,7 @@ def fulfill(uuid: str):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
+                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
                             },
                             {
                                 "type": 2,
@@ -410,8 +412,44 @@ def fulfill(uuid: str):
     except DiscordError as e:
         return utils.handle_discord_error(e)
 
-    withdrawal.fulfiller = current_user.tid
+    if current_user.is_authenticated:
+        withdrawal.fulfiller = current_user.tid
+    else:
+        withdrawal.fulfiller = 1
+
     withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
+
+    if requester.discord_id not in (None, "", 0):
+        try:
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+        except Exception:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
+                            "description": "You have fulfilled the banking request.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        discordpost.delay(
+            f"channels/{dm_channel['id']}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Fulfilled",
+                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by someone.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        ).forget()
 
     return redirect(send_link)

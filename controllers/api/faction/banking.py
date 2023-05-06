@@ -17,6 +17,7 @@ import datetime
 import json
 import random
 import time
+import uuid
 
 from flask import jsonify, request
 from tornium_celery.tasks.api import discordpost, tornget
@@ -192,7 +193,8 @@ def banking_request(*args, **kwargs):
             )
 
         request_id = WithdrawalModel.objects().count()
-        send_link = f"https://tornium.com/faction/banking/fulfill/{request_id}"
+        guid = uuid.uuid4().hex
+        send_link = f"https://tornium.com/faction/banking/fulfill/{guid}"
 
         if amount_requested != "all":
             message_payload = {
@@ -293,6 +295,7 @@ def banking_request(*args, **kwargs):
 
         withdrawal = WithdrawalModel(
             wid=request_id,
+            guid=guid,
             amount=amount_requested
             if amount_requested != "all"
             else vault_balances["donations"][str(user.tid)]["money_balance"],

@@ -15,8 +15,9 @@
 
 import datetime
 import time
+import typing
 
-from tornium_celery.tasks.api import discordpatch
+from tornium_celery.tasks.api import discordpatch, discordpost
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import commas, find_list, torn_timestamp
 from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
@@ -242,6 +243,8 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
+    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+
     try:
         discordpatch(
             f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
@@ -258,6 +261,10 @@ def fulfill_command(interaction, *args, **kwargs):
                             {
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -278,7 +285,7 @@ def fulfill_command(interaction, *args, **kwargs):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal_id}",
+                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
                             },
                             {
                                 "type": 2,
@@ -335,6 +342,38 @@ def fulfill_command(interaction, *args, **kwargs):
     withdrawal.fulfiller = user.tid
     withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
+
+    if requester.discord_id not in (None, "", 0):
+        try:
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+        except Exception:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": f"Banking Request {withdrawal_id} Fulfilled",
+                            "description": "You have fulfilled the banking request.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        discordpost.delay(
+            f"channels/{dm_channel['id']}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Fulfilled",
+                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {user.name} [{user.tid}]",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_GOOD,
+                    }
+                ]
+            },
+        ).forget()
 
     return {
         "type": 4,
@@ -529,6 +568,8 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
+    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+
     try:
         discordpatch(
             f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
@@ -545,6 +586,10 @@ def fulfill_button(interaction, *args, **kwargs):
                             {
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -565,7 +610,7 @@ def fulfill_button(interaction, *args, **kwargs):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
+                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
                             },
                             {
                                 "type": 2,
@@ -622,6 +667,38 @@ def fulfill_button(interaction, *args, **kwargs):
     withdrawal.fulfiller = user.tid
     withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
+
+    if requester.discord_id not in (None, "", 0):
+        try:
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+        except Exception:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
+                            "description": "You have fulfilled the banking request.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        discordpost.delay(
+            f"channels/{dm_channel['id']}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Fulfilled",
+                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {user.name} [{user.tid}]",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_GOOD,
+                    }
+                ]
+            },
+        ).forget()
 
     return {
         "type": 4,

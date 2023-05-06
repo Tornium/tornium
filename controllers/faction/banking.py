@@ -20,7 +20,7 @@ import typing
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
-from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_celery.tasks.api import discordget, discordpatch, discordpost
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
@@ -30,6 +30,7 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
+from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required
@@ -76,8 +77,10 @@ def bankingdata():
     for withdrawal in withdrawals_db:
         requester = f"{User(withdrawal.requester).name} [{withdrawal.requester}]"
 
-        if withdrawal.fulfiller > 0:
+        if withdrawal.fulfiller > 1:
             fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        if withdrawal.fulfiller == 1:
+            fulfiller = "Someone"
         elif withdrawal.fulfiller == -1:
             fulfiller = "Cancelled by System"
         elif withdrawal.fulfiller < -1:
@@ -214,8 +217,10 @@ def userbankingdata():
     withdrawals_db = withdrawals_db[start : start + length]
 
     for withdrawal in withdrawals_db:
-        if withdrawal.fulfiller > 0:
+        if withdrawal.fulfiller > 1:
             fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        elif withdrawal.fulfiller == 1:
+            fulfiller = "Someone"
         elif withdrawal.fulfiller == -1:
             fulfiller = "Cancelled by System"
         elif withdrawal.fulfiller < -1:
@@ -244,9 +249,9 @@ def userbankingdata():
     return data
 
 
-@login_required
-def fulfill(wid: int):
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=wid).first()
+def fulfill(guid: str):
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(guid=guid).first()
+
     if withdrawal.wtype in [0, None]:
         send_link = (
             f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo="
@@ -263,11 +268,11 @@ def fulfill(wid: int):
             render_template(
                 "errors/error.html",
                 title="Unknown Withdrawal",
-                error="The passed withdrawal could not be found in the database.",
+                error="The passed withdrawal could not be found in the database. If this request is older than May 6th, the request is no longer supported after backend schema update.",
             ),
             400,
         )
-    elif withdrawal.fulfiller != 0:
+    elif withdrawal.fulfiller != 0:  # Already fulfilled or cancelled
         return redirect(send_link)
     elif current_user.factiontid != withdrawal.factiontid:
         return (
@@ -342,10 +347,12 @@ def fulfill(wid: int):
             render_template(
                 "errors/error.html",
                 title="Unknown Channel",
-                error="The banking channnel withdrawal requests are sent to could not be found.",
+                error="The banking channel withdrawal requests are sent to could not be found.",
             ),
             400,
         )
+
+    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
 
     try:
         discordpatch(
@@ -364,8 +371,13 @@ def fulfill(wid: int):
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
                             },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                            },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_GOOD,
                     }
                 ],
                 "components": [
@@ -382,7 +394,7 @@ def fulfill(wid: int):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.wid}",
+                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
                             },
                             {
                                 "type": 2,
@@ -404,8 +416,44 @@ def fulfill(wid: int):
     except DiscordError as e:
         return utils.handle_discord_error(e)
 
-    withdrawal.fulfiller = current_user.tid
+    if current_user.is_authenticated:
+        withdrawal.fulfiller = current_user.tid
+    else:
+        withdrawal.fulfiller = 1
+
     withdrawal.time_fulfilled = int(time.time())
     withdrawal.save()
+
+    if requester.discord_id not in (None, "", 0):
+        try:
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+        except Exception:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
+                            "description": "You have fulfilled the banking request.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,  # Ephemeral
+                },
+            }
+
+        discordpost.delay(
+            f"channels/{dm_channel['id']}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Fulfilled",
+                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by someone.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_GOOD,
+                    }
+                ]
+            },
+        ).forget()
 
     return redirect(send_link)

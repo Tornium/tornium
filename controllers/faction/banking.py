@@ -249,8 +249,8 @@ def userbankingdata():
     return data
 
 
-def fulfill(uuid: str):
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(uuid=uuid).first()
+def fulfill(guid: str):
+    withdrawal: WithdrawalModel = WithdrawalModel.objects(guid=guid).first()
 
     if withdrawal.wtype in [0, None]:
         send_link = (

@@ -27,7 +27,7 @@ mod.add_url_rule("/faction/attacks/recent", view_func=attacks.recent_attacks, me
 mod.add_url_rule("/faction/bankingaa", view_func=banking.bankingaa, methods=["GET"])
 mod.add_url_rule("/faction/bankingdata", view_func=banking.bankingdata, methods=["GET"])
 mod.add_url_rule("/faction/banking", view_func=banking.banking, methods=["GET"])
-mod.add_url_rule("/faction/banking/fulfill/<str:uuid>", view_func=banking.fulfill, methods=["GET"])
+mod.add_url_rule("/faction/banking/fulfill/<uuid>", view_func=banking.fulfill, methods=["GET"])
 mod.add_url_rule("/faction/userbankingdata", view_func=banking.userbankingdata, methods=["GET"])
 
 # Bot Routes

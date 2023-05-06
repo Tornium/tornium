@@ -13,11 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import DynamicDocument, IntField
+from mongoengine import DynamicDocument, IntField, UUIDField
 
 
 class WithdrawalModel(DynamicDocument):
     wid = IntField(primary_key=True)  # The withdrawal ID
+    guid = UUIDField()  # GUID used for send links
     factiontid = IntField()
     amount = IntField()
     requester = IntField()

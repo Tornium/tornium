@@ -42,11 +42,8 @@ def token_required(f=None, setnx=False):
                     error="The generated client token already exists. Please try again.",
                 )
 
-            redis_client.setnx(f"tornium:token:{client_token}", int(time.time()))
-            redis_client.expire(f"tornium:token:{client_token}", 300)  # Expires after five minutes
-
-            redis_client.setnx(f"tornium:token:{client_token}:tid", current_user.tid)
-            redis_client.expire(f"tornium:token:{client_token}:tid", 300)
+            redis_client.set(f"tornium:token:{client_token}", int(time.time()), nx=True, ex=300)
+            redis_client.set(f"tornium:token:{client_token}:tid", current_user.tid, nx=True, ex=300)
 
             return redirect(url_for(request.url_rule.endpoint, token=client_token))
         elif request.args.get("token") is None and not setnx:

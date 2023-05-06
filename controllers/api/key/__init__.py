@@ -13,12 +13,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import (
+    authentication_required,
+    ratelimit,
+    token_required,
+)
 from controllers.api.utils import make_exception_response
 
 
 @authentication_required
 @ratelimit
 def test_key(*args, **kwargs):
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    return make_exception_response("0001", key)
+
+
+@token_required
+@ratelimit
+def test_token(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     return make_exception_response("0001", key)

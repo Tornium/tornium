@@ -88,25 +88,19 @@ def token_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
+        authorization = request.cookies.get("token")
 
-        if request.headers.get("Authorization") is None:
-            return make_exception_response("4001")
-
-        authorization = request.headers.get("Authorization").split(" ")
-
-        if authorization[0] != "Token":
-            return make_exception_response("4003")
-        elif authorization[1] == "":
+        if authorization in (None, ""):
             return make_exception_response("4001")
 
         redis_client = rds()
 
         try:
             # Token is too old
-            if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{authorization[1]}")):
+            if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{authorization}")):
                 return make_exception_response("4001")
 
-            tid = int(redis_client.get(f"tornium:token:api:{authorization[1]}:tid"))
+            tid = int(redis_client.get(f"tornium:token:api:{authorization}:tid"))
         except TypeError:
             return make_exception_response("4001")
 
@@ -128,14 +122,35 @@ def authentication_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
+        token_authorization = request.cookies.get("token")
 
-        if request.headers.get("Authorization") is None:
+        if request.headers.get("Authorization") is None and token_authorization is None:
             return make_exception_response("4001")
 
-        authorization = request.headers.get("Authorization").split(" ")
+        if token_authorization is not None:
+            redis_client = rds()
 
-        if authorization[0] not in ("Token", "Basic"):
-            return make_exception_response("4003")
+            try:
+                # Token is too old
+                if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{token_authorization}")):
+                    return make_exception_response("4001")
+
+                tid = int(redis_client.get(f"tornium:token:api:{token_authorization}:tid"))
+            except TypeError:
+                return make_exception_response("4001")
+
+            user: UserModel = UserModel.objects(tid=tid).first()
+
+            if user is None:
+                return make_exception_response("4001")
+
+            kwargs["user"] = user
+            kwargs["key"] = user.key
+            kwargs["start_time"] = start_time
+
+            return func(*args, **kwargs)
+
+        authorization = request.headers.get("Authorization").split(" ")
 
         if authorization[0] == "Basic":
             authorization[1] = str(
@@ -144,6 +159,8 @@ def authentication_required(func):
             ).split(
                 ":"
             )[0]
+        else:
+            return make_exception_response("4003")
 
         if authorization[1] == "":
             return (
@@ -157,35 +174,14 @@ def authentication_required(func):
                 401,
             )
 
-        if authorization[0] == "Basic":
-            user = UserModel.objects(key=authorization[1]).first()
+        user = UserModel.objects(key=authorization[1]).first()
 
-            if user is None:
-                return make_exception_response("4001")
+        if user is None:
+            return make_exception_response("4001")
 
-            kwargs["user"] = user
-            kwargs["key"] = authorization
-            kwargs["start_time"] = start_time
-        elif authorization[0] == "Token":
-            redis_client = rds()
-
-            try:
-                # Token is too old
-                if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{authorization[1]}")):
-                    return make_exception_response("4001")
-
-                tid = int(redis_client.get(f"tornium:token:api:{authorization[1]}:tid"))
-            except TypeError:
-                return make_exception_response("4001")
-
-            user: UserModel = UserModel.objects(tid=tid).first()
-
-            if user is None:
-                return make_exception_response("4001")
-
-            kwargs["user"] = user
-            kwargs["key"] = user.key
-            kwargs["start_time"] = start_time
+        kwargs["user"] = user
+        kwargs["key"] = authorization
+        kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
 

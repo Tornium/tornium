@@ -26,13 +26,12 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, RatelimitError, TornError
 from tornium_commons.models import FactionModel, StatModel, UserModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "read:stats"})
 def generate_chain_list(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
@@ -192,9 +191,8 @@ def generate_chain_list(*args, **kwargs):
     )
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "read:stats"})
 def get_stat_user(tid, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 

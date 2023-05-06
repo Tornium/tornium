@@ -18,13 +18,12 @@ import json
 from flask import jsonify, request
 from tornium_commons.models import FactionModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "faction:bot"})
 def chain_config(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -45,9 +44,8 @@ def chain_config(*args, **kwargs):
     )
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "faction:bot"})
 def chain_od_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

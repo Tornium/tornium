@@ -18,13 +18,12 @@ import json
 from flask import jsonify, request
 from tornium_commons.models import FactionModel, ServerModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_retal_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -71,9 +70,8 @@ def faction_retal_channel(*args, **kwargs):
     return (jsonify(guild.retal_config), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_retal_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

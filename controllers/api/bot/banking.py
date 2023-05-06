@@ -19,13 +19,12 @@ from flask import jsonify, request
 from tornium_commons.models import FactionModel, ServerModel
 
 from controllers.api.bot.config import jsonified_server_config
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -75,9 +74,8 @@ def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def banking_getter(guildid: int, factiontid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     guild: ServerModel = ServerModel.objects(sid=guildid).first()

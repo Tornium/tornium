@@ -15,13 +15,12 @@
 
 from flask import jsonify
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "read:user"})
 def get_user(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 

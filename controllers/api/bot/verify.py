@@ -19,7 +19,7 @@ import random
 from flask import jsonify, request
 from tornium_commons.models import ServerModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.faction import Faction
 from models.user import User
@@ -37,9 +37,8 @@ def jsonified_verify_config(guild: ServerModel):
     )
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def verification_config(guildid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -59,9 +58,8 @@ def verification_config(guildid, *args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -109,9 +107,8 @@ def guild_verification(*args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -139,9 +136,8 @@ def guild_verification_log(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -195,9 +191,8 @@ def faction_verification(*args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -228,9 +223,8 @@ def guild_verification_roles(*args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def guild_exclusion_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -261,9 +255,8 @@ def guild_exclusion_roles(*args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_roles(factiontid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -292,9 +285,8 @@ def faction_roles(factiontid, *args, **kwargs):
     return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

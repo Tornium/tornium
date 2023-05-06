@@ -15,7 +15,7 @@
 
 from tornium_commons.models import ServerModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
@@ -61,9 +61,8 @@ def jsonified_server_config(guild: ServerModel):
     return data
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "bot:admin"})
 def server_config(guildid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 

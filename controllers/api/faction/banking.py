@@ -26,13 +26,12 @@ from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas
 from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "read:banking", "read:faction", "faction:admin"})
 def vault_balance(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user: UserModel = kwargs["user"]
@@ -91,9 +90,8 @@ def vault_balance(*args, **kwargs):
         return make_exception_response("1100", key)
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "write:banking", "write:faction", "faction:admin"})
 def banking_request(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()

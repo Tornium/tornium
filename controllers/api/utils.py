@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import typing
 
 import redis
 from flask import Response
@@ -130,7 +131,7 @@ API_EXCEPTIONS = {
         "code": 4003,
         "name": "InvalidAuthenticationType",
         "http": 401,
-        "message": 'The provided authentication type was not "Basic" and was therefore invalid.',
+        "message": "The provided authentication type was invalid for the required authentication for the endpoint.",
     },
     "4004": {
         "code": 4004,
@@ -240,7 +241,9 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
     }
 
 
-def make_exception_response(code: str, ratelimit_key: str, details=None, redis_client: redis.Redis = None):
+def make_exception_response(
+    code: str, ratelimit_key: typing.Optional[str] = None, details=None, redis_client: redis.Redis = None
+):
     exception = json_api_exception(code, details)
     exception_response = {
         "code": exception["code"],
@@ -251,8 +254,14 @@ def make_exception_response(code: str, ratelimit_key: str, details=None, redis_c
     if "details" in exception:
         exception_response["details"] = exception["details"]
 
-    return Response(
-        json.dumps(exception_response),
-        exception["http"],
-        api_ratelimit_response(ratelimit_key, redis_client),
-    )
+    if ratelimit_key is None:
+        return Response(
+            json.dumps(exception_response),
+            exception["http"],
+        )
+    else:
+        return Response(
+            json.dumps(exception_response),
+            exception["http"],
+            api_ratelimit_response(ratelimit_key, redis_client),
+        )

@@ -16,11 +16,13 @@
 import base64
 import datetime
 import time
-from functools import partial, wraps
+from functools import wraps
 
 from flask import jsonify, request
 from tornium_commons import rds
-from tornium_commons.models import KeyModel, UserModel
+from tornium_commons.models import UserModel
+
+from controllers.api.utils import make_exception_response
 
 
 def ratelimit(func):
@@ -41,53 +43,7 @@ def ratelimit(func):
         if value and int(value) > 0:
             client.decrby(key, 1)
         else:
-            return (
-                jsonify(
-                    {
-                        "code": 4000,
-                        "name": "Too Many Requests",
-                        "message": "Server failed to respond to request. Too many requests were received.",
-                    }
-                ),
-                429,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def requires_scopes(func=None, scopes=None):
-    if not func:
-        return partial(requires_scopes, scopes=scopes)
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        client = rds()
-        key = f'tornium:ratelimit:{kwargs["user"].tid}'
-
-        if kwargs["keytype"] == "Tornium" and not set(KeyModel.objects(key=kwargs["key"]).first().scopes) & scopes:
-            return (
-                jsonify(
-                    {
-                        "code": 4004,
-                        "name": "InsufficientPermissions",
-                        "message": "Server failed to fulfill the request. The scope of the Tornium key provided was "
-                        "not sufficient for the request.",
-                    }
-                ),
-                403,
-                {
-                    "X-RateLimit-Limit": 250,
-                    "X-RateLimit-Remaining": client.get(key),
-                    "X-RateLimit-Reset": client.ttl(key),
-                },
-            )
+            return make_exception_response("4000", key)
 
         return func(*args, **kwargs)
 
@@ -100,28 +56,9 @@ def torn_key_required(func):
         start_time = time.time()
 
         if request.headers.get("Authorization") is None:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4001")
         elif request.headers.get("Authorization").split(" ")[0] != "Basic":
-            return (
-                jsonify(
-                    {
-                        "code": 4003,
-                        "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was "
-                        'not "Basic" and therefore invalid.',
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4003")
 
         authorization = str(
             base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
@@ -131,34 +68,14 @@ def torn_key_required(func):
         )[0]
 
         if authorization == "":
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4001")
 
         user = UserModel.objects(key=authorization).first()
 
         if user is None:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was "
-                        "invalid.",
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4001")
 
         kwargs["user"] = user
-        kwargs["keytype"] = "Torn"
         kwargs["key"] = authorization
         kwargs["start_time"] = start_time
 
@@ -167,72 +84,39 @@ def torn_key_required(func):
     return wrapper
 
 
-def tornium_key_required(func):
+def token_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
 
         if request.headers.get("Authorization") is None:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
-        elif request.headers.get("Authorization").split(" ")[0] != "Basic":
-            return (
-                jsonify(
-                    {
-                        "code": 4003,
-                        "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was "
-                        'not "Basic" and therefore invalid.',
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4001")
 
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(
-            ":"
-        )[0]
+        authorization = request.headers.get("Authorization").split(" ")
 
-        if authorization == "":
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
+        if authorization[0] != "Token":
+            return make_exception_response("4003")
+        elif authorization[1] == "":
+            return make_exception_response("4001")
 
-        key = KeyModel.objects(key=authorization).first()
+        redis_client = rds()
 
-        if key is None:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was "
-                        "invalid.",
-                    }
-                ),
-                401,
-            )
+        try:
+            # Token is too old
+            if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{authorization[1]}")):
+                return make_exception_response("4001")
 
-        kwargs["user"] = UserModel.objects(tid=key.ownertid).first()
-        kwargs["keytype"] = "Tornium"
-        kwargs["key"] = authorization
+            tid = int(redis_client.get(f"tornium:token:api:{authorization[1]}:tid"))
+        except TypeError:
+            return make_exception_response("4001")
+
+        user: UserModel = UserModel.objects(tid=tid).first()
+
+        if user is None:
+            return make_exception_response("4001")
+
+        kwargs["user"] = user
+        kwargs["key"] = user.key
         kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
@@ -240,43 +124,28 @@ def tornium_key_required(func):
     return wrapper
 
 
-def key_required(func):
+def authentication_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
 
         if request.headers.get("Authorization") is None:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
-        elif request.headers.get("Authorization").split(" ")[0] != "Basic":
-            return (
-                jsonify(
-                    {
-                        "code": 4003,
-                        "name": "InvalidAuthenticationType",
-                        "message": "Server failed to authenticate the request. The provided authentication type was "
-                        'not "Basic" and therefore invalid.',
-                    }
-                ),
-                401,
-            )
+            return make_exception_response("4001")
 
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(
-            ":"
-        )[0]
+        authorization = request.headers.get("Authorization").split(" ")
 
-        if authorization == "":
+        if authorization[0] not in ("Token", "Basic"):
+            return make_exception_response("4003")
+
+        if authorization[0] == "Basic":
+            authorization[1] = str(
+                base64.b64decode(authorization[1]),
+                "utf-8",
+            ).split(
+                ":"
+            )[0]
+
+        if authorization[1] == "":
             return (
                 jsonify(
                     {
@@ -288,31 +157,35 @@ def key_required(func):
                 401,
             )
 
-        key = KeyModel.objects(key=authorization).first()
-        user = UserModel.objects(key=authorization).first()
+        if authorization[0] == "Basic":
+            user = UserModel.objects(key=authorization[1]).first()
 
-        if user is not None:
+            if user is None:
+                return make_exception_response("4001")
+
             kwargs["user"] = user
-            kwargs["keytype"] = "Torn"
             kwargs["key"] = authorization
             kwargs["start_time"] = start_time
-        elif key is not None:
-            kwargs["user"] = UserModel.objects(tid=key.ownertid).first()
-            kwargs["keytype"] = "Tornium"
-            kwargs["key"] = authorization
+        elif authorization[0] == "Token":
+            redis_client = rds()
+
+            try:
+                # Token is too old
+                if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{authorization[1]}")):
+                    return make_exception_response("4001")
+
+                tid = int(redis_client.get(f"tornium:token:api:{authorization[1]}:tid"))
+            except TypeError:
+                return make_exception_response("4001")
+
+            user: UserModel = UserModel.objects(tid=tid).first()
+
+            if user is None:
+                return make_exception_response("4001")
+
+            kwargs["user"] = user
+            kwargs["key"] = user.key
             kwargs["start_time"] = start_time
-        else:
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "InvalidAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. The provided authentication code was "
-                        "invalid.",
-                    }
-                ),
-                401,
-            )
 
         return func(*args, **kwargs)
 

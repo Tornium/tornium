@@ -18,22 +18,16 @@ import json
 
 from flask import jsonify, request
 from tornium_celery.tasks.api import discordpost
-from tornium_commons.models import (
-    FactionStakeoutModel,
-    KeyModel,
-    ServerModel,
-    UserStakeoutModel,
-)
+from tornium_commons.models import FactionStakeoutModel, ServerModel, UserStakeoutModel
 
-from controllers.api.decorators import key_required, ratelimit, requires_scopes
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.stakeout import Stakeout
 from models.user import User
 
 
-@key_required
+@authentication_required
 @ratelimit
-@requires_scopes(scopes={"admin", "write:stakeouts", "guilds:admin"})
 def create_stakeout(stype, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -62,8 +56,6 @@ def create_stakeout(stype, *args, **kwargs):
                 "stakeout_category": stype,
             },
         )
-    elif User(KeyModel.objects(key=kwargs["key"]).first().ownertid).tid not in guild.admins:
-        return make_exception_response("1001", key)
     if json.loads(guild.config)["stakeoutconfig"] != 1:
         return make_exception_response(
             "0000",

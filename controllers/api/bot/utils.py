@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.server import Server
 
 
-@authentication_required
+@token_required
 @ratelimit
 def get_channels(guildid, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -38,7 +38,7 @@ def get_channels(guildid, *args, **kwargs):
     )
 
 
-@authentication_required
+@token_required
 @ratelimit
 def get_roles(guildid, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

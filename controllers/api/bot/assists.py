@@ -19,11 +19,11 @@ from flask import request
 from tornium_commons.models import ServerModel
 
 from controllers.api.bot.config import jsonified_server_config
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@token_required
 @ratelimit
 def assists_channel(guildid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

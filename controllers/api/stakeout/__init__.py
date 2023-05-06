@@ -20,13 +20,12 @@ from flask import jsonify, request
 from tornium_celery.tasks.api import discordpost
 from tornium_commons.models import FactionStakeoutModel, ServerModel, UserStakeoutModel
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.stakeout import Stakeout
-from models.user import User
 
 
-@authentication_required
+@token_required
 @ratelimit
 def create_stakeout(stype, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

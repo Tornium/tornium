@@ -18,11 +18,11 @@ import json
 from flask import jsonify, request
 from tornium_commons.models import FactionModel, ServerModel
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@token_required
 @ratelimit
 def faction_retal_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -70,7 +70,7 @@ def faction_retal_channel(*args, **kwargs):
     return (jsonify(guild.retal_config), 200, api_ratelimit_response(key))
 
 
-@authentication_required
+@token_required
 @ratelimit
 def faction_retal_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

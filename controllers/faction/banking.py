@@ -30,6 +30,7 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
+from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required
@@ -364,8 +365,13 @@ def fulfill(uuid: str):
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
                             },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{User(withdrawal.requester).name} [{withdrawal.requester}]",
+                            },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_GOOD,
                     }
                 ],
                 "components": [

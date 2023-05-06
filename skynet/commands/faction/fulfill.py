@@ -259,6 +259,10 @@ def fulfill_command(interaction, *args, **kwargs):
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
                             },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{User(withdrawal.requester).name} [{withdrawal.requester}]",
+                            },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "color": SKYNET_GOOD,
@@ -545,6 +549,10 @@ def fulfill_button(interaction, *args, **kwargs):
                             {
                                 "name": "Original Request Type",
                                 "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": f"{User(withdrawal.requester).name} [{withdrawal.requester}]",
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),

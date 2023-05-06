@@ -77,8 +77,10 @@ def bankingdata():
     for withdrawal in withdrawals_db:
         requester = f"{User(withdrawal.requester).name} [{withdrawal.requester}]"
 
-        if withdrawal.fulfiller > 0:
+        if withdrawal.fulfiller > 1:
             fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        if withdrawal.fulfiller == 1:
+            fulfiller = "Someone"
         elif withdrawal.fulfiller == -1:
             fulfiller = "Cancelled by System"
         elif withdrawal.fulfiller < -1:
@@ -215,8 +217,10 @@ def userbankingdata():
     withdrawals_db = withdrawals_db[start : start + length]
 
     for withdrawal in withdrawals_db:
-        if withdrawal.fulfiller > 0:
+        if withdrawal.fulfiller > 1:
             fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
+        elif withdrawal.fulfiller == 1:
+            fulfiller = "Someone"
         elif withdrawal.fulfiller == -1:
             fulfiller = "Cancelled by System"
         elif withdrawal.fulfiller < -1:

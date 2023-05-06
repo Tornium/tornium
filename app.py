@@ -36,12 +36,14 @@ if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
 
 import datetime
 import logging
+import secrets
+import time
 
 import flask
 from flask_cors import CORS
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from mongoengine import connect
-from tornium_commons import Config
+from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 
 config = Config().load()
@@ -193,5 +195,17 @@ def after_request(response: flask.Response):
 
     # X-Frame-Options
     response.headers["X-Frame-Options"] = "DENY"
+
+    if current_user.is_authenticated:
+        api_token = flask.request.cookies.get("token")
+
+        if api_token is None:
+            redis_client = rds()
+            client_token = secrets.token_urlsafe()
+
+            redis_client.set(f"tornium:token:api:{client_token}", int(time.time()), nx=True, ex=300)
+            redis_client.set(f"tornium:token:api:{client_token}:tid", current_user.tid, nx=True, ex=300)
+
+            response.set_cookie("token", client_token, max_age=300, secure=True, httponly=True, samesite="Strict")
 
     return response

@@ -16,7 +16,6 @@
 from .attackmodel import AttackModel
 from .factionmodel import FactionModel
 from .factionstakeoutmodel import FactionStakeoutModel
-from .keymodel import KeyModel
 from .notificationmodel import NotificationModel
 from .ocmodel import OCModel
 from .personalstatmodel import PersonalStatModel
@@ -32,7 +31,6 @@ __all__ = [
     "AttackModel",
     "FactionModel",
     "FactionStakeoutModel",
-    "KeyModel",
     "NotificationModel",
     "OCModel",
     "PersonalStatModel",

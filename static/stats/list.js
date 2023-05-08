@@ -55,10 +55,6 @@ $(document).ready(function () {
                 );
             } else {
                 xhttp.open("GET", "/api/user");
-                xhttp.setRequestHeader(
-                    "Authorization",
-                    `Basic ${btoa(`${key}:`)}`
-                );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send();
                 xhttp.onload = function () {

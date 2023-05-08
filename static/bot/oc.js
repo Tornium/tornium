@@ -301,10 +301,6 @@ $(document).ready(function () {
                         "data-factionid"
                     )}/oc/ready/channel`
                 );
-                xhttp.setRequestHeader(
-                    "Authorization",
-                    `Basic ${btoa(`${key}:`)}`
-                );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
                     JSON.stringify({
@@ -341,10 +337,6 @@ $(document).ready(function () {
                         "data-factionid"
                     )}/oc/ready/roles`
                 );
-                xhttp.setRequestHeader(
-                    "Authorization",
-                    `Basic ${btoa(`${key}:`)}`
-                );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
                     JSON.stringify({
@@ -373,10 +365,6 @@ $(document).ready(function () {
                     `/api/bot/${guildid}/faction/${this.getAttribute(
                         "data-factionid"
                     )}/oc/delay/channel`
-                );
-                xhttp.setRequestHeader(
-                    "Authorization",
-                    `Basic ${btoa(`${key}:`)}`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -413,10 +401,6 @@ $(document).ready(function () {
                     `/api/bot/${guildid}/faction/${this.getAttribute(
                         "data-factionid"
                     )}/oc/delay/roles`
-                );
-                xhttp.setRequestHeader(
-                    "Authorization",
-                    `Basic ${btoa(`${key}:`)}`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(

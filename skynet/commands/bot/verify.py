@@ -296,7 +296,11 @@ def verify(interaction, *args, **kwargs):
     for factiontid, faction_verify_data in server.faction_verify.items():
         for faction_role in faction_verify_data["roles"]:
             if str(faction_role) in user_roles and int(factiontid) != user.factionid:
-                if patch_json.get("roles") is None:
+                if server.faction_verify.get(str(user.factionid)) is not None and faction_role in server.faction_verify[
+                    str(user.factionid)
+                ].get("roles", []):
+                    continue
+                elif patch_json.get("roles") is None:
                     patch_json["roles"] = user_roles
 
                 patch_json["roles"].remove(str(faction_role))

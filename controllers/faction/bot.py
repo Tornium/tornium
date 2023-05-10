@@ -28,12 +28,6 @@ from controllers.faction.decorators import aa_required, fac_required
 def bot(*args, **kwargs):
     faction: typing.Optional[FactionModel] = FactionModel.objects(tid=current_user.factiontid).first()
 
-    if faction.guild == 0:
-        return render_template(
-            "faction/bot.html",
-            guildid=faction.guild,
-        )
-
     if request.method == "POST" and request.form.get("guildid") is not None:
         guild: ServerModel = ServerModel.objects(sid=request.form.get("guildid")).first()
         if guild is None:

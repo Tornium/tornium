@@ -431,7 +431,11 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
     for factiontid, verify_data in guild.faction_verify.items():
         for faction_role in verify_data["roles"]:
             if str(faction_role) in member["roles"] and int(factiontid) != user.factionid:
-                if patch_json.get("roles") is None:
+                if guild.faction_verify.get(str(user.factionid)) is not None and faction_role in guild.faction_verify[
+                    str(user.factionid)
+                ].get("roles", []):
+                    continue
+                elif patch_json.get("roles") is None:
                     patch_json["roles"] = member["roles"]
 
                 patch_json["roles"].remove(str(faction_role))

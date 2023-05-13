@@ -124,11 +124,37 @@ def update_user_self(user_data, key=None):
         user.save()
 
     if user_data["faction"]["faction_id"] != 0:
-        FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-            upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
-        )
+        faction = FactionModel.objects(tid=user_data["faction"]["faction_id"])
+        faction.modify(upsert=True, new=True, set__name=user_data["faction"]["faction_name"])
 
-        if user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
+        if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
+            user.faction_position = None
+            user.factionaa = True
+            user.save()
+
+            if user.key not in faction.aa_keys:
+                aa_keys = list(faction.aa_keys)
+                aa_keys.append(user.key)
+                faction.aa_keys = list(set(aa_keys))
+                faction.save()
+        elif len(faction.aa_keys) == 0:
+            try:
+                tornget(
+                    "faction/?selections=basic,positions",
+                    key=user.key,
+                )
+            except (NetworkingError, TornError):
+                pass
+            else:
+                user.factionaa = True
+                user.save()
+
+                if user.key not in faction.aa_keys:
+                    aa_keys = list(faction.aa_keys)
+                    aa_keys.append(user.key)
+                    faction.aa_keys = list(set(aa_keys))
+                    faction.save()
+        elif user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
             faction_position: typing.Optional[PositionModel] = PositionModel.objects(
                 Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
             ).first()

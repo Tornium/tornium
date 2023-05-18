@@ -124,8 +124,9 @@ def update_user_self(user_data, key=None):
         user.save()
 
     if user_data["faction"]["faction_id"] != 0:
-        faction = FactionModel.objects(tid=user_data["faction"]["faction_id"]).first()
+        faction = FactionModel.objects(tid=user_data["faction"]["faction_id"])
         faction.modify(upsert=True, new=True, set__name=user_data["faction"]["faction_name"])
+        faction = faction.first()
 
         if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
             user.faction_position = None

@@ -122,7 +122,7 @@ def tornget(
         request = request.json()
 
     if "error" in request and not pass_error:
-        if request["error"]["code"] in (7, 10, 13):
+        if request["error"]["code"] in (2, 7, 10, 13):
             remove_key_error.delay(key, request["error"]["code"]).forget()
 
         raise TornError(code=request["error"]["code"], endpoint=url)

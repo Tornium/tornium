@@ -101,7 +101,7 @@ def tornget(
         else:
             raise RatelimitError
     except TypeError:
-        raise RatelimitError
+        redis_client.set(redis_key, 50, nx=True, ex=60 - datetime.datetime.utcnow().second)
 
     try:
         if session is None:

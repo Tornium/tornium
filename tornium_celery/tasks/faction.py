@@ -41,7 +41,7 @@ from tornium_commons.models import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .api import discordget, discordpatch, discordpost, torn_stats_get, tornget
 from .user import update_user
 
 logger = get_task_logger(__name__)
@@ -326,8 +326,17 @@ def check_faction_ods(faction_od_data):
 
     if faction is None:
         return
-    if len(faction.chainod) == 0:
+    elif len(faction.chainod) == 0:
         faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
+        faction.save()
+        return
+    elif faction.od_channel in (0, None):
+        return
+
+    channel_data = discordget(f"channels/{faction.od_channel}")
+
+    if channel_data.get("guild_id") != faction.guild:
+        faction.od_channel = 0
         faction.save()
         return
 

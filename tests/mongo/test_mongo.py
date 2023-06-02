@@ -13,24 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from functools import wraps
-
 import mongoengine
-import mongomock
+import pymongo
 
 
-def connect_mongo(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        mongoengine.connect("torniumTest", host="mongomock://localhost", connect=False)
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-@connect_mongo
 def test_connect_mongo():
     # https://github.com/MongoEngine/mongoengine/blob/c8ef07a4189575de46c695fb27bc69a1d8b7b092/tests/test_connection.py#L47
 
+    mongoengine.connect(
+        db="Tornium",
+        host="mongodb://localhost:27017",  # Assumes port 27017 for a MongoDB Docker instance
+        connect=False,
+    )
+
     connection = mongoengine.get_connection()
-    assert isinstance(connection, mongomock.MongoClient)
+    assert isinstance(connection, pymongo.mongo_client.MongoClient)

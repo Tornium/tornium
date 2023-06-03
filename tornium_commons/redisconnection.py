@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import importlib.resources
 import pathlib
 
-import importlib_resources
 import redis
 
 
@@ -46,7 +46,7 @@ def load_scripts() -> dict:
     client.script_flush()
 
     script: pathlib.Path
-    for script in importlib_resources.files("rds_lua").iterdir():
+    for script in importlib.resources.files("rds_lua").iterdir():
         script_data = script.read_text()
 
         scripts[script.name[:-4]] = client.script_load(script_data)

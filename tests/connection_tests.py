@@ -15,6 +15,7 @@
 
 import mongoengine
 import pymongo
+import redis
 
 
 def test_connect_mongo():
@@ -28,3 +29,10 @@ def test_connect_mongo():
 
     connection = mongoengine.get_connection()
     assert isinstance(connection, pymongo.mongo_client.MongoClient)
+
+
+def test_connect_redis():
+    redis_client = redis.Redis(host="127.0.0.1", port=6379, charset="utf-8", decode_responses=True)
+
+    assert isinstance(redis_client, redis.Redis)
+    assert redis_client.ping()

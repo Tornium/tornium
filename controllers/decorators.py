@@ -42,8 +42,7 @@ def token_required(f=None, setnx=False):
                     error="The generated client token already exists. Please try again.",
                 )
 
-            redis_client.set(f"tornium:token:{client_token}", int(time.time()), nx=True, ex=300)
-            redis_client.set(f"tornium:token:{client_token}:tid", current_user.tid, nx=True, ex=300)
+            redis_client.set(f"tornium:token:{client_token}", f"{int(time.time())}|{current_user.tid}", nx=True, ex=300)
 
             return redirect(url_for(request.url_rule.endpoint, token=client_token))
         elif request.args.get("token") is None and not setnx:
@@ -51,11 +50,12 @@ def token_required(f=None, setnx=False):
 
         redis_client = rds()
         client_token = request.args.get("token")
+        client_token_redis = redis_client.get(f"tornium:token:{client_token}")
 
-        if redis_client.get(f"tornium:token:{client_token}") is None:
+        if client_token_redis is None:
             return redirect(url_for(request.url_rule.endpoint))
-        elif int(redis_client.get(f"tornium:token:{client_token}:tid")) != int(current_user.tid):
-            redis_client.delete(f"tornium:token:{client_token}", f"tornium:token:{client_token}:tid")
+        elif int(client_token_redis.split("|")[1]) != int(current_user.tid):
+            redis_client.delete(f"tornium:token:{client_token}")
 
             return redirect(url_for(request.url_rule.endpoint))
 

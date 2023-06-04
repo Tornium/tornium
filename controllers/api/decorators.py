@@ -130,13 +130,14 @@ def authentication_required(func):
 
         if token_authorization is not None:
             redis_client = rds()
+            redis_token = redis_client.get(f"tornium:token:api:{token_authorization}")
 
             try:
                 # Token is too old
-                if int(time.time()) - 300 > int(redis_client.get(f"tornium:token:api:{token_authorization}")):
+                if int(time.time()) - 300 > int(redis_token.split("|")[0]):
                     return make_exception_response("4001")
 
-                tid = int(redis_client.get(f"tornium:token:api:{token_authorization}:tid"))
+                tid = int(redis_token.split("|")[1])
             except TypeError:
                 return make_exception_response("4001")
 

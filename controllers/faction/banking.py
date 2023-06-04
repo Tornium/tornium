@@ -274,25 +274,20 @@ def fulfill(guid: str):
         )
 
     if withdrawal.fulfiller != 0:  # Already fulfilled or cancelled
-        return redirect(send_link)
-    elif current_user.factiontid != withdrawal.factiontid:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Faction Mismatch",
-                error="The faction of the fulfilling user does not match the originating faction of the request",
-            ),
-            400,
+        return render_template(
+            "errors/error.html",
+            title="Can't Fulfill Request",
+            error=f"This request has already been fulfilled or cancelled at {torn_timestamp(withdrawal.time_fulfilled)}.",
         )
 
-    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
+    faction: FactionModel = FactionModel.objects(tid=withdrawal.factiontid).first()
 
     if faction is None:
         return (
             render_template(
                 "errors/error.html",
                 title="Faction Not Found",
-                error="The fulfilling user's faction could not be located in the database.",
+                error="The requester's faction could not be located in the database.",
             ),
             400,
         )
@@ -356,13 +351,18 @@ def fulfill(guid: str):
     requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
 
     try:
+        if current_user.is_authenticated:
+            fulfiller_str = f"{current_user.name} [{current_user.tid}]"
+        else:
+            fulfiller_str = "someone"
+
         discordpatch(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
                 "embeds": [
                     {
                         "title": f"Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been fulfilled by {current_user.name} [{current_user.tid}].",
+                        "description": f"This request has been fulfilled by {fulfiller_str}",
                         "fields": [
                             {
                                 "name": "Original Request Amount",

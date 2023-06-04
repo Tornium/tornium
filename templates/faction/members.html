@@ -68,10 +68,13 @@ Tornium - Faction Members
     <div class="card min-w-25 max-w-50">
         <div class="card-body">
             <h5 class="card-title">Faction Members</h5>
+
+            {% if current_user.factionaa %}
             <p class="card-text">
-                Average Battle Score: {{ average_stat|round(2, 'common')|commas }}<br />
-                Average Battle Score (top 80%): {{ average_stat_80|round(2, 'common')|commas }}
+                Average Stat Score: {{ average_stat|round(2, 'common')|commas }}<br />
+                Average Stat Score (top 80%): {{ average_stat_80|round(2, 'common')|commas }}
             </p>
+            {% endif %}
 
             <table id="members-table" class="table table-striped table-bordered w-100">
                 <thead>

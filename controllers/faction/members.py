@@ -28,7 +28,7 @@ from controllers.faction.decorators import fac_required
 def members(*args, **kwargs):
     fac_members = UserModel.objects(factionid=kwargs["faction"].tid)
 
-    if current_user.factionaa:
+    if current_user.aa:
         stats = []
 
         member: UserModel

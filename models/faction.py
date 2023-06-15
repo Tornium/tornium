@@ -36,37 +36,7 @@ class Faction:
 
         faction = FactionModel.objects(tid=tid).first()
         if faction is None:
-            faction_data = tornget(f"faction/{tid}?selections=basic", key=key if key != "" else current_user.key)
-            now = int(time.time())
-
-            faction = FactionModel(
-                tid=faction_data["ID"],
-                name=faction_data["name"],
-                respect=faction_data["respect"],
-                capacity=faction_data["capacity"],
-                leader=faction_data["leader"],
-                coleader=faction_data["co-leader"],
-                aa_keys=[],
-                last_attacks=0,
-                last_members=now,
-                guild=0,
-                config={"stats": 1},
-                statconfig={"global": 0},
-                od_channel=0,
-                chainod={},
-            )
-
-            faction.save()
-
-            for member_id, member_data in faction_data["members"].items():
-                UserModel.objects(tid=int(member_id)).modify(
-                    upsert=True,
-                    new=True,
-                    set__name=member_data["name"],
-                    set__level=member_data["level"],
-                    set__last_action=member_data["last_action"]["timestamp"],
-                    set__status=member_data["last_action"]["status"],
-                )
+            raise ValueError("Unknown Faction")
 
         self.tid = tid
         self.name = faction.name

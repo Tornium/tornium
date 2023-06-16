@@ -51,25 +51,25 @@ def guild_dashboard(guildid: str):
             server_model.factions = list(set(server_model.factions))
             server_model.save()
 
-    server_factions = server.factions
+    server_factions = [int(faction) for faction in server.factions]
 
     for faction in server.factions:
         try:
             factions.append(Faction(faction))
         except ValueError:
-            server_factions.remove(faction)
+            server_factions.remove(int(faction))
 
     if server.factions != server_factions:
         server.factions = server_factions
         server.save()
 
-    server_assist_factions = server.assist_factions
+    server_assist_factions = [int(faction) for faction in server.assist_factions]
 
     for faction in server.assist_factions:
         try:
             assist_factions.append(Faction(faction))
         except ValueError:
-            server_factions.remove(faction)
+            server_factions.remove(int(faction))
 
     if server.assist_factions != server_assist_factions:
         server.assist_factions = server_assist_factions

@@ -271,7 +271,7 @@ def update_faction(faction_data):
             set__level=member["level"],
             set__last_refresh=int(time.time()),
             set__factionid=faction.tid,
-            set__factionaa=positions_data[member["position"]]["aa"],
+            set__factionaa=positions_data[member["position"]]["aa"] if member["position"] is not None else False,
             set__faction_position=positions_data[member["position"]]["uuid"],
             set__status=member["last_action"]["status"],
             set__last_action=member["last_action"]["timestamp"],

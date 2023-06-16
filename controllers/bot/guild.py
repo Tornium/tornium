@@ -13,12 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from flask import abort, redirect, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from tornium_commons.models import ServerModel
 
 from models.faction import Faction
-from models.server import Server
 
 
 @login_required
@@ -36,9 +37,11 @@ def dashboard():
 
 @fresh_login_required
 def guild_dashboard(guildid: str):
-    server = Server(guildid)
+    server: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
 
-    if current_user.tid not in server.admins:
+    if server is None:
+        abort(400)
+    elif current_user.tid not in server.admins:
         abort(403)
 
     factions = []
@@ -46,10 +49,9 @@ def guild_dashboard(guildid: str):
 
     if request.method == "POST":
         if request.form.get("factionid") is not None:
-            server_model = ServerModel.objects(sid=guildid).first()
-            server_model.factions.append(int(request.form.get("factionid")))
-            server_model.factions = list(set(server_model.factions))
-            server_model.save()
+            server.factions.append(int(request.form.get("factionid")))
+            server.factions = list(set(server.factions))
+            server.save()
 
     server_factions = [int(faction) for faction in server.factions]
 

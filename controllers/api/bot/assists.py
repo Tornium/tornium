@@ -29,14 +29,14 @@ def assists_channel(guildid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    channelid = data.get("channel")
+    channel_id = data.get("channel")
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    if guildid in ("", None, 0) or (type(guildid) != int and not guildid.isdigit()):
         return make_exception_response("1001", key)
-    elif channelid in ("", None, 0) or not channelid.isdigit():
+    elif channel_id in ("", None, 0) or (type(channel_id) != int and not channel_id.isdigit()):
         return make_exception_response("1002", key)
 
-    channelid = int(channelid)
+    channel_id = int(channel_id)
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:
@@ -44,7 +44,7 @@ def assists_channel(guildid, *args, **kwargs):
     elif kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.assistschannel = channelid
+    guild.assistschannel = channel_id
     guild.save()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

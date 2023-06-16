@@ -13,13 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import importlib
 import json
 import logging
 import pathlib
 import traceback
 
 import click
-import importlib_resources
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
 from tornium_commons import rds
@@ -103,10 +103,10 @@ def load_scripts(verbose=False):
     client.script_flush()
     client.echo("Existing Redis scripts flushed")
     click.echo(
-        f"{sum(1 for _ in importlib_resources.files('tornium_commons.rds_lua').iterdir())} Redis scripts discovered\n"
+        f"{sum(1 for _ in importlib.resources.files('tornium_commons.rds_lua').iterdir())} Redis scripts discovered\n"
     )
 
-    scripts = importlib_resources.files("tornium_commons.rds_lua").iterdir()
+    scripts = importlib.resources.files("tornium_commons.rds_lua").iterdir()
     script_map = {}
 
     script: pathlib.Path

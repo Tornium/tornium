@@ -72,58 +72,88 @@ let rolesRequest = (obj) => {
 
             if (guildid !== null && $(".discord-role-selector").length !== 0) {
                 xhttp.send();
+            } else {
+                reject();
             }
         });
     }
 };
 
 let channelsRequest = (obj) => {
-    return new Promise((resolve, reject) => {
-        let xhttp = new XMLHttpRequest();
+    var localChannels = JSON.parse(localStorage.getItem(`channels:${guildid}`));
 
-        xhttp.onload = function () {
-            let response = xhttp.response;
+    if (
+        localChannels &&
+        Math.floor(Date.now() / 1000) - localChannels.timestamp < 60
+    ) {
+        return new Promise((resolve, reject) => {
+            discordChannels = localChannels.roles;
+            resolve();
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            let xhttp = new XMLHttpRequest();
 
-            if ("code" in response) {
-                generateToast(
-                    "Discord Channels Not Located",
-                    response["message"]
-                );
-                reject();
-                return;
-            }
+            xhttp.onload = function () {
+                let response = xhttp.response;
 
-            discordChannels = response["channels"];
+                if ("code" in response) {
+                    generateToast(
+                        "Discord Channels Not Located",
+                        response["message"]
+                    );
+                    reject();
+                    return;
+                }
 
-            $.each(response["channels"], function (category_id, category) {
-                $(".discord-channel-selector").append(
-                    $("<optgroup>", {
-                        label: category.name,
-                        "data-category-id": category["id"],
-                    })
-                );
+                discordChannels = response["channels"];
 
-                $.each(category["channels"], function (channel_id, channel) {
-                    $(`optgroup[data-category-id="${category["id"]}"]`).append(
-                        $("<option>", {
-                            value: channel.id,
-                            text: `#${channel.name}`,
+                $.each(response["channels"], function (category_id, category) {
+                    $(".discord-channel-selector").append(
+                        $("<optgroup>", {
+                            label: category.name,
+                            "data-category-id": category["id"],
                         })
                     );
+
+                    $.each(
+                        category["channels"],
+                        function (channel_id, channel) {
+                            $(
+                                `optgroup[data-category-id="${category["id"]}"]`
+                            ).append(
+                                $("<option>", {
+                                    value: channel.id,
+                                    text: `#${channel.name}`,
+                                })
+                            );
+                        }
+                    );
                 });
-            });
 
-            // $(".discord-channel-selector").selectpicker();
-            resolve();
-        };
-        xhttp.responseType = "json";
-        xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
+                localStorage.setItem(
+                    `channels:${guildid}`,
+                    JSON.stringify({
+                        timestamp: Math.floor(Date.now() / 1000),
+                        channels: discordChannels,
+                    })
+                );
+                resolve();
+            };
+            xhttp.responseType = "json";
+            xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
 
-        if (guildid !== null && $(".discord-channel-selector").length !== 0) {
-            xhttp.send();
-        }
-    });
+            if (
+                guildid !== null &&
+                $(".discord-channel-selector").length !== 0
+            ) {
+                xhttp.send();
+            } else {
+                reject();
+            }
+        });
+    }
 };
 
 let configRequest = (obj) => {

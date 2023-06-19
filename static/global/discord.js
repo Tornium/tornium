@@ -24,9 +24,12 @@ let rolesRequest = (obj) => {
 
     if (
         localRoles &&
-        Math.floor(Date.now() / 1000) - localRoles.timestamp > 60
+        Math.floor(Date.now() / 1000) - localRoles.timestamp < 60
     ) {
-        discordRoles = localRoles.roles;
+        return new Promis((resolve, reject) => {
+            discordRoles = localRoles.roles;
+            resolve();
+        });
     } else {
         return new Promise((resolve, reject) => {
             let xhttp = new XMLHttpRequest();

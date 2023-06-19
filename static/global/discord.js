@@ -26,7 +26,7 @@ let rolesRequest = (obj) => {
         localRoles &&
         Math.floor(Date.now() / 1000) - localRoles.timestamp < 60
     ) {
-        return new Promis((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             discordRoles = localRoles.roles;
             resolve();
         });

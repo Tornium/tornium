@@ -20,40 +20,58 @@ var discordChannels = null;
 var serverConfig = null;
 
 let rolesRequest = (obj) => {
-    return new Promise((resolve, reject) => {
-        let xhttp = new XMLHttpRequest();
+    var localRoles = JSON.parse(localStorage.getItem(`roles:${guildid}`));
 
-        xhttp.onload = function () {
-            let response = xhttp.response;
+    if (
+        localRoles &&
+        Math.floor(Date.now() / 1000) - localRoles.timestamp > 60
+    ) {
+        discordRoles = localRoles.roles;
+    } else {
+        return new Promise((resolve, reject) => {
+            let xhttp = new XMLHttpRequest();
 
-            if ("code" in response) {
-                generateToast("Discord Roles Not Located", response["message"]);
-                reject();
-                return;
-            }
+            xhttp.onload = function () {
+                let response = xhttp.response;
 
-            discordRoles = response["roles"];
+                if ("code" in response) {
+                    generateToast(
+                        "Discord Roles Not Located",
+                        response["message"]
+                    );
+                    reject();
+                    return;
+                }
 
-            $.each(response["roles"], function (role_id, role) {
-                $(".discord-role-selector").append(
-                    $("<option>", {
-                        value: role.id,
-                        text: role.name,
+                discordRoles = response["roles"];
+
+                $.each(response["roles"], function (role_id, role) {
+                    $(".discord-role-selector").append(
+                        $("<option>", {
+                            value: role.id,
+                            text: role.name,
+                        })
+                    );
+                });
+
+                localStorage.setItem(
+                    `roles:${guildid}`,
+                    JSON.stringify({
+                        timestamp: Math.floor(Date.now() / 1000),
+                        roles: discordRoles,
                     })
                 );
-            });
+                resolve();
+            };
+            xhttp.responseType = "json";
+            xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
 
-            // $(".discord-role-selector").selectpicker();
-            resolve();
-        };
-        xhttp.responseType = "json";
-        xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-
-        if (guildid !== null && $(".discord-role-selector").length !== 0) {
-            xhttp.send();
-        }
-    });
+            if (guildid !== null && $(".discord-role-selector").length !== 0) {
+                xhttp.send();
+            }
+        });
+    }
 };
 
 let channelsRequest = (obj) => {

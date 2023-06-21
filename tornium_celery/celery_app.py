@@ -16,10 +16,15 @@
 import importlib.util
 import sys
 
-from gevent import monkey
+try:
+    from gevent import monkey
+
+    globals()["gevent:loaded"] = True
+except ImportError:
+    globals()["gevent:loaded"] = False
 
 for module in ("ddtrace", "orjson"):
-    if monkey.is_anything_patched():
+    if globals()["gevent:loaded"] and monkey.is_anything_patched():
         globals()["ddtrace:loaded"] = False
         globals()["orjson:loaded"] = False
         break

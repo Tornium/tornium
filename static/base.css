@@ -5,6 +5,13 @@
 
 body {
     font-family: "JetBrains Mono", serif;
+    height: 100vh;
+    overflow: auto;
+}
+
+html {
+    height: 100vh;
+    overflow: hidden;
 }
 
 .vertical-navbar {

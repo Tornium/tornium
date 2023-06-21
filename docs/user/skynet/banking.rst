@@ -25,6 +25,10 @@ Only the ``/balance`` command can be run in DMs; everything else can only be run
 
 Balance
 ```````
+.. code-block::
+
+    /balance [member]
+
 Returns the member's vault balance of money and points in their current faction.
 
 If the command is run in a Discord server and the invoker has API access in the faction, a member can be mentioned to obtain their vault balance.
@@ -43,6 +47,10 @@ If the command is run in a Discord server and the invoker has API access in the 
 
 Withdraw
 ````````
+.. code-block::
+
+    /withdraw (amount) [option]
+
 Sends a vault request to the banking channel and mentions the banker roles if banking is enabled by the faction.
 
 A vault request will be marked as cancelled if it is not fulfilled within one hour of the request.
@@ -79,6 +87,10 @@ The ``amount`` parameter allows for the suffixes used by Torn to shorten money a
 
 Fulfill
 ```````
+.. code-block::
+
+    /fulfill (id)
+
 Marks a vault request as fulfilled.
 
 .. list-table::
@@ -95,7 +107,11 @@ Marks a vault request as fulfilled.
 
 Cancel
 ``````
-Marks a vault request as cancelled.
+.. code-block::
+
+    /cancel [id]
+
+Marks a vault request as cancelled. Cancels the last request if no withdrawal ID is specified.
 
 .. list-table::
     :header-rows: 1

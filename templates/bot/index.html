@@ -16,7 +16,8 @@ Tornium - Bot
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/bot/dashboard">
@@ -25,6 +26,7 @@ Tornium - Bot
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block content %}

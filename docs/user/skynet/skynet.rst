@@ -23,6 +23,7 @@ Almost all of the bot's configuration will be done through the bot dashboard fou
  * :ref:`Retaliations<retals>`
  * :ref:`Organized Crime Notifications<ocnotifs>`
  * :ref:`Stakeouts<stakeouts>`
+ * :ref:`Stocks<stocks>` [in-dev]
 
 Argument Format
 --------------
@@ -33,7 +34,7 @@ This documentation will also include descriptions and other details about SkyNet
 
     * - Syntax
       - Definition
-    * - arg_name
+    * - (arg_name)
       - required argument
     * - [arg_name]
       - optional argument

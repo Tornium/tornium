@@ -17,14 +17,15 @@ import typing
 
 import celery
 from mongoengine import QuerySet
+from tornium_commons import rds
 from tornium_commons.models import (
     FactionModel,
-    FactionStakeoutModel,
     NotificationModel,
     ServerModel,
     UserModel,
-    UserStakeoutModel,
 )
+
+from tornium_celery.tasks.api import discordpost
 
 
 @celery.shared_task(name="tasks.misc.remove_unknown_channel", routing_key="quick.remove_unknown_channel", queue="quick")
@@ -114,3 +115,21 @@ def remove_key_error(key: str, error: int):
                 faction.save()
             except ValueError:
                 pass
+
+
+@celery.shared_task(name="tasks.misc.send_dm", routing_key="default.send_dm", queue="default")
+def send_dm(discord_id: int, payload: dict):
+    try:
+        channel_id = int(rds().get(f"tornium:discord:dm:{discord_id}"))
+    except TypeError:
+        dm_channel = discordpost(
+            "users/@me/channels",
+            payload={
+                "recipient_id": discord_id,
+            },
+        )
+
+        channel_id = dm_channel["id"]
+        rds().set(f"tornium:discord:dm:{discord_id}", channel_id, nx=True, ex=86400)
+
+    return discordpost.delay(endpoint=f"channels/{channel_id}/messages", payload=payload)

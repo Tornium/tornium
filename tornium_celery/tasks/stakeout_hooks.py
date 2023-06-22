@@ -539,7 +539,7 @@ def faction_hook(faction_data):
                         "embeds": [
                             {
                                 "title": f"{member_data['name']} Joined Faction",
-                                "description": f"{member_data['name']} [{member_data['player_id']} has joined {faction_data['name']} [{faction_data['ID']}].",
+                                "description": f"{member_data['name']} [{member_data['player_id']}] has joined {faction_data['name']} [{faction_data['ID']}].",
                                 "color": SKYNET_INFO,
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
                                 "footer": {"text": torn_timestamp()},

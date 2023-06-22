@@ -333,7 +333,7 @@ def check_faction_ods(faction_od_data):
     elif faction.od_channel in (0, None):
         return
 
-    channel_data = discordget(f"channels/{faction.od_channel}")
+    channel_data = discordget(f"channels/{faction.od_channel}", channel=faction.od_channel)
 
     if channel_data.get("guild_id") != faction.guild:
         faction.od_channel = 0
@@ -378,6 +378,7 @@ def check_faction_ods(faction_od_data):
             discordpost.delay(
                 f"channels/{faction.od_channel}/messages",
                 payload=payload,
+                channel=faction.od_channel,
             ).forget()
         elif faction.chainod.get(tid) is not None and user_od["contributed"] != faction.chainod.get(tid).get(
             "contributed"
@@ -411,6 +412,7 @@ def check_faction_ods(faction_od_data):
             discordpost.delay(
                 f"channels/{faction.od_channel}/messages",
                 payload=payload,
+                channel=faction.od_channel,
             ).forget()
 
     faction.chainod = faction_od_data["contributors"]["drugoverdoses"]
@@ -700,7 +702,8 @@ def retal_attacks(faction_data, last_attacks=None):
         try:
             discordpost.delay(
                 f"channels/{guild.retal_config[str(faction.tid)]['channel']}/messages",
-                payload,
+                payload=payload,
+                channel=guild.retal_config[str(faction.tid)]["channel"],
             ).forget()
         except DiscordError as e:
             if e.code == 10003:
@@ -1071,6 +1074,7 @@ def oc_refresh_subtask(oc_data):
                 discordpost.delay(
                     f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                     payload=payload,
+                    channel=guild.oc_config[str(faction.tid)]["delay"]["channel"],
                 ).forget()
             except Exception as e:
                 logger.exception(e)
@@ -1105,6 +1109,7 @@ def oc_refresh_subtask(oc_data):
                 discordpost.delay(
                     f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
                     payload=payload,
+                    channel=guild.oc_config[str(faction.tid)]["delay"]["channel"],
                 )
             except Exception as e:
                 logger.exception(e)

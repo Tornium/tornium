@@ -175,7 +175,7 @@ def verify_users(
             log_channel = -1
         else:
             try:
-                discordget(f"channels/{guild.verify_log_channel}")
+                discordget(f"channels/{guild.verify_log_channel}", channel=guild.verify_log_channel)
             except (DiscordError, NetworkingError):
                 raise LookupError("Unknown log channel")
 
@@ -201,6 +201,7 @@ def verify_users(
                         }
                     ]
                 },
+                channel=log_channel,
             ).forget()
         except (DiscordError, NetworkingError):
             pass
@@ -233,6 +234,7 @@ def verify_users(
                         }
                     ]
                 },
+                channel=log_channel,
             ).forget()
 
         return
@@ -254,6 +256,7 @@ def verify_users(
                         }
                     ]
                 },
+                channel=log_channel,
             ).forget()
 
         raise e
@@ -270,6 +273,7 @@ def verify_users(
                         }
                     ]
                 },
+                channel=log_channel,
             ).forget()
 
         raise e
@@ -517,4 +521,5 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
             endpoint=f"channels/{log_channel}/messages",
             payload=payload,
             countdown=math.floor(random.uniform(0, 15)),
+            channel=log_channel,
         ).forget()

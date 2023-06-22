@@ -164,9 +164,6 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
         elif request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
                 remove_unknown_channel.delay(kwargs.get("channel")).forget()
-        elif request_json["code"] == 10011:
-            if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
@@ -221,9 +218,6 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
         elif request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
                 remove_unknown_channel.delay(kwargs.get("channel")).forget()
-        elif request_json["code"] == 10011:
-            if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
@@ -276,9 +270,6 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         elif request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
                 remove_unknown_channel.delay(kwargs.get("channel")).forget()
-        elif request_json["code"] == 10011:
-            if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
@@ -331,9 +322,6 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         elif request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
                 remove_unknown_channel.delay(kwargs.get("channel")).forget()
-        elif request_json["code"] == 10011:
-            if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:
@@ -383,9 +371,6 @@ def discorddelete(self, endpoint, *args, **kwargs):
         elif request_json["code"] == 10003:
             if kwargs.get("channel") is not None:
                 remove_unknown_channel.delay(kwargs.get("channel")).forget()
-        elif request_json["code"] == 10011:
-            if kwargs.get("role") is not None:
-                remove_unknown_role.delay(kwargs.get("role")).forget()
 
         raise DiscordError(code=request_json["code"], message=request_json["message"])
     elif request.status_code // 100 != 2:

@@ -80,6 +80,7 @@ def send_notification(notification: NotificationModel, payload: dict):
         discordpost.delay(
             endpoint=f"channels/{notification.recipient}/messages",
             payload=payload,
+            channel=notification.recipient,
         ).forget()
     else:
         return

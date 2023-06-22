@@ -156,7 +156,7 @@ def create_stakeout(stype, *args, **kwargs):
 
     db_stakeout.guilds = stakeout.guilds
     db_stakeout.save()
-    discordpost(f'channels/{channel["id"]}/messages', payload=message_payload)
+    discordpost(f'channels/{channel["id"]}/messages', payload=message_payload, channel=channel["id"])
 
     return (
         jsonify(

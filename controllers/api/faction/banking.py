@@ -291,6 +291,7 @@ def banking_request(*args, **kwargs):
         message = discordpost(
             f'channels/{server.banking_config[str(faction.tid)]["channel"]}/messages',
             payload=message_payload,
+            channel=server.banking_config[str(faction.tid)]["channel"],
         )
 
         withdrawal = WithdrawalModel(

@@ -292,7 +292,7 @@ def assist(interaction, *args, **kwargs):
         }
 
         try:
-            discordpost(f"channels/{server.assistschannel}/messages", data)
+            discordpost(f"channels/{server.assistschannel}/messages", payload=data, channel=server.assistschannel)
         except DiscordError:
             continue
         except NetworkingError:

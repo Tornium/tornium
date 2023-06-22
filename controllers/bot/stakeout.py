@@ -100,6 +100,7 @@ def stakeouts_dashboard(guildid: str):
                 discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
+                    channel=channel["id"],
                 )
             else:
                 flash(
@@ -154,6 +155,7 @@ def stakeouts_dashboard(guildid: str):
                 discordpost(
                     f'channels/{channel["id"]}/messages',
                     payload=message_payload,
+                    channel=channel["id"],
                 )
             else:
                 flash(
@@ -335,7 +337,10 @@ def stakeout_update(guildid):
 
             stakeout = FactionStakeoutModel.objects(tid=faction).first()
             try:
-                discorddelete(f'channels/{stakeout.guilds[str(guildid)]["channel"]}')
+                discorddelete(
+                    f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
+                    channel=stakeout.guilds[str(guildid)]["channel"],
+                )
             except DiscordError as e:
                 if e.code == 10003:
                     pass
@@ -354,6 +359,7 @@ def stakeout_update(guildid):
             try:
                 discorddelete(
                     f'channels/{stakeout.guilds[str(guildid)]["channel"]}',
+                    channel=stakeout.guilds[str(guildid)]["channel"],
                 )
             except DiscordError as e:
                 if e.code == 10003:

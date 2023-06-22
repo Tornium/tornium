@@ -25,7 +25,7 @@ from tornium_commons.models import (
     UserModel,
 )
 
-from tornium_celery.tasks.api import discordpost
+from .api import discordpost
 
 
 @celery.shared_task(name="tasks.misc.remove_unknown_channel", routing_key="quick.remove_unknown_channel", queue="quick")

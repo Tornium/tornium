@@ -15,6 +15,12 @@ Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`
 
 This documentation is still under construction and thus is not yet complete. If you find a missing section and need some help, contact the developer via the links found in the sidebar.
 
+API Usage
+---------
+In accordance with `Torn's official rules for tools <https://www.torn.com/forums.php#/p=threads&f=67&t=16037108&b=0&a=0>`_, no user data will be viewed for any reason beyond security and maintenance. Additionally your API key will only be viewed for maintenance with and only with the permission of the key's owner.
+
+Tornium has automated tasks that will make Torn API calls in addition to calls made by the website and the Discord bot. All API calls originating from Tornium can be identified with the "Tornium" comment.
+
 Features
 ========
  * Faction banking

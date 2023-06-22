@@ -79,7 +79,25 @@ Delete the specified notification by database ID (which can be found with the ``
 
 Stock Notification Feed
 -----------------------
-SkyNet will send all enabled feed options to a specified channel
+SkyNet will send all enabled feed options to a specified channel that can be set in the server's dashboard under "Stocks".
 
 .. warning::
     Stocks feed notifications are still under development and are currently disabled in all servers.
+
+You can also choose which feed options to enable for which to send notifications for.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Feed Option
+      - Description
+    * - Percent Change
+      - Lorem ipsum
+    * - Market Change Cap
+      - Lorem ipsum
+    * - New Day Price
+      - Lorem ipsum
+    * - Minimum Price
+      - Lorem ipsum
+    * - Maximum Price
+      - Lorem ipsum

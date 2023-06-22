@@ -33,7 +33,7 @@ from tornium_commons.errors import (
     TornError,
 )
 
-from .misc import remove_key_error, remove_unknown_channel, remove_unknown_role
+from .misc import remove_key_error, remove_unknown_channel
 
 logger = get_task_logger(__name__)
 

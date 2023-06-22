@@ -25,8 +25,6 @@ from tornium_commons.models import (
     UserModel,
 )
 
-from .api import discordpost
-
 
 @celery.shared_task(name="tasks.misc.remove_unknown_channel", routing_key="quick.remove_unknown_channel", queue="quick")
 def remove_unknown_channel(channel_id: int):
@@ -119,6 +117,8 @@ def remove_key_error(key: str, error: int):
 
 @celery.shared_task(name="tasks.misc.send_dm", routing_key="default.send_dm", queue="default")
 def send_dm(discord_id: int, payload: dict):
+    from .api import discordpost
+
     try:
         channel_id = int(rds().get(f"tornium:discord:dm:{discord_id}"))
     except TypeError:

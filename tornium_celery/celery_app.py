@@ -168,15 +168,20 @@ if celery_app is None:
                 "task": "tasks.stocks.fetch_stock_ticks",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+            },
+            "stocks-prefetch": {
+                "task": "tasks.stocks.stocks_prefetch",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },  # Stakeout hooks/tasks
             "run-user-stakeouts": {
                 "task": "tasks.stakeout_hooks.run_user_stakeouts",
-                "enabled": True,
+                "enabled": False,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },
             "run-faction-stakeouts": {
                 "task": "tasks.stakeout_hooks.run_faction_stakeouts",
-                "enabled": True,
+                "enabled": False,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },
         }
@@ -290,6 +295,14 @@ if celery_app is None:
             "schedule": crontab(
                 minute=data["fetch-stock-ticks"]["schedule"]["minute"],
                 hour=data["fetch-stock-ticks"]["schedule"]["hour"],
+            ),
+        }
+    if "stocks-prefetch" in data and data["stocks-prefetch"]["enabled"]:
+        schedule["stocks-prefetch"] = {
+            "task": data["stocks-prefetch"]["task"],
+            "schedule": crontab(
+                minute=data["stocks-prefetch"]["schedule"]["minute"],
+                hour=data["stocks-prefetch"]["schedule"]["hour"],
             ),
         }
     if "run-user-stakeouts" in data and data["run-user-stakeouts"]["enabled"]:

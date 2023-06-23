@@ -99,7 +99,7 @@ def tornget(
         if int(redis_client.get(redis_key)) > 0:
             redis_client.decrby(redis_key, 1)
         else:
-            raise RatelimitError
+            redis_client.set(redis_key, 1, ex=60 - datetime.datetime.utcnow().second)
     except TypeError:
         redis_client.set(redis_key, 50, nx=True, ex=60 - datetime.datetime.utcnow().second)
 

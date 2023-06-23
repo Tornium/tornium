@@ -63,6 +63,7 @@ def stocks_prefetch():
         },
         queue="api",
     ).apply_async(
+        countdown=5,
         expires=50,
         link=celery.chain(
             update_stock_prices.signature(kwargs={"stocks_timestamp": datetime.datetime.utcnow()}),
@@ -228,7 +229,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
     cap_change_channels: typing.Optional[list] = None
 
     stock: dict
-    for stock in stocks_data.values():
+    for stock in stocks_data["values"].values():
         stock_id = stock["stock_id"]
         minute_tick: typing.Optional[TickModel] = _get_stocks_tick(stock_id, minutes=1)
 
@@ -280,7 +281,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
     # Once a day at 00:00
     if stocks_timestamp.hour == 0 and stocks_timestamp.minute == 0:
         stock: dict
-        for stock in stocks_data.values():
+        for stock in stocks_data["stocks"].values():
             previous_opening_ts = (
                 int(stocks_timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()) - 86400
             )  # One day ago
@@ -339,7 +340,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
     # max_price_channels: typing.Optional[list] = None
 
     stock: dict
-    for stock in stocks_data.values():
+    for stock in stocks_data["stocks"].values():
         stock_id = stock["stock_id"]
 
         price_min = redis_client.get(f"tornium:stocks:{stock_id}:min")

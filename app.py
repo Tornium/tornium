@@ -16,6 +16,9 @@
 import importlib.util
 import sys
 
+if sys.version_info < (3, 9):
+    raise RuntimeError("This package requires Python 3.9+")
+
 # fmt: off
 for module in ("ddtrace"):
     try:

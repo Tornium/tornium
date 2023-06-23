@@ -77,7 +77,7 @@ def feed(interaction, *args, **kwargs):
                     "description": inspect.cleandoc(
                         f"""Stocks feed configuration for {server.name}...
 
-                Feed Channel: {"Disabled" if server.stocks_channel == 0 else f"#{server.stocks_channel}"}
+                Feed Channel: {"Disabled" if server.stocks_channel == 0 else f"#<{server.stocks_channel}>"}
 
                 Percent Change: {"Enabled" if server.stocks_config.get("percent_change", False) else "Disabled"}
                 Market Cap Change: {"Enabled" if server.stocks_config.get("cap_change", False) else "Disabled"}

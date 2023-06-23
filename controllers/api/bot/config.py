@@ -48,7 +48,7 @@ def jsonified_server_config(guild: ServerModel):
         },
         "oc": guild.oc_config,
         "stocks": {
-            "channel": guild.stocks_channel,
+            "channel": str(guild.stocks_channel),
             **guild.stocks_config,
         },
     }

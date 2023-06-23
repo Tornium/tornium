@@ -52,6 +52,21 @@ def feed(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+    elif kwargs["invoker"].tid not in server.admins:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "You must be an admin in this server to run this command. Run in a DM "
+                        "or in a server where you are an admin.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     return {
         "type": 4,
@@ -61,6 +76,8 @@ def feed(interaction, *args, **kwargs):
                     "title": "Stocks Feed Configuration",
                     "description": inspect.cleandoc(
                         f"""Stocks feed configuration for {server.name}...
+
+                Feed Channel: {"Disabled" if server.stocks_channel == 0 else f"#{server.stocks_channel}"}
 
                 Percent Change: {"Enabled" if server.stocks_config.get("percent_change", False) else "Disabled"}
                 Market Cap Change: {"Enabled" if server.stocks_config.get("cap_change", False) else "Disabled"}

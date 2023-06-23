@@ -28,6 +28,16 @@ let rolesRequest = (obj) => {
     ) {
         return new Promise((resolve, reject) => {
             discordRoles = localRoles.roles;
+
+            $.each(discordRoles, function (role_id, role) {
+                $(".discord-role-selector").append(
+                    $("<option>", {
+                        value: role.id,
+                        text: role.name,
+                    })
+                );
+            });
+
             resolve();
         });
     } else {
@@ -88,6 +98,25 @@ let channelsRequest = (obj) => {
     ) {
         return new Promise((resolve, reject) => {
             discordChannels = localChannels.roles;
+
+            $.each(discordChannels, function (category_id, category) {
+                $(".discord-channel-selector").append(
+                    $("<optgroup>", {
+                        label: category.name,
+                        "data-category-id": category["id"],
+                    })
+                );
+
+                $.each(category["channels"], function (channel_id, channel) {
+                    $(`optgroup[data-category-id="${category["id"]}"]`).append(
+                        $("<option>", {
+                            value: channel.id,
+                            text: `#${channel.name}`,
+                        })
+                    );
+                });
+            });
+
             resolve();
         });
     } else {

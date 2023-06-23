@@ -229,7 +229,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
     cap_change_channels: typing.Optional[list] = None
 
     stock: dict
-    for stock in stocks_data["values"].values():
+    for stock in stocks_data["stocks"].values():
         stock_id = stock["stock_id"]
         minute_tick: typing.Optional[TickModel] = _get_stocks_tick(stock_id, minutes=1)
 

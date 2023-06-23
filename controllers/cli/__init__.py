@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import importlib
+import importlib.resources
 import json
 import logging
 import pathlib

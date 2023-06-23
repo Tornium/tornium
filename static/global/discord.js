@@ -97,7 +97,7 @@ let channelsRequest = (obj) => {
         Math.floor(Date.now() / 1000) - localChannels.timestamp < 60
     ) {
         return new Promise((resolve, reject) => {
-            discordChannels = localChannels.roles;
+            discordChannels = localChannels.channels;
 
             $.each(discordChannels, function (category_id, category) {
                 $(".discord-channel-selector").append(

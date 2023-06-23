@@ -29,7 +29,7 @@
                         <form method="POST" action="/login/totp">
                             <div class="form-floating">
                                 <div class="input-group">
-                                    <input type="text" required class="form-control" id="totp-token" name="totp-token">
+                                    <input type="text" required class="form-control" id="totp-token" name="totp-token" autocomplete="off">
                                     <button type="submit" class="btn btn-outline-success input-group-text">Validate</button>
 
                                     <input type="hidden" id="client-token" name="client-token">

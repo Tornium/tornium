@@ -51,7 +51,7 @@ def _get_stocks_tick(stock_id: int, timestamp: typing.Optional[datetime.datetime
 
     timestamp = timestamp - datetime.timedelta(minutes=minutes_ago, hours=hours_ago, days=days_ago)
 
-    return TickModel.objects(tick_id=int(binary_stock_id, 2) + int(bin(int(timestamp.timestamp()) << 8), 2))
+    return TickModel.objects(tick_id=int(binary_stock_id, 2) + int(bin(int(timestamp.timestamp()) << 8), 2)).first()
 
 
 @celery.shared_task(name="tasks.stocks.stocks_prefetch", routing_key="quick.stocks_prefetch", queue="quick")

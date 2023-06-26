@@ -1107,9 +1107,9 @@ def oc_refresh_subtask(oc_data):
 
             try:
                 discordpost.delay(
-                    f'channels/{guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
+                    f'channels/{guild.oc_config[str(faction.tid)]["ready"]["channel"]}/messages',
                     payload=payload,
-                    channel=guild.oc_config[str(faction.tid)]["delay"]["channel"],
+                    channel=guild.oc_config[str(faction.tid)]["ready"]["channel"],
                 )
             except Exception as e:
                 logger.exception(e)

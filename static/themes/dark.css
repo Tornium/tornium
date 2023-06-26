@@ -22,6 +22,7 @@
 }
 [data-bs-theme=custom-dark] .card .card-header {
   border-color: rgb(229, 229, 229);
+  color: rgb(229, 229, 229);
 }
 @media (max-height: 992px) {
   [data-bs-theme=custom-dark] .secondary {
@@ -67,9 +68,11 @@
 }
 [data-bs-theme=custom-dark] .primary thead th {
   color: rgb(229, 229, 229);
+  background-color: inherit;
 }
 [data-bs-theme=custom-dark] .primary tbody td {
   color: rgb(229, 229, 229);
+  background-color: inherit;
 }
 [data-bs-theme=custom-dark] .primary tbody th {
   color: rgb(229, 229, 229);
@@ -97,6 +100,15 @@
 }
 [data-bs-theme=custom-dark] .primary .form-text {
   color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .form-floating label {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .form-floating label:after {
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .primary .dataTables_wrapper {
+  color: rgb(229, 229, 229);
 }
 [data-bs-theme=custom-dark] .primary .card-text {
   color: rgb(175, 175, 175);

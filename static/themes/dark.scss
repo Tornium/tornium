@@ -32,6 +32,7 @@
 
         .card-header {
             border-color: $white;
+            color: $white;
         }
     }
 
@@ -87,10 +88,12 @@
 
         & thead th {
             color: $white;
+            background-color: inherit;
         }
 
         & tbody td {
             color: $white;
+            background-color: inherit;
         }
 
         & tbody th {
@@ -126,6 +129,18 @@
 
         & .form-text {
             color: $off-white;
+        }
+
+        & .form-floating label {
+            color: $off-white;
+
+            &:after {
+                background-color: inherit;
+            }
+        }
+
+        & .dataTables_wrapper {
+            color: $white;
         }
 
         & .card-text {

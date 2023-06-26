@@ -57,6 +57,10 @@
 
         & .card {
             background-color: $primary-grey;
+
+            & .card-text {
+                color: $neon;
+            }
         }
 
         & .list-group-item {
@@ -143,10 +147,6 @@
 
         & .dataTables_wrapper {
             color: $white;
-        }
-
-        & .card-text {
-            color: $neon;
         }
 
         & .dropdown-menu {

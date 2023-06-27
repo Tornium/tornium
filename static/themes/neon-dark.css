@@ -49,6 +49,9 @@
 [data-bs-theme=neon-dark] .primary .card .card-text {
   color: rgb(57, 255, 20);
 }
+[data-bs-theme=neon-dark] .primary .card .card-subtitle {
+  color: rgb(57, 255, 20);
+}
 [data-bs-theme=neon-dark] .primary .list-group-item {
   background-color: rgb(35, 35, 35);
   color: rgb(57, 255, 20);
@@ -139,6 +142,7 @@
 }
 [data-bs-theme=neon-dark] .modal-content tr th {
   color: rgb(57, 255, 20);
+  background-color: inherit;
 }
 [data-bs-theme=neon-dark] .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2857, 225, 20, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");

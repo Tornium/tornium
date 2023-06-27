@@ -13,10 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import jsonify
+import typing
+
+from flask import jsonify, request
+from tornium_celery.tasks.user import update_user
+from tornium_commons.models import FactionModel, UserModel
 
 from controllers.api.decorators import authentication_required, ratelimit
-from controllers.api.utils import api_ratelimit_response
+from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required
@@ -40,6 +44,55 @@ def get_user(*args, **kwargs):
                 "last_action": kwargs["user"].last_action,
             }
         ),
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@authentication_required
+@ratelimit
+def get_specific_user(tid: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    refresh: typing.Union[str, bool] = request.args.get("refresh", False)
+
+    if type(refresh) == str:
+        if refresh.lower() == "true":
+            refresh = True
+        elif refresh.lower() == "false":
+            refresh = False
+        else:
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Invalid refresh type",
+                },
+            )
+
+    if refresh:
+        update_user(kwargs["user"].key, tid=tid, refresh_existing=True).get()
+
+    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).first()
+
+    if user is None:
+        return make_exception_response("1100", key)
+
+    faction: typing.Optional[FactionModel] = (
+        None if user.factionid == 0 else FactionModel.objects(tid=user.factionid).first()
+    )
+
+    return (
+        {
+            "tid": user.tid,
+            "name": user.name,
+            "username": f"{user.name} [{user.tid}]",
+            "level": user.level,
+            "last_refresh": user.last_refresh,
+            "discord_id": user.discord_id,
+            "faction": {"tid": user.factionid, "name": faction.name} if faction is not None else None,
+            "status": user.status,
+            "last_action": user.last_action,
+        },
         200,
         api_ratelimit_response(key),
     )

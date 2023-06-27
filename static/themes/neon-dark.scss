@@ -61,6 +61,10 @@
             & .card-text {
                 color: $neon;
             }
+
+            & .card-subtitle {
+                color: $neon;
+            }
         }
 
         & .list-group-item {
@@ -177,6 +181,7 @@
 
         & tr th {
             color: $neon;
+            background-color: inherit;
         }
     }
 

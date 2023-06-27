@@ -60,6 +60,10 @@
             & .card-text {
                 color: $off-white;
             }
+
+            & .card-subtitle {
+                color: $off-white;
+            }
         }
 
         & .list-group-item {
@@ -176,6 +180,7 @@
 
         & tr th {
             color: $white;
+            background-color: inherit;
         }
     }
 

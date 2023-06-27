@@ -34,6 +34,10 @@ $(document).ready(function () {
                 return;
             }
 
+            response["data"].sort(
+                (a, b) => parseFloat(b.respect) - parseFloat(a.respect)
+            );
+
             const fragment = document.createDocumentFragment();
 
             response.data.forEach(function (user) {

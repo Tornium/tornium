@@ -127,7 +127,7 @@ def generate_chain_list(*args, **kwargs):
 
             targets[stat_entry] = target
 
-        target_ff = 1 + 8 / 3 * (stat.battlescore / kwargs["user"].battlescore)
+        target_ff = round(1 + 8 / 3 * (stat.battlescore / kwargs["user"].battlescore), 2)
 
         if target_ff > 3:
             target_ff = 3

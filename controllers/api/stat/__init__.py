@@ -117,39 +117,29 @@ def generate_chain_list(*args, **kwargs):
         stat_entries.order_by("-timeadded")
         stat_entries = stat_entries.limit(limit)
 
-    stat_entries: list = list(set(stat_entries.all().values_list("tid")))
     jsonified_stat_entries = []
-    targets = {}
+    targets = []
 
+    stat_entry: StatModel
     for stat_entry in stat_entries:
-        stat: StatModel = (
-            StatModel.objects(
-                Q(tid=stat_entry)
-                & (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
-            )
-            .order_by("-timeadded")
-            .first()
-        )
-
-        if stat.battlescore > kwargs["user"].battlescore:
+        if stat_entry.tid in targets:
             continue
 
-        if stat_entry in targets:
-            target = targets[stat_entry]
-        else:
-            target: typing.Optional[UserModel] = UserModel.objects(tid=stat.tid).first()
+        target: typing.Optional[UserModel] = UserModel.objects(tid=stat_entry.tid).first()
 
-            if target is None:
-                try:
-                    update_user(kwargs["user"].key, tid=stat.tid)
-                except Exception as e:
-                    print(e)
+        if target is None:
+            try:
+                update_user(kwargs["user"].key, tid=stat_entry.tid)
+            except Exception as e:
+                print(e)
 
-                continue
+            continue
 
-            targets[stat_entry] = target
+        # Get latest viewable stat entry for the specified user
+        stat_entry = stat_entries.filter(tid=stat_entry.tid).order_by("-timeadded").first()
 
-        target_ff = round(1 + 8 / 3 * (stat.battlescore / kwargs["user"].battlescore), 2)
+        targets.append(stat_entry.tid)
+        target_ff = round(1 + 8 / 3 * (stat_entry.battlescore / kwargs["user"].battlescore), 2)
 
         if target_ff > 3:
             target_ff = 3
@@ -163,10 +153,10 @@ def generate_chain_list(*args, **kwargs):
 
         jsonified_stat_entries.append(
             {
-                "statid": str(stat.id),
-                "tid": stat.tid,
-                "battlescore": stat.battlescore,
-                "timeadded": stat.timeadded,
+                "statid": str(stat_entry.id),
+                "tid": stat_entry.tid,
+                "battlescore": stat_entry.battlescore,
+                "timeadded": stat_entry.timeadded,
                 "ff": target_ff,
                 "respect": round(base_respect * target_ff, 2),
                 "user": {

@@ -39,13 +39,10 @@ $(document).ready(function () {
         if ($(this).hasClass("active")) {
             $(this).removeClass("active");
         } else if ($(".limit-button.active").length !== 0) {
-            generateToast(
-                "Bad Input",
-                "A limit option has already been selected."
-            );
-        } else {
-            $(this).addClass("active");
+            $(".limit-button.active").removeClass("active");
         }
+
+        $(this).addClass("active");
     });
 
     $("#generate-list").on("click", function () {

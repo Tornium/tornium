@@ -14,13 +14,80 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 $(document).ready(function () {
-    $("#chain-form").submit(function (e) {
-        e.preventDefault();
-        $("#chain-list-button").attr("disabled", true);
+    $(".difficulty-button").on("click", function () {
+        if ($(this).hasClass("active")) {
+            $(this).removeClass("active");
+            return;
+        } else if ($(".difficulty-button.active").length !== 0) {
+            $(".difficulty-button.active").removeClass("active");
+        }
+
+        $(this).addClass("active");
+    });
+
+    $(".sorting-button").on("click", function () {
+        if ($(this).hasClass("active")) {
+            $(this).removeClass("active");
+        } else if ($(".sorting-button.active").length !== 0) {
+            $(".sorting-button.active").removeClass("active");
+        }
+
+        $(this).addClass("active");
+    });
+
+    $(".limit-button").on("click", function () {
+        if ($(this).hasClass("active")) {
+            $(this).removeClass("active");
+        } else if ($(".limit-button.active").length !== 0) {
+            generateToast(
+                "Bad Input",
+                "A limit option has already been selected."
+            );
+        } else {
+            $(this).addClass("active");
+        }
+    });
+
+    $("#generate-list").on("click", function () {
+        let difficulty = $(".difficulty-button.active");
+        const sorting = $(".sorting-button.active");
+        const targets = $(".limit-button.active");
+        let ff;
+        let sort;
+
+        if (difficulty.length === 0) {
+            generateToast("Missing Config", "No difficulty was set.");
+            return;
+        } else if (sorting.length === 0) {
+            generateToast("Missing Config", "No sort was set.");
+            return;
+        } else if (targets.length === 0) {
+            generateToast("Missing Config", "No limit was set.");
+            return;
+        }
+
+        difficulty = parseInt(
+            difficulty.first()[0].getAttribute("data-difficulty")
+        );
+
+        switch (sorting.first()[0].id) {
+            case "recently-updated-sort":
+                sort = "timestamp";
+                break;
+            case "highest-respect-sort":
+                sort = "respect";
+                break;
+            default:
+                generateToast("Invalid Sort", "Invalid sort option");
+                return;
+        }
+
+        const limit = parseInt(targets.first()[0].getAttribute("data-limit"));
+
+        $("#generate-list").attr("disabled", true);
         $("#targets-container").empty();
 
         const xhttp = new XMLHttpRequest();
-        var ff = Number($("#chain-ff").val());
 
         xhttp.onload = function () {
             var response = xhttp.response;
@@ -30,7 +97,7 @@ $(document).ready(function () {
                     "Chain List Request Failed",
                     `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`
                 );
-                $("#chain-list-button").attr("disabled", false);
+                $("#generate-list").attr("disabled", false);
                 return;
             }
 
@@ -184,11 +251,14 @@ $(document).ready(function () {
                 xhttp.send();
             });
 
-            $("#chain-list-button").attr("disabled", false);
+            $("#generate-list").attr("disabled", false);
         };
 
         xhttp.responseType = "json";
-        xhttp.open("GET", `/api/stat?ff=${ff}`);
+        xhttp.open(
+            "GET",
+            `/api/stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`
+        );
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 

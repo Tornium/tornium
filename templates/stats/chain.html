@@ -49,41 +49,34 @@ Tornium - Chain Generator
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Chain List Generator (BETA)</h5>
-            <p class="card-text">
-                This utility returns a chain list based on fair fight with a default of 3x FF (this can be
-                adjusted if you're on war perks, xan debuff, et al). Move the slider below to maximize the respect
-                earned and minimize the potential health lost. It is not recommended to move the slider above 1x
-                since at that point, targets will be as strong or stronger than you are.
-            </p>
-            <p class="card-text">
-                Note: Please minimize the number of chain list generations per minute since this utility makes a call to the
-                Torn API for each user.
-            </p>
 
-            <div class="px-2 py-2">
-                <div class="card">
+            <div class="px-3 py-3 row">
+                <div class="col-sm-12 col-md-12 col-lg-6 card">
+                    <div class="card-header">
+                        Configuration Options
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title">Chain List Generator Options</h5>
-                        <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                            <form class="form-floating" id="chain-form">
-                                <label for="chain-ff" class="form-label">
-                                    Chain List Fair Fight
-                                    <span class="badge rounded-pill bg-danger">
-                                        <span id="strength">3</span>
-                                    </span>
-                                </label>
-                                <input type="range" class="form-range mb-3" id="chain-ff" min="1" max="3" step="0.01" Value="3" onInput="$('#strength').html($(this).val())">
-
-                                <div class="form-text">
-                                    Adjust the slider above in order to increase or decrease the difficulty of the target.
-                                    As the slider moves to the left, the difficulty decreases; as the slider moves to the
-                                    right, the difficulty increases. A value of around 3x will give maximum fair fight 
-                                    (at maximum, your total stats) and a value of around 1x will give a list of users with 
-                                    very few total stats.
-                                </div>
-
-                                <button type="submit" class="btn btn-outline-primary mt-3" id="chain-list-button">Generate</button>
-                            </form>
+                        <div class="btn-group flex-wrap d-flex justify-content-around" role="group" aria-label="Difficulty Options">
+                            <button type="button" class="btn btn-outline-success difficulty-button" data-difficulty="0">Very Easy</button>
+                            <button type="button" class="btn btn-outline-success difficulty-button" data-difficulty="1">Easy</button>
+                            <button type="button" class="btn btn-outline-warning difficulty-button" data-difficulty="2">Medium</button>
+                            <button type="button" class="btn btn-outline-danger difficulty-button" data-difficulty="3">Hard</button>
+                            <button type="button" class="btn btn-outline-danger difficulty-button" data-difficulty="4">Very Hard</button>
+                        </div>
+                        <hr>
+                        <div class="btn-group d-flex justify-content-around" role="group" aria-label="Sorting Options">
+                            <button type="button" class="btn btn-outline-primary sorting-button" id="recently-updated-sort">Most Recently Updated</button>
+                            <button type="button" class="btn btn-outline-primary sorting-button" id="highest-respect-sort">Highest Respect</button>
+                        </div>
+                        <hr>
+                        <div class="btn-group d-flex justify-content-center" role="group" aria-label="Limit Options">
+                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="10">10 Targets</button>
+                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="25">25 Targets</button>
+                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="50">50 Targets</button>
+                        </div>
+                        <hr>
+                        <div class="btn-group d-flex justify-content-center" role="group" aria-label="Generate List">
+                            <button type="button" class="btn btn-outline-success" id="generate-list">Generate Chain List</button>
                         </div>
                     </div>
                 </div>

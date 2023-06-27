@@ -14,20 +14,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
-import random
-import time
+import operator
 import typing
 
-from billiard.exceptions import TimeLimitExceeded
 from flask import jsonify, request
 from mongoengine.queryset import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import NetworkingError, RatelimitError, TornError
 from tornium_commons.models import FactionModel, StatModel, UserModel
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
+
+_DIFFICULTY_MAP = {
+    0: (1.25, 1.75),
+    1: (1.75, 2),
+    2: (2, 2.25),
+    3: (2.25, 2.5),
+    4: (2.5, 3),
+}
 
 
 @authentication_required
@@ -35,28 +40,35 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def generate_chain_list(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-    variance = request.args.get("variance") if request.args.get("variance") is not None else 0.01
-    ff = request.args.get("ff") if request.args.get("ff") is not None else 3
+    difficulty = request.args.get("difficulty", 2)
+    sort = request.args.get("sort", "timestamp")
+    limit = request.args.get("limit", 10)
 
     try:
-        variance = float(variance)
-        ff = float(ff)
+        difficulty = int(difficulty)
+        limit = int(limit)
     except ValueError:
         return make_exception_response(
             "1000", key, details={"message": "Illegal parameter type. Must be a float or integer."}
         )
 
-    if float(variance) < 0 or float(variance) > 0.1:
+    if not (0 <= difficulty <= 4):
         return make_exception_response(
             "1000",
             key,
-            details={"message": "An invalid variance has been provided."},
+            details={"message": "An invalid difficulty has been provided."},
         )
-    elif float(ff) < 1 or float(ff) > 3:
+    elif not (10 <= limit <= 100):
         return make_exception_response(
             "1000",
             key,
-            details={"message": "An invalid FF has been provided."},
+            details={"message": "An invalid limit has been provided."},
+        )
+    elif sort not in ("timestamp", "respect"):
+        return make_exception_response(
+            "1000",
+            key,
+            details={"message": "An invalid sort option has been provided."},
         )
     elif kwargs["user"].battlescore == 0:
         return make_exception_response(
@@ -64,12 +76,6 @@ def generate_chain_list(*args, **kwargs):
             key,
             details={"message": "User does not have a stat score stored in the database."},
         )
-
-    ff = float(ff)
-    variance = float(variance)
-
-    if ff == 3:
-        variance = 0
 
     # f = fair fight
     # v = variance
@@ -82,18 +88,34 @@ def generate_chain_list(*args, **kwargs):
     # f = 11/3 is equal ratio of d/a
     # f = 17/5 is 9/10 ratio of d/a
 
-    if ff == 3:
+    # Difficulty | Min FF | Max FF |     Name    |
+    #     0      |  1.25  |  1.75  |  Very Easy  |
+    #     1      |  1.75  |   2    |    Easy     |
+    #     2      |   2    |  2.25  |   Medium    |
+    #     3      |  2.25  |  2.5   |    Hard     |
+    #     4      |  2.5   |   3    |  Very Hard  |
+
+    if difficulty < 4:
+        min_ff = _DIFFICULTY_MAP[difficulty][0]
+        max_ff = _DIFFICULTY_MAP[difficulty][1]
+
         stat_entries: QuerySet = StatModel.objects(
             (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
-            & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (ff - 1)))
-            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * 2.4))
+            & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (min_ff - 1)))
+            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * (max_ff - 1)))
         )
     else:
+        min_ff = _DIFFICULTY_MAP[difficulty][0]
+
         stat_entries: QuerySet = StatModel.objects(
             (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
-            & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (ff - variance - 1)))
-            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * (ff + variance - 1)))
+            & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (min_ff - 1)))
+            & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * 2.4))
         )
+
+    if sort == "timestamp":
+        stat_entries.order_by("-timeadded")
+        stat_entries = stat_entries.limit(limit)
 
     stat_entries: list = list(set(stat_entries.all().values_list("tid")))
     jsonified_stat_entries = []
@@ -160,11 +182,14 @@ def generate_chain_list(*args, **kwargs):
             }
         )
 
+    if sort == "respect":
+        jsonified_stat_entries = sorted(jsonified_stat_entries, key=operator.itemgetter("respect"), reverse=True)[
+            :limit
+        ]
+
     return (
         jsonify(
             {
-                "ff": ff,
-                "variance": variance,
                 "data": jsonified_stat_entries,
             }
         ),

@@ -12,7 +12,7 @@ There are four main sections to Tornium:
 There are also a few other sections such as :ref:`"User Settings"<usersettings>` and the API that you most likely won't use as frequently. These sections appear on the sidebar on larger displays or the dropdown menu on smaller ones. As you navigate through Tornium's sections, you'll also see subsections for each section appear underneath the section list (as shown in the example below). There will also be a breadcrumb above the faction list to indicate your current location on Tornium.
 
 .. image:: /_static/images/example_sidebar.png
-  :alt: Alternative text
+  :alt: Example sidebar
 
 Faction
 -------

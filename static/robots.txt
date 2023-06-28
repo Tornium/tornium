@@ -3,7 +3,6 @@ Allow: /
 Allow: /index
 Allow: /faction
 Allow: /bot
-Allow: /bot/host
 Allow: /stats
 Allow: /api
 Disallow: *

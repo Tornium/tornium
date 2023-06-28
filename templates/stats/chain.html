@@ -45,15 +45,16 @@ Tornium - Chain Generator
 {% endblock %}
 
 {% block content %}
-<div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-    <i class="fa-solid fa-triangle-exclamation"></i> The chain list generator is currently undergoing a remodel. Our doors are still open during this, but there may be issues. Mind the dust.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-
 <div class="px-3 py-3">
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Chain List Generator (BETA)</h5>
+            <p class="card-text">
+                The chain list generator uses the data from <a href="/stat/db">stat database</a> to generate a list of potential targets to attack based on the passed configuration.
+                A difficulty, sorting order, and limit must be selected before generating the list of targets.
+                <br />
+                For details about how the chain list generator works and more details, check out the <a href="https://docs.tornium.com/en/latest/user/statdb/chainlist.html">documentation</a>.
+            </p>
 
             <div class="px-3 py-3 row">
                 <div class="col-sm-12 col-md-12 col-lg-6 card">

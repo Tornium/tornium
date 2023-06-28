@@ -72,7 +72,7 @@ def get_specific_user(tid: int, *args, **kwargs):
     if refresh:
         update_user(kwargs["user"].key, tid=tid, refresh_existing=True).get()
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).first()
+    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).no_cache().first()
 
     if user is None:
         return make_exception_response("1100", key)

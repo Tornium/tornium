@@ -117,6 +117,8 @@ def generate_chain_list(*args, **kwargs):
         stat_entries_sorted = stat_entries.order_by("-timeadded")
     elif sort == "random":
         stat_entries_sorted = list(stat_entries.aggregate(pipeline=[{"$sample": {"size": limit}}]))
+    else:
+        stat_entries_sorted = stat_entries
 
     jsonified_stat_entries = []
     targets = []

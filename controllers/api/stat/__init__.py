@@ -114,8 +114,7 @@ def generate_chain_list(*args, **kwargs):
         )
 
     if sort == "timestamp":
-        stat_entries.order_by("-timeadded")
-        stat_entries = stat_entries.limit(limit)
+        stat_entries = stat_entries.order_by("-timeadded").limit(limit)
 
     jsonified_stat_entries = []
     targets = []

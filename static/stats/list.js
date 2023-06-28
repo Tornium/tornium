@@ -74,6 +74,9 @@ $(document).ready(function () {
             case "highest-respect-sort":
                 sort = "respect";
                 break;
+            case "random-sort":
+                sort = "random";
+                break;
             default:
                 generateToast("Invalid Sort", "Invalid sort option");
                 return;

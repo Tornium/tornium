@@ -64,7 +64,7 @@ def generate_chain_list(*args, **kwargs):
             key,
             details={"message": "An invalid limit has been provided."},
         )
-    elif sort not in ("timestamp", "respect"):
+    elif sort not in ("timestamp", "respect", "random"):
         return make_exception_response(
             "1000",
             key,
@@ -99,7 +99,7 @@ def generate_chain_list(*args, **kwargs):
         min_ff = _DIFFICULTY_MAP[difficulty][0]
         max_ff = _DIFFICULTY_MAP[difficulty][1]
 
-        stat_entries: QuerySet = StatModel.objects(
+        stat_entries: typing.Union[QuerySet, list] = StatModel.objects(
             (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
             & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (min_ff - 1)))
             & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * (max_ff - 1)))
@@ -107,37 +107,45 @@ def generate_chain_list(*args, **kwargs):
     else:
         min_ff = _DIFFICULTY_MAP[difficulty][0]
 
-        stat_entries: QuerySet = StatModel.objects(
+        stat_entries: typing.Union[QuerySet, list] = StatModel.objects(
             (Q(globalstat=True) | Q(addedid=kwargs["user"].tid) | Q(addedfactiontid=kwargs["user"].factionid))
             & Q(battlescore__gte=(0.375 * kwargs["user"].battlescore * (min_ff - 1)))
             & Q(battlescore__lte=(0.375 * kwargs["user"].battlescore * 2.4))
         )
 
     if sort == "timestamp":
-        stat_entries = stat_entries.order_by("-timeadded")
+        stat_entries_sorted = stat_entries.order_by("-timeadded")
+    elif sort == "random":
+        stat_entries_sorted = list(stat_entries.aggregate(pipeline=[{"$sample": {"size": limit}}]))
 
     jsonified_stat_entries = []
     targets = []
 
-    stat_entry: StatModel
-    for stat_entry in stat_entries:
+    # stat_entry: typing.Union[StatModel, dict]
+    for stat_entry in stat_entries_sorted:
         if len(jsonified_stat_entries) >= limit:
             break
-        elif stat_entry.tid in targets:
+
+        if type(stat_entry) == StatModel:
+            stat_dict = dict(stat_entry.to_mongo())
+        else:
+            stat_dict = stat_entry
+
+        if stat_dict["tid"] in targets:
             continue
 
-        target: typing.Optional[UserModel] = UserModel.objects(tid=stat_entry.tid).first()
+        target: typing.Optional[UserModel] = UserModel.objects(tid=stat_dict["tid"]).first()
 
         if target is None:
             try:
-                update_user(kwargs["user"].key, tid=stat_entry.tid)
+                update_user(kwargs["user"].key, tid=stat_dict["tid"])
             except Exception as e:
                 print(e)
 
             continue
 
         # Get latest viewable stat entry for the specified user
-        stat_entry = stat_entries.filter(tid=stat_entry.tid).order_by("-timeadded").first()
+        stat_entry = stat_entries.filter(tid=stat_entry["tid"]).order_by("-timeadded").first()
 
         targets.append(stat_entry.tid)
         target_ff = round(1 + 8 / 3 * (stat_entry.battlescore / kwargs["user"].battlescore), 2)

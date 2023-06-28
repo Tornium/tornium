@@ -24,7 +24,6 @@ This section includes various information and components regarding the faction.
     faction/members
     faction/banking
     faction/chains
-    faction/attacks
     faction/bot
 
 Discord Bot

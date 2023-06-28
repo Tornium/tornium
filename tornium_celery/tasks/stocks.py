@@ -256,7 +256,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
         embed["fields"].append(
             {
                 "name": "Price",
-                "value": f"${commas(stock['price'], stock_price=True)}",
+                "value": f"${commas(stock['current_price'], stock_price=True)}",
             }
         )
         embed["fields"].append(
@@ -299,7 +299,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
             embed["fields"].append(
                 {
                     "name": "New Day Opening Price",
-                    "value": f"${commas(stock['price'], stock_price=True)}",
+                    "value": f"${commas(stock['current_price'], stock_price=True)}",
                     "inline": True,
                 }
             )
@@ -313,7 +313,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
             embed["fields"].append(
                 {
                     "name": "Day to Day Price Change (%)",
-                    "value": f"{round((stock['price'] - previous_opening_tick.price) / previous_opening_tick.price * 100, 2)}",
+                    "value": f"{round((stock['current_price'] - previous_opening_tick.price) / previous_opening_tick.price * 100, 2)}",
                 }
             )
             embed["fields"].append(
@@ -369,7 +369,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
         else:
             seven_min, fourteen_min, month_min = [float(n) for n in price_min.split("|")]
 
-            if seven_min * 1.01 > stock["price"]:
+            if seven_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"7-Day Low: {stock['name']}"
                 embed[
@@ -386,7 +386,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
                 embed["fields"].append(
                     {
                         "name": "Price",
-                        "value": f"${commas(stock['price'], stock_price=True)}",
+                        "value": f"${commas(stock['current_price'], stock_price=True)}",
                     }
                 )
 
@@ -394,7 +394,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
                 for guild in ServerModel.objects(Q(stocks_config__min_price=True) & Q(stocks_channel__nin=[0, None])):
                     pass
 
-            if fourteen_min * 1.01 > stock["price"]:
+            if fourteen_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"14-Day Low: {stock['name']}"
                 embed[
@@ -411,11 +411,11 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
                 embed["fields"].append(
                     {
                         "name": "Price",
-                        "value": f"${commas(stock['price'], stock_price=True)}",
+                        "value": f"${commas(stock['current_price'], stock_price=True)}",
                     }
                 )
 
-            if month_min * 1.01 > stock["price"]:
+            if month_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"1-Month Low: {stock['name']}"
                 embed[
@@ -432,7 +432,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
                 embed["fields"].append(
                     {
                         "name": "Price",
-                        "value": f"${commas(stock['price'], stock_price=True)}",
+                        "value": f"${commas(stock['current_price'], stock_price=True)}",
                     }
                 )
 
@@ -456,13 +456,13 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
         else:
             seven_max, fourteen_max, month_max = [float(n) for n in price_max.split("|")]
 
-            if seven_max * 1.01 < stock["price"]:
+            if seven_max * 1.01 < stock["current_price"]:
                 pass
 
-            if fourteen_max * 1.01 < stock["price"]:
+            if fourteen_max * 1.01 < stock["current_price"]:
                 pass
 
-            if month_max * 1.01 < stock["price"]:
+            if month_max * 1.01 < stock["current_price"]:
                 pass
 
 

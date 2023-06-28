@@ -135,7 +135,7 @@ if celery_app is None:
                 "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
             },
             "auto-cancel-requests": {
-                "tasks": "tasks.faction.auto_cancel_requests",
+                "task": "tasks.faction.auto_cancel_requests",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
             },  # Guild tasks

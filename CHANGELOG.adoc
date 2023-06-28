@@ -10,6 +10,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance
 
+=== Removed
+ - Removed AttackModel and related endpoints
+
 == 0.3.1 - May 3, 2023
 === Added
  - [dev] Added pre-commit support

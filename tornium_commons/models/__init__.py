@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .attackmodel import AttackModel
 from .factionmodel import FactionModel
 from .factionstakeoutmodel import FactionStakeoutModel
 from .notificationmodel import NotificationModel
@@ -28,7 +27,6 @@ from .userstakeoutmodel import UserStakeoutModel
 from .withdrawalmodel import WithdrawalModel
 
 __all__ = [
-    "AttackModel",
     "FactionModel",
     "FactionStakeoutModel",
     "NotificationModel",

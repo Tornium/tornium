@@ -30,7 +30,6 @@ from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
-    AttackModel,
     FactionModel,
     OCModel,
     PositionModel,
@@ -739,29 +738,8 @@ def stat_db_attacks(faction_data, last_attacks=None):
     if last_attacks is None or last_attacks >= int(time.time()):
         last_attacks = faction.last_attacks
 
-    attacks_data = []
-
     attack: dict
     for attack in faction_data["attacks"].values():
-        attacks_data.append(
-            {
-                "code": attack.get("code"),
-                "timestamp_started": attack.get("timestamp_started"),
-                "timestamp_ended": attack.get("timestamp_ended"),
-                "attacker": attack.get("attacker_id"),
-                "attacker_faction": attack.get("attacker_faction"),
-                "defender": attack.get("defender_id"),
-                "defender_faction": attack.get("defender_faction"),
-                "result": ATTACK_RESULTS.get(attack.get("result"), -1),
-                "stealth": attack.get("stealthed"),
-                "respect": attack.get("respect"),
-                "chain": attack.get("chain"),
-                "raid": attack.get("raid"),
-                "ranked_war": attack.get("ranked_war"),
-                "modifiers": attack.get("modifiers"),
-            }
-        )
-
         if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape", "Looted", "Interrupted", "Timeout"]:
             continue
         elif attack["defender_id"] in [
@@ -894,16 +872,6 @@ def stat_db_attacks(faction_data, last_attacks=None):
         except Exception as e:
             logger.exception(e)
             continue
-
-    # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
-    try:
-        attacks_data = [AttackModel(**attack).to_mongo() for attack in attacks_data]
-        AttackModel._get_collection().insert_many(attacks_data, ordered=False)
-    except BulkWriteError:
-        logger.warning(
-            f"Attack data (from TID {factiontid}) bulk insert failed. Duplicates may have been found and "
-            f"were skipped."
-        )
 
     faction.last_attacks = list(faction_data["attacks"].values())[-1]["timestamp_ended"]
     faction.save()

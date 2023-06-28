@@ -125,7 +125,7 @@ def generate_chain_list(*args, **kwargs):
 
     # stat_entry: typing.Union[StatModel, dict]
     for stat_entry in stat_entries_sorted:
-        if len(jsonified_stat_entries) >= limit and sort != "random":
+        if len(jsonified_stat_entries) >= limit and sort != "respect":
             break
 
         if type(stat_entry) == StatModel:

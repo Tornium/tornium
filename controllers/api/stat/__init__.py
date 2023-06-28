@@ -114,14 +114,16 @@ def generate_chain_list(*args, **kwargs):
         )
 
     if sort == "timestamp":
-        stat_entries = stat_entries.order_by("-timeadded").limit(limit)
+        stat_entries = stat_entries.order_by("-timeadded")
 
     jsonified_stat_entries = []
     targets = []
 
     stat_entry: StatModel
     for stat_entry in stat_entries:
-        if stat_entry.tid in targets:
+        if len(jsonified_stat_entries) >= limit:
+            break
+        elif stat_entry.tid in targets:
             continue
 
         target: typing.Optional[UserModel] = UserModel.objects(tid=stat_entry.tid).first()
@@ -175,6 +177,8 @@ def generate_chain_list(*args, **kwargs):
         jsonified_stat_entries = sorted(jsonified_stat_entries, key=operator.itemgetter("respect"), reverse=True)[
             :limit
         ]
+    elif sort == "timestamp":
+        jsonified_stat_entries = sorted(jsonified_stat_entries, key=operator.itemgetter("timeadded"), reverse=True)
 
     return (
         jsonify(

@@ -332,12 +332,12 @@ def check_faction_ods(faction_od_data):
     elif faction.od_channel in (0, None):
         return
 
-    channel_data = discordget(f"channels/{faction.od_channel}", channel=faction.od_channel)
-
-    if channel_data.get("guild_id") != faction.guild:
-        faction.od_channel = 0
-        faction.save()
-        return
+    # channel_data = discordget(f"channels/{faction.od_channel}", channel=faction.od_channel)
+    #
+    # if channel_data.get("guild_id") != faction.guild:
+    #     faction.od_channel = 0
+    #     faction.save()
+    #     return
 
     guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
 

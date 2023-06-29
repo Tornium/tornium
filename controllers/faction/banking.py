@@ -79,7 +79,7 @@ def bankingdata():
 
         if withdrawal.fulfiller > 1:
             fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
-        if withdrawal.fulfiller == 1:
+        elif withdrawal.fulfiller == 1:
             fulfiller = "Someone"
         elif withdrawal.fulfiller == -1:
             fulfiller = "Cancelled by System"

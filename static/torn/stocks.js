@@ -70,17 +70,125 @@ $(document).ready(function () {
                 return;
             }
 
-            $("#gain-d1-1")
-                .empty()
-                .append([
-                    $("<span>", {
-                        text: `${moverData.gainers.d1.stock_id} → ${moverData.gainers.price}`,
-                    }),
-                    $("<span>", {
-                        class: "badge bg-primary text-bg-success rounded-pill",
-                        text: `${moverData.gainers.d1.change * 100}%`,
-                    }),
-                ]);
+            for (let n = 0; n < 5; n++) {
+                $(`#gain-d1-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.gainers.d1[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.gainers.d1[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.gainers.d1[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
+
+            for (let n = 0; n < 5; n++) {
+                $(`#gain-d7-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.gainers.d7[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.gainers.d7[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.gainers.d7[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
+
+            for (let n = 0; n < 5; n++) {
+                $(`#gain-m1-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.gainers.m1[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.gainers.m1[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.gainers.m1[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
+
+            for (let n = 0; n < 5; n++) {
+                $(`#loss-d1-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.losers.d1[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.losers.d1[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.losers.d1[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
+
+            for (let n = 0; n < 5; n++) {
+                $(`#loss-d7-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.losers.d7[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.losers.d7[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.losers.d7[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
+
+            for (let n = 0; n < 5; n++) {
+                $(`#loss-m1-${n}`)
+                    .empty()
+                    .append([
+                        $("<span>", {
+                            text: `${
+                                stocksData[
+                                    moverData.losers.m1[n].stock_id.toString()
+                                ].acronym
+                            } → $${moverData.losers.m1[n].price}`,
+                        }),
+                        $("<span>", {
+                            class: "badge bg-primary text-bg-success rounded-pill",
+                            text: `${(
+                                moverData.losers.m1[n].change * 100
+                            ).toFixed(2)}%`,
+                        }),
+                    ]);
+            }
         };
 
         xhttp.open("GET", "/api/stocks");

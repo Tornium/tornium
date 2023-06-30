@@ -17,12 +17,78 @@ $(document).ready(function () {
     const xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {
-        let response = xhttp.response;
-        console.log(response);
+        let moverData = xhttp.response;
+
+        if ("code" in moverData) {
+            generateToast(
+                "Stock Movers Load Failed",
+                `The Tornium API server has responded with \"${moverData["message"]}\" to the submitted request.`
+            );
+            $(".mover-data")
+                .empty()
+                .append(
+                    $("<li>", {
+                        class: "list-group-item",
+                    }).append([
+                        $("<i>", {
+                            class: "fa-solid fa-circle-exclamation",
+                            style: "color: #C83F49",
+                        }),
+                        $("<span>", {
+                            class: "ps-2",
+                            text: "Data failed to load.",
+                        }),
+                    ])
+                );
+            return;
+        }
+
+        xhttp.onload = function () {
+            let stocksData = xhttp.response;
+
+            if ("code" in stocksData) {
+                generateToast(
+                    "Stock Data Load Failed",
+                    `The Tornium API server has responded with \"${stocksData["message"]}\" to the submitted request.`
+                );
+                $(".mover-data")
+                    .empty()
+                    .append(
+                        $("<li>", {
+                            class: "list-group-item",
+                        }).append([
+                            $("<i>", {
+                                class: "fa-solid fa-circle-exclamation",
+                                style: "color: #C83F49",
+                            }),
+                            $("<span>", {
+                                class: "ps-2",
+                                text: "Data failed to load.",
+                            }),
+                        ])
+                    );
+                return;
+            }
+
+            $("#gain-d1-1")
+                .empty()
+                .append([
+                    $("<span>", {
+                        text: `${moverData.gainers.d1.stock_id} → ${moverData.gainers.price}`,
+                    }),
+                    $("<span>", {
+                        class: "badge bg-primary text-bg-success rounded-pill",
+                        text: `${moverData.gainers.d1.change * 100}%`,
+                    }),
+                ]);
+        };
+
+        xhttp.open("GET", "/api/stocks");
+        xhttp.send();
     };
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/stocks/movers`);
+    xhttp.open("GET", "/api/stocks/movers");
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 });

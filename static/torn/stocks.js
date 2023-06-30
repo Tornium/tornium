@@ -70,7 +70,7 @@ $(document).ready(function () {
                 return;
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#gain-d1-${n}`)
                     .empty()
                     .append([
@@ -90,7 +90,7 @@ $(document).ready(function () {
                     ]);
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#gain-d7-${n}`)
                     .empty()
                     .append([
@@ -110,7 +110,7 @@ $(document).ready(function () {
                     ]);
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#gain-m1-${n}`)
                     .empty()
                     .append([
@@ -130,7 +130,7 @@ $(document).ready(function () {
                     ]);
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#loss-d1-${n}`)
                     .empty()
                     .append([
@@ -150,7 +150,7 @@ $(document).ready(function () {
                     ]);
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#loss-d7-${n}`)
                     .empty()
                     .append([
@@ -170,7 +170,7 @@ $(document).ready(function () {
                     ]);
             }
 
-            for (let n = 0; n < 5; n++) {
+            for (let n = 0; n <= 5; n++) {
                 $(`#loss-m1-${n}`)
                     .empty()
                     .append([

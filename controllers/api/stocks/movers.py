@@ -79,7 +79,7 @@ def stock_movers(*args, **kwargs):
     m1_changes = {}
 
     for stock_id in stock_id_list:
-        # dec_change = (old - new) / old
+        # dec_change = (new - old) / old
 
         now_tick: typing.Optional[TickModel] = current_stock_ticks.get(stock_id)
 
@@ -91,18 +91,20 @@ def stock_movers(*args, **kwargs):
         m1_tick: typing.Optional[TickModel] = m1_stock_ticks.get(stock_id)
 
         if d1_tick is not None:
-            d1_changes[stock_id] = (d1_tick.price - now_tick.price) / d1_tick.price
+            d1_changes[stock_id] = (now_tick.price - d1_tick.price) / d1_tick.price
 
         if d7_tick is not None:
-            d7_changes[stock_id] = (d7_tick.price - now_tick.price) / d7_tick.price
+            d7_changes[stock_id] = (now_tick.price - d7_tick.price) / d7_tick.price
 
         if m1_tick is not None:
-            m1_changes[stock_id] = (m1_tick.price - now_tick.price) / m1_tick.price
+            m1_changes[stock_id] = (now_tick.price - m1_tick.price) / m1_tick.price
 
     # Changes from low to high
     d1_changes_sorted = sorted(d1_changes, key=d1_changes.get)
     d7_changes_sorted = sorted(d7_changes, key=d7_changes.get)
     m1_changes_sorted = sorted(m1_changes, key=m1_changes.get)
+
+    # [:-6:-1] will reverse the list and return the first five
 
     # d1 losers
     for stock_id in d1_changes_sorted[:5]:
@@ -115,7 +117,7 @@ def stock_movers(*args, **kwargs):
         )
 
     # d1 gainers
-    for stock_id in d1_changes_sorted[-5:]:
+    for stock_id in d1_changes_sorted[:-6:-1]:
         movers_data["gainers"]["d1"].append(
             {
                 "stock_id": stock_id,
@@ -135,7 +137,7 @@ def stock_movers(*args, **kwargs):
         )
 
     # d7 gainers
-    for stock_id in d7_changes_sorted[-5:]:
+    for stock_id in d7_changes_sorted[:-6:-1]:
         movers_data["gainers"]["d7"].append(
             {
                 "stock_id": stock_id,
@@ -155,7 +157,7 @@ def stock_movers(*args, **kwargs):
         )
 
     # m1 gainers
-    for stock_id in m1_changes_sorted[-5:]:
+    for stock_id in m1_changes_sorted[:-6:-1]:
         movers_data["gainers"]["m1"].append(
             {
                 "stock_id": stock_id,

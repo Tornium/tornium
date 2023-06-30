@@ -85,7 +85,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32; color: white",
+                            style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
                                 moverData.gainers.d1[n].change * 100
                             ).toFixed(2)}%`,
@@ -108,7 +108,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32; color: white",
+                            style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
                                 moverData.gainers.d7[n].change * 100
                             ).toFixed(2)}%`,
@@ -131,7 +131,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32; color: white",
+                            style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
                                 moverData.gainers.m1[n].change * 100
                             ).toFixed(2)}%`,
@@ -154,7 +154,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49; color: white",
+                            style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
                                 moverData.losers.d1[n].change * 100
                             ).toFixed(2)}%`,
@@ -177,7 +177,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49; color: white",
+                            style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
                                 moverData.losers.d7[n].change * 100
                             ).toFixed(2)}%`,
@@ -200,7 +200,7 @@ $(document).ready(function () {
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49; color: white",
+                            style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
                                 moverData.losers.m1[n].change * 100
                             ).toFixed(2)}%`,

@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.torn import factions, users
+from controllers.torn import factions, stocks, users
 
 mod = Blueprint("tornroutes", __name__)
 
@@ -28,6 +28,9 @@ mod.add_url_rule(
 )
 mod.add_url_rule("/torn/factions", view_func=factions.factions, methods=["GET"])
 mod.add_url_rule("/torn/factionsdata", view_func=factions.factions_data, methods=["GET"])
+
+# Stock Routes
+mod.add_url_rule("/torn/stocks", view_func=stocks.stocks, methods=["GET"])
 
 # Users Routes
 mod.add_url_rule("/torn/user/<int:tid>", view_func=users.user_data, methods=["GET"])

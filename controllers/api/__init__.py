@@ -15,7 +15,7 @@
 
 from flask import Blueprint
 
-from controllers.api import bot, faction, key, stakeout, stat, user
+from controllers.api import bot, faction, key, stakeout, stat, stocks, user
 
 mod = Blueprint("apiroutes", __name__)
 
@@ -134,6 +134,9 @@ mod.add_url_rule("/api/stakeout/<string:stype>", view_func=stakeout.create_stake
 # /api/stat
 mod.add_url_rule("/api/stat", view_func=stat.generate_chain_list, methods=["GET"])
 mod.add_url_rule("/api/stat/<int:tid>", view_func=stat.get_stat_user, methods=["GET"])
+
+# /api/stocks
+mod.add_url_rule("/api/stocks/movers", view_func=stocks.movers.stock_movers, methods=["GET"])
 
 # /api/user
 mod.add_url_rule("/api/user", view_func=user.get_user, methods=["GET"])

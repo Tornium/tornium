@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Stocks
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/torn">Torn Data</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/torn/stocks">Stocks</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/torn/factions">
+                <i class="col-1 col-sm-2 fa-solid fa-person-military-rifle"></i> <span class="col">Factions</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/torn/users">
+                <i class="col-1 col-sm-2 fa-solid fa-person-rifle"></i> <span class="col">Users</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/torn/stocks">
+                <i class="col-1 col-sm-2 fa-solid fa-arrow-trend-up"></i> <span class="col">Stocks</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="px-3 py-3">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Best Passives</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Gainers (1 Day) </h5>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="gain-d1-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d1-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d1-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d1-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d1-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Gainers (7 Days)</h5>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="gain-d7-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d7-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d7-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d7-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-d7-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Gainers (1 Month)</h5>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="gain-m1-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-m1-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-m1-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-m1-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="gain-m1-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Losers (1 Day) </h5>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="loss-d1-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d1-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d1-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d1-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d1-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Losers (7 Days)</h5>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="loss-d7-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d7-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d7-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d7-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-d7-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Greatest Losers (1 Month)</h5>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item placeholder-glow" id="loss-m1-1"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-m1-2"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-m1-3"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-m1-4"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow" id="loss-m1-5"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for stock in stocks %}
+{{ stock.tick_id }}: ${{ stock.price }}<br />
+{% endfor %}
+<script src="/static/torn/stocks.js"></script>
+{% endblock %}

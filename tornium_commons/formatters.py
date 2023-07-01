@@ -21,6 +21,8 @@ from decimal import Decimal
 
 from boltons.timeutils import relative_time
 
+from .models import ItemModel
+
 
 def get_tid(name: str) -> int:
     """
@@ -257,3 +259,43 @@ def str_matches(input_str: str, items: typing.Union[list, set], starts: bool = F
         return [item for item in items if input_str.startswith(item)]
     else:
         return [item for item in items if item in input_str]
+
+
+def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemModel]]:
+    """
+    Parse an item string into the item quantity and ItemModel
+
+    Parameters
+    ----------
+    input_str : str
+        String to be parsed
+
+    Returns
+    -------
+    quantity : int
+        Number of items
+    item : ItemModel, optional
+        Database entry of the item if one exists
+
+    Examples
+    --------
+    >>> parse_item_str("3x Feathery Hotel Coupon")
+    (3, ItemModel(367))
+    >>> parse_item_str("1x Random Property")
+    (1, None)
+    """
+
+    input_str_split = input_str.split("x ")
+
+    quantity: typing.Union[str, int] = input_str_split[0]
+    item_str: str = "x ".join(input_str_split[1:])
+
+    if quantity.isdigit():
+        quantity = int(quantity)
+
+        if quantity <= 0:
+            raise ValueError("Illegal quantity")
+
+    item: typing.Optional[ItemModel] = ItemModel.objects(name=item_str).first()
+
+    return quantity, item

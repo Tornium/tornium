@@ -80,10 +80,10 @@ class ItemModel(DynamicDocument):
         for item_id, item in items_data["items"].items():
             bulk_operations.append(
                 UpdateOne(
-                    {"tid": item_id},
+                    {"tid": int(item_id)},
                     {
                         "$set": {
-                            "tid": item_id,
+                            "tid": int(item_id),
                             "name": item.get("name", ""),
                             "description": item.get("description", ""),
                             "type": item.get("type", ""),

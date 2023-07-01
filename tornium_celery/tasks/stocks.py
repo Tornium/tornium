@@ -100,6 +100,7 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
     binary_timestamp = bin(stocks_timestamp << 8)
 
     stocks = {}
+    stock_benefits = {}
 
     for stock in stocks_data["stocks"].values():
         binary_stockid = bin(stock["stock_id"])
@@ -117,8 +118,10 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
         )
 
         stocks[stock["stock_id"]] = stock["acronym"]
+        stock_benefits[stock["stock_id"]] = stock["benefit"]
 
     rds().json().set("tornium:stocks", Path.root_path(), stocks)
+    rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits)
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
     try:

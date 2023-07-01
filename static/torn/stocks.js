@@ -13,43 +13,108 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function () {
-    const xhttp = new XMLHttpRequest();
+let STOCKS_DATA;
+let MOVERS_DATA;
+let BENEFITS_DATA;
 
-    xhttp.onload = function () {
-        let moverData = xhttp.response;
+let benefitsSorted = [];
+let benefitsPage = 0;
+let benefitsLoaded = false;
 
-        if ("code" in moverData) {
-            generateToast(
-                "Stock Movers Load Failed",
-                `The Tornium API server has responded with \"${moverData["message"]}\" to the submitted request.`
-            );
-            $(".mover-data")
-                .empty()
-                .append(
-                    $("<li>", {
-                        class: "list-group-item",
-                    }).append([
-                        $("<i>", {
-                            class: "fa-solid fa-circle-exclamation",
-                            style: "color: #C83F49",
-                        }),
-                        $("<span>", {
-                            class: "ps-2",
-                            text: "Data failed to load.",
-                        }),
-                    ])
-                );
-            return;
-        }
+const stocksQuery = async function () {
+    return fetch("/api/stocks", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+};
 
-        xhttp.onload = function () {
-            let stocksData = xhttp.response;
+const moversQuery = async function () {
+    return fetch("/api/stocks/movers", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+};
 
-            if ("code" in stocksData) {
+const benefitsQuery = async function () {
+    return fetch("/api/stocks/benefits", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+};
+
+function renderStocksBenefitsPage() {
+    if (!benefitsLoaded) {
+        generateToast(
+            "Benefits Render Failed",
+            "The stock benefits haven't been loaded from the Tornium API yet."
+        );
+        return;
+    }
+
+    let benefitsListed = benefitsSorted.slice(
+        6 * benefitsPage,
+        6 * benefitsPage - 5
+    );
+
+    for (let i = 0; i < benefitsListed.length; i++) {
+        let stock = STOCKS_DATA[benefitsListed[i]["stock_id"]];
+
+        $(`#passive-${i} .card-header`)
+            .empty()
+            .append(
+                $("<span>", {
+                    text: `${stock.acronym} → Block #${benefitsListed[i].bb_n}`,
+                })
+            )
+            .removeClass("placeholder");
+
+        $(`#passive-${i} .card-text`)
+            .empty()
+            .text(
+                `${stock.acronym} pays ${benefitsListed[i].description} per ${benefitsListed[i].frequency} days.`
+            )
+            .removeClass("placeholder");
+
+        $(`#passive-${i} .list-group-flush`)
+            .empty()
+            .append([
+                $("<li>", {
+                    class: "list-group-item",
+                    text: `Price: $${Number(stock.price).toFixed(2)}`,
+                }),
+                $("<li>", {
+                    class: "list-group-item",
+                    text: `Total Cost: $${commas(benefitsListed[i].cost)}`,
+                }),
+                $("<li>", {
+                    class: "list-group-item",
+                    text: `Average Daily Return: $${Number(
+                        benefitsListed[i].value / benefitsListed[i].frequency
+                    ).toFixed(2)}`,
+                }),
+                $("<li>", {
+                    class: "list-group-item",
+                    text: `Yearly ROI: ${(
+                        benefitsListed[i].daily_roi *
+                        365 *
+                        100
+                    ).toFixed(2)}%`,
+                }),
+            ]);
+    }
+}
+
+$(document).ready(async function () {
+    await Promise.all([await stocksQuery(), await benefitsQuery()])
+        .then(async (response) => {
+            STOCKS_DATA = await response[0].json();
+            BENEFITS_DATA = await response[1].json();
+        })
+        .then(() => {
+            if ("code" in STOCKS_DATA) {
                 generateToast(
                     "Stock Data Load Failed",
-                    `The Tornium API server has responded with \"${stocksData["message"]}\" to the submitted request.`
+                    `The Tornium API server has responded with \"${STOCKS_DATA["message"]}\" to the submitted request.`
                 );
                 $(".mover-data")
                     .empty()
@@ -67,27 +132,133 @@ $(document).ready(function () {
                             }),
                         ])
                     );
-                return;
+                throw undefined;
+            } else if ("code" in BENEFITS_DATA) {
+                generateToast(
+                    "Stock Movers Load Failed",
+                    `The Tornium API server has responded with \"${BENEFITS_DATA["message"]}\" to the submitted request.`
+                );
+                $(".mover-data")
+                    .empty()
+                    .append(
+                        $("<li>", {
+                            class: "list-group-item",
+                        }).append([
+                            $("<i>", {
+                                class: "fa-solid fa-circle-exclamation",
+                                style: "color: #C83F49",
+                            }),
+                            $("<span>", {
+                                class: "ps-2",
+                                text: "Data failed to load.",
+                            }),
+                        ])
+                    );
+                throw undefined;
             }
+        })
+        .then(() => {
+            BENEFITS_DATA["active"].forEach(function (stockBenefit) {
+                for (let i = 1; i < 4; i++) {
+                    let cost =
+                        i *
+                        stockBenefit["benefit"]["requirement"] *
+                        STOCKS_DATA[stockBenefit["stock_id"]]["price"];
+                    benefitsSorted.push({
+                        stock_id: stockBenefit["stock_id"],
+                        value: stockBenefit["benefit"]["value"],
+                        description: stockBenefit["benefit"]["description"],
+                        frequency: stockBenefit["benefit"]["frequency"],
+                        cost: cost,
+                        bb_n: i,
+                        daily_roi:
+                            stockBenefit["benefit"]["value"] /
+                            stockBenefit["benefit"]["frequency"] /
+                            cost,
+                    });
+                }
+            });
 
+            benefitsSorted = benefitsSorted.sort(function (f, s) {
+                return s.daily_roi - f.daily_roi;
+            });
+            benefitsLoaded = true;
+            renderStocksBenefitsPage();
+        });
+
+    await Promise.all([await stocksQuery(), await moversQuery()])
+        .then(async (response) => {
+            STOCKS_DATA = await response[0].json();
+            MOVERS_DATA = await response[1].json();
+        })
+        .then(() => {
+            if ("code" in STOCKS_DATA) {
+                generateToast(
+                    "Stock Data Load Failed",
+                    `The Tornium API server has responded with \"${STOCKS_DATA["message"]}\" to the submitted request.`
+                );
+                $(".mover-data")
+                    .empty()
+                    .append(
+                        $("<li>", {
+                            class: "list-group-item",
+                        }).append([
+                            $("<i>", {
+                                class: "fa-solid fa-circle-exclamation",
+                                style: "color: #C83F49",
+                            }),
+                            $("<span>", {
+                                class: "ps-2",
+                                text: "Data failed to load.",
+                            }),
+                        ])
+                    );
+                throw undefined;
+            } else if ("code" in MOVERS_DATA) {
+                generateToast(
+                    "Stock Movers Load Failed",
+                    `The Tornium API server has responded with \"${MOVERS_DATA["message"]}\" to the submitted request.`
+                );
+                $(".mover-data")
+                    .empty()
+                    .append(
+                        $("<li>", {
+                            class: "list-group-item",
+                        }).append([
+                            $("<i>", {
+                                class: "fa-solid fa-circle-exclamation",
+                                style: "color: #C83F49",
+                            }),
+                            $("<span>", {
+                                class: "ps-2",
+                                text: "Data failed to load.",
+                            }),
+                        ])
+                    );
+                throw undefined;
+            }
+        })
+        .then(() => {
             for (let n = 0; n < 5; n++) {
                 $(`#gain-d1-${n}`)
                     .empty()
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.gainers.d1[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.gainers.d1[
+                                        n
+                                    ].stock_id.toString()
                                 ].acronym
                             } → $${Number(
-                                moverData.gainers.d1[n].price
+                                MOVERS_DATA.gainers.d1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
-                                moverData.gainers.d1[n].change * 100
+                                MOVERS_DATA.gainers.d1[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
@@ -99,18 +270,20 @@ $(document).ready(function () {
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.gainers.d7[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.gainers.d7[
+                                        n
+                                    ].stock_id.toString()
                                 ].acronym
                             } → $${Number(
-                                moverData.gainers.d7[n].price
+                                MOVERS_DATA.gainers.d7[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
-                                moverData.gainers.d7[n].change * 100
+                                MOVERS_DATA.gainers.d7[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
@@ -122,18 +295,20 @@ $(document).ready(function () {
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.gainers.m1[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.gainers.m1[
+                                        n
+                                    ].stock_id.toString()
                                 ].acronym
                             } → $${Number(
-                                moverData.gainers.m1[n].price
+                                MOVERS_DATA.gainers.m1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
                             text: `+${Number(
-                                moverData.gainers.m1[n].change * 100
+                                MOVERS_DATA.gainers.m1[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
@@ -145,18 +320,18 @@ $(document).ready(function () {
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.losers.d1[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.losers.d1[n].stock_id.toString()
                                 ].acronym
-                            } → $${Number(moverData.losers.d1[n].price).toFixed(
-                                2
-                            )}`,
+                            } → $${Number(
+                                MOVERS_DATA.losers.d1[n].price
+                            ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
-                                moverData.losers.d1[n].change * 100
+                                MOVERS_DATA.losers.d1[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
@@ -168,18 +343,18 @@ $(document).ready(function () {
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.losers.d7[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.losers.d7[n].stock_id.toString()
                                 ].acronym
-                            } → $${Number(moverData.losers.d7[n].price).toFixed(
-                                2
-                            )}`,
+                            } → $${Number(
+                                MOVERS_DATA.losers.d7[n].price
+                            ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
-                                moverData.losers.d7[n].change * 100
+                                MOVERS_DATA.losers.d7[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
@@ -191,30 +366,21 @@ $(document).ready(function () {
                     .append([
                         $("<span>", {
                             text: `${
-                                stocksData[
-                                    moverData.losers.m1[n].stock_id.toString()
+                                STOCKS_DATA[
+                                    MOVERS_DATA.losers.m1[n].stock_id.toString()
                                 ].acronym
-                            } → $${Number(moverData.losers.m1[n].price).toFixed(
-                                2
-                            )}`,
+                            } → $${Number(
+                                MOVERS_DATA.losers.m1[n].price
+                            ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
                             text: `${Number(
-                                moverData.losers.m1[n].change * 100
+                                MOVERS_DATA.losers.m1[n].change * 100
                             ).toFixed(2)}%`,
                         }),
                     ]);
             }
-        };
-
-        xhttp.open("GET", "/api/stocks");
-        xhttp.send();
-    };
-
-    xhttp.responseType = "json";
-    xhttp.open("GET", "/api/stocks/movers");
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send();
+        });
 });

@@ -18,8 +18,12 @@ import typing
 
 import mongoengine
 from flask import jsonify
+from redis.commands.json.path import Path
+from tornium_celery.tasks.api import tornget
 from tornium_commons import rds
-from tornium_commons.models import TickModel
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.formatters import parse_item_str
+from tornium_commons.models import ItemModel, TickModel
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -70,3 +74,138 @@ def stocks_data(*args, **kwargs):
         }
 
     return jsonify(stocks_tick_data), 200, api_ratelimit_response(key)
+
+
+@authentication_required
+@ratelimit
+def stock_benefits(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    stock_benefits_data: dict = rds().json().get("tornium:stocks:benefits")
+
+    if stock_benefits_data is None:
+        stock_benefits_data = {}
+
+        try:
+            stocks_api_data = tornget("torn/?selections=stocks,stats", kwargs["user"].key)
+        except NetworkingError:
+            return make_exception_response("4100", key)
+        except TornError:
+            return make_exception_response("4101", key)
+
+        for stock in stocks_api_data["stocks"].values():
+            stock_benefits_data[stock["stock_id"]] = stock["benefit"]
+
+        rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits_data)
+        rds().set("tornium:points-value", stocks_api_data["stats"]["points_averagecost"], ex=86400)
+
+    ItemModel.update_items(tornget, kwargs["user"].key)
+    stock_benefits_json = {"active": [], "non_rev": [], "passive": []}
+
+    for stock_id, benefit in stock_benefits_data.items():
+        if benefit["type"] == "passive":
+            stock_benefits_json["passive"].append(
+                {
+                    "stock_id": stock_id,
+                    "benefit": {
+                        "requirement": benefit["requirement"],
+                        "frequency": None,
+                        "description": benefit["description"],
+                        "item": None,
+                        "value": None,
+                    },
+                }
+            )
+        else:
+            if benefit["description"].startswith("$"):
+                stock_benefits_json["active"].append(
+                    {
+                        "stock_id": stock_id,
+                        "benefit": {
+                            "requirement": benefit["requirement"],
+                            "frequency": benefit["frequency"],
+                            "description": benefit["description"],
+                            "item": None,
+                            "value": int("".join(benefit["description"][1:].split(","))),
+                        },
+                    }
+                )
+                continue
+
+            quantity: int
+            item: typing.Optional[ItemModel]
+            quantity, item = parse_item_str(benefit["description"])
+
+            if item is None:
+                if "Random Property" in benefit["description"]:
+                    value = 45_456_057.69  # Based on NPC sell price (75% of buy price)
+                elif "Clothing Cache" in benefit["description"]:
+                    _clothing_caches = [
+                        "Gentleman Cache",
+                        "Elegant Cache",
+                        "Naughty Cache",
+                        "Elderly Cache",
+                        "Denim Cache",
+                        "Wannabe Cache",
+                        "Cutesy Cache",
+                        "Injury Cache",
+                    ]
+                    clothing_cache_items = [ItemModel.objects(name=name).first() for name in _clothing_caches]
+                    clothing_cache_values = [
+                        item.market_value
+                        for item in clothing_cache_items
+                        if item is not None and item.market_value != 0
+                    ]
+                    value = round(sum(clothing_cache_values) / len(clothing_cache_values), 2)
+                elif "points" in benefit["description"]:
+                    points_value = rds().get("tornium:points-value")
+                    if points_value is None:
+                        try:
+                            stats_data = tornget("torn/?selections=stats", kwargs["user"].key)
+                        except (NetworkingError, TornError):
+                            continue
+
+                        points_value = stats_data["stats"]["points_averagecost"]
+                        rds().set("tornium:points-value", points_value, ex=86400)
+
+                    try:
+                        # Uses "100 Points" instead of "100x Points"
+                        value = 100 * int(points_value)
+                    except TypeError:
+                        continue
+                else:
+                    value = None
+
+                benefit_data = {
+                    "stock_id": stock_id,
+                    "benefit": {
+                        "requirement": benefit["requirement"],
+                        "frequency": benefit["frequency"],
+                        "description": benefit["description"],
+                        "item": None,
+                        "value": value,
+                    },
+                }
+
+                if value is None:
+                    stock_benefits_json["non_rev"].append(benefit_data)
+                else:
+                    stock_benefits_json["active"].append(benefit_data)
+            else:
+                stock_benefits_json["active"].append(
+                    {
+                        "stock_id": stock_id,
+                        "benefit": {
+                            "requirement": benefit["requirement"],
+                            "frequency": benefit["frequency"],
+                            "description": benefit["description"],
+                            "item": {
+                                "tid": item.tid,
+                                "name": item.name,
+                                "description": item.description,
+                            },
+                            "value": item.market_value,
+                        },
+                    }
+                )
+
+    return jsonify(stock_benefits_json), 200, api_ratelimit_response(key)

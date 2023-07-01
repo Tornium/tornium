@@ -137,6 +137,7 @@ mod.add_url_rule("/api/stat/<int:tid>", view_func=stat.get_stat_user, methods=["
 
 # /api/stocks
 mod.add_url_rule("/api/stocks", view_func=stocks.data.stocks_data, methods=["GET"])
+mod.add_url_rule("/api/stocks/benefits", view_func=stocks.data.stock_benefits, methods=["GET"])
 mod.add_url_rule("/api/stocks/movers", view_func=stocks.movers.stock_movers, methods=["GET"])
 
 # /api/user

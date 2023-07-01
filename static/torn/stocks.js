@@ -102,6 +102,21 @@ function renderStocksBenefitsPage() {
                 }),
             ]);
     }
+
+    if (benefitsListed.length < 6) {
+        for (let i = benefitsListed.length - 1; i < 6; i++) {
+            $(`#passive-${i}`).addClass("hidden");
+        }
+    }
+
+    if (benefitsPage === 0) {
+        $(".passives-previous-page").attr("disabled", "");
+    } else if (benefitsPage === Math.ceil(benefitsSorted.length / 6)) {
+        $(".passives-next-page").attr("disabled", "");
+    } else {
+        $(".passives-previous-page").removeAttr("disabled");
+        $(".passives-next-page").removeAttr("disabled");
+    }
 }
 
 $(document).ready(async function () {
@@ -383,4 +398,14 @@ $(document).ready(async function () {
                     ]);
             }
         });
+
+    $(".passives-previous-page").on("click", function () {
+        benefitsPage--;
+        renderStocksBenefitsPage();
+    });
+
+    $(".passives-next-page").on("click", function () {
+        benefitsPage++;
+        renderStocksBenefitsPage();
+    });
 });

@@ -53,7 +53,7 @@ function renderStocksBenefitsPage() {
 
     let benefitsListed = benefitsSorted.slice(
         6 * benefitsPage,
-        6 * benefitsPage - 5
+        6 * benefitsPage + 5
     );
 
     for (let i = 0; i < benefitsListed.length; i++) {

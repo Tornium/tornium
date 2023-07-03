@@ -19,11 +19,4 @@ from flask_login import current_user, login_required
 
 @login_required
 def stocks():
-    if not current_user.admin:
-        return render_template(
-            "errors/error.html",
-            title="Permission Denied",
-            error="This page is still under development. Please check back later.",
-        )
-
     return render_template("torn/stocks.html")

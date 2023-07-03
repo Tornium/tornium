@@ -71,7 +71,7 @@ function renderStocksBenefitsPage() {
         $(`#passive-${i} .card-text`)
             .empty()
             .text(
-                `${stock.acronym} pays ${benefitsListed[i].description} per ${benefitsListed[i].frequency} days.`
+                `${stock.acronym} pays ${benefitsListed[i].description} every ${benefitsListed[i].frequency} days.`
             )
             .removeClass("placeholder");
 
@@ -88,9 +88,12 @@ function renderStocksBenefitsPage() {
                 }),
                 $("<li>", {
                     class: "list-group-item",
-                    text: `Average Daily Return: $${Number(
-                        benefitsListed[i].value / benefitsListed[i].frequency
-                    ).toFixed(2)}`,
+                    text: `Average Daily Return: $${commas(
+                        Number(
+                            benefitsListed[i].value /
+                                benefitsListed[i].frequency
+                        ).toFixed(2)
+                    )}`,
                 }),
                 $("<li>", {
                     class: "list-group-item",
@@ -101,6 +104,10 @@ function renderStocksBenefitsPage() {
                     ).toFixed(2)}%`,
                 }),
             ]);
+
+        $(`#passive-${i} .benefit-tornsy`)
+            .attr("href", `https://tornsy.com/${stock.acronym}/h6`)
+            .removeClass("disabled");
     }
 
     if (benefitsListed.length < 6) {
@@ -131,6 +138,19 @@ $(document).ready(async function () {
                     "Stock Data Load Failed",
                     `The Tornium API server has responded with \"${STOCKS_DATA["message"]}\" to the submitted request.`
                 );
+                $("[id^=passive-] .card-header")
+                    .empty()
+                    .removeClass("placeholder")
+                    .append([
+                        $("<i>", {
+                            class: "fa-solid fa-circle-exclamation",
+                            style: "color: #C83F49",
+                        }),
+                        $("<span>", {
+                            class: "ps-2",
+                            text: "Data failed to load.",
+                        }),
+                    ]);
                 $(".mover-data")
                     .empty()
                     .append(
@@ -147,28 +167,27 @@ $(document).ready(async function () {
                             }),
                         ])
                     );
-                throw undefined;
+                $("[id^=passive-] .card-text").hide();
+                return { then: function () {} };
             } else if ("code" in BENEFITS_DATA) {
                 generateToast(
                     "Stock Movers Load Failed",
                     `The Tornium API server has responded with \"${BENEFITS_DATA["message"]}\" to the submitted request.`
                 );
-                $(".mover-data")
+                $("[id^=passive-] .card-header")
                     .empty()
-                    .append(
-                        $("<li>", {
-                            class: "list-group-item",
-                        }).append([
-                            $("<i>", {
-                                class: "fa-solid fa-circle-exclamation",
-                                style: "color: #C83F49",
-                            }),
-                            $("<span>", {
-                                class: "ps-2",
-                                text: "Data failed to load.",
-                            }),
-                        ])
-                    );
+                    .removeClass("placeholder")
+                    .append([
+                        $("<i>", {
+                            class: "fa-solid fa-circle-exclamation",
+                            style: "color: #C83F49",
+                        }),
+                        $("<span>", {
+                            class: "ps-2",
+                            text: "Data failed to load.",
+                        }),
+                    ]);
+                $("[id^=passive-] .card-text").hide();
                 throw undefined;
             }
         })

@@ -27,18 +27,24 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 @ratelimit
 def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    _NOTIF_MAP = {
+        "ready": ["roles", "channels"],
+        "delay": ["roles", "channels"],
+        "initiated": ["roles"],
+    }
 
-    if notif not in ("ready", "delay"):
+    if notif not in _NOTIF_MAP.keys():
         return make_exception_response("1000", key, details={"message": "Invalid notification type."})
-    elif element not in ("roles", "channel"):
+    elif element not in _NOTIF_MAP[notif]:
         return make_exception_response("1000", key, details={"message": "Invalid notification element."})
 
     data = json.loads(request.get_data().decode("utf-8"))
-    elementid = data.get(element)
+    element_id = data.get(element)
 
-    if elementid in ("", None, 0):
+    if element_id in ("", None, 0):
         return make_exception_response("1000", key)
-    elif element not in ("roles") and not elementid.isdigit():
+    # checks if every other input except role lists are integers
+    elif element not in ["roles"] and not element_id.isdigit():
         return make_exception_response("1000", key)
 
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
@@ -62,9 +68,12 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
                 "channel": 0,
                 "roles": [],
             },
+            "initiated": {
+                "channel": 0,
+            },
         }
 
-    oc_config[str(factiontid)][notif][element] = elementid
+    oc_config[str(factiontid)][notif][element] = element_id
     guild.oc_config = oc_config
     guild.save()
 

@@ -33,198 +33,159 @@ $(document).ready(function () {
                         "data-factionid": faction,
                     })
                 );
-                $(`div .card-body[data-factionid="${faction}"]`).append(
+                $(`div .card-body[data-factionid="${faction}"]`).append([
                     $("<h5>", {
                         class: "card-title",
-                        text: `Organized Crime Notification Configuration for ${"NYI"} [${faction}]`,
-                    })
-                );
-                $(`div .card-body[data-factionid="${faction}"]`).append(
+                        text: `Organized Crime Notification Configuration for NYI [${faction}]`,
+                    }),
                     $("<p>", {
                         class: "card-text",
                         text: "The channel used for notifications and the roles that can be pinged.",
-                    })
-                );
-
-                $(`div .card-body[data-factionid="${faction}"]`).append(
+                    }),
                     $("<div>", {
-                        class: "row ready-row",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`.ready-row[data-factionid="${faction}"]`).append(
+                        class: "row",
+                    }).append([
+                        $("<div>", {
+                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                        }).append(
+                            $("<div>", {
+                                class: "card my-3",
+                            }).append([
+                                $("<div>", {
+                                    class: "card-header",
+                                    text: "OC Ready Channel",
+                                }),
+                                $("<div>", {
+                                    class: "form-floating px-3 py-3",
+                                }).append(
+                                    $("<select>", {
+                                        class: "discord-channel-selector oc-ready-channel",
+                                        "data-factionid": faction,
+                                        "aria-label": "OC Ready Channel",
+                                        "data-live-search": "true",
+                                    }).append(
+                                        $("<option>", {
+                                            value: "0",
+                                            text: "Disabled",
+                                        })
+                                    )
+                                ),
+                            ])
+                        ),
+                        $("<div>", {
+                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                        }).append(
+                            $("<div>", {
+                                class: "card my-3",
+                            }).append([
+                                $("<div>", {
+                                    class: "card-header",
+                                    text: "OC Ready Roles",
+                                }),
+                                $("<div>", {
+                                    class: "form-floating px-3 py-3",
+                                }).append(
+                                    $("<select>", {
+                                        class: "discord-role-selector oc-ready-roles",
+                                        "data-factionid": faction,
+                                        "aria-label": "OC Ready Roles",
+                                        "data-live-search": "true",
+                                        "data-selected-text-format":
+                                            "count > 2",
+                                        multiple: "",
+                                    })
+                                ),
+                            ])
+                        ),
+                    ]),
                     $("<div>", {
-                        class: "col-sm-12 col-md-8 col-xl-4 my-2 ready-channel-wrapper",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .ready-channel-wrapper[data-factionid="${faction}"]`
-                ).append(
+                        class: "row",
+                    }).append([
+                        $("<div>", {
+                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                        }).append(
+                            $("<div>", {
+                                class: "card my-3",
+                            }).append([
+                                $("<div>", {
+                                    class: "card-header",
+                                    text: "OC Delay Channel",
+                                }),
+                                $("<div>", {
+                                    class: "form-floating px-3 py-3",
+                                }).append(
+                                    $("<select>", {
+                                        class: "discord-channel-selector oc-delay-channel",
+                                        "data-factionid": faction,
+                                        "aria-label": "OC Delay Channel",
+                                        "data-live-search": "true",
+                                    }).append(
+                                        $("<option>", {
+                                            value: "0",
+                                            text: "Disabled",
+                                        })
+                                    )
+                                ),
+                            ])
+                        ),
+                        $("<div>", {
+                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                        }).append(
+                            $("<div>", {
+                                class: "card my-3",
+                            }).append([
+                                $("<div>", {
+                                    class: "card-header",
+                                    text: "OC Delay Roles",
+                                }),
+                                $("<div>", {
+                                    class: "form-floating px-3 py-3",
+                                }).append(
+                                    $("<select>", {
+                                        class: "discord-role-selector oc-delay-roles",
+                                        "data-factionid": faction,
+                                        "aria-label": "OC Delay Roles",
+                                        "data-live-search": "true",
+                                        "data-selected-text-format":
+                                            "count > 2",
+                                        multiple: "",
+                                    })
+                                ),
+                            ])
+                        ),
+                    ]),
                     $("<div>", {
-                        class: "card my-3 ready-channel-card",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .ready-channel-card[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "card-header",
-                        text: "OC Ready Channel",
-                    })
-                );
-                $(
-                    `div .ready-channel-card[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "form-floating px-3 py-3 ready-channel-form",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .ready-channel-form[data-factionid="${faction}"]`
-                ).append(
-                    $("<select>", {
-                        class: "discord-channel-selector oc-ready-channel",
-                        "data-factionid": faction,
-                        "aria-label": "OC Ready Channel",
-                        "data-live-search": "true",
-                    })
-                );
-                $(`.oc-ready-channel[data-factionid="${faction}"]`).append(
-                    $("<option>", {
-                        value: "0",
-                        text: "Disabled",
-                    })
-                );
-
-                $(`.ready-row[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "col-sm-12 col-md-8 col-xl-4 my-2 ready-roles-wrapper",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .ready-roles-wrapper[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "card my-3 ready-roles-card",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .ready-roles-card[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "card-header",
-                        text: "OC Ready Roles",
-                    })
-                );
-                $(`div .ready-roles-card[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "form-floating px-3 py-3 ready-roles-form",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .ready-roles-form[data-factionid="${faction}"]`).append(
-                    $("<select>", {
-                        class: "discord-role-selector oc-ready-roles",
-                        "data-factionid": faction,
-                        "aria-label": "OC Ready Roles",
-                        "data-live-search": "true",
-                        "data-selected-text-format": "count > 2",
-                        multiple: "",
-                    })
-                );
-
-                $(`div .card-body[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "row delay-row",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`.delay-row[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "col-sm-12 col-md-8 col-xl-4 my-2 delay-channel-wrapper",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .delay-channel-wrapper[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "card my-3 delay-channel-card",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .delay-channel-card[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "card-header",
-                        text: "OC Delay Channel",
-                    })
-                );
-                $(
-                    `div .delay-channel-card[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "form-floating px-3 py-3 delay-channel-form",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .delay-channel-form[data-factionid="${faction}"]`
-                ).append(
-                    $("<select>", {
-                        class: "discord-channel-selector oc-delay-channel",
-                        "data-factionid": faction,
-                        "aria-label": "OC Delay Channel",
-                        "data-live-search": "true",
-                    })
-                );
-                $(`.oc-delay-channel[data-factionid="${faction}"]`).append(
-                    $("<option>", {
-                        value: "0",
-                        text: "Disabled",
-                    })
-                );
-
-                $(`.delay-row[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "col-sm-12 col-md-8 col-xl-4 my-2 delay-roles-wrapper",
-                        "data-factionid": faction,
-                    })
-                );
-                $(
-                    `div .delay-roles-wrapper[data-factionid="${faction}"]`
-                ).append(
-                    $("<div>", {
-                        class: "card my-3 delay-roles-card",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .delay-roles-card[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "card-header",
-                        text: "OC Delay Roles",
-                    })
-                );
-                $(`div .delay-roles-card[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "form-floating px-3 py-3 delay-roles-form",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .delay-roles-form[data-factionid="${faction}"]`).append(
-                    $("<select>", {
-                        class: "discord-role-selector oc-delay-roles",
-                        "data-factionid": faction,
-                        "aria-label": "OC Delay Roles",
-                        "data-live-search": "true",
-                        "data-selected-text-format": "count > 2",
-                        multiple: "",
-                    })
-                );
+                        class: "row",
+                    }).append([
+                        $("<div>", {
+                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                        }).append(
+                            $("<div>", {
+                                class: "card my-3",
+                            }).append([
+                                $("<div>", {
+                                    class: "card-header",
+                                    text: "OC Initiated Channel",
+                                }),
+                                $("<div>", {
+                                    class: "form-floating px-3 py-3",
+                                }).append(
+                                    $("<select>", {
+                                        class: "discord-channel-selector oc-initiated-channel",
+                                        "data-factionid": faction,
+                                        "aria-label": "OC Initiated Channel",
+                                        "data-live-search": "true",
+                                    }).append(
+                                        $("<option>", {
+                                            value: "0",
+                                            text: "Disabled",
+                                        })
+                                    )
+                                ),
+                            ])
+                        ),
+                    ]),
+                ]);
             });
         })
         .then(function () {
@@ -267,12 +228,18 @@ $(document).ready(function () {
                     let readyChannel = $(
                         `.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config["ready"]["channel"]}"]`
                     );
+                    let initiatedChannel = $(
+                        `.oc-initiated-channel[data-factionid="${factionid}"] option[value="${oc_config["initiated"]["channel"]}"]`
+                    );
 
                     if (delayChannel.length !== 0) {
                         delayChannel.attr("selected", "");
                     }
                     if (readyChannel.length !== 0) {
                         readyChannel.attr("selected", "");
+                    }
+                    if (initiatedChannel.length !== 0) {
+                        initiatedChannel.attr("selected", "");
                     }
                 });
 
@@ -406,6 +373,35 @@ $(document).ready(function () {
                 xhttp.send(
                     JSON.stringify({
                         roles: selectedRoles,
+                    })
+                );
+            });
+
+            $(".oc-initiated-channel").on("change", function () {
+                const xhttp = new XMLHttpRequest();
+
+                xhttp.onload = function () {
+                    let response = xhttp.response;
+
+                    if ("code" in response) {
+                        generateToast(
+                            "OC Initiated Channel Failed",
+                            response["message"]
+                        );
+                    }
+                };
+
+                xhttp.responseType = "json";
+                xhttp.open(
+                    "POST",
+                    `/api/bot/${guildid}/faction/${this.getAttribute(
+                        "data-factionid"
+                    )}/oc/initiated/channel`
+                );
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.send(
+                    JSON.stringify({
+                        channel: this.options[this.selectedIndex].value,
                     })
                 );
             });

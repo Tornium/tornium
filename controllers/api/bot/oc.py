@@ -73,7 +73,11 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
             },
         }
 
-    oc_config[str(factiontid)][notif][element] = element_id
+    try:
+        oc_config[str(factiontid)][notif][element] = element_id
+    except KeyError:
+        oc_config[str(factiontid)][notif] = {element: element_id}
+
     guild.oc_config = oc_config
     guild.save()
 

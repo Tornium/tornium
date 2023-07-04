@@ -28,8 +28,8 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     _NOTIF_MAP = {
-        "ready": ["roles", "channels"],
-        "delay": ["roles", "channels"],
+        "ready": ["roles", "channel"],
+        "delay": ["roles", "channel"],
         "initiated": ["channel"],
     }
 

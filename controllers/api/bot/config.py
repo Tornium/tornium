@@ -53,6 +53,9 @@ def jsonified_server_config(guild: ServerModel):
         },
     }
 
+    if guild.oc_config.get("initiated") is None:
+        data["oc"]["initiated"]["channel"] = 0
+
     for faction in data["verify"]["faction_verify"]:
         data["verify"]["faction_verify"][faction]["roles"] = list(
             map(str, data["verify"]["faction_verify"][faction]["roles"])

@@ -82,17 +82,19 @@ def get_specific_user(tid: int, *args, **kwargs):
     )
 
     return (
-        {
-            "tid": user.tid,
-            "name": user.name,
-            "username": f"{user.name} [{user.tid}]",
-            "level": user.level,
-            "last_refresh": user.last_refresh,
-            "discord_id": user.discord_id,
-            "faction": {"tid": user.factionid, "name": faction.name} if faction is not None else None,
-            "status": user.status,
-            "last_action": user.last_action,
-        },
+        jsonify(
+            {
+                "tid": user.tid,
+                "name": user.name,
+                "username": f"{user.name} [{user.tid}]",
+                "level": user.level,
+                "last_refresh": user.last_refresh,
+                "discord_id": user.discord_id,
+                "faction": {"tid": user.factionid, "name": faction.name} if faction is not None else None,
+                "status": user.status,
+                "last_action": user.last_action,
+            }
+        ),
         200,
         api_ratelimit_response(key),
     )

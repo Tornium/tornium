@@ -55,7 +55,7 @@ def verification_config(guildid, *args, **kwargs):
 
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -104,7 +104,7 @@ def guild_verification(*args, **kwargs):
                 },
             )
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -188,7 +188,7 @@ def faction_verification(*args, **kwargs):
 
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -220,7 +220,7 @@ def guild_verification_roles(*args, **kwargs):
 
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -252,7 +252,7 @@ def guild_exclusion_roles(*args, **kwargs):
 
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -282,7 +282,7 @@ def faction_roles(factiontid, *args, **kwargs):
     guild.faction_verify[str(factiontid)]["roles"] = [int(role) for role in roles]
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -312,4 +312,4 @@ def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
     guild.faction_verify[str(factiontid)]["positions"][position] = roles
     guild.save()
 
-    return (jsonified_verify_config(guild), 200, api_ratelimit_response(key))
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)

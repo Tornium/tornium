@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from flask import jsonify
 from tornium_commons.models import ServerModel
 
 from controllers.api.decorators import ratelimit, token_required
@@ -73,7 +74,7 @@ def jsonified_server_config(guild: ServerModel):
             map(str, data["verify"]["faction_verify"][faction]["roles"])
         )
 
-    return data
+    return jsonify(data)
 
 
 @token_required

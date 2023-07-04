@@ -16,6 +16,7 @@
 import datetime
 import typing
 
+from flask import jsonify
 from tornium_commons import rds
 from tornium_commons.models import TickModel
 
@@ -166,4 +167,4 @@ def stock_movers(*args, **kwargs):
             }
         )
 
-    return movers_data, 200, api_ratelimit_response(key)
+    return jsonify(movers_data), 200, api_ratelimit_response(key)

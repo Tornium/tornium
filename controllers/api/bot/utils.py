@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from flask import jsonify
+
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 from models.server import Server
@@ -32,7 +34,7 @@ def get_channels(guildid, *args, **kwargs):
         return make_exception_response("4020", key)
 
     return (
-        {"channels": server.get_text_channels(api=True)},
+        jsonify({"channels": server.get_text_channels(api=True)}),
         200,
         api_ratelimit_response(key),
     )
@@ -52,7 +54,7 @@ def get_roles(guildid, *args, **kwargs):
         return make_exception_response("4020", key)
 
     return (
-        {"roles": list(server.get_roles(api=True).values())},
+        jsonify({"roles": list(server.get_roles(api=True).values())}),
         200,
         api_ratelimit_response(key),
     )

@@ -67,7 +67,7 @@ def faction_retal_channel(*args, **kwargs):
 
     guild.save()
 
-    return (jsonify(guild.retal_config), 200, api_ratelimit_response(key))
+    return jsonify(guild.retal_config), 200, api_ratelimit_response(key)
 
 
 @token_required
@@ -114,4 +114,4 @@ def faction_retal_roles(*args, **kwargs):
 
     guild.save()
 
-    return (jsonify(guild.retal_config), 200, api_ratelimit_response(key))
+    return jsonify(guild.retal_config), 200, api_ratelimit_response(key)

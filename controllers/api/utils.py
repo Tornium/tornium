@@ -13,11 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import typing
 
 import redis
-from flask import Response
+from flask import Response, jsonify
 from tornium_commons import rds
 
 API_EXCEPTIONS = {
@@ -255,13 +254,6 @@ def make_exception_response(
         exception_response["details"] = exception["details"]
 
     if ratelimit_key is None:
-        return Response(
-            json.dumps(exception_response),
-            exception["http"],
-        )
+        return jsonify(exception_response), exception["http"]
     else:
-        return Response(
-            json.dumps(exception_response),
-            exception["http"],
-            api_ratelimit_response(ratelimit_key, redis_client),
-        )
+        return jsonify(exception_response), exception["http"], api_ratelimit_response(ratelimit_key, redis_client)

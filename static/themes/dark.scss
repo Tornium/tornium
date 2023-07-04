@@ -97,16 +97,12 @@
 
         & thead th {
             color: $white;
-            background-color: $primary-grey;
-        }
-
-        & tbody td {
-            color: $white;
-            background-color: $primary-grey;
+            background-color: inherit;
         }
 
         & tbody th {
             color: $white;
+            background-color: inherit;
 
             & a {
                 color: $white;

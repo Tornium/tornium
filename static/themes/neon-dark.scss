@@ -98,16 +98,12 @@
 
         & thead th {
             color: $neon;
-            background-color: $primary-grey;
-        }
-
-        & tbody td {
-            color: $neon;
-            background-color: $primary-grey;
+            background-color: inherit;
         }
 
         & tbody th {
             color: $neon;
+            background-color: inherit;
 
             & a {
                 color: $neon;

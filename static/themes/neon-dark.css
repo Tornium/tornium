@@ -77,14 +77,11 @@
 }
 [data-bs-theme=neon-dark] .primary thead th {
   color: rgb(57, 255, 20);
-  background-color: rgb(35, 35, 35);
-}
-[data-bs-theme=neon-dark] .primary tbody td {
-  color: rgb(57, 255, 20);
-  background-color: rgb(35, 35, 35);
+  background-color: inherit;
 }
 [data-bs-theme=neon-dark] .primary tbody th {
   color: rgb(57, 255, 20);
+  background-color: inherit;
 }
 [data-bs-theme=neon-dark] .primary tbody th a {
   color: rgb(57, 255, 20);

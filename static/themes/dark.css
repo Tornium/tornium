@@ -75,11 +75,11 @@
 }
 [data-bs-theme=custom-dark] .primary thead th {
   color: rgb(229, 229, 229);
-  background-color: inherit;
+  background-color: rgb(35, 35, 35);
 }
 [data-bs-theme=custom-dark] .primary tbody td {
   color: rgb(229, 229, 229);
-  background-color: inherit;
+  background-color: rgb(35, 35, 35);
 }
 [data-bs-theme=custom-dark] .primary tbody th {
   color: rgb(229, 229, 229);

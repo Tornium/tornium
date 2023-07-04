@@ -9,6 +9,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 == [UNRELEASED]
 === Added
  - Added stocks data under the Torn section
+ - Added support for OC initiated result messages
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance

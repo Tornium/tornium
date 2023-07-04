@@ -47,17 +47,20 @@ def jsonified_server_config(guild: ServerModel):
             "modifier": guild.assist_mod,
         },
         "oc": {
-            "ready": {
-                "channel": guild.oc_config.get("ready", {"channel": 0}).get("channel", 0),
-                "roles": guild.oc_config.get("ready", {"roles": []}).get("roles", []),
-            },
-            "delay": {
-                "channel": guild.oc_config.get("delay", {"channel": 0}).get("channel", 0),
-                "roles": guild.oc_config.get("delay", {"roles": 0}).get("roles", []),
-            },
-            "initiated": {
-                "channel": guild.oc_config.get("initiated", {"channel": 0}).get("channel", 0),
-            },
+            faction_id: {
+                "ready": {
+                    "channel": faction_oc_config.get("ready", {"channel": 0}).get("channel", 0),
+                    "roles": faction_oc_config.get("ready", {"roles": []}).get("roles", []),
+                },
+                "delay": {
+                    "channel": faction_oc_config.get("delay", {"channel": 0}).get("channel", 0),
+                    "roles": faction_oc_config.get("delay", {"roles": 0}).get("roles", []),
+                },
+                "initiated": {
+                    "channel": faction_oc_config.get("initiated", {"channel": 0}).get("channel", 0),
+                },
+            }
+            for faction_id, faction_oc_config in guild.oc_config.items()
         },
         "stocks": {
             "channel": str(guild.stocks_channel),

@@ -25,7 +25,6 @@ import celery
 import mongoengine
 from celery.utils.log import get_task_logger
 from mongoengine.queryset.visitor import Q
-from pymongo.errors import BulkWriteError
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 from tornium_commons.formatters import commas, torn_timestamp
@@ -38,9 +37,9 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
-from tornium_commons.skyutils import SKYNET_ERROR
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
-from .api import discordget, discordpatch, discordpost, torn_stats_get, tornget
+from .api import discordpatch, discordpost, torn_stats_get, tornget
 from .user import update_user
 
 logger = get_task_logger(__name__)
@@ -921,8 +920,15 @@ def oc_refresh_subtask(oc_data):
     if guild is None:
         return
 
-    OC_DELAY = guild.oc_config[str(faction.tid)]["delay"]["channel"] != 0
-    OC_READY = guild.oc_config[str(faction.tid)]["ready"]["channel"] != 0
+    OC_DELAY = guild.oc_config[str(faction.tid)].get("delay", {"channel": 0, "roles": []}).get("channel") not in [
+        None,
+        0,
+    ]
+    OC_READY = guild.oc_config[str(faction.tid)].get("ready", {"channel": 0, "roles": []}).get("channel") not in [
+        None,
+        0,
+    ]
+    OC_INITIATED = guild.oc_config[str(faction.tid)].get("initiated", {"channel": 0}).get("channel") not in [None, 0]
 
     for oc_id, oc_data in oc_data["crimes"].items():
         oc_db_original: mongoengine.QuerySet = OCModel.objects(Q(factiontid=faction.tid) & Q(ocid=oc_id))
@@ -946,6 +952,48 @@ def oc_refresh_subtask(oc_data):
         if oc_db_original is None:
             continue
         elif oc_db.time_completed != 0:
+            if OC_INITIATED:
+                if oc_db.money_gain == 0 and oc_db.respect_gain == 0:
+                    oc_status_str = "unsuccessfully"
+                    oc_result_str = ""
+                    oc_color = SKYNET_ERROR
+                else:
+                    oc_status_str = "successfully"
+                    oc_result_str = (
+                        f" resulting in a gain of ${commas(oc_db.money_gain)} and {commas(oc_db.respect_gain)} respect"
+                    )
+                    oc_color = SKYNET_GOOD
+
+                initiator: typing.Optional[UserModel] = UserModel.objects(tid=oc_db.initiated_by).first()
+
+                if initiator is None or initiator.name in (None, ""):
+                    initiator_str = "Someone"
+                else:
+                    initiator_str = f"{initiator.name} [{initiator.tid}]"
+
+                payload = {
+                    "embeds": [
+                        {
+                            "title": f"OC of {faction.name} Initiated",
+                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been {oc_status_str} "
+                            f"initiated by {initiator_str}{oc_result_str}.",
+                            "color": oc_color,
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "footer": {"text": f"#{oc_db.ocid}"},
+                        }
+                    ],
+                }
+
+                try:
+                    discordpost.delay(
+                        f'channels/{guild.oc_config[str(faction.tid)]["initiated"]["channel"]}/messages',
+                        payload=payload,
+                        channel=guild.oc_config[str(faction.tid)]["initiated"]["channel"],
+                    )
+                except Exception as e:
+                    logger.exception(e)
+                    continue
+
             continue
         elif oc_db.time_ready > int(time.time()):
             continue
@@ -969,6 +1017,7 @@ def oc_refresh_subtask(oc_data):
                         f"({ready.count(True)}/{len(oc_data['participants'])}).",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": f"#{oc_db.ocid}"},
+                        "color": SKYNET_ERROR,
                     }
                 ],
                 "components": [],
@@ -1059,6 +1108,7 @@ def oc_refresh_subtask(oc_data):
                         "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": f"#{oc_db.ocid}"},
+                        "color": SKYNET_GOOD,
                     }
                 ],
             }

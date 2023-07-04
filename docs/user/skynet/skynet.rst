@@ -13,6 +13,9 @@ You can invite SkyNet onto your server with either specific, required permission
  * Required permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=469969968&scope=bot%20applications.commands>`_
  * Administrator permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 
+.. note::
+    SkyNet utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at the top of every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass (or optionally if tiksan is online, you can ask to have the list of servers manually refreshed).
+
 Bot Modules
 -----------
 Almost all of the bot's configuration will be done through the bot dashboard found on the `Tornium website <https://tornium.com/bot/dashboard>`_ but many user-oriented features can be found on the bot.
@@ -23,6 +26,7 @@ Almost all of the bot's configuration will be done through the bot dashboard fou
  * :ref:`Retaliations<retals>`
  * :ref:`Organized Crime Notifications<ocnotifs>`
  * :ref:`Stakeouts<stakeouts>`
+ * :ref:`Stat Estimation<estimate>` [ALPHA]
  * :ref:`Stocks<stocks>` [in-dev]
 
 Argument Format

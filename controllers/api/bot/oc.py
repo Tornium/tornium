@@ -30,7 +30,7 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     _NOTIF_MAP = {
         "ready": ["roles", "channels"],
         "delay": ["roles", "channels"],
-        "initiated": ["roles"],
+        "initiated": ["channel"],
     }
 
     if notif not in _NOTIF_MAP.keys():

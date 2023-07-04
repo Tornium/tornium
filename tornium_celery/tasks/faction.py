@@ -952,7 +952,7 @@ def oc_refresh_subtask(oc_data):
         if oc_db_original is None:
             continue
         elif oc_db.time_completed != 0:
-            if OC_INITIATED and time.time() - oc_db.time_completed <= 600:  # Prevents old OCs from being notified
+            if OC_INITIATED and time.time() - oc_db.time_completed <= 299:  # Prevents old OCs from being notified
                 if oc_db.money_gain == 0 and oc_db.respect_gain == 0:
                     oc_status_str = "unsuccessfully"
                     oc_result_str = ""

@@ -89,10 +89,10 @@ function renderStocksBenefitsPage() {
                 $("<li>", {
                     class: "list-group-item",
                     text: `Average Daily Return: $${commas(
-                        Number(
+                        parseInt(
                             benefitsListed[i].value /
                                 benefitsListed[i].frequency
-                        ).toFixed(2)
+                        )
                     )}`,
                 }),
                 $("<li>", {

@@ -250,7 +250,14 @@ def userbankingdata():
 
 
 def fulfill(guid: str):
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(guid=guid).first()
+    try:
+        withdrawal: WithdrawalModel = WithdrawalModel.objects(guid=guid).first()
+    except ValueError:
+        return render_template(
+            "errors/error.html",
+            title="Bad Format",
+            error="The withdrawal GUID was incorrectly formatted. Make sure you aren't trying to access an older-style withdrawal link.",
+        )
 
     if withdrawal is None:
         return (

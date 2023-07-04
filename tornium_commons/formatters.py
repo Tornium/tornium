@@ -166,7 +166,7 @@ def text_to_num(text: str) -> int:
         Integer of the number's string
     """
 
-    text = text.upper().replace(",", "")
+    text = text.strip("$").upper().replace(",", "")
     numbers = re.sub("[a-z]", "", text.lower())
 
     if "K" in text:

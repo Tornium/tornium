@@ -952,16 +952,14 @@ def oc_refresh_subtask(oc_data):
         if oc_db_original is None:
             continue
         elif oc_db.time_completed != 0:
-            if OC_INITIATED:
+            if OC_INITIATED and time.time() - oc_db.time_completed <= 600:  # Prevents old OCs from being notified
                 if oc_db.money_gain == 0 and oc_db.respect_gain == 0:
                     oc_status_str = "unsuccessfully"
                     oc_result_str = ""
                     oc_color = SKYNET_ERROR
                 else:
                     oc_status_str = "successfully"
-                    oc_result_str = (
-                        f" resulting in a gain of ${commas(oc_db.money_gain)} and {commas(oc_db.respect_gain)} respect"
-                    )
+                    oc_result_str = f" resulting in the gain of ${commas(oc_db.money_gain)} and {commas(oc_db.respect_gain)} respect"
                     oc_color = SKYNET_GOOD
 
                 initiator: typing.Optional[UserModel] = UserModel.objects(tid=oc_db.initiated_by).first()

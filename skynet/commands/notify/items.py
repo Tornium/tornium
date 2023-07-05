@@ -552,7 +552,7 @@ def items_autocomplete(interaction, *args, **kwargs):
 def items_button_switchboard(interaction, *args, **kwargs):
     print(interaction)
 
-    user = kwargs["user"]
+    user = kwargs["invoker"]
     button_data = interaction["data"]["custom_id"].split(":")
     notification_id: str = button_data[2]
     effect = button_data[3]

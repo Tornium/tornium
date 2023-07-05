@@ -318,11 +318,11 @@ def items_switchboard(interaction, *args, **kwargs):
             },
         }
 
-    item_name = find_list(interaction, "name", "item")
+    item_name = find_list(subcommand_data, "name", "item")
     item: typing.Optional[ItemModel] = None
 
     if item_name != -1:
-        item = ItemModel.objects(name=item_name[1]["value"]).first()
+        item = ItemModel.objects(tid=int(item_name[1]["value"])).first()
 
     if item is None and subcommand in ["info"]:
         return {
@@ -382,7 +382,7 @@ def items_autocomplete(interaction, *args, **kwargs):
                     "type": 8,
                     "data": {
                         "choices": [
-                            {"name": item.name, "value": item.tid}
+                            {"name": item.name, "value": str(item.tid)}
                             for item in ItemModel.objects(name__icontains=option["value"]).limit(25)
                         ]
                     },

@@ -18,7 +18,7 @@ import typing
 
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-from tornium_commons.formatters import find_list
+from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
@@ -271,12 +271,19 @@ def list_item_notifs(interaction, user: UserModel, item: ItemModel, *args, **kwa
         else:
             recipient = f"<#{notification.recipient}>"
 
-        notification_type = _NOTIF_TYPE_MAP[notification.options.get("type")]
-        value = ""
+        if notification.options.get("type") == "percent":
+            value = f"{notification.value}% below market value of"
+        elif notification.options.get("type") == "price":
+            value = f"Below ${commas(notification.value)} for"
+        elif notification.options.get("type") == "quantity":
+            value = f"Above {commas(notification.value)}x of"
+        else:
+            value = "ERROR"
+
         item_db = ItemModel.objects(tid=notification.target).first()
         item_str = f"{item_db.name} [{item_db.tid}]" if item_db is not None else "ERROR"
 
-        payload["data"]["embeds"][0]["description"] += f"\n{value} {notification_type} for {item_str} - {recipient}"
+        payload["data"]["embeds"][0]["description"] += f"\n{value} {item_str} - {recipient}"
 
     return payload
 

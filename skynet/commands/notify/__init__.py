@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from skynet.commands.notify import stakeouts
+from skynet.commands.notify import items, stakeouts
 
-_notify_commands = {"stakeout": stakeouts.stakeouts}
+_notify_commands = {"stakeout": stakeouts.stakeouts, "items": items.items_switchboard}
 _notify_autocomplete = {"stakeout": stakeouts.stakeout_autocomplete}
 
 

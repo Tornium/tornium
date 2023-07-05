@@ -74,7 +74,7 @@
                 {
                     "type": 1,
                     "name": "enable",
-                    "description": "Enable the stakeout if disabled",
+                    "description": "Enable the stakeout",
                     "options": [
                         {
                             "type": 4,
@@ -103,7 +103,7 @@
                 {
                     "type": 1,
                     "name": "disable",
-                    "description": "Disable the stakeout if enabled",
+                    "description": "Disable the stakeout",
                     "options": [
                         {
                             "type": 4,
@@ -197,7 +197,84 @@
                 {
                     "type": 1,
                     "name": "list",
-                    "description": "Lists all applicable stakeouts"
+                    "description": "Lists all stakeouts"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "items",
+            "description": "Item-related notifications",
+            "options": [
+                {
+                    "type": 1,
+                    "name": "initialize",
+                    "description": "Initialize the notification",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "type",
+                            "description": "Item notification type",
+                            "required": true,
+                            "choices": [
+                                {
+                                    "name": "Percent Below Market Value",
+                                    "value": "percent"
+                                },
+                                {
+                                    "name": "Below Specified price",
+                                    "value": "price"
+                                },
+                                {
+                                    "name": "Above Specified Quantity",
+                                    "value": "quantity"
+                                }
+                            ]
+                        },
+                        {
+                            "type": 10,
+                            "name": "value",
+                            "description": "Value to be compared based on the notification type",
+                            "required": true,
+                            "min_value": 0
+                        },
+                        {
+                            "type": 3,
+                            "name": "item",
+                            "description": "Torn item",
+                            "required": true,
+                            "autocomplete": true
+                        },
+                        {
+                            "type": 7,
+                            "name": "channel",
+                            "description": "Notifications are sent to a specified channel"
+                        },
+                        {
+                            "type": 5,
+                            "name": "persistent",
+                            "description": "Persistence of the notification"
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "info",
+                    "descriptions": "Lists info about item notifications",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "item",
+                            "description": "Torn item name",
+                            "required": true,
+                            "autocomplete": true
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "list",
+                    "description": "Lists all item notifications"
                 }
             ]
         }

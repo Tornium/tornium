@@ -117,6 +117,12 @@ def skynet_interactions():
                     request.json, invoker=invoker, admin_keys=admin_keys
                 )
             )
+        elif request.json["data"]["custom_id"].startswith("notify:items:"):
+            return jsonify(
+                skynet.commands.notify.items.items_button_switchboard(
+                    request.json, invoker=invoker, admin_keys=admin_keys
+                )
+            )
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
             return jsonify(

@@ -18,6 +18,7 @@ import typing
 
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
+from tornium_celery.tasks.api import discordpatch
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -350,10 +351,15 @@ def _generate_item_info_payload(
                     {
                         "type": 2,
                         "style": 4 if enabled else 3,
-                        "label": "Disable" if enabled else "Enable",
-                        "custom_id": f"notify:{notification.id}:{'disable' if enabled else 'enable'}",
+                        "label": "Disable Notification" if enabled else "Enable Notification",
+                        "custom_id": f"notify:items:{notification.id}:{'disable' if enabled else 'enable'}",
                     },
-                    {"type": 2, "style": 4, "label": "Delete", "custom_id": f"notify:{notification.id}:delete"},
+                    {
+                        "type": 2,
+                        "style": 4,
+                        "label": "Delete Notification",
+                        "custom_id": f"notify:items:{notification.id}:delete",
+                    },
                 ],
             },
             {
@@ -362,15 +368,15 @@ def _generate_item_info_payload(
                     {
                         "type": 2,
                         "style": 2,
-                        "label": "Previous",
-                        "custom_id": f"notify:{-1 if previous_notif is None else previous_notif.id}:goto",
+                        "label": "Previous Notification",
+                        "custom_id": f"notify:items:{-1 if previous_notif is None else previous_notif.id}:goto",
                         "disabled": True if previous_notif is None else False,
                     },
                     {
                         "type": 2,
                         "style": 2,
-                        "label": "Next",
-                        "custom_id": f"notify:{-2 if next_notif is None else next_notif.id}:goto",
+                        "label": "Next Notification",
+                        "custom_id": f"notify:items:{-2 if next_notif is None else next_notif.id}:goto",
                         "disabled": True if next_notif is None else False,
                     },
                 ],
@@ -511,8 +517,6 @@ def items_switchboard(interaction, *args, **kwargs):
 
 
 def items_autocomplete(interaction, *args, **kwargs):
-    print(interaction)
-
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
@@ -543,3 +547,160 @@ def items_autocomplete(interaction, *args, **kwargs):
             "choices": [],
         },
     }
+
+
+def items_button_switchboard(interaction, *args, **kwargs):
+    print(interaction)
+
+    button_data = interaction["data"]["custom_id"].split(":")
+    notification_id: str = button_data[2]
+    effect = button_data[3]
+
+    notification: typing.Optional[NotificationModel] = NotificationModel.objects(id=notification_id).first()
+
+    if notification is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Notification Not Found",
+                        "description": "The specified notification was not found in the database. Make sure it "
+                        "hasn't already been deleted.",
+                        "color": SKYNET_ERROR,
+                    },
+                ],
+                "flags": 64,
+            },
+        }
+
+    if effect == "goto":
+        return {}
+
+        discordpatch(
+            f"channels/{3834832}/messages/{348932489}",
+            payload={
+                _generate_item_info_payload(
+                    notification=None,
+                    item=None,
+                    current_number=None,
+                    total_count=None,
+                    previous_notif=None,
+                    next_notif=None,
+                )
+            },
+        ).forget()
+
+    elif effect == "delete":
+        notification.delete()
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Notification Deleted",
+                        "description": "The specified notification was deleted from the database.",
+                        "color": SKYNET_GOOD,
+                        "footer": {
+                            "text": f"DB ID: {notification.id}",
+                        },
+                    },
+                ],
+                "flags": 64,
+            },
+        }
+    elif effect in ("disable", "enable"):
+        if effect == "disable":
+            if notification.options["enabled"]:
+                notification.options["enabled"] = False
+                notification.save()
+
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Notification Disabled",
+                                "description": "The item notification has been enabled.",
+                                "color": SKYNET_GOOD,
+                                "footer": {
+                                    "text": f"DB ID: {notification.id}",
+                                },
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            else:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Corrupted Button Data",
+                                "description": "The notification is already disabled.",
+                                "color": SKYNET_ERROR,
+                                "footer": {
+                                    "text": f"DB ID: {notification.id}",
+                                },
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+        elif effect == "enable":
+            if notification.options["enabled"]:
+                notification.options["enabled"] = False
+                notification.save()
+
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Notification Enabled",
+                                "description": "The item notification has been enabled.",
+                                "color": SKYNET_GOOD,
+                                "footer": {
+                                    "text": f"DB ID: {notification.id}",
+                                },
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            else:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Corrupted Button Data",
+                                "description": "The notification is already enabled.",
+                                "color": SKYNET_ERROR,
+                                "footer": {
+                                    "text": f"DB ID: {notification.id}",
+                                },
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+    else:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Corrupted Button Data",
+                        "description": "The utilized button's data was corrupted.",
+                        "color": SKYNET_ERROR,
+                        "footer": {
+                            "text": f"Invalid Data: {effect}",
+                        },
+                    },
+                ],
+                "flags": 64,
+            },
+        }

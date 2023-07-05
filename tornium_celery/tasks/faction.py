@@ -37,9 +37,10 @@ from tornium_commons.models import (
     UserModel,
     WithdrawalModel,
 )
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .misc import send_dm
 from .user import update_user
 
 logger = get_task_logger(__name__)
@@ -1038,7 +1039,26 @@ def oc_refresh_subtask(oc_data):
                 if participant["color"] != "green":
                     oc_db.delayers.append(participant_id)
 
-                    participant_db: UserModel = UserModel.objects(tid=participant_id).first()
+                    participant_db: typing.Optional[UserModel] = UserModel.objects(tid=participant_id).first()
+
+                    if participant_db is not None and participant_db.discord_id not in ("", 0, None):
+                        send_dm.delay(
+                            discord_id=participant_db.discord_id,
+                            payload={
+                                "embeds": [
+                                    {
+                                        "title": "OC Delayed",
+                                        "description": f"You are currently delaying the "
+                                        f"{ORGANIZED_CRIMES[oc_data['crime_id']]} that you are participating in which "
+                                        f"was ready <t:{oc_db.time_ready}:R>. Please return to Torn or otherwise "
+                                        f"become available for the OC to be initiated.",
+                                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                                        "footer": {"text": f"#{oc_db.ocid}"},
+                                        "color": SKYNET_ERROR,
+                                    }
+                                ]
+                            },
+                        ).forget()
 
                     if participant_db is None:
                         payload["components"].append(

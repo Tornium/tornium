@@ -552,6 +552,7 @@ def items_autocomplete(interaction, *args, **kwargs):
 def items_button_switchboard(interaction, *args, **kwargs):
     print(interaction)
 
+    user = kwargs["user"]
     button_data = interaction["data"]["custom_id"].split(":")
     notification_id: str = button_data[2]
     effect = button_data[3]
@@ -575,21 +576,57 @@ def items_button_switchboard(interaction, *args, **kwargs):
         }
 
     if effect == "goto":
-        return {}
+        notifications: QuerySet
+        if notification.recipient_type == 1:
+            notifications = NotificationModel.objects(
+                Q(ntype=3)
+                & Q(recipient_type=1)
+                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+            )
+        else:
+            notifications = NotificationModel.objects(
+                Q(ntype=3) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
+            )
 
-        discordpatch(
-            f"channels/{3834832}/messages/{348932489}",
-            payload={
-                _generate_item_info_payload(
-                    notification=None,
-                    item=None,
-                    current_number=None,
-                    total_count=None,
-                    previous_notif=None,
-                    next_notif=None,
-                )
-            },
-        ).forget()
+        notification_count = notifications.count()
+
+        previous_notif = None
+        current_notif = None
+        next_notif = None
+        current_count = 1
+
+        while current_count <= notification_count:
+            notif: NotificationModel = notifications[current_count - 1]
+
+            if notif.id == notification.id:
+                previous_notif = notif
+
+                if notification_count >= current_count:
+                    current_notif = notifications[current_count]
+
+                if notification_count >= current_count + 1:
+                    next_notif = notifications[current_count + 1]
+
+                break
+
+            current_count += 1
+
+        item: typing.Optional[ItemModel] = ItemModel.objects(tid=notification.target).first()
+
+        # discordpatch(
+        #     f"channels/{3834832}/messages/{348932489}",
+        #     payload={
+        #         _generate_item_info_payload(
+        #             notification=current_notif,
+        #             item=item,
+        #             current_number=current_count,
+        #             total_count=notification_count,
+        #             previous_notif=previous_notif,
+        #             next_notif=next_notif,
+        #         )
+        #     },
+        # ).forget()
+        return
 
     elif effect == "delete":
         notification.delete()

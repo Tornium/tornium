@@ -383,7 +383,7 @@ def items_autocomplete(interaction, *args, **kwargs):
                     "data": {
                         "choices": [
                             {"name": item.name, "value": item.tid}
-                            for item in ItemModel.objects(name__icontains=option["value"])
+                            for item in ItemModel.objects(name__icontains=option["value"]).limit(25)
                         ]
                     },
                 }

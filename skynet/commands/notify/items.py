@@ -316,7 +316,6 @@ def _generate_item_info_payload(
         notification_description = "ERROR"
 
     enabled = notification.options["enabled"]
-
     payload = {
         "embeds": [
             {
@@ -364,23 +363,20 @@ def _generate_item_info_payload(
                         "type": 2,
                         "style": 2,
                         "label": "Previous",
+                        "custom_id": f"notify:{-1 if previous_notif is None else previous_notif.id}:goto",
                         "disabled": True if previous_notif is None else False,
                     },
                     {
                         "type": 2,
                         "style": 2,
                         "label": "Next",
+                        "custom_id": f"notify:{-2 if next_notif is None else next_notif.id}:goto",
                         "disabled": True if next_notif is None else False,
                     },
                 ],
             },
         ],
     }
-
-    if previous_notif is not None:
-        payload["components"][1]["components"][0]["custom_id"] = f"notify:{previous_notif.id}:goto"
-    if next_notif is not None:
-        payload["components"][1]["components"][1]["custom_id"] = f"notify:{next_notif.id}:goto"
 
     return payload
 

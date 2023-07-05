@@ -20,7 +20,7 @@ from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 _NOTIF_TYPE_MAP = {
     "percent": "percent below market value",
@@ -51,6 +51,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
         }
 
     notif_type = notif_type[1]["value"]
+    value = value[1]["value"]
 
     if channel == -1:
         channel = None
@@ -217,6 +218,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                     "footer": {
                         "text": f"DB ID: {notification.id}",
                     },
+                    "color": SKYNET_GOOD,
                 },
             ]
         },

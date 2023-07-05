@@ -359,3 +359,38 @@ def items_switchboard(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+
+
+def items_autocomplete(interaction, *args, **kwargs):
+    print(interaction)
+
+    try:
+        subcommand = interaction["data"]["options"][0]["options"][0]["name"]
+        subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
+    except Exception:
+        return {
+            "type": 8,
+            "data": {
+                "choices": [],
+            },
+        }
+
+    if subcommand in ("initialize", "info"):
+        for option in subcommand_data:
+            if option.get("focused"):
+                return {
+                    "type": 8,
+                    "data": {
+                        "choices": [
+                            {"name": item.name, "value": item.tid}
+                            for item in ItemModel.objects(name__icontains=option["value"])
+                        ]
+                    },
+                }
+
+    return {
+        "type": 8,
+        "data": {
+            "choices": [],
+        },
+    }

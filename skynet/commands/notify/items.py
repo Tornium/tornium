@@ -416,14 +416,16 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
     except IndexError:
         next_notif = None
 
-    return _generate_item_info_payload(
-        notification=notifications.first(),
-        item=item,
-        current_number=1,
-        total_count=notification_count,
-        previous_notif=None,
-        next_notif=next_notif,
-    )
+    return {
+        "data": _generate_item_info_payload(
+            notification=notifications.first(),
+            item=item,
+            current_number=1,
+            total_count=notification_count,
+            previous_notif=None,
+            next_notif=next_notif,
+        )
+    }
 
 
 def items_switchboard(interaction, *args, **kwargs):

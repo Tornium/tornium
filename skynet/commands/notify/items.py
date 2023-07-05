@@ -417,6 +417,7 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
         next_notif = None
 
     return {
+        "type": 4,
         "data": _generate_item_info_payload(
             notification=notifications.first(),
             item=item,
@@ -424,7 +425,7 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
             total_count=notification_count,
             previous_notif=None,
             next_notif=next_notif,
-        )
+        ),
     }
 
 

@@ -650,8 +650,8 @@ def items_button_switchboard(interaction, *args, **kwargs):
                     },
                 }
         elif effect == "enable":
-            if notification.options["enabled"]:
-                notification.options["enabled"] = False
+            if not notification.options["enabled"]:
+                notification.options["enabled"] = True
                 notification.save()
 
                 return {

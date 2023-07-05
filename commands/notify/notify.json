@@ -260,7 +260,7 @@
                 {
                     "type": 1,
                     "name": "info",
-                    "descriptions": "Lists info about item notifications",
+                    "description": "Lists info about item notifications",
                     "options": [
                         {
                             "type": 3,

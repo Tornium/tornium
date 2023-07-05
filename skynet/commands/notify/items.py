@@ -273,7 +273,7 @@ def list_item_notifs(interaction, user: UserModel, item: ItemModel, *args, **kwa
 
         notification_type = _NOTIF_TYPE_MAP[notification.options.get("type")]
         value = ""
-        item_db = ItemModel.objects(notification.target).first()
+        item_db = ItemModel.objects(tid=notification.target).first()
         item_str = f"{item_db.name} [{item_db.tid}]" if item_db is not None else "ERROR"
 
         payload["data"]["embeds"][0]["description"] += f"\n{value} {notification_type} for {item_str} - {recipient}"

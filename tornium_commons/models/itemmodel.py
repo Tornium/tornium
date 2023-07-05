@@ -23,7 +23,7 @@ from .. import rds
 
 
 class ItemModel(DynamicDocument):
-    tid = IntField(primary_key=True)
+    tid = IntField(required=True)
     name = StringField(default="")
     description = StringField(default="")
     type = StringField(default="")

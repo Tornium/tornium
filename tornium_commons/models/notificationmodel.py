@@ -23,6 +23,7 @@ class NotificationModel(DynamicDocument):
     # 0: stocks price reach
     # 1: user stakeout
     # 2: faction stakeout
+    # 3: item notif
     ###############
 
     invoker = IntField(required=True)  # TID of notification creator

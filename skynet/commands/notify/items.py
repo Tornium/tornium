@@ -18,7 +18,6 @@ import typing
 
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-from tornium_celery.tasks.api import discordpatch
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -277,9 +276,9 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
         if notification.options.get("type") == "percent":
             value = f"{notification.value}% below market value of"
         elif notification.options.get("type") == "price":
-            value = f"Below ${commas(notification.value)} for"
+            value = f"Below ${commas(int(notification.value))} for"
         elif notification.options.get("type") == "quantity":
-            value = f"Above {commas(notification.value)}x of"
+            value = f"Above {commas(int(notification.value))}x of"
         else:
             value = "ERROR"
 
@@ -307,11 +306,11 @@ def _generate_item_info_payload(
         )
     elif notification.options["type"] == "price":
         notification_description += (
-            f"{item.name} can be found on the market for less than {commas(notification.value)}."
+            f"{item.name} can be found on the market for less than {commas(int(notification.value))}."
         )
     elif notification.options["type"] == "quantity":
         notification_description += (
-            f"more than {commas(notification.value)}x of {item.name} can be found on the market."
+            f"more than {commas(int(notification.value))}x of {item.name} can be found on the market."
         )
     else:
         notification_description = "ERROR"

@@ -599,7 +599,11 @@ def items_button_switchboard(interaction, *args, **kwargs):
             notif: NotificationModel = notifications[current_count - 1]
 
             if notif.id == notification.id:
-                previous_notif = notifications[current_count - 2]
+                if current_count > 1:
+                    previous_notif = notifications[current_count - 2]
+                else:
+                    previous_notif = None
+
                 current_notif = notif
 
                 try:
@@ -613,9 +617,9 @@ def items_button_switchboard(interaction, *args, **kwargs):
 
         item: typing.Optional[ItemModel] = ItemModel.objects(tid=notification.target).first()
 
-        discordpatch(
-            f"channels/{interaction['channel']['id']}/messages/{interaction['id']}",
-            payload=_generate_item_info_payload(
+        return {
+            "type": 7,
+            "data": _generate_item_info_payload(
                 notification=current_notif,
                 item=item,
                 current_number=current_count,
@@ -623,8 +627,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                 previous_notif=previous_notif,
                 next_notif=next_notif,
             ),
-        ).forget()
-        return
+        }
 
     elif effect == "delete":
         notification.delete()

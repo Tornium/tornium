@@ -599,15 +599,15 @@ def items_button_switchboard(interaction, *args, **kwargs):
             notif: NotificationModel = notifications[current_count - 1]
 
             if notif.id == notification.id:
-                previous_notif = notif
+                previous_notif = notifications[current_count - 2]
 
                 try:
-                    current_notif = notifications[current_count]
+                    current_notif = notif
                 except IndexError:
                     current_notif = None
 
                 try:
-                    next_notif = notifications[current_count + 1]
+                    next_notif = notifications[current_count]
                 except IndexError:
                     current_notif = None
 

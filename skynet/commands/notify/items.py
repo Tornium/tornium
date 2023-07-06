@@ -600,16 +600,12 @@ def items_button_switchboard(interaction, *args, **kwargs):
 
             if notif.id == notification.id:
                 previous_notif = notifications[current_count - 2]
-
-                try:
-                    current_notif = notif
-                except IndexError:
-                    current_notif = None
+                current_notif = notif
 
                 try:
                     next_notif = notifications[current_count]
                 except IndexError:
-                    current_notif = None
+                    next_notif = None
 
                 break
 
@@ -619,16 +615,14 @@ def items_button_switchboard(interaction, *args, **kwargs):
 
         discordpatch(
             f"channels/{interaction['channel']['id']}/messages/{interaction['id']}",
-            payload={
-                _generate_item_info_payload(
-                    notification=current_notif,
-                    item=item,
-                    current_number=current_count,
-                    total_count=notification_count,
-                    previous_notif=previous_notif,
-                    next_notif=next_notif,
-                )
-            },
+            payload=_generate_item_info_payload(
+                notification=current_notif,
+                item=item,
+                current_number=current_count,
+                total_count=notification_count,
+                previous_notif=previous_notif,
+                next_notif=next_notif,
+            ),
         ).forget()
         return
 

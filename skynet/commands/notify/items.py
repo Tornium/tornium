@@ -306,7 +306,7 @@ def _generate_item_info_payload(
         )
     elif notification.options["type"] == "price":
         notification_description += (
-            f"{item.name} can be found on the market for less than {commas(int(notification.value))}."
+            f"{item.name} can be found on the market for less than ${commas(int(notification.value))}."
         )
     elif notification.options["type"] == "quantity":
         notification_description += (

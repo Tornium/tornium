@@ -33,7 +33,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
     notif_type = find_list(subcommand_data, "name", "type")
     value = find_list(subcommand_data, "name", "value")
     channel = find_list(subcommand_data, "name", "channel")
-    persistence = find_list(subcommand_data, "name", "persistence")
+    persistence = find_list(subcommand_data, "name", "persistent")
 
     if notif_type == -1 or notif_type[1]["value"] not in ["percent", "price", "quantity"]:
         return {

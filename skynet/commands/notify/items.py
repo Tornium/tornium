@@ -438,7 +438,7 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
 def items_switchboard(interaction, *args, **kwargs):
     user: UserModel = kwargs["invoker"]
 
-    if user.tid not in [2383326, 2942256]:
+    if user.tid not in [2383326, 2942256, 2858290]:
         return {
             "type": 4,
             "data": {

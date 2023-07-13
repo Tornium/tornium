@@ -94,8 +94,9 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
             },
         }
 
+    guild: typing.Optional[ServerModel] = None
     if not private:
-        guild: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
+        guild = ServerModel.objects(sid=interaction["guild_id"]).first()
 
         if guild is None:
             return {
@@ -132,7 +133,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
             NotificationModel.objects(
                 Q(ntype=3) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
             ).count()
-            > 25
+            > 10
         ):
             return {
                 "type": 4,
@@ -140,8 +141,8 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                     "embeds": [
                         {
                             "title": "Too Many Notifications",
-                            "description": "You have too many item notifications. To prevent service degregation, "
-                            "there is a maximum of 25 item notifications per user/server.",
+                            "description": "You have too many item notifications. To prevent service performance "
+                            "degradation, there is a maximum of 10 item notifications per user in DMs.",
                             "color": SKYNET_ERROR,
                         },
                     ],
@@ -149,22 +150,32 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                 },
             }
     else:
-        if (
-            NotificationModel.objects(
-                Q(ntype=3)
-                & Q(recipient_type=1)
-                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
-            ).count()
-            > 25
-        ):
+        n_count = NotificationModel.objects(Q(ntype=3) & Q(recipient_type=1) & (Q(recipient_guild=guild.sid))).count()
+
+        if n_count > 35:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Too Many Notifications",
-                            "description": "You have too many item notifications. To prevent service degregation, "
-                            "there is a maximum of 25 item notifications per user/server.",
+                            "description": "You have too many item notifications. To prevent service performance "
+                            "degradation, there is a maximum of 35 item notifications per server.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif n_count > len(guild.admins) * 10:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Too Many Notifications",
+                            "description": "You have too many item notifications. To prevent API key overuse, there is "
+                            "a maximum of 10 calls per server admin.",
                             "color": SKYNET_ERROR,
                         },
                     ],
@@ -249,7 +260,6 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
     if "guild_id" in interaction:
         notifications = NotificationModel.objects(
             Q(ntype=3)
-            & Q(recipient_type=1)
             & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
         )
     else:
@@ -339,7 +349,7 @@ def _generate_item_info_payload(
         "embeds": [
             {
                 "title": f"Item Notification: {item.name}",
-                "description": f"Showing item notification information for {item.name} [{item.tid}]\n\n{notification_description}",
+                "description": f"Showing item notification information for {item.name} [{item.tid}]\n\n{notification_description}:",
                 "fields": [
                     {
                         "name": "Time Created",
@@ -359,7 +369,7 @@ def _generate_item_info_payload(
                         "inline": True,
                     },
                 ],
-                "footer": {"text": f"Showing {current_number}/{total_count}..."},
+                "footer": {"text": f"DB ID: {notification.id} | Showing {current_number}/{total_count}..."},
             }
         ],
         "components": [

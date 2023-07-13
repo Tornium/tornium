@@ -467,22 +467,6 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
 def items_switchboard(interaction, *args, **kwargs):
     user: UserModel = kwargs["invoker"]
 
-    if user.tid not in [2383326, 2942256, 2858290]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Permission Denied",
-                        "description": "This command is under development and is only available for testers. "
-                        "Contact tiksan for more details.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]

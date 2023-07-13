@@ -220,7 +220,26 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                     },
                     "color": SKYNET_GOOD,
                 },
-            ]
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Enable Notification",
+                            "custom_id": f"notify:items:{notification.id}:enable",
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Delete Notification",
+                            "custom_id": f"notify:items:{notification.id}:delete",
+                        },
+                    ],
+                },
+            ],
         },
     }
 

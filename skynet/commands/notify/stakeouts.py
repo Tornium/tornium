@@ -258,21 +258,7 @@ def stakeouts(interaction, *args, **kwargs):
             channel = channel[1]["value"]
             private = False
 
-        if not private and channel is None:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Illegal Command Input",
-                            "description": "The notification can not be public without a channel provided.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-        elif private and user.discord_id == 0:
+        if private and user.discord_id == 0:
             return {
                 "type": 4,
                 "data": {

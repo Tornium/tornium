@@ -475,24 +475,24 @@ def items_switchboard(interaction, *args, **kwargs):
     item_name = find_list(subcommand_data, "name", "item")
     item: typing.Optional[ItemModel] = None
 
-    if not item_name[1]["value"].isdigit():
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Invalid Item Name",
-                        "description": "A valid item ID is required for this command. If you have copied this "
-                        "command, please retype the item name for the item ID to be properly registered.",
-                        "color": SKYNET_ERROR,
-                    },
-                ],
-                "flags": 64,
-            },
-        }
-
     if item_name != -1:
-        item = ItemModel.objects(tid=int(item_name[1]["value"])).first()
+        try:
+            item = ItemModel.objects(tid=int(item_name[1]["value"])).first()
+        except TypeError:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Item Name",
+                            "description": "A valid item ID is required for this command. If you have copied this "
+                            "command, please retype the item name for the item ID to be properly registered.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
 
     if item is None and subcommand in ["info", "initialize"]:
         return {

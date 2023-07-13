@@ -14,7 +14,7 @@ You can invite SkyNet onto your server with either specific, required permission
  * Administrator permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 
 .. note::
-    SkyNet utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at the top of every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass (or optionally if tiksan is online, you can ask to have the list of servers manually refreshed).
+    SkyNet utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at 30 minutes past every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass (or optionally if tiksan is online, you can ask to have the list of servers manually refreshed).
 
 Bot Modules
 -----------

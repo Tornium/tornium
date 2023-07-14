@@ -146,6 +146,11 @@ def market_notifications(market_data: dict, notifications: dict):
     quantity_enabled: bool = any(n["options"]["type"] == "quantity" for n in notifications)
     redis_client = rds()
 
+    if market_data["itemmarket"] is None:
+        market_data["itemmarket"] = []
+    if market_data["bazaar"] is None:
+        market_data["bazaar"] = []
+
     if not redis_client.exists(f"tornium:items:{item.tid}:ids"):
         market_ids = [listing["ID"] for listing in market_data["itemmarket"] + market_data["bazaar"]]
         redis_client.sadd(f"tornium:items:{item.tid}:ids", *market_ids)

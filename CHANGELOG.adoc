@@ -12,6 +12,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added support for OC initiated result messages
  - Added DM message to OC delayers
  - Added faction tag support to verification template
+ - Added item price/quantity notifications
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance

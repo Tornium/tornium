@@ -100,12 +100,15 @@
             background-color: inherit;
         }
 
-        & tbody th {
-            color: $white;
-            background-color: inherit;
-
-            & a {
+        & tbody {
+            & th,
+            td {
                 color: $white;
+                background-color: inherit;
+
+                & a {
+                    color: inherit;
+                }
             }
         }
 

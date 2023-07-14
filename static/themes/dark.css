@@ -77,12 +77,14 @@
   color: rgb(229, 229, 229);
   background-color: inherit;
 }
-[data-bs-theme=custom-dark] .primary tbody th {
+[data-bs-theme=custom-dark] .primary tbody th,
+[data-bs-theme=custom-dark] .primary tbody td {
   color: rgb(229, 229, 229);
   background-color: inherit;
 }
-[data-bs-theme=custom-dark] .primary tbody th a {
-  color: rgb(229, 229, 229);
+[data-bs-theme=custom-dark] .primary tbody th a,
+[data-bs-theme=custom-dark] .primary tbody td a {
+  color: inherit;
 }
 [data-bs-theme=custom-dark] .primary i [class^=fa-] {
   color: rgb(229, 229, 229);

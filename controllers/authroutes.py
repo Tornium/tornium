@@ -81,6 +81,10 @@ def login():
             title="Timeout",
             error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
         )
+    except NetworkingError as e:
+        return utils.handle_torn_error(e)
+    except TornError as e:
+        return utils.handle_torn_error(e)
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).no_cache().first()
 
@@ -88,8 +92,8 @@ def login():
         return render_template(
             "errors/error.html",
             title="User Not Found",
-            error="Even after an update, the user and their key could not be located in the database. Please contact "
-            "tiksan [2383326] for support.",
+            error="Even after an update, the user and their key could not be located in the database. Please try "
+            "again and if this problem persists, contact tiksan [2383326] for support.",
         )
 
     if user.security == 0:

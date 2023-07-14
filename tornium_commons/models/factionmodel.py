@@ -19,6 +19,7 @@ from mongoengine import DictField, DynamicDocument, IntField, ListField, StringF
 class FactionModel(DynamicDocument):
     tid = IntField(primary_key=True)
     name = StringField(default="")
+    tag = StringField(default="")
     respect = IntField(default=0)
     capacity = IntField(default=0)
     leader = IntField(default=0)

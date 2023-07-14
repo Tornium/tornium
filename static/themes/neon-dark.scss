@@ -101,12 +101,15 @@
             background-color: inherit;
         }
 
-        & tbody th {
-            color: $neon;
-            background-color: inherit;
-
-            & a {
+        & tbody {
+            & th,
+            td {
                 color: $neon;
+                background-color: inherit;
+
+                & a {
+                    color: inherit;
+                }
             }
         }
 

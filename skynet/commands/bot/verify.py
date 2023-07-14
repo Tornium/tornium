@@ -183,7 +183,8 @@ def verify(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Verification Failed",
-                        "description": "The user has an exclusion role which prevents automatic verification. Contact a server admin to remove this exclusion role or to manually set roles.",
+                        "description": "The user has an exclusion role which prevents automatic verification. "
+                        "Contact a server admin to remove this exclusion role or to manually set roles.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -215,7 +216,9 @@ def verify(interaction, *args, **kwargs):
                     {
                         "title": "Verification Failed",
                         "description": "API call failed. Please verify that you are officially verified by Torn. "
-                        "Otherwise, try forcing the verification.",
+                        "Otherwise, try forcing the verification. To verify on Torn, you can match your Discord and "
+                        "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
+                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -247,7 +250,9 @@ def verify(interaction, *args, **kwargs):
                     {
                         "title": "Verification Failed",
                         "description": "No Discord ID found. Please verify that you are officially verified by Torn. "
-                        "Otherwise, try forcing the verification.",
+                        "Otherwise, try forcing the verification. To verify on Torn, you can match your Discord and "
+                        "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
+                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
                         "color": SKYNET_ERROR,
                     }
                 ],

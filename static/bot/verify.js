@@ -229,6 +229,37 @@ $(document).ready(function () {
         );
     });
 
+    $("#verification-name-template").on("keypress", function (e) {
+        if (e.which !== 13) {
+            return;
+        }
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast(
+                    "Verification Template Failed",
+                    `The Tornium API server has responded with \"${response["message"]}\".`
+                );
+            } else {
+                generateToast("Verification Template Successful");
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/bot/verify/template");
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                guildid: guildid,
+                template: $("#verification-name-template").val(),
+            })
+        );
+    });
+
     $(".verification-faction-enable").on("click", function () {
         const xhttp = new XMLHttpRequest();
 

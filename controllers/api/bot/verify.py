@@ -138,6 +138,33 @@ def guild_verification_log(*args, **kwargs):
 
 @token_required
 @ratelimit
+def guild_verification_template(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    guildid = data.get("guildid")
+    template = data.get("template")
+
+    if guildid in ("", None, 0) or not guildid.isdigit():
+        return make_exception_response("1001", key)
+    elif template in ("", None):
+        return make_exception_response("1000", key, details={"element": "template"})
+
+    guild: ServerModel = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    guild.verify_template = template
+    guild.save()
+
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@token_required
+@ratelimit
 def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

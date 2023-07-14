@@ -33,9 +33,6 @@ For applicable members (see above), while being verified SkyNet will change thei
     * - ``{{ tag }}``
       - Torn faction tag
 
-.. warning::
-    The ``{{ tag }}`` variable has not been implemented yet.
-
 Verification by Status
 ``````````````````````
 Discord users can link their Discord account to their Torn account through the `official Torn Discord server <https://torn.com/discord>`_. This allows servers to verify the identities of their members. This feature allows server administrators to give verified server members specific role(s) and/or change their server nickname.

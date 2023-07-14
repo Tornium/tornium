@@ -107,6 +107,11 @@ mod.add_url_rule(
     view_func=bot.verify.guild_verification_roles,
     methods=["POST"],
 )
+mod.add_url_rule(
+    "/api/bot/verify/template",
+    view_func=bot.verify.guild_verification_template,
+    methods=["POST"],
+)
 
 # /api/faction
 mod.add_url_rule("/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"])

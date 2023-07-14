@@ -79,13 +79,13 @@
   color: rgb(57, 255, 20);
   background-color: inherit;
 }
-[data-bs-theme=neon-dark] .primary tbody > th,
-[data-bs-theme=neon-dark] .primary tbody > td {
+[data-bs-theme=neon-dark] .primary tbody th,
+[data-bs-theme=neon-dark] .primary tbody td {
   color: rgb(57, 255, 20);
   background-color: inherit;
 }
-[data-bs-theme=neon-dark] .primary tbody > th a,
-[data-bs-theme=neon-dark] .primary tbody > td a {
+[data-bs-theme=neon-dark] .primary tbody th a,
+[data-bs-theme=neon-dark] .primary tbody td a {
   color: inherit;
 }
 [data-bs-theme=neon-dark] .primary i [class^=fa-] {

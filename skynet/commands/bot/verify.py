@@ -262,11 +262,15 @@ def verify(interaction, *args, **kwargs):
 
     patch_json = {}
 
+    faction: typing.Optional[FactionModel] = (
+        FactionModel.objects(tid=user.factionid).first() if user.factionid != 0 else None
+    )
+
     if server.verify_template != "":
         nick = (
             jinja2.Environment(autoescape=True)
             .from_string(server.verify_template)
-            .render(name=user.name, tid=user.tid, tag="")
+            .render(name=user.name, tid=user.tid, tag="" if faction is None else faction.tag)
         )
 
         if nick != current_nick:
@@ -402,8 +406,6 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-
-    faction: FactionModel = FactionModel.objects(tid=user.factionid).first() if user.factionid != 0 else None
 
     if user.factionid == 0:
         faction_str = "None"

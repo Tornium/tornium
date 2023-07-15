@@ -27,7 +27,7 @@ from celery.utils.log import get_task_logger
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
-from tornium_commons.models import PositionModel, ServerModel, UserModel
+from tornium_commons.models import FactionModel, PositionModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost, tornget
@@ -396,11 +396,15 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
     if guild is None:
         raise LookupError("Server not found in database")
 
+    faction: typing.Optional[FactionModel] = (
+        FactionModel.objects(tid=user.factionid).first() if user.factionid != 0 else None
+    )
+
     if guild.verify_template != "":
         nick = (
             jinja2.Environment(autoescape=True)
             .from_string(guild.verify_template)
-            .render(name=user.name, tid=user.tid, tag="")
+            .render(name=user.name, tid=user.tid, tag="" if faction is None else faction.tag)
         )
 
         if nick != member["name"]:

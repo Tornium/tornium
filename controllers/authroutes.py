@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import hashlib
+import inspect
 import secrets
 import time
 import typing
@@ -28,10 +30,12 @@ from flask_login import (
     logout_user,
 )
 from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import UserModel
+from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
@@ -72,6 +76,11 @@ def login():
                 ),
                 400,
             )
+
+    if current_user.authenticated:
+        pre_authenticated = True
+    else:
+        pre_authenticated = False
 
     try:
         update_user(key=request.form["key"], tid=0, refresh_existing=True).get()
@@ -136,6 +145,53 @@ def login():
             ),
             500,
         )
+
+    if not pre_authenticated and user.discord_id not in (0, None, ""):
+        discord_payload = {
+            "embeds": [
+                {
+                    "title": "Security Alert",
+                    "description": inspect.cleandoc(
+                        f"""Someone has signed into your Tornium account from {request.headers.get("CF-Connecting-IP")}
+                         [{request.headers.get("CF-IPCountry")}] on a {request.user_agent.browser.capitalize()}
+                         browser <t:{datetime.datetime.utcnow().timestamp()}:f>.
+
+                        If this was not you, please contact the developer as soon as possible. You may need to
+                         reset your API key to secure your account.
+
+                        WARNING: If the developer is accessing your Tornium account, they will contact you ahead of
+                         time through the linked Discord account."""
+                    ),
+                    "color": SKYNET_INFO,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "tiksan [2383326] @ Discord (preferred)",
+                            "url": "https://discord.com/users/695828257949352028",
+                        }
+                    ],
+                },
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "tiksan [2383326] @ Torn",
+                            "url": "https://www.torn.com/profiles.php?XID=2383326",
+                        },
+                    ],
+                },
+            ],
+        }
+
+        send_dm.delay(user.discord_id, discord_payload).forget()
 
     if session.get("next") is None:
         return redirect(url_for("baseroutes.index"))

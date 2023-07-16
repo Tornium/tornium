@@ -77,11 +77,6 @@ def login():
                 400,
             )
 
-    if current_user.is_authenticated:
-        pre_authenticated = True
-    else:
-        pre_authenticated = False
-
     try:
         update_user(key=request.form["key"], tid=0, refresh_existing=True).get()
     except celery.exceptions.TimeoutError:
@@ -105,48 +100,7 @@ def login():
             "again and if this problem persists, contact tiksan [2383326] for support.",
         )
 
-    if user.security == 0:
-        login_user(User(user.tid), remember=True)
-    elif user.security == 1:
-        if user.otp_secret == "":  # nosec B105
-            return (
-                render_template(
-                    "errors/error.html",
-                    title="Security Error",
-                    error="The shared secret for OTP could not be located in the database.",
-                ),
-                401,
-            )
-
-        redis_client = rds()
-        client_token = secrets.token_urlsafe()
-
-        if redis_client.exists(f"tornium:login:{client_token}"):
-            return render_template(
-                "errors/error.html",
-                title="Security Error",
-                error="The generated client token already exists. Please try again.",
-            )
-
-        redis_client.setnx(f"tornium:login:{client_token}", time.time())
-        redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
-
-        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
-        redis_client.expire(f"tornium:login:{client_token}:tid", 180)
-
-        return redirect(f"/login/totp?token={client_token}")
-    else:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Unknown Security",
-                error="The security mode attached to this account is not valid. Please contact the server administrator to "
-                "fix this in the database.",
-            ),
-            500,
-        )
-
-    if not pre_authenticated and user.discord_id not in (0, None, ""):
+    if not current_user.is_authenticated and user.discord_id not in (0, None, ""):
         discord_payload = {
             "embeds": [
                 {
@@ -192,6 +146,47 @@ def login():
         }
 
         send_dm.delay(user.discord_id, discord_payload).forget()
+
+    if user.security == 0:
+        login_user(User(user.tid), remember=True)
+    elif user.security == 1:
+        if user.otp_secret == "":  # nosec B105
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Security Error",
+                    error="The shared secret for OTP could not be located in the database.",
+                ),
+                401,
+            )
+
+        redis_client = rds()
+        client_token = secrets.token_urlsafe()
+
+        if redis_client.exists(f"tornium:login:{client_token}"):
+            return render_template(
+                "errors/error.html",
+                title="Security Error",
+                error="The generated client token already exists. Please try again.",
+            )
+
+        redis_client.setnx(f"tornium:login:{client_token}", time.time())
+        redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
+
+        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
+        redis_client.expire(f"tornium:login:{client_token}:tid", 180)
+
+        return redirect(f"/login/totp?token={client_token}")
+    else:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unknown Security",
+                error="The security mode attached to this account is not valid. Please contact the server administrator to "
+                "fix this in the database.",
+            ),
+            500,
+        )
 
     if session.get("next") is None:
         return redirect(url_for("baseroutes.index"))

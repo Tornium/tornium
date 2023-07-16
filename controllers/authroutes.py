@@ -77,7 +77,7 @@ def login():
                 400,
             )
 
-    if current_user.authenticated:
+    if current_user.is_authenticated:
         pre_authenticated = True
     else:
         pre_authenticated = False

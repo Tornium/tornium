@@ -107,8 +107,7 @@ def login():
                     "title": "Security Alert",
                     "description": inspect.cleandoc(
                         f"""Someone has signed into your Tornium account from {request.headers.get("CF-Connecting-IP")}
-                         [{request.headers.get("CF-IPCountry")}] on a {request.user_agent.browser.capitalize()}
-                         browser <t:{datetime.datetime.utcnow().timestamp()}:f>.
+                         [{request.headers.get("CF-IPCountry")}] <t:{datetime.datetime.utcnow().timestamp()}:f>.
 
                         If this was not you, please contact the developer as soon as possible. You may need to
                          reset your API key to secure your account.

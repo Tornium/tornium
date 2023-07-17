@@ -21,6 +21,7 @@ from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
 from tornium_celery.tasks.api import discordget, discordpatch, discordpost
+from tornium_celery.tasks.misc import send_dm
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
@@ -363,7 +364,7 @@ def fulfill(guid: str):
         else:
             fulfiller_str = "someone"
 
-        discordpatch(
+        discordpatch.delay(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
                 "embeds": [
@@ -433,25 +434,8 @@ def fulfill(guid: str):
     withdrawal.save()
 
     if requester.discord_id not in (None, "", 0):
-        try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except Exception:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                            "description": "You have fulfilled the banking request.",
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "flags": 64,  # Ephemeral
-                },
-            }
-
-        discordpost.delay(
-            f"channels/{dm_channel['id']}/messages",
+        send_dm.delay(
+            requester.discord_id,
             payload={
                 "embeds": [
                     {
@@ -462,6 +446,6 @@ def fulfill(guid: str):
                     }
                 ]
             },
-        ).forget()
+        )
 
     return redirect(send_link)

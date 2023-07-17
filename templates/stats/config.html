@@ -53,15 +53,6 @@ Tornium - Stat DB Config
                 Select enabled if you'd like faction attacks to be collected and defender stat estimates to be stored
                 in the stat DB. Select disabled if you'd like faction attacks to not be collected and stored.
             </p>
-            <form class="form-floating" method="POST" action="/stats/config">
-                {% if config['stat'] == 0 %}
-                <input type="submit" class="btn btn-outline-primary" id="statenabled" name="statenabled" value="Enabled">
-                <input type="submit" class="btn btn-outline-primary active" disabled id="statdisabled" name="statdisabled" value="Disabled">
-                {% else %}
-                <input type="submit" class="btn btn-outline-primary active" disabled id="statenabled" name="statenabled" value="Enabled">
-                <input type="submit" class="btn btn-outline-primary" id="statdisabled" name="statdisabled" value="Disabled">
-                {% endif %}
-            </form>
         </div>
     </div>
 </div>

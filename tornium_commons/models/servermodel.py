@@ -27,14 +27,10 @@ class ServerModel(DynamicDocument):
     sid = LongField(primary_key=True)
     name = StringField(default="")
     admins = ListField(default=[])  # List of admin ids
-    config = DictField(default={"stakeouts": 0, "verify": 0})  # Dictionary of server configurations
+    config = DictField(default={"verify": 0})  # Dictionary of server configurations
     icon = StringField(default="")  # icon hash
 
     factions = ListField(default=[])  # List of factions in server
-
-    stakeoutconfig = DictField(default={"category": 0})  # Dictionary of stakeout configurations for the server
-    userstakeouts = ListField(default=[])  # List of staked-out users
-    factionstakeouts = ListField(default=[])  # List of staked-out factions
 
     verify_template = StringField(default="{{ name }} [{{ tid }}]")
     verified_roles = ListField(default=[])

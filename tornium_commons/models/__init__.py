@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .factionmodel import FactionModel
-from .factionstakeoutmodel import FactionStakeoutModel
 from .itemmodel import ItemModel
 from .notificationmodel import NotificationModel
 from .ocmodel import OCModel
@@ -24,12 +23,10 @@ from .servermodel import ServerModel
 from .statmodel import StatModel
 from .tickmodel import TickModel
 from .usermodel import UserModel
-from .userstakeoutmodel import UserStakeoutModel
 from .withdrawalmodel import WithdrawalModel
 
 __all__ = [
     "FactionModel",
-    "FactionStakeoutModel",
     "ItemModel",
     "NotificationModel",
     "OCModel",
@@ -39,6 +36,5 @@ __all__ = [
     "StatModel",
     "TickModel",
     "UserModel",
-    "UserStakeoutModel",
     "WithdrawalModel",
 ]

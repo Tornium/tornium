@@ -34,10 +34,9 @@ def index():
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
-    return render_template(
-        "settings.html",
-        enabled_mfa=current_user.security,
-    )
+    obfuscated_key = current_user.key[:6] + "*" * 10
+
+    return render_template("settings.html", enabled_mfa=current_user.security, obfuscated_key=obfuscated_key)
 
 
 @mod.route("/static/toast.js")

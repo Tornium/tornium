@@ -16,11 +16,13 @@
 import datetime
 import hashlib
 import inspect
+import json
 import secrets
 import time
 import typing
 
 import celery.exceptions
+import requests
 from flask import Blueprint, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
@@ -32,7 +34,7 @@ from flask_login import (
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
+from tornium_commons import Config, rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import UserModel
 from tornium_commons.skyutils import SKYNET_INFO
@@ -256,6 +258,34 @@ def topt_verification():
         )
 
 
+@mod.route("/login/skynet", methods=["POST"])
+def skynet_login():
+    # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
+
+    d_code = request.args.get("code")
+    payload = {
+        "client_id": Config()["skynet-client-id"],
+        "client_secret": Config()["skynet-client-secret"],
+        "grant_type": "authorization_code",
+        "code": d_code,
+        "redirect_uri": "https://tornium.com/login/skynet/callback",
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    access_token_data = requests.post("https://discord.com/api/v10/oauth2/token", headers=headers, data=payload)
+    access_token_data.raise_for_status()
+    access_token_json = access_token_data.json()
+
+    return access_token_json
+
+
+@mod.route("/login/skynet/callback", methods=["POST"])
+def skynet_login_callback():
+    data = json.loads(request.get_data().decode("utf-8"))
+
+    return data
+
+
 @mod.route("/logout", methods=["POST"])
 @login_required
 def logout():
@@ -300,7 +330,10 @@ def totp_backup_regen(*args, **kwargs):
 @fresh_login_required
 @token_required(setnx=False)
 def set_security_mode(*args, **kwargs):
-    mode = request.args.get("mode")
+    data = json.loads(request.get_data().decode("utf-8"))
+    mode = data.get("mode")
+
+    # TODO: Generate OTP secret if not created upon enable
 
     if mode not in (0, 1):
         response = json_api_exception("1000", details={"message": "Invalid security mode"})

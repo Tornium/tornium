@@ -143,16 +143,6 @@ if celery_app is None:
                 "task": "tasks.guild.refresh_guilds",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "0", "hour": "*"},
-            },
-            "user-stakeouts": {
-                "task": "tasks.stakeouts.user_stakeouts",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },
-            "faction-stakeouts": {
-                "task": "tasks.stakeouts.faction_stakeouts",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },  # User tasks
             "refresh-users": {
                 "task": "tasks.user.refresh_users",
@@ -266,22 +256,6 @@ if celery_app is None:
             "schedule": crontab(
                 minute=data["refresh-guilds"]["schedule"]["minute"],
                 hour=data["refresh-guilds"]["schedule"]["hour"],
-            ),
-        }
-    if "user-stakeouts" in data and data["user-stakeouts"]["enabled"]:
-        schedule["user-stakeouts"] = {
-            "task": data["user-stakeouts"]["task"],
-            "schedule": crontab(
-                minute=data["user-stakeouts"]["schedule"]["minute"],
-                hour=data["user-stakeouts"]["schedule"]["hour"],
-            ),
-        }
-    if "faction-stakeouts" in data and data["faction-stakeouts"]["enabled"]:
-        schedule["faction-stakeouts"] = {
-            "task": data["faction-stakeouts"]["task"],
-            "schedule": crontab(
-                minute=data["faction-stakeouts"]["schedule"]["minute"],
-                hour=data["faction-stakeouts"]["schedule"]["hour"],
             ),
         }
     if "refresh-users" in data and data["refresh-users"]["enabled"]:

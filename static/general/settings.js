@@ -273,4 +273,40 @@ $(document).ready(function () {
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
     });
+
+    $("#api-key-input").on("keypress", function (e) {
+        if (e.which !== 13) {
+            return;
+        }
+
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast(
+                    "API Key Input Failed",
+                    `The Tornium API server has responded with \"${response["message"]}\".`
+                );
+                return;
+            }
+
+            generateToast(
+                "API Key Input Successful",
+                "The Tornium API server has successfully set your API key."
+            );
+            $("#api-key-input").attr("placeholder", response["obfuscated_key"]);
+            $("#api-key-input").val("");
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/key");
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                key: $("#api-key-input").val(),
+            })
+        );
+    });
 });

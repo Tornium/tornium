@@ -17,18 +17,21 @@ Tornium - Settings
 
 {% block content %}
 <div class="card m-3">
-    <div class="card-body">
+    <div class="card-body row">
         <h5 class="card-title">Tornium Client Settings</h5>
         <p class="card-text">
             Settings for Tornium clients that's stored in cookies on a per-device basis.
         </p>
 
-        <select id="theme-selector" class="form-select" aria-label="Theme selection">
-            <option value="light">Light (Bootstrap)</option>
-            <option disabled value="dark">Dark (Bootstrap)</option>
-            <option value="custom-dark">Dark (Customized)</option>
-            <option value="neon-dark">Raz-Mode (Neon+Dark)</option>
-        </select>
+        <div class="col-sm-12 col-md-8 col-xl-4">
+            <p class="card-text mb-2">Theme Selector: </p>
+            <select id="theme-selector" class="form-select" aria-label="Theme selection">
+                <option value="light">Light (Bootstrap)</option>
+                <option disabled value="dark">Dark (Bootstrap)</option>
+                <option value="custom-dark">Dark (Customized)</option>
+                <option value="neon-dark">Raz-Mode (Neon+Dark)</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -66,10 +69,10 @@ Tornium - Settings
             <div class="card-body">
                 <h5 class="card-title">Tornium API Key Settings</h5>
 
-                <div class="col-sm-12 col-md-6 col-lg-4">
+                <div class="col-sm-12 col-md-8 col-xl-4">
                     <div class="input-group">
                         <span class="input-group-text">API Key</span>
-                        <input type="text" class="form-control" placeholder="{{ obfuscated_key }}" aria-label="API key">
+                        <input type="text" class="form-control" placeholder="{{ obfuscated_key }}" aria-label="API key" id="api-key-input">
                     </div>
 
                     <div class="input-group mt-1">

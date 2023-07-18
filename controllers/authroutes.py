@@ -17,6 +17,7 @@ import datetime
 import hashlib
 import inspect
 import json
+import random
 import secrets
 import time
 import typing
@@ -31,6 +32,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from mongoengine import QuerySet
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
@@ -80,7 +82,7 @@ def login():
             )
 
     try:
-        update_user(key=request.form["key"], tid=0, refresh_existing=True).get()
+        update_user(key=request.form["key"], tid=0, refresh_existing=False).get()
     except celery.exceptions.TimeoutError:
         return render_template(
             "errors/error.html",
@@ -258,17 +260,17 @@ def topt_verification():
         )
 
 
-@mod.route("/login/skynet", methods=["POST"])
+@mod.route("/login/skynet", methods=["GET"])
 def skynet_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
 
     d_code = request.args.get("code")
     payload = {
-        "client_id": Config()["skynet-client-id"],
+        "client_id": Config()["skynet-applicationid"],
         "client_secret": Config()["skynet-client-secret"],
         "grant_type": "authorization_code",
         "code": d_code,
-        "redirect_uri": "https://tornium.com/login/skynet/callback",
+        "redirect_uri": "https://tornium.com/login/skynet",
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
@@ -276,7 +278,57 @@ def skynet_login():
     access_token_data.raise_for_status()
     access_token_json = access_token_data.json()
 
-    return access_token_json
+    headers = {
+        "Authorization": f"Bearer {access_token_json['access_token']}",
+        "Content-Type": "application/json",
+    }
+
+    user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers)
+    user_request.raise_for_status()
+    user_data = user_request.json()
+
+    user_qs: QuerySet = UserModel.objects(discord_id=user_data["id"])
+    user: typing.Optional[UserModel] = user_qs.first()
+
+    if user is None:
+        try:
+            update_user(
+                key=random.choice(UserModel.objects(key__nin=[None, ""])),
+                discordid=user_data["id"],
+                refresh_existing=False,
+            ).get()
+        except celery.exceptions.TimeoutError:
+            return render_template(
+                "errors/error.html",
+                title="Timeout",
+                error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
+            )
+        except NetworkingError as e:
+            return utils.handle_torn_error(e)
+        except TornError as e:
+            return utils.handle_torn_error(e)
+
+        user = UserModel.objects(discord_id=user_data["id"]).first()
+
+        if user is None:
+            return render_template(
+                "errors/error.html",
+                title="User Not Found",
+                error="Even after an update, the user and their key could not be located in the database. Please try "
+                "again and if this problem persists, contact tiksan [2383326] for support.",
+            )
+
+        # Skip security alert as an alert to a compromised Discord account is useless
+
+    # Skip 2FA for now as it is assumed that Discord SSO is more secure than a Torn API key
+    # Especially if 2FA is already enabled on Discord for the user
+
+    login_user(User(user.tid), remember=True)
+
+    if session.get("next") is None:
+        return redirect(url_for("baseroutes.index"))
+    else:
+        return redirect(session.get("next"))
 
 
 @mod.route("/login/skynet/callback", methods=["POST"])

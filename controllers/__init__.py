@@ -36,7 +36,12 @@ def index():
 def settings(*args, **kwargs):
     obfuscated_key = current_user.key[:6] + "*" * 10
 
-    return render_template("settings.html", enabled_mfa=current_user.security, obfuscated_key=obfuscated_key)
+    return render_template(
+        "settings.html",
+        enabled_mfa=current_user.security,
+        obfuscated_key=obfuscated_key,
+        discord_linked="Not Linked" if current_user.discord_id in ("", None, 0) else "Linked",
+    )
 
 
 @mod.route("/static/toast.js")

@@ -34,7 +34,10 @@ def index():
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
-    obfuscated_key = current_user.key[:6] + "*" * 10
+    if current_user.key == "":
+        obfuscated_key = "Not Set"
+    else:
+        obfuscated_key = current_user.key[:6] + "*" * 10
 
     return render_template(
         "settings.html",

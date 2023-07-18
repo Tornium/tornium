@@ -37,7 +37,7 @@ def index():
 
 @mod.route("/stats/db")
 def stats():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.key != "":
         return render_template("stats/db.html", battlescore=current_user.battlescore, key=current_user.key)
     else:
         return render_template("stats/db.html", battlescore=-1, key=-1)
@@ -122,7 +122,7 @@ def stats_data():
 @mod.route("/stats/chain")
 @login_required
 def chain():
-    return render_template("stats/chain.html", key=current_user.key)
+    return render_template("stats/chain.html")
 
 
 @mod.route("/stats/config", methods=["GET", "POST"])

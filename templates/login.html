@@ -39,7 +39,7 @@
                                 </div>
 
                                 <div class="input-group d-flex justify-content-center">
-                                    <a href="https://discord.com/oauth2/authorize?client_id=979105784627593266&redirect_uri=https%3A%2F%2Ftornium.com%2Flogin%2Fskynet&response_type=code&scope=identify">
+                                    <a href="https://discord.com/oauth2/authorize?client_id=979105784627593266&redirect_uri=https%3A%2F%2Ftornium.com%2Flogin%2Fskynet&response_type=code&scope=identify&state={{ session["oauth_state"] }}">
                                         <button type="button" class="btn btn-outline-secondary mt-3 input-group-text"><i class="fa-brands fa-discord"></i> Sign in with Discord</button>
                                     </a>
                                 </div>

@@ -53,6 +53,8 @@ mod = Blueprint("authroutes", __name__)
 @mod.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
+        session["oauth_state"] = secrets.token_urlsafe()
+
         return render_template("login.html")
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
@@ -267,6 +269,19 @@ def skynet_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
 
     d_code = request.args.get("code")
+    oauth_state = request.args.get("state")
+
+    if oauth_state != session["oauth_state"]:
+        session.pop("oauth_state", None)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the Discord callback. Please try again. Make sure that you're on the correct website.",
+            ),
+            401,
+        )
+
     payload = {
         "client_id": Config()["skynet-applicationid"],
         "client_secret": Config()["skynet-client-secret"],
@@ -288,6 +303,7 @@ def skynet_login():
     user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers)
     user_request.raise_for_status()
     user_data = user_request.json()
+    print(user_data)
 
     user_qs: QuerySet = UserModel.objects(discord_id=user_data["id"])
     user: typing.Optional[UserModel] = user_qs.first()
@@ -336,6 +352,7 @@ def skynet_login():
 @mod.route("/login/skynet/callback", methods=["POST"])
 def skynet_login_callback():
     data = json.loads(request.get_data().decode("utf-8"))
+    print(data)
 
     return data
 

@@ -93,6 +93,8 @@ def login():
         return utils.handle_torn_error(e)
     except TornError as e:
         return utils.handle_torn_error(e)
+    except AttributeError:
+        pass
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).no_cache().first()
 

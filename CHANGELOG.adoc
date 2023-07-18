@@ -14,12 +14,14 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added faction tag support to verification template
  - Added item price/quantity notifications
  - Added security notification via Discord upon new log in
+ - [SECURITY] Added Discord SSO
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance
 
 === Fixed
  - Fixed MIME type of certain API endpoints (#178)
+ - [SECURITY] Fixed 2FA configuration
 
 === Removed
  - Removed AttackModel and related endpoints

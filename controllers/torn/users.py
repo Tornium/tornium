@@ -198,8 +198,8 @@ def users_ps_data():
 
 @login_required
 def user_data(tid: int):
-    if tid == 0:
-        abort(400)
+    if tid == 0 or current_user.key == "":
+        return abort(400)
 
     update_user(current_user.key, tid=tid).get()
     user: UserModel = UserModel.objects(tid=tid).no_cache().first()

@@ -28,7 +28,7 @@ class Stakeout:
         else:
             stakeout = FactionStakeoutModel.objects(tid=tid).first()
 
-        if stakeout is None:
+        if stakeout is None and current_user.is_authenticated() and current_user.key != "":
             now = int(time.time())
             guilds = {} if guild is None else {str(guild): {"keys": [], "channel": 0}}
 

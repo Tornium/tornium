@@ -17,22 +17,25 @@ Tornium - Settings
 
 {% block content %}
 <div class="card m-3">
-    <div class="card-body">
+    <div class="card-body row">
         <h5 class="card-title">Tornium Client Settings</h5>
         <p class="card-text">
             Settings for Tornium clients that's stored in cookies on a per-device basis.
         </p>
 
-        <select id="theme-selector" class="form-select" aria-label="Theme selection">
-            <option value="light">Light (Bootstrap)</option>
-            <option disabled value="dark">Dark (Bootstrap)</option>
-            <option value="custom-dark">Dark (Customized)</option>
-            <option value="neon-dark">Raz-Mode (Neon+Dark)</option>
-        </select>
+        <div class="col-sm-12 col-md-8 col-xl-4">
+            <p class="card-text mb-2">Theme Selector: </p>
+            <select id="theme-selector" class="form-select" aria-label="Theme selection">
+                <option value="light">Light (Bootstrap)</option>
+                <option disabled value="dark">Dark (Bootstrap)</option>
+                <option value="custom-dark">Dark (Customized)</option>
+                <option value="neon-dark">Raz-Mode (Neon+Dark)</option>
+            </select>
+        </div>
     </div>
 </div>
 
-<div class="card mx-3 mt-3">
+<div class="card mx-3 my-3">
     <div class="card-body">
         <h5 class="card-title">Tornium Server Settings</h5>
         <p class="card-text">
@@ -41,20 +44,19 @@ Tornium - Settings
 
         <div class="card mx-3 my-3">
             <div class="card-body">
-                <h5 class="card-title">Multi-Factor Authentication (ALPHA)</h5>
+                <h5 class="card-title">Multi-Factor Authentication</h5>
                 <p class="card-text">
                     Multi-faction authentication currently only supports TOTP. TOTP also includes support for backup
                     codes that are to be stored offline in case your 2Fa device can't be used.
                 </p>
-                <p class="card-text">If you encounter any issues, please contact tiksan [2383326] on Torn or Discord ASAP.</p>
 
-                <div class="form-control my-2">
+                <div class="my-1">
                     <button id="disable-mfa" class="m-2 btn btn-outline-danger {% if enabled_mfa == 0 %}disabled{% endif %}">Disabled</button>
                     <button id="enable-totp" class="m-2 btn btn-outline-success {% if enabled_mfa == 1 %}disabled{% endif %}">TOTP</button>
                 </div>
 
                 {% if enabled_mfa == 1 %}
-                <div class="form-control my-2">
+                <div class="my-1">
                     <button id="show-totp-qr" class="m-2 btn btn-outline-success">Show TOTP QR Code</button>
                     <button id="regen-totp-secret" class="m-2 btn btn-outline-danger">Regenerate TOTP Secret</button>
                     <button id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>
@@ -63,8 +65,25 @@ Tornium - Settings
             </div>
         </div>
 
+        <div class="card mx-3 my-3 row">
+            <div class="card-body">
+                <h5 class="card-title">Tornium API Key Settings</h5>
+
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <div class="input-group">
+                        <span class="input-group-text">API Key</span>
+                        <input type="text" class="form-control" placeholder="{{ obfuscated_key }}" aria-label="API key" id="api-key-input">
+                    </div>
+
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">Discord Linked</span>
+                        <span class="form-control">{{ discord_linked }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <button disabled class="m-2 btn btn-outline-danger">Delete Account</button>
-        <button disabled class="m-2 btn btn-outline-danger">Purge Account</button>
     </div>
 </div>
 

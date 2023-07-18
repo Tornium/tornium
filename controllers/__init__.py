@@ -34,9 +34,16 @@ def index():
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
+    if current_user.key == "":
+        obfuscated_key = "Not Set"
+    else:
+        obfuscated_key = current_user.key[:6] + "*" * 10
+
     return render_template(
         "settings.html",
         enabled_mfa=current_user.security,
+        obfuscated_key=obfuscated_key,
+        discord_linked="Not Linked" if current_user.discord_id in ("", None, 0) else "Linked",
     )
 
 

@@ -22,6 +22,7 @@ mod = Blueprint("apiroutes", __name__)
 
 # /api/key
 mod.add_url_rule("/api/key", view_func=key.test_key, methods=["GET"])
+mod.add_url_rule("/api/key", view_func=key.set_key, methods=["POST"])
 mod.add_url_rule("/api/token", view_func=key.test_token, methods=["GET"])
 
 # /api/bot

@@ -96,7 +96,7 @@ def init__app():
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
     app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     CORS(
         app,

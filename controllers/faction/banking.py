@@ -116,7 +116,7 @@ def banking():
     faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
 
     if faction is None:
-        return render_template("faction/banking.html", bankingenabled=False, key=current_user.key)
+        return render_template("faction/banking.html", bankingenabled=False)
 
     banker_positions = PositionModel.objects(
         Q(factiontid=faction.tid) & (Q(canGiveMoney=True) | Q(canGivePoints=True) | Q(canAdjustMemberBalance=True))
@@ -183,7 +183,6 @@ def banking():
     return render_template(
         "faction/banking.html",
         bankingenabled=banking_enabled,
-        key=current_user.key,
         faction=faction,
         bankers=bankers,
     )

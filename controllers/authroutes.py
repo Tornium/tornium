@@ -16,11 +16,14 @@
 import datetime
 import hashlib
 import inspect
+import json
+import random
 import secrets
 import time
 import typing
 
 import celery.exceptions
+import requests
 from flask import Blueprint, redirect, render_template, request, session, url_for
 from flask_login import (
     current_user,
@@ -29,10 +32,11 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from mongoengine import QuerySet
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
+from tornium_commons import Config, rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import UserModel
 from tornium_commons.skyutils import SKYNET_INFO
@@ -49,6 +53,8 @@ mod = Blueprint("authroutes", __name__)
 @mod.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
+        session["oauth_state"] = secrets.token_urlsafe()
+
         return render_template("login.html")
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
@@ -78,7 +84,7 @@ def login():
             )
 
     try:
-        update_user(key=request.form["key"], tid=0, refresh_existing=True).get()
+        update_user(key=request.form["key"], tid=0, refresh_existing=False).get()
     except celery.exceptions.TimeoutError:
         return render_template(
             "errors/error.html",
@@ -89,6 +95,8 @@ def login():
         return utils.handle_torn_error(e)
     except TornError as e:
         return utils.handle_torn_error(e)
+    except AttributeError:
+        pass
 
     user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).no_cache().first()
 
@@ -256,6 +264,99 @@ def topt_verification():
         )
 
 
+@mod.route("/login/skynet", methods=["GET"])
+def skynet_login():
+    # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
+
+    d_code = request.args.get("code")
+    oauth_state = request.args.get("state")
+
+    if oauth_state != session["oauth_state"]:
+        session.pop("oauth_state", None)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the Discord callback. Please try again. Make sure that you're on the correct website.",
+            ),
+            401,
+        )
+
+    payload = {
+        "client_id": Config()["skynet-applicationid"],
+        "client_secret": Config()["skynet-client-secret"],
+        "grant_type": "authorization_code",
+        "code": d_code,
+        "redirect_uri": "https://tornium.com/login/skynet",
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    access_token_data = requests.post("https://discord.com/api/v10/oauth2/token", headers=headers, data=payload)
+    access_token_data.raise_for_status()
+    access_token_json = access_token_data.json()
+
+    headers = {
+        "Authorization": f"Bearer {access_token_json['access_token']}",
+        "Content-Type": "application/json",
+    }
+
+    user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers)
+    user_request.raise_for_status()
+    user_data = user_request.json()
+    print(user_data)
+
+    user_qs: QuerySet = UserModel.objects(discord_id=user_data["id"])
+    user: typing.Optional[UserModel] = user_qs.first()
+
+    if user is None:
+        try:
+            update_user(
+                key=random.choice(UserModel.objects(key__nin=[None, ""])),
+                discordid=user_data["id"],
+                refresh_existing=False,
+            ).get()
+        except celery.exceptions.TimeoutError:
+            return render_template(
+                "errors/error.html",
+                title="Timeout",
+                error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
+            )
+        except NetworkingError as e:
+            return utils.handle_torn_error(e)
+        except TornError as e:
+            return utils.handle_torn_error(e)
+
+        user = UserModel.objects(discord_id=user_data["id"]).first()
+
+        if user is None:
+            return render_template(
+                "errors/error.html",
+                title="User Not Found",
+                error="Even after an update, the user and their key could not be located in the database. Please try "
+                "again and if this problem persists, contact tiksan [2383326] for support.",
+            )
+
+        # Skip security alert as an alert to a compromised Discord account is useless
+
+    # Skip 2FA for now as it is assumed that Discord SSO is more secure than a Torn API key
+    # Especially if 2FA is already enabled on Discord for the user
+
+    login_user(User(user.tid), remember=True)
+
+    if session.get("next") is None:
+        return redirect(url_for("baseroutes.index"))
+    else:
+        return redirect(session.get("next"))
+
+
+@mod.route("/login/skynet/callback", methods=["POST"])
+def skynet_login_callback():
+    data = json.loads(request.get_data().decode("utf-8"))
+    print(data)
+
+    return data
+
+
 @mod.route("/logout", methods=["POST"])
 @login_required
 def logout():
@@ -300,7 +401,10 @@ def totp_backup_regen(*args, **kwargs):
 @fresh_login_required
 @token_required(setnx=False)
 def set_security_mode(*args, **kwargs):
-    mode = request.args.get("mode")
+    data = json.loads(request.get_data().decode("utf-8"))
+    mode = data.get("mode")
+
+    # TODO: Generate OTP secret if not created upon enable
 
     if mode not in (0, 1):
         response = json_api_exception("1000", details={"message": "Invalid security mode"})

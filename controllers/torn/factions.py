@@ -73,8 +73,8 @@ def factions_data():
 
 @login_required
 def faction_data(tid: int):
-    if tid == 0:
-        abort(400)
+    if tid == 0 or current_user.key == "":
+        return abort(400)
 
     Faction(tid).refresh(key=current_user.key, force=True)
     faction: FactionModel = FactionModel.objects(tid=tid).first()

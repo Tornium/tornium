@@ -291,7 +291,9 @@ def skynet_login():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    access_token_data = requests.post("https://discord.com/api/v10/oauth2/token", headers=headers, data=payload)
+    access_token_data = requests.post(
+        "https://discord.com/api/v10/oauth2/token", headers=headers, data=payload, timeout=5
+    )
     access_token_data.raise_for_status()
     access_token_json = access_token_data.json()
 
@@ -300,7 +302,7 @@ def skynet_login():
         "Content-Type": "application/json",
     }
 
-    user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers)
+    user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=5)
     user_request.raise_for_status()
     user_data = user_request.json()
     print(user_data)

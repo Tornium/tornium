@@ -14,9 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, render_template
-from flask_login import login_required
 
-from controllers.bot import assists, guild, oc, stakeout, verify
+from controllers.bot import assists, guild, oc, verify
 
 mod = Blueprint("botroutes", __name__)
 
@@ -31,28 +30,6 @@ mod.add_url_rule(
     "/bot/dashboard/<string:guildid>/<int:factiontid>",
     view_func=guild.update_guild,
     methods=["POST"],
-)
-
-# Stakeout Routes
-mod.add_url_rule(
-    "/bot/stakeouts/<string:guildid>",
-    view_func=stakeout.stakeouts_dashboard,
-    methods=["GET", "POST"],
-)
-mod.add_url_rule(
-    "/bot/stakeouts/<string:guildid>/<int:stype>",
-    view_func=stakeout.stakeouts,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/bot/stakeouts/<string:guildid>/modal",
-    view_func=stakeout.stakeout_data,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/bot/stakeouts/<string:guildid>/update",
-    view_func=stakeout.stakeout_update,
-    methods=["GET", "POST"],
 )
 
 # Assist Routes

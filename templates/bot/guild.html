@@ -34,16 +34,6 @@ Tornium - Bot Dashboard
 {% endblock %}
 
 {% block content %}
-{% if server.config['stakeouts'] != 0 %}
-<div class="row">
-    <div class="py-3 px-3 col text-end">
-        <a href="/bot/stakeouts/{{ guildid }}">
-            <button type="button" class="btn btn-outline">Go to Guild Stakeouts</button>
-        </a>
-    </div>
-</div>
-{% endif %}
-
 <div class="pb-3 px-3">
     <div class="card mt-3">
         <div class="card-body">
@@ -92,52 +82,6 @@ Tornium - Bot Dashboard
                     {% endfor %}
                 </ul>
             </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">Stakeouts</h5>
-            <p class="card-text">
-                The stakeouts that are run in the particular Discord guild.
-                The stakeout category is the category in which the stakeout channels are automatically created in the server. By default, the stakeout channels are created at the top of the server without a category (but can be moved or renamed).
-            </p>
-            <p class="card-text">
-                <b>Warning: </b> Stakeouts are deprecated and will be removed in the v0.4.x release cycle.<br />
-                <br />
-                An updated version of stakeouts can be found with the /notify stakeout commands (not fully implemented yet).
-            </p>
-
-            <div class="col-sm-12 col-md-8 col-xl-4 mb-3">
-                <div class="form-floating">
-                    <input class="form-control" id="stakeoutcategory" name="stakeoutcategory" value="{{ server.stakeoutconfig['category'] }}">
-                    <label for="stakeoutcategory">Stakeout Category</label>
-                </div>
-            </div>
-
-            {% if server.config['stakeouts'] == 0 %}
-            <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">
-                <button type="button" class="btn btn-outline">
-                    Enabled
-                </button>
-            </a>
-            <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">
-                <button type="button" class="btn btn-outline" disabled>
-                    Disabled
-                </button>
-            </a>
-            {% else %}
-            <a href="/bot/stakeouts/{{ guildid }}/update?action=enable">
-                <button type="button" class="btn btn-outline" disabled>
-                    Enabled
-                </button>
-            </a>
-            <a href="/bot/stakeouts/{{ guildid }}/update?action=disable">
-                <button type="button" class="btn btn-outline">
-                    Disabled
-                </button>
-            </a>
-            {% endif %}
         </div>
     </div>
 

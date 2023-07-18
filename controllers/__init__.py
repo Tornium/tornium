@@ -52,7 +52,6 @@ def settings(*args, **kwargs):
 @mod.route("/static/logo.svg")
 @mod.route("/static/utils.js")
 @mod.route("/static/bot/oc.js")
-@mod.route("/static/bot/stakeouts.js")
 @mod.route("/static/bot/guild.js")
 @mod.route("/static/bot/verify.js")
 @mod.route("/static/faction/armory.js")

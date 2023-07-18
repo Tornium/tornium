@@ -25,6 +25,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Removed
  - Removed AttackModel and related endpoints
+ - Removed deprecated stakeouts
 
 == 0.3.1 - May 3, 2023
 === Added

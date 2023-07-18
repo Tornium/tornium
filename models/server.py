@@ -39,10 +39,6 @@ class Server:
 
         self.factions = server.factions
 
-        self.stakeout_config = server.stakeoutconfig
-        self.user_stakeouts = server.userstakeouts
-        self.faction_stakeouts = server.factionstakeouts
-
         self.verify_template = server.verify_template
         self.verified_roles = server.verified_roles
         self.faction_verify = server.faction_verify

@@ -164,23 +164,6 @@ $(document).ready(function () {
             }
         });
 
-    $("#stakeoutcategory").on("keypress", function (e) {
-        if (e.which === 13) {
-            const id = $("#stakeoutcategory").val();
-            const xhttp = new XMLHttpRequest();
-
-            xhttp.onload = function () {
-                window.location.reload();
-            };
-
-            xhttp.open(
-                "POST",
-                `/bot/stakeouts/${guildid}/update?action=category&value=${id}`
-            );
-            xhttp.send();
-        }
-    });
-
     $("#assist-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();
 

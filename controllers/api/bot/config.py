@@ -26,12 +26,6 @@ def jsonified_server_config(guild: ServerModel):
         "name": guild.name,
         "admins": guild.admins,
         "factions": guild.factions,
-        "stakeouts": {
-            "enabled": guild.config.get("stakeouts"),
-            "category": guild.stakeoutconfig.get("category"),
-            "user_stakeouts": guild.userstakeouts,
-            "faction_stakeouts": guild.factionstakeouts,
-        },
         "verify": {
             "enabled": guild.config.get("verify"),
             "template": guild.verify_template,

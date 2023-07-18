@@ -203,7 +203,6 @@ if celery_app is None:
             "tasks.items",
             "tasks.misc",
             "tasks.stakeout_hooks",
-            "tasks.stakeouts",
             "tasks.stocks",
             "tasks.user",
         ],

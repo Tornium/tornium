@@ -254,7 +254,7 @@ def market_notifications(market_data: dict, notifications: dict):
             total_quantity = 0
 
             for listing in notifications_map[n["_id"]["$oid"]]:
-                percent_change = round(abs(listing["cost"] - item.market_value) / item.market_value * 100, 1)
+                percent_change = round((listing["cost"] - item.market_value) / item.market_value * 100, 1)
                 fields.append(
                     {
                         "name": f"Bazaar #{i}",
@@ -296,7 +296,7 @@ def market_notifications(market_data: dict, notifications: dict):
             i = 1
 
             for listing in market_data["bazaar"][:3]:
-                percent_change = round(abs(listing["cost"] - item.market_value) / item.market_value * 100, 1)
+                percent_change = round((listing["cost"] - item.market_value) / item.market_value * 100, 1)
 
                 fields.append(
                     {

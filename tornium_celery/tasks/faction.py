@@ -777,7 +777,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
                 continue
 
             try:
-                if user.battlescore_update - int(time.time()) <= 259200:  # Three days
+                if time.time() - user.battlescore_update <= 259200:  # Three days
                     user_score = user.battlescore
                 else:
                     continue
@@ -808,7 +808,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
                 continue
 
             try:
-                if user.battlescore_update - int(time.time()) <= 259200:  # Three days
+                if time.time() - user.battlescore_update <= 259200:  # Three days
                     user_score = user.battlescore
                 else:
                     continue

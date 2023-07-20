@@ -197,7 +197,7 @@ def after_request(response: flask.Response):
     response.headers["X-Content-Type-Options"] = "nosniff"
 
     # X-Frame-Options
-    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
 
     if current_user.is_authenticated:
         api_token = flask.request.cookies.get("token")

@@ -72,8 +72,8 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
-                    <a class="navbar-brand" href="/">
-                        <img src="/static/logo.svg" width="32" alt="Favicon">
+                    <a class="navbar-brand" style="height: 38px" href="/">
+                        <object type="image/svg+xml" data="/static/logo.svg" height="25" id="tornium-icon" style="fill: white"></object>
                     </a>
 
                     <div class="navbar-nav">
@@ -160,5 +160,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+    $("#tornium-icon").on("load", function() {
+        const theme = document.documentElement.getAttribute("data-bs-theme");
+
+        if (["custom-dark", "dark", "neon-dark"].includes(theme)) {
+            $("#tornium-icon").contents().find("svg").css("color", "#e5e5e5");
+        } else {
+            $("#tornium-icon").contents().find("svg").css("color", "#000000");
+        }
+    });
+    </script>
 </body>
 </html>

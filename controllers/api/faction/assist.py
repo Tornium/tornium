@@ -320,9 +320,16 @@ def forward_assist(*args, **kwargs):
     if not ts_e and target_spy_data["status"]:
         payload["embeds"][1]["fields"].append(
             {
+                "name": "Target Last Update",
+                "value": f"<t:{target_spy_data['spy']['timestamp']}:R>",
+                "inline": False,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
                 "name": "Target Strength",
                 "value": commas(target_spy_data["spy"]["strength"]),
-                "inline": False,
+                "inline": True,
             }
         )
         payload["embeds"][1]["fields"].append(
@@ -350,13 +357,6 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Target Total",
                 "value": commas(target_spy_data["spy"]["total"]),
-                "inline": True,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Last Update",
-                "value": f"<t:{target_spy_data['spy']['timestamp']}:R>",
                 "inline": True,
             }
         )
@@ -429,6 +429,9 @@ def forward_assist(*args, **kwargs):
 
             if len(heavies_roles) == 0 and len(server.assist_l0_roles) != 0:
                 heavies_roles.extend(list(server.assist_l2_roles))
+
+        roles = list(set(roles))
+        print(roles)
 
         if len(roles) > 0:
             payload["content"] += "\n"

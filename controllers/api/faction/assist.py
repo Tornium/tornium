@@ -17,6 +17,7 @@ import datetime
 import inspect
 import json
 import random
+import time
 import typing
 
 from celery.result import AsyncResult
@@ -39,6 +40,7 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 
 
 def forward_assist(*args, **kwargs):
+    start_ts = time.time()
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
 
@@ -213,7 +215,11 @@ def forward_assist(*args, **kwargs):
                 "fields": fields_payload,
                 "timestamp": datetime.datetime.utcnow().isoformat(),
             },
-            {"title": "Additional Target Information", "fields": []},
+            {
+                "title": "Additional Target Information",
+                "fields": [],
+                "footer": {"text": f"Latency: {round(time.time() - start_ts, 1)} second(s)"},
+            },
         ],
         "components": [
             {
@@ -269,12 +275,7 @@ def forward_assist(*args, **kwargs):
             }
         )
 
-    now_dt = int(
-        datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc).timestamp()
-    )
-    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(
-        pstat_id=int(bin(user_tid << 8), 2) + int(bin(now_dt), 2)
-    ).first()
+    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
 
     if ps is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
@@ -287,6 +288,7 @@ def forward_assist(*args, **kwargs):
             ELO: {commas(ps.elo)}
             Best Damage: {commas(ps.bestdamage)}
             Networth: {commas(ps.networth)}
+            Personal Stat Last Update: <t:{ps.timestamp}:R>
             """  # noqa: W293
         )
 
@@ -371,6 +373,7 @@ def forward_assist(*args, **kwargs):
                 "name": "OK",
                 "message": "Server request was successful.",
                 "servers_forwarded": len(servers_forwarded),
+                "latency": round(time.time() - start_ts, 2),
             }
         ),
         200,

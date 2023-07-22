@@ -102,17 +102,8 @@ Tornium - Bot Dashboard
             </div>
 
             <p class="card-text my-3">
-                Set where the assist requests are accepted from by whitelisting factions, blacklisting factions, or by accepting them from everyone.
+                Set where the assist requests are accepted from by whitelisting factions.
             </p>
-
-            <p class="card-text">
-                <b>Warning: </b> Assist request forwarding options are deprecated and will be removed in the v0.5.x release cycle in favor of a constant whitelist.
-            </p>
-
-            <div class="col-sm-12 col-md-8 col-xl-4 my-3 form-floating">
-                <input class="form-control" id="assistfactionid" name="assistfactionid">
-                <label for="assistfactionid">Faction ID</label>
-            </div>
 
             <div class="col-sm-12 col-md-8 col-xl-4 my-3">
                 <div class="card mb-3">
@@ -121,7 +112,7 @@ Tornium - Bot Dashboard
                         {% for faction in assist_factions %}
                         <li class="list-group-item d-flex">
                             <p class="px-1 my-2">
-                                <a href="/torn/factions?tid={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
+                                <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
                             </p>
     
                             <div class="px-5 float-end">
@@ -133,18 +124,14 @@ Tornium - Bot Dashboard
                             </div>
                         </li>
                         {% endfor %}
-                    </ul>    
+                    </ul>
+                    <div class="card-footer">
+                        <div class="col-sm-12 col-md-8 col-xl-4 my-3 form-floating">
+                            <input class="form-control" id="assist-faction-id" name="assist-faction-id">
+                            <label for="assist-faction-id">Faction ID</label>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-sm-12 col-md-8 col-xl-4 my-3">
-                <select class="form-select mb-3" id="assist-type-select" aria-label="Select Assist Filter Type">
-                    <option value="0">Everyone</option>
-                    <option value="1">Whitelist</option>
-                    <option value="2">Blacklist</option>
-                </select>
-
-                <button type="button" class="btn btn-primary" id="submit-assist-mod">Submit</button>
             </div>
         </div>
     </div>

@@ -271,11 +271,17 @@ def forward_assist(*args, **kwargs):
         .first()
     )
 
+    total_bs = None
+    bs_ts = None
+
     if stat is not None:
+        total_bs = int(sum(bs_to_range(stat.battlescore)) / 2)
+        bs_ts = stat.timeadded
+
         payload["embeds"][1]["fields"].append(
             {
                 "name": "Estimated Total Stats",
-                "value": commas(int(sum(bs_to_range(stat.battlescore)) / 2)),
+                "value": commas(total_bs),
                 "inline": True,
             }
         )
@@ -355,10 +361,39 @@ def forward_assist(*args, **kwargs):
             }
         )
 
-    # TODO: Role pings
+        client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
+        client.expire(f"tornium:assists:{guid}:payload", 600)
 
-    client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
-    client.expire(f"tornium:assists:{guid}:payload", 600)
+        if bs_ts <= target_spy_data["spy"]["timestamp"] or total_bs <= target_spy_data["spy"]["total"]:
+            total_bs = target_spy["spy"]["total"]
+            bs_ts = target_spy["spy"]["timestamp"]
+
+    l0_roles_enabled = False  # 500m+
+    l1_roles_enabled = False  # 1b+
+    l2_roles_enabled = False  # 2b+
+    l3_roles_enabled = False  # 5b+
+
+    if bs_ts is not None:
+        distraction = smokes + tears + heavies
+        distracted_eff_bs = total_bs / pow(2, distraction)
+
+        if distracted_eff_bs <= 750_000_000:
+            l0_roles_enabled = True
+        elif distracted_eff_bs <= 1_000_000_000:
+            l0_roles_enabled = True
+            l1_roles_enabled = True
+        elif distracted_eff_bs <= 1_500_00_000:
+            l1_roles_enabled = True
+        elif distracted_eff_bs <= 2_000_000_000:
+            l1_roles_enabled = True
+            l2_roles_enabled = True
+        elif distracted_eff_bs <= 3_500_000_000:
+            l2_roles_enabled = True
+        elif distracted_eff_bs <= 5_000_000_000:
+            l2_roles_enabled = True
+            l3_roles_enabled = True
+        else:
+            l3_roles_enabled = True
 
     servers_forwarded = []
     messages = []
@@ -372,6 +407,35 @@ def forward_assist(*args, **kwargs):
         elif server.sid not in [1132079436691415120]:
             continue
 
+        roles = []
+
+        if smokes > 0 and len(server.assist_smoker_roles) != 0:
+            roles.extend(str(server.assist_smoker_roles))
+
+        if tears > 0 and len(server.assist_tear_roles) != 0:
+            roles.extend(str(server.assist_smoker_roles))
+
+        if heavies > 0:
+            heavies_roles = []
+
+            if l0_roles_enabled and len(server.assist_l0_roles) != 0:
+                heavies_roles.extend(list(server.assist_l0_roles))
+            if l1_roles_enabled and len(server.assist_l1_roles) != 0:
+                heavies_roles.extend(list(server.assist_l1_roles))
+            if l2_roles_enabled and len(server.assist_l2_roles) != 0:
+                heavies_roles.extend(list(server.assist_l2_roles))
+            if l3_roles_enabled and len(server.assist_l3_roles) != 0:
+                heavies_roles.extend(list(server.assist_l3_roles))
+
+            if len(heavies_roles) == 0 and len(server.assist_l0_roles) != 0:
+                heavies_roles.extend(list(server.assist_l2_roles))
+
+        if len(roles) > 0:
+            payload["content"] += "\n"
+
+            for role in roles:
+                payload["content"] += f"<@&{role}>"
+
         try:
             messages.append(
                 discordpost.delay(
@@ -381,6 +445,7 @@ def forward_assist(*args, **kwargs):
         except (DiscordError, NetworkingError):
             continue
 
+        payload["content"] = payload["content"].split("\n")[0]
         servers_forwarded.append(server)
 
     packed_messages = set()

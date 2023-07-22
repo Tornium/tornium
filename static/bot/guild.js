@@ -139,6 +139,23 @@ $(document).ready(function () {
                         });
                     }
                 );
+
+                $.each(
+                    serverConfig["assists"]["roles"],
+                    function (role_type, roles) {
+                        $.each(roles, function (index, role) {
+                            let option = $(
+                                `#assist-${role_type}-roles option[value="${role}"]`
+                            );
+
+                            if (option.length !== 1) {
+                                return;
+                            }
+
+                            option.attr("selected", "");
+                        });
+                    }
+                );
             })
             .finally(function () {
                 $(".discord-role-selector").selectpicker();
@@ -201,19 +218,37 @@ $(document).ready(function () {
         }
     });
 
-    $("#submit-assist-mod").click(function () {
-        const assistMod = $("#assist-type-select").val();
+    $(".assist-role-selector").on("change", function () {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function (index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
         const xhttp = new XMLHttpRequest();
 
         xhttp.onload = function () {
-            window.location.reload();
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Role Add Failed");
+            } else {
+                generateToast("Role Add Successful");
+            }
         };
 
+        xhttp.responseType = "json";
         xhttp.open(
             "POST",
-            `/bot/assists/${guildid}/update?action=mod&value=${assistMod}`
+            `/api/bot/${guildid}/assists/roles/${$(this).id.split("-")[1]}`
         );
-        xhttp.send();
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                roles: selectedRoles,
+            })
+        );
     });
 
     $(".faction-retal-channel").on("change", function () {

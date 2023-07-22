@@ -357,7 +357,8 @@ def forward_assist(*args, **kwargs):
 
     # TODO: Role pings
 
-    client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True, ex=600)
+    client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
+    client.expire(f"tornium:assists:{guid}:payload", 600)
 
     servers_forwarded = []
     messages = []

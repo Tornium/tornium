@@ -98,7 +98,7 @@ def assist_forward(guid: str, mode: str):
 
         i += 1
 
-    redis_client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, xx=True, keepttl=True)
+    redis_client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, xx=True)
 
     for message in messages:
         channel_id, message_id = [int(n) for n in message.split("|")]

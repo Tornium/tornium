@@ -18,6 +18,12 @@ from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpatch
 from tornium_commons import rds
 
+_MODE_VAR_MAP = {
+    "smoke": "smokes",
+    "tear": "tears",
+    "heavy": "heavies",
+}
+
 
 def assist_forward(guid: str):
     mode = request.args.get("mode")
@@ -47,7 +53,7 @@ def assist_forward(guid: str):
 
     target_tid, user_tid, smokes, tears, heavies = [int(n) for n in assist_data.split("|")]
 
-    if globals()[mode] <= 0:
+    if globals()[_MODE_VAR_MAP[mode]] <= 0:
         return (
             render_template(
                 "errors/error.html",
@@ -57,7 +63,7 @@ def assist_forward(guid: str):
             400,
         )
 
-    globals()[mode] -= 1
+    globals()[_MODE_VAR_MAP[mode]] -= 1
     redis_client.set(
         f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", xx=True, keepttl=True
     )

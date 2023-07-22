@@ -21,10 +21,10 @@ import time
 import typing
 import uuid
 
-import msgpack
 from celery.result import AsyncResult
 from flask import jsonify, request
 from mongoengine.queryset.visitor import Q
+from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpost, torn_stats_get
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
@@ -159,7 +159,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Heavies Needed",
                 "value": heavies,
-                "inline": True,
+                "inline": False,
             }
         )
 
@@ -283,7 +283,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Stat Score Update",
                 "value": f"<t:{stat.timeadded}:R>",
-                "inline": False,
+                "inline": True,
             }
         )
 
@@ -357,9 +357,7 @@ def forward_assist(*args, **kwargs):
 
     # TODO: Role pings
 
-    packed_payload = msgpack.packb(payload)
-    print(packed_payload)
-    client.set(f"tornium:assists:{guid}:payload", packed_payload, nx=True, ex=600)
+    client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True, ex=600)
 
     servers_forwarded = []
     messages = []

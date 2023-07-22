@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import msgpack
 from flask import redirect, render_template
+from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpatch
 from tornium_commons import rds
 
@@ -68,12 +68,11 @@ def assist_forward(guid: str, mode: str):
     if len(messages) == 0:
         return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
 
-    payload = redis_client.get(f"tornium:assists:{guid}:payload")
+    payload = redis_client.json().get(f"tornium:assists:{guid}:payload")
 
     if payload is None:
         return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
 
-    payload: dict = msgpack.loads(payload)
     i = 0
 
     field: dict
@@ -99,9 +98,7 @@ def assist_forward(guid: str, mode: str):
 
         i += 1
 
-    packed_payload = msgpack.packb(payload)
-    print(packed_payload)
-    redis_client.set(f"tornium:assists:{guid}:payload", packed_payload, xx=True, keepttl=True)
+    redis_client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, xx=True, keepttl=True)
 
     for message in messages:
         channel_id, message_id = [int(n) for n in message.split("|")]

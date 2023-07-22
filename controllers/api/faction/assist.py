@@ -396,7 +396,8 @@ def forward_assist(*args, **kwargs):
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
 
-    client.set(f"tornium:assists:{guid}:messages", packed_messages, nx=True, ex=600)
+    client.json().set(f"tornium:assists:{guid}:messages", Path.root_path(), list(packed_messages), nx=True)
+    client.expire(f"tornium:assists:{guid}:messages", 600)
 
     return (
         jsonify(

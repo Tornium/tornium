@@ -44,7 +44,12 @@ class ServerModel(DynamicDocument):
 
     assistschannel = IntField(default=0)
     assist_factions = ListField(default=[])  # List of factions that can send assists to the server
-    assist_mod = IntField(default=0)  # 0: Everyone; 1: Whitelist; 2: Blacklist
+    assist_smoker_roles = ListField(default=[])
+    assist_tear_roles = ListField(default=[])
+    assist_l0_roles = ListField(default=[])  # 500m+
+    assist_l1_roles = ListField(default=[])  # 1b+
+    assist_l2_roles = ListField(default=[])  # 2b+
+    assist_l3_roles = ListField(default=[])  # 5b+
 
     oc_config = DictField(default={})
 

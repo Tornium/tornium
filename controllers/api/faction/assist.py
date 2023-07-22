@@ -19,10 +19,13 @@ import json
 import random
 import time
 import typing
+import uuid
 
+import msgpack
 from celery.result import AsyncResult
 from flask import jsonify, request
 from mongoengine.queryset.visitor import Q
+from sphinx.testing.path import path
 from tornium_celery.tasks.api import discordpost, torn_stats_get
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
@@ -141,6 +144,8 @@ def forward_assist(*args, **kwargs):
     components_payload = []
     fields_payload = []
 
+    guid = uuid.uuid4().hex
+
     if heavies > 0:
         requested_types.append(f"{heavies}x heavies")
         components_payload.append(
@@ -148,7 +153,7 @@ def forward_assist(*args, **kwargs):
                 "type": 2,
                 "style": 5,
                 "label": "Join Heavies",
-                "url": f"https://tornium.com/faction/assists/{0}?type=heavy",
+                "url": f"https://tornium.com/faction/assists/{guid}?type=heavy",
             }
         )
         fields_payload.append(
@@ -162,7 +167,12 @@ def forward_assist(*args, **kwargs):
     if tears > 0:
         requested_types.append(f"{tears}x tears")
         components_payload.append(
-            {"type": 2, "style": 5, "label": "Join Tears", "url": f"https://tornium.com/faction/assists/{0}?type=tear"}
+            {
+                "type": 2,
+                "style": 5,
+                "label": "Join Tears",
+                "url": f"https://tornium.com/faction/assists/{guid}?type=tear",
+            }
         )
         fields_payload.append(
             {
@@ -179,7 +189,7 @@ def forward_assist(*args, **kwargs):
                 "type": 2,
                 "style": 5,
                 "label": "Join Smokers",
-                "url": f"https://tornium.com/faction/assists/{0}?type=smoke",
+                "url": f"https://tornium.com/faction/assists/{guid}?type=smoke",
             }
         )
         fields_payload.append(
@@ -205,6 +215,9 @@ def forward_assist(*args, **kwargs):
         timeout_str = ""
     else:
         timeout_str = f" The attack times out <t:{timeout}:R>."
+
+    # target_tid | user_tid | smokes | tears | heavies
+    client.set(f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", nx=True, ex=600)
 
     payload = {
         "content": f"Assist on {target.name} [{content_target_faction}]",
@@ -271,7 +284,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Stat Score Update",
                 "value": f"<t:{stat.timeadded}:R>",
-                "inline": True,
+                "inline": False,
             }
         )
 
@@ -281,13 +294,14 @@ def forward_assist(*args, **kwargs):
         payload["embeds"][1]["description"] = inspect.cleandoc(
             f"""Xanax Used: {commas(ps.xantaken)}
             Refills Used: {commas(ps.refills)}
+            Energy Drinks Drunk: {commas(ps.energydrinkused)}
             LSD Used: {commas(ps.lsdtaken)}
             SEs Used: {commas(ps.statenhancersused)}
-            Energy Drinks Drunk: {commas(ps.energydrinkused)}
             
             ELO: {commas(ps.elo)}
             Best Damage: {commas(ps.bestdamage)}
             Networth: {commas(ps.networth)}
+            
             Personal Stat Last Update: <t:{ps.timestamp}:R>
             """  # noqa: W293
         )
@@ -344,7 +358,12 @@ def forward_assist(*args, **kwargs):
 
     # TODO: Role pings
 
+    packed_payload = msgpack.packb(payload)
+    print(packed_payload)
+    client.set(f"tornium:assists:{guid}:payload", packed_payload, nx=True, ex=600)
+
     servers_forwarded = []
+    messages = []
 
     server: ServerModel
     for server in ServerModel.objects(assistchannel__ne=0):
@@ -356,15 +375,30 @@ def forward_assist(*args, **kwargs):
             continue
 
         try:
-            discordpost(f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel)
-        except DiscordError as e:
-            print(e)
-            continue
-        except NetworkingError as e:
-            print(e)
+            messages.append(
+                discordpost.delay(
+                    f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel
+                )
+            )
+        except (DiscordError, NetworkingError):
             continue
 
         servers_forwarded.append(server)
+
+    packed_messages = set()
+
+    message: AsyncResult
+    for message in messages:
+        try:
+            message: dict = message.get()
+        except (DiscordError, NetworkingError):
+            continue
+        except Exception:
+            continue
+
+        packed_messages.add(f"{message['channel_id']}|{message['id']}")
+
+    client.set(f"tornium:assists:{guid}:messages", packed_messages, nx=True, ex=600)
 
     return (
         jsonify(

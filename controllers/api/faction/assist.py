@@ -365,8 +365,8 @@ def forward_assist(*args, **kwargs):
         client.expire(f"tornium:assists:{guid}:payload", 600)
 
         if bs_ts <= target_spy_data["spy"]["timestamp"] or total_bs <= target_spy_data["spy"]["total"]:
-            total_bs = target_spy["spy"]["total"]
-            bs_ts = target_spy["spy"]["timestamp"]
+            total_bs = target_spy_data["spy"]["total"]
+            bs_ts = target_spy_data["spy"]["timestamp"]
 
     l0_roles_enabled = False  # 500m+
     l1_roles_enabled = False  # 1b+

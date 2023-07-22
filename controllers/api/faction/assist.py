@@ -78,7 +78,7 @@ def forward_assist(*args, **kwargs):
         client.set(assist_lock_key, int(datetime.datetime.utcnow().timestamp()) + 10, nx=True, ex=10)
 
     if user.factionid != 0:
-        user_faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid)
+        user_faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
 
         if user_faction is None:
             return make_exception_response("1102", key, redis_client=client)

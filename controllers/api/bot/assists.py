@@ -64,6 +64,11 @@ def assists_role_set(guildid: int, role_type: str, *args, **kwargs):
     if type(roles) != list:
         return make_exception_response("1000", key, details={"element": "roles"})
 
+    try:
+        roles = [int(r) for r in roles]
+    except ValueError:
+        return make_exception_response("1000", key, details={"element": "roles"})
+
     guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
     if guild is None:

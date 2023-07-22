@@ -71,7 +71,7 @@ def assists_role_set(guildid: int, role_type: str, *args, **kwargs):
     elif kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    if role_type == "smoked":
+    if role_type == "smoker":
         guild.assist_smoker_roles = roles
     elif role_type == "tear":
         guild.assist_tear_roles = roles

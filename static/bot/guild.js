@@ -241,7 +241,9 @@ $(document).ready(function () {
         xhttp.responseType = "json";
         xhttp.open(
             "POST",
-            `/api/bot/${guildid}/assists/roles/${$(this).id.split("-")[1]}`
+            `/api/bot/${guildid}/assists/roles/${
+                $(this).attr("id").split("-")[1]
+            }`
         );
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(

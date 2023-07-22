@@ -305,7 +305,7 @@ def forward_assist(*args, **kwargs):
             
             ELO: {commas(ps.elo)}
             Best Damage: {commas(ps.bestdamage)}
-            Networth: {commas(ps.networth)}
+            Networth: ${commas(ps.networth)}
             
             Personal Stat Last Update: <t:{ps.timestamp}:R>
             """  # noqa: W293
@@ -373,7 +373,7 @@ def forward_assist(*args, **kwargs):
     l2_roles_enabled = False  # 2b+
     l3_roles_enabled = False  # 5b+
 
-    if bs_ts is not None:
+    if total_bs is not None:
         distraction = smokes + tears + heavies
         distracted_eff_bs = total_bs / pow(2, distraction)
 
@@ -410,10 +410,10 @@ def forward_assist(*args, **kwargs):
         roles = []
 
         if smokes > 0 and len(server.assist_smoker_roles) != 0:
-            roles.extend(str(server.assist_smoker_roles))
+            roles.extend(list(server.assist_smoker_roles))
 
         if tears > 0 and len(server.assist_tear_roles) != 0:
-            roles.extend(str(server.assist_smoker_roles))
+            roles.extend(list(server.assist_smoker_roles))
 
         if heavies > 0:
             heavies_roles = []

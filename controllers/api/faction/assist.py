@@ -255,18 +255,18 @@ def forward_assist(*args, **kwargs):
 
     if stat is not None:
         payload["embeds"][1]["fields"].append(
-            (
-                {
-                    "name": "Estimated Total Stats",
-                    "value": commas(int(sum(bs_to_range(stat.battlescore)) / 2)),
-                    "inline": True,
-                },
-                {
-                    "name": "Stat Score Update",
-                    "value": f"<t:{stat.timeadded}:R>",
-                    "inline": True,
-                },
-            )
+            {
+                "name": "Estimated Total Stats",
+                "value": commas(int(sum(bs_to_range(stat.battlescore)) / 2)),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Stat Score Update",
+                "value": f"<t:{stat.timeadded}:R>",
+                "inline": True,
+            }
         )
 
     now_dt = int(
@@ -297,39 +297,47 @@ def forward_assist(*args, **kwargs):
         ts_e = True
 
     if not ts_e and target_spy_data["status"]:
-        payload["embeds"][1]["fields"].extend(
-            (
-                {
-                    "name": "Target Strength",
-                    "value": commas(target_spy_data["spy"]["strength"]),
-                    "inline": True,
-                },
-                {
-                    "name": "Target Defense",
-                    "value": commas(target_spy_data["spy"]["defense"]),
-                    "inline": True,
-                },
-                {
-                    "name": "Target Speed",
-                    "value": commas(target_spy_data["spy"]["speed"]),
-                    "inline": True,
-                },
-                {
-                    "name": "Target Dexterity",
-                    "value": commas(target_spy_data["spy"]["dexterity"]),
-                    "inline": True,
-                },
-                {
-                    "name": "Target Total",
-                    "value": commas(target_spy_data["spy"]["total"]),
-                    "inline": True,
-                },
-                {
-                    "name": "Target Last Update",
-                    "value": f"<t:{target_spy_data['spy']['timestamp']}:R>",
-                    "inline": True,
-                },
-            )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Strength",
+                "value": commas(target_spy_data["spy"]["strength"]),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Defense",
+                "value": commas(target_spy_data["spy"]["defense"]),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Speed",
+                "value": commas(target_spy_data["spy"]["speed"]),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Dexterity",
+                "value": commas(target_spy_data["spy"]["dexterity"]),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Total",
+                "value": commas(target_spy_data["spy"]["total"]),
+                "inline": True,
+            }
+        )
+        payload["embeds"][1]["fields"].append(
+            {
+                "name": "Target Last Update",
+                "value": f"<t:{target_spy_data['spy']['timestamp']}:R>",
+                "inline": True,
+            }
         )
 
     # TODO: Role pings

@@ -346,9 +346,7 @@ def forward_assist(*args, **kwargs):
             continue
 
         try:
-            discordpost.delay(
-                f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel
-            ).forget()
+            discordpost(f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel)
         except DiscordError:
             continue
         except NetworkingError:

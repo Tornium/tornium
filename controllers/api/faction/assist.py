@@ -283,7 +283,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Stat Score Update",
                 "value": f"<t:{stat.timeadded}:R>",
-                "inline": False,
+                "inline": True,
             }
         )
 
@@ -316,7 +316,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Target Strength",
                 "value": commas(target_spy_data["spy"]["strength"]),
-                "inline": True,
+                "inline": False,
             }
         )
         payload["embeds"][1]["fields"].append(

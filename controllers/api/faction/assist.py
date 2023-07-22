@@ -222,7 +222,7 @@ def forward_assist(*args, **kwargs):
         "content": f"Assist on {target.name} [{content_target_faction}]",
         "embeds": [
             {
-                "title": f"{user.name} {user_faction_str} needs help with {target.name} [{content_target_faction}]",
+                "title": f"{user.name} [{user_faction_str}] needs help with {target.name} [{content_target_faction}]",
                 "description": f"{user.name} has requested {requested_types_str}.{timeout_str}",
                 "fields": fields_payload,
                 "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -403,8 +403,6 @@ def forward_assist(*args, **kwargs):
         if server.assistschannel in (0, "0", None):
             continue
         elif user.factionid not in server.assist_factions:
-            continue
-        elif server.sid not in [1132079436691415120]:
             continue
 
         roles = []

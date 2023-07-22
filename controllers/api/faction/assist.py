@@ -44,8 +44,8 @@ def forward_assist(*args, **kwargs):
 
     user_tid = data.get("user_tid")
     target_tid = data.get("target_tid")
-    smokes = data.get("target_tid", 0)
-    tears = data.get("target_tid", 0)
+    smokes = data.get("smokes", 0)
+    tears = data.get("tears", 0)
     heavies = data.get("heavies", 0)
     timeout = data.get("timeout")
 

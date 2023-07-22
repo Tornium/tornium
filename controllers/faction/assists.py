@@ -18,14 +18,18 @@ from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpatch
 from tornium_commons import rds
 
-_MODE_VAR_MAP = {
-    "smoke": "smokes",
-    "tear": "tears",
-    "heavy": "heavies",
-}
-
 
 def assist_forward(guid: str):
+    def r_0():
+        return (
+            render_template(
+                "errors/error.html",
+                title="Assist Request Already Fulfilled",
+                error=f"The {mode} request on the attack has already been fulfilled.",
+            ),
+            400,
+        )
+
     mode = request.args.get("mode")
 
     if mode not in ("smoke", "tear", "heavy"):
@@ -53,17 +57,31 @@ def assist_forward(guid: str):
 
     target_tid, user_tid, smokes, tears, heavies = [int(n) for n in assist_data.split("|")]
 
-    if globals()[_MODE_VAR_MAP[mode]] <= 0:
+    if mode == "smoke":
+        if smokes <= 0:
+            return r_0()
+
+        smokes -= 1
+    elif mode == "tear":
+        if tears <= 0:
+            return r_0()
+
+        tears -= 1
+    elif mode == "heavies":
+        if heavies <= 0:
+            return r_0()
+
+        heavies -= 1
+    else:
         return (
             render_template(
                 "errors/error.html",
-                title="Assist Request Already Fulfilled",
-                error=f"The {mode} request on the attack has already been fulfilled.",
+                title="Unknown Assist Type",
+                error=f'"{mode}" is not recognized by Tornium as an acceptable assist type.',
             ),
             400,
         )
 
-    globals()[_MODE_VAR_MAP[mode]] -= 1
     redis_client.set(
         f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", xx=True, keepttl=True
     )

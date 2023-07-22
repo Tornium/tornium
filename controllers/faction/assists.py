@@ -15,7 +15,7 @@
 
 from flask import redirect, render_template, request
 from redis.commands.json.path import Path
-from tornium_celery.tasks.api import discordpatch
+from tornium_celery.tasks.api import discorddelete, discordpatch
 from tornium_commons import rds
 
 
@@ -86,12 +86,18 @@ def assist_forward(guid: str):
         f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", xx=True, keepttl=True
     )
 
-    if smokes + tears + heavies <= 0:
-        return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
-
     messages = redis_client.json().get(f"tornium:assists:{guid}:messages")
 
     if messages is None:
+        return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
+
+    if smokes + tears + heavies <= 0:
+        for message in messages:
+            channel_id, message_id = [int(n) for n in message.split("|")]
+
+            discorddelete.delay(f"channels/{channel_id}/messages/{message_id}").forget()
+
+        redis_client.delete(f"tornium:assists:{guid}:messages", f"tornium:assists:{guid}:payload")
         return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
 
     payload = redis_client.json().get(f"tornium:assists:{guid}:payload")

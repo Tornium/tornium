@@ -347,9 +347,11 @@ def forward_assist(*args, **kwargs):
 
         try:
             discordpost(f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel)
-        except DiscordError:
+        except DiscordError as e:
+            print(e)
             continue
-        except NetworkingError:
+        except NetworkingError as e:
+            print(e)
             continue
 
         servers_forwarded.append(server)

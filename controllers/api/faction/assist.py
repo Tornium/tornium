@@ -274,7 +274,7 @@ def forward_assist(*args, **kwargs):
     )
     ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(
         pstat_id=int(bin(user_tid << 8), 2) + int(bin(now_dt), 2)
-    )
+    ).first()
 
     if ps is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(

@@ -413,7 +413,7 @@ def forward_assist(*args, **kwargs):
             roles.extend(list(server.assist_smoker_roles))
 
         if tears > 0 and len(server.assist_tear_roles) != 0:
-            roles.extend(list(server.assist_smoker_roles))
+            roles.extend(list(server.assist_tear_roles))
 
         if heavies > 0:
             heavies_roles = []
@@ -428,7 +428,9 @@ def forward_assist(*args, **kwargs):
                 heavies_roles.extend(list(server.assist_l3_roles))
 
             if len(heavies_roles) == 0 and len(server.assist_l0_roles) != 0:
-                heavies_roles.extend(list(server.assist_l2_roles))
+                heavies_roles = list(server.assist_l0_roles)
+
+            roles.extend(heavies_roles)
 
         roles = list(set(roles))
         print(roles)

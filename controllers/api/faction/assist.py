@@ -94,7 +94,11 @@ def forward_assist(*args, **kwargs):
     else:
         call_key = user.key
 
-    update_user(key=call_key, tid=target_tid, refresh_existing=False).get()
+    try:
+        update_user(key=call_key, tid=target_tid, refresh_existing=False).get()
+    except AttributeError:
+        pass
+
     target: UserModel = UserModel.objects(tid=target_tid).no_cache().first()
 
     if target is None:

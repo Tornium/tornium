@@ -25,7 +25,6 @@ import msgpack
 from celery.result import AsyncResult
 from flask import jsonify, request
 from mongoengine.queryset.visitor import Q
-from sphinx.testing.path import path
 from tornium_celery.tasks.api import discordpost, torn_stats_get
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds

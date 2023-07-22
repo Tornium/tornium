@@ -72,7 +72,7 @@ def forward_assist(*args, **kwargs):
     key = f"tornium:ratelimit:{user_tid}"
     assist_lock_key = f"tornium:assists:{target_tid}:lock"
 
-    if not client.exists(assist_lock_key):
+    if client.exists(assist_lock_key):
         return make_exception_response("4291", key, redis_client=client)
     else:
         client.set(assist_lock_key, int(datetime.datetime.utcnow().timestamp()) + 10, nx=True, ex=10)

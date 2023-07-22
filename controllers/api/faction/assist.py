@@ -159,7 +159,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Heavies Needed",
                 "value": heavies,
-                "inline": False,
+                "inline": True,
             }
         )
 
@@ -283,7 +283,7 @@ def forward_assist(*args, **kwargs):
             {
                 "name": "Stat Score Update",
                 "value": f"<t:{stat.timeadded}:R>",
-                "inline": True,
+                "inline": False,
             }
         )
 

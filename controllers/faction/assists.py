@@ -67,7 +67,7 @@ def assist_forward(guid: str):
             return r_0()
 
         tears -= 1
-    elif mode == "heavies":
+    elif mode == "heavy":
         if heavies <= 0:
             return r_0()
 

@@ -89,7 +89,7 @@ def assist_forward(guid: str):
     if smokes + tears + heavies <= 0:
         return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
 
-    messages = redis_client.get(f"tornium:assists:{guid}:messages")
+    messages = redis_client.json().get(f"tornium:assists:{guid}:messages")
 
     if messages is None:
         return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")

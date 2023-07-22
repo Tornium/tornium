@@ -152,7 +152,7 @@ def forward_assist(*args, **kwargs):
                 "type": 2,
                 "style": 5,
                 "label": "Join Heavies",
-                "url": f"https://tornium.com/faction/assists/{guid}?type=heavy",
+                "url": f"https://tornium.com/faction/assists/{guid}?mode=heavy",
             }
         )
         fields_payload.append(
@@ -170,7 +170,7 @@ def forward_assist(*args, **kwargs):
                 "type": 2,
                 "style": 5,
                 "label": "Join Tears",
-                "url": f"https://tornium.com/faction/assists/{guid}?type=tear",
+                "url": f"https://tornium.com/faction/assists/{guid}?mode=tear",
             }
         )
         fields_payload.append(
@@ -188,7 +188,7 @@ def forward_assist(*args, **kwargs):
                 "type": 2,
                 "style": 5,
                 "label": "Join Smokers",
-                "url": f"https://tornium.com/faction/assists/{guid}?type=smoke",
+                "url": f"https://tornium.com/faction/assists/{guid}?mode=smoke",
             }
         )
         fields_payload.append(

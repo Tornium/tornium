@@ -13,13 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import redirect, render_template
+from flask import redirect, render_template, request
 from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpatch
 from tornium_commons import rds
 
 
-def assist_forward(guid: str, mode: str):
+def assist_forward(guid: str):
+    mode = request.args.get("mode")
+
     if mode not in ("smoke", "tear", "heavy"):
         return (
             render_template(

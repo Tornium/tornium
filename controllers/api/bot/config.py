@@ -39,7 +39,14 @@ def jsonified_server_config(guild: ServerModel):
         "assists": {
             "channel": str(guild.assistschannel),
             "factions": guild.assist_factions,
-            "modifier": guild.assist_mod,
+            "roles": {
+                "smoker": list(map(str, guild.assist_smoker_roles)),
+                "tear": list(map(str, guild.assist_tear_roles)),
+                "l0": list(map(str, guild.assist_l0_roles)),
+                "l1": list(map(str, guild.assist_l1_roles)),
+                "l2": list(map(str, guild.assist_l2_roles)),
+                "l3": list(map(str, guild.assist_l3_roles)),
+            },
         },
         "oc": {
             faction_id: {

@@ -32,6 +32,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/<int:guildid>/assists/roles/<string:role_type>",
+    view_func=bot.assists.assists_role_set,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/bot/<int:guildid>/faction/<int:factiontid>/banking",
     view_func=bot.banking.banking_setter,
     methods=["GET", "POST"],

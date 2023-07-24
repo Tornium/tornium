@@ -83,7 +83,6 @@ def guild_dashboard(guildid: str):
         factions=factions,
         guildid=guildid,
         assist_factions=assist_factions,
-        assist_mod=server.assist_mod,
     )
 
 

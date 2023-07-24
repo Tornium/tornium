@@ -102,49 +102,75 @@ Tornium - Bot Dashboard
             </div>
 
             <p class="card-text my-3">
-                Set where the assist requests are accepted from by whitelisting factions, blacklisting factions, or by accepting them from everyone.
+                Set where the assist requests are accepted from by whitelisting factions.
             </p>
 
-            <p class="card-text">
-                <b>Warning: </b> Assist request forwarding options are deprecated and will be removed in the v0.5.x release cycle in favor of a constant whitelist.
-            </p>
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+                    <div class="card mb-3">
+                        <div class="card-header">Factions:</div>
+                        <ul class="list-group list-group-flush">
+                            {% for faction in assist_factions %}
+                            <li class="list-group-item d-flex">
+                                <p class="px-1 my-2">
+                                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
+                                </p>
 
-            <div class="col-sm-12 col-md-8 col-xl-4 my-3 form-floating">
-                <input class="form-control" id="assistfactionid" name="assistfactionid">
-                <label for="assistfactionid">Faction ID</label>
-            </div>
-
-            <div class="col-sm-12 col-md-8 col-xl-4 my-3">
-                <div class="card mb-3">
-                    <div class="card-header">Factions:</div>
-                    <ul class="list-group list-group-flush"> 
-                        {% for faction in assist_factions %}
-                        <li class="list-group-item d-flex">
-                            <p class="px-1 my-2">
-                                <a href="/torn/factions?tid={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
-                            </p>
-    
-                            <div class="px-5 float-end">
-                                <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">
-                                    <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
-                                        Remove
-                                    </button>
-                                </a>
+                                <div class="px-5 float-end">
+                                    <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">
+                                        <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
+                                            Remove
+                                        </button>
+                                    </a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="card-footer">
+                            <div class="my-3 form-floating">
+                                <input class="form-control" id="assist-faction-id" name="assist-faction-id">
+                                <label for="assist-faction-id">Faction ID</label>
                             </div>
-                        </li>
-                        {% endfor %}
-                    </ul>    
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="col-sm-12 col-md-8 col-xl-4 my-3">
-                <select class="form-select mb-3" id="assist-type-select" aria-label="Select Assist Filter Type">
-                    <option value="0">Everyone</option>
-                    <option value="1">Whitelist</option>
-                    <option value="2">Blacklist</option>
-                </select>
+                <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+                    <div class="card mb-3">
+                        <div class="card-header">Roles:</div>
+                        <ul class="list-group-item list-group-flush">
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">Smoker Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-smoker-roles" aria-label="Smoker Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
 
-                <button type="button" class="btn btn-primary" id="submit-assist-mod">Submit</button>
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">Tear Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-tear-roles" aria-label="Tear Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">500M+ Heavy Role (General Heavy Role)</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l0-roles" aria-label="500M+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">1B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l1-roles" aria-label="1B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">2B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l2-roles" aria-label="2B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">5B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l3-roles" aria-label="5B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -332,5 +358,5 @@ Tornium - Bot Dashboard
 
 {% block scripts %}
 <script src="/static/global/discord.js" data-guildid="{{ guildid }}"></script>
-<script src="/static/bot/guild.js" data-assist-mod="{{ assist_mod }}"></script>
+<script src="/static/bot/guild.js"></script>
 {% endblock %}

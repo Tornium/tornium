@@ -59,9 +59,7 @@
     {% block scripts %}{% endblock %}
 
     <div aria-live="polite" aria-atomic="true" class="position-static" style="z-index: 10">
-        <div class="toast-container position-absolute top-0 end-0 mx-3 my-3" id="toast-container">
-
-        </div>
+        <div class="toast-container position-absolute top-0 end-0 mx-3 my-3" id="toast-container"></div>
     </div>
 
     <div class="container-fluid">
@@ -73,7 +71,7 @@
                     </button>
 
                     <a class="navbar-brand" style="height: 38px" href="/">
-                        <object type="image/svg+xml" data="/static/logo.svg" height="26" id="tornium-icon" style="fill: white"></object>
+                        <object type="image/svg+xml" data="/static/logo.svg" height="26" id="tornium-icon"></object>
                     </a>
 
                     <div class="navbar-nav">
@@ -163,9 +161,7 @@
 
     <script>
     $("#tornium-icon").on("load", function() {
-        const theme = document.documentElement.getAttribute("data-bs-theme");
-
-        if (["custom-dark", "dark", "neon-dark"].includes(theme)) {
+        if (["custom-dark", "dark", "neon-dark"].includes(document.documentElement.getAttribute("data-bs-theme"))) {
             $("#tornium-icon").contents().find("svg").css("color", "#e5e5e5");
         } else {
             $("#tornium-icon").contents().find("svg").css("color", "#000000");

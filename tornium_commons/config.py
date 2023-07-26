@@ -53,7 +53,6 @@ class Config:
             value = int(value)
 
         rds().set(key, value)
-
         self.save()
 
     def load(self):

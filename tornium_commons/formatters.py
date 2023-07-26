@@ -151,6 +151,7 @@ def text_to_num(text: str) -> int:
     """
     Convert a string of a number with a suffix to an integer.
 
+    1  = 1
     1K = 1,000
     1M = 1,000,000
     1B = 1,000,000,000
@@ -164,19 +165,26 @@ def text_to_num(text: str) -> int:
     -------
     number : int
         Integer of the number's string
+
+    Raises
+    ------
+    ValueError
+        If there's an unknown suffix
     """
 
     text = text.strip("$").upper().replace(",", "")
     numbers = re.sub("[a-z]", "", text.lower())
 
-    if "K" in text:
+    if text.isdigit():
+        return int(text)
+    elif text.endswith("K"):
         return int(Decimal(numbers) * 1000)
-    elif "M" in text:
+    elif text.endswith("M"):
         return int(Decimal(numbers) * 1000000)
-    elif "B" in text:
+    elif text.endswith("B"):
         return int(Decimal(numbers) * 1000000000)
     else:
-        return int(Decimal(numbers))
+        raise ValueError
 
 
 def bs_to_range(battlescore: typing.Union[int, float]) -> tuple:

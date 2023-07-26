@@ -28,7 +28,7 @@ def rds() -> redis.Redis:
     connection : redis.Redis
     """
 
-    return redis.Redis(host="127.0.0.1", port=6379, charset="utf-8", decode_responses=True)
+    return redis.Redis(host="127.0.0.1", port=6379, encoding="utf-8", decode_responses=True)
 
 
 def load_scripts() -> dict:

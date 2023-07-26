@@ -11,17 +11,3 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-  - repo: local
-    hooks:
-      - id: rds-lua-hasher
-        name: rds-lua-hasher
-        entry: python rds_lua_hasher.py
-        language: python
-      - id: add-rds-lua-hasher
-        name: add-rds-lua-hasher
-        entry: git add --ignore-errors tornium_commons/rds_lua_hashes.py
-        language: script
-      - id: commit-rds-lua-hasher
-        name: commit-rds-lua-hasher
-        entry: git commit --no-verify -m '[AUTOMATED] rds-lua hash update' tornium_commons/rds_lua_hashes.py || true
-        language: script

@@ -53,7 +53,7 @@ Tornium - Bot Dashboard
             <div class="col-sm-12 col-md-8 col-xl-4">
                 <ul class="list-group" id="faction-list">
                     {% for faction in factions %}
-                    <li class="list-group-item d-flex">
+                    <li class="list-group-item d-flex justify-content-between">
                         <p class="px-1 my-2">
                             {{ faction.name }} [{{ faction.tid }}]
 
@@ -65,7 +65,7 @@ Tornium - Bot Dashboard
                                title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
                             {% endif %}
                         </p>
-                        <div class="px-5 float-end">
+                        <div class="px-1">
                             <button type="button" class="btn btn-outline-danger remove-faction" data-factiontid="{{ faction.tid }}">Remove</button>
                         </div>
                     </li>
@@ -101,12 +101,12 @@ Tornium - Bot Dashboard
                         <div class="card-header">Factions:</div>
                         <ul class="list-group list-group-flush">
                             {% for faction in assist_factions %}
-                            <li class="list-group-item d-flex">
+                            <li class="list-group-item d-flex justify-content-between">
                                 <p class="px-1 my-2">
                                     <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
                                 </p>
 
-                                <div class="px-5 float-end">
+                                <div class="px-1">
                                     <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">
                                         <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
                                             Remove

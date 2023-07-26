@@ -64,7 +64,7 @@ $(document).ready(function () {
                             $("#min-price-switch").attr("checked", "");
                             $("#min-price-enabled").text("Enabled");
                         } else if (configKey === "max_price" && configValue) {
-                            $("max-price-switch").attr("checked", "");
+                            $("#max-price-switch").attr("checked", "");
                             $("#max-price-enabled").text("Enabled");
                         }
                     }
@@ -189,11 +189,11 @@ $(document).ready(function () {
 
             $("#faction-list").append(
                 $("<li>", {
-                    class: "list-group-item d-flex",
+                    class: "list-group-item d-flex justify-content-between",
                 }).append([
                     $("<p>", {
                         class: "px-1 my-2",
-                        text: factiontid,
+                        text: `N/A [${factiontid}]`,
                     }).append(
                         $("<i>", {
                             class: "fa-regular fa-circle-question",
@@ -203,7 +203,7 @@ $(document).ready(function () {
                         })
                     ),
                     $("<div>", {
-                        class: "px-5 float-end",
+                        class: "px-1",
                     }).append(
                         $("<button>", {
                             type: "button",
@@ -214,6 +214,10 @@ $(document).ready(function () {
                     ),
                 ])
             );
+
+            $('[data-bs-toggle="tooltip"]').tooltip({
+                container: ".list-group",
+            });
         };
 
         xhttp.responseType = "json";

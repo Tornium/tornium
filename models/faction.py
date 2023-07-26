@@ -13,20 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import random
 import time
 
 from flask_login import current_user
 from mongoengine.queryset.visitor import Q
 from tornium_celery.tasks.api import tornget
-from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.errors import MissingKeyError
 from tornium_commons.models import FactionModel, PositionModel, UserModel
-
-from models.server import Server
 
 
 class Faction:
-    def __init__(self, tid, key=""):
+    def __init__(self, tid):
         """
         Retrieves the faction from the database.
 
@@ -56,46 +53,6 @@ class Faction:
 
         self.od_channel = faction.od_channel
         self.chain_od = faction.chainod
-
-    def refresh_keys(self):
-        keys = []
-
-        position: PositionModel
-        for position in PositionModel.objects(Q(factiontid=self.tid) & Q(canAccessFactionApi=True)):
-            users = UserModel.objects(
-                Q(faction_position=position.pid) & Q(factionid=self.tid) & Q(key__exists=True) & Q(key__ne="")
-            )
-
-            for user in users:
-                if user.key == "":
-                    continue
-
-                keys.append(user.key)
-
-            keys = list(set(keys))
-
-        faction: FactionModel = FactionModel.objects(tid=self.tid).first()
-        faction.aa_keys = keys
-        faction.save()
-        self.aa_keys = keys
-
-        return keys
-
-    def rand_key(self):
-        if len(self.aa_keys) == 0:
-            return None
-
-        return random.choice(self.aa_keys)
-
-    def get_config(self):
-        if self.guild == 0:
-            return {"vault": 0, "stats": 1}
-
-        server = Server(self.guild)
-        if self.tid not in server.factions:
-            raise Exception  # TODO: Make exception more descriptive
-
-        return self.config
 
     def refresh(self, key=None, force=False):
         now = int(time.time())

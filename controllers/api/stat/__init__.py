@@ -248,4 +248,4 @@ def get_stat_user(tid, *args, **kwargs):
             "globalstat": stat_entry.globalstat,
         }
 
-    return (jsonify(data), 200, api_ratelimit_response(key))
+    return jsonify(data), 200, api_ratelimit_response(key)

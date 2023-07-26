@@ -12,8 +12,9 @@
         "notify/notify",
         "stats/chainlist",
         "stats/stat",
-        "stocks/stocks",
-        "user/who"
+        "stocks/stocks"
     ],
-    "disabled": []
+    "disabled": [
+        "user/who"
+    ]
 }

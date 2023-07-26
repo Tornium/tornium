@@ -24,12 +24,7 @@ mod.add_url_rule("/bot/dashboard", view_func=guild.dashboard, methods=["GET"])
 mod.add_url_rule(
     "/bot/dashboard/<string:guildid>",
     view_func=guild.guild_dashboard,
-    methods=["GET", "POST"],
-)
-mod.add_url_rule(
-    "/bot/dashboard/<string:guildid>/<int:factiontid>",
-    view_func=guild.update_guild,
-    methods=["POST"],
+    methods=["GET"],
 )
 
 # Assist Routes

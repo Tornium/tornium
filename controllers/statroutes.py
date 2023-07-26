@@ -14,14 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import math
-import time
-import typing
 
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
-from tornium_celery.tasks.user import update_user
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import FactionModel, StatModel, UserModel
 

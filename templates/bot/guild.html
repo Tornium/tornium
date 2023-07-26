@@ -44,39 +44,29 @@ Tornium - Bot Dashboard
             </p>
 
             <div class="col-sm-12 col-md-8 col-xl-4">
-                <form class="form-floating" method="POST" action="/bot/dashboard/{{ server.sid }}">
-                    <input class="form-control" id="factionid" name="factionid">
-                    <label for="factionid">Faction ID</label>
-                    <button class="btn btn-primary my-2" type="submit">Add</button>
-                </form>
+                <div class="mt-1 mb-3 form-floating">
+                    <input class="form-control" id="faction-id-input" name="faction-id-input">
+                    <label for="faction-id-input">Faction ID</label>
+                </div>
             </div>
 
             <div class="col-sm-12 col-md-8 col-xl-4">
-                <ul class="list-group">
+                <ul class="list-group" id="faction-list">
                     {% for faction in factions %}
                     <li class="list-group-item d-flex">
                         <p class="px-1 my-2">
                             {{ faction.name }} [{{ faction.tid }}]
 
                             {% if server.sid | int == faction.guild | int %}
-                            <i class="fa-solid fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
+                            <i class="fa-regular fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
                             {% else %}
-                            <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
+                            <i class="fa-regular fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
                             {% endif %}
                         </p>
                         <div class="px-5 float-end">
-                            <form method="POST" action="/bot/dashboard/{{ server.sid }}/{{ faction.tid }}">
-                                <button type="submit" class="btn btn-outline-danger">Remove</button>
-                                {% if current_user.factiontid == faction.tid %}
-                                <div class="px-2 float-end">
-                                    <a href="/faction/bot">
-                                        <button type="button" class="btn btn-outline-success">Edit</button>
-                                    </a>
-                                </div>
-                                {% endif %}
-                            </form>
+                            <button type="button" class="btn btn-outline-danger remove-faction" data-factiontid="{{ faction.tid }}">Remove</button>
                         </div>
                     </li>
                     {% endfor %}

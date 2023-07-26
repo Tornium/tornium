@@ -69,6 +69,5 @@ def static():
 
 
 @mod.route("/robots.txt")
-@mod.route("/userscripts/tornium-assists.user.js")
 def base_statics():
     return send_from_directory("static", request.path[1:])

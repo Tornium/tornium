@@ -171,13 +171,84 @@ $(document).ready(function () {
         container: ".list-group",
     });
 
-    $("#assist-type-select")
-        .find("option")
-        .each(function (i, e) {
-            if ($(e).val() === String(assistMod)) {
-                $("#assist-type-select").prop("selectedIndex", i);
+    $("#faction-id-input").on("keypress", function (e) {
+        if (e.which !== 13) {
+            return;
+        }
+
+        const xhttp = new XMLHttpRequest();
+        let factiontid = $("#faction-id-input").val();
+
+        xhttp.onload = function () {
+            const response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Faction Add Failed", response["message"]);
+                return;
             }
-        });
+
+            $("#faction-list").append(
+                $("<li>", {
+                    class: "list-group-item d-flex",
+                }).append([
+                    $("<p>", {
+                        class: "px-1 my-2",
+                        text: factiontid,
+                    }).append(
+                        $("<i>", {
+                            class: "fa-regular fa-circle-question",
+                            "data-bs-toggle": "tooltip",
+                            "data-bs-placement": "top",
+                            title: "It is currently unknown if this faction has been set up. Please refresh the page to check.",
+                        })
+                    ),
+                    $("<div>", {
+                        class: "px-5 float-end",
+                    }).append(
+                        $("<button>", {
+                            type: "button",
+                            class: "btn btn-outline-danger remove-faction",
+                            "data-factiontid": factiontid,
+                            text: "Remove",
+                        })
+                    ),
+                ])
+            );
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", `/api/bot/${guildid}/faction`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                factiontid: factiontid,
+            })
+        );
+    });
+
+    $(".remove-faction").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            const response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Faction Remove Failed", response["message"]);
+                return;
+            }
+
+            this.remove();
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", `/api/bot/${guildid}/faction`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                factiontid: this.getAttribute("data-factiontid"),
+            })
+        );
+    });
 
     $("#assist-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();

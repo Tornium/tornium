@@ -83,4 +83,4 @@ def get_positions(*args, **kwargs):
         position_data["_id"] = str(position.pid)
         positions_data.append(position_data)
 
-    return (jsonify({"positions": positions_data}), 200, api_ratelimit_response(key))
+    return jsonify({"positions": positions_data}), 200, api_ratelimit_response(key)

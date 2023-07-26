@@ -186,7 +186,7 @@ def faction_verification(*args, **kwargs):
     elif kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    faction: Faction = Faction(factiontid, key=User(random.choice(guild.admins)).key)
+    faction: Faction = Faction(factiontid)
 
     if request.method == "DELETE" and str(faction.tid) not in guild.faction_verify:
         return make_exception_response(

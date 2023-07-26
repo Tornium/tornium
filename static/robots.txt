@@ -4,5 +4,5 @@ Allow: /index
 Allow: /faction
 Allow: /bot
 Allow: /stats
-Allow: /api
+Allow: /stats/db
 Disallow: *

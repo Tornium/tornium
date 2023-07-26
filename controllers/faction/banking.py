@@ -182,7 +182,7 @@ def banking():
 
     return render_template(
         "faction/banking.html",
-        bankingenabled=banking_enabled,
+        banking_enabled=banking_enabled,
         faction=faction,
         bankers=bankers,
     )

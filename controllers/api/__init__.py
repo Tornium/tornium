@@ -37,6 +37,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/bot/<int:guildid>/faction",
+    view_func=bot.faction.faction_setter,
+    methods=["DELETE", "POST"],
+)
+mod.add_url_rule(
     "/api/bot/<int:guildid>/faction/<int:factiontid>/banking",
     view_func=bot.banking.banking_setter,
     methods=["GET", "POST"],

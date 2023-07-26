@@ -13,6 +13,10 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+const bankingEnabled = document.currentScript.getAttribute(
+    "data-banking-enabled"
+);
+
 $(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
@@ -33,70 +37,72 @@ $(document).ready(function () {
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    var xhttp = new XMLHttpRequest();
-    xhttp.onload = function () {
-        var response = xhttp.response;
-
-        if ("code" in response) {
-            generateToast(
-                "Balance Request Failed",
-                `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`
-            );
-            $("#money-balance").val("ERROR");
-            $("#points-balance").val("ERROR");
-        } else {
-            $("#money-balance").text(commas(response["money_balance"]));
-            $("#points-balance").text(commas(response["points_balance"]));
-        }
-    };
-
-    xhttp.responseType = "json";
-    xhttp.open("GET", "/api/faction/banking/vault");
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send();
-
-    $("#requestform").submit(function (e) {
-        e.preventDefault();
-        xhttp = new XMLHttpRequest();
-        var value = $("#requestamount").val();
-        value = value.toLowerCase();
-
-        if (value !== "all") {
-            var stringvalue = value.replace(",", "");
-            value = Number(stringvalue.replace(/[^0-9\.]+/g, ""));
-
-            if (stringvalue.endsWith("k")) {
-                value *= 1000;
-            } else if (stringvalue.endsWith("m")) {
-                value *= 1000000;
-            } else if (stringvalue.endsWith("b")) {
-                value *= 1000000000;
-            }
-        }
-
+    if (bankingEnabled) {
+        let xhttp = new XMLHttpRequest();
         xhttp.onload = function () {
-            var response = xhttp.response;
+            const response = xhttp.response;
 
             if ("code" in response) {
                 generateToast(
-                    "Banking Request Failed",
-                    `The Tornium API server has responded with \"${response["message"]} to the submitted banking request.\"`
+                    "Balance Request Failed",
+                    `The Tornium API server has responded with \"${response["message"]} to the submitted request.\"`
                 );
+                $("#money-balance").val("ERROR");
+                $("#points-balance").val("ERROR");
             } else {
-                generateToast(
-                    "Banking Request Successfully Sent",
-                    `Banking Request ${response["id"]} for ${response["amount"]} has been successfully submitted to the server.`
-                );
+                $("#money-balance").text(commas(response["money_balance"]));
+                $("#points-balance").text(commas(response["points_balance"]));
             }
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/faction/banking");
+        xhttp.open("GET", "/api/faction/banking/vault");
         xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                amount_requested: value,
-            })
-        );
-    });
+        xhttp.send();
+
+        $("#request-form").submit(function (e) {
+            e.preventDefault();
+            xhttp = new XMLHttpRequest();
+            let value = $("#request-amount").val();
+            value = value.toLowerCase();
+
+            if (value !== "all") {
+                const stringValue = value.replace(",", "");
+                value = Number(stringValue.replace(/[^0-9\.]+/g, ""));
+
+                if (stringValue.endsWith("k")) {
+                    value *= 1000;
+                } else if (stringValue.endsWith("m")) {
+                    value *= 1000000;
+                } else if (stringValue.endsWith("b")) {
+                    value *= 1000000000;
+                }
+            }
+
+            xhttp.onload = function () {
+                const response = xhttp.response;
+
+                if ("code" in response) {
+                    generateToast(
+                        "Banking Request Failed",
+                        `The Tornium API server has responded with \"${response["message"]} to the submitted banking request.\"`
+                    );
+                } else {
+                    generateToast(
+                        "Banking Request Successfully Sent",
+                        `Banking Request ${response["id"]} for ${response["amount"]} has been successfully submitted to the server.`
+                    );
+                }
+            };
+
+            xhttp.responseType = "json";
+            xhttp.open("POST", "/api/faction/banking");
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(
+                JSON.stringify({
+                    amount_requested: value,
+                })
+            );
+        });
+    }
 });

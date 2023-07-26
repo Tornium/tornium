@@ -17,6 +17,7 @@ from controllers.api.bot import (
     assists,
     banking,
     config,
+    faction,
     oc,
     retal,
     stocks,

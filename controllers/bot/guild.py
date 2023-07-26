@@ -15,24 +15,16 @@
 
 import typing
 
-from flask import abort, redirect, render_template, request
+from flask import render_template
 from flask_login import current_user, fresh_login_required, login_required
-from tornium_commons.models import ServerModel
-
-from models.faction import Faction
+from tornium_commons.models import FactionModel, ServerModel
 
 
 @login_required
 def dashboard():
-    servers = []
-
-    for server in ServerModel.objects(admins=current_user.tid):
-        if current_user.tid not in server.admins:
-            continue
-
-        servers.append(server)
-
-    return render_template("bot/dashboard.html", servers=list(set(servers)))
+    return render_template(
+        "bot/dashboard.html", servers=list(ServerModel.objects(admins=current_user.tid).only("name", "sid", "icon"))
+    )
 
 
 @fresh_login_required
@@ -40,42 +32,50 @@ def guild_dashboard(guildid: str):
     server: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
 
     if server is None:
-        abort(400)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Server Not Found",
+                error="The server ID could not be located in the database.",
+            ),
+            400,
+        )
     elif current_user.tid not in server.admins:
-        abort(403)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
+        )
 
-    factions = []
+    factions: typing.List[FactionModel] = []
     assist_factions = []
 
-    if request.method == "POST":
-        if request.form.get("factionid") is not None:
-            server.factions.append(int(request.form.get("factionid")))
-            server.factions = list(set(server.factions))
-            server.save()
-
-    server_factions = [int(faction) for faction in server.factions]
-
+    faction: typing.Union[int, FactionModel]
     for faction in server.factions:
-        try:
-            factions.append(Faction(faction))
-        except ValueError:
-            server_factions.remove(int(faction))
+        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction).only("tid", "name", "guild").first()
 
-    if server.factions != server_factions:
-        server.factions = server_factions
-        server.save()
+        if faction is None:
+            continue
 
-    server_assist_factions = [int(faction) for faction in server.assist_factions]
+        factions.append(faction)
 
     for faction in server.assist_factions:
-        try:
-            assist_factions.append(Faction(faction))
-        except ValueError:
-            server_factions.remove(int(faction))
+        faction: typing.Optional[FactionModel] = (
+            FactionModel.objects(tid=faction)
+            .only(
+                "tid",
+                "name",
+            )
+            .first()
+        )
 
-    if server.assist_factions != server_assist_factions:
-        server.assist_factions = server_assist_factions
-        server.save()
+        if faction is None:
+            pass
+
+        assist_factions.append(faction)
 
     return render_template(
         "bot/guild.html",
@@ -84,16 +84,3 @@ def guild_dashboard(guildid: str):
         guildid=guildid,
         assist_factions=assist_factions,
     )
-
-
-@fresh_login_required
-def update_guild(guildid: str, factiontid: int):
-    server_model = ServerModel.objects(sid=guildid).first()
-
-    if current_user.tid not in server_model.admins:
-        abort(403)
-
-    server_model.factions.remove(factiontid)
-    server_model.save()
-
-    return redirect(f"/bot/dashboard/{guildid}")

@@ -116,9 +116,8 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
 
     # Resolves duplicate keys: https://github.com/MongoEngine/mongoengine/issues/1465#issuecomment-445443894
     try:
-        # _tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
-        # TickModel._get_collection().insert_many(_tick_data, ordered=False)
-        logger.warning(tick_data)
+        _tick_data = [TickModel(**tick).to_mongo() for tick in tick_data]
+        TickModel._get_collection().insert_many(_tick_data, ordered=False)
     except BulkWriteError:
         logger.warning("Stock tick data bulk insert failed. Duplicates may have been found and were skipped.")
 

@@ -176,10 +176,8 @@ def update_user_self(user_data, key=None):
                 **(user_data["personalstats"]),
             )
         ).save()
-    except mongoengine.errors.OperationError:
+    except (KeyError, mongoengine.errors.OperationError):
         pass
-    except Exception as e:
-        logger.exception(e)
 
 
 @celery.shared_task(name="tasks.user.update_user_other", routing_key="quick.update_user_other", queue="quick")
@@ -238,10 +236,8 @@ def update_user_other(user_data):
                 **(user_data["personalstats"]),
             )
         ).save()
-    except mongoengine.errors.OperationError:
+    except (KeyError, mongoengine.errors.OperationError):
         pass
-    except Exception as e:
-        logger.exception(e)
 
 
 @celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")
@@ -253,7 +249,7 @@ def refresh_users():
 
         tornget.signature(
             kwargs={
-                "endpoint": "user/?selections=profile,battlestats,discord",
+                "endpoint": "user/?selections=profile,discord,personalstats,battlestats",
                 "key": user.key,
             },
             queue="api",

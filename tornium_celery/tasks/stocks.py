@@ -56,6 +56,8 @@ def _get_stocks_tick(stock_id: int, timestamp: typing.Optional[datetime.datetime
 
 @celery.shared_task(name="tasks.stocks.stocks_prefetch", routing_key="quick.stocks_prefetch", queue="quick")
 def stocks_prefetch():
+    stocks_timestamp = datetime.datetime.utcnow().replace(second=5, microsecond=0, tzinfo=datetime.timezone.utc)
+
     return tornget.signature(
         kwargs={
             "endpoint": "torn/?selections=stocks",
@@ -63,15 +65,15 @@ def stocks_prefetch():
         },
         queue="api",
     ).apply_async(
-        countdown=5,
+        eta=stocks_timestamp,
         expires=50,
         link=celery.chain(
-            update_stock_prices.signature(kwargs={"stocks_timestamp": datetime.datetime.utcnow()}),
+            update_stock_prices.signature(kwargs={"stocks_timestamp": stocks_timestamp}),
             celery.group(
                 stock_price_notifications.s(),
                 stock_notifications.signature(
                     kwargs={
-                        "stocks_timestamp": datetime.datetime.utcnow(),
+                        "stocks_timestamp": stocks_timestamp,
                     }
                 ),
             ),
@@ -85,18 +87,7 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
         raise ValueError
 
     tick_data = []
-    stocks_timestamp = int(
-        datetime.datetime(
-            year=stocks_timestamp.year,
-            month=stocks_timestamp.month,
-            day=stocks_timestamp.day,
-            hour=stocks_timestamp.hour,
-            minute=stocks_timestamp.minute,
-            second=0,
-        )
-        .replace(tzinfo=datetime.timezone.utc)
-        .timestamp()
-    )
+    stocks_timestamp = int(stocks_timestamp.replace(second=0, tzinfo=datetime.timezone.utc).timestamp())
     binary_timestamp = bin(stocks_timestamp << 8)
 
     stocks = {}
@@ -471,6 +462,7 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
 
 @celery.shared_task(name="tasks.stocks.fetch_stock_ticks", routing_key="default.fetch_stock_ticks", queue="default")
 def fetch_stock_ticks():
+    return
     time.sleep(5)  # Torn has stock tick data ready at xx:xx:05
 
     auth_users = [user.key for user in UserModel.objects(key__nin=[None, ""])]

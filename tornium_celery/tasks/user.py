@@ -37,21 +37,6 @@ from .api import tornget
 
 logger = get_task_logger("celery_app")
 
-ATTACK_RESULTS = {
-    "Lost": 0,
-    "Attacked": 1,
-    "Mugged": 2,
-    "Hospitalized": 3,
-    "Stalemate": 4,
-    "Escape": 5,
-    "Assist": 6,
-    "Special": 7,
-    "Looted": 8,
-    "Arrested": 9,
-    "Timeout": 10,
-    "Interrupted": 11,
-}
-
 
 @celery.shared_task(name="tasks.user.update_user", routing_key="default.update_user", queue="default")
 def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
@@ -188,7 +173,7 @@ def update_user_self(user_data, key=None):
                     "tid": user.tid,
                     "timestamp": int(time.time()),
                 },
-                **user_data["personalstats"],
+                **(user_data["personalstats"]),
             )
         ).save()
     except mongoengine.errors.OperationError:
@@ -250,7 +235,7 @@ def update_user_other(user_data):
                     "tid": user.tid,
                     "timestamp": int(time.time()),
                 },
-                **user_data["personalstats"],
+                **(user_data["personalstats"]),
             )
         ).save()
     except mongoengine.errors.OperationError:

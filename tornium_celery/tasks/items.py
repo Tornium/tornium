@@ -20,6 +20,7 @@ import typing
 
 import celery
 import pymongo
+from celery.utils.log import get_task_logger
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
@@ -36,6 +37,8 @@ try:
     globals()["orjson:loaded"] = True
 except ImportError:
     globals()["orjson:loaded"] = False
+
+logger = get_task_logger("celery_app")
 
 
 @celery.shared_task(name="tasks.items.update_items_pre", routing_key="quick.items.update_items_pre", queue="quick")

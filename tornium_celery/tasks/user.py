@@ -35,7 +35,7 @@ from tornium_commons.models import (
 
 from .api import tornget
 
-logger = get_task_logger(__name__)
+logger = get_task_logger("celery_app")
 
 ATTACK_RESULTS = {
     "Lost": 0,

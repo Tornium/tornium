@@ -33,7 +33,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 from .api import discordpost, tornget
 from .misc import send_dm
 
-logger = get_task_logger(__name__)
+logger = get_task_logger("celery_app")
 
 
 def _map_stock_image(acronym: str):

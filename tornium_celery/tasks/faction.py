@@ -43,7 +43,7 @@ from .api import discordpatch, discordpost, torn_stats_get, tornget
 from .misc import send_dm
 from .user import update_user
 
-logger = get_task_logger(__name__)
+logger = get_task_logger("celery_app")
 
 ORGANIZED_CRIMES = {
     1: "Blackmail",

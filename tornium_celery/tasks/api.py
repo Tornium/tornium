@@ -35,7 +35,7 @@ from tornium_commons.errors import (
 
 from .misc import remove_key_error, remove_unknown_channel
 
-logger = get_task_logger(__name__)
+logger = get_task_logger("celery_app")
 
 
 def backoff(self: celery.Task):

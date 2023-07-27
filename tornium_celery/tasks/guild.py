@@ -32,7 +32,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost, tornget
 
-logger: logging.Logger = get_task_logger(__name__)
+logger: logging.Logger = get_task_logger("celery_app")
 
 
 @celery.shared_task(name="tasks.guild.refresh_guilds", routing_key="default.refresh_guilds", queue="default")

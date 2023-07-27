@@ -21,6 +21,7 @@ import time
 import typing
 
 import celery
+from celery.utils.log import get_task_logger
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
@@ -35,6 +36,8 @@ from tornium_commons.models import NotificationModel, ServerModel, UserModel
 from tornium_commons.skyutils import SKYNET_INFO
 
 from .api import discordpost, tornget
+
+logger = get_task_logger("celery_app")
 
 _TRAVEL_DESTINATIONS = {
     # Destination: [Standard, Airstrip, WLT, BCT]

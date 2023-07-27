@@ -36,9 +36,12 @@ for module in ("ddtrace", "orjson"):
 
 
 if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
-    from ddtrace import patch_all
+    try:
+        from ddtrace import patch_all
 
-    patch_all(logging=True, pymongo=True, mongoengine=True)
+        patch_all(logging=True, pymongo=True, mongoengine=True)
+    except ImportError:
+        globals()["ddtrace:loaded"] = False
 
 import json
 import typing
@@ -82,22 +85,22 @@ _LOGGING = {
         },
     },
     "handlers": {
-        "celery": {
-            "level": "WARNING",
+        "celery_handler": {
+            "level": "DEBUG",
             "class": "logging.FileHandler",
             "filename": "celery.log",
-            "formatter": "datadog",
+            "formatter": "datadog" if globals()["ddtrace:loaded"] else "expanded",
         },
-        "console": {
-            "level": "ERROR",
+        "console_handler": {
+            "level": "WARNING",
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
     },
     "loggers": {
-        "celery": {
-            "handlers": ["celery", "console"],
-            "level": "INFO",
+        "celery_app": {
+            "handlers": ["celery_handler", "console_handler"],
+            "level": "DEBUG",
         }
     },
 }

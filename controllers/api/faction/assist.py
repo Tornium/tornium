@@ -118,11 +118,6 @@ def forward_assist(*args, **kwargs):
     else:
         target_faction = None
 
-    target_spy: AsyncResult = torn_stats_get.delay(
-        f"spy/user/{target_tid}",
-        call_key,
-    )
-
     if target.factionid != 0 and target_faction is not None:
         if target_faction.tag in ("", None):
             content_target_faction = target_faction.name
@@ -272,11 +267,9 @@ def forward_assist(*args, **kwargs):
     )
 
     total_bs = None
-    bs_ts = None
 
     if stat is not None:
         total_bs = int(sum(bs_to_range(stat.battlescore)) / 2)
-        bs_ts = stat.timeadded
 
         payload["embeds"][1]["fields"].append(
             {
@@ -311,62 +304,8 @@ def forward_assist(*args, **kwargs):
             """  # noqa: W293
         )
 
-    try:
-        target_spy_data: dict = target_spy.get()
-        ts_e = False
-    except Exception:
-        ts_e = True
-
-    if not ts_e and target_spy_data["status"]:
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Last Update",
-                "value": f"<t:{target_spy_data['spy']['timestamp']}:R>",
-                "inline": False,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Strength",
-                "value": commas(target_spy_data["spy"]["strength"]),
-                "inline": True,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Defense",
-                "value": commas(target_spy_data["spy"]["defense"]),
-                "inline": True,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Speed",
-                "value": commas(target_spy_data["spy"]["speed"]),
-                "inline": True,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Dexterity",
-                "value": commas(target_spy_data["spy"]["dexterity"]),
-                "inline": True,
-            }
-        )
-        payload["embeds"][1]["fields"].append(
-            {
-                "name": "Target Total",
-                "value": commas(target_spy_data["spy"]["total"]),
-                "inline": True,
-            }
-        )
-
     client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
     client.expire(f"tornium:assists:{guid}:payload", 600)
-
-    if not ts_e and bs_ts <= target_spy_data["spy"]["timestamp"] or total_bs <= target_spy_data["spy"]["total"]:
-        total_bs = target_spy_data["spy"]["total"]
-        bs_ts = target_spy_data["spy"]["timestamp"]
 
     l0_roles_enabled = False  # 500m+
     l1_roles_enabled = False  # 1b+

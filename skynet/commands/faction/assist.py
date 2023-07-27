@@ -203,9 +203,7 @@ def assist(interaction, *args, **kwargs):
     for server in ServerModel.objects(assistchannel__ne=0):
         if server.assistschannel == 0:
             continue
-        elif server.assist_mod == 1 and user.factionid not in server.assist_factions:
-            continue
-        elif server.assist_mod == 2 and user.factionid in server.assist_factions:
+        elif user.factionid not in server.assist_factions:
             continue
 
         data = {

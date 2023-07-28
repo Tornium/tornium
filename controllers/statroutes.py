@@ -90,12 +90,11 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
-    stat_entries.skip(start)
-    stat_entries.limit(length)
+    stat_entries_subset = stat_entries[start : start + length]
     users = {}
 
     stat_entry: StatModel
-    for stat_entry in stat_entries:
+    for stat_entry in stat_entries_subset:
         if stat_entry.tid in users:
             user: UserModel = users[stat_entry.tid]
         else:

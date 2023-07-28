@@ -14,10 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import typing
 
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
+from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import FactionModel, StatModel, UserModel
 
@@ -105,10 +107,18 @@ def stats_data():
             ]
         )
 
+    cached_count: typing.Optional[str] = rds().get("tornium:stats:count")
+
+    if cached_count is None or not cached_count.isdigit():
+        stat_count = StatModel.objects.count()
+        rds().set("tornium:stats:count", stat_count, ex=3600)
+    else:
+        stat_count = int(cached_count)
+
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": StatModel.objects.count(),
-        "recordsFiltered": StatModel.objects.count(),
+        "recordsTotal": stat_count,
+        "recordsFiltered": stat_count,
         "data": stats,
     }
 

@@ -16,6 +16,7 @@
 import datetime
 import typing
 
+import mongoengine
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from mongoengine.queryset.visitor import Q
@@ -53,6 +54,7 @@ def stats_data():
 
     stats = []
 
+    stat_entries: mongoengine.QuerySet
     if current_user.is_authenticated:
         if get_tid(search_value):
             stat_entries = StatModel.objects(
@@ -88,11 +90,12 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
 
-    stat_entries_subset = stat_entries[start : start + length]
+    stat_entries.skip(start)
+    stat_entries.limit(length)
     users = {}
 
     stat_entry: StatModel
-    for stat_entry in stat_entries_subset:
+    for stat_entry in stat_entries:
         if stat_entry.tid in users:
             user: UserModel = users[stat_entry.tid]
         else:

@@ -121,7 +121,7 @@ if celery_app is None:
         file = open("celery.json")
         file.close()
     except FileNotFoundError:
-        data = {  # Faction tasks
+        beat_data = {  # Faction tasks
             "refresh-factions": {
                 "task": "tasks.faction.refresh_factions",
                 "enabled": True,
@@ -130,7 +130,7 @@ if celery_app is None:
             "fetch-attacks-runner": {
                 "task": "tasks.faction.fetch_attacks_runner",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+                "schedule": {"type": "periodic", "second": "30"},
             },
             "oc-refresh": {
                 "task": "tasks.faction.oc_refresh",
@@ -157,11 +157,6 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
             },  # Stock tasks
-            "fetch-stock-ticks": {
-                "task": "tasks.stocks.fetch_stock_ticks",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },
             "stocks-prefetch": {
                 "task": "tasks.stocks.stocks_prefetch",
                 "enabled": True,
@@ -170,12 +165,12 @@ if celery_app is None:
             "run-user-stakeouts": {
                 "task": "tasks.stakeout_hooks.run_user_stakeouts",
                 "enabled": False,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+                "schedule": {"type": "periodic", "second": "30"},
             },
             "run-faction-stakeouts": {
                 "task": "tasks.stakeout_hooks.run_faction_stakeouts",
                 "enabled": False,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+                "schedule": {"type": "periodic", "second": "30"},
             },  # Item tasks
             "update-items": {
                 "task": "tasks.items.update_items_pre",
@@ -185,15 +180,15 @@ if celery_app is None:
             "fetch-market": {
                 "task": "tasks.items.fetch_market",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+                "schedule": {"type": "periodic", "second": "30"},
             },
         }
 
         with open("celery.json", "w") as file:
-            json.dump(data, file, indent=4)
+            json.dump(beat_data, file, indent=4)
 
     with open("celery.json", "r") as file:
-        data = json.load(file)
+        beat_data: dict = json.load(file)
 
     celery_app = Celery(
         "tasks",
@@ -220,110 +215,34 @@ if celery_app is None:
     celery_app.conf.task_default_queue = "default"
     schedule = {}
 
-    if "refresh-factions" in data and data["refresh-factions"]["enabled"]:
-        schedule["refresh-factions"] = {
-            "task": data["refresh-factions"]["task"],
-            "schedule": crontab(
-                minute=data["refresh-factions"]["schedule"]["minute"],
-                hour=data["refresh-factions"]["schedule"]["hour"],
-            ),
-        }
-    if "fetch-attacks-runner" in data and data["fetch-attacks-runner"]["enabled"]:
-        schedule["fetch-attacks-runner"] = {
-            "task": data["fetch-attacks-runner"]["task"],
-            "schedule": crontab(
-                minute=data["fetch-attacks-runner"]["schedule"]["minute"],
-                hour=data["fetch-attacks-runner"]["schedule"]["hour"],
-            ),
-        }
-    if "oc-refresh" in data and data["oc-refresh"]["enabled"]:
-        schedule["oc-refresh"] = {
-            "task": data["oc-refresh"]["task"],
-            "schedule": crontab(
-                minute=data["oc-refresh"]["schedule"]["minute"],
-                hour=data["oc-refresh"]["schedule"]["hour"],
-            ),
-        }
-    if "auto-cancel-requests" in data and data["auto-cancel-requests"]["enabled"]:
-        schedule["auto-cancel-requests"] = {
-            "task": data["auto-cancel-requests"]["task"],
-            "schedule": crontab(
-                minute=data["auto-cancel-requests"]["schedule"]["minute"],
-                hour=data["auto-cancel-requests"]["schedule"]["hour"],
-            ),
-        }
-    if "refresh-guilds" in data and data["refresh-guilds"]["enabled"]:
-        schedule["refresh-guilds"] = {
-            "task": data["refresh-guilds"]["task"],
-            "schedule": crontab(
-                minute=data["refresh-guilds"]["schedule"]["minute"],
-                hour=data["refresh-guilds"]["schedule"]["hour"],
-            ),
-        }
-    if "refresh-users" in data and data["refresh-users"]["enabled"]:
-        schedule["refresh-users"] = {
-            "task": data["refresh-users"]["task"],
-            "schedule": crontab(
-                minute=data["refresh-users"]["schedule"]["minute"],
-                hour=data["refresh-users"]["schedule"]["hour"],
-            ),
-        }
-    if "fetch-attacks-user-runner" in data and data["fetch-attacks-user-runner"]["enabled"]:
-        schedule["fetch-attacks-user-runner"] = {
-            "task": data["fetch-attacks-user-runner"]["task"],
-            "schedule": crontab(
-                minute=data["fetch-attacks-user-runner"]["schedule"]["minute"],
-                hour=data["fetch-attacks-user-runner"]["schedule"]["hour"],
-            ),
-        }
-    if "fetch-stock-ticks" in data and data["fetch-stock-ticks"]["enabled"]:
-        schedule["fetch-stock-ticks"] = {
-            "task": data["fetch-stock-ticks"]["task"],
-            "schedule": crontab(
-                minute=data["fetch-stock-ticks"]["schedule"]["minute"],
-                hour=data["fetch-stock-ticks"]["schedule"]["hour"],
-            ),
-        }
-    if "stocks-prefetch" in data and data["stocks-prefetch"]["enabled"]:
-        schedule["stocks-prefetch"] = {
-            "task": data["stocks-prefetch"]["task"],
-            "schedule": crontab(
-                minute=data["stocks-prefetch"]["schedule"]["minute"],
-                hour=data["stocks-prefetch"]["schedule"]["hour"],
-            ),
-        }
-    if "run-user-stakeouts" in data and data["run-user-stakeouts"]["enabled"]:
-        schedule["run-user-stakeouts"] = {
-            "task": data["run-user-stakeouts"]["task"],
-            "schedule": crontab(
-                minute=data["run-user-stakeouts"]["schedule"]["minute"],
-                hour=data["run-user-stakeouts"]["schedule"]["hour"],
-            ),
-        }
-    if "run-faction-stakeouts" in data and data["run-faction-stakeouts"]["enabled"]:
-        schedule["run-faction-stakeouts"] = {
-            "task": data["run-faction-stakeouts"]["task"],
-            "schedule": crontab(
-                minute=data["run-faction-stakeouts"]["schedule"]["minute"],
-                hour=data["run-faction-stakeouts"]["schedule"]["hour"],
-            ),
-        }
-    if "update-items" in data and data["update-items"]["enabled"]:
-        schedule["update-items"] = {
-            "task": data["update-items"]["task"],
-            "schedule": crontab(
-                minute=data["update-items"]["schedule"]["minute"],
-                hour=data["update-items"]["schedule"]["hour"],
-            ),
-        }
-    if "fetch-market" in data and data["fetch-market"]["enabled"]:
-        schedule["fetch-market"] = {
-            "task": data["fetch-market"]["task"],
-            "schedule": crontab(
-                minute=data["fetch-market"]["schedule"]["minute"],
-                hour=data["fetch-market"]["schedule"]["hour"],
-            ),
-        }
+    task_data: dict
+    for task_name, task_data in beat_data.items():
+        if not task_data.get("enabled"):
+            continue
+        elif task_data.get("schedule") is None:
+            continue
+        elif task_data["schedule"].get("type") not in ("cron", "periodic"):
+            continue
+
+        if task_data["schedule"]["type"] == "periodic":
+            _s: typing.Union[int, str] = task_data["schedule"].get("second")
+
+            if _s is None or (type(_s) != int and not _s.isdigit()):
+                continue
+
+            s = int(_s)
+        elif task_data["schedule"]["type"] == "cron":
+            _m: str = task_data["schedule"].get("minute")
+            _h: str = task_data["schedule"].get("hour")
+
+            if _m is None or _h is None:
+                continue
+
+            s = crontab(minute=_m, hour=_m)
+        else:
+            continue
+
+        schedule[task_name] = {"task": task_data["task"], "schedule": s}
 
     celery_app.conf.beat_schedule = schedule
     celery_app.conf.result_expires = 300  # Results are evicted from Redis cache after five minutes

@@ -235,10 +235,15 @@ if celery_app is None:
             _m: str = task_data["schedule"].get("minute")
             _h: str = task_data["schedule"].get("hour")
 
-            if _m is None or _h is None:
+            if (
+                _m is None
+                or (type(_m) != int and not _m.isdigit())
+                or _h is None
+                or (type(_h) != int and not _h.isdigit())
+            ):
                 continue
 
-            s = crontab(minute=_m, hour=_m)
+            s = crontab(minute=int(_m), hour=int(_m))
         else:
             continue
 

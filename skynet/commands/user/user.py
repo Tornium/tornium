@@ -210,7 +210,7 @@ def user_who(interaction, *args, **kwargs):
                             Networth: ${commas(ps.networth)}
 
                             Nerve refills: {commas(ps.nerverefills)}
-                            Alcohol used: {commas(ps.alcholused)}"""
+                            Alcohol used: {commas(ps.alcoholused)}"""
                         ),
                     },
                 ],

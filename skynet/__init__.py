@@ -72,7 +72,7 @@ _commands = {
     # Stocks Commands
     "stocks": skynet.commands.stocks.stocks_switchboard,
     # User Commands
-    "who": skynet.commands.user.who.who,
+    "user": skynet.commands.user.user.user_who,
 }
 
 tornium_ext: utils.tornium_ext.TorniumExt

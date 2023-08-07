@@ -24,8 +24,12 @@ from tornium_commons.skyutils import SKYNET_ERROR
 
 
 def user_who(interaction, *args, **kwargs):
-    user_mention = find_list(interaction["data"]["options"], "name", "user")
-    user_tid = find_list(interaction["data"]["options"], "name", "tid")
+    if "options" in interaction["data"]:
+        user_mention = find_list(interaction["data"]["options"], "name", "user")
+        user_tid = find_list(interaction["data"]["options"], "name", "tid")
+    else:
+        user_mention = -1
+        user_tid = -1
 
     user: UserModel = kwargs["invoker"]
 

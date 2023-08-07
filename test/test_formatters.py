@@ -20,7 +20,7 @@ import hypothesis
 import pytest
 from hypothesis import strategies as st
 
-from tornium_commons.formatters import commas, get_tid, text_to_num
+from tornium_commons.formatters import HumanTimeDelta, commas, get_tid, text_to_num
 
 
 @hypothesis.given(st.text(alphabet=string.printable))
@@ -90,3 +90,25 @@ def test_text_to_num(s, n):
             text_to_num(s)
     else:
         assert text_to_num(s) == n, f"Failed to parse {s}"
+
+
+@pytest.mark.parametrize(
+    "s,td",
+    [
+        (0, ("", "", "")),
+        (1, ("1 second", "1 second", "1 second")),
+        (37, ("37 seconds", "37 seconds", "37 seconds")),
+        (60, ("1 minute", "1 minute", "1 minute")),
+        (90, ("1 minute, 30 seconds", "1 minute and 30 seconds", "1 minute, 30 seconds")),
+        (382, ("6 minutes, 22 seconds", "6 minutes and 22 seconds", "6 minutes, 22 seconds")),
+        (3820, ("1 hour, 3 minutes", "1 hour, 3 minutes, and 40 seconds", "1 hour, 3 minutes, 40 seconds")),
+        (94238, ("1 day, 2 hours", "1 day, 2 hours, 10 minutes, and 38 seconds", "1 day, 2 hours, 10 minutes")),
+    ],
+)
+def test_human_timedelta_str(s, td):
+    _htd = HumanTimeDelta()
+    _htd.seconds = s
+
+    assert str(_htd) == td[0]
+    assert repr(_htd) == td[1]
+    assert _htd.trunc(max_count=3, and_seperator=False) == td[2]

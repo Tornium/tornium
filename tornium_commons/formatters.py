@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import dataclasses
 import datetime
 import math
 import re
@@ -307,3 +308,92 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
     item: typing.Optional[ItemModel] = ItemModel.objects(name=item_str).first()
 
     return quantity, item
+
+
+@dataclasses.dataclass
+class HumanTimeDelta:
+    seconds: int = 0
+    minutes: int = 0
+    hours: int = 0
+    days: int = 0
+    weeks: int = 0
+    months: int = 0
+    years: int = 0
+
+    def __setattr__(self, key, value):
+        if not isinstance(value, int):
+            raise TypeError(f"input type must be an integer, not {type(value)}")
+        elif value < 0:
+            raise ValueError("input must be greater than or equal to zero")
+
+        minutes, seconds = divmod(value, 60)
+        hours, minutes = divmod(minutes, 60)
+        days, hours = divmod(hours, 24)
+        years, days = divmod(days, 365)
+        months, days = divmod(days, 30)
+        weeks, days = divmod(days, 7)
+
+        super().__setattr__("seconds", seconds)
+        super().__setattr__("minutes", minutes)
+        super().__setattr__("hours", hours)
+        super().__setattr__("days", days)
+        super().__setattr__("weeks", weeks)
+        super().__setattr__("months", months)
+        super().__setattr__("years", years)
+
+    def __iter__(self):
+        for key in self.__dict__.__reversed__():
+            value = self.__dict__[key]
+
+            if value == 0:
+                continue
+            elif value == 1:
+                yield f"1 {key[:-1]}"
+            else:
+                yield f"{value} {key}"
+
+        return self
+
+    def __str__(self):
+        return self.trunc(and_seperator=False)
+
+    def __repr__(self):
+        _s = [t_u for t_u in self]
+
+        if len(_s) == 0:
+            return ""
+        elif len(_s) == 1:
+            return _s[0]
+        elif len(_s) == 2:
+            return f"{_s[0]} and {_s[1]}"
+        else:
+            return ", ".join(_s[:-1]) + ", and " + _s[-1]
+
+    def trunc(self, max_count: int = 2, seperator: str = ", ", and_seperator: bool = True):
+        _c = 0
+        _s = []
+
+        time_unit: str
+        for time_unit in self:
+            _s.append(time_unit)
+            _c += 1
+
+            if _c >= max_count:
+                break
+
+        if len(_s) == 0:
+            return ""
+        elif len(_s) == 1:
+            return _s[0]
+        elif len(_s) == 2:
+            if not and_seperator and seperator == "":
+                return f"{_s[0]}, {_s[1]}"
+            elif not and_seperator:
+                return f"{_s[0]}{seperator}{_s[1]}"
+
+            return f"{_s[0]} and {_s[1]}"
+        else:
+            if and_seperator:
+                return f"{seperator.join(_s[:-1])}, and {_s[-1]}"
+            else:
+                return seperator.join(_s)

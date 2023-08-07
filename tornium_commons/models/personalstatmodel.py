@@ -133,7 +133,7 @@ class PersonalStatModel(DynamicDocument):
     missioncreditsearned = IntField()
     consumablesused = IntField()
     candyused = IntField()
-    alcholused = IntField()
+    alcoholused = IntField()
     energydrinkused = IntField()
     nerverefills = IntField()
     unarmoredwon = IntField()

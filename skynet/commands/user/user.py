@@ -176,7 +176,7 @@ def user_who(interaction, *args, **kwargs):
                     {
                         "name": "Activity",
                         "value": inspect.cleandoc(
-                            f"""Playtime: {HumanTimeDelta(seconds=ps.useractvity)}
+                            f"""Playtime: {HumanTimeDelta(seconds=ps.useractivity)}
                             Activity Streak: {commas(ps.activestreak)}"""
                         ),
                     },

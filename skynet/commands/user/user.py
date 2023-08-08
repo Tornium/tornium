@@ -140,12 +140,45 @@ def user_who(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"{mentioned_user.name} [{mentioned_user.tid}]",
-                    "text": f"Last Update: {rel_time(mentioned_user.last_refresh)}",
+                    "footer": {"text": f"Last Update: {rel_time(mentioned_user.last_refresh)}"},
                 }
             ],
-            "components": [{"type": 1, "components": []}],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Profile",
+                            "url": f"https://www.torn.com/profiles.php?XID={mentioned_user.tid}",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Attack",
+                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={mentioned_user.tid}",
+                        },
+                    ],
+                }
+            ],
         },
     }
+
+    if mentioned_user.factionid != 0:
+        payload["data"]["components"].append(
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Faction",
+                        "url": f"https://www.torn.com/factions.php?step=profile&ID={mentioned_user.factionid}",
+                    }
+                ],
+            }
+        )
 
     if ps is None:
         payload["data"]["embeds"][0]["description"] = inspect.cleandoc(

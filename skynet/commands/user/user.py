@@ -188,10 +188,11 @@ def user_who(interaction, *args, **kwargs):
             """
         )
         payload["data"]["embeds"][0]["fields"] = [
-            {"name": "Faction", "value": "NYI"},
+            {"name": "Faction", "value": "NYI", "inline": True},
             {
                 "name": "Company",
                 "value": "NYI",
+                "inline": True,
             },
         ]
     else:
@@ -199,7 +200,7 @@ def user_who(interaction, *args, **kwargs):
             f"""Level {mentioned_user.level} - Title (NYI)
             Life NYI/NYI
             Last online: {rel_time(mentioned_user.last_action)}
-            Playtime: {HumanTimeDelta(seconds=ps.useractivity)}
+            Playtime: {str(HumanTimeDelta(seconds=ps.useractivity))}
             """
         )
         payload["data"]["embeds"].append(
@@ -209,9 +210,10 @@ def user_who(interaction, *args, **kwargs):
                     {
                         "name": "Activity",
                         "value": inspect.cleandoc(
-                            f"""Playtime: {HumanTimeDelta(seconds=ps.useractivity)}
+                            f"""Playtime: {str(HumanTimeDelta(seconds=ps.useractivity))}
                             Activity Streak: {commas(ps.activestreak)}"""
                         ),
+                        "inline": True,
                     },
                     {
                         "name": "Attacks",
@@ -223,6 +225,7 @@ def user_who(interaction, *args, **kwargs):
                             TT clears: {commas(ps.territoryclears)}
                             RW hits: {commas(ps.rankedwarhits)}"""
                         ),
+                        "inline": True,
                     },
                     {
                         "name": "Training",
@@ -233,6 +236,7 @@ def user_who(interaction, *args, **kwargs):
                             E-cans used: {commas(ps.energydrinkused)}
                             SEs used: {commas(ps.statenhancersused)}"""
                         ),
+                        "inline": True,
                     },
                     {
                         "name": "Misc.",
@@ -245,6 +249,7 @@ def user_who(interaction, *args, **kwargs):
                             Nerve refills: {commas(ps.nerverefills)}
                             Alcohol used: {commas(ps.alcoholused)}"""
                         ),
+                        "inline": True,
                     },
                 ],
                 "footer": {

@@ -103,6 +103,8 @@ def fetch_market():
 
         if key_user is None:
             continue
+        elif key_user.key in ("", None):
+            continue
 
         if globals()["orjson:loaded"]:
             notifications_dict = orjson.loads(item_notifications.to_json())

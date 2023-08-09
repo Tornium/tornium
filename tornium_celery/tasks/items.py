@@ -158,7 +158,9 @@ def market_notifications(market_data: dict, notifications: dict):
 
     if not redis_client.exists(f"tornium:items:{item.tid}:ids"):
         market_ids = [listing["ID"] for listing in market_data["itemmarket"] + market_data["bazaar"]]
-        redis_client.sadd(f"tornium:items:{item.tid}:ids", *market_ids)
+
+        if len(market_ids) != 0:
+            redis_client.sadd(f"tornium:items:{item.tid}:ids", *market_ids)
         return
 
     item_ids = redis_client.smembers(f"tornium:items:{item.tid}:ids")
@@ -332,4 +334,6 @@ def market_notifications(market_data: dict, notifications: dict):
 
     redis_client.delete(f"tornium:items:{item.tid}:ids")
     market_ids = [listing["ID"] for listing in market_data["itemmarket"] + market_data["bazaar"]]
-    redis_client.sadd(f"tornium:items:{item.tid}:ids", *market_ids)
+
+    if len(market_ids) != 0:
+        redis_client.sadd(f"tornium:items:{item.tid}:ids", *market_ids)

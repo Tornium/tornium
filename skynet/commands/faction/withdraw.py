@@ -171,7 +171,22 @@ def withdraw(interaction, *args, **kwargs):
         if withdrawal_amount.lower() == "all":
             withdrawal_amount = "all"
         else:
-            withdrawal_amount = text_to_num(withdrawal_amount)
+            try:
+                withdrawal_amount = text_to_num(withdrawal_amount)
+            except ValueError:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Invalid Withdrawal Amount",
+                                "description": f"You have tried to withdraw `{withdrawal_amount}`, but this is not a "
+                                f"valid amount. For proper formatting, take a look at the "
+                                f"[documentation](https://docs.tornium.com/en/latest/user/skynet/banking.html#withdraw)",
+                            }
+                        ]
+                    },
+                }
 
     faction = FactionModel.objects(tid=user.factionid).first()
 

@@ -71,7 +71,7 @@ A vault request will be marked as cancelled if it is not fulfilled within one ho
       - False
       - Cash withdrawals
 
-The ``amount`` parameter allows for the suffixes used by Torn to shorten money amounts.
+The ``amount`` parameter allows for the suffixes used by Torn to shorten money amounts. Additionally ``all`` can be used to request all of the member's vault balance.
 
 .. list-table::
     :header-rows: 1

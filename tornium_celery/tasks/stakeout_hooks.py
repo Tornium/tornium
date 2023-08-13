@@ -688,5 +688,7 @@ def faction_hook(faction_data):
             for notification in valid_notifications:
                 send_notification(notification, payload)
 
-        redis_client.sadd(f"{redis_key}:peace", *faction_add)
-        redis_client.srem(f"{redis_key}:peace", *faction_remove)
+        if len(faction_add) > 0:
+            redis_client.sadd(f"{redis_key}:peace", *faction_add)
+        if len(faction_remove) > 0:
+            redis_client.srem(f"{redis_key}:peace", *faction_remove)

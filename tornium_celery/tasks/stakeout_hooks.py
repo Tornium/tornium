@@ -32,8 +32,13 @@ from tornium_commons.formatters import (
     str_matches,
     torn_timestamp,
 )
-from tornium_commons.models import NotificationModel, ServerModel, UserModel
-from tornium_commons.skyutils import SKYNET_INFO
+from tornium_commons.models import (
+    FactionModel,
+    NotificationModel,
+    ServerModel,
+    UserModel,
+)
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from .api import discordpost, tornget
 
@@ -558,3 +563,130 @@ def faction_hook(faction_data):
                             continue
 
                         send_notification(notification, payload)
+
+    # Add all new faction-based stakeouts above this
+    if "peace" in faction_data:
+        faction_peace_members = set(faction_data["peace"].keys())
+        stored_peace_members = redis_client.smembers(f"{redis_key}:peace")
+        peace_exists: typing.Optional[str] = redis_client.set(f"{redis_key}:peace:exists", 1, ex=86400, get=True)
+
+        if len(stored_peace_members) == 0 and peace_exists is None:
+            if len(faction_peace_members) > 0:
+                redis_client.sadd(f"{redis_key}:peace", *faction_peace_members)
+            return  # TODO: Split each notification action into individual functions
+
+        faction_add = []
+        faction_remove = []
+        valid_notifications: typing.Optional[list] = None
+
+        payload = {
+            "embeds": [
+                {
+                    "title": "Peace Treaty Started",
+                    "description": "",
+                    "color": SKYNET_GOOD,
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "footer": {"text": torn_timestamp()},
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Watched Faction",
+                            "url": f"https://www.torn.com/factions.php?step=profile&ID={faction_data['ID']}",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Other Faction",
+                            "url": "",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "City Map",
+                            "url": "https://www.torn.com/city.php#map-cont",
+                        },
+                    ],
+                }
+            ],
+        }
+
+        for faction_tid in faction_peace_members - stored_peace_members:
+            faction_add.append(faction_tid)
+            faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction_tid).only("name").first()
+
+            if faction is None:
+                payload["embeds"][0][
+                    "description"
+                ] = f"Unknown faction of ID {faction_tid} now has a peace treaty with {faction_data['name']} [{faction_data['ID']}] which expires <t:{faction_data['peace'][faction_tid]}:R>"
+            else:
+                payload["embeds"][0][
+                    "description"
+                ] = f"{faction.name} [{faction_tid}] now has a peace treaty with {faction_data['name']} [{faction_data['ID']}] which expires <t:{faction_data['peace'][faction_tid]}:R>"
+
+            payload["components"][0]["components"][1][
+                "url"
+            ] = f"https://www.torn.com/factions.php?step=profile&ID={faction_tid}"
+
+            # TODO: Add function to generate list of notifications instead of in-line
+            if valid_notifications is None:
+                notification: NotificationModel
+                for notification in notifications:
+                    if 5 not in notification.value:
+                        continue
+                    elif not notification.options["enabled"]:
+                        continue
+
+                    if valid_notifications is None:
+                        valid_notifications = [notification]
+                    else:
+                        valid_notifications.append(notification)
+
+            notification: NotificationModel
+            for notification in valid_notifications:
+                send_notification(notification, payload)
+
+        payload["embeds"][0]["title"] = "Peace Treaty Ended"
+        payload["embeds"][0]["color"] = SKYNET_ERROR
+
+        for faction_tid in stored_peace_members - faction_peace_members:
+            faction_remove.append(faction_tid)
+            faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction_tid).only("name").first()
+
+            if faction is None:
+                payload["embeds"][0][
+                    "description"
+                ] = f"Unknown faction of ID {faction_tid} no longer has a peace treaty with {faction_data['name']} [{faction_data['ID']}]"
+            else:
+                payload["embeds"][0][
+                    "description"
+                ] = f"{faction.name} [{faction_tid}] no longer has a peace treaty with {faction_data['name']} [{faction_data['ID']}]"
+
+            payload["components"][0]["components"][1][
+                "url"
+            ] = f"https://www.torn.com/factions.php?step=profile&ID={faction_tid}"
+
+            if valid_notifications is None:
+                notification: NotificationModel
+                for notification in notifications:
+                    if 5 not in notification.value:
+                        continue
+                    elif not notification.options["enabled"]:
+                        continue
+
+                    if valid_notifications is None:
+                        valid_notifications = [notification]
+                    else:
+                        valid_notifications.append(notification)
+
+            notification: NotificationModel
+            for notification in valid_notifications:
+                send_notification(notification, payload)
+
+        redis_client.sadd(f"{redis_key}:peace", *faction_add)
+        redis_client.srem(f"{redis_key}:peace", *faction_remove)

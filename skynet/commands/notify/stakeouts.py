@@ -53,6 +53,7 @@ _SCATS = {
         "member online": 2,
         "member offline": 3,
         "member flying": 4,
+        "naps": 5,
     },
 }
 _REVERSE_SCATS = {
@@ -69,6 +70,7 @@ _REVERSE_SCATS = {
         2: "member online",
         3: "member offline",
         4: "member flying",
+        5: "naps",
     },
 }
 

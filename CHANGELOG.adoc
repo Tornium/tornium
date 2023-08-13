@@ -15,6 +15,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added item price/quantity notifications
  - Added security notification via Discord upon new log in
  - [SECURITY] Added Discord SSO
+ - Added NAPs status under stakeout info
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance

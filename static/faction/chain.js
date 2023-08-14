@@ -19,6 +19,14 @@ $(document).ready(function () {
     let chainConfig = null;
     let channels = null;
 
+    if (guildid === "0") {
+        generateToast(
+            "Faction Guild Not Set",
+            "No Discord server was set for this faction. Please set this before moving on."
+        );
+        throw new Error("Faction guild error");
+    }
+
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {

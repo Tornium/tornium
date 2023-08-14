@@ -13,15 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from flask import render_template
 from flask_login import login_required
-
-from models.server import Server
+from tornium_commons.models import ServerModel
 
 
 @login_required
-def verify_dashboard(guildid):
-    guild = Server(guildid)
+def verify_dashboard(guildid: int):
+    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Guild Not Found",
+                error="No Discord server could be located with the passed guild ID",
+            ),
+            400,
+        )
 
     return render_template(
         "bot/verify.html",

@@ -13,16 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from flask import render_template
 from flask_login import current_user, login_required
+from tornium_commons.models import FactionModel
 
 from controllers.faction.decorators import fac_required
-from models.faction import Faction
 
 
 @login_required
 @fac_required
 def chain(*args, **kwargs):
-    faction = Faction(current_user.factiontid)
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=current_user.factiontid).first()
 
-    return render_template("faction/chain.html", faction=faction)
+    return render_template("faction/chain.html", guild_id=0 if faction.guild is None else faction.guild)

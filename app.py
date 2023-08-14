@@ -183,6 +183,9 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
+    if globals().get("ddtrace:loaded") and current_user.is_authenticated:
+        ddtrace.tracer.current_root_span().set_tag("user_id", current_user.tid)
+
 
 @app.after_request
 def after_request(response: flask.Response):

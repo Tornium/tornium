@@ -23,6 +23,13 @@ import skynet.commands
 import skynet.skyutils
 import utils.tornium_ext
 
+try:
+    import ddtrace
+
+    globals()["ddtrace:loaded"] = True
+except (ImportError, ModuleNotFoundError):
+    globals()["ddtrace:loaded"] = False
+
 botlogger = logging.getLogger("skynet")
 botlogger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
@@ -105,6 +112,18 @@ def skynet_interactions():
         return jsonify(response)
 
     invoker, admin_keys = response
+
+    if globals().get("ddtrace:loaded"):
+        if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
+            ddtrace.tracer.current_root_span().set_tag("command_type", "button")
+            ddtrace.tracer.current_root_span().set_tag("command_id", request.json["data"]["custom_id"])
+        else:
+            ddtrace.tracer.current_root_span().set_tag("command_id", request.json["data"]["name"])
+
+        if "member" in request.json:
+            ddtrace.tracer.current_root_span().set_tag("user_id", request.json["member"]["user"]["id"])
+        else:
+            ddtrace.tracer.current_root_span().set_tag("user_id", request.json["user"]["id"])
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:

@@ -193,7 +193,39 @@ def members_switchboard(interaction, *args, **kwargs):
         )
 
     def hospital():
-        return {}
+        payload[0]["title"] = f"Hospitalized Members of {member_data['name']}"
+        payload[0]["color"] = SKYNET_ERROR
+
+        indices = sorted(
+            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
+
+        for tid, member in member_data["members"].items():
+            tid = int(tid)
+
+            if member["status"]["state"] != "Hospital":
+                continue
+
+            line_payload = f"{member['name']} [{tid}] - Discharged <t:{member['status']['until']}:R>"
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Hospitalized Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_ERROR,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        discordpatch(
+            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
+            payload={"embeds": payload},
+        )
 
     def inactive():
         days: typing.Union[dict, int] = find_list(subcommand_data, "name", "days")

@@ -183,7 +183,17 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
+    if globals().get("ddtrace:loaded") is None:
+        try:
+            import ddtrace
+
+            globals()["ddtrace:loaded"] = True
+        except (ImportError, ModuleNotFoundError):
+            globals()["ddtrace:loaded"] = False
+
     if globals().get("ddtrace:loaded") and current_user.is_authenticated:
+        import ddtrace  # noqa
+
         ddtrace.tracer.current_root_span().set_tag("user_id", current_user.tid)
 
 

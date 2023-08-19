@@ -260,6 +260,9 @@ def market_notifications(market_data: dict, notifications: dict):
             i = 1
             total_quantity = 0
 
+            if item.market_value == 0:
+                continue
+
             for listing in notifications_map[n["_id"]["$oid"]]:
                 percent_change = round((listing["cost"] - item.market_value) / item.market_value * 100, 1)
                 fields.append(

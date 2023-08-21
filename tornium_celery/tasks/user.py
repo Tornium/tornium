@@ -239,6 +239,11 @@ def update_user_other(user_data):
     except (KeyError, mongoengine.errors.OperationError):
         pass
 
+    n = rds().sadd("tornium:personal-stats", *(user_data["personal_stats"].keys()))
+
+    if n > 0:
+        rds().expire("tornium:personal-stats", 3600, nx=True)
+
 
 @celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")
 def refresh_users():

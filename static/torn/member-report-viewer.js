@@ -100,9 +100,17 @@ $(document).ready(function () {
         }
 
         if (response.status < 2) {
-            $("#temp-container").text(
-                "The report has not finished generating. Please try again later..."
-            );
+            if (response.expected_end_time === undefined) {
+                $("#temp-container").text(
+                    "The report has not finished generating. Please try again later..."
+                );
+            } else {
+                $("#temp-container").text(
+                    `The report has not finished generating. The report should finish generating around ${new Date(
+                        response.expected_end_time * 1000
+                    ).toLocaleString()}. Please try again later...`
+                );
+            }
             return;
         }
 

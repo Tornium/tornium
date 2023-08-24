@@ -287,19 +287,26 @@ def get_report(rid, *args, **kwargs):
             "name": user.name,
         }
 
+    response = {
+        "created_at": report.created_at,
+        "last_updated": report.last_updated,
+        "status": report.status,
+        "requested_data": report.requested_data,
+        "faction": {**_faction_data(report.faction_id)},
+        "start_timestamp": report.start_timestamp,
+        "end_timestamp": report.end_timestamp,
+        "start_data": start_ps,
+        "end_data": end_ps,
+        "members": members,
+    }
+
+    end_time = rds().get(f"tornium:report:{rid}:endtime") if report.status < 2 else None
+
+    if end_time is not None:
+        response["expected_end_time"] = int(end_time)
+
     return (
-        {
-            "created_at": report.created_at,
-            "last_updated": report.last_updated,
-            "requested_data": report.requested_data,
-            "status": report.status,
-            "faction": {**_faction_data(report.faction_id)},
-            "start_timestamp": report.start_timestamp,
-            "end_timestamp": report.end_timestamp,
-            "start_data": start_ps,
-            "end_data": end_ps,
-            "members": members,
-        },
+        response,
         200,
         api_ratelimit_response(key),
     )

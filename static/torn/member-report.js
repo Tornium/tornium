@@ -21,7 +21,13 @@ $(document).ready(function () {
     $("#end-time-input").val(now.toISOString().slice(0, -8));
 
     function addReport(item) {
-        $("#existing-report-container").append(
+        let container = $("#existing-report-container");
+
+        if (container.text().includes("No results found...")) {
+            $("#existing-report-container").empty();
+        }
+
+        container.append(
             $("<div>", {
                 class: "card mx-2 mt-2 report-card",
                 "data-report-id": item.report_id,
@@ -113,13 +119,15 @@ $(document).ready(function () {
             return;
         }
 
-        $("#existing-report-container").empty();
-        $.each(response.reports, function (index, item) {
-            addReport(item);
-        });
+        if (response.count > 0) {
+            $("#existing-report-container").empty();
+            $.each(response.reports, function (index, item) {
+                addReport(item);
+            });
 
-        $(".delete-report").on("click", deleteReport);
-        $(".view-report").on("click", viewReport);
+            $(".delete-report").on("click", deleteReport);
+            $(".view-report").on("click", viewReport);
+        }
     };
 
     xhttp.responseType = "json";

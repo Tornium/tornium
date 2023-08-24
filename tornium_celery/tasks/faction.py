@@ -160,104 +160,105 @@ def update_faction(faction_data):
         set__last_members=int(time.time()),
     )
 
-    positions = PositionModel.objects(factiontid=faction.tid)
-    positions_names = [position.name for position in positions]
-    positions_data = {
-        "Recruit": {
-            "uuid": None,
-            "aa": False,
-        },
-        "Leader": {
-            "uuid": None,
-            "aa": True,
-        },
-        "Co-leader": {
-            "uuid": None,
-            "aa": True,
-        },
-    }
-
-    position: PositionModel
-    for position in positions:
-        if (
-            position.name not in ("Leader", "Co-leader", "Recruit")
-            and position.name not in faction_data["positions"].keys()
-        ):
-            positions_names.remove(position.name)
-            position.delete()
-            continue
-
-        position_perms = faction_data["positions"][position.name]
-        positions_data[position.name] = {
-            "uuid": position.pid,
-            "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+    if "positions" in faction_data:
+        positions = PositionModel.objects(factiontid=faction.tid)
+        positions_names = [position.name for position in positions]
+        positions_data = {
+            "Recruit": {
+                "uuid": None,
+                "aa": False,
+            },
+            "Leader": {
+                "uuid": None,
+                "aa": True,
+            },
+            "Co-leader": {
+                "uuid": None,
+                "aa": True,
+            },
         }
 
-        position.default = bool(position_perms["default"])
-        position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
-        position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
-        position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
-        position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
-        position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
-        position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
-        position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
-        position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
-        position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
-        position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
-        position.canGiveItem = bool(position_perms["canGiveItem"])
-        position.canGiveMoney = bool(position_perms["canGiveMoney"])
-        position.canGivePoints = bool(position_perms["canGivePoints"])
-        position.canManageForum = bool(position_perms["canManageForum"])
-        position.canManageApplications = bool(position_perms["canManageApplications"])
-        position.canKickMembers = bool(position_perms["canKickMembers"])
-        position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
-        position.canManageWars = bool(position_perms["canManageWars"])
-        position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
-        position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
-        position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
-        position.canChangeDescription = bool(position_perms["canChangeDescription"])
-        position.save()
+        position: PositionModel
+        for position in positions:
+            if (
+                position.name not in ("Leader", "Co-leader", "Recruit")
+                and position.name not in faction_data["positions"].keys()
+            ):
+                positions_names.remove(position.name)
+                position.delete()
+                continue
 
-    for position_name, position_data in faction_data["positions"].items():
-        if position_name in positions_names:
-            continue
+            position_perms = faction_data["positions"][position.name]
+            positions_data[position.name] = {
+                "uuid": position.pid,
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+            }
 
-        position = PositionModel(
-            pid=uuid.uuid4().hex,
-            name=position_name,
-            factiontid=faction.tid,
-        )
+            position.default = bool(position_perms["default"])
+            position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
+            position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
+            position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
+            position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
+            position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
+            position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
+            position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
+            position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
+            position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
+            position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
+            position.canGiveItem = bool(position_perms["canGiveItem"])
+            position.canGiveMoney = bool(position_perms["canGiveMoney"])
+            position.canGivePoints = bool(position_perms["canGivePoints"])
+            position.canManageForum = bool(position_perms["canManageForum"])
+            position.canManageApplications = bool(position_perms["canManageApplications"])
+            position.canKickMembers = bool(position_perms["canKickMembers"])
+            position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
+            position.canManageWars = bool(position_perms["canManageWars"])
+            position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
+            position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
+            position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
+            position.canChangeDescription = bool(position_perms["canChangeDescription"])
+            position.save()
 
-        position_perms = faction_data["positions"][position.name]
-        positions_data[position.name] = {
-            "uuid": position.pid,
-            "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
-        }
+        for position_name, position_data in faction_data["positions"].items():
+            if position_name in positions_names:
+                continue
 
-        position.default = bool(position_perms["default"])
-        position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
-        position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
-        position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
-        position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
-        position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
-        position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
-        position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
-        position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
-        position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
-        position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
-        position.canGiveItem = bool(position_perms["canGiveItem"])
-        position.canGiveMoney = bool(position_perms["canGiveMoney"])
-        position.canGivePoints = bool(position_perms["canGivePoints"])
-        position.canManageForum = bool(position_perms["canManageForum"])
-        position.canManageApplications = bool(position_perms["canManageApplications"])
-        position.canKickMembers = bool(position_perms["canKickMembers"])
-        position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
-        position.canManageWars = bool(position_perms["canManageWars"])
-        position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
-        position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
-        position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
-        position.canChangeDescription = bool(position_perms["canChangeDescription"])
-        position.save()
+            position = PositionModel(
+                pid=uuid.uuid4().hex,
+                name=position_name,
+                factiontid=faction.tid,
+            )
+
+            position_perms = faction_data["positions"][position.name]
+            positions_data[position.name] = {
+                "uuid": position.pid,
+                "aa": bool(faction_data["positions"][position.name]["canAccessFactionApi"]),
+            }
+
+            position.default = bool(position_perms["default"])
+            position.canUseMedicalItem = bool(position_perms["canUseMedicalItem"])
+            position.canUseBoosterItem = bool(position_perms["canUseBoosterItem"])
+            position.canUseDrugItem = bool(position_perms["canUseDrugItem"])
+            position.canUseEnergyRefill = bool(position_perms["canUseEnergyRefill"])
+            position.canUseNerveRefill = bool(position_perms["canUseNerveRefill"])
+            position.canLoanTemporaryItem = bool(position_perms["canLoanTemporaryItem"])
+            position.canLoanWeaponAndArmory = bool(position_perms["canLoanWeaponAndArmory"])
+            position.canRetrieveLoanedArmory = bool(position_perms["canRetrieveLoanedArmory"])
+            position.canPlanAndInitiateOrganisedCrime = bool(position_perms["canPlanAndInitiateOrganisedCrime"])
+            position.canAccessFactionApi = bool(position_perms["canAccessFactionApi"])
+            position.canGiveItem = bool(position_perms["canGiveItem"])
+            position.canGiveMoney = bool(position_perms["canGiveMoney"])
+            position.canGivePoints = bool(position_perms["canGivePoints"])
+            position.canManageForum = bool(position_perms["canManageForum"])
+            position.canManageApplications = bool(position_perms["canManageApplications"])
+            position.canKickMembers = bool(position_perms["canKickMembers"])
+            position.canAdjustMemberBalance = bool(position_perms["canAdjustMemberBalance"])
+            position.canManageWars = bool(position_perms["canManageWars"])
+            position.canManageUpgrades = bool(position_perms["canManageUpgrades"])
+            position.canSendNewsletter = bool(position_perms["canSendNewsletter"])
+            position.canChangeAnnouncement = bool(position_perms["canChangeAnnouncement"])
+            position.canChangeDescription = bool(position_perms["canChangeDescription"])
+            position.save()
 
     users = []
 

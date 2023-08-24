@@ -200,6 +200,7 @@ if celery_app is None:
             "tasks.guild",
             "tasks.items",
             "tasks.misc",
+            "tasks.reports",
             "tasks.stakeout_hooks",
             "tasks.stocks",
             "tasks.user",

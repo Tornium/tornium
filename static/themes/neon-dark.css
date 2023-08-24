@@ -50,7 +50,7 @@
   color: rgb(57, 255, 20);
 }
 [data-bs-theme=neon-dark] .primary .card .card-subtitle {
-  color: rgb(57, 255, 20);
+  color: rgb(57, 255, 20) !important;
 }
 [data-bs-theme=neon-dark] .primary .list-group-item {
   background-color: rgb(35, 35, 35);

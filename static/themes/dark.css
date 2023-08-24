@@ -48,7 +48,7 @@
   color: rgb(175, 175, 175);
 }
 [data-bs-theme=custom-dark] .primary .card .card-subtitle {
-  color: rgb(175, 175, 175);
+  color: rgb(175, 175, 175) !important;
 }
 [data-bs-theme=custom-dark] .primary .list-group-item {
   background-color: rgb(35, 35, 35);

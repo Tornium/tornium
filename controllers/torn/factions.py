@@ -12,12 +12,15 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import typing
 
 from flask import abort, jsonify, render_template, request
 from flask_login import current_user, login_required
 from mongoengine.queryset.visitor import Q
+from tornium_celery.tasks.api import tornget
+from tornium_commons import rds
 from tornium_commons.formatters import commas
-from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.models import FactionModel, MemberReportModel, UserModel
 
 from models.faction import Faction
 
@@ -110,3 +113,56 @@ def faction_members_data(tid: int):
         )
 
     return jsonify(members)
+
+
+@login_required
+def faction_members_report():
+    if current_user.factiontid not in [15644, 12894]:
+        return "Permission Denied... This page is currently being tested by NSO factions. Please check back later.", 403
+
+    ps_keys = tuple(rds().smembers("tornium:personal-stats"))
+
+    if len(ps_keys) == 0:
+        ps_data = tornget("user/?selections=personalstats", key=current_user.key)
+
+        if "code" in ps_data:
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Invalid API Data",
+                    error="The Torn API returned invalid data that prevented this page from loading.",
+                ),
+                500,
+            )
+
+        ps_keys = tuple(ps_data["personalstats"].keys())
+        n = rds().sadd("tornium:personal-stats", *ps_keys)
+
+        if n > 0:
+            rds().expire("tornium:personal-stats", 3600, nx=True)
+
+    return render_template("torn/memberreport.html", ps_keys=ps_keys)
+
+
+@login_required
+def view_member_report(rid: str):
+    if current_user.factiontid not in [15644, 12894]:
+        return "Permission Denied... This page is currently being tested by NSO factions. Please check back later.", 403
+
+    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
+
+    if report is None:
+        return (
+            render_template(
+                "errors/error.html", title="Unknown Report", error="No report could be located with the included ID."
+            ),
+            400,
+        )
+    elif (report.requested_by_user is not None and report.requested_by_user != current_user.tid) or (
+        report.requested_by_faction is not None and report.requested_by_faction != current_user.factiontid
+    ):
+        return render_template(
+            "errors/error.html", title="Permission Denied", error="You do not have access to this report."
+        )
+
+    return render_template("torn/memberreportview.html", report=report)

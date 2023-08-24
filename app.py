@@ -20,9 +20,9 @@ if sys.version_info < (3, 9):
     raise RuntimeError("This package requires Python 3.9+")
 
 # fmt: off
-for module in ("ddtrace"):
+for module in ["ddtrace"]:
     try:
-        globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
+        globals()[f"{module}:loaded"] = importlib.util.find_spec(module) is not None
     except (ValueError, ModuleNotFoundError):
         globals()[f"{module}:loaded"] = False
 # fmt: on
@@ -62,11 +62,14 @@ if not hasattr(sys, "_called_from_test"):
 
 import utils
 
-FORMAT = (
-    "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-    "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%("
-    "dd.span_id)s]- %(message)s"
-)
+if globals().get("ddtrace:loaded"):
+    FORMAT = (
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%("
+        "dd.span_id)s]- %(message)s"
+    )
+else:
+    FORMAT = "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
 
 logger = logging.getLogger("server")
 logger.setLevel(logging.DEBUG)

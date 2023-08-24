@@ -20,6 +20,7 @@ import typing
 
 import celery
 from celery.utils.log import get_task_logger
+from tornium_commons import rds
 from tornium_commons.models import (
     FactionModel,
     MemberReportModel,
@@ -147,6 +148,13 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
         kwargs={
             "rid": rid,
         },
+    )
+
+    rds().set(
+        f"tornium:report:{rid}:endtime",
+        int(time.time()) + 60 * (call_count // (len(api_keys) * 25) + 1),
+        nx=True,
+        ex=60 * (call_count // (len(api_keys) * 25) + 3),
     )
 
 

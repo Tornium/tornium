@@ -15,6 +15,7 @@
 
 from .factionmodel import FactionModel
 from .itemmodel import ItemModel
+from .memberreportmodel import MemberReportModel
 from .notificationmodel import NotificationModel
 from .ocmodel import OCModel
 from .personalstatmodel import PersonalStatModel
@@ -28,7 +29,7 @@ from .withdrawalmodel import WithdrawalModel
 __all__ = [
     "FactionModel",
     "ItemModel",
-    "NotificationModel",
+    "MemberReportModel" "NotificationModel",
     "OCModel",
     "PersonalStatModel",
     "PositionModel",

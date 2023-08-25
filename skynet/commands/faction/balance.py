@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import random
+import typing
 
 from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import NetworkingError, TornError
@@ -25,18 +26,16 @@ from skynet.skyutils import get_admin_keys, get_faction_keys
 
 
 def balance(interaction, *args, **kwargs):
-    user: UserModel = kwargs["invoker"]
+    user: typing.Optional[UserModel] = kwargs["invoker"]
     member = -1
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
 
         if member != -1:
-            member_db: UserModel = UserModel.objects(discord_id=int(member[1]["value"])).first()
+            user: UserModel = UserModel.objects(discord_id=int(member[1]["value"])).first()
 
-            if member_db is not None and member_db.tid:
-                user = member_db
-            else:
+            if user is None or user.tid in (0, None):
                 return {
                     "type": 4,
                     "data": {
@@ -48,7 +47,7 @@ def balance(interaction, *args, **kwargs):
                                 "color": SKYNET_ERROR,
                             }
                         ],
-                        "flags": 64,  # Ephemeral
+                        "flags": 64,
                     },
                 }
 
@@ -69,11 +68,26 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    if user.factionid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
+    if user.factionid in (0, None):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "User Faction Not Found",
+                        "description": "The mentioned user or the invoker is not currently in a faction in the "
+                        "database. Please try force verifying if you are in a faction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.factionid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
         return {
             "type": 4,
             "data": {
@@ -84,7 +98,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -101,7 +115,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -119,7 +133,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -136,7 +150,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -150,7 +164,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -170,7 +184,7 @@ def balance(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -207,6 +221,6 @@ def balance(interaction, *args, **kwargs):
                     ],
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }

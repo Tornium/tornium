@@ -120,7 +120,8 @@ def init__app():
     tornium_ext: utils.tornium_ext.TorniumExt
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
         logger.info(f"Initializing Tornium extension {tornium_ext.name}")
-        tornium_ext.extension.init_app(app)
+        if tornium_ext.extension is not None:
+            tornium_ext.extension.init_app(app)
 
     with app.app_context():
         app.register_blueprint(base_mod)

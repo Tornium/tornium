@@ -140,9 +140,10 @@ def create_report(*args, **kwargs):
         return make_exception_response("0000", key, details={"message": "Invalid personal stat passed"})
 
     now = int(time.time())
+    rid = uuid.uuid4().hex
 
     report = MemberReportModel(
-        rid=uuid.uuid4().hex,
+        rid=rid,
         created_at=now,
         last_updated=now,
         requested_data=list(selected_stats),
@@ -175,15 +176,15 @@ def create_report(*args, **kwargs):
         link=enqueue_member_ps.signature(
             kwargs={
                 "api_keys": keys,
-                "rid": report.rid,
+                "rid": rid,
             }
         ),
-        link_error=member_ps_error.signature(kwargs={"rid": report.rid}),
+        link_error=member_ps_error.signature(kwargs={"rid": rid}),
     )
 
     return (
         {
-            "report_id": report.rid,
+            "report_id": rid,
             "created_at": report.created_at,
             "last_updated": report.last_updated,
             "requested_data": report.requested_data,

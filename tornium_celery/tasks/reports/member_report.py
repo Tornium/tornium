@@ -78,6 +78,7 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
     report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
 
     if report is None:
+        logger.debug(f"No report found - {rid}")
         raise ValueError("Illegal RID")
 
     requested_stats = ",".join(tuple(report.requested_data))
@@ -106,6 +107,9 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
         else:
             from_ts = report.start_timestamp
 
+        logger.info(
+            f"User {member_data['name']} [{member_id}] - from {from_ts} - countdown {60 * (call_count // (len(api_keys) * 25))}"
+        )
         tornget.signature(
             kwargs={
                 "endpoint": f"user/{member_id}?selections=personalstats&stat={requested_stats}&timestamp={from_ts}",
@@ -125,6 +129,9 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
         call_count += 1
 
     for member_id, member_data in faction_data["members"].items():
+        logger.info(
+            f"User {member_data['name']} [{member_id}] - to {report.end_timestamp} - countdown {60 * (call_count // (len(api_keys) * 25) + 1)}"
+        )
         tornget.signature(
             kwargs={
                 "endpoint": f"user/{member_id}?selections=personalstats&stat={requested_stats}&timestamp={report.end_timestamp}",
@@ -160,6 +167,8 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
 
 @celery.shared_task(name="tasks.reports.store_member_ps", routing_key="quick.reports.store_member_ps", queue="quick")
 def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
+    # timestamp must be in UTC
+
     try:
         if member_data.get("personalstats") is None:
             raise ValueError("Invalid API data")
@@ -168,15 +177,17 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
 
         if report is None:
             raise ValueError("Illegal RID")
-        elif timestamp < report.start_timestamp and timestamp != report.end_timestamp:
+        elif report.start_timestamp > timestamp > report.end_timestamp:
             raise ValueError("Illegal timestamp")
 
-        now = int(
-            datetime.datetime.fromtimestamp(timestamp)
-            .replace(minute=0, second=0, tzinfo=datetime.timezone.utc)
-            .timestamp()
-        )
-        pid = int(bin(tid << 8), 2) + int(bin(now), 2)
+        timestamp = int(datetime.datetime.fromtimestamp(timestamp).replace(minute=0, second=0).timestamp())
+
+        if report.end_timestamp == timestamp:
+            logger.info(f"Storing {tid} for {timestamp} as end timestamp")
+        else:
+            logger.info(f"Storing {tid} for {timestamp} as start timestamp")
+
+        pid = int(bin(tid << 8), 2) + int(bin(timestamp), 2)
 
         try:
             PersonalStatModel(
@@ -184,7 +195,7 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
                     {
                         "pstat_id": pid,
                         "tid": tid,
-                        "timestamp": int(time.time()),
+                        "timestamp": timestamp,
                     },
                     **(member_data["personalstats"]),
                 )

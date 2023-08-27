@@ -18,10 +18,10 @@ html {
     min-height: 100vh;
 }
 
-body[data-bs-theme="custom-dark"] #tornium-icon {
+html[data-bs-theme="custom-dark"] #tornium-icon {
     filter: invert(100%);
 }
 
-body[data-bs-theme="neon-dark"] #tornium-icon {
+html[data-bs-theme="neon-dark"] #tornium-icon {
     filter: invert(100%);
 }

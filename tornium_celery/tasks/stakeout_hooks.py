@@ -346,6 +346,9 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
                 ]
             }
 
+            if redis_client.scard(f"tornium:stakeout-notif:user:{user_data['player_id']}:hospital") != 0:
+                redis_client.delete(f"tornium:stakeout-notif:user:{user_data['player_id']}:hospital")
+
             notification: NotificationModel
             for notification in notifications:
                 if faction is None and 3 not in notification.value:
@@ -409,7 +412,20 @@ def user_hook(user_data, faction: typing.Optional[int] = None):
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "footer": {"text": torn_timestamp()},
                     }
-                ]
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 2,
+                                "label": "Leave Hosp Notif",
+                                "custom_id": f"stakeout:hospital:{user_data['player_id']}:{user_data['status']['until']}",
+                            }
+                        ],
+                    }
+                ],
             }
 
             notification: NotificationModel

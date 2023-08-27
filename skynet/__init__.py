@@ -136,6 +136,12 @@ def skynet_interactions():
                     request.json, invoker=invoker, admin_keys=admin_keys
                 )
             )
+        elif request.json["data"]["custom_id"].startswith("stakeout:hospital"):
+            return jsonify(
+                skynet.commands.notify.stakeouts.stakeout_hospital_button(
+                    request.json, invoker=invoker, admin_keys=admin_keys
+                )
+            )
         elif request.json["data"]["custom_id"].startswith("notify:items:"):
             return jsonify(
                 skynet.commands.notify.items.items_button_switchboard(

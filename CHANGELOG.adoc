@@ -16,6 +16,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added security notification via Discord upon new log in
  - [SECURITY] Added Discord SSO
  - Added NAPs status under stakeout info
+ - Added faction member person stat reports
+ - Added leaving hospital stakeouts (#172)
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance
@@ -23,6 +25,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Fixed
  - Fixed MIME type of certain API endpoints (#178)
  - [SECURITY] Fixed 2FA configuration
+ - Fixed flashing of Tornium logo on load
 
 === Removed
  - Removed AttackModel and related endpoints

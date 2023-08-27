@@ -839,7 +839,116 @@ def stakeout_flying_button(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": "Notification Queued",
-                    "description": f"The selected notification has been enqueued for {torn_timestamp(arrival_ts)}",
+                    "description": f"The selected notification has been enqueued for <t:{arrival_ts}:R>.",
+                    "color": SKYNET_GOOD,
+                    "footer": {
+                        "text": f"Task ID: {task.id}",
+                    },
+                },
+            ],
+            "flags": 64,
+        },
+    }
+
+
+def stakeout_hospital_button(interaction, *args, **kwargs):
+    button_data = interaction["data"]["custom_id"].split(":")
+    tid = int(button_data[2])
+    until_ts = int(button_data[3])
+
+    if until_ts - 60 < int(time.time()):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Hospital End Too Soon",
+                        "description": "This user has already left hospital or is close to leaving the hospital.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).first()
+
+    try:
+        dm_channel = discordpost(
+            "users/@me/channels",
+            payload={
+                "recipient_id": interaction["member"]["user"]["id"]
+                if "guild_id" in interaction
+                else interaction["user"]["id"]
+            },
+        )
+    except (DiscordError, NetworkingError) as e:
+        return {
+            "type": 4,
+            "embeds": [
+                {
+                    "title": "Unable to Create DM",
+                    "description": f"The bot was unable to create a DM with you due to code {e.code}.",
+                    "color": SKYNET_ERROR,
+                },
+            ],
+            "flags": 64,
+        }
+
+    payload = {
+        "embeds": [
+            {
+                "title": f"{'Unknown' if user is None else user.name} is Leaving Hospital",
+                "description": f"{'Unknown' if user is None else user.name} is leaving the hospital within the "
+                f"next minute or so.",
+                "color": SKYNET_INFO,
+            }
+        ],
+        "components": [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Profile",
+                        "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                    },
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Attack Link",
+                        "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={tid}",
+                    },
+                ],
+            }
+        ],
+    }
+
+    task = discordpost.apply_async(
+        kwargs={
+            "endpoint": f"channels/{dm_channel['id']}/messages",
+            "payload": payload,
+            "bucket": f"channels/{dm_channel['id']}",
+        },
+        eta=datetime.datetime.utcfromtimestamp(until_ts),
+    )
+
+    redis_client = rds()
+    redis_client.sadd(f"tornium:stakeout-notif:user:{tid}:hospital", task.id)
+    redis_client.expireat(
+        f"tornium:stakeout-notif:user:{tid}:hospital",
+        until_ts + 300,
+    )
+    task.forget()
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Notification Queued",
+                    "description": f"The selected notification has been enqueued for <t:{until_ts}:R>.",
                     "color": SKYNET_GOOD,
                     "footer": {
                         "text": f"Task ID: {task.id}",

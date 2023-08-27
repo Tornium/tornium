@@ -56,7 +56,13 @@ Tornium - Member Report
     <div class="card-body">
         <h5 class="card-title mb-2">Existing Faction Member Reports</h5>
 
-        <div id="existing-report-container">No results found...</div>
+        <div id="existing-report-container">
+            No results found...
+        </div>
+
+        <div class="mt-2 me-3 text-end">
+            <span id="report-count">No</span> report(s) located
+        </div>
     </div>
 </div>
 
@@ -65,31 +71,44 @@ Tornium - Member Report
         <h5 class="card-title">Generate New Report</h5>
         <p class="card-text">
             Generate a new faction member report by selecting the starting and ending time, data to be collected,
-            faction to be used, and availability of the data. All time inputs utilize local time but all other
-            timestamps shown are TCT. By default, the end time is the current time.
+            faction to be used, and availability of the data. All time inputs utilize local time use and/or show TCT.
         </p>
 
-        <!-- TODO: Replace all timestamps with UTC timestamps instead of local -->
+        <p class="card-text">
+            <b>WARNING: </b> Faction availability is not allowed during the testing period.
+        </p>
 
         <div class="form-floating row ps-1 me-2 display-flex">
-            <div class="col-sm-12 col-md-10 col-xl-2 ps-1 pt-2">
+            {% if current_user.faction_aa %}
+            <div class="col-sm-12 col-md-10 col-xl-4 ps-1 pt-2">
+            {% else %}
+            <div class="col-sm-12 col-md-10 col-xl-4 ps-1 pt-2">
+            {% endif %}
                 <div class="input-group">
                     <span class="input-group-text">Faction</span>
                     <input type="text" class="form-control" id="faction-id-input" autocomplete="off" required>
                 </div>
             </div>
 
+            {% if current_user.faction_aa %}
+            <div class="col-sm-12 col-md-10 col-xl-3 ps-1 pt-2">
+            {% else %}
             <div class="col-sm-12 col-md-10 col-xl-4 ps-1 pt-2">
+            {% endif %}
                 <div class="input-group">
                     <span class="input-group-text">Start Time</span>
-                    <input type="datetime-local" class="form-control" id="start-time-input" autocomplete="off" required>
+                    <input type="date" class="form-control" id="start-time-input" autocomplete="off" required>
                 </div>
             </div>
 
+            {% if current_user.faction_aa %}
+            <div class="col-sm-12 col-md-10 col-xl-3 ps-1 pt-2">
+            {% else %}
             <div class="col-sm-12 col-md-10 col-xl-4 ps-1 pt-2">
+            {% endif %}
                 <div class="input-group">
                     <span class="input-group-text">End Time</span>
-                    <input type="datetime-local" class="form-control" id="end-time-input" autocomplete="off" required>
+                    <input type="date" class="form-control" id="end-time-input" autocomplete="off" required>
                 </div>
             </div>
 

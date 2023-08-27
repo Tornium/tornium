@@ -15,6 +15,7 @@
 
 import importlib.util
 import sys
+import typing
 
 if sys.version_info < (3, 9):
     raise RuntimeError("This package requires Python 3.9+")
@@ -48,6 +49,7 @@ from flask_login import LoginManager, current_user
 from mongoengine import connect
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
+from tornium_commons.models import FactionModel
 
 config = Config().load()
 
@@ -180,6 +182,31 @@ def tct_time(s):
 @app.template_filter("commas")
 def commas_filter(s):
     return commas(int(s))
+
+
+@app.template_filter("join_list")
+def join_list(iter: typing.Iterable[str], and_seperator=False):
+    if and_seperator:
+        if len(iter) == 0:
+            return ""
+        elif len(iter) == 1:
+            return iter[0]
+        elif len(iter) == 2:
+            return f"{iter[0]} and {iter[1]}"
+        else:
+            return f"{', '.join(iter[:-1])}, and {iter[-1]}"
+    else:
+        return ", ".join(iter)
+
+
+@app.template_filter("faction")
+def faction_filter(tid):
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(tid)).first()
+
+    if faction is None or faction.name in ("", None):
+        return f"N/A {tid}"
+    else:
+        return f"{faction.name} [{faction.tid}]"
 
 
 @app.before_request

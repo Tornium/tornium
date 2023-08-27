@@ -106,7 +106,7 @@ def create_report(*args, **kwargs):
     availability = data.get("availability", "user")
     selected_stats = set(data.get("selected_stats"))
 
-    if faction_id in ("", None, 0, "0") or not faction_id.isdigit():
+    if faction_id is None:
         return make_exception_response("1102", key)
     elif start_time is None or type(start_time) not in (int, str):
         return make_exception_response("0000", key, details={"message": "Invalid start_time"})
@@ -117,16 +117,34 @@ def create_report(*args, **kwargs):
     elif len(selected_stats) == 0:
         return make_exception_response("0000", key, details={"message": "No personal stats selected"})
 
+    if availability == "faction":
+        return make_exception_response(
+            "0000", key, details={"message": "During the test period, faction availability isn't permitted"}
+        )
+
+    if not faction_id.isdigit():
+        faction: typing.Optional[FactionModel] = FactionModel.objects(name__iexact=faction_id).first()
+
+        if faction is None:
+            return make_exception_response("1102", key)
+
+        faction_id = faction.tid
+
     try:
-        start_time = int(start_time)
-        end_time = int(end_time)
+        # round (floor) to unix timestamp of current day
+        start_time = int(start_time) // 86400 * 86400
+        end_time = int(end_time) // 86400 * 86400
     except TypeError:
         return make_exception_response("0000", key, details={"message": "Invalid timestamp"})
 
     if start_time < 0 or end_time < 0 or start_time >= end_time:
         return make_exception_response("0000", key, details={"message": "Invalid start_time or end_time"})
-    if end_time > int(time.time()):
+    elif end_time > int(time.time()):
         return make_exception_response("0000", key, details={"message": "Timestamps must be before right now"})
+    elif end_time - start_time < 3600 * 24 * 2:  # Two days
+        return make_exception_response(
+            "0000", key, details={"message": "The duration of the report must be at least 2 days"}
+        )
     elif availability == "faction" and not kwargs["user"].faction_aa and kwargs["user"].factionid != 0:
         return make_exception_response("4005", key)
     elif availability == "user" and kwargs["user"].key in (None, ""):

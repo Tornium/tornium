@@ -5,6 +5,11 @@
     $off-white: rgb(175, 175, 175);
     $error: rgb(225, 10, 10);
 
+    // DataTables pagination button container
+    .pagination {
+        padding-top: 0.5rem !important;
+    }
+
     a {
         color: $white;
         text-decoration: none;

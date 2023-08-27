@@ -13,13 +13,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function () {
-    let now = new Date();
-    now = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-    now.setMilliseconds(null);
-    now.setSeconds(null);
-    $("#end-time-input").val(now.toISOString().slice(0, -8));
+const tzOffset = new Date().getTimezoneOffset();
 
+$(document).ready(function () {
     function addReport(item) {
         let container = $("#existing-report-container");
 
@@ -42,34 +38,35 @@ $(document).ready(function () {
                     $("<div>", {
                         class: "col-sm-12 col-md-6 col-xl-4 mt-1",
                         text: `${new Date(
-                            item.start_timestamp * 1000
-                        ).toLocaleString()} to ${new Date(
-                            item.end_timestamp * 1000
-                        ).toLocaleString()}`,
+                            item.start_timestamp * 1000 - tzOffset
+                        ).toDateString()} to ${new Date(
+                            item.end_timestamp * 1000 - tzOffset
+                        ).toDateString()}`,
                     }),
                     $("<div>", {
-                        class: "col-xl-3",
-                    }),
-                    $("<div>", {
-                        class: "col-sm-12 col-md-2 col-xl-1 mt-1 justify-content-end d-flex",
-                    }).append([
-                        $("<button>", {
-                            class: "btn btn-sm btn-outline-secondary view-report me-2",
-                            "data-report-id": item.report_id,
-                        }).append(
-                            $("<i>", {
-                                class: "fa-regular fa-eye",
-                            })
-                        ),
-                        $("<button>", {
-                            class: "btn btn-sm btn-outline-secondary delete-report",
-                            "data-report-id": item.report_id,
-                        }).append(
-                            $("<i>", {
-                                class: "fa-regular fa-trash-can",
-                            })
-                        ),
-                    ]),
+                        class: "col-sm-12 col-md-2 col-xl-4 mt-1",
+                    }).append(
+                        $("<div>", {
+                            class: "w-100 justify-content-end d-flex",
+                        }).append([
+                            $("<button>", {
+                                class: "btn btn-sm btn-outline-secondary view-report me-2",
+                                "data-report-id": item.report_id,
+                            }).append(
+                                $("<i>", {
+                                    class: "fa-regular fa-eye",
+                                })
+                            ),
+                            $("<button>", {
+                                class: "btn btn-sm btn-outline-secondary delete-report",
+                                "data-report-id": item.report_id,
+                            }).append(
+                                $("<i>", {
+                                    class: "fa-regular fa-trash-can",
+                                })
+                            ),
+                        ])
+                    ),
                 ])
             )
         );
@@ -121,6 +118,7 @@ $(document).ready(function () {
 
         if (response.count > 0) {
             $("#existing-report-container").empty();
+            $("#report-count").text(commas(response.count));
             $.each(response.reports, function (index, item) {
                 addReport(item);
             });
@@ -139,8 +137,12 @@ $(document).ready(function () {
         $("#generate-report").attr("disabled", true);
 
         const faction = $("#faction-id-input").val();
-        let startTime = $("#start-time-input").val();
-        let endTime = $("#end-time-input").val();
+        let startTime = Math.ceil(
+            (new Date($("#start-time-input").val()) - tzOffset) / 1000
+        );
+        let endTime = Math.ceil(
+            (new Date($("#end-time-input").val()) - tzOffset) / 1000
+        );
         let availability = $('input[name="data-availability"]:checked').val();
 
         if (availability === undefined) {
@@ -156,20 +158,20 @@ $(document).ready(function () {
 
         if (
             faction === "" ||
-            startTime == "" ||
-            endTime == "" ||
             selectedPS.length === 0 ||
             (availability !== "user" && availability !== "faction")
         ) {
             generateToast("Invalid Input", "An inputted value was not valid");
             $("#generate-report").attr("disabled", false);
             return;
-        }
-
-        startTime = Date.parse(startTime);
-        endTime = Date.parse(endTime);
-
-        if (startTime <= 0 || endTime <= 0) {
+        } else if (endTime - startTime < 3600 * 24 * 2) {
+            generateToast(
+                "Invalid Dates",
+                "The selected dates must be two or more days apart"
+            );
+            $("#generate-report").attr("disabled", false);
+            return;
+        } else if (startTime <= 0 || endTime <= 0) {
             generateToast(
                 "Invalid Time",
                 "An inputted date time was not valid"
@@ -206,8 +208,8 @@ $(document).ready(function () {
         xhttp.send(
             JSON.stringify({
                 faction_id: faction,
-                start_time: Math.floor(startTime / 1000),
-                end_time: Math.floor(endTime / 1000),
+                start_time: startTime,
+                end_time: endTime,
                 availability: availability,
                 selected_stats: selectedPS,
             })

@@ -41,6 +41,13 @@ $(document).ready(function () {
         let diffSum = 0;
 
         $.each(response.members, function (tid, member_data) {
+            if (
+                response.start_data[tid] == null ||
+                response.end_data[tid] == null
+            ) {
+                return;
+            }
+
             tableData.push([
                 `${member_data.name} [${tid}]`,
                 commas(response.start_data[tid][stat]),
@@ -106,9 +113,10 @@ $(document).ready(function () {
                 );
             } else {
                 $("#temp-container").text(
-                    `The report has not finished generating. The report should finish generating around ${new Date(
-                        response.expected_end_time * 1000
-                    ).toLocaleString()}. Please try again later...`
+                    `The report has not finished generating. The report should finish generating around 
+                    ${tcttime(
+                        response.expected_end_time
+                    )}. Please try again later...`
                 );
             }
             return;

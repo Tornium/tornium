@@ -7,6 +7,11 @@
 
     border-color: $white;
 
+    // DataTables pagination button container
+    .pagination {
+        padding-top: 0.5rem !important;
+    }
+
     a {
         color: $neon;
         text-decoration: none;

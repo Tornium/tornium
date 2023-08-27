@@ -56,21 +56,37 @@ Tornium - Member Report
     <div class="card-body">
         <h5 class="card-title">Viewing Faction Member Report</h5>
         <h6 class="card-subtitle mb-2 text-body-secondary">Report ID: {{ report.rid }}</h6>
-        <p class="card-text">
-            Created at: {{ report.created_at|tcttime }}<br />
-            Last updated at: {{ report.last_updated|tcttime }}<br />
-            Faction ID: {{ report.faction_id }}<br />
+        <div class="row">
+            <div class="col-sm-12 col-md-6 col-xl-5">
+                <p class="card-text">
+                    Created at: {{ report.created_at|tcttime }}<br />
+                    Last updated at: {{ report.last_updated|tcttime }}<br />
 
-            {% if report.status == 0 %}
-            Status: Not started
-            {% elif report.status == 1 %}
-            Status: In progress
-            {% elif report.status == 2 %}
-            Status: Completed
-            {% else %}
-            <i class="fa-solid fa-triangle-exclamation" style="color: red"></i> ERROR <i class="fa-solid fa-triangle-exclamation" style="color: red"></i>
-            {% endif %}
-        </p>
+                    {% if report.status == 0 %}
+                    Status: Not started
+                    {% elif report.status == 1 %}
+                    Status: In progress
+                    {% elif report.status == 2 %}
+                    Status: Completed
+                    {% else %}
+                    Status: <i class="fa-solid fa-triangle-exclamation" style="color: red"></i> ERROR <i class="fa-solid fa-triangle-exclamation" style="color: red"></i>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="d-md-none">
+                <br />
+            </div>
+
+            <div class="col-sm-12 col-md-6 col-xl-7">
+                <p class="card-text">
+                    Start Time: {{ report.start_timestamp|tcttime }}<br />
+                    End Time: {{ report.end_timestamp|tcttime }}<br />
+                    Faction: {{ report.faction_id|faction }}<br />
+                    Requested Data: {{ report.requested_data|join_list(True) }}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -30,6 +30,9 @@
   border-color: rgb(229, 229, 229);
   color: rgb(229, 229, 229);
 }
+[data-bs-theme=neon-dark] .card .card-title {
+  color: rgb(57, 255, 20);
+}
 @media (max-height: 992px) {
   [data-bs-theme=neon-dark] .secondary {
     height: fit-content;

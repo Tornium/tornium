@@ -41,6 +41,10 @@
             border-color: $white;
             color: $white;
         }
+
+        .card-title {
+            color: $neon;
+        }
     }
 
     @media (max-height: 992px) {

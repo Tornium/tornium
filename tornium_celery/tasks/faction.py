@@ -152,7 +152,7 @@ def update_faction(faction_data):
         upsert=True,
         new=True,
         set__name=faction_data["name"],
-        set__tag=faction_data["tag"],
+        set__tag=str(faction_data["tag"]),  # Torn occasionally uses integers as tags
         set__respect=faction_data["respect"],
         set__capacity=faction_data["capacity"],
         set__leader=faction_data["leader"],

@@ -104,21 +104,24 @@ def refresh_guilds():
         guild_db.icon = guild["icon"]
         guild_db.save()
 
-        for factiontid, faction_data in guild_db.faction_verify.items():
-            faction_positions_data = faction_data
+        try:
+            for factiontid, faction_data in guild_db.faction_verify.items():
+                faction_positions_data = faction_data
 
-            if "positions" not in faction_data:
-                continue
+                if "positions" not in faction_data:
+                    continue
 
-            for position_uuid, position_data in faction_data["positions"].items():
-                position: PositionModel = PositionModel.objects(pid=position_uuid).first()
+                for position_uuid, position_data in faction_data["positions"].items():
+                    position: PositionModel = PositionModel.objects(pid=position_uuid).first()
 
-                if position is None or position.factiontid != int(factiontid):
-                    faction_positions_data["positions"].pop(position_uuid)
+                    if position is None or position.factiontid != int(factiontid):
+                        faction_positions_data["positions"].pop(position_uuid)
 
-            guild_db.faction_verify[factiontid] = faction_positions_data
+                guild_db.faction_verify[factiontid] = faction_positions_data
 
-        guild_db.save()
+            guild_db.save()
+        except Exception as e:
+            logger.exception(e)
 
     for deleted_guild in guilds_not_updated:
         guild: ServerModel = ServerModel.objects(sid=deleted_guild).first()

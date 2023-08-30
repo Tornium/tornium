@@ -60,6 +60,12 @@ Tornium - Server Selector
             </div>
         </div>
         {% endfor %}
+
+        {% if servers|length == 0 %}
+        <p class="card-text">
+            No servers found...
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

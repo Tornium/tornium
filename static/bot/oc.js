@@ -20,7 +20,7 @@ $(document).ready(function () {
 
     configRequest()
         .then(function () {
-            $.each(serverConfig["factions"], function (index, faction) {
+            $.each(serverConfig["factions"], function (faction, factionData) {
                 $("#card-container").append(
                     $("<div>", {
                         class: "card mt-3",

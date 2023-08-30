@@ -35,26 +35,13 @@ from tornium_commons.models import (
     UserModel,
 )
 
+from controllers.api.bot.config import _faction_data
 from controllers.api.decorators import (
     authentication_required,
     ratelimit,
     token_required,
 )
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-
-
-def _faction_data(tid):
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=tid).first()
-
-    data = {
-        "id": tid,
-        "name": "",
-    }
-
-    if faction is not None:
-        data["name"] = faction.name
-
-    return data
 
 
 @authentication_required

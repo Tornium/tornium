@@ -12,12 +12,27 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import typing
 
 from flask import jsonify
-from tornium_commons.models import ServerModel
+from tornium_commons.models import FactionModel, ServerModel
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
+
+
+def _faction_data(tid, guild=None):
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=tid).first()
+
+    data = {
+        "id": tid,
+        "name": "",
+    }
+
+    if faction is not None:
+        data["name"] = faction.name
+
+    return data
 
 
 def jsonified_server_config(guild: ServerModel):
@@ -25,7 +40,7 @@ def jsonified_server_config(guild: ServerModel):
         "id": str(guild.sid),
         "name": guild.name,
         "admins": guild.admins,
-        "factions": guild.factions,
+        "factions": {tid: _faction_data(tid) for tid in guild.factions},
         "verify": {
             "enabled": guild.config.get("verify"),
             "template": guild.verify_template,

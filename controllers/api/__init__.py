@@ -15,7 +15,7 @@
 
 from flask import Blueprint
 
-from controllers.api import bot, faction, key, report, stat, stocks, user
+from controllers.api import bot, faction, items, key, report, stat, stocks, user
 
 mod = Blueprint("apiroutes", __name__)
 
@@ -143,6 +143,9 @@ mod.add_url_rule(
     view_func=faction.positions.get_positions,
     methods=["GET"],
 )
+
+# /api/items
+mod.add_url_rule("/api/items", view_func=items.item_name_map, methods=["GET"])
 
 # /api/report
 mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.get_reports, methods=["GET"])

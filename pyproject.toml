@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 dependencies = [
-    "celery ~= 5.2.7",
+    "celery ~= 5.3.3",
     "flask ~= 2.3.2",
     "flask-cors ~= 4.0.0",
     "flask-login ~= 0.6.2",

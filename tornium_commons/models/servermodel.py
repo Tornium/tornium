@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from mongoengine import (
+    BooleanField,
     DictField,
     DynamicDocument,
     IntField,
@@ -41,6 +42,19 @@ class ServerModel(DynamicDocument):
     retal_config = DictField(default={})  # Configuration of retals for the server
 
     banking_config = DictField(default={})  # Configuration for faction banking
+
+    # Configuration for armory tracking
+    # per faction: {
+    #     str(faction_id): {
+    #         "channel": int(channel_id)
+    #         "roles": [list of int(roles)]
+    #         "items": {
+    #             str(item_id): int(minimum_quantity)
+    #         }
+    #     }
+    # }
+    armory_config = DictField(default={})
+    armory_enabled = BooleanField(default=False)
 
     assistschannel = IntField(default=0)
     assist_factions = ListField(default=[])  # List of factions that can send assists to the server

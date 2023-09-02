@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Tornium - Verification
+Tornium - Armory Tracking
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -52,10 +52,10 @@ Tornium - Verification
                             Enable or disable the armory tracker
                         </div>
                         <div class="card-body">
-                            <button type="button" class="btn btn-outline-primary" id="tracker-config-enable" disabled>
+                            <button type="button" class="btn btn-outline-primary armory-toggle" id="tracker-config-enable" disabled>
                                 Enable
                             </button>
-                            <button type="button" class="btn btn-outline-primary" id="tracker-config-disable" disabled>
+                            <button type="button" class="btn btn-outline-primary armory-toggle" id="tracker-config-disable" disabled>
                                 Disable
                             </button>
 
@@ -72,7 +72,7 @@ Tornium - Verification
                             Tracked Factions
                         </div>
 
-                        <div class="card-text">
+                        <div class="card-text p-2 ps-3">
                             Only factions that are added to the server's list of factions are shown here, however the
                             faction must set this server in their configuration.
                         </div>

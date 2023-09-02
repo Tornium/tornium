@@ -27,6 +27,21 @@ mod.add_url_rule("/api/token", view_func=key.test_token, methods=["GET"])
 
 # /api/bot
 mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/channel",
+    view_func=bot.armory.armory_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/item",
+    view_func=bot.armory.armory_tracked_items,
+    methods=["DELETE", "POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/roles",
+    view_func=bot.armory.armorer_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/bot/<int:guildid>/assists/channel",
     view_func=bot.assists.assists_channel,
     methods=["POST"],

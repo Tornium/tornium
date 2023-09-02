@@ -96,6 +96,12 @@ API_EXCEPTIONS = {
         "http": 400,
         "message": "Server failed to locate the requested Torn faction position.",
     },
+    "1104": {
+        "code": 1104,
+        "name": "UnknownItem",
+        "http": 400,
+        "message": "Server failed to locate the requested Torn item.",
+    },
     "1200": {
         "code": 1200,
         "name": "UnknownKey",

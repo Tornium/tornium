@@ -51,6 +51,7 @@ def jsonified_server_config(guild: ServerModel):
         },
         "retals": dict(zip(guild.retal_config.keys(), map(dict, guild.retal_config.values()))),
         "banking": guild.banking_config,
+        "armory": {"enabled": guild.armory_enabled, "config": {**guild.armory_config}},
         "assists": {
             "channel": str(guild.assistschannel),
             "factions": guild.assist_factions,

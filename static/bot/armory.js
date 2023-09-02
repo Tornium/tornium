@@ -13,9 +13,11 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-let channelsPromise = channelsRequest();
 let itemsPromise = itemsRequest();
-let rolesPromise = rolesRequest();
+
+// TODO: Tracked factions enable/disable
+// TODO: API for guild enable/disable
+// TODO: API for tracked factions enable/disable
 
 $(document).ready(function () {
     const xhttp = new XMLHttpRequest();
@@ -24,10 +26,7 @@ $(document).ready(function () {
         let serverConfig = xhttp.response;
 
         if ("code" in serverConfig) {
-            generateToast(
-                "Discord Config Not Located",
-                serverConfig["message"]
-            );
+            generateToast("Discord Config Not Located", serverConfig["message"]);
             generateToast(
                 "Armory Tracker Loading Halted",
                 "The lack of armory tracking configs has prevented the page from loading."
@@ -127,8 +126,7 @@ $(document).ready(function () {
                                         "data-faction": factionID,
                                         "aria-label": "Armorer Roles",
                                         "data-live-search": "true",
-                                        "data-selected-text-format":
-                                            "count > 2",
+                                        "data-selected-text-format": "count > 2",
                                     }),
                                 ]),
                             ]),
@@ -147,7 +145,7 @@ $(document).ready(function () {
                                         "data-faction": factionID,
                                     }),
                                     $("<p>", {
-                                        class: "no-items-container me-3 text-end",
+                                        class: "no-items-container text-end",
                                         text: "No items currently tracked...",
                                         "data-faction": factionID,
                                     }),
@@ -160,8 +158,7 @@ $(document).ready(function () {
                                     }).append([
                                         $("<select>", {
                                             class: "item-selector tracked-item",
-                                            "aria-label":
-                                                "Select item to be tracked",
+                                            "aria-label": "Select item to be tracked",
                                             "data-live-search": "true",
                                         }),
                                         $("<input>", {
@@ -169,8 +166,8 @@ $(document).ready(function () {
                                             class: "form-control tracked-item-quantity",
                                             placeholder: "Quantity",
                                             min: "0",
-                                            "aria-label":
-                                                "Quantity notified when under",
+                                            style: "min-width: 100px",
+                                            "aria-label": "Quantity notified when under",
                                         }),
                                         $("<button>", {
                                             type: "button",
@@ -192,9 +189,7 @@ $(document).ready(function () {
                 $(`.no-items-container[data-faction="${factionID}"]`).remove();
             }
 
-            const trackedItems = $(
-                `.tracked-items[data-faction="${factionID}"]`
-            );
+            const trackedItems = $(`.tracked-items[data-faction="${factionID}"]`);
             $.each(factionConfig.items, function (itemID, itemQuantity) {
                 trackedItems.append(
                     $("<li>", {
@@ -215,43 +210,35 @@ $(document).ready(function () {
             $(".item-selector").selectpicker();
         });
 
-        channelsPromise
+        channelsRequest()
             .then(function () {
-                $.each(
-                    serverConfig.armory.config,
-                    function (factionID, factionConfig) {
-                        let option = $(
-                            `.tracker-channel[data-faction="${factionID}"] option[value=${factionConfig.channel}]`
-                        );
+                $.each(serverConfig.armory.config, function (factionID, factionConfig) {
+                    let option = $(
+                        `.tracker-channel[data-faction="${factionID}"] option[value=${factionConfig.channel}]`
+                    );
 
-                        if (option.length !== 1) {
-                            return;
-                        }
-
-                        option.attr("selected", "");
+                    if (option.length !== 1) {
+                        return;
                     }
-                );
+
+                    option.attr("selected", "");
+                });
             })
             .finally(function () {
                 $(".discord-channel-selector").selectpicker();
             });
 
-        rolesPromise
+        rolesRequest()
             .then(function () {
-                $.each(
-                    serverConfig.armory.config,
-                    function (factionID, factionConfig) {
-                        $.each(factionConfig.roles, function (index, roleID) {
-                            let option = $(
-                                `.armorer-roles[data-faction="${factionID}"] option[value=${roleID}]`
-                            );
+                $.each(serverConfig.armory.config, function (factionID, factionConfig) {
+                    $.each(factionConfig.roles, function (index, roleID) {
+                        let option = $(`.armorer-roles[data-faction="${factionID}"] option[value=${roleID}]`);
 
-                            if (option.length !== 0) {
-                                option.attr("selected", "");
-                            }
-                        });
-                    }
-                );
+                        if (option.length !== 0) {
+                            option.attr("selected", "");
+                        }
+                    });
+                });
             })
             .finally(function () {
                 $(".discord-role-selector").selectpicker();
@@ -268,10 +255,7 @@ $(document).ready(function () {
                 const response = xhttp.response;
 
                 if ("code" in response) {
-                    generateToast(
-                        "New Item Tracking Failed",
-                        response["message"]
-                    );
+                    generateToast("New Item Tracking Failed", response["message"]);
                     return;
                 }
 
@@ -334,10 +318,7 @@ $(document).ready(function () {
             };
 
             xhttp.responseType = "json";
-            xhttp.open(
-                "POST",
-                `/api/bot/${guildid}/armory/${factionID}/channel`
-            );
+            xhttp.open("POST", `/api/bot/${guildid}/armory/${factionID}/channel`);
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send(
                 JSON.stringify({

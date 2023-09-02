@@ -29,10 +29,7 @@ function _writeItems() {
 let itemsRequest = (obj) => {
     var localItems = JSON.parse(localStorage.getItem("items"));
 
-    if (
-        localItems &&
-        Math.floor(Date.now() / 1000) - localItems.timestamp < 3600
-    ) {
+    if (localItems && Math.floor(Date.now() / 1000) - localItems.timestamp < 3600) {
         return new Promise((resolve, reject) => {
             items = localItems.items;
             _writeItems();
@@ -46,10 +43,7 @@ let itemsRequest = (obj) => {
                 let response = xhttp.response;
 
                 if ("code" in response) {
-                    generateToast(
-                        "Torn Items Not Located",
-                        response["message"]
-                    );
+                    generateToast("Torn Items Not Located", response["message"]);
                     reject();
                     return;
                 }
@@ -69,12 +63,7 @@ let itemsRequest = (obj) => {
             xhttp.responseType = "json";
             xhttp.open("GET", "/api/items");
             xhttp.setRequestHeader("Content-Type", "application/json");
-
-            if ($(".items-selector").length === 0) {
-                reject();
-            } else {
-                xhttp.send();
-            }
+            xhttp.send();
         });
     }
 };

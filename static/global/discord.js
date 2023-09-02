@@ -22,10 +22,7 @@ var serverConfig = null;
 let rolesRequest = (obj) => {
     var localRoles = JSON.parse(localStorage.getItem(`roles:${guildid}`));
 
-    if (
-        localRoles &&
-        Math.floor(Date.now() / 1000) - localRoles.timestamp < 60
-    ) {
+    if (localRoles && Math.floor(Date.now() / 1000) - localRoles.timestamp < 60) {
         return new Promise((resolve, reject) => {
             discordRoles = localRoles.roles;
 
@@ -48,10 +45,7 @@ let rolesRequest = (obj) => {
                 let response = xhttp.response;
 
                 if ("code" in response) {
-                    generateToast(
-                        "Discord Roles Not Located",
-                        response["message"]
-                    );
+                    generateToast("Discord Roles Not Located", response["message"]);
                     reject();
                     return;
                 }
@@ -80,7 +74,7 @@ let rolesRequest = (obj) => {
             xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
             xhttp.setRequestHeader("Content-Type", "application/json");
 
-            if (guildid !== null && $(".discord-role-selector").length !== 0) {
+            if (guildid !== null) {
                 xhttp.send();
             } else {
                 reject();
@@ -92,10 +86,7 @@ let rolesRequest = (obj) => {
 let channelsRequest = (obj) => {
     var localChannels = JSON.parse(localStorage.getItem(`channels:${guildid}`));
 
-    if (
-        localChannels &&
-        Math.floor(Date.now() / 1000) - localChannels.timestamp < 60
-    ) {
+    if (localChannels && Math.floor(Date.now() / 1000) - localChannels.timestamp < 60) {
         return new Promise((resolve, reject) => {
             discordChannels = localChannels.channels;
 
@@ -127,10 +118,7 @@ let channelsRequest = (obj) => {
                 let response = xhttp.response;
 
                 if ("code" in response) {
-                    generateToast(
-                        "Discord Channels Not Located",
-                        response["message"]
-                    );
+                    generateToast("Discord Channels Not Located", response["message"]);
                     reject();
                     return;
                 }
@@ -145,19 +133,14 @@ let channelsRequest = (obj) => {
                         })
                     );
 
-                    $.each(
-                        category["channels"],
-                        function (channel_id, channel) {
-                            $(
-                                `optgroup[data-category-id="${category["id"]}"]`
-                            ).append(
-                                $("<option>", {
-                                    value: channel.id,
-                                    text: `#${channel.name}`,
-                                })
-                            );
-                        }
-                    );
+                    $.each(category["channels"], function (channel_id, channel) {
+                        $(`optgroup[data-category-id="${category["id"]}"]`).append(
+                            $("<option>", {
+                                value: channel.id,
+                                text: `#${channel.name}`,
+                            })
+                        );
+                    });
                 });
 
                 localStorage.setItem(
@@ -173,10 +156,7 @@ let channelsRequest = (obj) => {
             xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
             xhttp.setRequestHeader("Content-Type", "application/json");
 
-            if (
-                guildid !== null &&
-                $(".discord-channel-selector").length !== 0
-            ) {
+            if (guildid !== null) {
                 xhttp.send();
             } else {
                 reject();
@@ -196,10 +176,7 @@ let configRequest = (obj) => {
                 let response = xhttp.response;
 
                 if ("code" in response) {
-                    generateToast(
-                        "Discord Config Not Located",
-                        response["message"]
-                    );
+                    generateToast("Discord Config Not Located", response["message"]);
                     reject();
                     throw new Error("Config error");
                 }

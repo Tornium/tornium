@@ -13,6 +13,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+let channelsPromise = channelsRequest();
+let rolesPromise = rolesRequest();
 let itemsPromise = itemsRequest();
 
 // TODO: Tracked factions enable/disable
@@ -210,7 +212,7 @@ $(document).ready(function () {
             $(".item-selector").selectpicker();
         });
 
-        channelsRequest()
+        channelsPromise
             .then(function () {
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                     let option = $(
@@ -228,7 +230,7 @@ $(document).ready(function () {
                 $(".discord-channel-selector").selectpicker();
             });
 
-        rolesRequest()
+        rolesPromise
             .then(function () {
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                     $.each(factionConfig.roles, function (index, roleID) {

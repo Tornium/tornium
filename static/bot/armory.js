@@ -18,10 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 // TODO: API for tracked factions enable/disable
 
 $(document).ready(function () {
-    let channelsPromise = channelsRequest();
-    let rolesPromise = rolesRequest();
-    let itemsPromise = itemsRequest();
-
     const xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {
@@ -208,11 +204,11 @@ $(document).ready(function () {
             $("#tracker-config-enable").removeAttr("enabled");
         }
 
-        itemsPromise.finally(function () {
+        itemsRequest().finally(function () {
             $(".item-selector").selectpicker();
         });
 
-        channelsPromise
+        channelsRequest()
             .then(function () {
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                     let option = $(
@@ -230,7 +226,7 @@ $(document).ready(function () {
                 $(".discord-channel-selector").selectpicker();
             });
 
-        rolesPromise
+        rolesRequest()
             .then(function () {
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                     $.each(factionConfig.roles, function (index, roleID) {

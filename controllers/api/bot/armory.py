@@ -124,7 +124,7 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
 
     channel: typing.Optional[str] = data.get("channel")
 
-    if channel in ("", "0", None) or (isinstance(channel, str) and not channel.isdigit()):
+    if channel in ("", None) or (isinstance(channel, str) and not channel.isdigit()):
         return make_exception_response("1002", key)
 
     guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()

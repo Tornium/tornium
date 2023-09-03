@@ -13,15 +13,15 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-let channelsPromise = channelsRequest();
-let rolesPromise = rolesRequest();
-let itemsPromise = itemsRequest();
-
 // TODO: Tracked factions enable/disable
 // TODO: API for guild enable/disable
 // TODO: API for tracked factions enable/disable
 
 $(document).ready(function () {
+    let channelsPromise = channelsRequest();
+    let rolesPromise = rolesRequest();
+    let itemsPromise = itemsRequest();
+
     const xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {

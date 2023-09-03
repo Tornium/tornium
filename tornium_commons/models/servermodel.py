@@ -46,6 +46,7 @@ class ServerModel(DynamicDocument):
     # Configuration for armory tracking
     # per faction: {
     #     str(faction_id): {
+    #         "enabled": bool(false default)
     #         "channel": int(channel_id)
     #         "roles": [list of int(roles)]
     #         "items": {

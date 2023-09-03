@@ -13,12 +13,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-// TODO: Tracked factions enable/disable
-// TODO: API for guild enable/disable
-// TODO: API for tracked factions enable/disable
-
 $(document).ready(function () {
-    const xhttp = new XMLHttpRequest();
+    let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {
         let serverConfig = xhttp.response;
@@ -30,11 +26,6 @@ $(document).ready(function () {
                 "The lack of armory tracking configs has prevented the page from loading."
             );
 
-            $("#tracked-factions-list").append(
-                $("<p>", {
-                    text: "Discord configuration failed to load...",
-                })
-            );
             $("#armory-faction-container").append(
                 $("<p>", {
                     text: "Discord configuration failed to load...",
@@ -45,24 +36,6 @@ $(document).ready(function () {
         }
 
         $.each(serverConfig.factions, function (factionID, factionData) {
-            $("#tracked-factions-list").append(
-                $("<li>", {
-                    class: "list-group-item",
-                    text: `${factionData.name} [${factionID}]`,
-                }).append(
-                    $("<button>", {
-                        type: "button",
-                        class: "btn btn-sm btn-outline armory-toggle-faction",
-                        disabled: "disabled",
-                        "data-faction": factionID,
-                    }).append(
-                        $("<i>", {
-                            class: "fa-solid fa-spinner ",
-                        })
-                    )
-                )
-            );
-
             $("#armory-faction-container").append(
                 $("<div>", {
                     class: "col-sm-12 col-xl-6 mt-3",
@@ -80,6 +53,22 @@ $(document).ready(function () {
                             $("<div>", {
                                 class: "card",
                             }).append([
+                                $("<div>").append([
+                                    $("<button>", {
+                                        type: "button",
+                                        class: "btn btn-outline armory-faction-toggle",
+                                        "data-state": "1",
+                                        "data-faction": factionID,
+                                        text: "Enable",
+                                    }),
+                                    $("<button>", {
+                                        type: "button",
+                                        class: "btn btn-outline armory-faction-toggle",
+                                        "data-state": "0",
+                                        "data-faction": factionID,
+                                        text: "Disable",
+                                    }),
+                                ]),
                                 $("<div>", {
                                     class: "card-header",
                                     text: "Tracker Channel",
@@ -243,7 +232,7 @@ $(document).ready(function () {
             });
 
         $(".submit-new-item").on("click", function () {
-            const xhttp = new XMLHttpRequest();
+            let xhttp = new XMLHttpRequest();
             let factionID = this.getAttribute("data-faction");
             let itemSelector = $(this).parent().find(".tracked-item");
             let itemID = itemSelector.options[itemSelector.selectedIndex].value;
@@ -304,8 +293,8 @@ $(document).ready(function () {
             );
         });
 
-        $(".tracker-channel").on("submit", function () {
-            const xhttp = new XMLHttpRequest();
+        $(".tracker-channel").on("change", function () {
+            let xhttp = new XMLHttpRequest();
 
             xhttp.onload = function () {
                 const response = xhttp.response;
@@ -325,23 +314,65 @@ $(document).ready(function () {
             );
         });
 
-        $("#armory-toggle").on("click", function () {
-            const xhttp = new XMLHttpRequest();
+        $(".armory-toggle").on("click", function () {
+            let xhttp = new XMLHttpRequest();
+            let enabled = $(this).attr("id") === "tracker-config-enable";
 
             xhttp.onload = function () {
                 const response = xhttp.response;
 
-                if ("code" in repsonse) {
+                if ("code" in response) {
                     generateToast("Armory Toggle Failed", response["message"]);
+                    return;
+                }
+
+                if (enabled) {
+                    $("#tracker-config-enable").attr("disabled", true);
+                    $("#tracker-config-disable").attr("disabled", false);
+                } else {
+                    $("#tracker-config-enable").attr("disabled", false);
+                    $("#tracker-config-enable").attr("disabled", true);
                 }
             };
 
             xhttp.responseType = "json";
-            xhttp.open("PUT", `/api/bot/${guildid}/armory/${factionID}`);
+            xhttp.open("PUT", `/api/bot/${guildid}/armory`);
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send(
                 JSON.stringify({
-                    enabled: $(this).attr("id") === "tracker-config-enable",
+                    enabled: enabled,
+                })
+            );
+        });
+
+        $(".armory-faction-toggle").on("click", function () {
+            let xhttp = new XMLHttpRequest();
+            let faction = $(this).attr("data-faction");
+            let enabled = $(this).attr("data-state") === 1;
+
+            xhttp.onload = function () {
+                const response = xhttp.response;
+
+                if ("code" in response) {
+                    generateToast("Armory Faction Toggle Failed", response["message"]);
+                    return;
+                }
+
+                if (enabled) {
+                    $(this).attr("disabled", true);
+                    $(`.armory-faction-toggle[data-faction="${faction}"][data-state="0"]`).attr("disabled", false);
+                } else {
+                    $(`.armory-faction-toggle[data-faction="${faction}"][data-state="1"]`).attr("disabled", false);
+                    $(this).attr("disabled", true);
+                }
+            };
+
+            xhttp.responseType = "json";
+            xhttp.open("PUT", `/api/bot/${guildid}/armory/${faction}`);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(
+                JSON.stringify({
+                    enabled: enabled,
                 })
             );
         });

@@ -70,6 +70,7 @@ def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
             guild.armory_config[str(factionid)]["items"][str(item_id)] = quantity
         except KeyError:
             guild.armory_config[str(factionid)] = {
+                "enabled": False,
                 "channel": 0,
                 "roles": [],
                 "items": {
@@ -109,7 +110,7 @@ def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
     try:
         guild.armory_config[str(factionid)]["roles"] = roles
     except KeyError:
-        guild.armory_config[str(factionid)] = {"channel": 0, "roles": roles, "items": {}}
+        guild.armory_config[str(factionid)] = {"enabled": False, "channel": 0, "roles": roles, "items": {}}
 
     guild.save()
 
@@ -146,8 +147,68 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
     try:
         guild.armory_config[str(factionid)]["channel"] = channel
     except KeyError:
-        guild.armory_config[str(factionid)] = {"channel": channel, "roles": [], "items": {}}
+        guild.armory_config[str(factionid)] = {"enabled": False, "channel": channel, "roles": [], "items": {}}
 
     guild.save()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
+
+
+@token_required
+@ratelimit
+def armory_toggle(guildid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    enabled: typing.Optional[bool] = data.get("enabled")
+
+    if enabled is None or not isinstance(enabled, bool):
+        return make_exception_response("1000", key, details={"element": "enabled"})
+
+    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    if guild.armory_enabled == enabled:
+        return make_exception_response("1000", key, details={"message": "Invalid enabled state"})
+
+    guild.armory_enabled = enabled
+    guild.save()
+
+    return jsonified_server_config(guild), 200, api_ratelimit_response(key)
+
+
+@token_required
+@ratelimit
+def armory_faction_toggle(guildid: int, factionid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    enabled: typing.Optional[bool] = data.get("enabled")
+
+    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
+
+    if guild is None:
+        return make_exception_response("1001", key)
+    elif kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif factionid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=factionid).first()
+
+    if faction is None:
+        return make_exception_response("1102", key)
+    elif guild.sid != faction.guild:
+        return make_exception_response("4021", key)
+
+    if str(factionid) in guild.armory_config and guild.armory_config.get("enabled") == enabled:
+        return make_exception_response("1000", key, details={"message": "Invalid enabled state"})
+
+    try:
+        guild.armory_config[str(factionid)]["enabled"] = enabled
+    except KeyError:
+        guild.armory_config[str(factionid)] = {"enabled": enabled, "channel": 0, "roles": [], "items": {}}

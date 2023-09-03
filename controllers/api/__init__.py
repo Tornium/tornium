@@ -27,6 +27,16 @@ mod.add_url_rule("/api/token", view_func=key.test_token, methods=["GET"])
 
 # /api/bot
 mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory",
+    view_func=bot.armory.armory_toggle,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>",
+    view_func=bot.armory.armory_faction_toggle,
+    methods=["PUT"],
+)
+mod.add_url_rule(
     "/api/bot/<int:guildid>/armory/<int:factionid>/channel",
     view_func=bot.armory.armory_channel,
     methods=["POST"],

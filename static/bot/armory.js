@@ -50,25 +50,25 @@ $(document).ready(function () {
                         $("<div>", {
                             class: "card-body",
                         }).append([
+                            $("<div>").append([
+                                $("<button>", {
+                                    type: "button",
+                                    class: "btn btn-outline armory-faction-toggle",
+                                    "data-state": "1",
+                                    "data-faction": factionID,
+                                    text: "Enable",
+                                }),
+                                $("<button>", {
+                                    type: "button",
+                                    class: "btn btn-outline armory-faction-toggle",
+                                    "data-state": "0",
+                                    "data-faction": factionID,
+                                    text: "Disable",
+                                }),
+                            ]),
                             $("<div>", {
                                 class: "card",
                             }).append([
-                                $("<div>").append([
-                                    $("<button>", {
-                                        type: "button",
-                                        class: "btn btn-outline armory-faction-toggle",
-                                        "data-state": "1",
-                                        "data-faction": factionID,
-                                        text: "Enable",
-                                    }),
-                                    $("<button>", {
-                                        type: "button",
-                                        class: "btn btn-outline armory-faction-toggle",
-                                        "data-state": "0",
-                                        "data-faction": factionID,
-                                        text: "Disable",
-                                    }),
-                                ]),
                                 $("<div>", {
                                     class: "card-header",
                                     text: "Tracker Channel",
@@ -232,14 +232,14 @@ $(document).ready(function () {
             });
 
         $(".submit-new-item").on("click", function () {
-            let xhttp = new XMLHttpRequest();
+            let xhttpItem = new XMLHttpRequest();
             let factionID = this.getAttribute("data-faction");
             let itemSelector = $(this).parent().find(".tracked-item");
             let itemID = itemSelector.options[itemSelector.selectedIndex].value;
             let minQuantity = $(this).parent().find(".tracked-item-quantity");
 
-            xhttp.onload = function () {
-                const response = xhttp.response;
+            xhttpItem.onload = function () {
+                const response = xhttpItem.response;
 
                 if ("code" in response) {
                     generateToast("New Item Tracking Failed", response["message"]);
@@ -254,10 +254,10 @@ $(document).ready(function () {
                 );
             };
 
-            xhttp.responseType = "json";
-            xhttp.open("POST", `/api/bot/${guildid}/armory/${factionID}/item`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
+            xhttpItem.responseType = "json";
+            xhttpItem.open("POST", `/api/bot/${guildid}/armory/${factionID}/item`);
+            xhttpItem.setRequestHeader("Content-Type", "application/json");
+            xhttpItem.send(
                 JSON.stringify({
                     item: itemID,
                     quantity: minQuantity,
@@ -273,20 +273,20 @@ $(document).ready(function () {
                 selectedRoles.push(item.getAttribute("value"));
             });
 
-            const xhtttp = new XMLHttpRequest();
+            let xhttpRoles = new XMLHttpRequest();
 
-            xhttp.onload = function () {
-                const response = xhttp.response;
+            xhttpRoles.onload = function () {
+                const response = xhttpRoles.response;
 
                 if ("code" in response) {
                     generateToast("Role Add Failed", response["message"]);
                 }
             };
 
-            xhttp.responseType = "json";
-            xhttp.open("POST", `/api/bot/${guildid}/armory/${factionID}/roles`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
+            xhttpRoles.responseType = "json";
+            xhttpRoles.open("POST", `/api/bot/${guildid}/armory/${factionID}/roles`);
+            xhttpRoles.setRequestHeader("Content-Type", "application/json");
+            xhttpRoles.send(
                 JSON.stringify({
                     roles: selectedRoles,
                 })
@@ -294,20 +294,20 @@ $(document).ready(function () {
         });
 
         $(".tracker-channel").on("change", function () {
-            let xhttp = new XMLHttpRequest();
+            let xhttpChannel = new XMLHttpRequest();
 
-            xhttp.onload = function () {
-                const response = xhttp.response;
+            xhttpChannel.onload = function () {
+                const response = xhttpChannel.response;
 
                 if ("code" in response) {
                     generateToast("Channel Set Failed", response["message"]);
                 }
             };
 
-            xhttp.responseType = "json";
-            xhttp.open("POST", `/api/bot/${guildid}/armory/${factionID}/channel`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
+            xhttpChannel.responseType = "json";
+            xhttpChannel.open("POST", `/api/bot/${guildid}/armory/${$(this).attr("data-faction")}/channel`);
+            xhttpChannel.setRequestHeader("Content-Type", "application/json");
+            xhttpChannel.send(
                 JSON.stringify({
                     channel: this.options[this.selectedIndex].value,
                 })
@@ -315,11 +315,11 @@ $(document).ready(function () {
         });
 
         $(".armory-toggle").on("click", function () {
-            let xhttp = new XMLHttpRequest();
+            let xhttpToggle = new XMLHttpRequest();
             let enabled = $(this).attr("id") === "tracker-config-enable";
 
-            xhttp.onload = function () {
-                const response = xhttp.response;
+            xhttpToggle.onload = function () {
+                const response = xhttpToggle.response;
 
                 if ("code" in response) {
                     generateToast("Armory Toggle Failed", response["message"]);
@@ -335,10 +335,10 @@ $(document).ready(function () {
                 }
             };
 
-            xhttp.responseType = "json";
-            xhttp.open("PUT", `/api/bot/${guildid}/armory`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
+            xhttpToggle.responseType = "json";
+            xhttpToggle.open("PUT", `/api/bot/${guildid}/armory`);
+            xhttpToggle.setRequestHeader("Content-Type", "application/json");
+            xhttpToggle.send(
                 JSON.stringify({
                     enabled: enabled,
                 })
@@ -346,12 +346,12 @@ $(document).ready(function () {
         });
 
         $(".armory-faction-toggle").on("click", function () {
-            let xhttp = new XMLHttpRequest();
+            let xhttpFactionToggle = new XMLHttpRequest();
             let faction = $(this).attr("data-faction");
             let enabled = $(this).attr("data-state") === 1;
 
-            xhttp.onload = function () {
-                const response = xhttp.response;
+            xhttpFactionToggle.onload = function () {
+                const response = xhttpFactionToggle.response;
 
                 if ("code" in response) {
                     generateToast("Armory Faction Toggle Failed", response["message"]);
@@ -367,10 +367,10 @@ $(document).ready(function () {
                 }
             };
 
-            xhttp.responseType = "json";
-            xhttp.open("PUT", `/api/bot/${guildid}/armory/${faction}`);
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send(
+            xhttpFactionToggle.responseType = "json";
+            xhttpFactionToggle.open("PUT", `/api/bot/${guildid}/armory/${faction}`);
+            xhttpFactionToggle.setRequestHeader("Content-Type", "application/json");
+            xhttpFactionToggle.send(
                 JSON.stringify({
                     enabled: enabled,
                 })

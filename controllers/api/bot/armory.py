@@ -39,7 +39,8 @@ def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
     try:
         quantity = int(data.get("quantity"))
     except (TypeError, ValueError):
-        return make_exception_response("1000", key, details={"element": "quantity"})
+        if request.method == "POST":
+            return make_exception_response("1000", key, details={"element": "quantity"})
 
     if not rds().hexists("tornium:items:name-map", item_id):
         return make_exception_response("1104", key)

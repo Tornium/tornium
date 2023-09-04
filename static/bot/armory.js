@@ -14,6 +14,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 $(document).ready(function () {
+    function removeTrackedItem() {
+        let item = $(this).attr("data-item");
+        let faction = $(this).attr("data-faction");
+
+        let xhttpRemoveItem = new XMLHttpRequest();
+
+        xhttpRemoveItem.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast("Removal Failed", response["message"]);
+                return;
+            }
+
+            $(this).parent().remove();
+        };
+
+        xhttpItem.responseType = "json";
+        xhttpItem.open("DELETE", `/api/bot/${guildid}/armory/${faction}/item`);
+        xhttpItem.setRequestHeader("Content-Type", "application/json");
+        xhttpItem.send(
+            JSON.stringify({
+                item: itemID,
+            })
+        );
+    }
+
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {
@@ -182,8 +209,19 @@ $(document).ready(function () {
                 trackedItems.append(
                     $("<li>", {
                         class: "list-group-item list-group-item-flush",
-                        text: `${items[itemID]} >= ${commas(itemQuantity)}`,
-                    })
+                        text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
+                    }).append(
+                        $("<button>", {
+                            class: "btn btn-sm btn-outline remove-item",
+                            type: "button",
+                            "data-faction": factionID,
+                            "data-item": itemID,
+                        }).append(
+                            $("<i>", {
+                                class: "fa-solid fa-minus",
+                            })
+                        )
+                    )
                 );
             });
 
@@ -194,9 +232,11 @@ $(document).ready(function () {
         });
 
         if (serverConfig.armory.enabled) {
+            $("#tracker-config-enable").attr("disabled", true);
             $("#tracker-config-disable").attr("disabled", false);
         } else {
             $("#tracker-config-enable").attr("disabled", false);
+            $("#tracker-config-disable").attr("disabled", true);
         }
 
         itemsRequest().finally(function () {
@@ -254,10 +294,23 @@ $(document).ready(function () {
 
                 $(`.tracked-items[data-faction="${factionID}"]`).append(
                     $("<li>", {
-                        class: "list-group-item list-group-flush",
-                        text: `${items[itemID]} [${itemID}]`,
-                    })
+                        class: "list-group-item list-group-flush d-flex justify-content-end",
+                        text: `${items[itemID]} [${itemID}] >= ${commas(minQuantity)}`,
+                    }).append(
+                        $("<button>", {
+                            class: "btn btn-sm btn-outline remove-item",
+                            type: "button",
+                            "data-faction": factionID,
+                            "data-item": itemID,
+                        }).append(
+                            $("<i>", {
+                                class: "fa-solid fa-minus",
+                            })
+                        )
+                    )
                 );
+                $("#no-items-container").remove();
+                $(`.remove-item[data-faction="${factionID}"][data-item="${itemID}"]`).on("click", removeTrackedItem);
             };
 
             xhttpItem.responseType = "json";
@@ -354,7 +407,7 @@ $(document).ready(function () {
         $(".armory-faction-toggle").on("click", function () {
             let xhttpFactionToggle = new XMLHttpRequest();
             let faction = $(this).attr("data-faction");
-            let enabled = $(this).attr("data-state") === 1;
+            let enabled = $(this).attr("data-state").val() === "1";
 
             xhttpFactionToggle.onload = function () {
                 const response = xhttpFactionToggle.response;
@@ -382,6 +435,8 @@ $(document).ready(function () {
                 })
             );
         });
+
+        $(".remove-item").on("click", removeTrackedItem);
     };
 
     xhttp.responseType = "json";

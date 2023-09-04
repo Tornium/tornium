@@ -1273,7 +1273,7 @@ def auto_cancel_requests():
 @celery.shared_task(name="tasks.faction.armory_check", routing_key="quick.armory_check", queue="quick")
 def armory_check():
     faction: FactionModel
-    for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not_size=0)):
+    for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not__size=0)):
         if len(faction.aa_keys) == 0:
             continue
         elif faction.guild in (None, 0):

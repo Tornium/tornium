@@ -199,38 +199,6 @@ $(document).ready(function () {
             );
         });
 
-        $.each(serverConfig.armory.config, function (factionID, factionConfig) {
-            if (factionConfig.items.length > 0) {
-                $(`.no-items-container[data-faction="${factionID}"]`).remove();
-            }
-
-            const trackedItems = $(`.tracked-items[data-faction="${factionID}"]`);
-            $.each(factionConfig.items, function (itemID, itemQuantity) {
-                trackedItems.append(
-                    $("<li>", {
-                        class: "list-group-item list-group-item-flush",
-                        text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
-                    }).append(
-                        $("<button>", {
-                            class: "btn btn-sm btn-outline remove-item",
-                            type: "button",
-                            "data-faction": factionID,
-                            "data-item": itemID,
-                        }).append(
-                            $("<i>", {
-                                class: "fa-solid fa-minus",
-                            })
-                        )
-                    )
-                );
-            });
-
-            if (factionConfig.enabled) {
-                $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="0"]`).attr("disabled", false);
-                $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="1"]`).attr("disabled", true);
-            }
-        });
-
         if (serverConfig.armory.enabled) {
             $("#tracker-config-enable").attr("disabled", true);
             $("#tracker-config-disable").attr("disabled", false);
@@ -241,6 +209,38 @@ $(document).ready(function () {
 
         itemsRequest().finally(function () {
             $(".item-selector").selectpicker();
+
+            $.each(serverConfig.armory.config, function (factionID, factionConfig) {
+                if (factionConfig.items.length > 0) {
+                    $(`.no-items-container[data-faction="${factionID}"]`).remove();
+                }
+
+                const trackedItems = $(`.tracked-items[data-faction="${factionID}"]`);
+                $.each(factionConfig.items, function (itemID, itemQuantity) {
+                    trackedItems.append(
+                        $("<li>", {
+                            class: "list-group-item list-group-item-flush",
+                            text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
+                        }).append(
+                            $("<button>", {
+                                class: "btn btn-sm btn-outline remove-item",
+                                type: "button",
+                                "data-faction": factionID,
+                                "data-item": itemID,
+                            }).append(
+                                $("<i>", {
+                                    class: "fa-solid fa-minus",
+                                })
+                            )
+                        )
+                    );
+                });
+
+                if (factionConfig.enabled) {
+                    $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="0"]`).attr("disabled", false);
+                    $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="1"]`).attr("disabled", true);
+                }
+            });
         });
 
         channelsRequest()

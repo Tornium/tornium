@@ -212,3 +212,6 @@ def armory_faction_toggle(guildid: int, factionid: int, *args, **kwargs):
         guild.armory_config[str(factionid)]["enabled"] = enabled
     except KeyError:
         guild.armory_config[str(factionid)] = {"enabled": enabled, "channel": 0, "roles": [], "items": {}}
+
+    guild.save()
+    return jsonified_server_config(guild), 200, api_ratelimit_response(key)

@@ -242,7 +242,7 @@ $(document).ready(function () {
             let factionID = this.getAttribute("data-faction");
             let itemSelector = $(this).parent().find(".tracked-item");
             let itemID = parseInt(itemSelector.find(":selected").val());
-            let minQuantity = $(this).parent().find(".tracked-item-quantity");
+            let minQuantity = $(this).parent().find(".tracked-item-quantity").val();
 
             xhttpItem.onload = function () {
                 const response = xhttpItem.response;

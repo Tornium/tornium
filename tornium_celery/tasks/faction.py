@@ -30,6 +30,7 @@ from tornium_commons.errors import DiscordError, NetworkingError, TornError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
     FactionModel,
+    ItemModel,
     OCModel,
     PositionModel,
     ServerModel,
@@ -1267,3 +1268,144 @@ def auto_cancel_requests():
                 ]
             },
         ).forget()
+
+
+@celery.shared_task(name="tasks.faction.armory_check", routing_key="quick.armory_check", queue="quick")
+def armory_check():
+    faction: FactionModel
+    for faction in FactionModel.objects(Q(aa_keys__exists=True) & Q(aa_keys__not_size=0)):
+        if len(faction.aa_keys) == 0:
+            continue
+        elif faction.guild in (None, 0):
+            continue
+
+        guild: typing.Optional[ServerModel] = ServerModel.objects(sid=faction.guild).first()
+
+        if guild is None:
+            continue
+        elif faction.tid not in guild.factions:
+            continue
+        elif not guild.armory_enabled:
+            continue
+        elif str(faction.tid) not in guild.armory_config:
+            continue
+        elif not guild.armory_config[str(faction.tid)].get("enabled"):
+            continue
+        elif guild.armory_config[str(faction.tid)].get("channel", 0) == 0:
+            continue
+        elif len(guild.armory_config[str(faction.tid)].get("items", {})) == 0:
+            continue
+
+        aa_key = random.choice(faction.aa_keys)
+
+        tornget.signature(
+            kwargs={
+                "endpoint": "faction/?selections=armor,boosters,caches,drugs,medical,temporary,weapons",
+                "key": aa_key,
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=armory_check_subtask.signature(
+                kwargs={
+                    "faction_id": faction.tid,
+                }
+            ),
+        )
+
+
+@celery.shared_task(
+    name="tasks.faction.armory_check_subtask", routing_key="quick.armory_check_subtask", queue="default"
+)
+def armory_check_subtask(_armory_data, faction_id: int):
+    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction_id).first()
+
+    if faction is None:
+        return
+    elif faction.guild in (None, 0):
+        return
+
+    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=faction.guild).first()
+
+    if guild is None:
+        return
+    elif faction.tid not in guild.factions:
+        return
+    elif not guild.armory_enabled:
+        return
+    elif str(faction.tid) not in guild.armory_config:
+        return
+
+    faction_config = guild.armory_config[str(faction.tid)]
+
+    if not faction_config.get("enabled"):
+        return
+    elif faction_config.get("channel", 0) == 0:
+        return
+    elif len(faction_config.get("items", {})) == 0:
+        return
+
+    role_str = "".join([f"<@&{role}>" for role in faction_config.get("roles", [])])
+
+    for armory_type in _armory_data:
+        for armory_item in _armory_data[armory_type]:
+            if str(armory_item["ID"]) not in faction_config["items"]:
+                continue
+
+            quantity = armory_item.get("available") or armory_item.get("quantity")
+            minimum = faction_config["items"][str(armory_item)]
+
+            if quantity >= minimum:
+                continue
+
+            item: typing.Optional[ItemModel] = ItemModel.objects(tid=armory_item["ID"]).only("market_value").first()
+
+            if item is None or item.market_value <= 0:
+                suffix = ""
+            else:
+                suffix = f" (worth about ${commas(item.market_value * (minimum - quantity))})"
+
+            payload = {
+                "embeds": [
+                    {
+                        "title": "Low Armory Stock",
+                        "description": f"{faction.name} is currently low on {armory_item['name']} ({commas(quantity)} "
+                        f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity{suffix}.",
+                        "color": SKYNET_ERROR,
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": torn_timestamp()},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Armory",
+                                "url": "https://www.torn.com/factions.php?step=your&type=1#/tab=armoury",
+                            },
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Item Market",
+                                "url": f"https://www.torn.com/imarket.php#/p=shop&step=shop&type=&searchname={armory_item['ID']}",
+                            },
+                        ],
+                    }
+                ],
+            }
+
+            if role_str != "":
+                payload["embeds"] = role_str
+
+            try:
+                discordpost.delay(
+                    f"channels/{faction_config['channel']}/messages",
+                    payload=payload,
+                    channel=faction_config["channel"],
+                ).forget()
+            except Exception as e:
+                logger.exception(e)
+                continue

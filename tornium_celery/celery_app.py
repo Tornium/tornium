@@ -137,6 +137,11 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
             },
+            "armory-check": {
+                "task": "tasks.faction.armory_check",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "0", "hour": "*"},
+            },
             "auto-cancel-requests": {
                 "task": "tasks.faction.auto_cancel_requests",
                 "enabled": True,

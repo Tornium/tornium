@@ -27,7 +27,7 @@ $(document).ready(function () {
                 return;
             }
 
-            $(this).parent().remove();
+            $(`.remove-item[data-faction="${faction}"][data-item=${item}]`).parent().remove();
         };
 
         xhttpRemoveItem.responseType = "json";
@@ -310,7 +310,7 @@ $(document).ready(function () {
                         )
                     )
                 );
-                $("#no-items-container").remove();
+                $(`.no-items-container[data-faction="${factionID}"]`).remove();
                 $(`.remove-item[data-faction="${factionID}"][data-item="${itemID}"]`).on("click", removeTrackedItem);
             };
 

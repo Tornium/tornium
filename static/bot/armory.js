@@ -210,7 +210,7 @@ $(document).ready(function () {
             $(".item-selector").selectpicker();
 
             $.each(serverConfig.armory.config, function (factionID, factionConfig) {
-                if (factionConfig.items.length > 0) {
+                if (factionConfig.items.keys().length > 0) {
                     $(`.no-items-container[data-faction="${factionID}"]`).remove();
                 }
 
@@ -219,7 +219,7 @@ $(document).ready(function () {
                     trackedItems.append(
                         $("<li>", {
                             class: "list-group-item list-group-flush d-flex justify-content-between",
-                            text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
+                            text: `${items[itemID]} < ${commas(itemQuantity)}`,
                         }).append(
                             $("<button>", {
                                 class: "btn btn-sm btn-outline remove-item",
@@ -296,7 +296,7 @@ $(document).ready(function () {
                 $(`.tracked-items[data-faction="${factionID}"]`).append(
                     $("<li>", {
                         class: "list-group-item list-group-flush d-flex justify-content-between",
-                        text: `${items[itemID]} [${itemID}] >= ${commas(minQuantity)}`,
+                        text: `${items[itemID]} < ${commas(minQuantity)}`,
                     }).append(
                         $("<button>", {
                             class: "btn btn-sm btn-outline remove-item",

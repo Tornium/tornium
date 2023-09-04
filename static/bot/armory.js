@@ -17,7 +17,6 @@ $(document).ready(function () {
     function removeTrackedItem() {
         let item = $(this).attr("data-item");
         let faction = $(this).attr("data-faction");
-
         let xhttpRemoveItem = new XMLHttpRequest();
 
         xhttpRemoveItem.onload = function () {
@@ -31,12 +30,12 @@ $(document).ready(function () {
             $(this).parent().remove();
         };
 
-        xhttpItem.responseType = "json";
-        xhttpItem.open("DELETE", `/api/bot/${guildid}/armory/${faction}/item`);
-        xhttpItem.setRequestHeader("Content-Type", "application/json");
-        xhttpItem.send(
+        xhttpRemoveItem.responseType = "json";
+        xhttpRemoveItem.open("DELETE", `/api/bot/${guildid}/armory/${faction}/item`);
+        xhttpRemoveItem.setRequestHeader("Content-Type", "application/json");
+        xhttpRemoveItem.send(
             JSON.stringify({
-                item: itemID,
+                item: item,
             })
         );
     }
@@ -219,7 +218,7 @@ $(document).ready(function () {
                 $.each(factionConfig.items, function (itemID, itemQuantity) {
                     trackedItems.append(
                         $("<li>", {
-                            class: "list-group-item list-group-item-flush",
+                            class: "list-group-item list-group-item-flush d-flex justify-content-between",
                             text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
                         }).append(
                             $("<button>", {
@@ -294,7 +293,7 @@ $(document).ready(function () {
 
                 $(`.tracked-items[data-faction="${factionID}"]`).append(
                     $("<li>", {
-                        class: "list-group-item list-group-flush d-flex justify-content-end",
+                        class: "list-group-item list-group-flush d-flex justify-content-between",
                         text: `${items[itemID]} [${itemID}] >= ${commas(minQuantity)}`,
                     }).append(
                         $("<button>", {
@@ -390,7 +389,7 @@ $(document).ready(function () {
                     $("#tracker-config-disable").attr("disabled", false);
                 } else {
                     $("#tracker-config-enable").attr("disabled", false);
-                    $("#tracker-config-enable").attr("disabled", true);
+                    $("#tracker-config-disable").attr("disabled", true);
                 }
             };
 
@@ -407,7 +406,7 @@ $(document).ready(function () {
         $(".armory-faction-toggle").on("click", function () {
             let xhttpFactionToggle = new XMLHttpRequest();
             let faction = $(this).attr("data-faction");
-            let enabled = $(this).attr("data-state").val() === "1";
+            let enabled = $(this).attr("data-state") === "1";
 
             xhttpFactionToggle.onload = function () {
                 const response = xhttpFactionToggle.response;

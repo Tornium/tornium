@@ -53,7 +53,7 @@ $(document).ready(function () {
                             $("<div>").append([
                                 $("<button>", {
                                     type: "button",
-                                    class: "btn btn-outline armory-faction-toggle",
+                                    class: "btn btn-outline armory-faction-toggle me-2",
                                     "data-state": "1",
                                     "data-faction": factionID,
                                     text: "Enable",
@@ -61,13 +61,14 @@ $(document).ready(function () {
                                 $("<button>", {
                                     type: "button",
                                     class: "btn btn-outline armory-faction-toggle",
+                                    disabled: "",
                                     "data-state": "0",
                                     "data-faction": factionID,
                                     text: "Disable",
                                 }),
                             ]),
                             $("<div>", {
-                                class: "card",
+                                class: "card mt-3",
                             }).append([
                                 $("<div>", {
                                     class: "card-header",
@@ -185,12 +186,17 @@ $(document).ready(function () {
                     })
                 );
             });
+
+            if (factionConfig.enabled) {
+                $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="0"]`).attr("disabled", false);
+                $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="1"]`).attr("disabled", true);
+            }
         });
 
         if (serverConfig.armory.enabled) {
-            $("#tracker-config-disable").removeAttr("disabled");
+            $("#tracker-config-disable").attr("disabled", false);
         } else {
-            $("#tracker-config-enable").removeAttr("enabled");
+            $("#tracker-config-enable").attr("disabled", false);
         }
 
         itemsRequest().finally(function () {
@@ -235,7 +241,7 @@ $(document).ready(function () {
             let xhttpItem = new XMLHttpRequest();
             let factionID = this.getAttribute("data-faction");
             let itemSelector = $(this).parent().find(".tracked-item");
-            let itemID = itemSelector.options[itemSelector.selectedIndex].value;
+            let itemID = parseInt(itemSelector.find(":selected").val());
             let minQuantity = $(this).parent().find(".tracked-item-quantity");
 
             xhttpItem.onload = function () {
@@ -284,7 +290,7 @@ $(document).ready(function () {
             };
 
             xhttpRoles.responseType = "json";
-            xhttpRoles.open("POST", `/api/bot/${guildid}/armory/${factionID}/roles`);
+            xhttpRoles.open("POST", `/api/bot/${guildid}/armory/${$(this).attr("data-faction")}/roles`);
             xhttpRoles.setRequestHeader("Content-Type", "application/json");
             xhttpRoles.send(
                 JSON.stringify({

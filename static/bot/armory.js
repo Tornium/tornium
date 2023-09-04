@@ -105,7 +105,7 @@ $(document).ready(function () {
                                 }).append([
                                     $("<p>", {
                                         class: "card-text",
-                                        text: "Select the channel armory tracking notifications are sent to",
+                                        text: "Select the channel armory tracking notifications are sent to.",
                                     }),
                                     $("<select>", {
                                         class: "discord-channel-selector tracker-channel",
@@ -132,7 +132,7 @@ $(document).ready(function () {
                                 }).append([
                                     $("<p>", {
                                         class: "card-text",
-                                        text: "Select the roles for the factions' armorers",
+                                        text: "Select the roles for the faction's armorers.",
                                     }),
                                     $("<select>", {
                                         class: "discord-role-selector armorer-roles",
@@ -218,7 +218,7 @@ $(document).ready(function () {
                 $.each(factionConfig.items, function (itemID, itemQuantity) {
                     trackedItems.append(
                         $("<li>", {
-                            class: "list-group-item list-group-item-flush d-flex justify-content-between",
+                            class: "list-group-item list-group-flush d-flex justify-content-between",
                             text: `${items[itemID]} [${itemID}] >= ${commas(itemQuantity)}`,
                         }).append(
                             $("<button>", {
@@ -240,6 +240,8 @@ $(document).ready(function () {
                     $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="1"]`).attr("disabled", true);
                 }
             });
+
+            $(".remove-item").on("click", removeTrackedItem);
         });
 
         channelsRequest()
@@ -417,11 +419,11 @@ $(document).ready(function () {
                 }
 
                 if (enabled) {
-                    $(this).attr("disabled", true);
+                    $(`.armory-faction-toggle[data-faction="${faction}"][data-state="1"]`).attr("disabled", true);
                     $(`.armory-faction-toggle[data-faction="${faction}"][data-state="0"]`).attr("disabled", false);
                 } else {
                     $(`.armory-faction-toggle[data-faction="${faction}"][data-state="1"]`).attr("disabled", false);
-                    $(this).attr("disabled", true);
+                    $(`.armory-faction-toggle[data-faction="${faction}"][data-state="0"]`).attr("disabled", true);
                 }
             };
 

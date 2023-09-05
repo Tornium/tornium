@@ -1309,14 +1309,13 @@ def armory_check():
             link=armory_check_subtask.signature(
                 kwargs={
                     "faction_id": faction.tid,
-                }
+                },
+                queue="quick",
             ),
         )
 
 
-@celery.shared_task(
-    name="tasks.faction.armory_check_subtask", routing_key="quick.armory_check_subtask", queue="default"
-)
+@celery.shared_task(name="tasks.faction.armory_check_subtask", routing_key="quick.armory_check_subtask", queue="quick")
 def armory_check_subtask(_armory_data, faction_id: int):
     faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction_id).first()
 
@@ -1398,7 +1397,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
             }
 
             if role_str != "":
-                payload["embeds"] = role_str
+                payload["content"] = role_str
 
             try:
                 discordpost.delay(

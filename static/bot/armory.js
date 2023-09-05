@@ -210,7 +210,7 @@ $(document).ready(function () {
             $(".item-selector").selectpicker();
 
             $.each(serverConfig.armory.config, function (factionID, factionConfig) {
-                if (factionConfig.items.keys().length > 0) {
+                if (Object.keys(factionConfig.items).length > 0) {
                     $(`.no-items-container[data-faction="${factionID}"]`).remove();
                 }
 

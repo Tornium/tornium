@@ -190,6 +190,9 @@ def armory_faction_toggle(guildid: int, factionid: int, *args, **kwargs):
 
     enabled: typing.Optional[bool] = data.get("enabled")
 
+    if enabled is None or not isinstance(enabled, bool):
+        return make_exception_response("1000", key, details={"element": "enabled"})
+
     guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
 
     if guild is None:

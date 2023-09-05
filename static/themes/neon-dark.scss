@@ -76,6 +76,11 @@
             }
         }
 
+        // From bootstrap-select
+        & .no-results {
+            background-color: $primary-grey;
+        }
+
         & .list-group-item {
             background-color: $primary-grey;
             color: $neon;

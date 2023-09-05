@@ -244,7 +244,6 @@ Tornium - Bot Dashboard
             {% if current_user.admin %}
             <div class="row w-100">
                 <div class="col-sm-12 col-md-6 col-xl-4">
-
                     <div class="card mb-3">
                         <div class="card-header">Stock Feed Channel:</div>
 
@@ -339,6 +338,21 @@ Tornium - Bot Dashboard
             <a href="/bot/dashboard/{{ guildid }}/oc">
                 <button type="button" class="btn btn-outline">
                     Go to Organized Crime Settings
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Armory Stock Tracker</h5>
+            <p class="card-text">
+                Tracking the stock of the items in your armory.
+            </p>
+
+            <a href="/bot/dashboard/{{ guildid }}/armory">
+                <button type="button" class="btn btn-outline">
+                    Go to Armory Tracker Settings
                 </button>
             </a>
         </div>

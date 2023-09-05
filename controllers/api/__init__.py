@@ -15,7 +15,7 @@
 
 from flask import Blueprint
 
-from controllers.api import bot, faction, key, report, stat, stocks, user
+from controllers.api import bot, faction, items, key, report, stat, stocks, user
 
 mod = Blueprint("apiroutes", __name__)
 
@@ -26,6 +26,31 @@ mod.add_url_rule("/api/key", view_func=key.set_key, methods=["POST"])
 mod.add_url_rule("/api/token", view_func=key.test_token, methods=["GET"])
 
 # /api/bot
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory",
+    view_func=bot.armory.armory_toggle,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>",
+    view_func=bot.armory.armory_faction_toggle,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/channel",
+    view_func=bot.armory.armory_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/item",
+    view_func=bot.armory.armory_tracked_items,
+    methods=["DELETE", "POST"],
+)
+mod.add_url_rule(
+    "/api/bot/<int:guildid>/armory/<int:factionid>/roles",
+    view_func=bot.armory.armorer_roles,
+    methods=["POST"],
+)
 mod.add_url_rule(
     "/api/bot/<int:guildid>/assists/channel",
     view_func=bot.assists.assists_channel,
@@ -143,6 +168,9 @@ mod.add_url_rule(
     view_func=faction.positions.get_positions,
     methods=["GET"],
 )
+
+# /api/items
+mod.add_url_rule("/api/items", view_func=items.item_name_map, methods=["GET"])
 
 # /api/report
 mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.get_reports, methods=["GET"])

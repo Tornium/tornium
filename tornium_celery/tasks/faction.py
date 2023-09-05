@@ -1289,7 +1289,7 @@ def armory_check():
             continue
         elif str(faction.tid) not in guild.armory_config:
             continue
-        elif not guild.armory_config[str(faction.tid)].get("enabled"):
+        elif not guild.armory_config[str(faction.tid)].get("enabled", False):
             continue
         elif guild.armory_config[str(faction.tid)].get("channel", 0) == 0:
             continue
@@ -1337,7 +1337,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
 
     faction_config = guild.armory_config[str(faction.tid)]
 
-    if not faction_config.get("enabled"):
+    if not faction_config.get("enabled", False):
         return
     elif faction_config.get("channel", 0) == 0:
         return

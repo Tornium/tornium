@@ -1353,7 +1353,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
                 continue
 
             quantity = armory_item.get("available") or armory_item.get("quantity")
-            minimum = faction_config["items"][str(armory_item)]
+            minimum = faction_config["items"][str(armory_item["ID"])]
 
             if quantity >= minimum:
                 continue

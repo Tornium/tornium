@@ -350,17 +350,11 @@ Tornium - Bot Dashboard
                 Tracking the stock of the items in your armory.
             </p>
 
-            {% if current_user.admin %}
             <a href="/bot/dashboard/{{ guildid }}/armory">
                 <button type="button" class="btn btn-outline">
                     Go to Armory Tracker Settings
                 </button>
             </a>
-            {% else %}
-            <p class="card-text">
-                This feature is currently under development. Please check back later.
-            </p>
-            {% endif %}
         </div>
     </div>
 </div>

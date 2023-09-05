@@ -22,15 +22,6 @@ from tornium_commons.models import ServerModel
 
 @login_required
 def armory_dashboard(guildid: int):
-    if not current_user.admin:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Permission Denied",
-                error="This feature is currently under development. Please check back later.",
-            ),
-        ), 403
-
     guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
 
     if guild is None:

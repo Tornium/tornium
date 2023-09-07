@@ -266,18 +266,30 @@ def update_faction(faction_data):
     for member_id, member in faction_data["members"].items():
         users.append(int(member_id))
 
-        UserModel.objects(tid=int(member_id)).modify(
-            upsert=True,
-            new=True,
-            set__name=member["name"],
-            set__level=member["level"],
-            set__last_refresh=int(time.time()),
-            set__factionid=faction.tid,
-            set__factionaa=positions_data[member["position"]]["aa"] if member["position"] is not None else False,
-            set__faction_position=positions_data[member["position"]]["uuid"],
-            set__status=member["last_action"]["status"],
-            set__last_action=member["last_action"]["timestamp"],
-        )
+        if "positions" in faction_data:
+            UserModel.objects(tid=int(member_id)).modify(
+                upsert=True,
+                new=True,
+                set__name=member["name"],
+                set__level=member["level"],
+                set__last_refresh=int(time.time()),
+                set__factionid=faction.tid,
+                set__factionaa=positions_data[member["position"]]["aa"] if member["position"] is not None else False,
+                set__faction_position=positions_data[member["position"]]["uuid"],
+                set__status=member["last_action"]["status"],
+                set__last_action=member["last_action"]["timestamp"],
+            )
+        else:
+            UserModel.objects(tid=int(member_id)).modify(
+                upsert=True,
+                new=True,
+                set__name=member["name"],
+                set__level=member["level"],
+                set__last_refresh=int(time.time()),
+                set__factionid=faction.tid,
+                set__status=member["last_action"]["status"],
+                set__last_action=member["last_action"]["timestamp"],
+            )
 
     for user in UserModel.objects(factionid=faction.tid):
         if user.tid in users:

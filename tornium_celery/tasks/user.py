@@ -156,6 +156,21 @@ def update_user_self(user_data, key=None):
                 user.faction_position = faction_position.pid
                 user.save()
 
+    if "competition" in user_data:
+        if user_data["competition"].get("name", "").lower() == "elimination":
+            elim_score = user_data["competition"].get("score")
+            elim_team = user_data["competition"].get("team")
+            elim_attacks = user_data["competition"].get("attacks")
+
+            if elim_score is not None:
+                user.elim_score = elim_score
+            if elim_team is not None:
+                user.elim_team = elim_team
+            if elim_attacks is not None:
+                user.elim_attacks = elim_attacks
+
+            user.save()
+
     now = datetime.datetime.utcnow()
     now = int(
         datetime.datetime(
@@ -215,6 +230,21 @@ def update_user_other(user_data):
             elif faction_position.pid != user.faction_position:
                 user.faction_position = faction_position.pid
                 user.save()
+
+    if "competition" in user_data:
+        if user_data["competition"].get("name", "").lower() == "elimination":
+            elim_score = user_data["competition"].get("score")
+            elim_team = user_data["competition"].get("team")
+            elim_attacks = user_data["competition"].get("attacks")
+
+            if elim_score is not None:
+                user.elim_score = elim_score
+            if elim_team is not None:
+                user.elim_team = elim_team
+            if elim_attacks is not None:
+                user.elim_attacks = elim_attacks
+
+            user.save()
 
     now = datetime.datetime.utcnow()
     now = int(

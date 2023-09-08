@@ -54,3 +54,9 @@ class UserModel(DynamicDocument):
     last_action = IntField(default=0)
 
     last_attacks = IntField(default=0)
+
+    # Competitions data
+    # - Elim data
+    elim_score = IntField()
+    elim_team = StringField()
+    elim_attacks = IntField()

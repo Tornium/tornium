@@ -17,6 +17,8 @@ from mongoengine import DynamicDocument, IntField
 
 
 class PersonalStatModel(DynamicDocument):
+    meta = {"indexes": [("-tid", "-timestamp")]}
+
     #### pstat_id ####
     # tid = bin(tid << 8)
     # timestamp = bin(timestamp)

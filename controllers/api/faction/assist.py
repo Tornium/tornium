@@ -25,7 +25,7 @@ from celery.result import AsyncResult
 from flask import jsonify, request
 from mongoengine.queryset.visitor import Q
 from redis.commands.json.path import Path
-from tornium_celery.tasks.api import discordpost, torn_stats_get
+from tornium_celery.tasks.api import discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError

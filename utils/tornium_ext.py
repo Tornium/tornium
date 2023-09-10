@@ -32,7 +32,12 @@ class TorniumExt:
             self.loaded = False
 
         if self.loaded:
-            self.extension = self.package.Extension()
+            try:
+                self.extension = self.package.Extension()
+            except AttributeError:
+                self.package = None
+                self.loaded = False
+                self.extension = None
         else:
             self.extension = None
 

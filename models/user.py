@@ -59,6 +59,8 @@ class User(UserMixin):
         self.status = user.status
         self.last_action = user.last_action
 
+        self.elim_team = user.elim_team
+
     def get_id(self):
         return int(self.tid)
 

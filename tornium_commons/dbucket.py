@@ -66,8 +66,23 @@ def _strip_endpoint(endpoint) -> str:
     return without_query
 
 
+def _minute_timestamp() -> int:
+    """
+    Generates a timestamp for the start of the minute
+
+    Returns
+    -------
+    timestamp : int
+        Timestamp for the start of the minute
+    """
+
+    now = int(time.time())
+    return now - (now % 60)
+
+
 PREFIX = "tornium:discord:ratelimit:bucket"
 _se = _strip_endpoint
+_m = _minute_timestamp
 
 
 class DBucket:
@@ -94,7 +109,8 @@ class DBucket:
 
         self._id = bhash
         self.remaining = 1  # Default value in case hash is not found
-        self.expires = int(time.time())  # bucket's data is only valid for the second
+        self.limit = 1  # Default value in case hash is not found
+        self.expires = _m() + 60
 
     @property
     def id(self):
@@ -125,7 +141,7 @@ class DBucket:
         """
 
         # Prevents requests from being made on new endpoints that are currently being called and updated
-        if rds().exists(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}") == 1:
+        if rds().exists(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{_m()}") == 1:
             raise RatelimitError
 
         client = rds()
@@ -135,7 +151,8 @@ class DBucket:
             BHASH,
             1,
             f"{PREFIX}:{method}|{_se(endpoint)}",
-            int(time.time()),
+            _m(),
+            60 - (int(time.time()) % 60),
         )
 
         if bhash is None:
@@ -157,13 +174,17 @@ class DBucket:
         response = rds().evalsha(
             BHASH_CALL,
             3,
-            f"{self.prefix}:{self.id}:remaining:{int(time.time())}",
+            f"{self.prefix}:{self.id}:remaining:{_m()}",
             f"{self.prefix}:{self.id}:limit",
-            f"tornium:discord:ratelimit:global:{int(time.time())}",
+            f"tornium:discord:ratelimit:global:{_m()}",
         )
 
-        if response == 0:
+        if response is None:
             raise RatelimitError
+
+        self.remaining = response[0]
+        self.limit = response[1]
+        self.expires = response[2]
 
     def update_bucket(
         self,
@@ -193,12 +214,17 @@ class DBucket:
 
         if "X-RateLimit-Limit" in headers:
             client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"])
+            self.limit = headers["X-RateLimit-Limit"]
 
         if "X-RateLimit-Remaining" in headers:
-            client.set(f"{PREFIX}:{bhash}:remaining", min(int(headers["X-RateLimit-Remaining"]), self.remaining), ex=60)
+            client.set(
+                f"{PREFIX}:{bhash}:remaining:{_m()}",
+                min(int(headers["X-RateLimit-Remaining"]), self.remaining),
+                ex=60,
+            )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}")
+        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{_m()}")
 
 
 class DBucketNull(DBucket):
@@ -233,6 +259,7 @@ class DBucketNull(DBucket):
     def prefix(self):
         return PREFIX + ":temp"
 
+    # Child function primarily exists for testing purposes
     def update_bucket(
         self,
         headers: typing.Union[dict, requests.structures.CaseInsensitiveDict],
@@ -265,17 +292,17 @@ class DBucketNull(DBucket):
 
         if "X-RateLimit-Remaining" in headers and "X-RateLimit-Limit" in headers:
             client.set(
-                f"{PREFIX}:{bhash}:remaining:{int(time.time())}",
+                f"{PREFIX}:{bhash}:remaining:{_m()}",
                 min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1),
                 ex=60,
             )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1)
-        elif "X-RateLimit_Remaining" in headers:
+        elif "X-RateLimit-Remaining" in headers:
             client.set(
-                f"{PREFIX}:{bhash}:remaining:{int(time.time())}",
+                f"{PREFIX}:{bhash}:remaining:{_m()}",
                 min(int(headers["X-RateLimit-Remaining"]), self.remaining),
                 ex=60,
             )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{int(time.time())}")
+        rds().delete(f"{PREFIX}:{method}|{_se(endpoint)}:lock:{_m()}")

@@ -19,56 +19,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 -- Verifies that the call is above the global and per-route ratelimit and decrements relevant call remaining counters.
 --
--- Returns 0 if call is rate-limited
--- Returns 1 if call is OK
+-- KEYS[1] -> key for calls remaining on route
+-- KEYS[2] -> key for route limit
+-- KEYS[3] -> key for global ratelimit
+--
+-- Returns false if call is rate-limited
+-- Returns [remaining, limit, expire] if call is OK
 --
 -- NOTE: redis.call("GET", ...) == false states that the key doesn't exist
 
 -- Sets the global ratelimit if doesn't exist
-if redis.call("SET", KEYS[3], 49, "NX", "EX", 60) == "OK" then
-    return 1
--- Verifies global ratelimit
-elseif tonumber(redis.call("GET", KEYS[3])) < 1 then
-    return 1
-end
+redis.call("SET", KEYS[3], 49, "NX", "EX", 60)
 
 local remaining = redis.call("GET", KEYS[1])
-local limit = false  -- per-route ratelimit limit
 
-if remaining == false then
-    if limit == false then
-        limit = redis.call("GET", KEYS[2])
+-- Retrieve per-route limit
+local limit = redis.call("GET", KEYS[2])
 
-        if limit == false then
-            limit = 1
-        else
-            limit = tonumber(limit)
-        end
-    end
-
+if limit == false then
+    limit = 1
+    remaining = 1
     redis.call("SET", KEYS[1], limit, "NX", "EX", 2)
+else
+    limit = tonumber(limit)
 end
 
--- Checks
-if redis.call("EXISTS", KEYS[1]) == "0" then
-    if limit == false then
-        limit = redis.call("GET", KEYS[2])
+if remaining ~= false then
+    remaining = tonumber(remaining)
+end
 
-        if limit == false then
-            limit = 1
-        else
-            limit = tonumber(limit)
-        end
-    end
-
-    -- Set calls remaining from limit
-    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", 2)
-elseif tonumber(redis.call("GET", KEYS[1])) < 1 then
-    -- Call rate-limited from pre-route ratelimit
-    return 0
+if remaining == false then
+    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", tonumber(redis.call("TIME")[1]))
+    remaining = limit - 1
+elseif remaining < 1 then
+    return false
 else
-    -- Per-route ratelimit remaining decrement
     redis.call("DECR", KEYS[1])
 end
 
-return 1  -- OK
+-- OK
+return {
+    remaining,
+    limit,
+    tonumber(redis.call("TTL", KEYS[1]))
+}

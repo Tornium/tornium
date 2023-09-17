@@ -22,6 +22,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance
+ - [tornium-commons] Changed DBuckets to be in more compliance with the Discord documentation
 
 === Fixed
  - Fixed MIME type of certain API endpoints (#178)

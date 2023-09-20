@@ -59,7 +59,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         user_id = discordid
 
     if user is not None and not refresh_existing:
-        return user, {"refresh": False}
+        return None
 
     result_sig: celery.canvas.Signature
     if update_self:
@@ -77,7 +77,6 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         )
 
     if self.request.id is None:  # Run in same process
-        print("Using same process")
         api_result = result_sig()
 
         if update_self:
@@ -85,7 +84,6 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         else:
             result = update_user_other(api_result)
     else:  # Run in a Celery worker
-        logger.info("Using celery worker")
         if update_self:
             result = result_sig.apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
         else:

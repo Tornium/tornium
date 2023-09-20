@@ -55,13 +55,7 @@ def refresh_guilds():
             guild_db = ServerModel(
                 sid=guild["id"],
                 name=guild["name"],
-                admins=[],
-                config={"verify": 0},
                 icon=guild["icon"],
-                factions=[],
-                assistschannel=0,
-                assist_factions=[],
-                assist_mod=0,
             )
             guild_db.save()
 
@@ -102,6 +96,7 @@ def refresh_guilds():
         admins = list(set(admins))
         guild_db.admins = admins
         guild_db.icon = guild["icon"]
+        guild_db.name = guild["name"]
         guild_db.save()
 
         try:

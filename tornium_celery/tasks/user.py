@@ -38,8 +38,8 @@ from .api import tornget
 logger = get_task_logger("celery_app")
 
 
-@celery.shared_task(name="tasks.user.update_user", routing_key="default.update_user", queue="default")
-def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
+@celery.shared_task(name="tasks.user.update_user", routing_key="default.update_user", queue="default", bind=True)
+def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     if key is None or key == "":
         raise MissingKeyError
     elif tid != 0 and discordid != 0:
@@ -61,19 +61,35 @@ def update_user(key: str, tid: int = 0, discordid: int = 0, refresh_existing=Tru
     if user is not None and not refresh_existing:
         return user, {"refresh": False}
 
+    result_sig: celery.canvas.Signature
     if update_self:
-        result = tornget.signature(
+        result_sig = tornget.signature(
             kwargs={"endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats", "key": key},
             queue="api",
-        ).apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
+        )
     else:
-        result = tornget.signature(
+        result_sig = tornget.signature(
             kwargs={
                 "endpoint": f"user/{user_id}?selections=profile,discord,personalstats",
                 "key": user.key if user is not None and user.key not in (None, "") else key,
             },
             queue="api",
-        ).apply_async(expires=300, link=update_user_other.s())
+        )
+
+    if self.request.id is None:  # Run in same process
+        print("Using same process")
+        api_result = result_sig()
+
+        if update_self:
+            result = update_user_self(api_result, key=key)
+        else:
+            result = update_user_other(api_result)
+    else:  # Run in a Celery worker
+        logger.info("Using celery worker")
+        if update_self:
+            result = result_sig.apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
+        else:
+            result = result_sig.apply_async(expires=300, link=update_user_other.s())
 
     return result
 
@@ -156,20 +172,20 @@ def update_user_self(user_data, key=None):
                 user.faction_position = faction_position.pid
                 user.save()
 
-    if "competition" in user_data:
-        if user_data["competition"].get("name", "").lower() == "elimination":
-            elim_score = user_data["competition"].get("score")
-            elim_team = user_data["competition"].get("team")
-            elim_attacks = user_data["competition"].get("attacks")
-
-            if elim_score is not None:
-                user.elim_score = elim_score
-            if elim_team is not None:
-                user.elim_team = elim_team
-            if elim_attacks is not None:
-                user.elim_attacks = elim_attacks
-
-            user.save()
+    # if "competition" in user_data:
+    #     if user_data["competition"].get("name", "").lower() == "elimination":
+    #         elim_score = user_data["competition"].get("score")
+    #         elim_team = user_data["competition"].get("team")
+    #         elim_attacks = user_data["competition"].get("attacks")
+    #
+    #         if elim_score is not None:
+    #             user.elim_score = elim_score
+    #         if elim_team is not None:
+    #             user.elim_team = elim_team
+    #         if elim_attacks is not None:
+    #             user.elim_attacks = elim_attacks
+    #
+    #         user.save()
 
     now = datetime.datetime.utcnow()
     now = int(
@@ -198,6 +214,8 @@ def update_user_self(user_data, key=None):
         ).save()
     except (KeyError, mongoengine.errors.OperationError):
         pass
+
+    return user
 
 
 @celery.shared_task(name="tasks.user.update_user_other", routing_key="quick.update_user_other", queue="quick")
@@ -231,20 +249,20 @@ def update_user_other(user_data):
                 user.faction_position = faction_position.pid
                 user.save()
 
-    if "competition" in user_data:
-        if user_data["competition"].get("name", "").lower() == "elimination":
-            elim_score = user_data["competition"].get("score")
-            elim_team = user_data["competition"].get("team")
-            elim_attacks = user_data["competition"].get("attacks")
-
-            if elim_score is not None:
-                user.elim_score = elim_score
-            if elim_team is not None:
-                user.elim_team = elim_team
-            if elim_attacks is not None:
-                user.elim_attacks = elim_attacks
-
-            user.save()
+    # if "competition" in user_data:
+    #     if user_data["competition"].get("name", "").lower() == "elimination":
+    #         elim_score = user_data["competition"].get("score")
+    #         elim_team = user_data["competition"].get("team")
+    #         elim_attacks = user_data["competition"].get("attacks")
+    #
+    #         if elim_score is not None:
+    #             user.elim_score = elim_score
+    #         if elim_team is not None:
+    #             user.elim_team = elim_team
+    #         if elim_attacks is not None:
+    #             user.elim_attacks = elim_attacks
+    #
+    #         user.save()
 
     now = datetime.datetime.utcnow()
     now = int(
@@ -281,6 +299,8 @@ def update_user_other(user_data):
             rds().expire("tornium:personal-stats", 3600, nx=True)
     except KeyError:
         pass
+
+    return user
 
 
 @celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")

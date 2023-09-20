@@ -313,7 +313,7 @@ def skynet_login():
     if user is None:
         try:
             update_user(
-                key=random.choice(UserModel.objects(key__nin=[None, ""])),
+                key=random.choice(UserModel.objects(key__nin=[None, ""])).key,
                 discordid=user_data["id"],
                 refresh_existing=False,
             )
@@ -328,8 +328,8 @@ def skynet_login():
             return render_template(
                 "errors/error.html",
                 title="User Not Found",
-                error="Even after an update, the user and their key could not be located in the database. Please try "
-                "again and if this problem persists, contact tiksan [2383326] for support.",
+                error="Even after an update, the user could not be located in the database. Please try again and if "
+                "this problem persists, contact tiksan [2383326] for support.",
             )
 
         # Skip security alert as an alert to a compromised Discord account is useless

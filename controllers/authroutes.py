@@ -308,8 +308,7 @@ def skynet_login():
     user_data = user_request.json()
     print(user_data)
 
-    user_qs: QuerySet = UserModel.objects(discord_id=user_data["id"])
-    user: typing.Optional[UserModel] = user_qs.first()
+    user: typing.Optional[UserModel] = UserModel.objects(discord_id=user_data["id"]).first()
 
     if user is None:
         try:
@@ -317,15 +316,9 @@ def skynet_login():
                 key=random.choice(UserModel.objects(key__nin=[None, ""])),
                 discordid=user_data["id"],
                 refresh_existing=False,
-            ).get()
-        except celery.exceptions.TimeoutError:
-            return render_template(
-                "errors/error.html",
-                title="Timeout",
-                error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
             )
         except NetworkingError as e:
-            return utils.handle_torn_error(e)
+            return utils.handle_networking_error(e)
         except TornError as e:
             return utils.handle_torn_error(e)
 

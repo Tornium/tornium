@@ -215,8 +215,6 @@ def update_user_self(user_data, key=None):
     except (KeyError, mongoengine.errors.OperationError):
         pass
 
-    return user
-
 
 @celery.shared_task(name="tasks.user.update_user_other", routing_key="quick.update_user_other", queue="quick")
 def update_user_other(user_data):
@@ -299,8 +297,6 @@ def update_user_other(user_data):
             rds().expire("tornium:personal-stats", 3600, nx=True)
     except KeyError:
         pass
-
-    return user
 
 
 @celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")

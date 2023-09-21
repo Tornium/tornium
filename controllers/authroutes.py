@@ -22,7 +22,6 @@ import secrets
 import time
 import typing
 
-import celery.exceptions
 import requests
 from flask import Blueprint, redirect, render_template, request, session, url_for
 from flask_login import (
@@ -32,7 +31,6 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from mongoengine import QuerySet
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
@@ -84,15 +82,9 @@ def login():
             )
 
     try:
-        update_user(key=request.form["key"], tid=0, refresh_existing=False).get()
-    except celery.exceptions.TimeoutError:
-        return render_template(
-            "errors/error.html",
-            title="Timeout",
-            error="The Torn API or Celery backend has timed out on your API calls. Please try again.",
-        )
+        update_user(key=request.form["key"], tid=0, refresh_existing=False)
     except NetworkingError as e:
-        return utils.handle_torn_error(e)
+        return utils.handle_networking_error(e)
     except TornError as e:
         return utils.handle_torn_error(e)
     except AttributeError:
@@ -186,8 +178,8 @@ def login():
             render_template(
                 "errors/error.html",
                 title="Unknown Security",
-                error="The security mode attached to this account is not valid. Please contact the server administrator to "
-                "fix this in the database.",
+                error="The security mode attached to this account is not valid. Please contact the server "
+                "administrator to fix this in the database.",
             ),
             500,
         )
@@ -306,7 +298,6 @@ def skynet_login():
     user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=5)
     user_request.raise_for_status()
     user_data = user_request.json()
-    print(user_data)
 
     user: typing.Optional[UserModel] = UserModel.objects(discord_id=user_data["id"]).first()
 
@@ -348,7 +339,6 @@ def skynet_login():
 @mod.route("/login/skynet/callback", methods=["POST"])
 def skynet_login_callback():
     data = json.loads(request.get_data().decode("utf-8"))
-    print(data)
 
     return data
 

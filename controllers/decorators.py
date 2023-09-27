@@ -64,3 +64,16 @@ def token_required(f=None, setnx=False):
         return f(*args, **kwargs)
 
     return wrapper
+
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or not login_fresh():
+            return redirect(url_for("authroutes.login")), 401
+        elif not current_user.admin:
+            return render_template("errors/admin_denied.html"), 403
+
+        return f(*args, **kwargs)
+
+    return wrapper

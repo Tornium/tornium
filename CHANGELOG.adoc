@@ -19,6 +19,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added faction member person stat reports
  - Added leaving hospital stakeouts (#172)
  - Added armory stock tracking
+ - [ADMIN] Added option for admin accounts to view other user accounts
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance

@@ -224,6 +224,7 @@ def topt_verification():
         return redirect("/login")
 
     server_totp_tokens = utils.totp.totp(user.otp_secret)
+    next = session.get("next")
 
     if secrets.compare_digest(totp_token, server_totp_tokens[0]) or secrets.compare_digest(
         totp_token, server_totp_tokens[1]
@@ -231,10 +232,11 @@ def topt_verification():
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
-        if session.get("next") is None:
+        if next is None:
             return redirect(url_for("baseroutes.index"))
         else:
-            return redirect(session.get("next"))
+            del session["next"]
+            return redirect(next)
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
         user.save()
@@ -242,10 +244,11 @@ def topt_verification():
         login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
-        if session.get("next") is None:
+        if next is None:
             return redirect(url_for("baseroutes.index"))
         else:
-            return redirect(session.get("next"))
+            del session["next"]
+            return redirect(next)
     else:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 

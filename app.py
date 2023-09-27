@@ -82,6 +82,7 @@ logger.addHandler(handler)
 
 def init__app():
     from controllers import mod as base_mod
+    from controllers.adminroutes import mod as admin_mod
     from controllers.api import mod as api_mod
     from controllers.authroutes import mod as auth_mod
     from controllers.bot import mod as bot_mod
@@ -136,6 +137,7 @@ def init__app():
         app.register_blueprint(torn_mod)
         app.register_blueprint(skynet_mod)
         app.register_blueprint(cli_mod)
+        app.register_blueprint(admin_mod)
 
     return app
 

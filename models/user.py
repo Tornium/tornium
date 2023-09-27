@@ -37,6 +37,8 @@ class User(UserMixin):
         self.otp_secret = user.otp_secret
         self.otp_backups = user.otp_backups
 
+        self.admin_override = False
+
         self.tid = int(tid)
         self.name = user.name
         self.level = user.level
@@ -95,3 +97,19 @@ class User(UserMixin):
         self.otp_backups = hashed_codes
 
         return codes
+
+
+class OverrideUser(User):
+    def __init__(self, tid):
+        super().__init__(tid)
+
+        self.admin_override = True
+
+    def generate_otp_secret(self):
+        raise PermissionError
+
+    def generate_otp_url(self):
+        raise PermissionError
+
+    def generate_otp_backups(self, num_codes=5):
+        raise PermissionError

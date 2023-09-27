@@ -28,6 +28,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Fixed MIME type of certain API endpoints (#178)
  - [SECURITY] Fixed 2FA configuration
  - Fixed flashing of Tornium logo on load
+ - [SECURITY] Fixed `next` session parameter being retained after sign-in
 
 === Removed
  - Removed AttackModel and related endpoints

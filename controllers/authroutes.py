@@ -184,10 +184,13 @@ def login():
             500,
         )
 
-    if session.get("next") is None:
+    next = session.get("next")
+
+    if next is None:
         return redirect(url_for("baseroutes.index"))
     else:
-        return redirect(session.get("next"))
+        del session["next"]
+        return redirect(next)
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])

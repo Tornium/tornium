@@ -99,7 +99,7 @@ def forward_assist(*args, **kwargs):
         call_key = user.key
 
     try:
-        update_user(key=call_key, tid=target_tid, refresh_existing=False).get()
+        update_user(key=call_key, tid=target_tid, refresh_existing=False)
     except AttributeError:
         pass
 

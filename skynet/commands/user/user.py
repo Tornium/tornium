@@ -95,7 +95,7 @@ def user_who(interaction, *args, **kwargs):
             update_user_kwargs["tid"] = user.tid
 
         try:
-            update_user(**update_user_kwargs).get()
+            update_user(**update_user_kwargs)
         except Exception as e:
             print(e)
             return {

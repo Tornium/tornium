@@ -50,7 +50,6 @@ class Server:
 
         self.assistschannel = server.assistschannel
         self.assist_factions = server.assist_factions
-        self.assist_mod = server.assist_mod
 
         self.oc_config = server.oc_config
 

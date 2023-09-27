@@ -70,7 +70,7 @@ def get_specific_user(tid: int, *args, **kwargs):
             )
 
     if refresh:
-        update_user(kwargs["user"].key, tid=tid, refresh_existing=True).get()
+        update_user(kwargs["user"].key, tid=tid, refresh_existing=True)
 
     user: typing.Optional[UserModel] = UserModel.objects(tid=tid).no_cache().first()
 

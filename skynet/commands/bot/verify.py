@@ -193,7 +193,7 @@ def verify(interaction, *args, **kwargs):
         }
 
     try:
-        update_user(**update_user_kwargs).get()
+        update_user(**update_user_kwargs)
     except MissingKeyError:
         return {
             "type": 4,

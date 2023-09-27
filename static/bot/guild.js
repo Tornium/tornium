@@ -29,76 +29,60 @@ $(document).ready(function () {
 
         channelsRequest()
             .then(function () {
-                let assistsChannel = $(
-                    `#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`
-                );
+                let assistsChannel = $(`#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`);
 
                 if (assistsChannel.length !== 0) {
                     assistsChannel.attr("selected", "");
                 }
 
-                let stockFeedChannel = $(
-                    `#feed-channel option[value="${serverConfig["stocks"]["channel"]}"]`
-                );
+                let stockFeedChannel = $(`#feed-channel option[value="${serverConfig["stocks"]["channel"]}"]`);
 
                 if (stockFeedChannel.length !== 0) {
                     stockFeedChannel.attr("selected", "");
                 }
 
-                $.each(
-                    serverConfig["stocks"],
-                    function (configKey, configValue) {
-                        if (configKey === "percent_change" && configValue) {
-                            $("#percent-change-switch").attr("checked", "");
-                            $("#percent-change-enabled").text("Enabled");
-                        } else if (configKey === "cap_change" && configValue) {
-                            $("#cap-change-switch").attr("checked", "");
-                            $("#cap-change-enabled").text("Enabled");
-                        } else if (
-                            configKey === "new_day_price" &&
-                            configValue
-                        ) {
-                            $("#new-day-price-switch").attr("checked", "");
-                            $("#new-day-price-enabled").text("Enabled");
-                        } else if (configKey === "min_price" && configValue) {
-                            $("#min-price-switch").attr("checked", "");
-                            $("#min-price-enabled").text("Enabled");
-                        } else if (configKey === "max_price" && configValue) {
-                            $("#max-price-switch").attr("checked", "");
-                            $("#max-price-enabled").text("Enabled");
-                        }
+                $.each(serverConfig["stocks"], function (configKey, configValue) {
+                    if (configKey === "percent_change" && configValue) {
+                        $("#percent-change-switch").attr("checked", "");
+                        $("#percent-change-enabled").text("Enabled");
+                    } else if (configKey === "cap_change" && configValue) {
+                        $("#cap-change-switch").attr("checked", "");
+                        $("#cap-change-enabled").text("Enabled");
+                    } else if (configKey === "new_day_price" && configValue) {
+                        $("#new-day-price-switch").attr("checked", "");
+                        $("#new-day-price-enabled").text("Enabled");
+                    } else if (configKey === "min_price" && configValue) {
+                        $("#min-price-switch").attr("checked", "");
+                        $("#min-price-enabled").text("Enabled");
+                    } else if (configKey === "max_price" && configValue) {
+                        $("#max-price-switch").attr("checked", "");
+                        $("#max-price-enabled").text("Enabled");
                     }
-                );
+                });
 
-                $.each(
-                    serverConfig["retals"],
-                    function (factionid, factionConfig) {
-                        let option = $(
-                            `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
-                        );
+                $.each(serverConfig["retals"], function (factionid, factionConfig) {
+                    let option = $(
+                        `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                    );
 
-                        if (option.length !== 1) {
-                            return;
-                        }
-
-                        option.attr("selected", "");
+                    if (option.length !== 1) {
+                        return;
                     }
-                );
 
-                $.each(
-                    serverConfig["banking"],
-                    function (factionid, factionConfig) {
-                        let option = $(
-                            `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
-                        );
+                    option.attr("selected", "");
+                });
 
-                        if (option.length !== 1) {
-                            return;
-                        }
+                $.each(serverConfig["banking"], function (factionid, factionConfig) {
+                    let option = $(
+                        `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                    );
 
-                        option.attr("selected", "");
+                    if (option.length !== 1) {
+                        return;
                     }
-                );
+
+                    option.attr("selected", "");
+                });
             })
             .finally(function () {
                 $(".discord-channel-selector").selectpicker();
@@ -106,56 +90,41 @@ $(document).ready(function () {
 
         rolesRequest()
             .then(function () {
-                $.each(
-                    serverConfig["retals"],
-                    function (factionid, factionConfig) {
-                        $.each(factionConfig["roles"], function (index, role) {
-                            let option = $(
-                                `.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`
-                            );
+                $.each(serverConfig["retals"], function (factionid, factionConfig) {
+                    $.each(factionConfig["roles"], function (index, role) {
+                        let option = $(`.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`);
 
-                            if (option.length !== 1) {
-                                return;
-                            }
+                        if (option.length !== 1) {
+                            return;
+                        }
 
-                            option.attr("selected", "");
-                        });
-                    }
-                );
+                        option.attr("selected", "");
+                    });
+                });
 
-                $.each(
-                    serverConfig["banking"],
-                    function (factionid, factionConfig) {
-                        $.each(factionConfig["roles"], function (index, role) {
-                            let option = $(
-                                `.faction-banking-roles[data-faction="${factionid}"] option[value="${role}"]`
-                            );
+                $.each(serverConfig["banking"], function (factionid, factionConfig) {
+                    $.each(factionConfig["roles"], function (index, role) {
+                        let option = $(`.faction-banking-roles[data-faction="${factionid}"] option[value="${role}"]`);
 
-                            if (option.length !== 1) {
-                                return;
-                            }
+                        if (option.length !== 1) {
+                            return;
+                        }
 
-                            option.attr("selected", "");
-                        });
-                    }
-                );
+                        option.attr("selected", "");
+                    });
+                });
 
-                $.each(
-                    serverConfig["assists"]["roles"],
-                    function (role_type, roles) {
-                        $.each(roles, function (index, role) {
-                            let option = $(
-                                `#assist-${role_type}-roles option[value="${role}"]`
-                            );
+                $.each(serverConfig["assists"]["roles"], function (role_type, roles) {
+                    $.each(roles, function (index, role) {
+                        let option = $(`#assist-${role_type}-roles option[value="${role}"]`);
 
-                            if (option.length !== 1) {
-                                return;
-                            }
+                        if (option.length !== 1) {
+                            return;
+                        }
 
-                            option.attr("selected", "");
-                        });
-                    }
-                );
+                        option.attr("selected", "");
+                    });
+                });
             })
             .finally(function () {
                 $(".discord-role-selector").selectpicker();
@@ -241,7 +210,7 @@ $(document).ready(function () {
                 return;
             }
 
-            this.remove();
+            $(this).remove();
         };
 
         xhttp.responseType = "json";
@@ -285,10 +254,7 @@ $(document).ready(function () {
                 window.location.reload();
             };
 
-            xhttp.open(
-                "POST",
-                `/bot/assists/${guildid}/update?action=faction&value=${id}`
-            );
+            xhttp.open("POST", `/bot/assists/${guildid}/update?action=faction&value=${id}`);
             xhttp.send();
         }
     });
@@ -314,12 +280,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "POST",
-            `/api/bot/${guildid}/assists/roles/${
-                $(this).attr("id").split("-")[1]
-            }`
-        );
+        xhttp.open("POST", `/api/bot/${guildid}/assists/roles/${$(this).attr("id").split("-")[1]}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -399,12 +360,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "POST",
-            `/api/bot/${guildid}/faction/${this.getAttribute(
-                "data-faction"
-            )}/banking`
-        );
+        xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -434,12 +390,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "POST",
-            `/api/bot/${guildid}/faction/${this.getAttribute(
-                "data-faction"
-            )}/banking`
-        );
+        xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({

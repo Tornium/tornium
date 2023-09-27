@@ -218,7 +218,7 @@ def get_stat_user(tid, *args, **kwargs):
 
     data = {"user": {}, "stat_entries": {}}
 
-    update_user(kwargs["user"].key, tid=tid).get()
+    update_user(kwargs["user"].key, tid=tid)
     user: UserModel = UserModel.objects(tid=tid).no_cache().first()
 
     if user is None:

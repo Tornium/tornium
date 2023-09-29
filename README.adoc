@@ -46,6 +46,14 @@ This project follows https://semver.org/[semver v2.0] so all bug fixes, breaking
 == Contributing to Tornium
 All commits must be signed with a `Signed-off-by` line in the commit description matching the commit author. This certifies (under the Developer Certificate of Origin) that you have written the code or have the right to submit the code to the project. Full details can be found https://developercertificate.org/[here].
 
+== Donations
+Donations are accepted with both real life money and in-game money. However, due to restrictions with
+Torn's RMT rules, donors using real life money should NOT expect anything (e.g. additional features,
+support, etc.) from their contributions. Contributions with real life money will go towards
+server costs (and other hosting costs).
+
+Donate https://www.buymeacoffee.com/tornium[here]!
+
 == Contact
  - tiksan on Discord at tiksan(hastag)9110
  - tiksan on Torn at https://www.torn.com/profiles.php?XID=2383326[tiksan [2383326\]]

@@ -243,7 +243,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
 
     request = requests.post(url, headers=headers, data=payload)
 
-    bucket.update_bucket(request.headers, "GET", endpoint)
+    bucket.update_bucket(request.headers, "POST", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -295,7 +295,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
 
     request = requests.put(url, headers=headers, data=payload)
 
-    bucket.update_bucket(request.headers, "GET", endpoint)
+    bucket.update_bucket(request.headers, "PUT", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -344,7 +344,7 @@ def discorddelete(self, endpoint, *args, **kwargs):
 
     request = requests.delete(url, headers=headers)
 
-    bucket.update_bucket(request.headers, "GET", endpoint)
+    bucket.update_bucket(request.headers, "DELETE", endpoint)
 
     if request.status_code == 429:
         raise self.retry(

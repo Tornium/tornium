@@ -33,7 +33,7 @@ class ItemModel(DynamicDocument):
     @staticmethod
     def update_items(torn_get: typing.Union[typing.Callable, celery.Task], api_key: str):
         """
-        Update list of stored Torn items in teh database via a Torn API call
+        Update list of stored Torn items in the database via a Torn API call
 
         Parameters
         ----------
@@ -70,7 +70,7 @@ class ItemModel(DynamicDocument):
             return
 
         items_data = torn_get(
-            endpoint=f"torn/?selections=items",
+            endpoint="torn/?selections=items",
             key=api_key,
         )
         bulk_operations = []

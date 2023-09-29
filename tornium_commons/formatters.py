@@ -310,6 +310,10 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
     return quantity, item
 
 
+def discord_escaper(value: str) -> str:
+    return value.replace("*", "\\*").replace("_", "\\_")
+
+
 @dataclasses.dataclass
 class HumanTimeDelta:
     seconds: int = 0

@@ -17,6 +17,7 @@ import datetime
 import typing
 
 from flask import jsonify
+from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
 from tornium_commons.models import TickModel
 
@@ -74,6 +75,42 @@ def stock_movers(*args, **kwargs):
         stock_id: TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(timestamp_m1_start << 8), 2)).first()
         for stock_id in stock_id_list
     }
+
+    for stock_id, tick in current_stock_ticks:
+        if tick is None:
+            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_now)).first()
+
+            if closest_tick is None or closest_tick.timestamp - timestamp_now > 3600:
+                break
+
+            current_stock_ticks[stock_id] = closest_tick
+
+    for stock_id, tick in d1_stock_ticks:
+        if tick is None:
+            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d1_start)).first()
+
+            if closest_tick is None or closest_tick.timestamp - timestamp_d1_start > 3600:
+                break
+
+            d1_stock_ticks[stock_id] = closest_tick
+
+    for stock_id, tick in d7_stock_ticks:
+        if tick is None:
+            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d7_start)).first()
+
+            if closest_tick is None or closest_tick.timestamp - timestamp_d7_start > 3600:
+                break
+
+            d7_stock_ticks[stock_id] = closest_tick
+
+    for stock_id, tick in m1_stock_ticks:
+        if tick is None:
+            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_m1_start)).first()
+
+            if closest_tick is None or closest_tick.timestamp - timestamp_m1_start > 3600:
+                break
+
+            m1_stock_ticks[stock_id] = closest_tick
 
     d1_changes = {}
     d7_changes = {}

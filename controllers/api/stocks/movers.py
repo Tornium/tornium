@@ -76,7 +76,7 @@ def stock_movers(*args, **kwargs):
         for stock_id in stock_id_list
     }
 
-    for stock_id, tick in current_stock_ticks:
+    for stock_id, tick in current_stock_ticks.items():
         if tick is None:
             closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_now)).first()
 
@@ -85,7 +85,7 @@ def stock_movers(*args, **kwargs):
 
             current_stock_ticks[stock_id] = closest_tick
 
-    for stock_id, tick in d1_stock_ticks:
+    for stock_id, tick in d1_stock_ticks.items():
         if tick is None:
             closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d1_start)).first()
 
@@ -94,7 +94,7 @@ def stock_movers(*args, **kwargs):
 
             d1_stock_ticks[stock_id] = closest_tick
 
-    for stock_id, tick in d7_stock_ticks:
+    for stock_id, tick in d7_stock_ticks.items():
         if tick is None:
             closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d7_start)).first()
 
@@ -103,7 +103,7 @@ def stock_movers(*args, **kwargs):
 
             d7_stock_ticks[stock_id] = closest_tick
 
-    for stock_id, tick in m1_stock_ticks:
+    for stock_id, tick in m1_stock_ticks.items():
         if tick is None:
             closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_m1_start)).first()
 

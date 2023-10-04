@@ -17,7 +17,7 @@ from mongoengine import Document, FloatField, IntField, LongField
 
 
 class TickModel(Document):
-    meta = {"indexes": ["price"]}
+    meta = {"indexes": ["price", ("tick_id", "-timestamp")]}
 
     tick_id = IntField(primary_key=True)
     timestamp = IntField()

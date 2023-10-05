@@ -17,7 +17,7 @@ import base64
 import datetime
 import time
 import typing
-from functools import wraps
+from functools import partial, wraps
 
 import msgpack
 import redis
@@ -193,7 +193,10 @@ def authentication_required(func):
     return wrapper
 
 
-def global_cache(func, duration=3600):
+def global_cache(func=None, duration=3600):
+    if not func:
+        return partial(global_cache, duration=duration)
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         # TODO: Migrate this redis call back into tornium-commons

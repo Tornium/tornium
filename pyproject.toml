@@ -22,11 +22,9 @@ classifiers = [
 ]
 dependencies = [
     "celery ~= 5.2.7",
-#    "gevent ~= 22.10.2",
-    "mongoengine ~= 0.26.0",
     "pynacl ~= 1.5.0",
-    "redis ~= 4.5.1",
-    "requests ~= 2.29.0",
+    "redis ~= 5.0.0",
+    "requests ~= 2.31.0",
     "tornium_commons @ git+https://github.com/Tornium/tornium-commons@master#egg=tornium-commons",
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"

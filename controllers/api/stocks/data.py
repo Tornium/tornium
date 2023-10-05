@@ -25,12 +25,13 @@ from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
 from tornium_commons.models import ItemModel, TickModel
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required
 @ratelimit
+@global_cache
 def stocks_data(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -78,6 +79,7 @@ def stocks_data(*args, **kwargs):
 
 @authentication_required
 @ratelimit
+@global_cache(duration=86400)
 def stock_benefits(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     stock_benefits_data: dict = rds().json().get("tornium:stocks:benefits")

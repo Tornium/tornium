@@ -17,11 +17,10 @@ import datetime
 import typing
 
 from flask import jsonify
-from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
 from tornium_commons.models import TickModel
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
@@ -38,6 +37,7 @@ def get_closest_tick(stock_id: int, start_timestamp: int):
 
 @authentication_required
 @ratelimit
+@global_cache
 def stock_movers(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()
@@ -141,20 +141,18 @@ def stock_movers(*args, **kwargs):
         m1_tick: typing.Optional[TickModel] = m1_stock_ticks.get(stock_id)
 
         if d1_tick is not None:
-            d1_changes[stock_id] = (now_tick.price - d1_tick.price) / d1_tick.price
+            d1_changes[stock_id] = round((now_tick.price - d1_tick.price) / d1_tick.price, 4)
 
         if d7_tick is not None:
-            d7_changes[stock_id] = (now_tick.price - d7_tick.price) / d7_tick.price
+            d7_changes[stock_id] = round((now_tick.price - d7_tick.price) / d7_tick.price, 4)
 
         if m1_tick is not None:
-            m1_changes[stock_id] = (now_tick.price - m1_tick.price) / m1_tick.price
+            m1_changes[stock_id] = round((now_tick.price - m1_tick.price) / m1_tick.price, 4)
 
     # Changes from low to high
     d1_changes_sorted = sorted(d1_changes, key=d1_changes.get)
     d7_changes_sorted = sorted(d7_changes, key=d7_changes.get)
     m1_changes_sorted = sorted(m1_changes, key=m1_changes.get)
-
-    # [:-6:-1] will reverse the list and return the first five
 
     # d1 losers
     for stock_id in d1_changes_sorted[:5]:

@@ -16,9 +16,12 @@
 import base64
 import datetime
 import time
+import typing
 from functools import wraps
 
-from flask import jsonify, request
+import msgpack
+import redis
+from flask import Response, jsonify, request
 from tornium_commons import rds
 from tornium_commons.models import UserModel
 
@@ -186,5 +189,38 @@ def authentication_required(func):
         kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
+
+    return wrapper
+
+
+def global_cache(func, duration=3600):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # TODO: Migrate this redis call back into tornium-commons
+        client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=False)
+
+        cached_response = client.get(f"tornium:cache:{request.url_rule}")
+
+        if cached_response is None:
+            endpoint_response: typing.Tuple[Response, int, dict] = func(*args, **kwargs)
+
+            if endpoint_response[1] // 100 != 2:
+                return endpoint_response
+
+            client.set(
+                f"tornium:cache:{request.url_rule}", msgpack.dumps(endpoint_response[0].json), nx=True, ex=duration
+            )
+
+            endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
+            return endpoint_response
+
+        unpacked_response: dict = msgpack.loads(cached_response)
+        cache_ttl = client.ttl(f"tornium:cache:{request.url_rule}")
+
+        return (
+            unpacked_response,
+            200,
+            {"Content-Type": "application/json", "Cache-Control": f"max-age={cache_ttl}, public"},
+        )
 
     return wrapper

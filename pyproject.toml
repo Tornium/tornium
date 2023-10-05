@@ -25,15 +25,18 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 dependencies = [
-    "celery ~= 5.2.7",
-    "flask ~= 2.3.2",
+    # celery pinned by tornium-celery
+     "celery ~= 5.2.7",
+    "flask ~= 3.0.0",
     "flask-cors ~= 4.0.0",
     "flask-login ~= 0.6.2",
-#    "gevent ~= 22.10.2",
-    "mongoengine ~= 0.26.0",
+    # mongoengine pinned by tornium-commons
+     "mongoengine ~= 0.26.0",
     "pynacl ~= 1.5.0",
-    "redis ~= 4.5.1",
-    "requests ~= 2.29.0",
+    # redis pinned by tornium-commons
+     "redis ~= 5.0.0",
+    # requests pinned by tornium-celery
+     "requests ~= 2.31.0",
     "tornium_commons @ git+https://github.com/Tornium/tornium-commons@master#egg=tornium-commons",
     "tornium_celery @ git+https://github.com/Tornium/tornium-celery@master#egg=tornium-celery"
 ]

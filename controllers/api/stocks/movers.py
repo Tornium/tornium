@@ -25,6 +25,17 @@ from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
+def get_closest_tick(stock_id: int, start_timestamp: int):
+    for n in range(1, 30):
+        tick_id = int(bin(stock_id), 2) + int(bin((start_timestamp + n * 60) << 8), 2)
+        tick: typing.Optional[TickModel] = TickModel.objects(tick_id=tick_id).first()
+
+        if tick is not None:
+            return tick
+
+    return None
+
+
 @authentication_required
 @ratelimit
 def stock_movers(*args, **kwargs):
@@ -76,38 +87,39 @@ def stock_movers(*args, **kwargs):
         for stock_id in stock_id_list
     }
 
+    # Below loops assume that all stocks will not have a value for a timestamp if a single tick does not
     for stock_id, tick in current_stock_ticks.items():
         if tick is None:
-            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_now)).first()
+            closest_tick = get_closest_tick(stock_id, timestamp_now)
 
-            if closest_tick is None or closest_tick.timestamp - timestamp_now > 3600:
+            if closest_tick is None:
                 break
 
             current_stock_ticks[stock_id] = closest_tick
 
     for stock_id, tick in d1_stock_ticks.items():
         if tick is None:
-            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d1_start)).first()
+            closest_tick = get_closest_tick(stock_id, timestamp_d1_start)
 
-            if closest_tick is None or closest_tick.timestamp - timestamp_d1_start > 3600:
+            if closest_tick is None:
                 break
 
             d1_stock_ticks[stock_id] = closest_tick
 
     for stock_id, tick in d7_stock_ticks.items():
         if tick is None:
-            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_d7_start)).first()
+            closest_tick = get_closest_tick(stock_id, timestamp_d7_start)
 
-            if closest_tick is None or closest_tick.timestamp - timestamp_d7_start > 3600:
+            if closest_tick is None:
                 break
 
             d7_stock_ticks[stock_id] = closest_tick
 
     for stock_id, tick in m1_stock_ticks.items():
         if tick is None:
-            closest_tick = TickModel.objects(Q(stock_id=stock_id) & Q(timestamp__gte=timestamp_m1_start)).first()
+            closest_tick = get_closest_tick(stock_id, timestamp_m1_start)
 
-            if closest_tick is None or closest_tick.timestamp - timestamp_m1_start > 3600:
+            if closest_tick is None:
                 break
 
             m1_stock_ticks[stock_id] = closest_tick

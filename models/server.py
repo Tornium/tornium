@@ -56,7 +56,7 @@ class Server:
         self.stocks_channel = server.stocks_channel
         self.stocks_config = server.stocks_config
 
-    def get_text_channels(self, api=False):
+    def get_text_channels(self, include_threads=False, api=False):
         def parse(value):
             if api:
                 return str(value)
@@ -70,8 +70,8 @@ class Server:
             if channel["type"] == 4 and channel["id"] not in channels:
                 channels[channel["id"]] = {
                     "id": parse(channel["id"]),
-                    "name": channel["name"] if "name" in channel else "",
-                    "position": channel["position"] if "position" in channel else -1,
+                    "name": channel.get("name", ""),
+                    "position": channel.get("position", -1),
                     "channels": {},
                 }
             elif channel["type"] == 4 and channel["id"] in channels and channels[channel["id"]]["name"] is None:
@@ -80,14 +80,14 @@ class Server:
                 if "parent_id" not in channel or channel.get("parent_id") is None:
                     channels["0"]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
-                        "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "name": channel.get("name", ""),
+                        "position": channel.get("position", -1),
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
-                        "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "name": channel.get("name", ""),
+                        "position": channel.get("position", -1),
                     }
                 else:
                     channels[channel["parent_id"]] = {
@@ -96,8 +96,8 @@ class Server:
                         "channels": {
                             channel["id"]: {
                                 "id": parse(channel["id"]),
-                                "name": channel["name"] if "name" in channel else "",
-                                "position": channel["position"] if "position" in channel else -1,
+                                "name": channel.get("name", ""),
+                                "position": channel.get("position", -1),
                             }
                         },
                         "position": -2,
@@ -105,6 +105,41 @@ class Server:
 
             if channel["type"] == 4 and channels[channel["id"]] == -2:
                 channels[channel["id"]]["position"] = channel["position"]
+
+        if not include_threads:
+            return channels
+
+        threads_query = discordget(f"guilds/{self.sid}/threads/active")
+
+        # Thread is a channel object
+        for thread in threads_query["threads"]:
+            if thread["type"] not in [
+                11,  # PUBLIC_THREAD
+                12,  # PRIVATE_THREAD
+            ]:
+                continue
+            elif thread["thread_metadata"]["locked"]:
+                # Locked thread... needs to be unlocked by an admin
+                continue
+            # Not handling threads that are currently archived as they'll be unarchived if a message is sent in them
+
+            parent_channel_id: str = thread["parent_id"]
+
+            for category_id, category in channels.items():
+                if parent_channel_id not in category["channels"]:
+                    continue
+
+                parent_channel_obj: dict = category["channels"][parent_channel_id]
+
+                if "threads" not in parent_channel_obj:
+                    parent_channel_obj["threads"] = {}
+
+                parent_channel_obj["threads"][thread["id"]] = {
+                    "id": parse(thread["id"]),
+                    "name": thread.get("name", ""),
+                    "position": thread.get("position", -1),
+                }
+                break
 
         return channels
 

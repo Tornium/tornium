@@ -21,6 +21,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
  - Added armory stock tracking
  - [ADMIN] Added option for admin accounts to view other user accounts
  - [tornium-core] Added global caching support to Flask endpoints
+ - [tornium-core] Added Discord thread support to channel selectors
 
 === Change
  - Changed chain list generator UI and backend to improve UI/UX and performance

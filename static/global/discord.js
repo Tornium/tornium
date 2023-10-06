@@ -99,12 +99,26 @@ let channelsRequest = (obj) => {
                 );
 
                 $.each(category["channels"], function (channel_id, channel) {
-                    $(`optgroup[data-category-id="${category["id"]}"]`).append(
+                    let parent = $(`optgroup[data-category-id="${category["id"]}"]`);
+                    parent.append(
                         $("<option>", {
                             value: channel.id,
                             text: `#${channel.name}`,
                         })
                     );
+
+                    if ("threads" in channel) {
+                        $.each(channel.threads, function (thread_id, thread) {
+                            console.log(
+                                parent.append(
+                                    $("<option>", {
+                                        value: thread.id,
+                                        text: `#${channel.name} -> ${thread.name}`,
+                                    })
+                                )
+                            );
+                        });
+                    }
                 });
             });
 
@@ -134,12 +148,26 @@ let channelsRequest = (obj) => {
                     );
 
                     $.each(category["channels"], function (channel_id, channel) {
-                        $(`optgroup[data-category-id="${category["id"]}"]`).append(
+                        let parent = $(`optgroup[data-category-id="${category["id"]}"]`);
+                        parent.append(
                             $("<option>", {
                                 value: channel.id,
                                 text: `#${channel.name}`,
                             })
                         );
+
+                        if ("threads" in channel) {
+                            $.each(channel.threads, function (thread_id, thread) {
+                                console.log(
+                                    parent.append(
+                                        $("<option>", {
+                                            value: thread.id,
+                                            text: `#${channel.name} -> ${thread.name}`,
+                                        })
+                                    )
+                                );
+                            });
+                        }
                     });
                 });
 

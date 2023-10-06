@@ -34,7 +34,7 @@ def get_channels(guildid, *args, **kwargs):
         return make_exception_response("4020", key)
 
     return (
-        jsonify({"channels": server.get_text_channels(api=True)}),
+        jsonify({"channels": server.get_text_channels(include_threads=True, api=True)}),
         200,
         api_ratelimit_response(key),
     )

@@ -16,12 +16,13 @@
 from tornium_commons import rds
 from tornium_commons.models import ItemModel
 
-from controllers.api.decorators import authentication_required, ratelimit
+from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required
 @ratelimit
+@global_cache(duration=86400)
 def item_name_map(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()

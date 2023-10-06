@@ -220,6 +220,12 @@ API_EXCEPTIONS = {
         "http": 429,
         "message": "User has reached a ratelimit on banking.",
     },
+    "5000": {
+        "code": 5000,
+        "name": "BackendError",
+        "http": 500,
+        "message": "The backend has encountered an internal error.",
+    },
 }
 
 

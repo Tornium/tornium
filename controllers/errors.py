@@ -13,10 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, render_template, request
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 
+from controllers.api.decorators import make_exception_response
+
 mod = Blueprint("errors", __name__)
+FRONTEND_API_ROUTES = ("/api", "/api/documentation")
+
+
+def is_api_route():
+    return request.path.startswith("/api") and request.path not in FRONTEND_API_ROUTES
 
 
 @mod.app_errorhandler(DiscordError)
@@ -51,27 +58,18 @@ def error403(e):
 
 @mod.app_errorhandler(404)
 def error404(e):
-    if not request.path.startswith("/api") or request.path in [
-        "/api",
-        "/api/documentation",
-    ]:
+    if not is_api_route():
         return render_template("errors/404.html"), 404
-    else:
-        return (
-            jsonify(
-                {
-                    "code": 4010,  # TODO: Update code once determined
-                    "name": "EndpointNotFound",
-                    "message": "Server failed to find the requested endpoint",
-                }
-            ),
-            404,
-        )
+
+    return make_exception_response("4010")
 
 
 @mod.app_errorhandler(500)
 def error500(e):
-    return render_template("errors/500.html", error=e), 500
+    if not is_api_route():
+        return render_template("errors/500.html"), 500
+
+    return make_exception_response("5000")
 
 
 @mod.app_errorhandler(501)

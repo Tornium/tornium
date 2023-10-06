@@ -25,6 +25,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from models.faction import Faction
 from models.user import User
+from skynet.commands.faction.fulfill import fulfiller_string
 from skynet.skyutils import get_admin_keys
 
 
@@ -187,34 +188,18 @@ def cancel_command(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif withdrawal.fulfiller > 0:
+    elif withdrawal.fulfiller != 0:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Already Fulfilled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "title": "Unable to Cancel Request",
+                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif withdrawal.fulfiller < 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Request Already Cancelled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -512,34 +497,18 @@ def cancel_button(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif withdrawal.fulfiller > 0:
+    elif withdrawal.fulfiller != 0:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Already Fulfilled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "title": "Unable to Cancel Request",
+                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif withdrawal.fulfiller < 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Request Already Cancelled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 

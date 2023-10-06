@@ -28,6 +28,31 @@ from models.user import User
 from skynet.skyutils import get_admin_keys
 
 
+def fulfiller_string(withdrawal: WithdrawalModel) -> str:
+    if withdrawal.fulfiller == 0:
+        return "is not fulfilled"
+    elif withdrawal.fulfiller == -1:
+        return "has been cancelled by the system"
+    elif withdrawal.fulfiller < -1:
+        user: typing.Optional[UserModel] = UserModel.objects(tid=-withdrawal.fulfiller).only("name", "tid").first()
+
+        if user is None:
+            return "has been cancelled by someone"
+
+        return f"has been cancelled by {user.name} [{user.tid}]"
+    elif withdrawal.fulfiller == 1:
+        return "has been fulfilled by someone"
+    elif withdrawal.fulfiller > 1:
+        user: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.fulfiller).only("name", "tid").first()
+
+        if user is None:
+            return "has been fulfilled by someone"
+
+        return f"has been fulfilled by {user.name} [{user.tid}]"
+
+    return "has an unknown fulfill type"
+
+
 def fulfill_command(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
@@ -40,7 +65,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -57,7 +82,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -79,7 +104,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -95,7 +120,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -112,7 +137,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif user.factionid not in server.factions or faction.guild != server.sid:
@@ -142,7 +167,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
@@ -174,7 +199,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -192,7 +217,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -209,37 +234,21 @@ def fulfill_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif withdrawal.fulfiller > 0:
+    elif withdrawal.fulfiller != 0:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Already Fulfilled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "title": "Unable to Fulfill Request",
+                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif withdrawal.fulfiller < 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Request Already Cancelled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -318,7 +327,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -335,7 +344,7 @@ def fulfill_command(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -357,7 +366,7 @@ def fulfill_command(interaction, *args, **kwargs):
                             "color": SKYNET_GOOD,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -385,7 +394,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     "color": SKYNET_GOOD,
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }
 
@@ -398,11 +407,11 @@ def fulfill_button(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Not Allowed",
-                        "description": "This command can not be run in a DM (for now).",
+                        "description": "This button can not be run in a DM.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -419,7 +428,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -441,7 +450,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -458,7 +467,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif user.factionid not in server.factions or faction.guild != server.sid:
@@ -488,7 +497,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
@@ -534,37 +543,21 @@ def fulfill_button(interaction, *args, **kwargs):
                         "footer": {"text": f"Message ID: {interaction['message']['id']}"},
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif withdrawal.fulfiller > 0:
+    elif withdrawal.fulfiller != 0:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Already Fulfilled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User(withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
+                        "title": "Unable to Fulfill Request",
+                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif withdrawal.fulfiller < 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Request Already Cancelled",
-                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User(-withdrawal.fulfiller).name} at {torn_timestamp(withdrawal.time_fulfilled)}.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -643,7 +636,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -660,7 +653,7 @@ def fulfill_button(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -682,7 +675,7 @@ def fulfill_button(interaction, *args, **kwargs):
                             "color": SKYNET_GOOD,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -710,6 +703,6 @@ def fulfill_button(interaction, *args, **kwargs):
                     "color": SKYNET_GOOD,
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }

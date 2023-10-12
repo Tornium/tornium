@@ -13,98 +13,50 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import base64
-import hashlib
-import os
-
 from flask_login import UserMixin
-from tornium_commons.models import UserModel
+from tornium_commons.models import User
 
 
-class User(UserMixin):
-    def __init__(self, tid):
-        """
-        Retrieves the user from the database.
+class AuthUser(User):
+    # Source: https://flask-login.readthedocs.io/en/latest/_modules/flask_login/mixins/#UserMixin
 
-        :param tid: Torn user ID
-        """
+    class Meta:
+        table_name = "user"
 
-        user = UserModel.objects(_id=int(tid)).first()
-        if user is None:
-            raise ValueError("Unknown User")
+    @property
+    def is_active(self):
+        return True
 
-        self.security = user.security
-        self.otp_secret = user.otp_secret
-        self.otp_backups = user.otp_backups
+    @property
+    def is_authenticated(self):
+        return self.is_active
 
-        self.admin_override = False
-
-        self.tid = int(tid)
-        self.name = user.name
-        self.level = user.level
-        self.last_refresh = user.last_refresh
-        self.admin = user.admin
-        self.key = user.key
-        self.battlescore = user.battlescore
-        self.battlescore_update = user.battlescore_update
-        self.strength = user.strength
-        self.defense = user.defense
-        self.speed = user.speed
-        self.dexterity = user.dexterity
-
-        self.discord_id = user.discord_id
-
-        self.factiontid = user.factionid
-        self.aa = user.factionaa
-        self.faction_position = user.faction_position
-
-        self.status = user.status
-        self.last_action = user.last_action
-
-        self.elim_team = user.elim_team
+    @property
+    def is_anonymous(self):
+        return False
 
     def get_id(self):
         return int(self.tid)
 
-    def generate_otp_secret(self):
-        user: UserModel = UserModel.objects(tid=self.tid).first()
-        user.otp_secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        user.save()
-        self.otp_secret = user.otp_secret
+    def __eq__(self, other):
+        """
+        Checks the equality of two `UserMixin` objects using `get_id`.
+        """
+        if isinstance(other, UserMixin):
+            return self.get_id() == other.get_id()
+        return NotImplemented
 
-    def generate_otp_url(self):
-        if self.otp_secret == "" or self.security != 1:  # nosec B105
-            raise Exception("Illegal OTP secret or security mode")
-
-        return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
-
-    def generate_otp_backups(self, num_codes=5):
-        if self.otp_secret == "" or self.security != 1:  # nosec B105
-            raise Exception("Illegal OTP secret or security mode")
-
-        codes = []
-        hashed_codes = []
-
-        for _ in range(num_codes):
-            codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
-
-        for code in codes:
-            hashed_codes.append(hashlib.sha256(code.encode("utf-8")).hexdigest())
-
-        user: UserModel = UserModel.objects(tid=self.tid).first()
-        user.otp_backups = hashed_codes
-        user.save()
-        self.otp_backups = hashed_codes
-
-        return codes
+    def __ne__(self, other):
+        """
+        Checks the inequality of two `UserMixin` objects using `get_id`.
+        """
+        equal = self.__eq__(other)
+        if equal is NotImplemented:
+            return NotImplemented
+        return not equal
 
 
-class OverrideUser(User):
-    def __init__(self, tid):
-        super().__init__(tid)
-
-        self.admin_override = True
-
+class OverrideUser(AuthUser):
     def generate_otp_secret(self):
         raise PermissionError
 

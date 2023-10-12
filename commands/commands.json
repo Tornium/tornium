@@ -10,10 +10,11 @@
         "faction/banking/withdraw",
         "faction/data/faction",
         "notify/notify",
-        "stats/chainlist",
         "stats/stat",
         "stocks/stocks",
         "user/user"
     ],
-    "disabled": []
+    "disabled": [
+        "stats/chainlist"
+    ]
 }

@@ -16,7 +16,8 @@
 import json
 
 from flask import request
-from tornium_commons.models import ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Server
 
 from controllers.api.bot.config import jsonified_server_config
 from controllers.api.decorators import ratelimit, token_required
@@ -37,14 +38,16 @@ def assists_channel(guildid, *args, **kwargs):
         return make_exception_response("1002", key)
 
     channel_id = int(channel_id)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
 
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guildid)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.assistschannel = channel_id
+    guild.assist_channel = channel_id
     guild.save()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
@@ -52,7 +55,7 @@ def assists_channel(guildid, *args, **kwargs):
 
 @token_required
 @ratelimit
-def assists_role_set(guildid: int, role_type: str, *args, **kwargs):
+def assists_role_set(guild_id: int, role_type: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -69,11 +72,12 @@ def assists_role_set(guildid: int, role_type: str, *args, **kwargs):
     except ValueError:
         return make_exception_response("1000", key, details={"element": "roles"})
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     if role_type == "smoker":

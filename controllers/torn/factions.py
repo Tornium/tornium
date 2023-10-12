@@ -12,17 +12,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import typing
 
 from flask import abort, jsonify, render_template, request
 from flask_login import current_user, login_required
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas
-from tornium_commons.models import FactionModel, MemberReportModel, UserModel
-
-from models.faction import Faction
+from tornium_commons.models import Faction, MemberReport, User
 
 
 @login_required
@@ -39,34 +36,33 @@ def factions_data():
     ordering_direction = request.args.get("order[0][dir]")
 
     factions = []
+    factions_db = Faction.select(Faction.tid, Faction.name, Faction.respect)
 
-    if search_value == "":
-        factions_db = FactionModel.objects()
-    else:
-        factions_db = FactionModel.objects(Q(name__startswith=search_value))
+    if search_value != "":
+        factions_db = factions_db.where(Faction.name.startswith(search_value))
 
     if ordering_direction == "asc":
-        ordering_direction = "+"
+        ordering_direction = 1
     else:
-        ordering_direction = "-"
+        ordering_direction = -1
 
     if ordering == 0:
-        factions_db = factions_db.order_by(f"{ordering_direction}tid")
+        factions_db = factions_db.order_by(ordering_direction * Faction.tid)
     elif ordering == 1:
-        factions_db = factions_db.order_by(f"{ordering_direction}name")
+        factions_db = factions_db.order_by(ordering_direction * Faction.name)
     else:
-        factions_db = factions_db.order_by(f"{ordering_direction}respect")
+        factions_db = factions_db.order_by(ordering_direction * Faction.respect)
 
     count = factions_db.count()
     factions_db = factions_db[start : start + length]
 
-    faction: FactionModel
+    faction: Faction
     for faction in factions_db:
         factions.append([faction.tid, faction.name, commas(faction.respect)])
 
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": FactionModel.objects().count(),
+        "recordsTotal": Faction.select().count(),
         "recordsFiltered": count,
         "data": factions,
     }
@@ -79,18 +75,21 @@ def faction_data(tid: int):
     if tid == 0 or current_user.key == "":
         return abort(400)
 
-    Faction(tid).refresh(key=current_user.key, force=True)
-    faction: FactionModel = FactionModel.objects(tid=tid).first()
+    # TODO: Replace with Celery task
+    # Faction(tid).refresh(key=current_user.key, force=True)
 
-    leader: UserModel = UserModel.objects(tid=faction.leader).first()
-    coleader: UserModel = UserModel.objects(tid=faction.coleader).first()
+    try:
+        faction: Faction = (
+            Faction.select(Faction.name, Faction.tid, Faction.coleader, Faction.leader).where(Faction.tid == tid).get()
+        )
+    except DoesNotExist:
+        return render_template(
+            "errors/error.html",
+            title="Unknown Faction",
+            error=f"Faction with ID {tid} could not be located in the database.",
+        )
 
-    return render_template(
-        "torn/factionmodal.html",
-        faction=faction,
-        leader=leader,
-        coleader=coleader,
-    )
+    return render_template("torn/factionmodal.html", faction=faction)
 
 
 @login_required
@@ -100,13 +99,15 @@ def faction_members_data(tid: int):
 
     members = []
 
-    member: UserModel
-    for member in UserModel.objects(factionid=tid):
+    member: User
+    for member in User.select(User.name, User.tid, User.level, User.last_action, User.status, User.discord_id).where(
+        User.faction.tid == tid
+    ):
         members.append(
             {
                 "username": f"{member.name} [{member.tid}]",
                 "level": member.level,
-                "last_action": member.last_action,
+                "last_action": member.last_action.to_timestamp(),
                 "status": member.status,
                 "discord_id": member.discord_id,
             }
@@ -149,17 +150,18 @@ def view_member_report(rid: str):
     if current_user.factiontid not in [15644, 12894]:
         return "Permission Denied... This page is currently being tested by NSO factions. Please check back later.", 403
 
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
-
-    if report is None:
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html", title="Unknown Report", error="No report could be located with the included ID."
             ),
             400,
         )
-    elif (report.requested_by_user is not None and report.requested_by_user != current_user.tid) or (
-        report.requested_by_faction is not None and report.requested_by_faction != current_user.factiontid
+
+    if (report.requested_by_user is not None and report.requested_by_user != current_user.tid) or (
+        report.requested_by_faction is not None and report.requested_by_faction != current_user.faction.tid
     ):
         return render_template(
             "errors/error.html", title="Permission Denied", error="You do not have access to this report."

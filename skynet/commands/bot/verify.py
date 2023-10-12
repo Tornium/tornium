@@ -15,14 +15,14 @@
 
 import inspect
 import random
-import typing
 
 import jinja2
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError
 from tornium_commons.formatters import find_list
-from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from skynet.skyutils import get_admin_keys
@@ -44,9 +44,9 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    server: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -60,7 +60,8 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    if server.config.get("verify") in (None, 0):
+
+    if not guild.verify_enabled:
         return {
             "type": 4,
             "data": {
@@ -74,7 +75,7 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif server.verify_template == "" and len(server.verified_roles) == 0 and len(server.faction_verify) == 0:
+    elif guild.verify_template == "" and len(guild.verified_roles) == 0 and len(guild.faction_verify) == 0:
         return {
             "type": 4,
             "data": {
@@ -90,7 +91,7 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = kwargs["invoker"]
+    user: User = kwargs["invoker"]
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
@@ -99,10 +100,7 @@ def verify(interaction, *args, **kwargs):
         member = -1
         force = -1
 
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
     if len(admin_keys) == 0:
         return {
@@ -132,7 +130,7 @@ def verify(interaction, *args, **kwargs):
 
     if member != -1:
         try:
-            discord_member = discordget(f"guilds/{server.sid}/members/{update_user_kwargs['discordid']}")
+            discord_member = discordget(f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}")
         except DiscordError as e:
             return {
                 "type": 4,
@@ -176,7 +174,7 @@ def verify(interaction, *args, **kwargs):
         else:
             current_nick = interaction["member"]["nick"]
 
-    if set(user_roles) & set(map(str, server.exclusion_roles)):  # Exclusion role in member's roles
+    if set(user_roles) & set(map(str, guild.exclusion_roles)):  # Exclusion role in member's roles
         return {
             "type": 4,
             "data": {
@@ -193,7 +191,7 @@ def verify(interaction, *args, **kwargs):
         }
 
     try:
-        update_user(**update_user_kwargs)
+        update_user(**update_user_kwargs)  # TODO: Handle Torn and Network errors
     except MissingKeyError:
         return {
             "type": 4,
@@ -226,9 +224,9 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = UserModel.objects(discord_id=update_user_kwargs["discordid"]).no_cache().first()
-
-    if user is None:
+    try:
+        user: User = User.get(User.discord_id == update_user_kwargs["discordid"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -242,6 +240,8 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+
+    # TODO: Is this necessary?
     if user.discord_id in (0, None):
         return {
             "type": 4,
@@ -261,24 +261,21 @@ def verify(interaction, *args, **kwargs):
         }
 
     patch_json = {}
+    faction: Faction = user.faction
 
-    faction: typing.Optional[FactionModel] = (
-        FactionModel.objects(tid=user.factionid).first() if user.factionid != 0 else None
-    )
-
-    if server.verify_template != "":
+    if guild.verify_template != "":
         nick = (
             jinja2.Environment(autoescape=True)
-            .from_string(server.verify_template)
+            .from_string(guild.verify_template)
             .render(name=user.name, tid=user.tid, tag="" if faction is None else faction.tag)
         )
 
         if nick != current_nick:
             patch_json["nick"] = nick
 
-    if len(server.verified_roles) != 0 and user.discord_id != 0:
+    if len(guild.verified_roles) != 0 and user.discord_id != 0:
         verified_role: int
-        for verified_role in server.verified_roles:
+        for verified_role in guild.verified_roles:
             if str(verified_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None:
@@ -287,14 +284,14 @@ def verify(interaction, *args, **kwargs):
             patch_json["roles"].append(str(verified_role))
 
     if (
-        user.factionid != 0
-        and server.faction_verify.get(str(user.factionid)) is not None
-        and server.faction_verify[str(user.factionid)].get("roles") is not None
-        and len(server.faction_verify[str(user.factionid)]["roles"]) != 0
-        and server.faction_verify[str(user.factionid)].get("enabled") not in (None, False)
+        user.faction is not None
+        and guild.faction_verify.get(str(user.faction.tid)) is not None
+        and guild.faction_verify[str(user.faction.tid)].get("roles") is not None
+        and len(guild.faction_verify[str(user.faction.tid)]["roles"]) != 0
+        and guild.faction_verify[str(user.faction.tid)].get("enabled") not in (None, False)
     ):
         faction_role: int
-        for faction_role in server.faction_verify[str(user.factionid)]["roles"]:
+        for faction_role in guild.faction_verify[str(user.faction.tid)]["roles"]:
             if str(faction_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None:
@@ -302,11 +299,11 @@ def verify(interaction, *args, **kwargs):
 
             patch_json["roles"].append(str(faction_role))
 
-    for factiontid, faction_verify_data in server.faction_verify.items():
+    for factiontid, faction_verify_data in guild.faction_verify.items():
         for faction_role in faction_verify_data["roles"]:
-            if str(faction_role) in user_roles and int(factiontid) != user.factionid:
-                if server.faction_verify.get(str(user.factionid)) is not None and faction_role in server.faction_verify[
-                    str(user.factionid)
+            if str(faction_role) in user_roles and int(factiontid) != user.faction.tid:
+                if guild.faction_verify.get(str(user.faction.tid)) is not None and faction_role in guild.faction_verify[
+                    str(user.faction.tid)
                 ].get("roles", []):
                     continue
                 elif patch_json.get("roles") is None:
@@ -315,16 +312,16 @@ def verify(interaction, *args, **kwargs):
                 patch_json["roles"].remove(str(faction_role))
 
     if (
-        user.factionid != 0
+        user.faction is not None
         and user.faction_position is not None
-        and server.faction_verify.get(str(user.factionid)) is not None
-        and server.faction_verify[str(user.factionid)].get("positions") is not None
-        and len(server.faction_verify[str(user.factionid)]["positions"]) != 0
-        and str(user.faction_position) in server.faction_verify[str(user.factionid)]["positions"].keys()
-        and server.faction_verify[str(user.factionid)].get("enabled") not in (None, False)
+        and guild.faction_verify.get(str(user.faction.tid)) is not None
+        and guild.faction_verify[str(user.faction.tid)].get("positions") is not None
+        and len(guild.faction_verify[str(user.faction.tid)]["positions"]) != 0
+        and str(user.faction_position) in guild.faction_verify[str(user.faction.tid)]["positions"].keys()
+        and guild.faction_verify[str(user.faction.tid)].get("enabled") not in (None, False)
     ):
         position_role: int
-        for position_role in server.faction_verify[str(user.factionid)]["positions"][str(user.faction_position)]:
+        for position_role in guild.faction_verify[str(user.faction.tid)]["positions"][str(user.faction_position)]:
             if str(position_role) in user_roles:
                 continue
             elif patch_json.get("roles") is None:
@@ -334,7 +331,7 @@ def verify(interaction, *args, **kwargs):
 
     valid_position_roles = []
 
-    for factiontid, faction_positions_data in server.faction_verify.items():
+    for factiontid, faction_positions_data in guild.faction_verify.items():
         if "positions" not in faction_positions_data:
             continue
 
@@ -375,7 +372,7 @@ def verify(interaction, *args, **kwargs):
 
     try:
         discordpatch(
-            f"guilds/{server.sid}/members/{user.discord_id}",
+            f"guilds/{guild.sid}/members/{user.discord_id}",
             patch_json,
         )
     except DiscordError as e:
@@ -407,10 +404,8 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    if user.factionid == 0:
+    if user.faction is None:
         faction_str = "None"
-    elif user.factionid is None:
-        faction_str = "Unknown Faction"
     else:
         faction_str = f"{faction.name} [{faction.tid}]"
 

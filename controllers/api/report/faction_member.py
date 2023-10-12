@@ -13,27 +13,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import json
 import random
 import time
 import typing
 import uuid
 
-import mongoengine
 from flask import jsonify, request
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.reports.member_report import (
     enqueue_member_ps,
     member_ps_error,
 )
 from tornium_commons import rds
-from tornium_commons.models import (
-    FactionModel,
-    MemberReportModel,
-    PersonalStatModel,
-    UserModel,
-)
+from tornium_commons.models import Faction, MemberReport, PersonalStats, User
 
 from controllers.api.bot.config import _faction_data
 from controllers.api.decorators import (
@@ -49,13 +44,15 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def get_reports(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    reports: mongoengine.QuerySet
-    if kwargs["user"].factionid == 0:
-        reports = MemberReportModel.objects(
-            Q(requested_by_user=kwargs["user"].tid) | Q(requested_by_faction=kwargs["user"].factionid)
+    if kwargs["user"].faction is not None:
+        reports: typing.Iterable[MemberReport] = MemberReport.select().where(
+            (MemberReport.requested_by_user == kwargs["user"].tid)
+            | (MemberReport.requested_by_faction == kwargs["user"].faction.tid)
         )
     else:
-        reports = MemberReportModel.objects(requested_by_user=kwargs["user"].tid)
+        reports: typing.Iterable[MemberReport] = MemberReport.select().where(
+            MemberReport.requested_by_user == kwargs["user"].tid
+        )
 
     return (
         jsonify(
@@ -63,13 +60,13 @@ def get_reports(*args, **kwargs):
                 "reports": [
                     {
                         "report_id": report.rid,
-                        "created_at": report.created_at,
-                        "last_updated": report.last_updated,
+                        "created_at": report.created_at.to_timestamp(),
+                        "last_updated": report.last_updated.to_timestamp(),
                         "requested_data": report.requested_data,
                         "status": report.status,
-                        "faction": {**_faction_data(report.faction_id)},
-                        "start_timestamp": report.start_timestamp,
-                        "end_timestamp": report.end_timestamp,
+                        "faction": {**_faction_data(report.faction_tid)},
+                        "start_timestamp": report.start_timestamp.to_timestamp(),
+                        "end_timestamp": report.end_timestamp.to_timestamp(),
                     }
                     for report in reports
                 ],
@@ -87,18 +84,30 @@ def create_report(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    faction_id = data.get("faction_id")
-    start_time = data.get("start_time")
-    end_time = data.get("end_time", int(time.time()))
-    availability = data.get("availability", "user")
-    selected_stats = set(data.get("selected_stats"))
-
-    if faction_id is None:
+    try:
+        faction_tid = data["faction_id"]
+    except (KeyError, ValueError):
         return make_exception_response("1102", key)
-    elif start_time is None or type(start_time) not in (int, str):
-        return make_exception_response("0000", key, details={"message": "Invalid start_time"})
-    elif end_time is None or type(end_time) not in (int, str):
-        return make_exception_response("0000", key, details={"message": "Invalid end_time"})
+
+    try:
+        start_time = int(data["start_time"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("0000", key, details={"message": "Invalid start time"})
+
+    try:
+        end_time = int(data.get("end_time", int(time.time())))
+    except (ValueError, TypeError):
+        return make_exception_response("0000", key, details={"message": "Invalid end time"})
+
+    availability = data.get("availability", "user")
+
+    try:
+        selected_stats = set(data["selected_stats"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("0000", key, details={"message": "Invalid selected stats"})
+
+    if type(faction_tid) not in (str, int):
+        return make_exception_response("1102", key)
     elif availability not in ("user", "faction"):
         return make_exception_response("0000", key, details={"message": "Invalid availability"})
     elif len(selected_stats) == 0:
@@ -109,13 +118,15 @@ def create_report(*args, **kwargs):
             "0000", key, details={"message": "During the test period, faction availability isn't permitted"}
         )
 
-    if not faction_id.isdigit():
-        faction: typing.Optional[FactionModel] = FactionModel.objects(name__iexact=faction_id).first()
-
-        if faction is None:
+    if type(faction_tid) == str and not faction_tid.isdigit():
+        try:
+            faction: Faction = Faction.get(
+                Faction.name**faction_tid
+            )  # ** = ILIKE (case-insensitive pattern matching)
+        except DoesNotExist:
             return make_exception_response("1102", key)
 
-        faction_id = faction.tid
+        faction_tid = faction.tid
 
     try:
         # round (floor) to unix timestamp of current day
@@ -132,7 +143,7 @@ def create_report(*args, **kwargs):
         return make_exception_response(
             "0000", key, details={"message": "The duration of the report must be at least 2 days"}
         )
-    elif availability == "faction" and not kwargs["user"].faction_aa and kwargs["user"].factionid != 0:
+    elif availability == "faction" and not kwargs["user"].faction_aa and kwargs["user"].faction is not None:
         return make_exception_response("4005", key)
     elif availability == "user" and kwargs["user"].key in (None, ""):
         return make_exception_response("1200", key)
@@ -144,17 +155,16 @@ def create_report(*args, **kwargs):
     elif len(ps_keys & selected_stats) != len(selected_stats):
         return make_exception_response("0000", key, details={"message": "Invalid personal stat passed"})
 
-    now = int(time.time())
     rid = uuid.uuid4().hex
 
-    report = MemberReportModel(
+    report = MemberReport(
         rid=rid,
-        created_at=now,
-        last_updated=now,
+        created_at=datetime.datetime.utcnow(),
+        last_updated=datetime.datetime.utcnow(),
         requested_data=list(selected_stats),
-        start_timestamp=start_time,
-        end_timestamp=end_time,
-        faction_id=faction_id,
+        start_timestamp=datetime.datetime.fromtimestamp(start_time, tz=datetime.timezone.utc),
+        end_timestamp=datetime.datetime.fromtimestamp(end_time, tz=datetime.timezone.utc),
+        faction_id=faction_tid,
     )
 
     if availability == "user":
@@ -165,17 +175,19 @@ def create_report(*args, **kwargs):
         report.requested_by_user = None
         report.requested_by_faction = kwargs["user"].factionid
 
-        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=kwargs["user"].factionid).first()
+        faction: Faction = kwargs["user"].faction
 
         if faction is None:
             return make_exception_response("1201", key)
 
         keys = tuple(faction.aa_keys)
+    else:
+        raise Exception()
 
     report.save()
 
     tornget.signature(
-        kwargs={"endpoint": f"faction/{faction_id}?selections=basic", "key": random.choice(keys)},
+        kwargs={"endpoint": f"faction/{faction_tid}?selections=basic", "key": random.choice(keys)},
         queue="api",
     ).apply_async(
         link=enqueue_member_ps.signature(
@@ -190,13 +202,13 @@ def create_report(*args, **kwargs):
     return (
         {
             "report_id": rid,
-            "created_at": report.created_at,
-            "last_updated": report.last_updated,
+            "created_at": report.created_at.to_timestamp(),
+            "last_updated": report.last_updated.to_timestamp(),
             "requested_data": report.requested_data,
             "status": report.status,
-            "faction": {**_faction_data(report.faction_id)},
-            "start_timestamp": report.start_timestamp,
-            "end_timestamp": report.end_timestamp,
+            "faction": {**_faction_data(report.faction_tid)},
+            "start_timestamp": report.start_timestamp.to_timestamp(),
+            "end_timestamp": report.end_timestamp.to_timestamp(),
         },
         200,
         api_ratelimit_response(key),
@@ -207,16 +219,18 @@ def create_report(*args, **kwargs):
 @ratelimit
 def delete_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
 
-    if report is None:
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
         return make_exception_response("1000", key, details={"message": "Unknown report ID"})
-    elif report.requested_by_user is not None and report.requested_by_user != kwargs["user"].tid:
+
+    if report.requested_by_user is not None and report.requested_by_user != kwargs["user"].tid:
         return make_exception_response("4004", key)
     elif (
         report.requested_by_faction is not None
-        and report.requested_by_faction != kwargs["user"].factionid
-        and not kwargs["user"].factionaa
+        and report.requested_by_faction != kwargs["user"].faction.tid
+        and not kwargs["user"].faction_aa
     ):
         return make_exception_response("4005", key)
 
@@ -229,16 +243,18 @@ def delete_report(rid, *args, **kwargs):
 @ratelimit
 def get_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
 
-    if report is None:
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
         return make_exception_response("1000", key, details={"message": "Unknown report ID"})
-    elif report.requested_by_user is not None and report.requested_by_user != kwargs["user"].tid:
+
+    if report.requested_by_user is not None and report.requested_by_user != kwargs["user"].tid:
         return make_exception_response("4004", key)
     elif (
         report.requested_by_faction is not None
-        and report.requested_by_faction != kwargs["user"].factionid
-        and not kwargs["user"].factionaa
+        and report.requested_by_faction != kwargs["user"].faction.tid
+        and not kwargs["user"].faction_aa
     ):
         return make_exception_response("4005", key)
 
@@ -246,46 +262,42 @@ def get_report(rid, *args, **kwargs):
     start_ps = {}
     end_ps = {}
 
-    for tid, pid in report.start_ps.items():
+    for pid in report.start_ps:
         if pid is None:
-            start_ps[int(tid)] = None
             continue
 
-        ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(pstat_id=pid).first()
-
-        if ps is None:
-            start_ps[int(tid)] = None
+        try:
+            ps: PersonalStats = PersonalStats.get_by_id(pid)
+        except DoesNotExist:
             continue
 
         ps_data = {}
 
         for field in report.requested_data:
-            ps_data[field] = ps[field]
+            ps_data[field] = ps.ps_data[field]
 
-        start_ps[int(tid)] = ps_data
+        start_ps[int(ps.tid)] = ps_data
 
-    for tid, pid in report.end_ps.items():
+    for pid in report.end_ps:
         if pid is None:
-            end_ps[int(tid)] = None
             continue
 
-        ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(pstat_id=pid).first()
-
-        if ps is None:
-            end_ps[int(tid)] = None
+        try:
+            ps: PersonalStats = PersonalStats.get_by_id(pid)
+        except DoesNotExist:
             continue
 
         ps_data = {}
 
         for field in report.requested_data:
-            ps_data[field] = ps[field]
+            ps_data[field] = ps.ps_data[field]
 
-        end_ps[int(tid)] = ps_data
+        end_ps[int(ps.tid)] = ps_data
 
     for member_id in set(start_ps.keys()) | set(end_ps.keys()):
-        user: typing.Optional[UserModel] = UserModel.objects(tid=member_id).first()
-
-        if user is None:
+        try:
+            user: User = User.get_by_id(member_id)
+        except DoesNotExist:
             members[member_id] = None
             continue
 
@@ -294,13 +306,13 @@ def get_report(rid, *args, **kwargs):
         }
 
     response = {
-        "created_at": report.created_at,
-        "last_updated": report.last_updated,
+        "created_at": report.created_at.to_timestamp(),
+        "last_updated": report.last_updated.to_timestamp(),
         "status": report.status,
         "requested_data": report.requested_data,
-        "faction": {**_faction_data(report.faction_id)},
-        "start_timestamp": report.start_timestamp,
-        "end_timestamp": report.end_timestamp,
+        "faction": {**_faction_data(report.faction_tid)},
+        "start_timestamp": report.start_timestamp.to_timestamp(),
+        "end_timestamp": report.end_timestamp.to_timestamp(),
         "start_data": start_ps,
         "end_data": end_ps,
         "members": members,

@@ -23,11 +23,11 @@ mod = Blueprint("factionroutes", __name__)
 mod.add_url_rule("/faction/assists/<string:guid>", view_func=assists.assist_forward, methods=["GET"])
 
 # Banking Routes
-mod.add_url_rule("/faction/bankingaa", view_func=banking.bankingaa, methods=["GET"])
-mod.add_url_rule("/faction/bankingdata", view_func=banking.bankingdata, methods=["GET"])
+mod.add_url_rule("/faction/bankingaa", view_func=banking.banking_aa, methods=["GET"])
+mod.add_url_rule("/faction/bankingdata", view_func=banking.banking_data, methods=["GET"])
 mod.add_url_rule("/faction/banking", view_func=banking.banking, methods=["GET"])
 mod.add_url_rule("/faction/banking/fulfill/<guid>", view_func=banking.fulfill, methods=["GET"])
-mod.add_url_rule("/faction/userbankingdata", view_func=banking.userbankingdata, methods=["GET"])
+mod.add_url_rule("/faction/userbankingdata", view_func=banking.user_banking_data, methods=["GET"])
 
 # Bot Routes
 mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])

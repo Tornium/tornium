@@ -14,18 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import random
 
 from flask import jsonify, request
-from tornium_commons.models import ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.faction import Faction
-from models.user import User
 
 
-def jsonified_verify_config(guild: ServerModel):
+def jsonified_verify_config(guild: Server):
     return jsonify(
         {
             "enabled": guild.config.get("verify"),
@@ -39,19 +37,20 @@ def jsonified_verify_config(guild: ServerModel):
 
 @token_required
 @ratelimit
-def verification_config(guildid, *args, **kwargs):
+def verification_config(guild_id, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    for factiontid, faction_data in guild.faction_verify.items():
-        if "positions" not in guild.faction_verify[factiontid]:
-            guild.faction_verify[factiontid]["positions"] = {}
+    for faction_tid, faction_data in guild.faction_verify.items():
+        if "positions" not in guild.faction_verify[faction_tid]:
+            guild.faction_verify[faction_tid]["positions"] = {}
 
     guild.save()
 
@@ -64,17 +63,17 @@ def guild_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
 
-    guildid = int(guildid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     if request.method == "POST":
@@ -113,24 +112,25 @@ def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-    channelid = data.get("channel")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif channelid in ("", None, 0) or not channelid.isdigit():
-        return make_exception_response("1002", key)
 
-    guildid = int(guildid)
-    channelid = int(channelid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        channel_id = int(data["channel"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.verify_log_channel = channelid
+    guild.verify_log_channel = channel_id
     guild.save()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
@@ -142,19 +142,22 @@ def guild_verification_template(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-    template = data.get("template")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif template in ("", None):
+
+    try:
+        template = data["template"]
+    except KeyError:
         return make_exception_response("1000", key, details={"element": "template"})
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     guild.verify_template = template
@@ -169,24 +172,28 @@ def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
-    guildid = data.get("guildid")
-    factiontid = data.get("factiontid")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif factiontid in ("", None, 0) or not factiontid.isdigit():
-        return make_exception_response("1102", key)
 
-    guildid = int(guildid)
-    factiontid = int(factiontid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
+    try:
+        faction_tid = int(data["factiontid"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1002", key)
 
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    faction: Faction = Faction(factiontid)
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
 
     if request.method == "DELETE" and str(faction.tid) not in guild.faction_verify:
         return make_exception_response(
@@ -194,24 +201,24 @@ def faction_verification(*args, **kwargs):
             key,
             details={
                 "message": "Faction not in guild's list of factions to verify.",
-                "factiontid": factiontid,
+                "factiontid": faction_tid,
             },
         )
 
     if request.method == "DELETE" and data.get("remove") is True:
-        del guild.faction_verify[str(factiontid)]
+        del guild.faction_verify[str(faction_tid)]
     else:
         if faction.tid not in guild.faction_verify:
-            guild.faction_verify[str(factiontid)] = {
+            guild.faction_verify[str(faction_tid)] = {
                 "roles": [],
                 "positions": {},
                 "enabled": False,
             }
 
         if request.method == "POST":
-            guild.faction_verify[str(factiontid)]["enabled"] = True
+            guild.faction_verify[str(faction_tid)]["enabled"] = True
         elif request.method == "DELETE":
-            guild.faction_verify[str(factiontid)]["enabled"] = False
+            guild.faction_verify[str(faction_tid)]["enabled"] = False
 
     guild.save()
 
@@ -224,20 +231,22 @@ def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
-        return make_exception_response("1001", key)
-    elif roles is None or type(roles) != list:
+    if roles is None or type(roles) != list:
         return make_exception_response("1000", key)
 
-    guildid = int(guildid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     try:
@@ -256,20 +265,22 @@ def guild_exclusion_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
-        return make_exception_response("1001", key)
-    elif roles is None or type(roles) != list:
+    if roles is None or type(roles) != list:
         return make_exception_response("1000", key)
 
-    guildid = int(guildid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     try:
@@ -284,29 +295,31 @@ def guild_exclusion_roles(*args, **kwargs):
 
 @token_required
 @ratelimit
-def faction_roles(factiontid, *args, **kwargs):
+def faction_roles(faction_tid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
-        return make_exception_response("1001", key)
-    elif roles is None or type(roles) != list:
+    if roles is None or type(roles) != list:
         return make_exception_response("1000", key)
 
-    guildid = int(guildid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif str(factiontid) not in guild.faction_verify.keys():
+    elif str(faction_tid) not in guild.faction_verify.keys():
         return make_exception_response("1102", key)
 
-    guild.faction_verify[str(factiontid)]["roles"] = [int(role) for role in roles]
+    guild.faction_verify[str(faction_tid)]["roles"] = [int(role) for role in roles]
     guild.save()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
@@ -314,29 +327,31 @@ def faction_roles(factiontid, *args, **kwargs):
 
 @token_required
 @ratelimit
-def faction_position_roles(factiontid: int, position: str, *args, **kwargs):
+def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
     roles = data.get("roles")
 
-    if guildid in ("", None, 0) or not guildid.isdigit():
-        return make_exception_response("1001", key)
-    elif roles is None or type(roles) != list:
+    if roles is None or type(roles) != list:
         return make_exception_response("1000", key)
 
-    guildid = int(guildid)
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif str(factiontid) not in guild.faction_verify.keys():
+    elif str(faction_tid) not in guild.faction_verify.keys():
         return make_exception_response("1102", key)
 
-    guild.faction_verify[str(factiontid)]["positions"][position] = roles
+    guild.faction_verify[str(faction_tid)]["positions"][position] = roles
     guild.save()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)

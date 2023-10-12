@@ -17,10 +17,11 @@ import datetime
 import typing
 
 from flask import jsonify, request
+from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
-from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.models import Faction, User
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -30,26 +31,24 @@ from estimate import estimate_user
 @authentication_required
 @ratelimit
 def get_user(*args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
-
     return (
         jsonify(
             {
                 "tid": kwargs["user"].tid,
                 "name": kwargs["user"].name,
                 "username": f'{kwargs["user"].name} [{kwargs["user"].tid}]',
-                "last_refresh": kwargs["user"].last_refresh,
+                "last_refresh": kwargs["user"].last_refresh.to_timestamp(),
                 "battlescore": kwargs["user"].battlescore,
-                "battlescore_update": kwargs["user"].battlescore_update,
+                "battlescore_update": kwargs["user"].battlescore_update.to_timestamp(),
                 "discord_id": kwargs["user"].discord_id,
-                "factiontid": kwargs["user"].factionid,
-                "aa": kwargs["user"].factionaa,
+                "factiontid": kwargs["user"].faction.tid,
+                "aa": kwargs["user"].faction_aa,
                 "status": kwargs["user"].status,
-                "last_action": kwargs["user"].last_action,
+                "last_action": kwargs["user"].last_action.to_timestamp(),
             }
         ),
         200,
-        api_ratelimit_response(key),
+        api_ratelimit_response(f'tornium:ratelimit:{kwargs["user"].tid}'),
     )
 
 
@@ -76,14 +75,10 @@ def get_specific_user(tid: int, *args, **kwargs):
     if refresh:
         update_user(kwargs["user"].key, tid=tid, refresh_existing=True)
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).no_cache().first()
-
-    if user is None:
+    try:
+        user: User = User.get_by_id(tid)
+    except DoesNotExist:
         return make_exception_response("1100", key)
-
-    faction: typing.Optional[FactionModel] = (
-        None if user.factionid == 0 else FactionModel.objects(tid=user.factionid).first()
-    )
 
     return (
         jsonify(
@@ -94,7 +89,7 @@ def get_specific_user(tid: int, *args, **kwargs):
                 "level": user.level,
                 "last_refresh": user.last_refresh,
                 "discord_id": user.discord_id,
-                "faction": {"tid": user.factionid, "name": faction.name} if faction is not None else None,
+                "faction": {"tid": user.faction.tid, "name": user.faction.name} if user.faction is not None else None,
                 "status": user.status,
                 "last_action": user.last_action,
             }

@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from tornium_commons import rds
-from tornium_commons.models import ItemModel
+from tornium_commons.models import Item
 
 from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -30,7 +30,7 @@ def item_name_map(*args, **kwargs):
     torn_items = redis_client.hgetall("tornium:items:name-map")
 
     if len(torn_items) == 0:
-        torn_items = {item.tid: item.name for item in ItemModel.objects().only("tid", "name")}
+        torn_items = {item.tid: item.name for item in Item.select(Item.tid, Item.name)}
 
         if len(torn_items) == 0:
             return make_exception_response("1000", key, details={"element": "torn_items"})

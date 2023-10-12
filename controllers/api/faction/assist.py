@@ -23,20 +23,14 @@ import uuid
 
 from celery.result import AsyncResult
 from flask import jsonify, request
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import (
-    FactionModel,
-    PersonalStatModel,
-    ServerModel,
-    StatModel,
-    UserModel,
-)
+from tornium_commons.models import Faction, PersonalStats, Server, Stat, User
 
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
@@ -68,9 +62,9 @@ def forward_assist(*args, **kwargs):
     except TypeError:
         return make_exception_response("1000", redis_client=client)
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=user_tid).first()
-
-    if user is None:
+    try:
+        user: User = User.get_by_id(user_tid)
+    except DoesNotExist:
         return make_exception_response("1100", redis_client=client)
 
     key = f"tornium:ratelimit:{user_tid}"
@@ -81,20 +75,15 @@ def forward_assist(*args, **kwargs):
     else:
         client.set(assist_lock_key, int(datetime.datetime.utcnow().timestamp()) + 10, nx=True, ex=10)
 
-    if user.factionid != 0:
-        user_faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
-
-        if user_faction is None:
-            return make_exception_response("1102", key, redis_client=client)
-    else:
+    if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
 
     call_key: str
     if user.key in ("", None):
-        if user_faction is None or len(user_faction.aa_keys) == 0:
+        if len(user.faction.aa_keys) == 0:
             return make_exception_response("1200", redis_client=client)
 
-        call_key = random.choice(user_faction.aa_keys)
+        call_key = random.choice(user.faction.aa_keys)
     else:
         call_key = user.key
 
@@ -103,34 +92,24 @@ def forward_assist(*args, **kwargs):
     except AttributeError:
         pass
 
-    target: UserModel = UserModel.objects(tid=target_tid).no_cache().first()
-
-    if target is None:
+    try:
+        target: User = User.get_by_id(target_tid)
+    except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
-    target_faction: typing.Optional[FactionModel]
-
-    if target.factionid != 0:
-        target_faction = FactionModel.objects(tid=target.factionid).first()
-
-        if target_faction is None:
-            return make_exception_response("1102", key, redis_client=client)
-    else:
-        target_faction = None
-
-    if target.factionid != 0 and target_faction is not None:
-        if target_faction.tag in ("", None):
-            content_target_faction = target_faction.name
+    if target.faction is not None:
+        if target.faction.tag in ("", None):
+            content_target_faction = target.faction.name
         else:
-            content_target_faction = target_faction.tag
+            content_target_faction = target.faction.tag
     else:
         content_target_faction = ""
 
-    if user.factionid != 0 and user_faction is not None:
-        if user_faction.tag in ("", None):
-            user_faction_str = user_faction.name
+    if user.faction is not None:
+        if user.faction.tag in ("", None):
+            user_faction_str = user.faction.name
         else:
-            user_faction_str = user_faction.tag
+            user_faction_str = user.faction.tag
     else:
         user_faction_str = ""
 
@@ -266,6 +245,15 @@ def forward_assist(*args, **kwargs):
         .first()
     )
 
+    stat: typing.Optional[Stat]
+    try:
+        stat = Stat.get(
+            (Stat.tid == target_tid)
+            & ((Stat.global_stat == True) | (Stat.added_faction_tid == user.faction.tid) | (Stat.added_tid == user_tid))
+        )
+    except DoesNotExist:
+        stat = None
+
     total_bs = None
 
     if stat is not None:
@@ -286,21 +274,25 @@ def forward_assist(*args, **kwargs):
             }
         )
 
-    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
+    ps: typing.Optional[PersonalStats]
+    try:
+        ps = PersonalStats.select().where(PersonalStats.tid == target_tid).order_by(-PersonalStats.timestamp).get()
+    except DoesNotExist:
+        ps = None
 
     if ps is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
-            f"""Xanax Used: {commas(ps.xantaken)}
-            Refills Used: {commas(ps.refills)}
-            Energy Drinks Drunk: {commas(ps.energydrinkused)}
-            LSD Used: {commas(ps.lsdtaken)}
-            SEs Used: {commas(ps.statenhancersused)}
+            f"""Xanax Used: {commas(ps.ps_data["xantaken"])}
+            Refills Used: {commas(ps.ps_data["refills"])}
+            Energy Drinks Drunk: {commas(ps.ps_data["energydrinkused"])}
+            LSD Used: {commas(ps.ps_data["lsdtaken"])}
+            SEs Used: {commas(ps.ps_data["statenhancersused"])}
             
-            ELO: {commas(ps.elo)}
-            Best Damage: {commas(ps.bestdamage)}
-            Networth: ${commas(ps.networth)}
+            ELO: {commas(ps.ps_data["elo"])}
+            Best Damage: {commas(ps.ps_data["bestdamage"])}
+            Networth: ${commas(ps.ps_data["networth"])}
             
-            Personal Stat Last Update: <t:{ps.timestamp}:R>
+            Personal Stat Last Update: <t:{ps.timestamp.to_timestamp()}:R>
             """  # noqa: W293
         )
 
@@ -337,11 +329,11 @@ def forward_assist(*args, **kwargs):
     servers_forwarded = []
     messages = []
 
-    server: ServerModel
-    for server in ServerModel.objects(assistchannel__ne=0):
-        if server.assistschannel in (0, "0", None):
+    server: Server
+    for server in Server.select().where(Server.assist_channel != 0):
+        if server.assist_channel in (0, "0", None):
             continue
-        elif user.factionid not in server.assist_factions:
+        elif user.faction.tid not in server.assist_factions:
             continue
 
         roles = []
@@ -381,7 +373,7 @@ def forward_assist(*args, **kwargs):
         try:
             messages.append(
                 discordpost.delay(
-                    f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel
+                    f"channels/{server.assist_channel}/messages", payload=payload, channel=server.assist_channel
                 )
             )
         except (DiscordError, NetworkingError):

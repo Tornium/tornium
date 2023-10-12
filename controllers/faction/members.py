@@ -14,29 +14,52 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
+import typing
 
 from flask import render_template
 from flask_login import current_user, login_required
-from mongoengine.queryset.visitor import Q
-from tornium_commons.models import UserModel
+from tornium_commons import requires_db_connection
+from tornium_commons.models import Faction, User
 
 from controllers.faction.decorators import fac_required
 
 
+@requires_db_connection
 @login_required
 @fac_required
 def members(*args, **kwargs):
-    fac_members = UserModel.objects(factionid=kwargs["faction"].tid)
+    fac_members: typing.Iterable[User] = (
+        User.select(
+            User.battlescore,
+            User.key,
+            User.tid,
+            User.faction_aa,
+            User.level,
+            User.last_action,
+            User.last_refresh,
+            User.discord_id,
+            User.name,
+            User.strength,
+            User.defense,
+            User.speed,
+            User.dexterity,
+        )
+        .join(Faction)
+        .where(User.faction.tid == int(current_user.faction.tid))
+        .execute()
+    )
 
-    if current_user.aa:
+    if current_user.faction_aa:
         stats = []
 
-        member: UserModel
+        member: User
         for member in fac_members:
             if member.battlescore == 0:
                 continue
 
             stats.append(member.battlescore)
+
+        average = sum(stats) / len(stats) if len(stats) != 0 else 0
 
         stats.sort(reverse=True)
         stats = stats[: math.floor(0.8 * len(stats)) - 1]
@@ -44,9 +67,7 @@ def members(*args, **kwargs):
         return render_template(
             "faction/members.html",
             members=fac_members,
-            average_stat=UserModel.objects(Q(factionid=kwargs["faction"].tid) & Q(battlescore__ne=0)).average(
-                "battlescore"
-            ),
+            average_stat=average,
             average_stat_80=sum(stats) / len(stats) if len(stats) != 0 else 0,
         )
     else:

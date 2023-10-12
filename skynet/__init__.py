@@ -70,7 +70,7 @@ _commands = {
     "withdraw": skynet.commands.faction.withdraw.withdraw,
     # Bot Commands
     "verify": skynet.commands.bot.verify.verify,
-    "verifyall": skynet.commands.bot.verifyall.verifyall,
+    "verifyall": skynet.commands.bot.verifyall.verify_all,
     # Notification Commands
     "notify": skynet.commands.notify.notify_switchboard,
     # Stat DB Commands

@@ -17,18 +17,12 @@ import datetime
 import time
 import typing
 
-from mongoengine import QuerySet
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpost
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import find_list, torn_timestamp
-from tornium_commons.models import (
-    FactionModel,
-    NotificationModel,
-    ServerModel,
-    UserModel,
-)
+from tornium_commons.formatters import find_list
+from tornium_commons.models import Faction, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 _STYPE_NID_MAP = {
@@ -94,11 +88,27 @@ def stakeouts(interaction, *args, **kwargs):
             }
 
         passed_scat = find_list(subcommand_data, "name", "category")[1]["value"].lower()
-        notification: NotificationModel = notifications.first()
 
-        if notification.ntype == 1:
+        try:
+            notification: Notification = notifications.get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Stakeout Not Found",
+                            "description": "No matching stakeout was located in the database.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if notification.n_type == 1:
             scat_id = _SCATS["user"][passed_scat]
-        elif notification.ntype == 2:
+        elif notification.n_type == 2:
             scat_id = _SCATS["faction"][passed_scat]
         else:
             return {
@@ -131,7 +141,7 @@ def stakeouts(interaction, *args, **kwargs):
                             "description": f"The {passed_scat} stakeout category has been removed from the stakeout.",
                             "color": SKYNET_GOOD,
                             "footer": {
-                                "text": f"DB ID: {notification.id}",
+                                "text": f"DB ID: {notification.get_id()}",
                             },
                         }
                     ]
@@ -152,7 +162,7 @@ def stakeouts(interaction, *args, **kwargs):
                             "description": f"The {passed_scat} stakeout category has been added to the stakeout.",
                             "color": SKYNET_GOOD,
                             "footer": {
-                                "text": f"DB ID: {notification.id}",
+                                "text": f"DB ID: {notification.get_id()}",
                             },
                         }
                     ]
@@ -160,7 +170,23 @@ def stakeouts(interaction, *args, **kwargs):
             }
 
     def delete():
-        notification: NotificationModel = notifications.first()
+        try:
+            notification: Notification = notifications.get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Stakeout Not Found",
+                            "description": "No matching stakeout was located in the database.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
         notification.delete()
 
         return {
@@ -172,7 +198,7 @@ def stakeouts(interaction, *args, **kwargs):
                         "description": "The first specified notification has been deleted.",
                         "color": SKYNET_GOOD,
                         "footer": {
-                            "text": f"DB ID: {notification.id}",
+                            "text": f"DB ID: {notification.get_id()}",
                         },
                     }
                 ]
@@ -182,22 +208,30 @@ def stakeouts(interaction, *args, **kwargs):
     def info():
         embeds = []
 
-        notification: NotificationModel
+        notification: Notification
         for notification in notifications:
-            if notification.ntype == 1:
-                notification_object: typing.Optional[UserModel] = UserModel.objects(tid=notification.target).first()
+            if notification.n_type == 1:
+                notification_object: typing.Optional[User]
+                try:
+                    notification_object = User.get_by_id(notification.target)
+                except DoesNotExist:
+                    notification_object = None
+
                 title = "User Stakeout"
             else:
-                notification_object: typing.Optional[FactionModel] = FactionModel.objects(
-                    tid=notification.target
-                ).first()
+                notification_object: typing.Optional[Faction]
+                try:
+                    notification_object = Faction.get_by_id(notification.target)
+                except DoesNotExist:
+                    notification_object = None
+
                 title = "Faction Stakeout"
 
             if len(notification.value) == 0:
                 categories = "None"
             else:
                 categories = ", ".join(
-                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]][value] for value in notification.value]
+                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]][value] for value in notification.value]
                 )
 
             embeds.append(
@@ -226,19 +260,19 @@ def stakeouts(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Private",
-                            "value": not bool(notification.recipient_type),
+                            "value": notification.recipient_guild == 0,
                             "inline": True,
                         },
                         {
                             "name": "Target Channel",
                             "value": f"<#{notification.recipient}>"
-                            if notification.recipient_type == 1
+                            if notification.recipient_guild != 0
                             else "Direct Message",
                             "inline": True,
                         },
                     ],
                     "footer": {
-                        "text": f"DB ID: {notification.id}",
+                        "text": f"DB ID: {notification.get_id()}",
                     },
                 }
             )
@@ -290,9 +324,9 @@ def stakeouts(interaction, *args, **kwargs):
             }
 
         if not private:
-            guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-            if guild is None:
+            try:
+                guild: Server = Server.get_id(interaction["guild_id"])
+            except DoesNotExist:
                 return {
                     "type": 4,
                     "data": {
@@ -306,7 +340,8 @@ def stakeouts(interaction, *args, **kwargs):
                         "flags": 64,
                     },
                 }
-            elif user.tid not in guild.admins:
+
+            if user.tid not in guild.admins:
                 return {
                     "type": 4,
                     "data": {
@@ -324,14 +359,15 @@ def stakeouts(interaction, *args, **kwargs):
 
         if private:
             if (
-                NotificationModel.objects(
-                    Q(invoker=user.tid)
-                    & Q(recipient=user.discord_id)
-                    & Q(recipient_type=0)
-                    & Q(target=tid)
-                    & Q(ntype=_STYPE_NID_MAP[stype])
-                ).count()
-                > 0
+                Notification.select()
+                .where(
+                    (Notification.invoker == user.tid)
+                    & (Notification.recipient == user.discord_id)
+                    & (Notification.recipient_guild == 0)
+                    & (Notification.target == tid)
+                    & (Notification.n_type == _STYPE_NID_MAP[stype])
+                )
+                .exists()
             ):
                 return {
                     "type": 4,
@@ -348,13 +384,13 @@ def stakeouts(interaction, *args, **kwargs):
                 }
         else:
             if (
-                NotificationModel.objects(
-                    Q(recipient=int(interaction["guild_id"]))
-                    & Q(recipient_type=1)
-                    & Q(target=tid)
-                    & Q(ntype=_STYPE_NID_MAP[stype])
-                ).count()
-                > 0
+                Notification.select()
+                .where(
+                    (Notification.recipient_guild == int(interaction["guild_id"]))
+                    & (Notification.target == tid)
+                    & (Notification.n_type == _STYPE_NID_MAP[stype])
+                )
+                .exists()
             ):
                 return {
                     "type": 4,
@@ -370,9 +406,9 @@ def stakeouts(interaction, *args, **kwargs):
                     },
                 }
 
-        notification = NotificationModel(
+        notification: Notification = Notification(
             invoker=user.tid,
-            time_created=int(time.time()),
+            time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
             recipient_guild=int(interaction["guild_id"]) if not private else 0,
             recipient_type=int(not private),
@@ -406,19 +442,19 @@ def stakeouts(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Private",
-                                "value": not bool(notification.recipient_type),
+                                "value": notification.recipient_guild == 0,
                                 "inline": True,
                             },
                             {
                                 "name": "Target Channel",
                                 "value": f"<#{notification.recipient}>"
-                                if notification.recipient_type == 1
+                                if notification.recipient_guild != 0
                                 else "Direct Message",
                                 "inline": True,
                             },
                         ],
                         "footer": {
-                            "text": f"DB ID: {notification.id}",
+                            "text": f"DB ID: {notification.get_id()}",
                         },
                     }
                 ]
@@ -426,30 +462,6 @@ def stakeouts(interaction, *args, **kwargs):
         }
 
     def list_notfs():
-        notifications: QuerySet
-        if "guild_id" in interaction:
-            notifications = NotificationModel.objects(
-                Q(recipient_type=1)
-                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
-            )
-        else:
-            notifications = NotificationModel.objects(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
-
-        if notifications.count() == 0:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "No Stakeout Found",
-                            "description": "No stakeouts could be located with the passed Torn ID and stakeout type.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flag": 64,
-                },
-            }
-
         payload = {
             "type": 4,
             "data": {
@@ -463,16 +475,16 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
-        notification: NotificationModel
+        notification: Notification
         for notification in notifications:
-            if notification.recipient_type == 0:
+            if notification.recipient_guild == 0:
                 payload["data"]["embeds"][0][
                     "description"
-                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.ntype]} stakeout on {notification.target} - DM"
+                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.n_type]} stakeout on {notification.target} - DM"
             else:
                 payload["data"]["embeds"][0][
                     "description"
-                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.ntype]} stakeout on {notification.target} - <#{notification.recipient}>"
+                ] += f"\n{_REVERSE_STYPE_NID_MAP[notification.n_type]} stakeout on {notification.target} - <#{notification.recipient}>"
 
         return payload
 
@@ -493,14 +505,29 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        notification: NotificationModel = notifications.first()
+        try:
+            notification: Notification = notifications.get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No Matching Stakeouts",
+                            "description": "No stakeouts were found that matched the searched parameters.",
+                            "color": SKYNET_INFO,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
         if mode == "enable":
             mode_bool = True
         else:
             mode_bool = False
 
-            if notification.ntype == 2 and 0 in notification.value:
+            if notification.n_type == 2 and 0 in notification.value:
                 rds().delete(f"tornium:stakeout-data:faction:{notification.target}:members")
 
         if notification.options.get("enabled") == mode_bool:
@@ -535,7 +562,9 @@ def stakeouts(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = kwargs["invoker"]
+    # End of stakeout function
+
+    user: User = kwargs["invoker"]
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
@@ -568,11 +597,11 @@ def stakeouts(interaction, *args, **kwargs):
     else:
         stype = stype[1]["value"]
 
-    if subcommand not in ("initialize", "list"):
+    if subcommand != "initialize":
         if "guild_id" in interaction:
-            guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-            if guild is None:
+            try:
+                guild: Server = Server.select().get_by_id(interaction["guild_id"])
+            except DoesNotExist:
                 return {
                     "type": 4,
                     "data": {
@@ -586,7 +615,8 @@ def stakeouts(interaction, *args, **kwargs):
                         "flags": 64,
                     },
                 }
-            elif user.tid not in guild.admins:
+
+            if user.tid not in guild.admins:
                 return {
                     "type": 4,
                     "data": {
@@ -602,18 +632,23 @@ def stakeouts(interaction, *args, **kwargs):
                     },
                 }
 
-        notifications: QuerySet = NotificationModel.objects(target=tid)
+        if tid is None:
+            notifications = Notification.select()
+        else:
+            notifications = Notification.select().where(Notification.target == tid)
 
         if stype is not None:
-            notifications.filter(ntype=_STYPE_NID_MAP[stype])
+            notifications = notifications.where(Notification.n_type == _STYPE_NID_MAP[stype])
 
         if "guild_id" in interaction:
-            notifications.filter(
-                Q(recipient_type=1)
-                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+            notifications = notifications.where(
+                (Notification.recipient_guild == int(interaction["guild_id"]))
+                | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
             )
         else:
-            notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+            notifications = notifications.where(
+                (Notification.recipient_guild == 0) & (Notification.invoker == user.tid)
+            )
 
         if notifications.count() == 0:
             return {
@@ -667,7 +702,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
                     "data": {
                         "choices": [
                             {"value": category, "name": category}
-                            for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.ntype]].keys()
+                            for category in _SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]].keys()
                             if category.startswith(option["value"])
                         ]
                     },
@@ -680,7 +715,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = kwargs["invoker"]
+    user: User = kwargs["invoker"]
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
@@ -706,18 +741,21 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
     else:
         stype = stype[1]["value"]
 
-    notifications: QuerySet = NotificationModel.objects(target=tid)
+    notifications = Notification.select().where(target=tid)
 
     if stype is not None:
-        notifications.filter(ntype=_STYPE_NID_MAP[stype])
+        notifications = notifications.where(Notification.n_type == _STYPE_NID_MAP[stype])
 
     if "guild_id" in interaction:
-        notifications.filter(
-            Q(recipient_type=1)
-            & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+        notifications = notifications.where(
+            (
+                Notification.recipient_guild
+                == int(interaction["guild_id"])
+                | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
+            )
         )
     else:
-        notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+        notifications = notifications.where((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
 
     if notifications.count() != 1:
         return {
@@ -727,7 +765,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
             },
         }
 
-    notification: NotificationModel = notifications.first()
+    notification: Notification = notifications.get()
 
     if subcommand == "category":
         return category_autocomplete()
@@ -761,7 +799,12 @@ def stakeout_flying_button(interaction, *args, **kwargs):
             },
         }
 
-    user = UserModel.objects(tid=tid).first()
+    user: typing.Optional[User]
+    try:
+        user = User.get_by_id(tid)
+    except DoesNotExist:
+        user = None
+
     _flying_type_str = {
         0: "Standard",
         1: "Airstrip",
@@ -871,7 +914,11 @@ def stakeout_hospital_button(interaction, *args, **kwargs):
             },
         }
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=tid).first()
+    user: typing.Optional[User]
+    try:
+        user = User.get_by_id(tid)
+    except DoesNotExist:
+        user = None
 
     try:
         dm_channel = discordpost(

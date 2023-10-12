@@ -12,22 +12,27 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import typing
 
 from flask import jsonify
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
 def _faction_data(tid, guild=None):
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=tid).first()
-
     data = {
         "id": tid,
         "name": "",
     }
+
+    try:
+        faction: Faction = Faction.select(Faction.name).get_by_id(tid)
+    except DoesNotExist:
+        return data
 
     if faction is not None:
         data["name"] = faction.name
@@ -35,7 +40,7 @@ def _faction_data(tid, guild=None):
     return data
 
 
-def jsonified_server_config(guild: ServerModel):
+def jsonified_server_config(guild: Server):
     data = {
         "id": str(guild.sid),
         "name": guild.name,
@@ -96,14 +101,15 @@ def jsonified_server_config(guild: ServerModel):
 
 @token_required
 @ratelimit
-def server_config(guildid, *args, **kwargs):
+def server_config(guild_id, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

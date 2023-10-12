@@ -15,15 +15,14 @@
 
 from functools import wraps
 
-from flask import abort
+from flask import abort, render_template
 from flask_login import current_user
-from tornium_commons.models import FactionModel
 
 
 def aa_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.aa:
+        if not current_user.is_authenticated or not current_user.faction_aa:
             return abort(403)
         else:
             return f(*args, **kwargs)
@@ -34,15 +33,16 @@ def aa_required(f):
 def fac_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if current_user.factiontid == 0:
-            return abort(403, "User is not in a faction.")
+        if current_user.faction is None:
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Permission Denied",
+                    error=f"{current_user.name} is not in a faction or the faction is not stored in the database.",
+                ),
+                403,
+            )
 
-        faction = FactionModel.objects(tid=current_user.factiontid).first()
-
-        if faction is None:
-            return abort(403, "User is not in a faction stored in the database.")
-
-        kwargs["faction"] = faction
         return f(*args, **kwargs)
 
     return wrapper

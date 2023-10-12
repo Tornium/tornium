@@ -15,21 +15,10 @@
 
 from flask import abort, render_template, request
 from flask_login import current_user, login_required
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons.formatters import commas, rel_time
-from tornium_commons.models import FactionModel, PersonalStatModel, UserModel
-
-from models.faction import Faction
-
-USER_ORDERING = {
-    0: "tid",
-    1: "name",
-    2: "level",
-    3: "factionid",
-    4: "last_action",
-    5: "last_refresh",
-}
+from tornium_commons.models import Faction, PersonalStats, User
 
 
 @login_required
@@ -46,54 +35,41 @@ def users_data():
     ordering_direction = request.args.get("order[0][dir]")
 
     users = []
+    users_db = User.select()
 
-    if search_value == "":
-        users_db = UserModel.objects()
-    else:
-        users_db = UserModel.objects(Q(name__startswith=search_value))
+    if search_value != "":
+        users_db = users_db.where(User.name.startswith(search_value))
 
     if ordering_direction == "asc":
-        ordering_direction = "+"
+        ordering_direction = 1
     else:
-        ordering_direction = "-"
+        ordering_direction = -1
 
-    if ordering in USER_ORDERING:
-        users_db = users_db.order_by(f"{ordering_direction}{USER_ORDERING[ordering]}")
+    if ordering == 0:
+        users_db = users_db.order_by(ordering_direction * User.tid)
+    elif ordering == 1:
+        users_db = users_db.order_by(ordering_direction * User.name)
+    elif ordering == 2:
+        users_db = users_db.order_by(ordering_direction * User.level)
+    elif ordering == 3:
+        users_db = users_db.order_by(ordering_direction * User.faction.tid)
+    elif ordering == 4:
+        users_db = users_db.order_by(ordering_direction * User.last_action)
     else:
-        users_db = users_db.order_by(f"{ordering_direction}last_refresh")
+        users_db = users_db.order_by(ordering_direction * User.last_refresh)
 
     count = users_db.count()
+    # TODO: Possibly migrate to .paginate()
     users_db = users_db[start : start + length]
 
-    user: UserModel
+    user: User
     for user in users_db:
-        if user.factionid == 0:
-            users.append(
-                {
-                    "tid": user.tid,
-                    "name": user.name,
-                    "level": user.level,
-                    "faction": "None",
-                    "last_action": {
-                        "display": rel_time(user.last_action),
-                        "timestamp": user.last_action,
-                    },
-                    "last_refresh": {
-                        "display": rel_time(user.last_refresh),
-                        "timestamp": user.last_refresh,
-                    },
-                }
-            )
-            continue
-
-        faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
-
         users.append(
             {
                 "tid": user.tid,
                 "name": user.name,
                 "level": user.level,
-                "faction": "Unknown" if faction is None else f"{faction.name} [{faction.tid}]",
+                "faction": "Unknown" if user.faction is None else f"{user.faction.name} [{user.faction.tid}]",
                 "last_action": {
                     "display": rel_time(user.last_action),
                     "timestamp": user.last_action,
@@ -107,7 +83,7 @@ def users_data():
 
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": UserModel.objects().count(),
+        "recordsTotal": User.select().count(),
         "recordsFiltered": count,
         "data": users,
     }
@@ -121,8 +97,10 @@ def user_data(tid: int):
         return abort(400)
 
     update_user(current_user.key, tid=tid)
-    user: UserModel = UserModel.objects(tid=tid).no_cache().first()
-    Faction(user.factionid).refresh(key=current_user.key)
-    faction: FactionModel = FactionModel.objects(tid=user.factionid).no_cache().first()
 
-    return render_template("torn/usermodal.html", user=user, faction=faction)
+    try:
+        user: User = User.get_by_id(tid)
+    except DoesNotExist:
+        return abort(400)
+
+    return render_template("torn/usermodal.html", user=user)

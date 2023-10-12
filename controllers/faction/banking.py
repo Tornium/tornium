@@ -14,98 +14,86 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import time
 import typing
 
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
-from mongoengine.queryset.visitor import Q
-from tornium_celery.tasks.api import discordget, discordpatch, discordpost
+from peewee import DoesNotExist
+from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.misc import send_dm
 from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
-from tornium_commons.models import (
-    FactionModel,
-    PositionModel,
-    ServerModel,
-    UserModel,
-    WithdrawalModel,
-)
+from tornium_commons.models import Faction, FactionPosition, Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required
-from models.user import User
 
 
 @login_required
 @aa_required
-def bankingaa():
-    return render_template("faction/bankingaa.html")
+def banking_aa():
+    return render_template("faction/banking_aa.html")
 
 
 @login_required
 @aa_required
-def bankingdata():
+def banking_data():
     start = int(request.args.get("start"))
     length = int(request.args.get("length"))
     ordering = int(request.args.get("order[0][column]"))
     ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    if ordering_direction == "asc":
-        ordering_direction = "+"
-    else:
-        ordering_direction = "-"
-
-    withdrawals_db = WithdrawalModel.objects(factiontid=current_user.factiontid)
+    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid)
 
     if ordering == 0:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}wid")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.wid))
     elif ordering == 1:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}amount")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.amount))
     elif ordering == 2:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}requester")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.requester))
     elif ordering == 4:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}fulfiller")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.fulfiller))
     elif ordering == 5:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_fulfilled")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_fulfilled))
     else:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_requested")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_requested))
 
     withdrawals_db = withdrawals_db[start : start + length]
 
+    withdrawal: Withdrawal
     for withdrawal in withdrawals_db:
-        requester = f"{User(withdrawal.requester).name} [{withdrawal.requester}]"
-
-        if withdrawal.fulfiller > 1:
-            fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
-        elif withdrawal.fulfiller == 1:
-            fulfiller = "Someone"
-        elif withdrawal.fulfiller == -1:
-            fulfiller = "Cancelled by System"
-        elif withdrawal.fulfiller < -1:
-            fulfiller = f"Cancelled by {User(-withdrawal.fulfiller).name} [{-withdrawal.fulfiller}]"
+        if withdrawal.status == 0:
+            fulfiller_str = "Not Fulfilled"
+        elif withdrawal.status == 1:
+            fulfiller_str = User.user_str(withdrawal.fulfiller)
+        elif withdrawal.status == 2:
+            fulfiller_str = f"Cancelled by {User.user_str(withdrawal.fulfiller)}"
+        elif withdrawal.status == 3:
+            fulfiller_str = "Cancelled by System"
         else:
-            fulfiller = ""
+            fulfiller_str = "Unknown Status"
 
-        timefulfilled = torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
+        time_fulfilled = (
+            torn_timestamp(withdrawal.time_fulfilled.to_timestamp()) if withdrawal.time_fulfilled is not None else ""
+        )
 
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
-                requester,
+                f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points",  # noqa: E712
+                User.user_str(withdrawal.requester),
                 torn_timestamp(withdrawal.time_requested),
-                fulfiller,
-                timefulfilled,
+                fulfiller_str,
+                time_fulfilled,
             ]
         )
 
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": WithdrawalModel.objects().count(),
-        "recordsFiltered": WithdrawalModel.objects(factiontid=current_user.factiontid).count(),
+        "recordsTotal": Withdrawal.select().count(),
+        "recordsFiltered": Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid).count(),
         "data": withdrawals,
     }
     return data
@@ -113,137 +101,134 @@ def bankingdata():
 
 @login_required
 def banking():
-    faction: FactionModel = FactionModel.objects(tid=current_user.factiontid).first()
+    if current_user.faction is None:
+        return render_template("faction/banking.html", banking_enabled=False)
 
-    if faction is None:
-        return render_template("faction/banking.html", bankingenabled=False)
-
-    banker_positions = PositionModel.objects(
-        Q(factiontid=faction.tid) & (Q(canGiveMoney=True) | Q(canGivePoints=True) | Q(canAdjustMemberBalance=True))
+    banker_positions: typing.Iterable[FactionPosition] = FactionPosition.select(
+        FactionPosition.name, FactionPosition.give_money, FactionPosition.give_points, FactionPosition.adjust_balances
+    ).where(
+        (FactionPosition.faction_tid == current_user.faction.tid)
+        & (
+            (FactionPosition.give_money == True)  # noqa: E712
+            | (FactionPosition.give_points == True)  # noqa: E712
+            | (FactionPosition.adjust_balances == True)  # noqa: E712
+        )
     )
     bankers = []
 
-    banker_position: PositionModel
+    banker_position: FactionPosition
     for banker_position in banker_positions:
-        users = UserModel.objects(faction_position=banker_position.pid)
-
-        user: UserModel
-        for user in users:
+        user: User
+        for user in User.select(User.name, User.tid, User.last_action).where(
+            User.faction_position == banker_position.pid
+        ):
             bankers.append(
                 {
                     "name": user.name,
                     "tid": user.tid,
-                    "last_action": user.last_action,
+                    "last_action": user.last_action.to_timestamp(),
                     "position": banker_position.name,
-                    "money": banker_position.canGiveMoney,
-                    "points": banker_position.canGivePoints,
-                    "adjust": banker_position.canAdjustMemberBalance,
+                    "money": banker_position.give_money,
+                    "points": banker_position.give_points,
+                    "adjust": banker_position.adjust_balances,
                 }
             )
 
-    if faction.leader != 0:
-        user: UserModel = UserModel.objects(tid=faction.leader).first()
+    if current_user.faction.leader is not None:
+        bankers.append(
+            {
+                "name": current_user.faction.leader.name,
+                "tid": current_user.faction.leader.tid,
+                "last_action": current_user.faction.leader.last_action.to_timestamp(),
+                "position": "Leader",
+                "money": True,
+                "points": True,
+                "adjust": True,
+            }
+        )
 
-        if user is not None:
-            bankers.append(
-                {
-                    "name": user.name,
-                    "tid": user.tid,
-                    "last_action": user.last_action,
-                    "position": "Leader",
-                    "money": True,
-                    "points": True,
-                    "adjust": True,
-                }
-            )
+    if current_user.faction.coleader is not None:
+        bankers.append(
+            {
+                "name": current_user.faction.coleader.name,
+                "tid": current_user.faction.coleader.tid,
+                "last_action": current_user.faction.coleader.last_action.to_timestamp(),
+                "position": "Co-leader",
+                "money": True,
+                "points": True,
+                "adjust": True,
+            }
+        )
 
-    if faction.coleader != 0:
-        user: UserModel = UserModel.objects(tid=faction.coleader).first()
+    guild: typing.Optional[Server] = current_user.faction.guild
 
-        if user is not None:
-            bankers.append(
-                {
-                    "name": user.name,
-                    "tid": user.tid,
-                    "last_action": user.last_action,
-                    "position": "Co-leader",
-                    "money": True,
-                    "points": True,
-                    "adjust": True,
-                }
-            )
-
-    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=faction.guild).first() if faction.guild != 0 else None
-
-    if guild is None or str(faction.tid) not in guild.banking_config:
+    if guild is None or str(current_user.faction.tid) not in guild.banking_config:
         banking_enabled = False
     else:
-        banking_enabled = guild.banking_config[str(faction.tid)]["channel"]
+        banking_enabled = guild.banking_config[str(current_user.faction.tid)]["channel"]
 
     return render_template(
         "faction/banking.html",
         banking_enabled=banking_enabled,
-        faction=faction,
+        faction=current_user.faction,
         bankers=bankers,
     )
 
 
 @login_required
-def userbankingdata():
+def user_banking_data():
     start = int(request.args.get("start"))
     length = int(request.args.get("length"))
     ordering = int(request.args.get("order[0][column]"))
     ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    if ordering_direction == "asc":
-        ordering_direction = "+"
-    else:
-        ordering_direction = "-"
-
-    withdrawals_db = WithdrawalModel.objects(requester=current_user.tid)
+    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid)
 
     if ordering == 0:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}wid")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.wid))
     elif ordering == 1:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}amount")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.amount))
     elif ordering == 3:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}fulfiller")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.fulfiller))
     elif ordering == 4:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_fulfilled")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_fulfilled))
     else:
-        withdrawals_db = withdrawals_db.order_by(f"{ordering_direction}time_requested")
+        withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_requested))
 
     withdrawals_db = withdrawals_db[start : start + length]
 
+    withdrawal: Withdrawal
     for withdrawal in withdrawals_db:
-        if withdrawal.fulfiller > 1:
-            fulfiller = f"{User(withdrawal.fulfiller).name} [{withdrawal.fulfiller}]"
-        elif withdrawal.fulfiller == 1:
-            fulfiller = "Someone"
-        elif withdrawal.fulfiller == -1:
-            fulfiller = "Cancelled by System"
-        elif withdrawal.fulfiller < -1:
-            fulfiller = f"Cancelled by {User(-withdrawal.fulfiller).name} [{-withdrawal.fulfiller}]"
+        if withdrawal.status == 0:
+            fulfiller_str = "Not Fulfilled"
+        elif withdrawal.status == 1:
+            fulfiller_str = User.user_str(withdrawal.fulfiller)
+        elif withdrawal.status == 2:
+            fulfiller_str = f"Cancelled by {User.user_str(withdrawal.fulfiller)}"
+        elif withdrawal.status == 3:
+            fulfiller_str = "Cancelled by System"
         else:
-            fulfiller = ""
+            fulfiller_str = "Unknown Status"
 
-        timefulfilled = torn_timestamp(withdrawal.time_fulfilled) if withdrawal.time_fulfilled != 0 else ""
+        time_fulfilled = (
+            torn_timestamp(withdrawal.time_fulfilled.to_timestamp()) if withdrawal.time_fulfilled is not None else ""
+        )
 
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.wtype == 0 else f"{withdrawal.amount:,} points",
+                f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points",
                 torn_timestamp(withdrawal.time_requested),
-                fulfiller,
-                timefulfilled,
+                fulfiller_str,
+                time_fulfilled,
             ]
         )
 
     data = {
         "draw": request.args.get("draw"),
-        "recordsTotal": WithdrawalModel.objects().count(),
-        "recordsFiltered": WithdrawalModel.objects(requester=current_user.tid).count(),
+        "recordsTotal": Withdrawal.select().count(),
+        "recordsFiltered": Withdrawal.select().where(Withdrawal.requester == current_user.tid).count(),
         "data": withdrawals,
     }
     return data
@@ -251,25 +236,18 @@ def userbankingdata():
 
 def fulfill(guid: str):
     try:
-        withdrawal: WithdrawalModel = WithdrawalModel.objects(guid=guid).first()
-    except ValueError:
-        return render_template(
-            "errors/error.html",
-            title="Bad Format",
-            error="The withdrawal GUID was incorrectly formatted. Make sure you aren't trying to access an older-style withdrawal link.",
-        )
-
-    if withdrawal is None:
+        withdrawal: Withdrawal = Withdrawal.get(Withdrawal.guid == guid)
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
                 title="Unknown Withdrawal",
-                error="The passed withdrawal could not be found in the database. If this request is older than May 6th, the request is no longer supported after backend schema update.",
+                error="The passed withdrawal could not be found in the database.",
             ),
             400,
         )
 
-    if withdrawal.wtype in [0, None]:
+    if withdrawal.cash_request:
         send_link = (
             f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo="
             f"{withdrawal.requester}&money={withdrawal.amount}"
@@ -280,16 +258,28 @@ def fulfill(guid: str):
             f"{withdrawal.requester}&points={withdrawal.amount}"
         )
 
-    if withdrawal.fulfiller != 0:  # Already fulfilled or cancelled
+    if withdrawal.status == 1:
         return render_template(
             "errors/error.html",
             title="Can't Fulfill Request",
-            error=f"This request has already been fulfilled or cancelled at {torn_timestamp(withdrawal.time_fulfilled)}.",
+            error=f"This request has already been fulfilled at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
+        )
+    elif withdrawal.status == 2:
+        return render_template(
+            "errors/error.html",
+            title="Can't Fulfill Request",
+            error=f"This request has already been cancelled at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
+        )
+    elif withdrawal.status == 3:
+        return render_template(
+            "errors/error.html",
+            title="Can't Fulfill Request",
+            error=f"This request has already been cancelled by the system at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
         )
 
-    faction: FactionModel = FactionModel.objects(tid=withdrawal.factiontid).first()
-
-    if faction is None:
+    try:
+        faction: Faction = Faction.select(Faction.guild).where(Faction.tid == withdrawal.faction_tid).get()
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
@@ -298,7 +288,8 @@ def fulfill(guid: str):
             ),
             400,
         )
-    elif faction.guild == 0:
+
+    if faction.guild is None:
         return (
             render_template(
                 "errors/error.html",
@@ -308,16 +299,7 @@ def fulfill(guid: str):
             ),
             400,
         )
-
-    guild: ServerModel = ServerModel.objects(sid=faction.guild).first()
-
-    if guild is None:
-        return render_template(
-            "errors/error.html",
-            title="Unknown Server",
-            error="The faction's Discord server could not be located in the database.",
-        )
-    elif faction.tid not in guild.factions:
+    elif faction.tid not in faction.guild.factions:
         return (
             render_template(
                 "errors/error.html",
@@ -326,7 +308,7 @@ def fulfill(guid: str):
             ),
             403,
         )
-    elif guild.banking_config.get(str(faction.tid), {"channel": "0"})["channel"] == "0":
+    elif faction.guild.banking_config.get(str(faction.tid), {"channel": "0"})["channel"] == "0":
         return (
             render_template(
                 "errors/error.html",
@@ -337,11 +319,11 @@ def fulfill(guid: str):
             400,
         )
 
-    channels = discordget(f"guilds/{faction.guild}/channels")
+    channels = discordget(f"guilds/{faction.guild.sid}/channels")
     banking_channel = None
 
     for channel in channels:
-        if channel["id"] == guild.banking_config[str(faction.tid)]["channel"]:
+        if channel["id"] == faction.guild.banking_config[str(faction.tid)]["channel"]:
             banking_channel = channel
             break
 
@@ -355,7 +337,11 @@ def fulfill(guid: str):
             400,
         )
 
-    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+    requester: typing.Optional[User]
+    try:
+        requester = User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).get()
+    except DoesNotExist:
+        requester = None
 
     try:
         if current_user.is_authenticated:
@@ -373,15 +359,13 @@ def fulfill(guid: str):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": commas(withdrawal.amount),
-                            },
-                            {
-                                "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                                "value": f"N/A [{withdrawal.requester}]"
+                                if requester is None
+                                else requester.user_str_self(),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -427,9 +411,9 @@ def fulfill(guid: str):
     if current_user.is_authenticated:
         withdrawal.fulfiller = current_user.tid
     else:
-        withdrawal.fulfiller = 1
+        withdrawal.fulfiller = -1
 
-    withdrawal.time_fulfilled = int(time.time())
+    withdrawal.time_fulfilled = datetime.datetime.utcnow()
     withdrawal.save()
 
     if requester.discord_id not in (None, "", 0):

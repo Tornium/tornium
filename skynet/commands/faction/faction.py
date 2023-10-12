@@ -20,10 +20,11 @@ import time
 import typing
 
 import requests
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost, tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import find_list
-from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.models import Faction, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.skyutils import get_admin_keys
@@ -279,17 +280,15 @@ def members_switchboard(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    user: UserModel = kwargs["invoker"]
+    user: User = kwargs["invoker"]
     faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
 
     if faction == -1:
-        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
-
-        if faction is None:
+        if user.faction is None:
             return {
                 "type": 4,
                 "data": {
@@ -301,13 +300,13 @@ def members_switchboard(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
     elif faction[1]["value"].isdigit():
-        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(faction[1]["value"])).first()
-
-        if faction is None:
+        try:
+            faction: Faction = Faction.select().get_by_id(int(faction[1]["value"]))
+        except DoesNotExist:
             return {
                 "type": 4,
                 "data": {
@@ -318,13 +317,13 @@ def members_switchboard(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
     else:
-        faction: typing.Optional[FactionModel] = FactionModel.objects(name__iexact=faction[1]["value"]).first()
-
-        if faction is None:
+        try:
+            faction: Faction = Faction.select().where(Faction.name ** faction[1]["value"]).get()
+        except DoesNotExist:
             return {
                 "type": 4,
                 "data": {
@@ -335,11 +334,11 @@ def members_switchboard(interaction, *args, **kwargs):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
-    admin_keys = get_admin_keys(interaction)
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
     if len(admin_keys) == 0:
         return {
@@ -348,7 +347,8 @@ def members_switchboard(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "No API Keys",
-                        "description": "No API keys of admins could be located. Please sign into Tornium or ask a server admin to sign in.",
+                        "description": "No API keys of admins could be located. Please sign into Tornium or ask a "
+                        "server admin to sign in.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -361,9 +361,7 @@ def members_switchboard(interaction, *args, **kwargs):
             f"interactions/{interaction['id']}/{interaction['token']}/callback",
             payload={"type": 5},
         )
-    except requests.exceptions.JSONDecodeError:
-        pass
-    except json.JSONDecodeError:
+    except (requests.exceptions.JSONDecodeError, json.JSONDecodeError):
         pass
 
     try:
@@ -382,7 +380,7 @@ def members_switchboard(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -396,7 +394,7 @@ def members_switchboard(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -423,6 +421,6 @@ def members_switchboard(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }

@@ -16,10 +16,10 @@ Tornium - Armory Tracking
         <a href="/bot/dashboard">Server Selector</a>
     </li>
     <li class="breadcrumb-item">
-        <a href="/bot/dashboard/{{ guild.sid }}">Server Configuration</a>
+        <a href="/bot/dashboard/{{ guild_id }}">Server Configuration</a>
     </li>
     <li class="breadcrumb-item active">
-        <a href="/bot/dashboard/{{ guild.sid }}/armory">Armory Tracker Configuration</a>
+        <a href="/bot/dashboard/{{ guild_id }}/armory">Armory Tracker Configuration</a>
     </li>
 </ol>
 {% endblock %}
@@ -74,7 +74,7 @@ Tornium - Armory Tracking
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
+<script src="/static/global/discord.js" data-guildid="{{ guild_id }}"></script>
 <script src="/static/global/items.js"></script>
 <script src="/static/bot/armory.js"></script>
 {% endblock %}

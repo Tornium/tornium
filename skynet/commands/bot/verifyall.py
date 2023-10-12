@@ -15,18 +15,18 @@
 
 import datetime
 import math
-import typing
 
+from peewee import DoesNotExist
 from tornium_celery.tasks.guild import verify_users
 from tornium_commons import rds
 from tornium_commons.formatters import find_list
-from tornium_commons.models import ServerModel
+from tornium_commons.models import Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.skyutils import get_admin_keys
 
 
-def verifyall(interaction, *args, **kwargs):
+def verify_all(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -42,23 +42,24 @@ def verifyall(interaction, *args, **kwargs):
             },
         }
 
-    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Unknown Server",
-                        "description": "This server could not be found in the database.",
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,
             },
         }
-    elif kwargs["invoker"].tid not in guild.admins:
+
+    if kwargs["invoker"].tid not in guild.admins:
         return {
             "type": 4,
             "data": {
@@ -72,7 +73,7 @@ def verifyall(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif guild.config.get("verify") in (None, 0):
+    elif not guild.verify_enabled:
         return {
             "type": 4,
             "data": {
@@ -107,11 +108,7 @@ def verifyall(interaction, *args, **kwargs):
     else:
         force = False
 
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction, all_keys=True)
-
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction, all_keys=True))
     redis_client = rds()
 
     if len(admin_keys) == 0:
@@ -167,7 +164,7 @@ def verifyall(interaction, *args, **kwargs):
                 {
                     "title": "Verification Started",
                     "description": "Verification has started and will usually take a few minutes due to ratelimiting "
-                    "by the Torn API and Tornium. If a log channel is enabled, details will be sent "
+                    "by the Torn API, the Discord API, and Tornium. If a log channel is enabled, details will be sent "
                     "to it as verification proceeds.",
                     "color": SKYNET_INFO,
                     "footer": {"text": f"Task ID: {task_id}"},

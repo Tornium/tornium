@@ -16,7 +16,6 @@
 import datetime
 import json
 import random
-import time
 import uuid
 
 from flask import jsonify, request
@@ -25,7 +24,7 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas
-from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.models import Server, User, Withdrawal
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -35,25 +34,18 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 @ratelimit
 def vault_balance(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: UserModel = kwargs["user"]
+    user: User = kwargs["user"]
 
-    if user.factionid == 0:
+    if user.faction is None:
         update_user(key=user.key, tid=user.tid)
-        user.reload()
 
-        if user.factionid == 0:
+        if user.faction is None:
             return make_exception_response("1102", key)
-
-    faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
-        return make_exception_response("1102", key)
-
-    if len(faction.aa_keys) == 0:
+    elif len(user.faction.aa_keys) == 0:
         return make_exception_response("1201", key)
 
     try:
-        vault_balances = tornget("faction/?selections=donations", random.choice(faction.aa_keys))
+        vault_balances = tornget("faction/?selections=donations", random.choice(user.faction.aa_keys))
     except TornError as e:
         return make_exception_response(
             "4100",
@@ -79,7 +71,7 @@ def vault_balance(*args, **kwargs):
             jsonify(
                 {
                     "player_id": user.tid,
-                    "faction_id": faction.tid,
+                    "faction_id": user.faction.tid,
                     "money_balance": vault_balances["donations"][str(user.tid)]["money_balance"],
                     "points_balance": vault_balances["donations"][str(user.tid)]["points_balance"],
                 }
@@ -97,7 +89,7 @@ def banking_request(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: UserModel = kwargs["user"]
+    user: User = kwargs["user"]
     amount_requested = data.get("amount_requested")
 
     if amount_requested is None:
@@ -124,28 +116,25 @@ def banking_request(*args, **kwargs):
         amount_requested = "all"
 
     update_user(key=user.key, tid=user.tid)
-    user.reload()
 
-    if user.factionid == 0:
+    if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
-
-    faction: FactionModel = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
-        return make_exception_response("1102", key, redis_client=client)
-    elif faction.guild == 0:
+    elif user.faction.guild == 0:
         return make_exception_response("1001", key, redis_client=client)
-    elif len(faction.aa_keys) == 0:
+    elif len(user.faction.aa_keys) == 0:
         return make_exception_response("1201", key, redis_client=client)
 
-    server: ServerModel = ServerModel.objects(sid=faction.guild).first()
+    server: Server = user.faction.guild
 
     if server is None:
         return make_exception_response("1001", key, redis_client=client)
-    elif faction.tid not in server.factions:
+    elif user.faction.tid not in server.factions:
         return make_exception_response("4021", key, redis_client=client)
 
-    if str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
+    if (
+        str(user.faction.tid) not in server.banking_config
+        or server.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
         return make_exception_response(
             "0000",
             key,
@@ -154,7 +143,7 @@ def banking_request(*args, **kwargs):
         )
 
     try:
-        vault_balances = tornget("faction/?selections=donations", random.choice(faction.aa_keys))
+        vault_balances = tornget("faction/?selections=donations", random.choice(user.faction.aa_keys))
     except TornError as e:
         return make_exception_response(
             "4100",
@@ -192,7 +181,7 @@ def banking_request(*args, **kwargs):
                 redis_client=client,
             )
 
-        request_id = WithdrawalModel.objects().count()
+        request_id = Withdrawal.select().count()
         guid = uuid.uuid4().hex
         send_link = f"https://tornium.com/faction/banking/fulfill/{guid}"
 
@@ -282,31 +271,32 @@ def banking_request(*args, **kwargs):
                 ],
             }
 
-        for role in server.banking_config[str(faction.tid)]["roles"]:
+        for role in server.banking_config[str(user.faction.tid)]["roles"]:
             if "content" not in message_payload:
                 message_payload["content"] = ""
 
             message_payload["content"] += f"<@&{role}>"
 
         message = discordpost(
-            f'channels/{server.banking_config[str(faction.tid)]["channel"]}/messages',
+            f'channels/{server.banking_config[str(user.faction.tid)]["channel"]}/messages',
             payload=message_payload,
-            channel=server.banking_config[str(faction.tid)]["channel"],
+            channel=server.banking_config[str(user.faction.tid)]["channel"],
         )
 
-        withdrawal = WithdrawalModel(
+        withdrawal = Withdrawal(
             wid=request_id,
             guid=guid,
+            faction_tid=user.faction.tid,
             amount=amount_requested
             if amount_requested != "all"
             else vault_balances["donations"][str(user.tid)]["money_balance"],
+            cash_request=True,
             requester=user.tid,
-            factiontid=user.factionid,
-            time_requested=int(time.time()),
-            fulfiller=0,
-            time_fulfilled=0,
+            status=0,
+            time_requested=datetime.datetime.utcnow(),
+            fulfiller=None,
+            time_fulfilled=None,
             withdrawal_message=message["id"],
-            wtype=0,
         )
         withdrawal.save()
 

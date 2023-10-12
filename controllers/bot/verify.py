@@ -13,18 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
 from flask import render_template
-from flask_login import login_required
-from tornium_commons.models import ServerModel
+from flask_login import current_user, fresh_login_required
+from peewee import DoesNotExist
+from tornium_commons.models import Server
 
 
-@login_required
-def verify_dashboard(guildid: int):
-    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+@fresh_login_required
+def verify_dashboard(guild_id: int):
+    try:
+        guild: Server = (
+            Server.select(Server.sid, Server.verify_enabled, Server.verify_template, Server.faction_verify)
+            .where(Server.sid == guild_id)
+            .get()
+        )
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
@@ -32,6 +35,16 @@ def verify_dashboard(guildid: int):
                 error="No Discord server could be located with the passed guild ID",
             ),
             400,
+        )
+
+    if current_user.tid not in guild.admins:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
         )
 
     return render_template(

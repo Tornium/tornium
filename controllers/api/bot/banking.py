@@ -16,7 +16,8 @@
 import json
 
 from flask import jsonify, request
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.bot.config import jsonified_server_config
 from controllers.api.decorators import ratelimit, token_required
@@ -25,7 +26,7 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 
 @token_required
 @ratelimit
-def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
+def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -39,16 +40,22 @@ def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
     elif roles_id is not None and type(roles_id) != list:
         return make_exception_response("1003", key)
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif faction is None:
-        return make_exception_response("1102", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif factiontid not in guild.factions or guild.sid != faction.guild:
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild:
         return make_exception_response("4021", key)
 
     banking_config = guild.banking_config.get(
@@ -76,18 +83,25 @@ def banking_setter(guildid: int, factiontid: int, *args, **kwargs):
 
 @token_required
 @ratelimit
-def banking_getter(guildid: int, factiontid: int, *args, **kwargs):
+def banking_getter(guild_id: int, faction_tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
 
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif faction is None:
-        return make_exception_response("1102", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif factiontid not in guild.factions or guild.sid != faction.guild:
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild:
         return make_exception_response("4021", key)
 
     banking_config = guild.banking_config.get(

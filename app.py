@@ -46,21 +46,12 @@ import time
 import flask
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
-from mongoengine import connect
+from peewee import DoesNotExist
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
-from tornium_commons.models import FactionModel
+from tornium_commons.models import Faction
 
-config = Config().load()
-
-if not hasattr(sys, "_called_from_test"):
-    connect(
-        db="Tornium",
-        username=config["username"],
-        password=config["password"],
-        host=f'mongodb://{config["host"]}',
-        connect=False,
-    )
+config = Config.from_json()
 
 import utils
 
@@ -94,10 +85,10 @@ def init__app():
     from skynet import mod as skynet_mod
 
     app = flask.Flask(__name__)
-    if config["secret"] is None:
+    if config.flask_secret is None:
         app.secret_key = config.regen_secret()
     else:
-        app.secret_key = config["secret"]
+        app.secret_key = config.flask_secret
 
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
     app.config["SESSION_COOKIE_SECURE"] = True
@@ -108,7 +99,7 @@ def init__app():
         app,
         resources={
             r"/api/*": {"origins": "*"},
-            r"/*": {"origins": config["domain"]},
+            r"/*": {"origins": config.flask_domain},
         },
         supports_credentials=True,
     )
@@ -148,9 +139,9 @@ app = init__app()
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models.user import User
+    from models.user import AuthUser
 
-    return User(user_id)
+    return AuthUser.select().join(Faction).where(AuthUser.tid == user_id).first()
 
 
 @login_manager.unauthorized_handler
@@ -203,12 +194,12 @@ def join_list(iter: typing.Iterable[str], and_seperator=False):
 
 @app.template_filter("faction")
 def faction_filter(tid):
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(tid)).first()
-
-    if faction is None or faction.name in ("", None):
+    try:
+        faction = Faction.select(Faction.name).get_by_id(tid)
+    except DoesNotExist:
         return f"N/A {tid}"
-    else:
-        return f"{faction.name} [{faction.tid}]"
+
+    return f"{faction.name} [{tid}]"
 
 
 @app.before_request

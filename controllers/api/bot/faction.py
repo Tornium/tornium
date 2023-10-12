@@ -14,10 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import typing
 
 from flask import request
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.bot.config import jsonified_server_config
 from controllers.api.decorators import ratelimit, token_required
@@ -26,45 +26,43 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 
 @token_required
 @ratelimit
-def faction_setter(guildid: int, *args, **kwargs):
+def faction_setter(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    factiontid = data.get("factiontid")
-
-    if factiontid is None:
+    try:
+        faction_tid = int(data["factiontid"])
+    except (KeyError, TypeError, ValueError):
         return make_exception_response("1102", key)
 
     try:
-        factiontid = int(factiontid)
-    except (TypeError, ValueError):
-        return make_exception_response("1102", key)
-
-    guild: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
 
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=factiontid).only("tid").first()
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
 
-    if faction is None:
+    try:
+        Faction.select().get_by_id(faction_tid)
+    except DoesNotExist:
         return make_exception_response("1102", key)
 
     if request.method == "POST":
-        if factiontid in guild.factions:
+        if faction_tid in guild.factions:
             return make_exception_response(
                 "0000", key, details={"message": "This faction is already marked for this server."}
             )
 
-        guild.factions.append(factiontid)
+        guild.factions.append(faction_tid)
         guild.save()
     elif request.method == "DELETE":
-        if factiontid not in guild.factions:
+        if faction_tid not in guild.factions:
             return make_exception_response(
                 "0000", key, details={"message": "This faction has not been marked for this server."}
             )
 
-        guild.factions.remove(factiontid)
+        guild.factions.remove(faction_tid)
         guild.save()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

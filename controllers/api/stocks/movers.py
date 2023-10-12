@@ -17,8 +17,9 @@ import datetime
 import typing
 
 from flask import jsonify
+from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import TickModel
+from tornium_commons.models import StockTick
 
 from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -39,6 +40,12 @@ def get_closest_tick(stock_id: int, start_timestamp: int):
 @ratelimit
 @global_cache
 def stock_movers(*args, **kwargs):
+    def get_tick(stock_id: int, timestamp: int) -> typing.Optional[StockTick]:
+        try:
+            return StockTick.get_by_id(int(bin(stock_id), 2) + int(bin(timestamp << 8), 2))
+        except DoesNotExist:
+            return None
+
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()
     stocks_map = redis_client.json().get("tornium:stocks")
@@ -69,22 +76,18 @@ def stock_movers(*args, **kwargs):
     timestamp_d7_start = int((d1_start - datetime.timedelta(days=6)).timestamp())
     timestamp_m1_start = int((d1_start - datetime.timedelta(days=29)).timestamp())
 
-    current_stock_ticks: typing.Dict[int, typing.Optional[TickModel]] = {
-        stock_id: TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(timestamp_now << 8), 2)).first()
-        for stock_id in stock_id_list
+    current_stock_ticks: typing.Dict[int, typing.Optional[StockTick]] = {
+        stock_id: get_tick(stock_id, timestamp_now) for stock_id in stock_id_list
     }
 
-    d1_stock_ticks: typing.Dict[int, typing.Optional[TickModel]] = {
-        stock_id: TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(timestamp_d1_start << 8), 2)).first()
-        for stock_id in stock_id_list
+    d1_stock_ticks: typing.Dict[int, typing.Optional[StockTick]] = {
+        stock_id: get_tick(stock_id, timestamp_d1_start) for stock_id in stock_id_list
     }
-    d7_stock_ticks: typing.Dict[int, typing.Optional[TickModel]] = {
-        stock_id: TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(timestamp_d7_start << 8), 2)).first()
-        for stock_id in stock_id_list
+    d7_stock_ticks: typing.Dict[int, typing.Optional[StockTick]] = {
+        stock_id: get_tick(stock_id, timestamp_d7_start) for stock_id in stock_id_list
     }
-    m1_stock_ticks: typing.Dict[int, typing.Optional[TickModel]] = {
-        stock_id: TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(timestamp_m1_start << 8), 2)).first()
-        for stock_id in stock_id_list
+    m1_stock_ticks: typing.Dict[int, typing.Optional[StockTick]] = {
+        stock_id: get_tick(stock_id, timestamp_m1_start) for stock_id in stock_id_list
     }
 
     # Below loops assume that all stocks will not have a value for a timestamp if a single tick does not
@@ -131,14 +134,14 @@ def stock_movers(*args, **kwargs):
     for stock_id in stock_id_list:
         # dec_change = (new - old) / old
 
-        now_tick: typing.Optional[TickModel] = current_stock_ticks.get(stock_id)
+        now_tick: typing.Optional[StockTick] = current_stock_ticks.get(stock_id)
 
         if now_tick is None:
             continue
 
-        d1_tick: typing.Optional[TickModel] = d1_stock_ticks.get(stock_id)
-        d7_tick: typing.Optional[TickModel] = d7_stock_ticks.get(stock_id)
-        m1_tick: typing.Optional[TickModel] = m1_stock_ticks.get(stock_id)
+        d1_tick: typing.Optional[StockTick] = d1_stock_ticks.get(stock_id)
+        d7_tick: typing.Optional[StockTick] = d7_stock_ticks.get(stock_id)
+        m1_tick: typing.Optional[StockTick] = m1_stock_ticks.get(stock_id)
 
         if d1_tick is not None:
             d1_changes[stock_id] = round((now_tick.price - d1_tick.price) / d1_tick.price, 4)

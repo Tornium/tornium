@@ -15,6 +15,7 @@
 
 from urllib.parse import urlparse
 
+import peewee
 from flask import render_template
 
 import utils.tornium_ext
@@ -177,3 +178,10 @@ def handle_networking_error(error):
         title="Miscellaneous Error",
         error=f"An API has responded with HTTP {error.code}.",
     )
+
+
+def table_order(ordering_direction: str, field: peewee.Field):
+    if ordering_direction == "asc":
+        return field.asc()
+    else:
+        return field.desc()

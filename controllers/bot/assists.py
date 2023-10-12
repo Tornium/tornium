@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import jsonify, redirect, request
-from flask_login import fresh_login_required
-from tornium_commons.models import ServerModel
+from flask import jsonify, redirect, render_template, request
+from flask_login import current_user, fresh_login_required
+from peewee import DoesNotExist
+from tornium_commons.models import Server
 
 
+# TODO: Make this be more logical (and an API endpoint)
 @fresh_login_required
 def assists_update(guildid):
     action = request.args.get("action")
@@ -30,21 +32,41 @@ def assists_update(guildid):
             jsonify({"ContentType": "application/json"}),
         )
 
-    server: ServerModel = ServerModel.objects(sid=guildid).first()
+    try:
+        guild: Server = Server.get_by_id(guildid)
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Guild Not Found",
+                error="No Discord server could be located with the passed guild ID",
+            ),
+            400,
+        )
+
+    if current_user.tid not in guild.admins:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
+        )
 
     if action == "faction":
-        if int(value) in server.assist_factions:
-            factions = server.assist_factions
+        if int(value) in guild.assist_factions:
+            factions = guild.assist_factions
             factions.remove(int(value))
             factions = list(set(factions))
-            server.assist_factions = factions
-            server.save()
+            guild.assist_factions = factions
+            guild.save()
         else:
-            factions = server.assist_factions
+            factions = guild.assist_factions
             factions.append(int(value))
             factions = list(set(factions))
-            server.assist_factions = factions
-            server.save()
+            guild.assist_factions = factions
+            guild.save()
 
     if request.method == "GET":
         return redirect(f"/bot/dashboard/{guildid}")

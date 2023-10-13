@@ -131,7 +131,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
     if private:
         if (
             NotificationModel.objects(
-                Q(ntype=3) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
+                Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
             ).count()
             > 10
         ):
@@ -150,7 +150,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                 },
             }
     else:
-        n_count = NotificationModel.objects(Q(ntype=3) & Q(recipient_type=1) & (Q(recipient_guild=guild.sid))).count()
+        n_count = NotificationModel.objects(Q(ntype=3) & (Q(recipient_guild=guild.sid))).count()
 
         if n_count > 35:
             return {
@@ -264,7 +264,7 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
         )
     else:
         notifications = NotificationModel.objects(
-            Q(ntype=3) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
+            Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
         )
 
     if notifications.count() == 0:
@@ -421,12 +421,11 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
         notifications = NotificationModel.objects(
             Q(ntype=3)
             & Q(target=item.tid)
-            & Q(recipient_type=1)
             & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
         )
     else:
         notifications = NotificationModel.objects(
-            Q(ntype=3) & Q(target=item.tid) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
+            Q(ntype=3) & Q(target=item.tid) & Q(recipient_guild=0) & Q(invoker=user.tid)
         )
 
     notification_count = notifications.count()
@@ -608,12 +607,11 @@ def items_button_switchboard(interaction, *args, **kwargs):
         if notification.recipient_type == 1:
             notifications = NotificationModel.objects(
                 Q(ntype=3)
-                & Q(recipient_type=1)
                 & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
             )
         else:
             notifications = NotificationModel.objects(
-                Q(ntype=3) & Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid)
+                Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
             )
 
         notification_count = notifications.count()

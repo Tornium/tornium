@@ -112,10 +112,10 @@ def update_guild_commands(verbose=False):
         if verbose:
             click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
 
-        if not hasattr(tornium_ext, "guilds") or not hasattr(tornium_ext, "guild_commands"):
+        if not hasattr(tornium_ext.extension, "guilds") or not hasattr(tornium_ext.extension, "guild_commands"):
             click.echo(f'Skipping Tornium extension {tornium_ext.name}: missing "guilds" or "guild_commands"...')
             continue
-        elif len(tornium_ext.guilds) == 0:
+        elif len(tornium_ext.extension.guilds) == 0:
             click.echo(f"Skipping Tornium extension {tornium_ext.name}: no guilds are stored")
 
         commands_data = []

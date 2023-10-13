@@ -91,7 +91,14 @@ for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
         _commands[command["name"]] = command["function"]
 
     for button in tornium_ext.extension.discord_buttons:
-        _buttons[button["name"]] = button["function"]
+        _buttons[button["custom_id"]] = button["function"]
+
+    if hasattr(tornium_ext.extension, "guilds"):
+        for command in tornium_ext.extension.guild_commands:
+            _commands[command["name"]] = command["function"]
+
+        for button in tornium_ext.extension.guild_buttons:
+            _buttons[button["custom_id"]] = button["function"]
 
 
 @mod.route("/skynet", methods=["POST"])

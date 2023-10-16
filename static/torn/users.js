@@ -33,30 +33,6 @@ $(document).ready(function() {
         "scrollX": true
     });
 
-    var psTable = $('#users-ps-table').DataTable({
-        "processing": true,
-        "serverSide": true,
-        "ordering": true,
-        "responsive": false,
-        "ajax": {
-            url: "/torn/userspsdata"
-        },
-        "columns": [
-            {data: "tid"},
-            {data: "name"},
-            {data: {_: "useractivity.display", sort: "useractivity.sort"}},
-            {data: "attackswon"},
-            {data: "statenhancersused"},
-            {data: "xanused"},
-            {data: "lsdused"},
-            {data: "networth"},
-            {data: "energydrinkused"},
-            {data: "refills"},
-            {data: {_: "update.display", sort: "update.timestamp"}}
-        ],
-        "scrollX": true
-    });
-
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
     $('#users-table tbody').on('click', 'tr', function() {
@@ -76,26 +52,6 @@ $(document).ready(function() {
             modal.show();
         }
         xhttp.open('GET', '/torn/user/' + table.row(this).data().tid);
-        xhttp.send();
-    });
-
-    $("#users-ps-table tbody").on("click", "tr", function() {
-        if(psTable.row(this).data().tid == 0) {
-            return;
-        }
-
-        const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            if($('#user-modal').length) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
-                modal.dispose();
-            }
-
-            document.getElementById('modal').innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($('#user-modal'));
-            modal.show();
-        }
-        xhttp.open('GET', '/torn/user/' + psTable.row(this).data().tid);
         xhttp.send();
     });
 

@@ -31,19 +31,6 @@ USER_ORDERING = {
     5: "last_refresh",
 }
 
-PS_ORDERING = {
-    0: "tid",
-    2: "useractivity",
-    3: "attackswon",
-    4: "statenhancersused",
-    5: "xantaken",
-    6: "lsdtaken",
-    7: "networth",
-    8: "energydrinkused",
-    9: "refills",
-    10: "timestamp",
-}
-
 
 @login_required
 def users():
@@ -126,75 +113,6 @@ def users_data():
     }
 
     return data
-
-
-@login_required
-def users_ps_data():
-    start = int(request.args.get("start"))
-    length = int(request.args.get("length"))
-    search_value = request.args.get("search[value]")
-    ordering = int(request.args.get("order[0][column]"))
-    ordering_direction = request.args.get("order[0][dir]")
-
-    users = []
-
-    if search_value == "":
-        ps_db = PersonalStatModel.objects()
-    else:
-        valid_tid = [user.tid for user in UserModel.objects(Q(name__startswith=search_value)).only("tid").all()]
-        ps_db = PersonalStatModel.objects(tid__in=valid_tid)
-
-    if ordering_direction == "asc":
-        ordering_direction = "+"
-    else:
-        ordering_direction = "-"
-
-    if ordering in PS_ORDERING:
-        print(PS_ORDERING[ordering])
-        ps_db = ps_db.order_by(f"{ordering_direction}{PS_ORDERING[ordering]}")
-    else:
-        ps_db = ps_db.order_by(f"{ordering_direction}timestamp")
-
-    count = ps_db.count()
-    ps_db = ps_db[start : start + length]
-
-    ps: PersonalStatModel
-    for ps in ps_db:
-        user: UserModel = UserModel.objects(tid=ps.tid).only("name").first()
-        user_data = {
-            "tid": ps.tid,
-            "name": "N/A",
-            "useractivity": {
-                "display": ps.useractivity,
-                "sort": ps.useractivity,
-            },
-            "attackswon": ps.attackswon,
-            "statenhancersused": ps.statenhancersused,
-            "xanused": ps.xantaken,
-            "lsdused": ps.lsdtaken,
-            "networth": f"${commas(ps.networth)}",
-            "energydrinkused": ps.energydrinkused,
-            "refills": ps.refills,
-            "update": {
-                "display": rel_time(ps.timestamp),
-                "timestamp": ps.timestamp,
-            },
-        }
-
-        if user is not None:
-            user_data["name"] = user.name
-
-        users.append(user_data)
-
-    data = {
-        "draw": request.args.get("draw"),
-        "recordsTotal": PersonalStatModel.objects().count(),
-        "recordsFiltered": count,
-        "data": users,
-    }
-
-    return data
-
 
 @login_required
 def user_data(tid: int):

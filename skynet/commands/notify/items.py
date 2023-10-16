@@ -129,12 +129,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
             }
 
     if private:
-        if (
-            NotificationModel.objects(
-                Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
-            ).count()
-            > 10
-        ):
+        if NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)).count() > 10:
             return {
                 "type": 4,
                 "data": {
@@ -263,9 +258,7 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
             & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
         )
     else:
-        notifications = NotificationModel.objects(
-            Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
-        )
+        notifications = NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid))
 
     if notifications.count() == 0:
         return {
@@ -610,9 +603,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                 & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
             )
         else:
-            notifications = NotificationModel.objects(
-                Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)
-            )
+            notifications = NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid))
 
         notification_count = notifications.count()
 

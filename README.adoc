@@ -1,12 +1,13 @@
 = Tornium
 
-A third party, general-purpose website and Discord bot dedicated to simplifying the playing of https://www.torn.com[Torn City].
+A third party, general-purpose website and Discord bot dedicated to simplifying the playing of https://www.torn.com[Torn City] built from scratch with love <3.
 
 Tornium is split into three main repositories:
 
  - https://www.github.com/Tornium/tornium-core[tornium-core] - Flask app for frontend and Discord bot
  - https://www.github.com/Tornium/tornium-celery[tornium-celery] - Celery app containing Celery tasks and configuration
  - https://www.github.com/Tornium/tornium-commons[tornium-commons] - common utility functions and classes for Tornium
+ - Plus several features built on Tornium extensions
 
 == Features
  - Faction banking
@@ -20,7 +21,6 @@ Tornium is split into three main repositories:
  - Chain list generator
 
 == Deprecation Notice
-IMPORTANT: Pre-existing stakeouts will be removed in the v0.4.x release cycle. Pre-existing stakeouts will not be migrated.
 IMPORTANT: Assist request forwarding options will be removed in the v0.5.x release cycle.
 
 == Installation
@@ -38,7 +38,7 @@ Tornium partially supports extensions for new Discord commands and new Flask end
 NOTE: Tornium extensions must be released as open source code under a GPLv3 or another GPL license due to the restrictions of the https://github.com/dssecret/tornium-pro/blob/master/LICENSE[tornium-pro license]. For more details, take a look at https://www.gnu.org/licenses/gpl-3.0.en.html[GPL website].
 
 == License
-https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]
+Tornium repositories are licensed under https://github.com/dssecret/tornium-pro/blob/master/LICENSE[AGPLv3]. For information about how the AGPL license affects you, please take a look at the [GNU website].
 
 == Release Notes
 This project follows https://semver.org/[semver v2.0] so all bug fixes, breaking changes, features, etc. can be found in the https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc[changelog].
@@ -55,5 +55,5 @@ server costs (and other hosting costs).
 Donate https://www.buymeacoffee.com/tornium[here]!
 
 == Contact
- - tiksan on Discord at tiksan(hastag)9110
+ - tiksan on Discord at @tiksan
  - tiksan on Torn at https://www.torn.com/profiles.php?XID=2383326[tiksan [2383326\]]

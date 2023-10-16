@@ -37,6 +37,7 @@ mod.add_url_rule("/torn/stocks", view_func=stocks.stocks, methods=["GET"])
 # Users Routes
 mod.add_url_rule("/torn/user/<int:tid>", view_func=users.user_data, methods=["GET"])
 mod.add_url_rule("/torn/users", view_func=users.users, methods=["GET"])
+mod.add_url_rule("/torn/usersdata", view_func=users.users_data, methods=["GET"])
 
 
 @mod.route("/torn")

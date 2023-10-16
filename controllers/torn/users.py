@@ -114,6 +114,7 @@ def users_data():
 
     return data
 
+
 @login_required
 def user_data(tid: int):
     if tid == 0 or current_user.key == "":

@@ -105,7 +105,10 @@ def banking():
         return render_template("faction/banking.html", banking_enabled=False)
 
     banker_positions: typing.Iterable[FactionPosition] = FactionPosition.select(
-        FactionPosition.name, FactionPosition.give_money, FactionPosition.give_points, FactionPosition.adjust_balances
+        FactionPosition.name,
+        FactionPosition.give_money,
+        FactionPosition.give_points,
+        FactionPosition.adjust_balances,
     ).where(
         (FactionPosition.faction_tid == current_user.faction.tid)
         & (

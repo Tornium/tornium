@@ -51,7 +51,9 @@ def faction_setter(guild_id: int, *args, **kwargs):
     if request.method == "POST":
         if faction_tid in guild.factions:
             return make_exception_response(
-                "0000", key, details={"message": "This faction is already marked for this server."}
+                "0000",
+                key,
+                details={"message": "This faction is already marked for this server."},
             )
 
         guild.factions.append(faction_tid)
@@ -59,7 +61,9 @@ def faction_setter(guild_id: int, *args, **kwargs):
     elif request.method == "DELETE":
         if faction_tid not in guild.factions:
             return make_exception_response(
-                "0000", key, details={"message": "This faction has not been marked for this server."}
+                "0000",
+                key,
+                details={"message": "This faction has not been marked for this server."},
             )
 
         guild.factions.remove(faction_tid)

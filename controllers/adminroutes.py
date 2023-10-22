@@ -37,7 +37,11 @@ def load_user(tid):
         return (
             render_template("admin/load_user.html"),
             200,
-            {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+            {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
         )
 
     passphrase = request.form.get("passphrase")
@@ -45,14 +49,18 @@ def load_user(tid):
     if passphrase is None:
         return (
             render_template(
-                "errors/error.html", title="Invalid Passphrase", error="Your security passphrase was incorrect."
+                "errors/error.html",
+                title="Invalid Passphrase",
+                error="Your security passphrase was incorrect.",
             ),
             401,
         )
     elif Config()["admin-passphrase"] != hashlib.sha512(passphrase.encode("utf-8")).hexdigest():
         return (
             render_template(
-                "errors/error.html", title="Invalid Passphrase", error="Your security passphrase was incorrect."
+                "errors/error.html",
+                title="Invalid Passphrase",
+                error="Your security passphrase was incorrect.",
             ),
             401,
         )
@@ -61,12 +69,23 @@ def load_user(tid):
         user = OverrideUser(tid)
     except ValueError:
         return (
-            render_template("errors/error.html", title="Unknown User", error="This user is not found in the database."),
+            render_template(
+                "errors/error.html",
+                title="Unknown User",
+                error="This user is not found in the database.",
+            ),
             400,
         )
 
     if user.key == "":
-        return render_template("errors/error.html", title="Invalid User", error="This user is not signed in."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid User",
+                error="This user is not signed in.",
+            ),
+            400,
+        )
 
     if user.discord_id not in (0, "", None):
         send_dm.delay(

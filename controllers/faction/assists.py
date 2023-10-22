@@ -83,7 +83,10 @@ def assist_forward(guid: str):
         )
 
     redis_client.set(
-        f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", xx=True, keepttl=True
+        f"tornium:assists:{guid}",
+        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
+        xx=True,
+        keepttl=True,
     )
 
     messages = redis_client.json().get(f"tornium:assists:{guid}:messages")

@@ -16,7 +16,10 @@
 from skynet.commands.notify import items, stakeouts
 
 _notify_commands = {"stakeout": stakeouts.stakeouts, "items": items.items_switchboard}
-_notify_autocomplete = {"stakeout": stakeouts.stakeout_autocomplete, "items": items.items_autocomplete}
+_notify_autocomplete = {
+    "stakeout": stakeouts.stakeout_autocomplete,
+    "items": items.items_autocomplete,
+}
 
 
 def notify_switchboard(interaction, *args, **kwargs):

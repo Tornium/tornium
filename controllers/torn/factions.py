@@ -58,7 +58,13 @@ def factions_data():
 
     faction: Faction
     for faction in factions_db:
-        factions.append([faction.tid, faction.name, commas(faction.respect)])
+        factions.append(
+            [
+                faction.tid,
+                faction.name,
+                0 if faction.respect is None else commas(faction.respect),
+            ]
+        )
 
     data = {
         "draw": request.args.get("draw"),
@@ -100,14 +106,23 @@ def faction_members_data(tid: int):
     members = []
 
     member: User
-    for member in User.select(User.name, User.tid, User.level, User.last_action, User.status, User.discord_id).where(
-        User.faction.tid == tid
+    for member in (
+        User.select(
+            User.name,
+            User.tid,
+            User.level,
+            User.last_action,
+            User.status,
+            User.discord_id,
+        )
+        .join(Faction)
+        .where(User.faction.tid == tid)
     ):
         members.append(
             {
                 "username": f"{member.name} [{member.tid}]",
                 "level": member.level,
-                "last_action": member.last_action.to_timestamp(),
+                "last_action": member.last_action.timestamp(),
                 "status": member.status,
                 "discord_id": member.discord_id,
             }
@@ -119,7 +134,10 @@ def faction_members_data(tid: int):
 @login_required
 def faction_members_report():
     if current_user.factiontid not in [15644, 12894]:
-        return "Permission Denied... This page is currently being tested by NSO factions. Please check back later.", 403
+        return (
+            "Permission Denied... This page is currently being tested by NSO factions. Please check back later.",
+            403,
+        )
 
     ps_keys = tuple(rds().smembers("tornium:personal-stats"))
 
@@ -148,14 +166,19 @@ def faction_members_report():
 @login_required
 def view_member_report(rid: str):
     if current_user.factiontid not in [15644, 12894]:
-        return "Permission Denied... This page is currently being tested by NSO factions. Please check back later.", 403
+        return (
+            "Permission Denied... This page is currently being tested by NSO factions. Please check back later.",
+            403,
+        )
 
     try:
         report: MemberReport = MemberReport.get_by_id(rid)
     except DoesNotExist:
         return (
             render_template(
-                "errors/error.html", title="Unknown Report", error="No report could be located with the included ID."
+                "errors/error.html",
+                title="Unknown Report",
+                error="No report could be located with the included ID.",
             ),
             400,
         )
@@ -164,7 +187,9 @@ def view_member_report(rid: str):
         report.requested_by_faction is not None and report.requested_by_faction != current_user.faction.tid
     ):
         return render_template(
-            "errors/error.html", title="Permission Denied", error="You do not have access to this report."
+            "errors/error.html",
+            title="Permission Denied",
+            error="You do not have access to this report.",
         )
 
     return render_template("torn/memberreportview.html", report=report)

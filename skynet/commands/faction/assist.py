@@ -32,7 +32,10 @@
 def assist(interaction, *args, **kwargs):
     return {
         "type": 4,
-        "data": {"content": "This feature is currently being redesigned. Please check back later.", "flags": 64},
+        "data": {
+            "content": "This feature is currently being redesigned. Please check back later.",
+            "flags": 64,
+        },
     }
 
     # start_time = time.time()

@@ -34,7 +34,11 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
     channel = find_list(subcommand_data, "name", "channel")
     persistence = find_list(subcommand_data, "name", "persistent")
 
-    if notif_type == -1 or notif_type[1]["value"] not in ["percent", "price", "quantity"]:
+    if notif_type == -1 or notif_type[1]["value"] not in [
+        "percent",
+        "price",
+        "quantity",
+    ]:
         return {
             "type": 4,
             "data": {
@@ -216,7 +220,10 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
                             "value": f"{item.name} [{item.tid}]",
                             "inline": True,
                         },
-                        {"name": "Notification Type", "value": _NOTIF_TYPE_MAP[notif_type].capitalize()},
+                        {
+                            "name": "Notification Type",
+                            "value": _NOTIF_TYPE_MAP[notif_type].capitalize(),
+                        },
                         {
                             "name": "Private",
                             "value": not bool(notification.recipient_type),

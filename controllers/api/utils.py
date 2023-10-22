@@ -259,7 +259,10 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
 
 
 def make_exception_response(
-    code: str, ratelimit_key: typing.Optional[str] = None, details=None, redis_client: redis.Redis = None
+    code: str,
+    ratelimit_key: typing.Optional[str] = None,
+    details=None,
+    redis_client: redis.Redis = None,
 ):
     exception = json_api_exception(code, details)
     exception_response = {
@@ -274,4 +277,8 @@ def make_exception_response(
     if ratelimit_key is None:
         return jsonify(exception_response), exception["http"]
     else:
-        return jsonify(exception_response), exception["http"], api_ratelimit_response(ratelimit_key, redis_client)
+        return (
+            jsonify(exception_response),
+            exception["http"],
+            api_ratelimit_response(ratelimit_key, redis_client),
+        )

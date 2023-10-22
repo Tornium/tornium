@@ -59,7 +59,6 @@ def users_data():
         users_db = users_db.order_by(ordering_direction * User.last_refresh)
 
     count = users_db.count()
-    # TODO: Possibly migrate to .paginate()
     users_db = users_db[start : start + length]
 
     user: User

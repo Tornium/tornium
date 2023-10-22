@@ -49,7 +49,9 @@ def members_switchboard(interaction, *args, **kwargs):
     def online():
         payload[0]["title"] = f"Online Members of {member_data['name']}"
         indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            reverse=True,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
@@ -87,7 +89,9 @@ def members_switchboard(interaction, *args, **kwargs):
     def offline():
         payload[0]["title"] = f"Offline Members of {member_data['name']}"
         indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            reverse=True,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
@@ -125,7 +129,9 @@ def members_switchboard(interaction, *args, **kwargs):
     def flying():
         payload[0]["title"] = f"Abroad Members of {member_data['name']}"
         indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            reverse=True,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
         abroad_hospital_regex = re.compile("^In a .* hospital.*$")
@@ -163,7 +169,9 @@ def members_switchboard(interaction, *args, **kwargs):
     def okay():
         payload[0]["title"] = f"Okay Members of {member_data['name']}"
         indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            reverse=True,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
@@ -198,7 +206,9 @@ def members_switchboard(interaction, *args, **kwargs):
         payload[0]["color"] = SKYNET_ERROR
 
         indices = sorted(
-            member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"], reverse=True
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            reverse=True,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
@@ -237,7 +247,10 @@ def members_switchboard(interaction, *args, **kwargs):
             days = days[1]["value"]
 
         payload[0]["title"] = f"Inactive Members of {member_data['name']}"
-        indices = sorted(member_data["members"], key=lambda d: member_data["members"][d]["last_action"]["timestamp"])
+        indices = sorted(
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+        )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():

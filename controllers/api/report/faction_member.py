@@ -115,7 +115,9 @@ def create_report(*args, **kwargs):
 
     if availability == "faction":
         return make_exception_response(
-            "0000", key, details={"message": "During the test period, faction availability isn't permitted"}
+            "0000",
+            key,
+            details={"message": "During the test period, faction availability isn't permitted"},
         )
 
     if type(faction_tid) == str and not faction_tid.isdigit():
@@ -141,7 +143,9 @@ def create_report(*args, **kwargs):
         return make_exception_response("0000", key, details={"message": "Timestamps must be before right now"})
     elif end_time - start_time < 3600 * 24 * 2:  # Two days
         return make_exception_response(
-            "0000", key, details={"message": "The duration of the report must be at least 2 days"}
+            "0000",
+            key,
+            details={"message": "The duration of the report must be at least 2 days"},
         )
     elif availability == "faction" and not kwargs["user"].faction_aa and kwargs["user"].faction is not None:
         return make_exception_response("4005", key)
@@ -187,7 +191,10 @@ def create_report(*args, **kwargs):
     report.save()
 
     tornget.signature(
-        kwargs={"endpoint": f"faction/{faction_tid}?selections=basic", "key": random.choice(keys)},
+        kwargs={
+            "endpoint": f"faction/{faction_tid}?selections=basic",
+            "key": random.choice(keys),
+        },
         queue="api",
     ).apply_async(
         link=enqueue_member_ps.signature(

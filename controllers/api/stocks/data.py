@@ -38,8 +38,6 @@ def stocks_data(*args, **kwargs):
     stocks_map = rds().json().get("tornium:stocks")
 
     if stocks_map is None:
-        last_tick: typing.Optional[TickModel] = TickModel.objects().order_by("-_id").first()
-
         try:
             last_tick: StockTick = StockTick.select(StockTick.timestamp).order_by(-StockTick.tick_id).get()
         except DoesNotExist:
@@ -101,7 +99,11 @@ def stock_benefits(*args, **kwargs):
             stock_benefits_data[stock["stock_id"]] = stock["benefit"]
 
         rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits_data)
-        rds().set("tornium:points-value", stocks_api_data["stats"]["points_averagecost"], ex=86400)
+        rds().set(
+            "tornium:points-value",
+            stocks_api_data["stats"]["points_averagecost"],
+            ex=86400,
+        )
 
     Item.update_items(tornget, kwargs["user"].key)
     stock_benefits_json = {"active": [], "non_rev": [], "passive": []}
@@ -160,12 +162,12 @@ def stock_benefits(*args, **kwargs):
                         try:
                             item = Item.get(Item.name == name)
                         except DoesNotExist:
-                            return make_exception_response("1194", key, details={"item": name})
+                            return make_exception_response("1104", key, details={"item": name})
 
                         if item.market_value <= 0:
                             continue
 
-                        clothing_cache_values.append(item)
+                        clothing_cache_values.append(item.market_value)
 
                     value = round(sum(clothing_cache_values) / len(clothing_cache_values), 2)
                 elif "points" in benefit["description"]:

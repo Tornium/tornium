@@ -82,7 +82,10 @@ def login(*args, **kwargs):
         except NetworkingError as e:
             return utils.handle_networking_error(e)
         except Exception as e:
-            return render_template("errors/error.html", title="Error", error=str(e)), 500
+            return (
+                render_template("errors/error.html", title="Error", error=str(e)),
+                500,
+            )
 
         if key_info["access_level"] < 3:
             return (
@@ -107,7 +110,11 @@ def login(*args, **kwargs):
     try:
         auth_user: AuthUser = (
             AuthUser.select(
-                AuthUser.discord_id, AuthUser.security, AuthUser.otp_secret, AuthUser.otp_backups, AuthUser.tid
+                AuthUser.discord_id,
+                AuthUser.security,
+                AuthUser.otp_secret,
+                AuthUser.otp_backups,
+                AuthUser.tid,
             )
             .where(AuthUser.key == request.form["key"])
             .get()
@@ -219,7 +226,11 @@ def topt_verification():
         return (
             render_template("totp.html"),
             200,
-            {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+            {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
         )
 
     client_token = request.form.get("client-token")
@@ -310,7 +321,10 @@ def skynet_login():
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     access_token_data = requests.post(
-        "https://discord.com/api/v10/oauth2/token", headers=headers, data=payload, timeout=5
+        "https://discord.com/api/v10/oauth2/token",
+        headers=headers,
+        data=payload,
+        timeout=5,
     )
     access_token_data.raise_for_status()
     access_token_json = access_token_data.json()

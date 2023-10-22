@@ -23,7 +23,12 @@ from tornium_commons.models import Server
 def verify_dashboard(guild_id: int):
     try:
         guild: Server = (
-            Server.select(Server.sid, Server.verify_enabled, Server.verify_template, Server.faction_verify)
+            Server.select(
+                Server.sid,
+                Server.verify_enabled,
+                Server.verify_template,
+                Server.faction_verify,
+            )
             .where(Server.sid == guild_id)
             .get()
         )

@@ -45,7 +45,9 @@ def generate_chain_list(*args, **kwargs):
         limit = int(request.args.get("limit", 10))
     except (KeyError, ValueError, TypeError):
         return make_exception_response(
-            "1000", key, details={"message": "Illegal parameter type. Must be a float or integer."}
+            "1000",
+            key,
+            details={"message": "Illegal parameter type. Must be a float or integer."},
         )
 
     if not (0 <= difficulty <= 4):

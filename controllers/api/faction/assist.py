@@ -73,7 +73,12 @@ def forward_assist(*args, **kwargs):
     if client.exists(assist_lock_key):
         return make_exception_response("4291", key, redis_client=client)
     else:
-        client.set(assist_lock_key, int(datetime.datetime.utcnow().timestamp()) + 10, nx=True, ex=10)
+        client.set(
+            assist_lock_key,
+            int(datetime.datetime.utcnow().timestamp()) + 10,
+            nx=True,
+            ex=10,
+        )
 
     if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
@@ -190,7 +195,12 @@ def forward_assist(*args, **kwargs):
         timeout_str = f" The attack times out <t:{timeout}:R>."
 
     # target_tid | user_tid | smokes | tears | heavies
-    client.set(f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", nx=True, ex=600)
+    client.set(
+        f"tornium:assists:{guid}",
+        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
+        nx=True,
+        ex=600,
+    )
 
     payload = {
         "content": f"Assist on {target.name} [{content_target_faction}]",
@@ -373,7 +383,9 @@ def forward_assist(*args, **kwargs):
         try:
             messages.append(
                 discordpost.delay(
-                    f"channels/{server.assist_channel}/messages", payload=payload, channel=server.assist_channel
+                    f"channels/{server.assist_channel}/messages",
+                    payload=payload,
+                    channel=server.assist_channel,
                 )
             )
         except (DiscordError, NetworkingError):
@@ -395,7 +407,12 @@ def forward_assist(*args, **kwargs):
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
 
-    client.json().set(f"tornium:assists:{guid}:messages", Path.root_path(), list(packed_messages), nx=True)
+    client.json().set(
+        f"tornium:assists:{guid}:messages",
+        Path.root_path(),
+        list(packed_messages),
+        nx=True,
+    )
     client.expire(f"tornium:assists:{guid}:messages", 600)
 
     return (

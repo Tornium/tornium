@@ -164,16 +164,24 @@ def refresh_needed():
 
 @app.template_filter("reltime")
 def relative_time(s):
+    if s is None:
+        return ""
+    elif isinstance(s, datetime.datetime):
+        return rel_time(s)
+
     return rel_time(datetime.datetime.fromtimestamp(s))
 
 
 @app.template_filter("tcttime")
 def tct_time(s):
-    return torn_timestamp(int(s))
+    return torn_timestamp(s)
 
 
 @app.template_filter("commas")
 def commas_filter(s):
+    if s is None:
+        return ""
+
     return commas(int(s))
 
 
@@ -244,9 +252,19 @@ def after_request(response: flask.Response):
             client_token = secrets.token_urlsafe()
 
             redis_client.set(
-                f"tornium:token:api:{client_token}", f"{int(time.time())}|{current_user.tid}", nx=True, ex=300
+                f"tornium:token:api:{client_token}",
+                f"{int(time.time())}|{current_user.tid}",
+                nx=True,
+                ex=300,
             )
 
-            response.set_cookie("token", client_token, max_age=300, secure=True, httponly=True, samesite="Strict")
+            response.set_cookie(
+                "token",
+                client_token,
+                max_age=300,
+                secure=True,
+                httponly=True,
+                samesite="Strict",
+            )
 
     return response

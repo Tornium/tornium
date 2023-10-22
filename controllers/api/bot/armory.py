@@ -116,7 +116,12 @@ def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
     try:
         guild.armory_config[str(factionid)]["roles"] = roles
     except KeyError:
-        guild.armory_config[str(factionid)] = {"enabled": False, "channel": 0, "roles": roles, "items": {}}
+        guild.armory_config[str(factionid)] = {
+            "enabled": False,
+            "channel": 0,
+            "roles": roles,
+            "items": {},
+        }
 
     guild.save()
 
@@ -155,7 +160,12 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
     try:
         guild.armory_config[str(factionid)]["channel"] = channel
     except KeyError:
-        guild.armory_config[str(factionid)] = {"enabled": False, "channel": channel, "roles": [], "items": {}}
+        guild.armory_config[str(factionid)] = {
+            "enabled": False,
+            "channel": channel,
+            "roles": [],
+            "items": {},
+        }
 
     guild.save()
 
@@ -230,7 +240,12 @@ def armory_faction_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
     try:
         guild.armory_config[str(faction_tid)]["enabled"] = enabled
     except KeyError:
-        guild.armory_config[str(faction_tid)] = {"enabled": enabled, "channel": 0, "roles": [], "items": {}}
+        guild.armory_config[str(faction_tid)] = {
+            "enabled": enabled,
+            "channel": 0,
+            "roles": [],
+            "items": {},
+        }
 
     guild.save()
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

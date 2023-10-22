@@ -136,7 +136,11 @@ mod.add_url_rule(
     view_func=bot.verify.faction_roles,
     methods=["POST"],
 )
-mod.add_url_rule("/api/bot/verify/exclusion", view_func=bot.verify.guild_exclusion_roles, methods=["POST"])
+mod.add_url_rule(
+    "/api/bot/verify/exclusion",
+    view_func=bot.verify.guild_exclusion_roles,
+    methods=["POST"],
+)
 mod.add_url_rule("/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"])
 mod.add_url_rule(
     "/api/bot/verify/roles",
@@ -173,13 +177,25 @@ mod.add_url_rule(
 mod.add_url_rule("/api/items", view_func=items.item_name_map, methods=["GET"])
 
 # /api/report
-mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.get_reports, methods=["GET"])
-mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.create_report, methods=["POST"])
 mod.add_url_rule(
-    "/api/report/faction/members/<string:rid>", view_func=report.faction_member.delete_report, methods=["DELETE"]
+    "/api/report/faction/members",
+    view_func=report.faction_member.get_reports,
+    methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/report/faction/members/<string:rid>", view_func=report.faction_member.get_report, methods=["GET"]
+    "/api/report/faction/members",
+    view_func=report.faction_member.create_report,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/report/faction/members/<string:rid>",
+    view_func=report.faction_member.delete_report,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
+    "/api/report/faction/members/<string:rid>",
+    view_func=report.faction_member.get_report,
+    methods=["GET"],
 )
 
 # /api/stat

@@ -13,14 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import typing
 
 from flask import jsonify, request
 from tornium_celery.tasks.user import update_user
+from tornium_commons import rds
+from tornium_commons.formatters import bs_to_range
 from tornium_commons.models import FactionModel, UserModel
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
+from estimate import estimate_user
 
 
 @authentication_required
@@ -98,3 +102,31 @@ def get_specific_user(tid: int, *args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@authentication_required
+@ratelimit
+def estimate_single_user(tid: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    estimate_ratelimit = f"tornium:estimate:ratelimit:{kwargs['user'].tid}"
+    redis_client = rds()
+
+    if not redis_client.set(estimate_ratelimit, 25, nx=True, ex=60 - datetime.datetime.utcnow().second):
+        # Ratelimit just created in redis
+        try:
+            if int(redis_client.get(estimate_ratelimit)) > 0:
+                redis_client.decrby(estimate_ratelimit, 1)
+            else:
+                return make_exception_response("4293", key)
+        except TypeError:
+            redis_client.set(estimate_ratelimit, 10, ex=60 - datetime.datetime.utcnow().second)
+
+    estimated_bs, expiration_ts = estimate_user(tid, kwargs['user'].key)
+    min_bs, max_bs = bs_to_range(estimated_bs)
+
+    return {
+        "min_bs": min_bs,
+        "max_bs": max_bs,
+        "expiration": expiration_ts,
+    }, 200, api_ratelimit_response(key)
+

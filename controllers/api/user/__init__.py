@@ -121,12 +121,15 @@ def estimate_single_user(tid: int, *args, **kwargs):
         except TypeError:
             redis_client.set(estimate_ratelimit, 10, ex=60 - datetime.datetime.utcnow().second)
 
-    estimated_bs, expiration_ts = estimate_user(tid, kwargs['user'].key)
+    estimated_bs, expiration_ts = estimate_user(tid, kwargs["user"].key)
     min_bs, max_bs = bs_to_range(estimated_bs)
 
-    return {
-        "min_bs": min_bs,
-        "max_bs": max_bs,
-        "expiration": expiration_ts,
-    }, 200, api_ratelimit_response(key)
-
+    return (
+        {
+            "min_bs": min_bs,
+            "max_bs": max_bs,
+            "expiration": expiration_ts,
+        },
+        200,
+        api_ratelimit_response(key),
+    )

@@ -221,7 +221,7 @@ API_EXCEPTIONS = {
         "message": "User has reached a ratelimit on banking.",
     },
     "4293": {
-        "code" 4293,
+        "code": 4293,
         "name": "EstimateRatelimit",
         "http" 429,
         "message": "User has reached a ratelimit on estimation.",

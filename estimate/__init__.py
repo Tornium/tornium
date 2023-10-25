@@ -36,7 +36,9 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     redis_client = rds()
 
     try:
-        return int(redis_client.get(f"tornium:estimate:cache:{user_tid}")), int(time.time()) + redis_client.ttl(f"tornium:estimate:cache:{user_tid}")
+        return int(redis_client.get(f"tornium:estimate:cache:{user_tid}")), int(time.time()) + redis_client.ttl(
+            f"tornium:estimate:cache:{user_tid}"
+        )
     except (ValueError, TypeError):
         pass
 
@@ -44,11 +46,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
 
     df: pd.DataFrame
 
-    if (
-        ps is not None
-        and int(time.time()) - ps.timestamp <= 604_800  # One week
-    ):
-
+    if ps is not None and int(time.time()) - ps.timestamp <= 604_800:  # One week
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
@@ -77,4 +75,3 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     df = df.astype("int64")
 
     return model.predict("int64"), int(time.time()) - ps.timestamp + 604_800
-

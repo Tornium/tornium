@@ -57,13 +57,18 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
 
         return model.predict(df), int(time.time()) - ps.timestamp + 604_800
 
-    update_user(tid=user_tid, key=api_key, refresh_existing=True)
+    try:
+        update_user(tid=user_tid, key=api_key, refresh_existing=True)
+    except Exception:
+        update_error = True
+    finally:
+        update_error = False
 
     ps = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
 
     if ps is None:
         raise ValueError("Personal stats could not be found in the database")
-    elif int(time.time()) - ps.timestmap > 604_800:  # One week
+    elif not update_error and int(time.time()) - ps.timestamp > 604_800:  # One week
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])

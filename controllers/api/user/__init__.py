@@ -106,7 +106,7 @@ def get_specific_user(tid: int, *args, **kwargs):
 
 @authentication_required
 @ratelimit
-def estimate_single_user(tid: int, *args, **kwargs):
+def estimate_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     estimate_ratelimit = f"tornium:estimate:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()

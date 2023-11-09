@@ -122,7 +122,7 @@ def faction_members_data(tid: int):
             {
                 "username": f"{member.name} [{member.tid}]",
                 "level": member.level,
-                "last_action": member.last_action.timestamp(),
+                "last_action": member.last_action.timestamp() if member.last_action is not None else None,
                 "status": member.status,
                 "discord_id": member.discord_id,
             }
@@ -133,7 +133,7 @@ def faction_members_data(tid: int):
 
 @login_required
 def faction_members_report():
-    if current_user.factiontid not in [15644, 12894]:
+    if current_user.faction.tid not in [15644, 12894]:
         return (
             "Permission Denied... This page is currently being tested by NSO factions. Please check back later.",
             403,

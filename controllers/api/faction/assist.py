@@ -302,7 +302,7 @@ def forward_assist(*args, **kwargs):
             Best Damage: {commas(ps.ps_data["bestdamage"])}
             Networth: ${commas(ps.ps_data["networth"])}
             
-            Personal Stat Last Update: <t:{ps.timestamp.to_timestamp()}:R>
+            Personal Stat Last Update: <t:{ps.timestamp.timestamp()}:R>
             """  # noqa: W293
         )
 

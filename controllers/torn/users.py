@@ -70,11 +70,11 @@ def users_data():
                 "level": user.level,
                 "faction": "Unknown" if user.faction is None else f"{user.faction.name} [{user.faction.tid}]",
                 "last_action": {
-                    "display": rel_time(user.last_action),
+                    "display": rel_time(user.last_action) if user.last_action is not None else "",
                     "timestamp": user.last_action,
                 },
                 "last_refresh": {
-                    "display": rel_time(user.last_refresh),
+                    "display": rel_time(user.last_refresh) if user.last_refresh is not None else "",
                     "timestamp": user.last_refresh,
                 },
             }

@@ -51,32 +51,28 @@ def stats_data():
     min_bs = request.args.get("minBS")
     max_bs = request.args.get("maxBS")
 
-    stats = []
-
     stat_entries: typing.Iterable[Stat]
     if current_user.is_authenticated:
         if get_tid(search_value):
             stat_entries = Stat.select().where(
                 (Stat.tid == get_tid(search_value))
                 & (
-                    (Stat.global_stat == True)  # noqa: E712
-                    | (Stat.added_tid == current_user.tid)
-                    | (Stat.added_faction_tid == current_user.faction.tid)
+                    (Stat.added_group == 0)
+                    | (Stat.added_group == current_user.faction.tid)
                 )
             )
         else:
             stat_entries = Stat.select().where(
-                (Stat.global_stat == True)  # noqa: E712
-                | (Stat.added_tid == current_user.tid)
-                | (Stat.added_faction_tid == current_user.faction.tid)
+                (Stat.added_group == 0)
+                | (Stat.added_group == current_user.faction.tid)
             )
     else:
         if get_tid(search_value):
             stat_entries = Stat.select().where(
-                (Stat.tid == get_tid(search_value)) & (Stat.global_stat == True)  # noqa: E712
+                (Stat.tid == get_tid(search_value)) & (Stat.added_group == 0)
             )
         else:
-            stat_entries = Stat.select().where(Stat.global_stat == True)  # noqa: E712
+            stat_entries = Stat.select().where(Stat.added_group == 0)
 
     if min_bs != "" and max_bs != "":
         stat_entries = stat_entries.where((Stat.battlescore >= int(min_bs)) & (Stat.battlescore <= int(max_bs)))
@@ -92,45 +88,25 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(utils.table_order(ordering_direction, Stat.time_added))
 
-    # Possibly migrate to .paginate()
-    stat_entries_subset = stat_entries[start : start + length]
-    users = {}
+    # TODO: pagination doesn't work when the page is first loaded
+    # Shows the same data every time
+    stat_entries_subset = stat_entries.paginate(start // length, length)
+    stat_entries_subset.join(User)
 
-    stat_entry: Stat
-    for stat_entry in stat_entries_subset:
-        user: typing.Optional[User]
-        if stat_entry.tid in users:
-            user = users[stat_entry.tid]
-        else:
-            try:
-                user = User.select().where(User.tid == stat_entry.tid).get()
-            except DoesNotExist:
-                user = None
+    stats = [
+        [
+            stat_entry.tid_id if stat_entry.tid is None else f"{stat_entry.tid.name} [{stat_entry.tid_id}]",
+            commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
+            rel_time(stat_entry.time_added),
+        ] for stat_entry in stat_entries_subset
+    ]
 
-            users[stat_entry.tid] = user
-
-        stats.append(
-            [
-                stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
-                commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
-                rel_time(stat_entry.time_added),
-            ]
-        )
-
-    try:
-        stat_count = int(rds().get("tornium:stats:count"))
-    except (ValueError, TypeError):
-        stat_count = Stat.select().count()
-        rds().set("tornium:stats:count", stat_count, ex=3600)
-
-    data = {
+    return {
         "draw": request.args.get("draw"),
-        "recordsTotal": stat_count,
-        "recordsFiltered": stat_count,
+        "recordsTotal": Stat.select().count(),
+        "recordsFiltered": stat_entries.select().count(),
         "data": stats,
-    }
-
-    return data
+    }, 200
 
 
 @mod.route("/stats/chain")

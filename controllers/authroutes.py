@@ -170,7 +170,7 @@ def login(*args, **kwargs):
 
         send_dm.delay(auth_user.discord_id, discord_payload).forget()
 
-    if auth_user.security == 0:
+    if auth_user.security == 0 or auth_user.security is None:
         login_user(auth_user, remember=True)
     elif auth_user.security == 1:
         if auth_user.otp_secret == "":  # nosec B105
@@ -312,8 +312,8 @@ def skynet_login():
         )
 
     payload = {
-        "client_id": Config()["skynet-applicationid"],
-        "client_secret": Config()["skynet-client-secret"],
+        "client_id": Config.from_cache()["skynet-applicationid"],
+        "client_secret": Config.from_cache()["skynet-client-secret"],
         "grant_type": "authorization_code",
         "code": d_code,
         "redirect_uri": "https://tornium.com/login/skynet",

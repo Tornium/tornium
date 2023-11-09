@@ -20,7 +20,8 @@ import typing
 from flask import jsonify, request
 from peewee import DoesNotExist, fn
 from tornium_celery.tasks.user import update_user
-from tornium_commons.models import Stat, User
+from tornium_commons.db_connection import db
+from tornium_commons.models import Faction, Stat, User
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -30,7 +31,7 @@ _DIFFICULTY_MAP = {
     1: (1.75, 2),
     2: (2, 2.25),
     3: (2.25, 2.5),
-    4: (2.5, 3),
+    4: (2.5, 3.4),  # max_ff is actually 3
 }
 
 
@@ -91,117 +92,82 @@ def generate_chain_list(*args, **kwargs):
     #     1      |  1.75  |   2    |    Easy     |
     #     2      |   2    |  2.25  |   Medium    |
     #     3      |  2.25  |  2.5   |    Hard     |
-    #     4      |  2.5   |   3    |  Very Hard  |
+    #     4      |  2.5   |  3.4   |  Very Hard  |
+    #
+    # Max FF of difficulty 4 is indicated as 3.4 but is 3
+    # In the equation, 3x FF is equivalent to times 2.4 which is 3.4 - 1
 
-    stat_entries: typing.Iterable[Stat]
-    if difficulty < 4:
-        min_ff = _DIFFICULTY_MAP[difficulty][0]
-        max_ff = _DIFFICULTY_MAP[difficulty][1]
+    parameters = []
 
-        stat_entries = Stat.select().where(
-            (
-                (Stat.global_stat == True)
-                | (Stat.added_tid == kwargs["user"].tid)
-                | (Stat.added_faction_tid == kwargs["user"].faction.tid)
-            )
-            & (Stat.battlescore >= 0.375 * kwargs["user"].battlescore * (min_ff - 1))
-            & (Stat.battlescore <= 0.375 * kwargs["user"].battlescore * (max_ff - 1))
-        )
-    else:
-        min_ff = _DIFFICULTY_MAP[difficulty][0]
+    min_ff = _DIFFICULTY_MAP[difficulty][0]
+    max_ff = _DIFFICULTY_MAP[difficulty][1]
 
-        stat_entries = Stat.select().where(
-            (
-                (Stat.global_stat == True)
-                | (Stat.added_tid == kwargs["user"].tid)
-                | (Stat.added_faction_tid == kwargs["user"].faction.tid)
-            )
-            & (Stat.battlescore >= 0.375 * kwargs["user"].battlescore * (min_ff - 1))
-            & (Stat.battlescore <= 0.375 * kwargs["user"].battlescore * 2.4)
-        )
+    parameters.append(kwargs["user"].faction_id)
+    parameters.append(int(0.375 * kwargs["user"].battlescore * (min_ff - 1)))
+    parameters.append(int(0.375 * kwargs["user"].battlescore * (max_ff - 1)))
+
+    # Paramter order
+    # 0 = added faction
+    # 1 = min battlescore
+    # 2 = max battlescore
+    # 3 = limit
 
     if sort == "timestamp":
-        stat_entries_sorted = stat_entries.order_by(-Stat.time_added)
+        query = 'select "t1"."id", "t1"."tid_id", "t1"."time_added", "t1"."battlescore", "t2"."name", "t2"."level", "t2"."last_refresh", "t2"."faction_id", "t2"."status", "t2"."last_action" from (select * from (select distinct on ("t1"."tid_id") * from "stat" as "t1" where ("t1"."added_group" = 0) or ("t1"."added_group" = %s) order by "t1"."tid_id", "t1"."time_added" desc) t1 where ("t1"."battlescore" >= %s) and ("t1"."battlescore" <= %s)) t1 join "user" as "t2" on "t2"."tid" = "t1"."tid_id" where "t2"."level" is not null order by "t1"."time_added" desc limit %s'
     elif sort == "random":
-        stat_entries_sorted = stat_entries.order_by(fn.Random())
-    else:
-        stat_entries_sorted = stat_entries
+        query = 'select "t1"."id", "t1"."tid_id", "t1"."time_added", "t1"."battlescore", "t2"."name", "t2"."level", "t2"."last_refresh", "t2"."faction_id", "t2"."status", "t2"."last_action" from (select * from (select distinct on ("t1"."tid_id") * from "stat" as "t1" where ("t1"."added_group" = 0) or ("t1"."added_group" = %s) order by "t1"."tid_id", "t1"."time_added" desc) t1 where ("t1"."battlescore" >= %s) and ("t1"."battlescore" <= %s)) t1 join "user" as "t2" on "t2"."tid" = "t1"."tid_id" where "t2"."level" is not null order by random() limit %s'
+    else:  # Sorted by respect
+        query = f'select "t1"."id", "t1"."tid_id", "t1"."time_added", "t1"."battlescore", "t2"."name", "t2"."level", "t2"."last_refresh", "t2"."faction_id", "t2"."status", "t2"."last_action" from (select * from (select distinct on ("t1"."tid_id") * from "stat" as "t1" where ("t1"."added_group" = 0) or ("t1"."added_group" = %s) order by "t1"."tid_id", "t1"."time_added" desc) t1 where ("t1"."battlescore" >= %s) and ("t1"."battlescore" <= %s)) t1 join "user" as "t2" on "t2"."tid" = "t1"."tid_id" where "t2"."level" is not null order by ((log("t2"."level") + 1) / 4 * greatest(1 + 8 / 3 * ("t1"."battlescore" / {int(kwargs["user"].battlescore)}), 3)) desc, "t1"."time_added" desc limit %s'
+        # TODO: Make the query store the FF and respect in the query result
 
+    # Query response order
+    # 0 = stat.id
+    # 1 = stat.tid_id
+    # 2 = stat.time_added
+    # 3 = stat.battlescore
+    # 4 = stat.tid.name
+    # 5 = stat.tid.level
+    # 6 = stat.tid.last_refresh
+    # 7 = stat.tid.faction_id
+    # 8 = stat.tid.status
+    # 9 = stat.tid.last_action
+
+    parameters.append(limit)
     jsonified_stat_entries = []
-    targets = []
 
-    stat_entry: typing.Union[Stat, dict]
-    for stat_entry in stat_entries_sorted:
-        if len(jsonified_stat_entries) >= limit and sort != "respect":
-            break
-        elif stat_entry.tid in targets:
-            continue
-
-        try:
-            target: User = User.get_by_id(stat_entry.tid)
-        except DoesNotExist:
-            try:
-                update_user.delay(kwargs["user"].key, tid=stat_entry.tid)
-            except Exception as e:
-                print(e)
-
-            continue
-
-        # Get latest viewable stat entry for the specified user
-        stat_entry = (
-            Stat.select()
-            .where(
-                (
-                    (Stat.global_stat == True)
-                    | (Stat.added_tid == kwargs["user"].tid)
-                    | (Stat.added_faction_tid == kwargs["user"].faction.tid)
-                )
-                & (Stat.tid == stat_entry.tid)
-            )
-            .order_by(-Stat.time_added)
-            .get()
-        )
-
-        targets.append(stat_entry.tid)
-        target_ff = round(1 + 8 / 3 * (stat_entry.battlescore / kwargs["user"].battlescore), 2)
+    for stat_entry in db().execute_sql(query, parameters):
+        target_ff = round(1 + 8 / 3 * (stat_entry[3] / kwargs["user"].battlescore), 2)
 
         if target_ff > 3:
             target_ff = 3
-        if target is None or target.level == 0:
+        if stat_entry[1] is None or stat_entry[5] in (0, None):
             continue
 
         try:
-            base_respect = round((math.log(target.level) + 1) / 4, 2)
+            base_respect = round((math.log(stat_entry[5]) + 1) / 4, 2)
         except ValueError:
             continue
 
         jsonified_stat_entries.append(
             {
-                "statid": str(stat_entry.get_id()),
-                "tid": stat_entry.tid,
-                "battlescore": stat_entry.battlescore,
-                "timeadded": stat_entry.time_added.to_timestamp(),
+                "statid": stat_entry[0],
+                "tid": stat_entry[1],
+                "battlescore": stat_entry[3],
+                "timeadded": stat_entry[2].timestamp(),
                 "ff": target_ff,
                 "respect": round(base_respect * target_ff, 2),
                 "user": {
-                    "tid": target.tid,
-                    "name": target.name,
-                    "username": f"{target.name} [{target.tid}]",
-                    "level": target.level,
-                    "last_refresh": target.last_refresh.to_timestamp(),
-                    "factionid": target.faction.tid,
-                    "status": target.status,
-                    "last_action": target.last_action.to_timestamp(),
+                    "tid": stat_entry[1],
+                    "name": stat_entry[4],
+                    "username": f"{stat_entry[4]} [{stat_entry[1]}]",
+                    "level": stat_entry[5],
+                    "last_refresh": stat_entry[6].timestamp() if stat_entry[6] is not None else None,
+                    "factionid": stat_entry[7],
+                    "status": stat_entry[8],
+                    "last_action": stat_entry[9].timestamp(),
                 },
             }
         )
-
-    if sort == "respect":
-        jsonified_stat_entries = sorted(jsonified_stat_entries, key=operator.itemgetter("respect"), reverse=True)[
-            :limit
-        ]
-    elif sort == "timestamp":
-        jsonified_stat_entries = sorted(jsonified_stat_entries, key=operator.itemgetter("timeadded"), reverse=True)
 
     return (
         jsonify(
@@ -223,16 +189,15 @@ def get_stat_user(tid: int, *args, **kwargs):
         Stat.select()
         .where(
             (
-                (Stat.global_stat == True)
-                | (Stat.added_tid == kwargs["user"].tid)
-                | (Stat.added_faction_tid == kwargs["user"].faction.tid)
+                (Stat.added_group == 0)
+                | (Stat.added_group == kwargs["user"].faction_id)
             )
             & (Stat.tid == tid)
         )
         .order_by(-Stat.time_added)
     )
 
-    data = {"user": {}, "stat_entries": {}}
+    data: dict = {"user": {}, "stat_entries": {}}
 
     update_user(kwargs["user"].key, tid=tid)
 
@@ -258,8 +223,7 @@ def get_stat_user(tid: int, *args, **kwargs):
     for stat_entry in stat_entries:
         data["stat_entries"][str(stat_entry.get_id())] = {
             "stat_score": stat_entry.battlescore,
-            "timeadded": stat_entry.time_added.to_timestamp(),
-            "globalstat": stat_entry.global_stat,
+            "timeadded": stat_entry.time_added.timestamp(),
         }
 
     return jsonify(data), 200, api_ratelimit_response(key)

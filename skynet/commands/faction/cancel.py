@@ -23,11 +23,6 @@ from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-<<<<<<< HEAD
-from models.faction import Faction
-from models.user import User
-from skynet.commands.faction.fulfill import fulfiller_string
-=======
 from skynet.skyutils import get_admin_keys
 
 
@@ -541,31 +536,20 @@ def cancel_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-<<<<<<< HEAD
-    elif withdrawal.fulfiller != 0:
-=======
 
     if withdrawal.status == 1:
->>>>>>> d4c0457 ([IN-DEV] Migrating to Postgres)
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-<<<<<<< HEAD
-                        "title": "Unable to Cancel Request",
-                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
-=======
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.to_timestamp()}:R>.",
->>>>>>> d4c0457 ([IN-DEV] Migrating to Postgres)
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,
-<<<<<<< HEAD
-=======
             },
         }
     elif withdrawal.status == 2:
@@ -576,7 +560,7 @@ def cancel_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.to_timestamp()}:R>.",
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -591,12 +575,11 @@ def cancel_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
-                        f"<t:{withdrawal.time_fulfilled.to_timestamp()}:R>.",
+                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,
->>>>>>> d4c0457 ([IN-DEV] Migrating to Postgres)
             },
         }
 

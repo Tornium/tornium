@@ -60,13 +60,13 @@ def get_reports(*args, **kwargs):
                 "reports": [
                     {
                         "report_id": report.rid,
-                        "created_at": report.created_at.to_timestamp(),
-                        "last_updated": report.last_updated.to_timestamp(),
+                        "created_at": report.created_at.timestamp(),
+                        "last_updated": report.last_updated.timestamp(),
                         "requested_data": report.requested_data,
                         "status": report.status,
                         "faction": {**_faction_data(report.faction_tid)},
-                        "start_timestamp": report.start_timestamp.to_timestamp(),
-                        "end_timestamp": report.end_timestamp.to_timestamp(),
+                        "start_timestamp": report.start_timestamp.timestamp(),
+                        "end_timestamp": report.end_timestamp.timestamp(),
                     }
                     for report in reports
                 ],
@@ -209,13 +209,13 @@ def create_report(*args, **kwargs):
     return (
         {
             "report_id": rid,
-            "created_at": report.created_at.to_timestamp(),
-            "last_updated": report.last_updated.to_timestamp(),
+            "created_at": report.created_at.timestamp(),
+            "last_updated": report.last_updated.timestamp(),
             "requested_data": report.requested_data,
             "status": report.status,
             "faction": {**_faction_data(report.faction_tid)},
-            "start_timestamp": report.start_timestamp.to_timestamp(),
-            "end_timestamp": report.end_timestamp.to_timestamp(),
+            "start_timestamp": report.start_timestamp.timestamp(),
+            "end_timestamp": report.end_timestamp.timestamp(),
         },
         200,
         api_ratelimit_response(key),
@@ -313,13 +313,13 @@ def get_report(rid, *args, **kwargs):
         }
 
     response = {
-        "created_at": report.created_at.to_timestamp(),
-        "last_updated": report.last_updated.to_timestamp(),
+        "created_at": report.created_at.timestamp(),
+        "last_updated": report.last_updated.timestamp(),
         "status": report.status,
         "requested_data": report.requested_data,
         "faction": {**_faction_data(report.faction_tid)},
-        "start_timestamp": report.start_timestamp.to_timestamp(),
-        "end_timestamp": report.end_timestamp.to_timestamp(),
+        "start_timestamp": report.start_timestamp.timestamp(),
+        "end_timestamp": report.end_timestamp.timestamp(),
         "start_data": start_ps,
         "end_data": end_ps,
         "members": members,

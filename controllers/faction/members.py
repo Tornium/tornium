@@ -54,7 +54,7 @@ def members(*args, **kwargs):
 
         member: User
         for member in fac_members:
-            if member.battlescore == 0:
+            if member.battlescore in (None, 0):
                 continue
 
             stats.append(member.battlescore)

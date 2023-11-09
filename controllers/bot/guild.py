@@ -33,11 +33,11 @@ def dashboard():
 def guild_dashboard(guild_id: str):
     try:
         guild: Server = (
-            Server.select(Server.factions, Server.sid, Server.name, Server.assist_factions)
-            .where(Server.sid == guild_id)
+            Server.select(Server.factions, Server.sid, Server.name, Server.assist_factions, Server.admins)
+            .where(Server.sid == int(guild_id))
             .get()
         )
-    except DoesNotExist:
+    except (ValueError, TypeError, DoesNotExist):
         return (
             render_template(
                 "errors/error.html",
@@ -47,7 +47,9 @@ def guild_dashboard(guild_id: str):
             400,
         )
 
-    if current_user.tid not in guild.admins:
+    if guild is None:
+        return render_template("errors/error.html", title="Server Not Found", error="The server ID could not be located in the database."), 400
+    elif current_user.tid not in guild.admins:
         return (
             render_template(
                 "errors/error.html",

@@ -90,9 +90,8 @@ def stat(interaction, *args, **kwargs):
                 .where(
                     (Stat.tid == tid[1]["value"])
                     & (
-                        (Stat.global_stat == True)  # noqa: E712
-                        | (Stat.added_tid == user.tid)
-                        | (Stat.added_faction_tid == user.faction.tid)
+                        (Stat.added_group == 0)
+                        | (Stat.added_group == user.faction.tid)
                     )
                 )
                 .order_by(-Stat.time_added)
@@ -123,9 +122,8 @@ def stat(interaction, *args, **kwargs):
                 .where(
                     (Stat.tid == target_user.tid)
                     & (
-                        (Stat.global_stat == True)  # noqa: E712
-                        | (Stat.added_tid == user.tid)
-                        | (Stat.added_faction_tid == user.faction.tid)
+                        (Stat.added_group == 0)
+                        | (Stat.added_group == user.faction.tid)
                     )
                 )
                 .order_by(-Stat.time_added)
@@ -234,7 +232,7 @@ def stat(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Stat Score Update",
-                            "value": f"<t:{target.time_added.to_timestamp()}:R>",
+                            "value": f"<t:{target.time_added.timestamp()}:R>",
                             "inline": True,
                         },
                     ],

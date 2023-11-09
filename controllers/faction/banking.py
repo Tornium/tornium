@@ -76,7 +76,7 @@ def banking_data():
             fulfiller_str = "Unknown Status"
 
         time_fulfilled = (
-            torn_timestamp(withdrawal.time_fulfilled.to_timestamp()) if withdrawal.time_fulfilled is not None else ""
+            torn_timestamp(withdrawal.time_fulfilled.timestamp()) if withdrawal.time_fulfilled is not None else ""
         )
 
         withdrawals.append(
@@ -104,7 +104,7 @@ def banking():
     if current_user.faction is None:
         return render_template("faction/banking.html", banking_enabled=False)
 
-    banker_positions: typing.Iterable[FactionPosition] = FactionPosition.select(
+    banker_positions = FactionPosition.select(
         FactionPosition.name,
         FactionPosition.give_money,
         FactionPosition.give_points,
@@ -122,14 +122,14 @@ def banking():
     banker_position: FactionPosition
     for banker_position in banker_positions:
         user: User
-        for user in User.select(User.name, User.tid, User.last_action).where(
+        for user in User.select(User.name, User.tid, User.last_action).join(FactionPosition).where(
             User.faction_position == banker_position.pid
         ):
             bankers.append(
                 {
                     "name": user.name,
                     "tid": user.tid,
-                    "last_action": user.last_action.to_timestamp(),
+                    "last_action": user.last_action.timestamp(),
                     "position": banker_position.name,
                     "money": banker_position.give_money,
                     "points": banker_position.give_points,
@@ -142,7 +142,7 @@ def banking():
             {
                 "name": current_user.faction.leader.name,
                 "tid": current_user.faction.leader.tid,
-                "last_action": current_user.faction.leader.last_action.to_timestamp(),
+                "last_action": current_user.faction.leader.last_action.timestamp(),
                 "position": "Leader",
                 "money": True,
                 "points": True,
@@ -155,7 +155,7 @@ def banking():
             {
                 "name": current_user.faction.coleader.name,
                 "tid": current_user.faction.coleader.tid,
-                "last_action": current_user.faction.coleader.last_action.to_timestamp(),
+                "last_action": current_user.faction.coleader.last_action.timestamp(),
                 "position": "Co-leader",
                 "money": True,
                 "points": True,
@@ -199,7 +199,8 @@ def user_banking_data():
     else:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_requested))
 
-    withdrawals_db = withdrawals_db[start : start + length]
+    print(withdrawals_db.sql())
+    withdrawals_db = withdrawals_db.paginate(start // length, length)
 
     withdrawal: Withdrawal
     for withdrawal in withdrawals_db:
@@ -215,7 +216,7 @@ def user_banking_data():
             fulfiller_str = "Unknown Status"
 
         time_fulfilled = (
-            torn_timestamp(withdrawal.time_fulfilled.to_timestamp()) if withdrawal.time_fulfilled is not None else ""
+            torn_timestamp(withdrawal.time_fulfilled.timestamp()) if withdrawal.time_fulfilled is not None else ""
         )
 
         withdrawals.append(
@@ -265,19 +266,19 @@ def fulfill(guid: str):
         return render_template(
             "errors/error.html",
             title="Can't Fulfill Request",
-            error=f"This request has already been fulfilled at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
+            error=f"This request has already been fulfilled at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
         )
     elif withdrawal.status == 2:
         return render_template(
             "errors/error.html",
             title="Can't Fulfill Request",
-            error=f"This request has already been cancelled at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
+            error=f"This request has already been cancelled at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
         )
     elif withdrawal.status == 3:
         return render_template(
             "errors/error.html",
             title="Can't Fulfill Request",
-            error=f"This request has already been cancelled by the system at {torn_timestamp(withdrawal.time_fulfilled.to_timestamp())}.",
+            error=f"This request has already been cancelled by the system at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
         )
 
     try:

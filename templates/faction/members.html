@@ -87,7 +87,7 @@ Tornium - Faction Members
                 <tbody>
                     {% for member in members %}
                         <tr>
-                            {% if member.key == "" %}
+                            {% if not member.key %}
                                 <th>
                                     <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="right" title="Not Signed In"></i>
                                 </th>
@@ -107,14 +107,14 @@ Tornium - Faction Members
 
                             {% if current_user.faction_aa or current_user.tid == member.tid %}
                                 <th>{{ member.faction_aa }}</th>
-                                {% if member.battlescore == 0 %}
+				{% if not member.battlescore %}
                                     <th data-order="0">
                                         <i class="fa-solid fa-triangle-exclamation" data-bs-toggle="tooltip" data-bs-placement="right" title="Missing Battlestats. User is not signed into Tornium or TornStats."></i>
                                     </th>
-                                {% else %}
-                                    <th data-order="{{ member.battlescore }}">
-                                        <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
-                                    </th>
+				    {% else %}
+				    <th data-order="{{ member.battlescore }}">
+					    <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
+				    </th>
                                 {% endif %}
                             {% else %}
                                 <th data-order="0">

@@ -55,7 +55,7 @@ def load_user(tid):
             ),
             401,
         )
-    elif Config()["admin-passphrase"] != hashlib.sha512(passphrase.encode("utf-8")).hexdigest():
+    elif Config.from_cache()["admin-passphrase"] != hashlib.sha512(passphrase.encode("utf-8")).hexdigest():
         return (
             render_template(
                 "errors/error.html",

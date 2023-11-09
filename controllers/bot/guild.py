@@ -48,7 +48,14 @@ def guild_dashboard(guild_id: str):
         )
 
     if guild is None:
-        return render_template("errors/error.html", title="Server Not Found", error="The server ID could not be located in the database."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Server Not Found",
+                error="The server ID could not be located in the database.",
+            ),
+            400,
+        )
     elif current_user.tid not in guild.admins:
         return (
             render_template(

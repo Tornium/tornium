@@ -56,21 +56,13 @@ def stats_data():
         if get_tid(search_value):
             stat_entries = Stat.select().where(
                 (Stat.tid == get_tid(search_value))
-                & (
-                    (Stat.added_group == 0)
-                    | (Stat.added_group == current_user.faction.tid)
-                )
+                & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
             )
         else:
-            stat_entries = Stat.select().where(
-                (Stat.added_group == 0)
-                | (Stat.added_group == current_user.faction.tid)
-            )
+            stat_entries = Stat.select().where((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
     else:
         if get_tid(search_value):
-            stat_entries = Stat.select().where(
-                (Stat.tid == get_tid(search_value)) & (Stat.added_group == 0)
-            )
+            stat_entries = Stat.select().where((Stat.tid == get_tid(search_value)) & (Stat.added_group == 0))
         else:
             stat_entries = Stat.select().where(Stat.added_group == 0)
 
@@ -98,7 +90,8 @@ def stats_data():
             stat_entry.tid_id if stat_entry.tid is None else f"{stat_entry.tid.name} [{stat_entry.tid_id}]",
             commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
             rel_time(stat_entry.time_added),
-        ] for stat_entry in stat_entries_subset
+        ]
+        for stat_entry in stat_entries_subset
     ]
 
     return {

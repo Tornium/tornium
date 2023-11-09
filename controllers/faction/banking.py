@@ -122,8 +122,10 @@ def banking():
     banker_position: FactionPosition
     for banker_position in banker_positions:
         user: User
-        for user in User.select(User.name, User.tid, User.last_action).join(FactionPosition).where(
-            User.faction_position == banker_position.pid
+        for user in (
+            User.select(User.name, User.tid, User.last_action)
+            .join(FactionPosition)
+            .where(User.faction_position == banker_position.pid)
         ):
             bankers.append(
                 {

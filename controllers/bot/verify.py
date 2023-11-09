@@ -24,11 +24,7 @@ def verify_dashboard(guild_id: int):
     try:
         guild: Server = (
             Server.select(
-                Server.sid,
-                Server.verify_enabled,
-                Server.verify_template,
-                Server.faction_verify,
-                Server.admins
+                Server.sid, Server.verify_enabled, Server.verify_template, Server.faction_verify, Server.admins
             )
             .where(Server.sid == guild_id)
             .get()

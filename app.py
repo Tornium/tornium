@@ -47,7 +47,7 @@ import flask
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import DoesNotExist
-from tornium_commons import Config, db, rds
+from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 from tornium_commons.models import Faction
 
@@ -215,8 +215,6 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
-    db().connect()
-
     if globals().get("ddtrace:loaded") is None:
         try:
             import ddtrace
@@ -233,9 +231,6 @@ def before_request():
 
 @app.after_request
 def after_request(response: flask.Response):
-    if not db().is_closed:
-        db().close()
-
     # HSTS enabled through CloudFlare
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 

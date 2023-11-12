@@ -97,7 +97,7 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/server/<int:guildid>",
+    "/api/bot/server/<int:guild_id>",
     view_func=bot.config.server_config,
     methods=["GET"],
 )

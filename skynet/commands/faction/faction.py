@@ -318,7 +318,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
     elif faction[1]["value"].isdigit():
         try:
-            faction: Faction = Faction.select().get_by_id(int(faction[1]["value"]))
+            faction: Faction = Faction.get_by_id(int(faction[1]["value"]))
         except DoesNotExist:
             return {
                 "type": 4,
@@ -353,7 +353,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
-    if len(admin_keys) == 0:
+    if not isinstance(admin_keys, tuple) or len(admin_keys) == 0:
         return {
             "type": 4,
             "data": {

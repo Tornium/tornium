@@ -421,7 +421,7 @@ def notify(interaction, *args, **kwargs):
         else:
             guild = None
 
-        if subcommand not in ("initialize", "delete"):
+        if subcommand not in ("create", "delete"):
             notifications = Notification.select().where(Notification.n_type == 0)
 
             if guild is not None:

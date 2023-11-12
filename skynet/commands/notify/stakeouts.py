@@ -411,13 +411,12 @@ def stakeouts(interaction, *args, **kwargs):
             time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
             recipient_guild=int(interaction["guild_id"]) if not private else 0,
-            recipient_type=int(not private),
-            ntype=_STYPE_NID_MAP[stype],
+            n_type=_STYPE_NID_MAP[stype],
             target=tid,
             persistent=True,
-            value=[],
+            enabled=False,
             options={
-                "enabled": False,
+                "value": [],
             },
         ).save()
 
@@ -600,7 +599,7 @@ def stakeouts(interaction, *args, **kwargs):
     if subcommand != "initialize":
         if "guild_id" in interaction:
             try:
-                guild: Server = Server.select().get_by_id(interaction["guild_id"])
+                guild: Server = Server.get_by_id(interaction["guild_id"])
             except DoesNotExist:
                 return {
                     "type": 4,

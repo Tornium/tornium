@@ -64,7 +64,7 @@ def stat(interaction, *args, **kwargs):
 
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
-    if len(admin_keys) == 0:
+    if not isinstance(admin_keys, tuple) or len(admin_keys) == 0:
         return {
             "type": 4,
             "data": {
@@ -175,7 +175,7 @@ def stat(interaction, *args, **kwargs):
 
     if target_user is None:
         try:
-            target_user = User.select(User.name, User.tid, User.faction).get_by_id(target.tid)
+            target_user = User.select(User.name, User.tid, User.faction).where(User.tid == target.tid).get()
         except DoesNotExist:
             return {
                 "type": 4,

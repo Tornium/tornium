@@ -43,7 +43,7 @@ def cancel_command(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.select().get_by_id(interaction["guild_id"])
+        guild: Server = Server.get_by_id(interaction["guild_id"])
     except DoesNotExist:
         return {
             "type": 4,
@@ -238,7 +238,7 @@ def cancel_command(interaction, *args, **kwargs):
 
     requester: typing.Optional[User]
     try:
-        requester = User.select().get_by_id(withdrawal.requester)
+        requester = User.get_by_id(withdrawal.requester)
     except DoesNotExist:
         requester = None
 
@@ -420,7 +420,7 @@ def cancel_button(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.select().get_by_id(interaction["guild_id"])
+        guild: Server = Server.get_by_id(interaction["guild_id"])
     except DoesNotExist:
         return {
             "type": 4,
@@ -585,7 +585,7 @@ def cancel_button(interaction, *args, **kwargs):
 
     requester: typing.Optional[User]
     try:
-        requester = User.select().get_by_id(withdrawal.requester)
+        requester = User.get_by_id(withdrawal.requester)
     except DoesNotExist:
         requester = None
 

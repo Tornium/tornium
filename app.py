@@ -203,7 +203,7 @@ def join_list(iter: typing.Iterable[str], and_seperator=False):
 @app.template_filter("faction")
 def faction_filter(tid):
     try:
-        faction = Faction.select(Faction.name).get_by_id(tid)
+        faction = Faction.select(Faction.name).where(Faction.tid == tid).get()
     except DoesNotExist:
         return f"N/A {tid}"
 

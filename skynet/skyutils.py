@@ -55,7 +55,7 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
 
     # TODO: Accept passed server model to prevent double query
 
-    admin_keys = []
+    admin_keys: typing.List[str] = []
 
     invoker: typing.Optional[User]
     try:
@@ -77,7 +77,7 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
 
         for admin in server.admins:
             try:
-                admin_user: User = User.select(User.key).get_by_id(admin)
+                admin_user: User = User.select(User.key).where(User.tid == admin).get()
             except DoesNotExist:
                 continue
 
@@ -118,7 +118,7 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
 
     if faction is None:
         try:
-            faction = Faction.select(Faction.aa_keys).get_by_id(invoker.faction.tid)
+            faction = Faction.select(Faction.aa_keys).where(Faction.tid == invoker.faction.tid).get()
         except DoesNotExist:
             return tuple()
 
@@ -129,18 +129,15 @@ def check_invoker_exists(interaction: dict):
     discord_id = None
 
     invoker: typing.Optional[User]
-    try:
-        if "member" in interaction:
-            invoker = User.get(User.discord_id == interaction["member"]["user"]["id"])
-            discord_id = interaction["member"]["user"]["id"]
-        else:
-            invoker = User.get(User.discord_id == interaction["user"]["id"])
-            discord_id = interaction["user"]["id"]
-    except DoesNotExist:
-        invoker = None
+    if "member" in interaction:
+        invoker = User.select().where(User.discord_id == interaction["member"]["user"]["id"]).first()
+        discord_id = interaction["member"]["user"]["id"]
+    else:
+        invoker = User.select().where(User.discord_id == interaction["user"]["id"]).first()
+        discord_id = interaction["user"]["id"]
 
-    if invoker is not None:
-        return invoker, None
+    if invoker is None:
+        return invoker, tuple()
 
     admin_keys = get_admin_keys(interaction)
 

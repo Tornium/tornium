@@ -52,7 +52,7 @@ def balance(interaction, *args, **kwargs):
                     },
                 }
 
-    if user.faction is not None:
+    if user.faction is None:
         return {
             "type": 4,
             "data": {

@@ -59,7 +59,7 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.select().get_by_id(interaction["guild_id"])
+        guild: Server = Server.get_by_id(interaction["guild_id"])
     except DoesNotExist:
         return {
             "type": 4,

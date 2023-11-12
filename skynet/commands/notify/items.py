@@ -122,7 +122,7 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
             }
     else:
         try:
-            guild: Server = Server.select().get_by_id(interaction["guild_id"])
+            guild: Server = Server.get_by_id(interaction["guild_id"])
         except DoesNotExist:
             return {
                 "type": 4,
@@ -600,7 +600,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
     effect = button_data[3]
 
     try:
-        notification: Notification = Notification.select().get_by_id(notification_id)
+        notification: Notification = Notification.get_by_id(notification_id)
     except DoesNotExist:
         return {
             "type": 4,

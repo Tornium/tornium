@@ -188,7 +188,7 @@ def user_banking_data():
     ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid)
+    withdrawals_db = Withdrawal.select().where(Withdrawal.requester == current_user.tid)
 
     if ordering == 0:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.wid))

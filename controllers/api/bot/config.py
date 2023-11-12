@@ -30,7 +30,7 @@ def _faction_data(tid, guild=None):
     }
 
     try:
-        faction: Faction = Faction.select(Faction.name).get_by_id(tid)
+        faction: Faction = Faction.select(Faction.name).where(Faction.tid == id).get()
     except DoesNotExist:
         return data
 

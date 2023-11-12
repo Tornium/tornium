@@ -26,7 +26,7 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def jsonified_verify_config(guild: Server):
     return jsonify(
         {
-            "enabled": guild.config.get("verify"),
+            "enabled": guild.verify_enabled,
             "verify_template": guild.verify_template,
             "verified_roles": guild.verified_roles,
             "faction_verify": guild.faction_verify,
@@ -76,9 +76,11 @@ def guild_verification(*args, **kwargs):
     if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
+    # TODO: Replace below error messages
+
     if request.method == "POST":
-        if guild.config.get("verify") in (None, 0):
-            guild.config["verify"] = 1
+        if not guild.verify_enabled:
+            guild.verify_enabled = True
             guild.save()
         else:
             return make_exception_response(
@@ -90,8 +92,8 @@ def guild_verification(*args, **kwargs):
                 },
             )
     elif request.method == "DELETE":
-        if guild.config.get("verify") in (None, 1):
-            guild.config["verify"] = 0
+        if guild.config.verify_enabled:
+            guild.verify_enabled = False
             guild.save()
         else:
             return make_exception_response(

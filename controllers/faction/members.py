@@ -18,13 +18,11 @@ import typing
 
 from flask import render_template
 from flask_login import current_user, login_required
-from tornium_commons import requires_db_connection
 from tornium_commons.models import Faction, User
 
 from controllers.faction.decorators import fac_required
 
 
-@requires_db_connection
 @login_required
 @fac_required
 def members(*args, **kwargs):

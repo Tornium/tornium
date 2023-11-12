@@ -44,7 +44,7 @@ def faction_setter(guild_id: int, *args, **kwargs):
         return make_exception_response("4020", key)
 
     try:
-        Faction.select().get_by_id(faction_tid)
+        Faction.select().where(Faction.tid == faction_tid).get()
     except DoesNotExist:
         return make_exception_response("1102", key)
 

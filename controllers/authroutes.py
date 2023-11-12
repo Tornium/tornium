@@ -35,7 +35,6 @@ from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
-from tornium_commons.db_connection import requires_db_connection
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_INFO
@@ -50,7 +49,6 @@ mod = Blueprint("authroutes", __name__)
 config = Config.from_json()
 
 
-@requires_db_connection
 @mod.route("/login", methods=["GET", "POST"])
 def login(*args, **kwargs):
     if request.method == "GET":

@@ -23,7 +23,7 @@ import traceback
 import click
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
-from tornium_commons import db, models, rds
+from tornium_commons import db, models, rds, Config
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import *  # noqa: F403  # Used for create_db()
 
@@ -60,7 +60,7 @@ def update_commands(verbose=False):
     handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     botlogger.addHandler(handler)
 
-    application_id = rds().get("tornium:settings:skynet-applicationid")
+    application_id = Config.from_json().bot_application_id
     botlogger.debug(application_id)
 
     commands_data = []

@@ -47,6 +47,7 @@ from controllers.decorators import token_required
 from models.user import AuthUser
 
 mod = Blueprint("authroutes", __name__)
+config = Config.from_json()
 
 
 @requires_db_connection
@@ -312,8 +313,8 @@ def skynet_login():
         )
 
     payload = {
-        "client_id": Config.from_cache()["skynet-applicationid"],
-        "client_secret": Config.from_cache()["skynet-client-secret"],
+        "client_id": config.bot_application_id,
+        "client_secret": config.bot_client_secret,
         "grant_type": "authorization_code",
         "code": d_code,
         "redirect_uri": "https://tornium.com/login/skynet",

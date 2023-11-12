@@ -22,19 +22,21 @@ from nacl.signing import VerifyKey
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
+from tornium_commons import Config, rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR
+
+
+application_public = Config.from_json().bot_application_public
 
 
 def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
 
     redis = rds()
-    public_key = redis.get("tornium:settings:skynet-applicationpublic")
 
-    verify_key = VerifyKey(bytes.fromhex(public_key))
+    verify_key = VerifyKey(bytes.fromhex(application_public))
 
     signature = request.headers["X-Signature-Ed25519"]
     timestamp = request.headers["X-Signature-Timestamp"]

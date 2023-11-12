@@ -58,7 +58,7 @@ def jsonified_server_config(guild: Server):
         "banking": guild.banking_config,
         "armory": {"enabled": guild.armory_enabled, "config": {**guild.armory_config}},
         "assists": {
-            "channel": str(guild.assists_channel),
+            "channel": str(guild.assist_channel),
             "factions": guild.assist_factions,
             "roles": {
                 "smoker": list(map(str, guild.assist_smoker_roles)),

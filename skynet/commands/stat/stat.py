@@ -175,7 +175,7 @@ def stat(interaction, *args, **kwargs):
 
     if target_user is None:
         try:
-            target_user = User.select(User.name, User.tid, User.faction).where(User.tid == target.tid).get()
+            target_user = User.select(User.name, User.tid, User.faction, User.last_action).where(User.tid == target.tid).get()
         except DoesNotExist:
             return {
                 "type": 4,

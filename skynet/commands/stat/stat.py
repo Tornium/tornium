@@ -205,7 +205,7 @@ def stat(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Last Action",
-                            "value": f"<t:{target_user.last_action}:R>",
+                            "value": f"<t:{int(target_user.last_action.timestamp())}:R>",
                         },
                         {
                             "name": "Minimum Total Stats",
@@ -224,7 +224,7 @@ def stat(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Stat Score Update",
-                            "value": f"<t:{target.time_added.timestamp()}:R>",
+                            "value": f"<t:{int(target.time_added.timestamp())}:R>",
                             "inline": True,
                         },
                     ],

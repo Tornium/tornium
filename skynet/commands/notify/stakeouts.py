@@ -186,7 +186,7 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        notification.delete()
+        notification.delete_instance()
 
         return {
             "type": 4,
@@ -230,7 +230,10 @@ def stakeouts(interaction, *args, **kwargs):
                 categories = "None"
             else:
                 categories = ", ".join(
-                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]][value] for value in notification.options["value"]]
+                    [
+                        _REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]][value]
+                        for value in notification.options["value"]
+                    ]
                 )
 
             embeds.append(
@@ -445,8 +448,7 @@ def stakeouts(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Target Channel",
-                                "value": f"<#{channel}>"
-                                if private else "Direct Message",
+                                "value": f"<#{channel}>" if private else "Direct Message",
                                 "inline": True,
                             },
                         ],
@@ -745,11 +747,8 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
 
     if "guild_id" in interaction:
         notifications = notifications.where(
-            (
-                Notification.recipient_guild
-                == int(interaction["guild_id"])
-                | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
-            )
+            (Notification.recipient_guild == int(interaction["guild_id"]))
+            | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
         )
     else:
         notifications = notifications.where((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))

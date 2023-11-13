@@ -316,6 +316,8 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
+
+        faction = user.faction
     elif faction[1]["value"].isdigit():
         try:
             faction: Faction = Faction.get_by_id(int(faction[1]["value"]))

@@ -125,11 +125,10 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        # notification.value: list or ListField
-        if scat_id in notification.value:
-            values = list(notification.value)
+        if scat_id in notification.options["value"]:
+            values = list(notification.options["value"])
             values.remove(scat_id)
-            notification.value = values
+            notification.options["value"] = values
             notification.save()
 
             return {
@@ -148,9 +147,9 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
         else:
-            values = list(notification.value)
+            values = list(notification.options["value"])
             values.append(scat_id)
-            notification.value = values
+            notification.options["value"] = values
             notification.save()
 
             return {
@@ -227,11 +226,11 @@ def stakeouts(interaction, *args, **kwargs):
 
                 title = "Faction Stakeout"
 
-            if len(notification.value) == 0:
+            if len(notification.options["value"]) == 0:
                 categories = "None"
             else:
                 categories = ", ".join(
-                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]][value] for value in notification.value]
+                    [_REVERSE_SCATS[_REVERSE_STYPE_NID_MAP[notification.n_type]][value] for value in notification.options["value"]]
                 )
 
             embeds.append(
@@ -250,7 +249,7 @@ def stakeouts(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Enabled",
-                            "value": notification.options["enabled"],
+                            "value": notification.enabled,
                             "inline": True,
                         },
                         {  # Newline in fields
@@ -406,7 +405,7 @@ def stakeouts(interaction, *args, **kwargs):
                     },
                 }
 
-        notification: Notification = Notification(
+        notification = Notification(
             invoker=user.tid,
             time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
@@ -441,19 +440,18 @@ def stakeouts(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Private",
-                                "value": notification.recipient_guild == 0,
+                                "value": private,
                                 "inline": True,
                             },
                             {
                                 "name": "Target Channel",
-                                "value": f"<#{notification.recipient}>"
-                                if notification.recipient_guild != 0
-                                else "Direct Message",
+                                "value": f"<#{channel}>"
+                                if private else "Direct Message",
                                 "inline": True,
                             },
                         ],
                         "footer": {
-                            "text": f"DB ID: {notification.get_id()}",
+                            "text": f"DB ID: {notification}",
                         },
                     }
                 ]
@@ -526,7 +524,7 @@ def stakeouts(interaction, *args, **kwargs):
         else:
             mode_bool = False
 
-            if notification.n_type == 2 and 0 in notification.value:
+            if notification.n_type == 2 and 0 in notification.options["value"]:
                 rds().delete(f"tornium:stakeout-data:faction:{notification.target}:members")
 
         if notification.options.get("enabled") == mode_bool:
@@ -544,7 +542,7 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        notification.options["enabled"] = mode_bool
+        notification.enabled = mode_bool
         notification.save()
 
         return {
@@ -740,7 +738,7 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
     else:
         stype = stype[1]["value"]
 
-    notifications = Notification.select().where(target=tid)
+    notifications = Notification.select().where(Notification.target == tid)
 
     if stype is not None:
         notifications = notifications.where(Notification.n_type == _STYPE_NID_MAP[stype])

@@ -117,7 +117,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid not in guild.factions or user.faction.guild != guild.sid:
+    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
@@ -505,7 +505,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid not in guild.factions or user.faction.guild != guild.sid:
+    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {

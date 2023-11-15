@@ -104,64 +104,27 @@ def banking():
     if current_user.faction is None:
         return render_template("faction/banking.html", banking_enabled=False)
 
-    banker_positions = FactionPosition.select(
-        FactionPosition.name,
-        FactionPosition.give_money,
-        FactionPosition.give_points,
-        FactionPosition.adjust_balances,
-    ).where(
-        (FactionPosition.faction_tid == current_user.faction.tid)
-        & (
-            (FactionPosition.give_money == True)  # noqa: E712
-            | (FactionPosition.give_points == True)  # noqa: E712
-            | (FactionPosition.adjust_balances == True)  # noqa: E712
-        )
-    )
-    bankers = []
+    bankers = {}
 
-    banker_position: FactionPosition
-    for banker_position in banker_positions:
-        user: User
-        for user in (
-            User.select(User.name, User.tid, User.last_action)
-            .join(FactionPosition)
-            .where(User.faction_position == banker_position.pid)
-        ):
-            bankers.append(
-                {
-                    "name": user.name,
-                    "tid": user.tid,
-                    "last_action": user.last_action.timestamp(),
-                    "position": banker_position.name,
-                    "money": banker_position.give_money,
-                    "points": banker_position.give_points,
-                    "adjust": banker_position.adjust_balances,
-                }
-            )
+    for banker in current_user.faction.get_bankers():
+        banker_user: typing.Optional[User] = User.select(
+            User.name,
+            User.tid,
+            User.last_action,
+            User.faction_position,
+        ).join(FactionPosition).where(User.tid == banker).first()
 
-    if current_user.faction.leader is not None:
+        if banker_user is None:
+            continue
+
         bankers.append(
             {
-                "name": current_user.faction.leader.name,
-                "tid": current_user.faction.leader.tid,
-                "last_action": current_user.faction.leader.last_action.timestamp(),
-                "position": "Leader",
-                "money": True,
-                "points": True,
-                "adjust": True,
-            }
-        )
-
-    if current_user.faction.coleader is not None:
-        bankers.append(
-            {
-                "name": current_user.faction.coleader.name,
-                "tid": current_user.faction.coleader.tid,
-                "last_action": current_user.faction.coleader.last_action.timestamp(),
-                "position": "Co-leader",
-                "money": True,
-                "points": True,
-                "adjust": True,
+                "name": banker_user.name,
+                "tid": banker_user.tid,
+                "last_action": int(current_user.last_action.timestamp()),
+                "money": banker_user.faction_position.give_money,
+                "points": banker_user.faction_position.give_points,
+                "adjust": banker_user.faction_position.adjust_balances,
             }
         )
 
@@ -201,7 +164,6 @@ def user_banking_data():
     else:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_requested))
 
-    print(withdrawals_db.sql())
     withdrawals_db = withdrawals_db.paginate(start // length, length)
 
     withdrawal: Withdrawal

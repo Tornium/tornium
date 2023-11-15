@@ -234,7 +234,7 @@ def check_invoker_exists(interaction: dict):
         }
 
     try:
-        user = User.get(User.discord_id == discord_id)
+        user = User.select().where(User.discord_id == discord_id).get()
     except DoesNotExist:
         return {
             "type": 4,

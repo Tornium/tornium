@@ -337,11 +337,7 @@ def skynet_login():
     user_request.raise_for_status()
     user_data = user_request.json()
 
-    user: typing.Optional[AuthUser]
-    try:
-        user = AuthUser.get(User.discord_id == user_data["id"])
-    except DoesNotExist:
-        user = None
+    user: typing.Optional[AuthUser] = AuthUser.select().where(User.discord_id == user_data["id"]).first()
 
     if user is None:
         try:

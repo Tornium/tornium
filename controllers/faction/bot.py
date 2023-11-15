@@ -49,5 +49,5 @@ def bot(*args, **kwargs):
 
     return render_template(
         "faction/bot.html",
-        guildid=current_user.faction.guild.sid,
+        guildid=current_user.faction.guild_id,
     )

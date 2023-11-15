@@ -57,7 +57,7 @@ def get_positions(*args, **kwargs):
             except DoesNotExist:
                 return make_exception_response("1102", key)
 
-            if faction.guild != guild_id:
+            if faction.guild_id != guild_id:
                 return make_exception_response("1102", key)
         else:
             faction: Faction = kwargs["user"].faction

@@ -91,7 +91,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction.tid not in guild.factions or user.faction.guild != guild.sid:
         return {
             "type": 4,
             "data": {

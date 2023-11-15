@@ -33,6 +33,9 @@ application_public = Config.from_json().bot_application_public
 
 def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
+
+    redis = rds()
+
     verify_key = VerifyKey(bytes.fromhex(application_public))
 
     signature = request.headers["X-Signature-Ed25519"]

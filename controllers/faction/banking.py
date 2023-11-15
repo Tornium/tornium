@@ -104,7 +104,7 @@ def banking():
     if current_user.faction is None:
         return render_template("faction/banking.html", banking_enabled=False)
 
-    bankers = {}
+    bankers = [] 
 
     for banker in current_user.faction.get_bankers():
         banker_user: typing.Optional[User] = User.select(

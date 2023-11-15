@@ -23,7 +23,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
-from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
@@ -212,6 +212,20 @@ def check_invoker_exists(interaction: dict):
                     {
                         "title": "HTTP Error",
                         "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    except MissingKeyError:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Missing API Key",
+                        "description": "No API key was passed to the API call. Please try again or sign into Tornium.",
                         "color": SKYNET_ERROR,
                     }
                 ],

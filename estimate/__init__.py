@@ -59,10 +59,9 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
 
     try:
         update_user(tid=user_tid, key=api_key, refresh_existing=True)
+        update_error = False
     except Exception:
         update_error = True
-    finally:
-        update_error = False
 
     ps = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
 
@@ -79,4 +78,4 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     df["tid"][0] = user_tid
     df = df.astype("int64")
 
-    return model.predict("int64"), int(time.time()) - ps.timestamp + 604_800
+    return model.predict(df), int(time.time()) - ps.timestamp + 604_800

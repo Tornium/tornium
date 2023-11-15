@@ -47,7 +47,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     )
     df: pd.DataFrame
 
-    if ps is not None and int(time.time()) - ps.timestamp <= 604_800:  # One week
+    if ps is not None and int(time.time()) - ps.timestamp.timestamp() <= 604_800:  # One week
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
@@ -56,7 +56,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
         df["tid"][0] = user_tid
         df = df.astype("int64")
 
-        return model.predict(df), int(time.time()) - ps.timestamp + 604_800
+        return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800
 
     try:
         update_user(tid=user_tid, key=api_key, refresh_existing=True)
@@ -68,7 +68,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
 
     if ps is None:
         raise ValueError("Personal stats could not be found in the database")
-    elif not update_error and int(time.time()) - ps.timestamp > 604_800:  # One week
+    elif not update_error and int(time.time()) - ps.timestamp.timestamp() > 604_800:  # One week
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])
@@ -79,4 +79,4 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     df["tid"][0] = user_tid
     df = df.astype("int64")
 
-    return model.predict(df), int(time.time()) - ps.timestamp + 604_800
+    return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800

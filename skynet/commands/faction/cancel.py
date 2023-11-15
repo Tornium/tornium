@@ -201,7 +201,6 @@ def cancel_command(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-=======
             },
         }
     elif withdrawal.status == 2:
@@ -232,7 +231,6 @@ def cancel_command(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
->>>>>>> d4c0457 ([IN-DEV] Migrating to Postgres)
             },
         }
 

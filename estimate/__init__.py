@@ -11,7 +11,7 @@ import typing
 import pandas as pd
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
-from tornium_commons.models import PersonalStatModel, UserModel
+from tornium_commons.models import PersonalStat, User
 import xgboost
 
 
@@ -42,8 +42,9 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except (ValueError, TypeError):
         pass
 
-    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
-
+    ps: typing.Optional[PersonalStat] = (
+        PersonalStat.select().where(PersonalStat.tid == user_tid).order_by(-PersonalStat.timestamp).first()
+    )
     df: pd.DataFrame
 
     if ps is not None and int(time.time()) - ps.timestamp <= 604_800:  # One week
@@ -63,7 +64,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except Exception:
         update_error = True
 
-    ps = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
+    ps = PersonalStat.select().where(PersonalStat.tid == user_tid).order_by(-PersonalStat.timestamp).first()
 
     if ps is None:
         raise ValueError("Personal stats could not be found in the database")

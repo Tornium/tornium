@@ -51,7 +51,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
-            df[field_name][0] = ps[field_name]
+            df[field_name][0] = ps.__getattribute__(field_name)
 
         df["tid"][0] = user_tid
         df = df.astype("int64")
@@ -74,7 +74,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     df = pd.DataFrame(columns=model_features, index=[0])
 
     for field_name in model_features:
-        df[field_name][0] = ps[field_name]
+        df[field_name][0] = ps.__getattribute__(field_name)
 
     df["tid"][0] = user_tid
     df = df.astype("int64")

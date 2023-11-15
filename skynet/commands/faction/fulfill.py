@@ -26,31 +26,6 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 from skynet.skyutils import get_admin_keys
 
 
-def fulfiller_string(withdrawal: WithdrawalModel) -> str:
-    if withdrawal.fulfiller == 0:
-        return "is not fulfilled"
-    elif withdrawal.fulfiller == -1:
-        return "has been cancelled by the system"
-    elif withdrawal.fulfiller < -1:
-        user: typing.Optional[UserModel] = UserModel.objects(tid=-withdrawal.fulfiller).only("name", "tid").first()
-
-        if user is None:
-            return "has been cancelled by someone"
-
-        return f"has been cancelled by {user.name} [{user.tid}]"
-    elif withdrawal.fulfiller == 1:
-        return "has been fulfilled by someone"
-    elif withdrawal.fulfiller > 1:
-        user: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.fulfiller).only("name", "tid").first()
-
-        if user is None:
-            return "has been fulfilled by someone"
-
-        return f"has been fulfilled by {user.name} [{user.tid}]"
-
-    return "has an unknown fulfill type"
-
-
 def fulfill_command(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

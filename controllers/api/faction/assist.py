@@ -247,14 +247,6 @@ def forward_assist(*args, **kwargs):
             },
         )
 
-    stat: StatModel = (
-        StatModel.objects(
-            Q(tid=target_tid) & (Q(globalstat=True) | Q(addedfactiontid=user.factionid) | Q(addedid=user_tid))
-        )
-        .order_by("-timeadded")
-        .first()
-    )
-
     stat: typing.Optional[Stat]
     try:
         stat = Stat.get(

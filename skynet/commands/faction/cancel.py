@@ -336,10 +336,9 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.status = 2
-    withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = datetime.datetime.utcnow()
-    withdrawal.save()
+    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
     if requester.discord_id not in (None, 0):
         try:
@@ -683,10 +682,9 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.status = 2
-    withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = datetime.datetime.utcnow()
-    withdrawal.save()
+    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
     if requester.discord_id not in (None, 0):
         try:

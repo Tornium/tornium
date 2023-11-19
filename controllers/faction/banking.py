@@ -382,12 +382,13 @@ def fulfill(guid: str):
         return utils.handle_discord_error(e)
 
     if current_user.is_authenticated:
-        withdrawal.fulfiller = current_user.tid
+        Withdrawal.update(fulfiller=current_user.tid, time_fulfilled=datetime.datetime.utcnow(), status=1).where(
+            Withdrawal.wid == withdrawal.wid
+        ).execute()
     else:
-        withdrawal.fulfiller = -1
-
-    withdrawal.time_fulfilled = datetime.datetime.utcnow()
-    withdrawal.save()
+        Withdrawal.update(fulfiller=-1, time_fulfilled=datetime.datetime.utcnow(), status=1).where(
+            Withdrawal.wid == withdrawal.wid
+        ).execute()
 
     if requester.discord_id not in (None, "", 0):
         send_dm.delay(

@@ -55,7 +55,7 @@ def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     banking_config = guild.banking_config.get(
@@ -101,7 +101,7 @@ def banking_getter(guild_id: int, faction_tid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     banking_config = guild.banking_config.get(

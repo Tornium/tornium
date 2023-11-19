@@ -61,7 +61,7 @@ def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     if request.method == "DELETE":
@@ -110,7 +110,7 @@ def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     try:
@@ -154,7 +154,7 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     try:
@@ -193,7 +193,7 @@ def armory_toggle(guildid: int, *args, **kwargs):
     elif kwargs["user"].faction.tid not in guild.factions:
         return make_exception_response("4021", key)
 
-    if guild.sid != kwargs["user"].faction.guild.sid:
+    if guild.sid != kwargs["user"].faction.guild_id:
         return make_exception_response("4021", key)
 
     if guild.armory_enabled == enabled:
@@ -231,7 +231,7 @@ def armory_faction_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     if str(faction_tid) in guild.armory_config and guild.armory_config.get("enabled") == enabled:

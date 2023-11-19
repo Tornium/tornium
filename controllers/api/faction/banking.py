@@ -119,7 +119,7 @@ def banking_request(*args, **kwargs):
 
     if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
-    elif user.faction.guild == 0:
+    elif user.faction.guild is None:
         return make_exception_response("1001", key, redis_client=client)
     elif len(user.faction.aa_keys) == 0:
         return make_exception_response("1201", key, redis_client=client)

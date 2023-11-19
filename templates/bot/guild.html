@@ -57,7 +57,7 @@ Tornium - Bot Dashboard
                         <p class="px-1 my-2">
                             {{ faction.name }} [{{ faction.tid }}]
 
-                            {% if server.sid | int == faction.guild | int %}
+                            {% if server.sid | int == faction.guild_id | int %}
                             <i class="fa-regular fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
                                title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
                             {% else %}

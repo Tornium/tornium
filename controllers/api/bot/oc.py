@@ -63,7 +63,7 @@ def oc_config_setter(guild_id, faction_tid, notif, element, *args, **kwargs):
     except DoesNotExist:
         return make_exception_response("1102", key)
 
-    if guild.sid != faction.guild:
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     oc_config = guild.oc_config

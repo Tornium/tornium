@@ -292,7 +292,7 @@ def fulfill(guid: str):
             400,
         )
 
-    channels = discordget(f"guilds/{faction.guild.sid}/channels")
+    channels = discordget(f"guilds/{faction.guild_id}/channels")
     banking_channel = None
 
     for channel in channels:

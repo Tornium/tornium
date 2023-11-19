@@ -46,7 +46,7 @@ import time
 import flask
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
-from peewee import DoesNotExist
+from peewee import DoesNotExist, JOIN
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 from tornium_commons.models import Faction
@@ -141,7 +141,7 @@ app = init__app()
 def load_user(user_id):
     from models.user import AuthUser
 
-    return AuthUser.select().join(Faction).where(AuthUser.tid == user_id).first()
+    return AuthUser.select().join(Faction, JOIN.LEFT_OUTER).where(AuthUser.tid == user_id).first()
 
 
 @login_manager.unauthorized_handler

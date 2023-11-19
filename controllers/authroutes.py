@@ -136,7 +136,7 @@ def login(*args, **kwargs):
 
                         If this was not you, please contact the developer as soon as possible. You may need to reset your API key to secure your account.
 
-                        WARNI   NG: If the developer is accessing your Tornium account, they will contact you ahead of time through the linked Discord account."""
+                        WARNING: If the developer is accessing your Tornium account, they will contact you ahead of time through the linked Discord account."""
                     ),
                     "color": SKYNET_INFO,
                 }

@@ -260,7 +260,7 @@ def fulfill_command(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Vault Request #{withdrawal_id}",
-                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
                         "fields": [
                             {
                                 "name": "Original Request Amount",
@@ -274,7 +274,7 @@ def fulfill_command(interaction, *args, **kwargs):
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
+                        "color": SKYNET_GOOD,
                     }
                 ],
                 "components": [
@@ -286,28 +286,24 @@ def fulfill_command(interaction, *args, **kwargs):
                                 "style": 5,
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
                                 "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 3,
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 4,
                                 "label": "Cancel",
                                 "custom_id": "faction:vault:cancel",
-                                "disabled": True,
                             },
                         ],
                     }
@@ -607,7 +603,7 @@ def fulfill_button(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": f"Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
                         "fields": [
                             {
                                 "name": "Original Request Amount",
@@ -621,7 +617,7 @@ def fulfill_button(interaction, *args, **kwargs):
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
+                        "color": SKYNET_GOOD,
                     }
                 ],
                 "components": [
@@ -633,28 +629,24 @@ def fulfill_button(interaction, *args, **kwargs):
                                 "style": 5,
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
                                 "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 3,
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
-                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 4,
                                 "label": "Cancel",
                                 "custom_id": "faction:vault:cancel",
-                                "disabled": True,
                             },
                         ],
                     }

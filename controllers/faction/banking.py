@@ -251,7 +251,7 @@ def fulfill(guid: str):
         )
 
     try:
-        faction: Faction = Faction.select(Faction.guild).where(Faction.tid == withdrawal.faction_tid).get()
+        faction: Faction = Faction.select().where(Faction.tid == withdrawal.faction_tid).get()
     except DoesNotExist:
         return (
             render_template(

@@ -33,7 +33,13 @@ def dashboard():
 def guild_dashboard(guild_id: str):
     try:
         guild: Server = (
-            Server.select(Server.factions, Server.sid, Server.name, Server.assist_factions, Server.admins)
+            Server.select(
+                Server.factions,
+                Server.sid,
+                Server.name,
+                Server.assist_factions,
+                Server.admins,
+            )
             .where(Server.sid == int(guild_id))
             .get()
         )

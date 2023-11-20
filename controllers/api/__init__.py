@@ -210,4 +210,8 @@ mod.add_url_rule("/api/stocks/movers", view_func=stocks.movers.stock_movers, met
 # /api/user
 mod.add_url_rule("/api/user", view_func=user.get_user, methods=["GET"])
 mod.add_url_rule("/api/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
-mod.add_url_rule("/api/user/estimate/<int:tid>", view_func=user.estimate_specific_user, methods=["GET"])
+mod.add_url_rule(
+    "/api/user/estimate/<int:tid>",
+    view_func=user.estimate_specific_user,
+    methods=["GET"],
+)

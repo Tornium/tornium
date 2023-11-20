@@ -324,7 +324,13 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    request_id = Withdrawal.select().count()
+    last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.time_requested).first()
+
+    if last_request is None:
+        request_id = 0
+    else:
+        request_id = last_request + 1
+
     guid = uuid.uuid4().hex
 
     if withdrawal_amount != "all":

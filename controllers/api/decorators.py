@@ -212,7 +212,10 @@ def global_cache(func=None, duration=3600):
                 return endpoint_response
 
             client.set(
-                f"tornium:cache:{request.url_rule}", msgpack.dumps(endpoint_response[0].json), nx=True, ex=duration
+                f"tornium:cache:{request.url_rule}",
+                msgpack.dumps(endpoint_response[0].json),
+                nx=True,
+                ex=duration,
             )
 
             endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
@@ -224,7 +227,10 @@ def global_cache(func=None, duration=3600):
         return (
             unpacked_response,
             200,
-            {"Content-Type": "application/json", "Cache-Control": f"max-age={cache_ttl}, public"},
+            {
+                "Content-Type": "application/json",
+                "Cache-Control": f"max-age={cache_ttl}, public",
+            },
         )
 
     return wrapper

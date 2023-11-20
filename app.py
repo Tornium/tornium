@@ -46,7 +46,7 @@ import time
 import flask
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
-from peewee import DoesNotExist, JOIN
+from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 from tornium_commons.models import Faction

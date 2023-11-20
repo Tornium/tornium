@@ -27,7 +27,6 @@ from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
-
 application_public = Config.from_json().bot_application_public
 
 

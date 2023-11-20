@@ -3,17 +3,16 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import pathlib
 import os
+import pathlib
 import time
 import typing
 
 import pandas as pd
+import xgboost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.models import PersonalStats, User
-import xgboost
-
 
 model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None

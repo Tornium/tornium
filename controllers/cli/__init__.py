@@ -23,7 +23,7 @@ import traceback
 import click
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
-from tornium_commons import db, models, rds, Config
+from tornium_commons import Config, db, models, rds
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import *  # noqa: F403  # Used for create_db()
 

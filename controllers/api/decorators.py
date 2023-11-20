@@ -210,6 +210,7 @@ def global_cache(func=None, duration=3600):
 
             if endpoint_response[1] // 100 != 2:
                 return endpoint_response
+            # TODO: Don't cache API errors
 
             client.set(
                 f"tornium:cache:{request.url_rule}",

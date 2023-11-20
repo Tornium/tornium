@@ -301,7 +301,21 @@ def members_switchboard(interaction, *args, **kwargs):
     faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
 
     if faction == -1:
-        if user.faction is None:
+        if user is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "User Not Found",
+                            "description": "Your user could not be found. Please sign into Tornium or verify yourself on a server using Tornium. Additionally, you may not be able to use this command as an API key is required.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif user.faction is None:
             return {
                 "type": 4,
                 "data": {

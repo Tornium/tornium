@@ -81,7 +81,7 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
             except DoesNotExist:
                 continue
 
-            if admin_user.key == "":
+            if admin_user.key == "" or admin_user.key is None:
                 continue
 
             admin_keys.append(admin_user.key)

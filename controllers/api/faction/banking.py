@@ -86,6 +86,12 @@ def vault_balance(*args, **kwargs):
 @authentication_required
 @ratelimit
 def banking_request(*args, **kwargs):
+    return make_exception_response(
+        "0000",
+        f'tornium:ratelimit:{kwargs["user"].tid}',
+        details={"message": "This endpoint is temporarily disabled pending redesign"},
+    )
+
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

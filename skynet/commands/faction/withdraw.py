@@ -324,7 +324,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.time_requested).first()
+    last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
     if last_request is None:
         request_id = 0

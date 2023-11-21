@@ -329,7 +329,7 @@ def withdraw(interaction, *args, **kwargs):
     if last_request is None:
         request_id = 0
     else:
-        request_id = last_request + 1
+        request_id = last_request.wid + 1
 
     guid = uuid.uuid4().hex
 

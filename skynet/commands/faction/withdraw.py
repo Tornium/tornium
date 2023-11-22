@@ -17,8 +17,8 @@ import datetime
 import random
 import uuid
 
-from peewee import DoesNotExist
-from tornium_celery.tasks.api import discordpost, tornget
+from peewee import DoesNotExist, IntegrityError
+from tornium_celery.tasks.api import discorddelete, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list, text_to_num
@@ -432,21 +432,39 @@ def withdraw(interaction, *args, **kwargs):
         payload=message_payload,
     )
 
-    withdrawal = Withdrawal(
-        wid=request_id,
-        guid=guid,
-        faction_tid=user.faction.tid,
-        amount=withdrawal_amount
-        if withdrawal_amount != "all"
-        else faction_balances[str(user.tid)][withdrawal_option_str],
-        requester=user.tid,
-        time_requested=datetime.datetime.utcnow(),
-        status=0,
-        fulfiller=None,
-        time_fulfilled=None,
-        withdrawal_message=message["id"],
-    )
-    withdrawal.save()
+    try:
+        Withdrawal.create(
+            wid=request_id,
+            guid=guid,
+            faction_tid=user.faction.tid,
+            amount=withdrawal_amount
+            if withdrawal_amount != "all"
+            else faction_balances[str(user.tid)][withdrawal_option_str],
+            requester=user.tid,
+            time_requested=datetime.datetime.utcnow(),
+            status=0,
+            fulfiller=None,
+            time_fulfilled=None,
+            withdrawal_message=message["id"],
+        )
+    except IntegrityError:
+        discorddelete.delay(
+            "channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+        ).forget()
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Withdrawal Failure",
+                        "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     return {
         "type": 4,

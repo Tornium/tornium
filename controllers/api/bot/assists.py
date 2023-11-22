@@ -47,8 +47,7 @@ def assists_channel(guildid, *args, **kwargs):
     if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.assist_channel = channel_id
-    guild.save()
+    Server.update(assist_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -81,18 +80,16 @@ def assists_role_set(guild_id: int, role_type: str, *args, **kwargs):
         return make_exception_response("4020", key)
 
     if role_type == "smoker":
-        guild.assist_smoker_roles = roles
+        Server.update(assist_smoker_roles=roles).where(Server.sid == guild.sid).execute()
     elif role_type == "tear":
-        guild.assist_tear_roles = roles
+        Server.update(assist_tear_roles=roles).where(Server.sid == guild.sid).execute()
     elif role_type == "l0":
-        guild.assist_l0_roles = roles
+        Server.update(assist_l0_roles=roles).where(Server.sid == guild.sid).execute()
     elif role_type == "l1":
-        guild.assist_l1_roles = roles
+        Server.update(assist_l1_roles=roles).where(Server.sid == guild.sid).execute()
     elif role_type == "l2":
-        guild.assist_l2_roles = roles
+        Server.update(assist_l2_roles=roles).where(Server.sid == guild.sid).execute()
     elif role_type == "l3":
-        guild.assist_l3_roles = roles
-
-    guild.save()
+        Server.update(assist_l3_roles=roles).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

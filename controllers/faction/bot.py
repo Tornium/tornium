@@ -15,7 +15,7 @@
 
 from flask import render_template, request
 from flask_login import current_user, fresh_login_required
-from tornium_commons.models import Server
+from tornium_commons.models import Faction, Server
 
 from controllers.faction.decorators import aa_required, fac_required
 
@@ -44,10 +44,9 @@ def bot(*args, **kwargs):
                 error=f"The Discord server with ID {request.form.get('guildid')} could not be found.",
             )
 
-        current_user.faction.guild = guild_id
-        current_user.faction.save()
+        Faction.update(guild=guild_id).where(Faction.tid == current_user.faction_id).execute()
 
     return render_template(
         "faction/bot.html",
-        guildid=current_user.faction.guild_id,
+        guildid=guild_id,
     )

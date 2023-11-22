@@ -268,7 +268,7 @@ def topt_verification():
             return redirect(next)
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
-        user.save()
+        User.update(otp_backups=user.otp_backups).where(User.tid == user.tid).execute()
 
         login_user(user, remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
@@ -452,9 +452,7 @@ def set_security_mode(*args, **kwargs):
             "details": response["details"],
         }, 400
 
-    current_user.security = mode
-    current_user.save()
-
+    User.update(security=mode).where(User.tid == current_user.tid).execute()
     response = json_api_exception("0001")
 
     return {

@@ -57,7 +57,7 @@ def faction_setter(guild_id: int, *args, **kwargs):
             )
 
         guild.factions.append(faction_tid)
-        guild.save()
+        Server.update(factions=guild.factions).where(Server.sid == guild.sid).execute()
     elif request.method == "DELETE":
         if faction_tid not in guild.factions:
             return make_exception_response(
@@ -67,6 +67,6 @@ def faction_setter(guild_id: int, *args, **kwargs):
             )
 
         guild.factions.remove(faction_tid)
-        guild.save()
+        Server.update(factions=guild.factions).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

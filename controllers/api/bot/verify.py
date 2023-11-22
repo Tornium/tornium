@@ -52,7 +52,7 @@ def verification_config(guild_id, *args, **kwargs):
         if "positions" not in guild.faction_verify[faction_tid]:
             guild.faction_verify[faction_tid]["positions"] = {}
 
-    guild.save()
+    Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -80,8 +80,7 @@ def guild_verification(*args, **kwargs):
 
     if request.method == "POST":
         if not guild.verify_enabled:
-            guild.verify_enabled = True
-            guild.save()
+            Server.update(verify_enabled=True).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
                 "0000",
@@ -93,8 +92,7 @@ def guild_verification(*args, **kwargs):
             )
     elif request.method == "DELETE":
         if guild.config.verify_enabled:
-            guild.verify_enabled = False
-            guild.save()
+            Server.update(verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
                 "0000",
@@ -133,7 +131,7 @@ def guild_verification_log(*args, **kwargs):
         return make_exception_response("4020", key)
 
     guild.verify_log_channel = channel_id
-    guild.save()
+    Server.update(verify_log_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -163,7 +161,7 @@ def guild_verification_template(*args, **kwargs):
         return make_exception_response("4020", key)
 
     guild.verify_template = template
-    guild.save()
+    Server.update(verify_template=guild.verify_template).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -222,7 +220,7 @@ def faction_verification(*args, **kwargs):
         elif request.method == "DELETE":
             guild.faction_verify[str(faction_tid)]["enabled"] = False
 
-    guild.save()
+    Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -269,7 +267,7 @@ def guild_exclusion_roles(*args, **kwargs):
 
     roles = data.get("roles")
 
-    if roles is None or type(roles) != list:
+    if roles is None or not isinstance(roles, list):
         return make_exception_response("1000", key)
 
     try:
@@ -290,7 +288,7 @@ def guild_exclusion_roles(*args, **kwargs):
     except ValueError:
         return make_exception_response("1003", key)
 
-    guild.save()
+    Server.update(exclusion_roles=guild.exclusion_roles).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -303,7 +301,7 @@ def faction_roles(faction_tid, *args, **kwargs):
 
     roles = data.get("roles")
 
-    if roles is None or type(roles) != list:
+    if roles is None or not isinstance(roles, list):
         return make_exception_response("1000", key)
 
     try:
@@ -322,7 +320,7 @@ def faction_roles(faction_tid, *args, **kwargs):
         return make_exception_response("1102", key)
 
     guild.faction_verify[str(faction_tid)]["roles"] = [int(role) for role in roles]
-    guild.save()
+    Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
@@ -335,7 +333,7 @@ def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
 
     roles = data.get("roles")
 
-    if roles is None or type(roles) != list:
+    if roles is None or not isinstance(roles, list):
         return make_exception_response("1000", key)
 
     try:
@@ -354,6 +352,6 @@ def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
         return make_exception_response("1102", key)
 
     guild.faction_verify[str(faction_tid)]["positions"][position] = roles
-    guild.save()
+    Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)

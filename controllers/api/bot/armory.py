@@ -82,7 +82,7 @@ def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
                 },
             }
 
-    guild.save()
+    Server.update(armory_config=guild.armory_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -123,7 +123,7 @@ def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
             "items": {},
         }
 
-    guild.save()
+    Server.update(armory_config=guild.armory_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -167,7 +167,7 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
             "items": {},
         }
 
-    guild.save()
+    Server.update(armory_config=guild.armory_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -200,7 +200,7 @@ def armory_toggle(guildid: int, *args, **kwargs):
         return make_exception_response("1000", key, details={"message": "Invalid enabled state"})
 
     guild.armory_enabled = enabled
-    guild.save()
+    Server.update(armory_enabled=guild.armory_enabled).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -247,5 +247,6 @@ def armory_faction_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
             "items": {},
         }
 
-    guild.save()
+    Server.update(armory_config=guild.armory_config).where(Server.sid == guild.sid).execute()
+
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

@@ -62,15 +62,17 @@ def faction_retal_channel(*args, **kwargs):
     if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
+    retal_config = guild.retal_config
+
     try:
-        guild.retal_config[str(faction_tid)]["channel"] = str(channel_id)
+        retal_config[str(faction_tid)]["channel"] = str(channel_id)
     except KeyError:
-        guild.retal_config[str(faction_tid)] = {
+        retal_config[str(faction_tid)] = {
             "channel": str(channel_id),
             "roles": [],
         }
 
-    guild.save()
+    Server.update(retal_config=retal_config).where(Server.sid == guild.sid).execute()
 
     return jsonify(guild.retal_config), 200, api_ratelimit_response(key)
 
@@ -114,14 +116,16 @@ def faction_retal_roles(*args, **kwargs):
     if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
+    retal_config = guild.retal_config
+
     try:
-        guild.retal_config[str(faction_tid)]["roles"] = roles
+        retal_config[str(faction_tid)]["roles"] = roles
     except KeyError:
-        guild.retal_config[str(faction_tid)] = {
+        retal_config[str(faction_tid)] = {
             "channel": 0,
             "roles": roles,
         }
 
-    guild.save()
+    Server.update(retal_config=retal_config).where(Server.sid == guild.sid).execute()
 
     return jsonify(guild.retal_config), 200, api_ratelimit_response(key)

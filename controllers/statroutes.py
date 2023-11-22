@@ -20,7 +20,7 @@ from flask_login import current_user, fresh_login_required, login_required
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
-from tornium_commons.models import Stat, User
+from tornium_commons.models import Faction, Stat, User
 
 import utils
 from controllers.faction.decorators import aa_required
@@ -112,13 +112,15 @@ def chain():
 @fresh_login_required
 @aa_required
 def config():
+    stats_global = current_user.faction.stats_db_global
+
     if request.method == "POST":
         if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
             if request.form.get("enabled") is not None:
-                current_user.faction.stats_db_global = True
+                stats_global = True
             else:
-                current_user.faction.stats_db_global = False
+                stats_global = False
 
-            current_user.faction.save()
+            Faction.update(stats_db_global=stats_global).where(Faction.tid == current_user.faction_id).execute()
 
-    return render_template("stats/config.html", stats_global=current_user.faction.stats_db_global)
+    return render_template("stats/config.html", stats_global=stats_global)

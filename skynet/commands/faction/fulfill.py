@@ -192,7 +192,7 @@ def fulfill_command(interaction, *args, **kwargs):
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Does not Exist",
+                        "title": "Request Does Not Exist",
                         "description": f"Vault Request #{withdrawal_id} does not currently exist.",
                         "color": SKYNET_ERROR,
                     }

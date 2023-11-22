@@ -43,8 +43,7 @@ def stocks_feed_channel(guild_id: int, *args, **kwargs):
     if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.stocks_channel = channel_id
-    guild.save()
+    Server.update(stocks_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
@@ -91,6 +90,5 @@ def stocks_feed_options(guild_id: int, *args, **kwargs):
     if max_price is not None:
         guild.stocks_config["max_price"] = bool(max_price)
 
-    guild.save()
-
+    Server.update(stocks_config=guild.stocks_config).where(Server.sid == guild.sid).execute()
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

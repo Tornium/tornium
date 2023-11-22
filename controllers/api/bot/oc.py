@@ -89,6 +89,6 @@ def oc_config_setter(guild_id, faction_tid, notif, element, *args, **kwargs):
         oc_config[str(faction_tid)][notif] = {element: element_id}
 
     guild.oc_config = oc_config
-    guild.save()
+    Server.update(oc_config=guild.oc_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

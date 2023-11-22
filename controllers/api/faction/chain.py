@@ -16,6 +16,7 @@
 import json
 
 from flask import jsonify, request
+from tornium_commons.models import Faction
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -54,11 +55,10 @@ def chain_od_channel(*args, **kwargs):
     except (KeyError, TypeError, ValueError):
         return make_exception_response("1002", key)
 
-    kwargs["user"].faction.od_channel = int(channel_id)
-    kwargs["user"].faction.save()
+    Faction.update(od_channel=int(channel_id)).where(Faction.tid == kwargs["user"].faction_id).execute()
 
     return (
-        jsonify({"od_channel": kwargs["user"].faction.od_channel}),
+        jsonify({"od_channel": int(channel_id)}),
         200,
         api_ratelimit_response(key),
     )

@@ -37,7 +37,7 @@ def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
         return make_exception_response("1000", key)
     elif channel_id is not None and (channel_id in ("", 0) or not channel_id.isdigit()):
         return make_exception_response("1002", key)
-    elif roles_id is not None and type(roles_id) != list:
+    elif roles_id is not None and not isinstance(roles_id, list):
         return make_exception_response("1003", key)
 
     try:
@@ -76,7 +76,8 @@ def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
             return make_exception_response("1003", key)
 
     guild.banking_config[str(faction.tid)] = banking_config
-    guild.save()
+
+    Server.update(banking_config=guild.banking_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 

@@ -289,7 +289,7 @@ def banking_request(*args, **kwargs):
             channel=server.banking_config[str(user.faction.tid)]["channel"],
         )
 
-        withdrawal = Withdrawal(
+        withdrawal = Withdrawal.create(
             wid=request_id,
             guid=guid,
             faction_tid=user.faction.tid,
@@ -304,7 +304,6 @@ def banking_request(*args, **kwargs):
             time_fulfilled=None,
             withdrawal_message=message["id"],
         )
-        withdrawal.save()
 
         return (
             jsonify(

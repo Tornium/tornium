@@ -16,6 +16,7 @@
 import json
 
 from flask import request
+from tornium_commons.models import User
 
 from controllers.api.decorators import (
     authentication_required,
@@ -50,8 +51,7 @@ def set_key(*args, **kwargs):
     if api_key in (None, "") or len(api_key) != 16:
         return make_exception_response("1200", key)
 
-    kwargs["user"].key = api_key
-    kwargs["user"].save()
+    User.update(key=api_key).where(User.tid == kwargs["user"].tid).execute()
 
     return (
         {

@@ -18,7 +18,7 @@ import typing
 
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
-from peewee import DoesNotExist
+from peewee import DataError, DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.misc import send_dm
 from tornium_commons.errors import DiscordError
@@ -133,7 +133,10 @@ def banking():
             }
         )
 
-    guild: typing.Optional[Server] = current_user.faction.guild
+    try:
+        guild: typing.Optional[Server] = current_user.faction.guild
+    except Exception:
+        guild = None
 
     if guild is None or str(current_user.faction.tid) not in guild.banking_config:
         banking_enabled = False
@@ -219,6 +222,8 @@ def fulfill(guid: str):
             ),
             400,
         )
+    except DataError:
+        return render_template("errors/error.html", title="Invalid Withdrawal Format", error="The passed withdrawal was invalidly formatted. Please make sure that you're not trying to fulfill a withdrawal from the far past as the format has changed."), 400
 
     if withdrawal.cash_request:
         send_link = (

@@ -34,7 +34,7 @@ def index():
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
-    if current_user.key == "":
+    if current_user.key in ("", None):
         obfuscated_key = "Not Set"
     else:
         obfuscated_key = current_user.key[:6] + "*" * 10

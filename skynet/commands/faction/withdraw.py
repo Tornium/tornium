@@ -77,7 +77,21 @@ def withdraw(interaction, *args, **kwargs):
 
     user: User = kwargs["invoker"]
 
-    if user.faction is None:
+    if user is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "User Not Located",
+                        "description": "No user was located for your Discord account. Please contact the developer",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction is None:
         return {
             "type": 4,
             "data": {

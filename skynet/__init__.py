@@ -115,7 +115,7 @@ def skynet_interactions():
 
     response = skynet.skyutils.check_invoker_exists(request.json)
 
-    if type(response) == dict:
+    if isinstance(response, dict):
         return jsonify(response)
 
     invoker, admin_keys = response

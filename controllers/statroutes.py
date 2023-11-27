@@ -52,14 +52,14 @@ def stats_data():
     max_bs = request.args.get("maxBS")
 
     stat_entries: typing.Iterable[Stat]
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.faction_id not in (None, 0):
         if get_tid(search_value):
             stat_entries = Stat.select().where(
                 (Stat.tid == get_tid(search_value))
                 & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
             )
         else:
-            stat_entries = Stat.select().where((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
+            stat_entries = Stat.select().where((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
     else:
         if get_tid(search_value):
             stat_entries = Stat.select().where((Stat.tid == get_tid(search_value)) & (Stat.added_group == 0))

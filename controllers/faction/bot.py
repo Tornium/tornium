@@ -24,6 +24,8 @@ from controllers.faction.decorators import aa_required, fac_required
 @fac_required
 @aa_required
 def bot(*args, **kwargs):
+    guild_id = current_user.faction.guild_id
+
     if request.method == "POST" and request.form.get("guildid") is not None:
         try:
             guild_id = int(request.form["guildid"])

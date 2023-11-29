@@ -15,6 +15,7 @@
 
 from flask import render_template
 from flask_login import current_user, login_required
+from peewee import DoesNotExist
 
 from controllers.faction.decorators import fac_required
 
@@ -22,7 +23,10 @@ from controllers.faction.decorators import fac_required
 @login_required
 @fac_required
 def chain(*args, **kwargs):
-    return render_template(
-        "faction/chain.html",
-        guild_id=0 if current_user.faction.guild_id is None else current_user.faction.guild_id,
-    )
+    try:
+        return render_template(
+            "faction/chain.html",
+            guild_id=0 if current_user.faction.guild_id is None else current_user.faction.guild_id,
+        )
+    except DoesNotExist:
+        return render_template("faction/chain.html", guild_id=0)

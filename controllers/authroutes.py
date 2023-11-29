@@ -361,7 +361,7 @@ def skynet_login():
             )
 
         try:
-            user = AuthUser.get(User.discord_id == user_data["id"])
+            user = AuthUser.get(AuthUser.discord_id == user_data["id"])
         except DoesNotExist:
             return render_template(
                 "errors/error.html",

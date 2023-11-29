@@ -135,7 +135,7 @@ def banking():
 
     try:
         guild: typing.Optional[Server] = current_user.faction.guild
-    except Exception:
+    except DoesNotExist:
         guild = None
 
     if guild is None or str(current_user.faction.tid) not in guild.banking_config:

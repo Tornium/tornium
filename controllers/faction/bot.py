@@ -39,7 +39,7 @@ def bot(*args, **kwargs):
                 400,
             )
 
-        if Server.select().where(Server.sid == guild_id).exists():
+        if not Server.select().where(Server.sid == guild_id).exists():
             return render_template(
                 "errors/error.html",
                 title="Unknown Guild",

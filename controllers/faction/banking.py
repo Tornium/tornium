@@ -223,7 +223,14 @@ def fulfill(guid: str):
             400,
         )
     except DataError:
-        return render_template("errors/error.html", title="Invalid Withdrawal Format", error="The passed withdrawal was invalidly formatted. Please make sure that you're not trying to fulfill a withdrawal from the far past as the format has changed."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Withdrawal Format",
+                error="The passed withdrawal was invalidly formatted. Please make sure that you're not trying to fulfill a withdrawal from the far past as the format has changed.",
+            ),
+            400,
+        )
 
     if withdrawal.cash_request:
         send_link = (

@@ -35,6 +35,11 @@ def terms():
     return render_template("terms.html")
 
 
+@mod.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+
 @mod.route("/settings")
 @fresh_login_required
 @token_required(setnx=True)

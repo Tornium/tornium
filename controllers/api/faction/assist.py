@@ -271,7 +271,7 @@ def forward_assist(*args, **kwargs):
         payload["embeds"][1]["fields"].append(
             {
                 "name": "Stat Score Update",
-                "value": f"<t:{stat.timeadded}:R>",
+                "value": f"<t:{int(stat.time_added.timestamp())}:R>",
                 "inline": True,
             }
         )

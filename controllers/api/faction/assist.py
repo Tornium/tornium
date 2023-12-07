@@ -475,9 +475,9 @@ def valid_assists(*args, **kwargs):
         possible_assists[guid] = {
             "target": target_object,
             "requester": requester_object,
-            "smokes": int(encoded_assist[2]),
-            "tears": int(encoded_assist[3]),
-            "heavies": int(encoded_assist[4]),
+            "smokes": int(decoded_assist[2]),
+            "tears": int(decoded_assist[3]),
+            "heavies": int(decoded_assist[4]),
         }
 
     return possible_assists, 200, api_ratelimit_response(key)

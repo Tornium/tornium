@@ -98,7 +98,7 @@ def forward_assist(*args, **kwargs):
         pass
 
     try:
-        target: User = User.get_by_id(target_tid)
+        target: User = User.select().where(User.tid == target_tid).first()
     except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
@@ -247,14 +247,13 @@ def forward_assist(*args, **kwargs):
             },
         )
 
-    stat: typing.Optional[Stat]
-    try:
-        stat = Stat.get(
-            (Stat.tid == target_tid)
-            & ((Stat.global_stat == True) | (Stat.added_faction_tid == user.faction.tid) | (Stat.added_tid == user_tid))
+    stat: typing.Optional[Stat] = Stat.select(Stat.battlescore, Stat.time_added).where(
+        (Stat.tid == target_tid)
+        & (
+            (Stat.added_group == 0)
+            | (Stat.added_group == user.faction_id)
         )
-    except DoesNotExist:
-        stat = None
+    ).order_by(-Stat.time_added).first()
 
     total_bs = None
 
@@ -284,17 +283,17 @@ def forward_assist(*args, **kwargs):
 
     if ps is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
-            f"""Xanax Used: {commas(ps.ps_data["xantaken"])}
-            Refills Used: {commas(ps.ps_data["refills"])}
-            Energy Drinks Drunk: {commas(ps.ps_data["energydrinkused"])}
-            LSD Used: {commas(ps.ps_data["lsdtaken"])}
-            SEs Used: {commas(ps.ps_data["statenhancersused"])}
+            f"""Xanax Used: {commas(ps.xantaken)}
+            Refills Used: {commas(ps.refills)}
+            Energy Drinks Drunk: {commas(ps.energydrinkused)}
+            LSD Used: {commas(ps.lsdtaken)}
+            SEs Used: {commas(ps.statenhancersused)}
             
-            ELO: {commas(ps.ps_data["elo"])}
-            Best Damage: {commas(ps.ps_data["bestdamage"])}
-            Networth: ${commas(ps.ps_data["networth"])}
+            ELO: {commas(ps.elo)}
+            Best Damage: {commas(ps.bestdamage)}
+            Networth: ${commas(ps.networth)}
             
-            Personal Stat Last Update: <t:{ps.timestamp.timestamp()}:R>
+            Personal Stat Last Update: <t:{int(ps.timestamp.timestamp())}:R>
             """  # noqa: W293
         )
 
@@ -364,7 +363,6 @@ def forward_assist(*args, **kwargs):
             roles.extend(heavies_roles)
 
         roles = list(set(roles))
-        print(roles)
 
         if len(roles) > 0:
             payload["content"] += "\n"

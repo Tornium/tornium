@@ -237,6 +237,7 @@ def forward_assist(*args, **kwargs):
             }
         ],
     }
+    second_embed_modified = False
 
     if len(components_payload) != 0:
         payload["components"].insert(
@@ -274,6 +275,7 @@ def forward_assist(*args, **kwargs):
                 "inline": True,
             }
         )
+        second_embed_modified = True
 
     ps: typing.Optional[PersonalStats]
     try:
@@ -296,6 +298,10 @@ def forward_assist(*args, **kwargs):
             Personal Stat Last Update: <t:{int(ps.timestamp.timestamp())}:R>
             """  # noqa: W293
         )
+        second_embed_modified = True
+
+    if not second_embed_modified:
+        payload["embeds"].pop(1)
 
     client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
     client.expire(f"tornium:assists:{guid}:payload", 600)

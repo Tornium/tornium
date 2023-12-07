@@ -463,7 +463,7 @@ def withdraw(interaction, *args, **kwargs):
         )
     except IntegrityError:
         discorddelete.delay(
-            "channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+            f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
         ).forget()
 
         return {

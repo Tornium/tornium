@@ -25,7 +25,7 @@ from celery.result import AsyncResult
 from flask import jsonify, request
 from peewee import DoesNotExist
 from redis.commands.json.path import Path
-from tornium_celery.tasks.api import discordpost
+from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -405,6 +405,7 @@ def forward_assist(*args, **kwargs):
             continue
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
+        discorddelete.apply_async(f"channels/{message['channel_id']/messages/{message['id']}", countdown=600).forget()
 
     client.json().set(
         f"tornium:assists:{guid}:messages",

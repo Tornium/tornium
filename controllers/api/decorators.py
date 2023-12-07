@@ -211,6 +211,7 @@ def global_cache(func=None, duration=3600):
             if endpoint_response[1] // 100 != 2:
                 return endpoint_response
             # TODO: Don't cache API errors
+            # TODO: Add type handling as only Response type responses would have the .json attribute
 
             client.set(
                 f"tornium:cache:{request.url_rule}",

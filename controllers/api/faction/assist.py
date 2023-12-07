@@ -405,7 +405,7 @@ def forward_assist(*args, **kwargs):
             continue
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
-        discorddelete.apply_async(f"channels/{message['channel_id']/messages/{message['id']}", countdown=600).forget()
+        discorddelete.apply_async(f"channels/{message['channel_id']}/messages/{message['id']}", countdown=600).forget()
 
     client.json().set(
         f"tornium:assists:{guid}:messages",

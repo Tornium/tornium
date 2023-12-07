@@ -155,6 +155,7 @@ mod.add_url_rule(
 
 # /api/faction
 mod.add_url_rule("/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"])
+mod.add_url_rule("/api/faction/assists", view_func=faction.assist.valid_assists, methods=["GET"])
 mod.add_url_rule("/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"])
 mod.add_url_rule(
     "/api/faction/banking/vault",

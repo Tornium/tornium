@@ -30,8 +30,9 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import Faction, PersonalStats, Server, Stat, User
+from tornium_commons.models import PersonalStats, Server, Stat, User
 
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
@@ -194,6 +195,9 @@ def forward_assist(*args, **kwargs):
     else:
         timeout_str = f" The attack times out <t:{timeout}:R>."
 
+    client.zadd(f"tornium:assists:faction:{user.faction_id}", {str(guid): int(time.time()) + 600})
+    client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
+
     # target_tid | user_tid | smokes | tears | heavies
     client.set(
         f"tornium:assists:{guid}",
@@ -248,13 +252,12 @@ def forward_assist(*args, **kwargs):
             },
         )
 
-    stat: typing.Optional[Stat] = Stat.select(Stat.battlescore, Stat.time_added).where(
-        (Stat.tid == target_tid)
-        & (
-            (Stat.added_group == 0)
-            | (Stat.added_group == user.faction_id)
-        )
-    ).order_by(-Stat.time_added).first()
+    stat: typing.Optional[Stat] = (
+        Stat.select(Stat.battlescore, Stat.time_added)
+        .where((Stat.tid == target_tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id)))
+        .order_by(-Stat.time_added)
+        .first()
+    )
 
     total_bs = None
 
@@ -424,3 +427,57 @@ def forward_assist(*args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@authentication_required
+@ratelimit
+def valid_assists(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    client = rds()
+
+    if kwargs["user"].faction_id in [None, 0]:
+        return make_exception_response("1102", key)
+
+    client.zremrangebyscore(f"tornium:assits:faction:{kwargs['user'].faction_id}", 0, int(time.time()))
+    assist_guids = client.zrange(
+        f"tornium:assists:faction:{kwargs['user'].faction_id}", int(time.time()), int(time.time()) + 600, byscore=True
+    )
+
+    possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}
+
+    possible_assists = {}
+
+    # target_tid | user_tid | smokes | tears | heavies
+    for guid, encoded_assist in possible_assists_encoded.items():
+        decoded_assist = encoded_assist.split("|")
+
+        target_db = User.select(User.name, User.level, User.faction).where(User.tid == int(decoded_assist[0])).first()
+
+        if target_db is None:
+            target_object = {"tid": int(decoded_assist[0])}
+        else:
+            target_object = {
+                "tid": int(decoded_assist[0]),
+                "name": target_db.name,
+                "level": target_db.level,
+                "faction": f"{target_db.faction.name} [{target_db.faction_id}]"
+                if target_db.faction_id not in (None, 0)
+                else None,
+            }
+
+        requester_db = User.select(User.name).where(User.tid == int(decoded_assist[1])).first()
+
+        if requester_db is None:
+            requester_object = {"tid": int(decoded_assist[1])}
+        else:
+            requester_object = {"tid": int(decoded_assist[1]), "name": requester_db.name}
+
+        possible_assists[guid] = {
+            "target": target_object,
+            "requester": requester_object,
+            "smokes": int(encoded_assist[2]),
+            "tears": int(encoded_assist[3]),
+            "heavies": int(encoded_assist[4]),
+        }
+
+    return possible_assists, 200, api_ratelimit_response(key)

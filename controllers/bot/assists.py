@@ -21,7 +21,7 @@ from tornium_commons.models import Server
 
 # TODO: Make this be more logical (and an API endpoint)
 @fresh_login_required
-def assists_update(guildid):
+def assists_update(guild_id):
     action = request.args.get("action")
     value = request.args.get("value")
 
@@ -33,7 +33,7 @@ def assists_update(guildid):
         )
 
     try:
-        guild: Server = Server.get_by_id(guildid)
+        guild: Server = Server.get_by_id(guild_id)
     except DoesNotExist:
         return (
             render_template(
@@ -69,6 +69,6 @@ def assists_update(guildid):
             guild.save()
 
     if request.method == "GET":
-        return redirect(f"/bot/dashboard/{guildid}")
+        return redirect(f"/bot/dashboard/{guild_id}")
     else:
         return {"success": True}, 200, {"ContentType": "application/json"}

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from flask import jsonify
 from tornium_commons import rds
 from tornium_commons.models import Item
 
@@ -38,4 +39,4 @@ def item_name_map(*args, **kwargs):
         redis_client.hset("tornium:items:name-map", mapping=torn_items)
         redis_client.expire("tornium:items:name-map", 3600)
 
-    return {"items": torn_items}, 200, api_ratelimit_response(key)
+    return jsonify({"items": torn_items}), 200, api_ratelimit_response(key)

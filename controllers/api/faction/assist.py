@@ -195,7 +195,7 @@ def forward_assist(*args, **kwargs):
     else:
         timeout_str = f" The attack times out <t:{timeout}:R>."
 
-    client.zadd(f"tornium:assists:faction:{user.faction_id}", {str(guid): int(time.time()) + 600})
+    client.zadd(f"tornium:assists:faction:{user.faction_id}", {str(guid): int(time.time()) + 300})
     client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
 
     # target_tid | user_tid | smokes | tears | heavies
@@ -441,7 +441,7 @@ def valid_assists(*args, **kwargs):
 
     client.zremrangebyscore(f"tornium:assits:faction:{kwargs['user'].faction_id}", 0, int(time.time()))
     assist_guids = client.zrange(
-        f"tornium:assists:faction:{kwargs['user'].faction_id}", int(time.time()), int(time.time()) + 600, byscore=True
+        f"tornium:assists:faction:{kwargs['user'].faction_id}", int(time.time()), int(time.time()) + 300, byscore=True
     )
 
     possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}

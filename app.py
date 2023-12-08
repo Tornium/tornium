@@ -93,7 +93,8 @@ def init__app():
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
     app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SAMESITE"] = "strict"
+    app.config["SESSION_COOKIE_DOMAIN"] = config.flask_domain
 
     CORS(
         app,

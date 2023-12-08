@@ -298,13 +298,24 @@ def skynet_login():
     d_code = request.args.get("code")
     oauth_state = request.args.get("state")
 
-    if oauth_state != session.get("oauth_state"):
+    if oauth_state is None:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the Discord callback. Please try again and make sure that you're on the correct website.",
+            ),
+            401,
+        )
+    elif oauth_state != session.get("oauth_state"):
+        print(oauth_state)
+        print(session.get("oauth_state"))
         session.pop("oauth_state", None)
         return (
             render_template(
                 "errors/error.html",
                 title="Unauthorized",
-                error="Security error. No state code was included in the Discord callback or in the session. Please "
+                error="Security error. An invalid state code was included in the Discord callback or in the session. Please "
                 "try again and make sure that you're on the correct website.",
             ),
             401,

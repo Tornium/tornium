@@ -195,7 +195,7 @@ def forward_assist(*args, **kwargs):
     else:
         timeout_str = f" The attack times out <t:{timeout}:R>."
 
-    client.zadd(f"tornium:assists:faction:{user.faction_id}", {str(guid): int(time.time()) + 300})
+    client.zadd(f"tornium:assists:faction:{user.faction_id}", {guid: int(time.time()) + 300})
     client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
 
     # target_tid | user_tid | smokes | tears | heavies
@@ -203,7 +203,7 @@ def forward_assist(*args, **kwargs):
         f"tornium:assists:{guid}",
         f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
         nx=True,
-        ex=600,
+        ex=300,
     )
 
     payload = {
@@ -307,7 +307,7 @@ def forward_assist(*args, **kwargs):
         payload["embeds"].pop(1)
 
     client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
-    client.expire(f"tornium:assists:{guid}:payload", 600)
+    client.expire(f"tornium:assists:{guid}:payload", 300)
 
     l0_roles_enabled = False  # 500m+
     l1_roles_enabled = False  # 1b+
@@ -405,7 +405,9 @@ def forward_assist(*args, **kwargs):
             continue
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
-        discorddelete.apply_async(kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"}, countdown=600).forget()
+        discorddelete.apply_async(
+            kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"}, countdown=300
+        ).forget()
 
     client.json().set(
         f"tornium:assists:{guid}:messages",
@@ -413,7 +415,7 @@ def forward_assist(*args, **kwargs):
         list(packed_messages),
         nx=True,
     )
-    client.expire(f"tornium:assists:{guid}:messages", 600)
+    client.expire(f"tornium:assists:{guid}:messages", 300)
 
     return (
         jsonify(
@@ -445,7 +447,6 @@ def valid_assists(*args, **kwargs):
     )
 
     possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}
-
     possible_assists = {}
 
     # target_tid | user_tid | smokes | tears | heavies

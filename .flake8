@@ -1,0 +1,16 @@
+[flake8]
+exclude = ./.tox,./.git,__pycache__,./venv,./docs
+max-line-length = 120
+extend-ignore =
+    # E203: Black autoformatting
+    E203,
+    # E266: multiple # in comment
+    E266,
+    # E402: invocation of ddtrace and other packages before normal packages
+    E402,
+    # E501: line too long
+    E501,
+    # F401: ?
+    F401,
+    # E712: peewee query (? == True)
+    E712

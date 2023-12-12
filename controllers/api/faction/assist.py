@@ -406,7 +406,8 @@ def forward_assist(*args, **kwargs):
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
         discorddelete.apply_async(
-            kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"}, countdown=300
+            kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"},
+            countdown=300,
         ).forget()
 
     client.json().set(
@@ -443,7 +444,10 @@ def valid_assists(*args, **kwargs):
 
     client.zremrangebyscore(f"tornium:assits:faction:{kwargs['user'].faction_id}", 0, int(time.time()))
     assist_guids = client.zrange(
-        f"tornium:assists:faction:{kwargs['user'].faction_id}", int(time.time()), int(time.time()) + 300, byscore=True
+        f"tornium:assists:faction:{kwargs['user'].faction_id}",
+        int(time.time()),
+        int(time.time()) + 300,
+        byscore=True,
     )
 
     possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}
@@ -472,7 +476,10 @@ def valid_assists(*args, **kwargs):
         if requester_db is None:
             requester_object = {"tid": int(decoded_assist[1])}
         else:
-            requester_object = {"tid": int(decoded_assist[1]), "name": requester_db.name}
+            requester_object = {
+                "tid": int(decoded_assist[1]),
+                "name": requester_db.name,
+            }
 
         possible_assists[guid] = {
             "target": target_object,

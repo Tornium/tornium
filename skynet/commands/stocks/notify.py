@@ -203,7 +203,7 @@ def notify(interaction, *args, **kwargs):
         else:
             stock_id = int(stock_id[0])
 
-        notification: Notification = Notification(
+        notification = Notification.insert(
             invoker=user.tid,
             time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
@@ -211,9 +211,9 @@ def notify(interaction, *args, **kwargs):
             n_type=0,
             target=stock_id,
             persistent=False,
-            value=price,
-            options={"equality": equality},
-        ).save()
+            enabled=True,
+            options={"equality": equality, "value": price},
+        ).execute()
 
         return {
             "type": 4,
@@ -231,9 +231,7 @@ def notify(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Target Channel",
-                                "value": f"<#{notification.recipient}>"
-                                if notification.recipient_guild != 0
-                                else "Direct Message",
+                                "value": "Direct Message" if private else f"#{channel}",
                                 "inline": True,
                             },
                             {
@@ -253,7 +251,7 @@ def notify(interaction, *args, **kwargs):
                             },
                         ],
                         "footer": {
-                            "text": f"DB ID: {notification.get_id()}",
+                            "text": f"DB ID: {notification}",
                         },
                     }
                 ],
@@ -354,7 +352,7 @@ def notify(interaction, *args, **kwargs):
         for notification in notifications[page * 9 : (page + 1) * 9]:
             payload["data"]["embeds"][0]["fields"].append(
                 {
-                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.value, stock_price=True)} - {'DM' if notification.recipient_guild == 0 else f'<#{notification.recipient}>'}",
+                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.options['value'], stock_price=True)} - {'DM' if notification.recipient_guild == 0 else f'<#{notification.recipient}>'}",
                     "value": f"DB ID: {notification.get_id()}",
                 }
             )

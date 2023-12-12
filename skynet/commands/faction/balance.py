@@ -52,7 +52,22 @@ def balance(interaction, *args, **kwargs):
                     },
                 }
 
-    if user.faction is None:
+    elif user is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "User Not Found",
+                        "description": "The mentioned user or the invoker could not be found in the database. Please "
+                        "try verifying or signing into Tornium.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction is None:
         return {
             "type": 4,
             "data": {

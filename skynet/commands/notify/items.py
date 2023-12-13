@@ -199,10 +199,10 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
         ntype=3,
         target=item.tid,
         persistent=persistence,
-        value=value,
+        enabled=False,
         options={
             "type": notif_type,
-            "enabled": False,
+            "value": value,
         },
     ).save()
 
@@ -251,13 +251,13 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
                             "type": 2,
                             "style": 3,
                             "label": "Enable Notification",
-                            "custom_id": f"notify:items:{notification.id}:enable",
+                            "custom_id": f"notify:items:{notification.get_id()}:enable",
                         },
                         {
                             "type": 2,
                             "style": 4,
                             "label": "Delete Notification",
-                            "custom_id": f"notify:items:{notification.id}:delete",
+                            "custom_id": f"notify:items:{notification.get_id()}:delete",
                         },
                     ],
                 },
@@ -336,7 +336,7 @@ def _generate_item_info_payload(
     total_count,
     previous_notif: typing.Optional[Notification] = None,
     next_notif: typing.Optional[Notification] = None,
-):
+) -> dict:
     notification_description = "This notification will trigger when "
 
     if notification.options["type"] == "percent":
@@ -354,7 +354,7 @@ def _generate_item_info_payload(
     else:
         notification_description = "ERROR"
 
-    enabled = notification.options["enabled"]
+    enabled = notification.enabled
     payload = {
         "embeds": [
             {
@@ -697,9 +697,8 @@ def items_button_switchboard(interaction, *args, **kwargs):
         }
     elif effect in ("disable", "enable"):
         if effect == "disable":
-            if notification.options["enabled"]:
-                notification.options["enabled"] = False
-                notification.save()
+            if notification.enabled:
+                Notification.update(enabled=False).where(Notification.id == notification.get_id()).execute()
 
                 return {
                     "type": 4,
@@ -735,9 +734,8 @@ def items_button_switchboard(interaction, *args, **kwargs):
                     },
                 }
         elif effect == "enable":
-            if not notification.options["enabled"]:
-                notification.options["enabled"] = True
-                notification.save()
+            if not notification.enabled:
+                Notification.update(enabled=True).where(Notification.id == notification.get_id()).execute()
 
                 return {
                     "type": 4,

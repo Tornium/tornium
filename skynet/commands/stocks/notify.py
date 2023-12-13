@@ -226,7 +226,7 @@ def notify(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Private",
-                                "value": notification.recipient_guild == 0,
+                                "value": private,
                                 "inline": True,
                             },
                             {

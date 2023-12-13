@@ -122,7 +122,9 @@ class DBucket:
 
     @classmethod
     def from_endpoint(
-        cls, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str
+        cls,
+        method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
+        endpoint: str,
     ) -> typing.Union[DBucket, DBucketNull]:
         """
         Initialize a new Discord ratelimiting bucket from the method and endpoint being called.
@@ -234,7 +236,11 @@ class DBucketNull(DBucket):
     This class provides support for both global and per-route rate limits via Lua scripts in the Redis server.
     """
 
-    def __init__(self, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str):
+    def __init__(
+        self,
+        method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
+        endpoint: str,
+    ):
         """
         Initialize a new Discord ratelimiting bucket from the method and endpoint of the request.
 
@@ -293,10 +299,16 @@ class DBucketNull(DBucket):
         if "X-RateLimit-Remaining" in headers and "X-RateLimit-Limit" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining:{_m()}",
-                min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1),
+                min(
+                    int(headers["X-RateLimit-Remaining"]),
+                    int(headers["X-RateLimit-Limit"]) - 1,
+                ),
                 ex=60,
             )
-            self.remaining = min(int(headers["X-RateLimit-Remaining"]), int(headers["X-RateLimit-Limit"]) - 1)
+            self.remaining = min(
+                int(headers["X-RateLimit-Remaining"]),
+                int(headers["X-RateLimit-Limit"]) - 1,
+            )
         elif "X-RateLimit-Remaining" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining:{_m()}",

@@ -21,8 +21,9 @@ import typing
 from decimal import Decimal
 
 from boltons.timeutils import relative_time
+from peewee import DoesNotExist
 
-from .models import ItemModel
+from .models import Item
 
 
 def get_tid(name: str) -> int:
@@ -71,11 +72,11 @@ def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
         Relative timestamp string
     """
 
-    if type(ts) == int:
+    if isinstance(ts, int):
         datetime_obj = datetime.datetime.fromtimestamp(ts)
-    elif type(ts) == float:
+    elif isinstance(ts, float):
         datetime_obj = datetime.datetime.fromtimestamp(math.floor(ts))
-    elif type(ts) == datetime.datetime:
+    elif isinstance(ts, datetime.datetime):
         datetime_obj = ts
     else:
         raise AttributeError
@@ -206,13 +207,13 @@ def bs_to_range(battlescore: typing.Union[int, float]) -> tuple:
     return math.floor(pow(battlescore, 2) / 4), math.floor(pow(battlescore, 2) / 2.75)
 
 
-def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float]] = None) -> str:
+def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float, datetime.datetime]] = None) -> str:
     """
     Return a formatted timestamp string of the passed timestamp or current time in the UTC timezone.
 
     Parameters
     ----------
-    timestamp : int, float, optional
+    timestamp : int, float, datetime.datetime, optional
         Unix timestamp
 
     Returns
@@ -222,9 +223,12 @@ def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float]] = None) 
     """
 
     if timestamp is None:
-        return datetime.datetime.utcnow().strftime("%m/%d %H:%M:%S TCT")
-    else:
-        return datetime.datetime.fromtimestamp(timestamp).strftime("%m/%d %H:%M:%S TCT")
+        timestamp = datetime.datetime.utcnow()
+    elif not isinstance(timestamp, datetime.datetime):
+        timestamp = datetime.datetime.fromtimestamp(timestamp)
+
+    timestamp: datetime.datetime
+    return timestamp.strftime("%m/%d %H:%M:%S TCT")
 
 
 def remove_html(text: str) -> str:
@@ -270,9 +274,9 @@ def str_matches(input_str: str, items: typing.Union[list, set], starts: bool = F
         return [item for item in items if item in input_str]
 
 
-def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemModel]]:
+def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[Item]]:
     """
-    Parse an item string into the item quantity and ItemModel
+    Parse an item string into the item quantity and Item
 
     Parameters
     ----------
@@ -283,13 +287,13 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
     -------
     quantity : int
         Number of items
-    item : ItemModel, optional
+    item : Item, optional
         Database entry of the item if one exists
 
     Examples
     --------
     >>> parse_item_str("3x Feathery Hotel Coupon")
-    (3, ItemModel(367))
+    (3, Item(367))
     >>> parse_item_str("1x Random Property")
     (1, None)
     """
@@ -305,7 +309,11 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
         if quantity <= 0:
             raise ValueError("Illegal quantity")
 
-    item: typing.Optional[ItemModel] = ItemModel.objects(name=item_str).first()
+    item: typing.Optional[Item]
+    try:
+        item = Item.get(Item.name == item_str)
+    except DoesNotExist:
+        item = None
 
     return quantity, item
 

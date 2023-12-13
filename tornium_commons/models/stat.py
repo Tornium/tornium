@@ -13,7 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .config import Config
-from .db_connection import db
-from .dbucket import DBucket
-from .redisconnection import rds
+from peewee import DateTimeField, ForeignKeyField, IntegerField
+
+from .base_model import BaseModel
+from .user import User
+
+
+class Stat(BaseModel):
+    tid = ForeignKeyField(User)
+    battlescore = IntegerField(index=True)
+    time_added = DateTimeField()
+    added_group = IntegerField(default=0, index=True)
+
+    # Groups
+    # 0 - universally accepted
+    # faction tid - for specific factions

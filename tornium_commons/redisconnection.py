@@ -18,6 +18,8 @@ import pathlib
 
 import redis
 
+from .config import Config
+
 
 def rds() -> redis.Redis:
     """
@@ -28,7 +30,8 @@ def rds() -> redis.Redis:
     connection : redis.Redis
     """
 
-    return redis.Redis(host="127.0.0.1", port=6379, encoding="utf-8", decode_responses=True)
+    redis_dsn = Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
+    return redis.from_url(str(redis_dsn), decode_responses=True)
 
 
 def load_scripts() -> dict:

@@ -13,85 +13,162 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
-import os
 import pathlib
+import secrets
 import typing
 
-from .redisconnection import rds
+from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
+
+from .altjson import load
+
+_T = typing.TypeVar("_T")
 
 
-class Config:
-    """
-    A Redis-based config caching system.
-    """
+class Config(BaseModel):
+    bot_token: str = Field()
+    bot_application_id: int = Field()
+    bot_application_public: str = Field()
+    bot_client_secret: str = Field()
 
-    def __init__(self, file: typing.Union[pathlib.Path, str] = "settings.json"):
-        """
-        Initialize config with file path.
+    flask_secret: str = Field()
+    flask_domain: str = Field()
+    flask_admin_passphrase: str = Field()
 
-        Parameters
-        ----------
-        file : str, pathlib.Path
-            Path to the config file
-        """
+    # db_dsn would follow https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS
+    db_dsn: PostgresDsn = Field()
 
-        if type(file) == pathlib.Path:
-            self._file = file
-        else:
-            self._file = pathlib.Path(file)
+    redis_dsn: RedisDsn = Field()
 
-        self._data = {}
+    # Internal Data
+    _file: typing.Optional[pathlib.Path] = None
+    _loaded = False
 
-    def __getitem__(self, item):
-        return self._data.get(item, rds().get(f"tornium:settings:{item}"))
+    @classmethod
+    def from_json(
+        cls: typing.Type[_T],
+        file: typing.Union[pathlib.Path, str] = "settings.json",
+        disable_cache=False,
+    ) -> _T:
+        if not disable_cache:
+            from .redisconnection import rds
 
-    def __setitem__(self, key, value):
-        self._data[key] = value
+        file: pathlib.Path
+        if not isinstance(file, pathlib.Path):
+            file = pathlib.Path(file)
 
-        if type(value) == bool:
-            value = int(value)
+        if not file.exists():
+            raise FileNotFoundError from None
 
-        rds().set(key, value)
-        self.save()
-
-    def load(self):
-        """
-        Load data from config file into Redis cache.
-        """
-
-        if not self._file.exists():
-            raise FileNotFoundError
-
-        with open(self._file) as f:
-            loaded_data: dict = json.load(f)
+        loaded_data: dict = load(file)
 
         for data_key, data_value in loaded_data.items():
-            if type(data_value) == bool:
+            if isinstance(data_value, bool):
                 data_value = int(data_value)
 
-            rds().set(f"tornium:settings:{data_key}", data_value)
+            if not disable_cache:
+                rds().set(f"tornium:settings:{data_key}", data_value)
 
-        self._data = loaded_data
+        self = cls(**loaded_data)
+        self._file = file
+        self._loaded = True
+
+        return self
+
+    @classmethod
+    def from_cache(cls: typing.Type[_T]) -> _T:
+        from .redisconnection import rds
+
+        _cached_data = {}
+
+        for settings_key in Config.__fields__:
+            if settings_key.startswith("_"):
+                continue
+
+            _cached_data[settings_key] = rds().get(f"tornium:settings:{settings_key}")
+
+        self = cls(**_cached_data)
+        self._file = None
+        self._loaded = True
+
+        return self
+
+    def __getitem__(self, item: str, disable_cache: bool = False) -> typing.Any:
+        if not disable_cache:
+            from .redisconnection import rds
+
+        if self._loaded:
+            return getattr(self, item)
+
+        if not disable_cache:
+            cached_value = rds().get(f"tornium:settings:{item}")
+        else:
+            cached_value = None
+
+        if cached_value is not None:
+            return cached_value
+
+        self.load()
+
+        if self._loaded:
+            return getattr(self, item)
+
+        raise ValueError("Settings unable to be loaded") from None
+
+    def __setitem__(self, key: str, value: typing.Any, disable_cache: bool = False):
+        if not disable_cache:
+            from .redisconnection import rds
+
+        if self._file is None:
+            raise ValueError("File is not set") from None
+
+        setattr(self, key, value)
+
+        if isinstance(value, bool):
+            value = int(value)
+
+        if not disable_cache:
+            rds().set(key, value)
+
+        self.save()
+
+    def load(self, disable_cache: bool = False):
+        if not disable_cache:
+            from .redisconnection import rds
+
+        if not self._file.exists():
+            raise FileNotFoundError from None
+
+        loaded_data: dict = load(self._file)
+
+        for data_key, data_value in loaded_data.items():
+            if isinstance(data_value, bool):
+                data_value = int(data_value)
+
+            if not disable_cache:
+                rds().set(f"tornium:settings:{data_key}", data_value)
+
+            setattr(self, data_key, data_value)
+
+        self._loaded = True
         return self
 
     def save(self):
-        """
-        Save temporarily config data that can be read from `__getitem__` to the config file persistently.
-        """
-
         if not self._file.exists():
-            raise FileNotFoundError
+            raise FileNotFoundError from None
 
         with open(self._file, "w") as f:
-            json.dump(self._data, f, indent=4)
+            f.write(self.model_dump_json(indent=4))
 
         return self
 
-    def regen_secret(self):
-        """
-        Regenerate and save the Flask secret to the config file and Redis cache.
-        """
+    def regen_secret(self, nbytes: int = 32) -> str:
+        self.__setitem__("flask_secret", secrets.token_hex(nbytes))
+        return self.__getitem__("flask_secret")
 
-        self.__setitem__("secret", str(os.urandom(32)))
-        return self.__getitem__("secret")
+    def __iter__(self):
+        key: str
+        for key, value in super().__iter__():
+            if key.startswith("_"):
+                continue
+
+            yield key, value

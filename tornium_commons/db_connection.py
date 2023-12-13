@@ -13,16 +13,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import Document, FloatField, IntField, LongField
+from functools import wraps
+
+from playhouse.postgres_ext import PostgresqlExtDatabase
+
+from .config import Config
+
+_db = None
 
 
-class TickModel(Document):
-    meta = {"indexes": ["price"]}
+def db() -> PostgresqlExtDatabase:
+    global _db
 
-    tick_id = IntField(primary_key=True)
-    timestamp = IntField()
-    stock_id = IntField()
-    price = FloatField()
-    cap = LongField()
-    shares = LongField()
-    investors = IntField()
+    if _db is not None:
+        return _db
+
+    _s = Config.from_json()
+    _db = PostgresqlExtDatabase("Tornium", dsn=_s.db_dsn.unicode_string())
+
+    return _db

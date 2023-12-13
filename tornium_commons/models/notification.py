@@ -13,10 +13,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import BooleanField, DictField, DynamicDocument, DynamicField, IntField
+from peewee import (
+    BigIntegerField,
+    BooleanField,
+    DateTimeField,
+    ForeignKeyField,
+    SmallIntegerField,
+)
+from playhouse.postgres_ext import JSONField
+
+from .base_model import BaseModel
+from .user import User
 
 
-class NotificationModel(DynamicDocument):
+class Notification(BaseModel):
     ###############
     # Notification types
     #
@@ -26,15 +36,14 @@ class NotificationModel(DynamicDocument):
     # 3: item notif
     ###############
 
-    invoker = IntField(required=True)  # TID of notification creator
-    time_created = IntField(required=True)
+    invoker = ForeignKeyField(User)
+    time_created = DateTimeField()
 
-    recipient = IntField(required=True)
-    recipient_guild = IntField()  # 0: DM
-    recipient_type = IntField(required=True)  # 0: DM; 1: channel
+    recipient = BigIntegerField()
+    recipient_guild = BigIntegerField()  # 0: DM
 
-    ntype = IntField(required=True)
-    target = DynamicField(required=True)
-    persistent = BooleanField(default=False)
-    value = DynamicField()
-    options = DictField(default={})
+    n_type = SmallIntegerField()
+    target = BigIntegerField()
+    persistent = BooleanField()
+    enabled = BooleanField(default=False)
+    options = JSONField(index=False)

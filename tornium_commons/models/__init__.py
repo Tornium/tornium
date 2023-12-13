@@ -13,29 +13,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .factionmodel import FactionModel
-from .itemmodel import ItemModel
-from .memberreportmodel import MemberReportModel
-from .notificationmodel import NotificationModel
-from .ocmodel import OCModel
-from .personalstatmodel import PersonalStatModel
-from .positionmodel import PositionModel
-from .servermodel import ServerModel
-from .statmodel import StatModel
-from .tickmodel import TickModel
-from .usermodel import UserModel
-from .withdrawalmodel import WithdrawalModel
+from .faction import Faction
+from .faction_position import FactionPosition
+from .item import Item
+from .member_report import MemberReport
+from .notification import Notification
+from .organized_crime import OrganizedCrime
+from .personal_stats import PersonalStats
+from .server import Server
+from .stat import Stat
+from .stock_tick import StockTick
+from .user import User
+from .withdrawal import Withdrawal
 
 __all__ = [
-    "FactionModel",
-    "ItemModel",
-    "MemberReportModel" "NotificationModel",
-    "OCModel",
-    "PersonalStatModel",
-    "PositionModel",
-    "ServerModel",
-    "StatModel",
-    "TickModel",
-    "UserModel",
-    "WithdrawalModel",
+    "Faction",
+    "FactionPosition",
+    "Item",
+    "MemberReport",
+    "Notification",
+    "OrganizedCrime",
+    "PersonalStats",
+    "Server",
+    "Stat",
+    "StockTick",
+    "User",
+    "Withdrawal",
 ]

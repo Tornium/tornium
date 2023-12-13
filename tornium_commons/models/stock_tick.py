@@ -11,17 +11,24 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.\
 
-from mongoengine import BooleanField, DynamicDocument, IntField
+from peewee import (
+    BigIntegerField,
+    DateTimeField,
+    FloatField,
+    IntegerField,
+    SmallIntegerField,
+)
+
+from .base_model import BaseModel
 
 
-class StatModel(DynamicDocument):
-    meta = {"indexes": ["tid", ("+globalstat", "addedid", "addedfactiontid"), "addedid"]}
-
-    tid = IntField(default=0)
-    battlescore = IntField(default=0)
-    timeadded = IntField(default=0)
-    addedid = IntField(default=0)
-    addedfactiontid = IntField(default=0)
-    globalstat = BooleanField(default=False)
+class StockTick(BaseModel):
+    tick_id = BigIntegerField(primary_key=True)
+    timestamp = DateTimeField()
+    stock_id = SmallIntegerField()
+    price = FloatField()
+    cap = BigIntegerField()
+    shares = BigIntegerField()
+    investors = IntegerField()

@@ -16,9 +16,10 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers"
 ]
 dependencies = [
-    "boltons ~= 21.0.0",
-    "mongoengine~=0.26.0",
-    "redis ~= 4.5.1"
+    "boltons",
+    "pydantic",
+    "peewee",
+    "redis ~= 5.0.0"
 ]
 description = "Reusable components for Tornium"
 keywords = ["tornium"]

@@ -13,17 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import DynamicDocument, IntField, UUIDField
+from peewee import Model
+
+from ..db_connection import db
 
 
-class WithdrawalModel(DynamicDocument):
-    wid = IntField(primary_key=True)  # The withdrawal ID
-    guid = UUIDField()  # GUID used for send links
-    factiontid = IntField()
-    amount = IntField()
-    requester = IntField()
-    time_requested = IntField()
-    fulfiller = IntField()  # 0: unfilled; -1: system; -tid: cancelled; 1: someone; tid: fulfilled
-    time_fulfilled = IntField()
-    withdrawal_message = IntField()
-    wtype = IntField(default=0)  # 0: cash; 1: points
+class BaseModel(Model):
+    class Meta:
+        database = db()

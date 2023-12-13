@@ -23,7 +23,7 @@ from tornium_commons import Config
 
 
 def test_config_file_default():
-    config = Config()
+    config = Config.from_json()
 
     assert isinstance(config._file, pathlib.Path), "Invalid config file type"
     assert config._file == pathlib.Path("settings.json"), "Invalid config file path"

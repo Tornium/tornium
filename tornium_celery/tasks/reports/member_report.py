@@ -20,64 +20,85 @@ import typing
 
 import celery
 from celery.utils.log import get_task_logger
+from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import (
-    FactionModel,
-    MemberReportModel,
-    PersonalStatModel,
-    UserModel,
-)
+from tornium_commons.models import Faction, MemberReport, PersonalStats, User
 
 from ..api import tornget
 
 logger: logging.Logger = get_task_logger("celery_app")
 
 
-@celery.shared_task(name="tasks.reports.member_ps_error", routing_key="quick.reports.member_ps_error", queue="quick")
+@celery.shared_task(
+    name="tasks.reports.member_ps_error",
+    routing_key="quick.reports.member_ps_error",
+    queue="quick",
+)
 def member_ps_error(request, exc, traceback, rid: str):
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
+        return
 
-    if report is not None:
-        report.status = 999
-        report.save()
+    report.status = 999
+    report.save()
 
 
 @celery.shared_task(
-    name="tasks.reports.member_ps_success", routing_key="quick.reports.member_ps_success", queue="quick"
+    name="tasks.reports.member_ps_success",
+    routing_key="quick.reports.member_ps_success",
+    queue="quick",
 )
 def member_ps_success(rid: str):
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
+        return
 
-    if report is not None and report.status == 1:
-        report.status = 2
-        report.save()
+    if report.status == 1:
+        return
+
+    report.status = 2
+    report.save()
 
 
 @celery.shared_task(
-    name="tasks.reports.enqueue_member_ps", routing_key="default.reports.enqueue_member_ps", queue="default"
+    name="tasks.reports.enqueue_member_ps",
+    routing_key="default.reports.enqueue_member_ps",
+    queue="default",
 )
 def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
     if len(api_keys) == 0:
         raise ValueError("No API calls provided")
 
     try:
-        FactionModel.objects(tid=faction_data["ID"]).modify(
-            upsert=True,
-            new=True,
-            set__name=faction_data["name"],
-            set__tag=faction_data["tag"],
-            set__respect=faction_data["respect"],
-            set__capacity=faction_data["capacity"],
-            set__leader=faction_data["leader"],
-            set__coleader=faction_data["co-leader"],
-        )
+        Faction.insert(
+            tid=faction_data["ID"],
+            name=faction_data["name"],
+            tag=faction_data["tag"],
+            respect=faction_data["respect"],
+            capacity=faction_data["capacity"],
+            leader=faction_data["leader"],
+            coleader=faction_data["co-leader"],
+        ).on_conflict(
+            conflict_target=[Faction.tid],
+            preserve=[
+                Faction.name,
+                Faction.tag,
+                Faction.respect,
+                Faction.capacity,
+                Faction.leader,
+                Faction.coleader,
+            ],
+        ).execute()
     except Exception as e:
         logger.exception(e)
 
     call_count = 0
-    report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
 
-    if report is None:
+    try:
+        report: MemberReport = MemberReport.get_by_id(rid)
+    except DoesNotExist:
         logger.debug(f"No report found - {rid}")
         raise ValueError("Illegal RID")
 
@@ -86,15 +107,14 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
     for member_id, member_data in faction_data["members"].items():
         # Max 25 calls per key per minute
         try:
-            UserModel.objects(tid=int(member_id)).modify(
-                upsert=True,
-                new=True,
-                set__name=member_data["name"],
-                set__level=member_data["level"],
-                set__last_refresh=int(time.time()),
-                set__factionid=faction_data["ID"],
-                set__status=member_data["last_action"]["status"],
-                set__last_action=member_data["last_action"]["timestamp"],
+            User.insert(
+                tid=int(member_id),
+                name=member_data["name"],
+                level=member_data["level"],
+                last_refresh=datetime.datetime.utcnow(),
+                faction=faction_data["ID"],
+                status=member_data["last_action"]["status"],
+                last_action=datetime.datetime.fromtimestamp(member_data["last_action"]["timestamp"]),
             )
         except Exception as e:
             logger.exception(e)
@@ -165,7 +185,11 @@ def enqueue_member_ps(faction_data: dict, api_keys: tuple, rid: str):
     )
 
 
-@celery.shared_task(name="tasks.reports.store_member_ps", routing_key="quick.reports.store_member_ps", queue="quick")
+@celery.shared_task(
+    name="tasks.reports.store_member_ps",
+    routing_key="quick.reports.store_member_ps",
+    queue="quick",
+)
 def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
     # timestamp must be in UTC
 
@@ -173,11 +197,12 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
         if member_data.get("personalstats") is None:
             raise ValueError("Invalid API data")
 
-        report: typing.Optional[MemberReportModel] = MemberReportModel.objects(rid=rid).first()
-
-        if report is None:
+        try:
+            report: MemberReport = MemberReport.get_by_id(rid)
+        except DoesNotExist:
             raise ValueError("Illegal RID")
-        elif report.start_timestamp > timestamp > report.end_timestamp:
+
+        if report.start_timestamp > timestamp > report.end_timestamp:
             raise ValueError("Illegal timestamp")
 
         timestamp = int(datetime.datetime.fromtimestamp(timestamp).replace(minute=0, second=0).timestamp())
@@ -190,15 +215,11 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
         pid = int(bin(tid << 8), 2) + int(bin(timestamp), 2)
 
         try:
-            PersonalStatModel(
-                **dict(
-                    {
-                        "pstat_id": pid,
-                        "tid": tid,
-                        "timestamp": timestamp,
-                    },
-                    **(member_data["personalstats"]),
-                )
+            PersonalStats(
+                pstat_id=pid,
+                tid=tid,
+                timestamp=int(time.time()),
+                ps_data=member_data["personalstats"],
             ).save()
         except Exception as e:
             if timestamp == report.end_timestamp:
@@ -216,7 +237,7 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
         if report.status == 0:
             report.status = 1
 
-        now = int(time.time())
+        now = datetime.datetime.utcnow()
 
         if report.last_updated < now:
             report.last_updated = now

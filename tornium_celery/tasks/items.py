@@ -14,102 +14,71 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import json
 import random
 import typing
 
 import celery
-import pymongo
 from celery.utils.log import get_task_logger
-from mongoengine import QuerySet
-from mongoengine.queryset.visitor import Q
 from tornium_commons import rds
 from tornium_commons.formatters import commas, torn_timestamp
-from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
+from tornium_commons.models import Item, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_INFO
 
 from .api import tornget
 from .stakeout_hooks import send_notification
 
-try:
-    import orjson
-
-    globals()["orjson:loaded"] = True
-except ImportError:
-    globals()["orjson:loaded"] = False
-
 logger = get_task_logger("celery_app")
 
 
-@celery.shared_task(name="tasks.items.update_items_pre", routing_key="quick.items.update_items_pre", queue="quick")
-def update_items_pre():
-    tornget.signature(
-        kwargs={
-            "endpoint": "torn/?selections=items",
-            "key": random.choice(UserModel.objects(key__nin=[None, ""])).key,
-        },
-        queue="api",
-    ).apply_async(expires=300, link=update_items.s())
-
-
-@celery.shared_task(name="tasks.items.update_items", routing_key="quick.items.update_items", queue="quick")
+@celery.shared_task(
+    name="tasks.items.update_items",
+    routing_key="default.items.update_items",
+    queue="default",
+    time_limit=15,
+)
 def update_items(items_data):
-    bulk_ops = []
+    Item.update_items(torn_get=tornget, key=User.random_key())
 
-    item_id: int
-    item: dict
-    for item_id, item in items_data["items"].items():
-        bulk_ops.append(
-            pymongo.UpdateOne(
-                {"tid": int(item_id)},
-                {
-                    "$set": {
-                        "tid": int(item_id),
-                        "name": item.get("name", ""),
-                        "description": item.get("description", ""),
-                        "type": item.get("type", ""),
-                        "market_value": item.get("market_value", 0),
-                        "circulation": item.get("circulation", 0),
-                    }
-                },
-                upsert=True,
-            )
-        )
-
-    ItemModel._get_collection().bulk_write(bulk_ops, ordered=False)
-    rds().set("tornium:items:last-update", int(datetime.datetime.utcnow().timestamp()), ex=5400)  # 1.5 hours
+    rds().set(
+        "tornium:items:last-update",
+        int(datetime.datetime.utcnow().timestamp()),
+        ex=5400,
+    )  # 1.5 hours
 
 
-@celery.shared_task(name="tasks.items.fetch_market", routing_key="default.items.fetch_market", queue="default")
+@celery.shared_task(
+    name="tasks.items.fetch_market",
+    routing_key="default.items.fetch_market",
+    queue="default",
+    time_limit=15,
+)
 def fetch_market():
-    notifications: QuerySet = NotificationModel.objects(Q(ntype=3) & Q(options__enabled=True))
-    unique_items = list(notifications.distinct("target"))
+    notifications = Notification.select().where((Notification.n_type == 3) & (Notification.enabled == True))
+    unique_items = list(notifications.distinct(Notification.target))
 
     for item_id in unique_items:
-        item_notifications = notifications.filter(target=item_id)
+        item_notifications = notifications.where(Notification.target == item_id)
 
-        if item_notifications.first().recipient_type == 0:
+        if item_notifications.count() == 0:
+            continue
+
+        if item_notifications.first().recipient_guild == 0:
             recipient = item_notifications.first().recipient
-            key_user = UserModel.objects(discord_id=recipient).first()
+            key_user: typing.Optional[User] = User.select().where(User.discord_id == recipient).first()
         else:
             recipient = item_notifications.first().recipient_guild
-            guild: typing.Optional[ServerModel] = ServerModel.objects(sid=recipient).first()
+            guild: typing.Optional[Server] = Server.select().where(Server.sid == recipient).first()
 
             if guild is None:
-                item_notifications.delete()
+                item_notifications.delete_instance()
                 continue
 
-            key_user = UserModel.objects(tid=random.choice(guild.admins)).first()
+            key_user: typing.Optional[User] = User.select().where(User.tid == random.choice(guild.admins)).first()
 
         if key_user is None:
             continue
         elif key_user.key in ("", None):
             continue
-
-        if globals()["orjson:loaded"]:
-            notifications_dict = orjson.loads(item_notifications.to_json())
-        else:
-            notifications_dict = json.loads(item_notifications.to_json())
 
         tornget.signature(
             kwargs={
@@ -117,20 +86,29 @@ def fetch_market():
                 "key": key_user.key,
             },
             queue="api",
-        ).apply_async(
-            expires=300,
-            link=market_notifications.signature(kwargs={"notifications": notifications_dict}),
-        )
+        ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": item_id}))
 
 
 @celery.shared_task(
-    name="tasks.items.market_notifications", routing_key="default.items.market_notifications", queue="default"
+    name="tasks.items.market_notifications",
+    routing_key="default.items.market_notifications",
+    queue="default",
+    time_limit=15,
 )
-def market_notifications(market_data: dict, notifications: dict):
-    item: typing.Optional[ItemModel] = ItemModel.objects(tid=notifications[0]["target"]).first()
+def market_notifications(market_data: dict, item_id: int):
+    if (market_data.get("itemmarket") is None or len(market_data["itemmarket"]) == 0) and (
+        market_data.get("bazaar") is None or len(market_data["bazaar"]) == 0
+    ):
+        return
 
-    if item is None:
-        raise ValueError("Unknown Item")
+    notifications = Notification.select().where(
+        (Notification.n_type == 3) & (Notification.enabled == True) & (Notification.target == item_id)
+    )
+
+    if notifications.count():
+        return
+
+    item: Item = Item.select().where(Item.tid == item_id).get()
 
     components = [
         {
@@ -140,20 +118,20 @@ def market_notifications(market_data: dict, notifications: dict):
                     "type": 2,
                     "style": 5,
                     "label": "Item Market",
-                    "url": f"https://www.torn.com/imarket.php#/p=shop&step=shop&type=&searchname={item.tid}",
+                    "url": f"https://www.torn.com/imarket.php#/p=shop&step=shop&type=&searchname={item_id}",
                 }
             ],
         }
     ]
 
-    percent_enabled: bool = any(n["options"]["type"] == "percent" for n in notifications)
-    price_enabled: bool = any(n["options"]["type"] == "price" for n in notifications)
-    quantity_enabled: bool = any(n["options"]["type"] == "quantity" for n in notifications)
+    percent_enabled: bool = any(n.options["type"] == "percent" for n in notifications)
+    price_enabled: bool = any(n.options["type"] == "price" for n in notifications)
+    quantity_enabled: bool = any(n.options["type"] == "quantity" for n in notifications)
     redis_client = rds()
 
-    if market_data["itemmarket"] is None:
+    if market_data.get("itemmarket") is None:
         market_data["itemmarket"] = []
-    if market_data["bazaar"] is None:
+    if market_data.get("bazaar") is None:
         market_data["bazaar"] = []
 
     if not redis_client.exists(f"tornium:items:{item.tid}:ids"):
@@ -176,14 +154,15 @@ def market_notifications(market_data: dict, notifications: dict):
 
             percent_change = abs(listing["cost"] - item.market_value) / item.market_value * 100
 
+            n: Notification
             for n in notifications:
-                if n["options"]["type"] != "percent" or n["value"] > percent_change:
+                if n.options["type"] != "percent" or n.options["value"] > percent_change:
                     continue
 
-                if n["_id"]["$oid"] not in notifications:
-                    notifications_map[n["_id"]["$oid"]] = []
+                if n.get_id() not in notifications:
+                    notifications_map[n.get_id()] = []
 
-                notifications_map[n["_id"]["$oid"]].append(
+                notifications_map[n.get_id()].append(
                     {
                         "cost": listing["cost"],
                         "quantity": listing["quantity"],
@@ -191,17 +170,16 @@ def market_notifications(market_data: dict, notifications: dict):
                     }
                 )
 
+        n: Notification
         for n in notifications:
-            if n["_id"]["$oid"] not in notifications_map:
+            if n.get_id() not in notifications_map:
                 continue
 
-            notification_str = orjson.dumps(n) if globals()["orjson:loaded"] else json.dumps(n)
-            n_db = NotificationModel.from_json(notification_str)
             fields = []
             i = 1
             total_quantity = 0
 
-            for listing in notifications_map[n["_id"]["$oid"]]:
+            for listing in notifications_map[n.get_id()]:
                 fields.append(
                     {
                         "name": f"Bazaar #{i}",
@@ -213,7 +191,7 @@ def market_notifications(market_data: dict, notifications: dict):
                 i += 1
 
             send_notification(
-                n_db,
+                n,
                 payload={
                     "embeds": [
                         {
@@ -237,25 +215,24 @@ def market_notifications(market_data: dict, notifications: dict):
                 continue
 
             for n in notifications:
-                if n["options"]["type"] != "price" or listing["cost"] >= n["value"]:
+                if n.options["type"] != "price" or listing["cost"] >= n.options["value"]:
                     continue
 
-                if n["_id"]["$oid"] not in notifications:
-                    notifications_map[n["_id"]["$oid"]] = []
+                if n.get_id() not in notifications:
+                    notifications_map[n.get_id()] = []
 
-                notifications_map[n["_id"]["$oid"]].append(
+                notifications_map[n.get_id()].append(
                     {
                         "cost": listing["cost"],
                         "quantity": listing["quantity"],
                     }
                 )
 
+        n: Notification
         for n in notifications:
-            if n["_id"]["$oid"] not in notifications_map:
+            if n.get_id() not in notifications_map:
                 continue
 
-            notification_str = orjson.dumps(n) if globals()["orjson:loaded"] else json.dumps(n)
-            n_db = NotificationModel.from_json(notification_str)
             fields = []
             i = 1
             total_quantity = 0
@@ -263,7 +240,7 @@ def market_notifications(market_data: dict, notifications: dict):
             if item.market_value == 0:
                 continue
 
-            for listing in notifications_map[n["_id"]["$oid"]]:
+            for listing in notifications_map[n.get_id()]:
                 percent_change = round((listing["cost"] - item.market_value) / item.market_value * 100, 1)
                 fields.append(
                     {
@@ -276,7 +253,7 @@ def market_notifications(market_data: dict, notifications: dict):
                 i += 1
 
             send_notification(
-                n_db,
+                n,
                 payload={
                     "embeds": [
                         {
@@ -296,11 +273,8 @@ def market_notifications(market_data: dict, notifications: dict):
         total_quantity = sum(listing["quantity"] for listing in market_data["bazaar"][:3])
 
         for n in notifications:
-            if n["options"]["type"] != "quantity" or n["value"] < total_quantity:
+            if n.options["type"] != "quantity" or n.options["value"] < total_quantity:
                 continue
-
-            notification_str = orjson.dumps(n) if globals()["orjson:loaded"] else json.dumps(n)
-            n_db = NotificationModel.from_json(notification_str)
 
             fields = []
             i = 1
@@ -318,7 +292,7 @@ def market_notifications(market_data: dict, notifications: dict):
                 i += 1
 
             send_notification(
-                n_db,
+                n,
                 payload={
                     "embeds": [
                         {

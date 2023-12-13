@@ -20,51 +20,88 @@ import typing
 from decimal import DivisionByZero
 
 import celery
-import mongoengine.errors
 from celery.utils.log import get_task_logger
-from mongoengine.queryset.visitor import Q
-from tornium_commons import rds
+from peewee import DoesNotExist, IntegrityError, fn
+from tornium_commons import db, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import (
-    FactionModel,
-    PersonalStatModel,
-    PositionModel,
-    StatModel,
-    UserModel,
-)
+from tornium_commons.models import Faction, FactionPosition, PersonalStats, Stat, User
 
 from .api import tornget
 
 logger = get_task_logger("celery_app")
 
+MIN_USER_UPDATE = 600
 
-@celery.shared_task(name="tasks.user.update_user", routing_key="default.update_user", queue="default", bind=True)
+
+@celery.shared_task(
+    name="tasks.user.update_user",
+    routing_key="default.update_user",
+    queue="default",
+    bind=True,
+    time_limit=10,
+)
 def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
+    # TODO: Change default values of tid and discordid to None
+    # TODO: Refactor discordid -> discord_id
+
     if key is None or key == "":
         raise MissingKeyError
     elif tid != 0 and discordid != 0:
         raise Exception("No valid user ID passed")
 
     update_self = False
+    user_exists = None
+    user: typing.Optional[User] = None
 
     if tid != 0:
-        user: UserModel = UserModel.objects(tid=tid).first()
+        user = User.select(User.last_refresh).where(User.tid == tid).first()
+        user_exists = user is not None
+
+        if (
+            user is not None
+            and user.last_refresh is not None
+            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
+        ):
+            return
+
         user_id = tid
-    elif tid == 0 and discordid == 0:
-        user: UserModel = UserModel.objects(key=key).first()
+    elif discordid == tid == 0:
+        user = User.select(User.last_refresh).where(User.key == key).first()
+
+        if (
+            user is not None
+            and user.last_refresh is not None
+            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
+        ):
+            return
+
         user_id = 0
         update_self = True
     else:
-        user: UserModel = UserModel.objects(discord_id=discordid).first()
+        user = User.select(User.last_refresh).where(User.tid == tid).first()
+        user_exists = user is not None
+
+        if (
+            user is not None
+            and user.last_refresh is not None
+            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
+        ):
+            return
+
         user_id = discordid
 
-    if user is not None and not refresh_existing:
-        return None
+    if user_exists and not refresh_existing:
+        return
+    elif user is not None and not refresh_existing:
+        return
 
     result_sig: celery.canvas.Signature
     if update_self:
         result_sig = tornget.signature(
-            kwargs={"endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats", "key": key},
+            kwargs={
+                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats",
+                "key": key,
+            },
             queue="api",
         )
     else:
@@ -92,202 +129,251 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     return result
 
 
-@celery.shared_task(name="tasks.user.update_user_self", routing_key="quick.update_user_self", queue="quick")
+@celery.shared_task(
+    name="tasks.user.update_user_self",
+    routing_key="quick.update_user_self",
+    queue="quick",
+    time_limit=10,
+)
 def update_user_self(user_data, key=None):
-    user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
-        upsert=True,
-        new=True,
-        set__name=user_data["name"],
-        set__level=user_data["level"],
-        set__last_refresh=int(time.time()),
-        set__battlescore=(
+    user_data_kwargs = {"faction_aa": False}
+
+    if key is not None:
+        user_data_kwargs["key"] = key
+
+    faction: typing.Optional[Faction]
+    if user_data["faction"]["faction_id"] != 0:
+        faction = (
+            Faction.insert(
+                tid=user_data["faction"]["faction_id"],
+                name=user_data["faction"]["faction_name"],
+                tag=user_data["faction"]["faction_tag"],
+            )
+            .on_conflict(
+                conflict_target=[Faction.tid],
+                preserve=[Faction.name, Faction.tag],
+            )
+            .execute()
+        )
+
+        if key is not None:
+            faction = Faction.select(Faction.aa_keys).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+
+            if faction is not None and len(faction.aa_keys) == 0:
+                from .faction import update_faction_positions
+
+                try:
+                    positions_data = tornget("faction/?selections=basic,positions", key)
+                except TornError as e:
+                    if e.code == 7:
+                        user_data_kwargs["faction_aa"] = False
+                except NetworkingError:
+                    pass
+                else:
+                    user_data_kwargs["faction_aa"] = True
+                    update_faction_positions(positions_data)
+
+        if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
+            user_data_kwargs["faction_position"] = None
+            user_data_kwargs["faction_aa"] = True
+        elif user_data["faction"]["position"] not in (
+            "None",
+            "Recruit",
+            "Leader",
+            "Co-Leader",
+        ):
+            faction_position: typing.Optional[FactionPosition] = (
+                FactionPosition.select()
+                .where(
+                    (FactionPosition.name == user_data["faction"]["position"])
+                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+                )
+                .first()
+            )
+
+            if faction_position is None:
+                user_data_kwargs["faction_position"] = None
+                user_data_kwargs["faction_aa"] = False
+            else:
+                user_data_kwargs["faction_position"] = faction_position
+                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
+    else:
+        faction = None
+        user_data_kwargs["faction_position"] = None
+        user_data_kwargs["faction_aa"] = False
+
+    User.insert(
+        tid=user_data["player_id"],
+        name=user_data["name"],
+        level=user_data["level"],
+        discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        battlescore=(
             math.sqrt(user_data["strength"])
             + math.sqrt(user_data["defense"])
             + math.sqrt(user_data["speed"])
             + math.sqrt(user_data["dexterity"])
         ),
-        set__strength=user_data["strength"],
-        set__defense=user_data["defense"],
-        set__speed=user_data["speed"],
-        set__dexterity=user_data["dexterity"],
-        set__battlescore_update=int(time.time()),
-        set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
-        set__factionid=user_data["faction"]["faction_id"],
-        set__status=user_data["last_action"]["status"],
-        set__last_action=user_data["last_action"]["timestamp"],
-    )
+        strength=user_data["strength"],
+        defense=user_data["defense"],
+        speed=user_data["speed"],
+        dexterity=user_data["dexterity"],
+        faction=faction,
+        status=user_data["last_action"]["status"],
+        last_action=datetime.datetime.fromtimestamp(user_data["last_action"]["timestamp"], tz=datetime.timezone.utc),
+        last_refresh=datetime.datetime.utcnow(),
+        battlescore_update=datetime.datetime.utcnow(),
+        **user_data_kwargs,
+    ).on_conflict(
+        conflict_target=[User.tid],
+        preserve=[
+            User.name,
+            User.level,
+            User.discord_id,
+            User.battlescore,
+            User.strength,
+            User.defense,
+            User.speed,
+            User.dexterity,
+            User.faction,
+            User.status,
+            User.last_action,
+            User.last_refresh,
+            User.battlescore_update,
+            *(getattr(User, k) for k in user_data_kwargs.keys()),
+        ],
+    ).execute()
 
-    if key is not None:
-        user.key = key
-        user.save()
+    if user_data_kwargs.get("faction_aa"):
+        _faction = Faction.select(Faction.aa_keys).where(Faction.tid == user_data["faction"]["faction_id"]).first()
 
-    if user_data["faction"]["faction_id"] != 0:
-        faction = FactionModel.objects(tid=user_data["faction"]["faction_id"])
-        faction.modify(
-            upsert=True,
-            new=True,
-            set__name=user_data["faction"]["faction_name"],
-            set__tag=user_data["faction"]["faction_tag"],
+        if _faction is not None and key is not None and key not in _faction.aa_keys:
+            Faction.update(aa_keys=fn.array_append(Faction.aa_keys, key)).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+
+    # TODO: Attach latest PersonalStats obj to User obj
+
+    now: typing.Union[datetime.datetime, int] = datetime.datetime.utcnow()
+    now = datetime.datetime(
+        year=now.year,
+        month=now.month,
+        day=now.day,
+        hour=now.hour,
+        minute=0,
+        second=0,
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    try:
+        PersonalStats.create(
+            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
         )
-        faction = faction.first()
+    except IntegrityError:
+        pass
+
+
+@celery.shared_task(
+    name="tasks.user.update_user_other",
+    routing_key="quick.update_user_other",
+    queue="quick",
+    time_limit=5,
+)
+def update_user_other(user_data):
+    user_data_kwargs = {"faction_aa": False}
+
+    faction: typing.Optional[Faction]
+    if user_data["faction"]["faction_id"] != 0:
+        faction = (
+            Faction.insert(
+                tid=user_data["faction"]["faction_id"],
+                name=user_data["faction"]["faction_name"],
+                tag=user_data["faction"]["faction_tag"],
+            )
+            .on_conflict(
+                conflict_target=[Faction.tid],
+                preserve=[Faction.name, Faction.tag],
+            )
+            .execute()
+        )
 
         if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
-            user.faction_position = None
-            user.factionaa = True
-            user.save()
-
-            if user.key not in faction.aa_keys:
-                aa_keys = list(faction.aa_keys)
-                aa_keys.append(user.key)
-                faction.aa_keys = list(set(aa_keys))
-                faction.save()
-        elif len(faction.aa_keys) == 0:
-            try:
-                tornget(
-                    "faction/?selections=basic,positions",
-                    key=user.key,
+            user_data_kwargs["faction_position"] = None
+            user_data_kwargs["faction_aa"] = True
+        elif user_data["faction"]["position"] not in (
+            "None",
+            "Recruit",
+            "Leader",
+            "Co-Leader",
+        ):
+            faction_position: typing.Optional[FactionPosition] = (
+                FactionPosition.select()
+                .where(
+                    (FactionPosition.name == user_data["faction"]["position"])
+                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
                 )
-            except (NetworkingError, TornError):
-                pass
+                .first()
+            )
+
+            if faction_position is None:
+                user_data_kwargs["faction_position"] = None
+                user_data_kwargs["faction_aa"] = False
             else:
-                user.factionaa = True
-                user.save()
+                user_data_kwargs["faction_position"] = faction_position
+                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
+    else:
+        faction = None
+        user_data_kwargs["faction_position"] = None
+        user_data_kwargs["faction_aa"] = False
 
-                if user.key not in faction.aa_keys:
-                    aa_keys = list(faction.aa_keys)
-                    aa_keys.append(user.key)
-                    faction.aa_keys = list(set(aa_keys))
-                    faction.save()
-        elif user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
-            faction_position: typing.Optional[PositionModel] = PositionModel.objects(
-                Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
-            ).first()
+    User.insert(
+        tid=user_data["player_id"],
+        name=user_data["name"],
+        level=user_data["level"],
+        discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        faction=faction,
+        status=user_data["last_action"]["status"],
+        last_action=datetime.datetime.fromtimestamp(user_data["last_action"]["timestamp"], tz=datetime.timezone.utc),
+        last_refresh=datetime.datetime.utcnow(),
+        **user_data_kwargs,
+    ).on_conflict(
+        conflict_target=[User.tid],
+        preserve=[
+            User.name,
+            User.level,
+            User.discord_id,
+            User.faction,
+            User.status,
+            User.last_action,
+            User.last_refresh,
+            *(getattr(User, k) for k in user_data_kwargs.keys()),
+        ],
+    ).execute()
 
-            if faction_position is None:
-                user.faction_position = None
-                user.save()
-            elif faction_position.pid != user.faction_position:
-                user.faction_position = faction_position.pid
-                user.save()
+    # TODO: Attach latest PersonalStats obj to User obj
 
-    # if "competition" in user_data:
-    #     if user_data["competition"].get("name", "").lower() == "elimination":
-    #         elim_score = user_data["competition"].get("score")
-    #         elim_team = user_data["competition"].get("team")
-    #         elim_attacks = user_data["competition"].get("attacks")
-    #
-    #         if elim_score is not None:
-    #             user.elim_score = elim_score
-    #         if elim_team is not None:
-    #             user.elim_team = elim_team
-    #         if elim_attacks is not None:
-    #             user.elim_attacks = elim_attacks
-    #
-    #         user.save()
-
-    now = datetime.datetime.utcnow()
-    now = int(
-        datetime.datetime(
-            year=now.year,
-            month=now.month,
-            day=now.day,
-            hour=now.hour,
-            minute=0,
-            second=0,
-        )
-        .replace(tzinfo=datetime.timezone.utc)
-        .timestamp()
-    )
+    now: typing.Union[datetime.datetime, int] = datetime.datetime.utcnow()
+    now = datetime.datetime(
+        year=now.year,
+        month=now.month,
+        day=now.day,
+        hour=now.hour,
+        minute=0,
+        second=0,
+    ).replace(tzinfo=datetime.timezone.utc)
 
     try:
-        PersonalStatModel(
-            **dict(
-                {
-                    "pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2),
-                    "tid": user.tid,
-                    "timestamp": int(time.time()),
-                },
-                **(user_data["personalstats"]),
-            )
-        ).save()
-    except (KeyError, mongoengine.errors.OperationError):
+        PersonalStats.create(
+            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        )
+    except IntegrityError:
         pass
 
-
-@celery.shared_task(name="tasks.user.update_user_other", routing_key="quick.update_user_other", queue="quick")
-def update_user_other(user_data):
-    user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
-        upsert=True,
-        new=True,
-        set__name=user_data["name"],
-        set__level=user_data["level"],
-        set__last_refresh=int(time.time()),
-        set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
-        set__factionid=user_data["faction"]["faction_id"],
-        set__status=user_data["last_action"]["status"],
-        set__last_action=user_data["last_action"]["timestamp"],
-    )
-
-    if user_data["faction"]["faction_id"] != 0:
-        FactionModel.objects(tid=user_data["faction"]["faction_id"]).modify(
-            upsert=True, new=True, set__name=user_data["faction"]["faction_name"]
-        )
-
-        if user_data["faction"]["position"] not in ("None", "Recruit", "Leader", "Co-Leader"):
-            faction_position: typing.Optional[PositionModel] = PositionModel.objects(
-                Q(name=user_data["faction"]["position"]) & Q(factiontid=user_data["faction"]["faction_id"])
-            ).first()
-
-            if faction_position is None:
-                user.faction_position = None
-                user.save()
-            elif faction_position.pid != user.faction_position:
-                user.faction_position = faction_position.pid
-                user.save()
-
-    # if "competition" in user_data:
-    #     if user_data["competition"].get("name", "").lower() == "elimination":
-    #         elim_score = user_data["competition"].get("score")
-    #         elim_team = user_data["competition"].get("team")
-    #         elim_attacks = user_data["competition"].get("attacks")
-    #
-    #         if elim_score is not None:
-    #             user.elim_score = elim_score
-    #         if elim_team is not None:
-    #             user.elim_team = elim_team
-    #         if elim_attacks is not None:
-    #             user.elim_attacks = elim_attacks
-    #
-    #         user.save()
-
-    now = datetime.datetime.utcnow()
-    now = int(
-        datetime.datetime(
-            year=now.year,
-            month=now.month,
-            day=now.day,
-            hour=now.hour,
-            minute=0,
-            second=0,
-        )
-        .replace(tzinfo=datetime.timezone.utc)
-        .timestamp()
-    )
-
-    try:
-        PersonalStatModel(
-            **dict(
-                {
-                    "pstat_id": int(bin(user.tid << 8), 2) + int(bin(now), 2),
-                    "tid": user.tid,
-                    "timestamp": int(time.time()),
-                },
-                **(user_data["personalstats"]),
-            )
-        ).save()
-    except (KeyError, mongoengine.errors.OperationError):
-        pass
-
+    # TODO: What is this for?
     try:
         n = rds().sadd("tornium:personal-stats", *(user_data["personal_stats"].keys()))
 
@@ -297,13 +383,15 @@ def update_user_other(user_data):
         pass
 
 
-@celery.shared_task(name="tasks.user.refresh_users", routing_key="default.refresh_users", queue="default")
+@celery.shared_task(
+    name="tasks.user.refresh_users",
+    routing_key="default.refresh_users",
+    queue="default",
+    time_limit=5,
+)
 def refresh_users():
-    user: UserModel
-    for user in UserModel.objects(key__nin=[None, ""]):
-        if user.key == "":
-            continue
-
+    user: User
+    for user in User.select().where((User.key.is_null(False)) & (User.key != "")):
         tornget.signature(
             kwargs={
                 "endpoint": "user/?selections=profile,discord,personalstats,battlestats",
@@ -317,7 +405,12 @@ def refresh_users():
         )
 
 
-@celery.shared_task(name="tasks.user.fetch_attacks_user_runner", routing_key="quick.fetch_user_attacks", queue="quick")
+@celery.shared_task(
+    name="tasks.user.fetch_attacks_user_runner",
+    routing_key="quick.fetch_user_attacks",
+    queue="quick",
+    time_limit=5,
+)
 def fetch_attacks_user_runner():
     redis = rds()
 
@@ -336,27 +429,24 @@ def fetch_attacks_user_runner():
     if redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks-user", 1)
 
-    user: UserModel
-    for user in UserModel.objects(key__nin=[None, ""]):
-        if user.key in (None, ""):
+    user: User
+    for user in User.select().where((User.key.is_null(False)) & (User.key != "")):
+        if user.key in ("", None):
             continue
-        elif user.factionaa:
+        if user.faction_aa:
             continue
-        if user.last_attacks == 0:
-            user.last_attacks = int(time.time())
+        if user.last_attacks is None:
+            user.last_attacks = datetime.datetime.utcnow()
             user.save()
             continue
 
-        if user.factionid != 0:
-            faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
-
-            if faction is not None and len(faction.aa_keys) > 0:
-                continue
+        if user.faction is not None and len(user.faction.aa_keys) > 0:
+            continue
 
         tornget.signature(
             kwargs={
                 "endpoint": "user/?selections=basic,attacks",
-                "fromts": user.last_attacks + 1,  # Timestamp is inclusive,
+                "fromts": user.last_attacks.timestamp() + 1,  # Timestamp is inclusive,
                 "key": user.key,
             },
             queue="api",
@@ -366,23 +456,34 @@ def fetch_attacks_user_runner():
         )
 
 
-@celery.shared_task(name="tasks.user.stat_db_attacks_user", routing_key="quick.stat_db_attacks_user", queue="quick")
+@celery.shared_task(
+    name="tasks.user.stat_db_attacks_user",
+    routing_key="quick.stat_db_attacks_user",
+    queue="quick",
+    time_limit=5,
+)
 def stat_db_attacks_user(user_data):
-    if "attacks" not in user_data:
-        return
-    elif len(user_data["attacks"]) == 0:
+    if len(user_data.get("attacks", [])) == 0:
         return
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=user_data["player_id"]).first()
-
-    if user is None:
+    try:
+        user: User = User.get_by_id(user_data["player_id"])
+    except DoesNotExist:
         return
 
     stats_data = []
 
     attack: dict
     for attack in user_data["attacks"].values():
-        if attack["result"] in ["Assist", "Lost", "Stalemate", "Escape", "Looted", "Interrupted", "Timeout"]:
+        if attack["result"] in [
+            "Assist",
+            "Lost",
+            "Stalemate",
+            "Escape",
+            "Looted",
+            "Interrupted",
+            "Timeout",
+        ]:
             continue
         elif attack["defender_id"] in [
             4,
@@ -399,7 +500,7 @@ def stat_db_attacks_user(user_data):
             3,
         ):  # 3x FF can be greater than the defender battlescore indicated
             continue
-        elif attack["timestamp_ended"] <= user.last_attacks:
+        elif user.last_attacks is not None and attack["timestamp_ended"] <= user.last_attacks.timestamp():
             continue
         elif attack["respect"] == 0:
             continue
@@ -407,7 +508,9 @@ def stat_db_attacks_user(user_data):
             continue
 
         try:
-            if user.battlescore_update - int(time.time()) <= 259200:  # Three days
+            if (
+                user.battlescore_update is not None and user.battlescore_update.timestamp() - int(time.time()) <= 259200
+            ):  # Three days
                 user_score = user.battlescore
             else:
                 continue
@@ -422,37 +525,52 @@ def stat_db_attacks_user(user_data):
 
         # User: faction member
         # Opponent: non-faction member regardless of attack or defend
-
         if attack["attacker_id"] == user.tid:  # Attacker is user
-            opponent: typing.Optional[UserModel] = UserModel.objects(tid=attack["defender_id"]).first()
-            opponent_id = attack["defender_id"]
+            if attack["defender_faction"] != 0:
+                Faction.insert(
+                    tid=attack["defender_faction"],
+                    name=attack["defender_factionname"],
+                ).on_conflict(
+                    conflict_target=[Faction.tid],
+                    preserve=[Faction.name],
+                ).execute()
 
-            if opponent is None:
-                opponent = UserModel.objects(tid=attack["defender_id"]).modify(
-                    upsert=True,
-                    new=True,
-                    set__name=attack["defender_name"],
-                    set__factionid=attack["defender_faction"],
-                )
+            User.insert(
+                tid=attack["defender_id"],
+                name=attack["defender_name"],
+                faction=attack["defender_faction"] if attack["defender_faction"] != 0 else None,
+            ).on_conflict(
+                conflict_target=[User.tid],
+                preserve=[
+                    User.name,
+                    User.faction,
+                ],
+            ).execute()
+            opponent_id = attack["defender_id"]
         else:  # Defender is user
             if attack["attacker_id"] in ("", 0):  # Attacker stealthed
                 continue
 
-            opponent: typing.Optional[UserModel] = UserModel.objects(tid=attack["attacker_id"]).first()
-            opponent_id = attack["attacker_id"]
+            if attack["attacker_faction"] != 0:
+                Faction.insert(tid=attack["attacker_faction"], name=attack["attacker_factionname"]).on_conflict(
+                    conflict_target=[Faction.tid], preserve=[Faction.name]
+                ).execute()
 
-            if opponent is None:
-                opponent = UserModel.objects(tid=attack["attacker_id"]).modify(
-                    upsert=True,
-                    new=True,
-                    set__name=attack["attacker_name"],
-                    set__factionid=attack["attacker_faction"],
-                )
+            User.insert(
+                tid=attack["attacker_id"],
+                name=attack["attacker_name"],
+                faction=attack["attacker_faction"] if attack["attacker_faction"] != 0 else None,
+            ).on_conflict(
+                conflict_target=[User.tid],
+                preserve=[
+                    User.name,
+                    User.faction,
+                ],
+            ).execute()
+            opponent_id = attack["attacker_id"]
 
         try:
             update_user.delay(tid=opponent_id, key=user.key).forget()
-        except (TornError, NetworkingError):
-            continue
         except Exception as e:
             logger.exception(e)
             continue
@@ -471,25 +589,21 @@ def stat_db_attacks_user(user_data):
         stats_data.append(
             {
                 "tid": opponent_id,
-                "battlescore": opponent_score,
-                "timeadded": attack["timestamp_ended"],
-                "addedid": user.tid,
-                "addedfactiontid": user.factionid,
-                "globalstat": True,
+                "battlescore": int(opponent_score),
+                "time_added": datetime.datetime.fromtimestamp(attack["timestamp_ended"]),
+                "added_group": 0,
             }
         )
 
     try:
         if len(stats_data) > 0:
-            stats_data = [StatModel(**stats).to_mongo() for stats in stats_data]
-            StatModel._get_collection().insert_many(stats_data, ordered=False)
-    except mongoengine.errors.BulkWriteError:
-        logger.warning(
-            f"Stats data (from user TID {user.tid}) bulk insert failed. Duplicates may have been found and "
-            f"were skipped."
-        )
+            with db().atomic():
+                Stat.insert_many(stats_data).execute()
     except Exception as e:
         logger.exception(e)
 
-    user.last_attacks = list(user_data["attacks"].values())[-1]["timestamp_ended"]
+    user.last_attacks = datetime.datetime.fromtimestamp(
+        list(user_data["attacks"].values())[-1]["timestamp_ended"],
+        tz=datetime.timezone.utc,
+    )
     user.save()

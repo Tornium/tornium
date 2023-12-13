@@ -16,19 +16,7 @@
 import importlib.util
 import sys
 
-try:
-    from gevent import monkey
-
-    globals()["gevent:loaded"] = True
-except ImportError:
-    globals()["gevent:loaded"] = False
-
 for module in ("ddtrace", "orjson"):
-    if globals()["gevent:loaded"] and monkey.is_anything_patched():
-        globals()["ddtrace:loaded"] = False
-        globals()["orjson:loaded"] = False
-        break
-
     try:
         globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
     except (ValueError, ModuleNotFoundError):
@@ -39,7 +27,7 @@ if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
     try:
         from ddtrace import patch_all
 
-        patch_all(logging=True, pymongo=True, mongoengine=True)
+        patch_all(logging=True)
     except ImportError:
         globals()["ddtrace:loaded"] = False
 
@@ -51,19 +39,9 @@ from celery import Celery
 from celery.app import trace
 from celery.schedules import crontab
 from celery.signals import after_setup_logger
-from mongoengine import connect
 from tornium_commons import Config
 
-config = Config().load()
-
-if not hasattr(sys, "_called_from_test"):
-    connect(
-        db="Tornium",
-        username=config["username"],
-        password=config["password"],
-        host=f'mongodb://{config["host"]}',
-        connect=False,
-    )
+config = Config.from_json()
 
 _FORMAT = (
     "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
@@ -178,7 +156,7 @@ if celery_app is None:
                 "schedule": {"type": "periodic", "second": "30"},
             },  # Item tasks
             "update-items": {
-                "task": "tasks.items.update_items_pre",
+                "task": "tasks.items.update_items",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
             },
@@ -233,7 +211,7 @@ if celery_app is None:
         if task_data["schedule"]["type"] == "periodic":
             _s: typing.Union[int, str] = task_data["schedule"].get("second")
 
-            if _s is None or (type(_s) != int and not _s.isdigit()):
+            if _s is None or (not isinstance(_s, int) and not _s.isdigit()):
                 continue
 
             s = int(_s)

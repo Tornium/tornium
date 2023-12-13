@@ -126,3 +126,7 @@ dmypy.json
 
 # Database Stuff
 *.sql
+
+# Tornium stuff
+settings.json
+celery.json

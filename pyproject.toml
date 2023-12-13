@@ -49,7 +49,6 @@ ci = [
     "black",
     "flake8",
     "isort",
-    "mongomock",
     "pytest",
     "pytest-sugar",
     "tox",

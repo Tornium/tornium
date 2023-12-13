@@ -16,14 +16,14 @@
 import datetime
 import typing
 
-import mongoengine
 from flask import jsonify
+from peewee import DoesNotExist
 from redis.commands.json.path import Path
 from tornium_celery.tasks.api import tornget
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
-from tornium_commons.models import ItemModel, TickModel
+from tornium_commons.models import Item, StockTick
 
 from controllers.api.decorators import authentication_required, global_cache, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -38,12 +38,12 @@ def stocks_data(*args, **kwargs):
     stocks_map = rds().json().get("tornium:stocks")
 
     if stocks_map is None:
-        last_tick: typing.Optional[TickModel] = TickModel.objects().order_by("-_id").first()
-
-        if last_tick is None:
+        try:
+            last_tick: StockTick = StockTick.select(StockTick.timestamp).order_by(-StockTick.tick_id).get()
+        except DoesNotExist:
             return make_exception_response("1000", key, details={"message": "Failed to located last stocks tick."})
 
-        ticks: typing.Union[list, mongoengine.QuerySet] = TickModel.objects(timestamp=last_tick.timestamp)
+        ticks: typing.Iterable[StockTick] = StockTick.select().where(StockTick.timestamp == last_tick.timestamp)
     else:
         stock_id_list = [int(stock_id) for stock_id in stocks_map.keys()]
         now = datetime.datetime.utcnow()
@@ -53,20 +53,21 @@ def stocks_data(*args, **kwargs):
             now = now - datetime.timedelta(minutes=1)
 
         now = int(now.replace(second=0, microsecond=0, tzinfo=datetime.timezone.utc).timestamp())
-        ticks: typing.Union[list, mongoengine.QuerySet] = [
-            TickModel.objects(tick_id=int(bin(stock_id), 2) + int(bin(now << 8), 2)).first()
-            for stock_id in stock_id_list
-        ]
+
+        ticks: typing.Dict[int, StockTick] = {}
+
+        for stock_id in stock_id_list:
+            try:
+                ticks[stock_id] = StockTick.get_by_id(int(bin(stock_id), 2) + int(bin(now << 8), 2))
+            except DoesNotExist:
+                return make_exception_response("1000", key, details={"message": "Unknown stocks tick."})
 
     stocks_tick_data = {}
 
-    tick: typing.Optional[TickModel]
+    tick: StockTick
     for tick in ticks:
-        if tick is None:
-            return make_exception_response("1000", key, details={"message": "Unknown stocks tick."})
-
         stocks_tick_data[tick.stock_id] = {
-            "timestamp": tick.timestamp,
+            "timestamp": tick.timestamp.timestamp(),
             "price": tick.price,
             "market_cap": tick.cap,
             "shares": tick.shares,
@@ -98,9 +99,13 @@ def stock_benefits(*args, **kwargs):
             stock_benefits_data[stock["stock_id"]] = stock["benefit"]
 
         rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits_data)
-        rds().set("tornium:points-value", stocks_api_data["stats"]["points_averagecost"], ex=86400)
+        rds().set(
+            "tornium:points-value",
+            stocks_api_data["stats"]["points_averagecost"],
+            ex=86400,
+        )
 
-    ItemModel.update_items(tornget, kwargs["user"].key)
+    Item.update_items(tornget, kwargs["user"].key)
     stock_benefits_json = {"active": [], "non_rev": [], "passive": []}
 
     for stock_id, benefit in stock_benefits_data.items():
@@ -134,7 +139,7 @@ def stock_benefits(*args, **kwargs):
                 continue
 
             quantity: int
-            item: typing.Optional[ItemModel]
+            item: typing.Optional[Item]
             quantity, item = parse_item_str(benefit["description"])
 
             if item is None:
@@ -151,12 +156,19 @@ def stock_benefits(*args, **kwargs):
                         "Cutesy Cache",
                         "Injury Cache",
                     ]
-                    clothing_cache_items = [ItemModel.objects(name=name).first() for name in _clothing_caches]
-                    clothing_cache_values = [
-                        item.market_value
-                        for item in clothing_cache_items
-                        if item is not None and item.market_value != 0
-                    ]
+                    clothing_cache_values = []
+
+                    for name in _clothing_caches:
+                        try:
+                            item = Item.get(Item.name == name)
+                        except DoesNotExist:
+                            return make_exception_response("1104", key, details={"item": name})
+
+                        if item.market_value <= 0:
+                            continue
+
+                        clothing_cache_values.append(item.market_value)
+
                     value = round(sum(clothing_cache_values) / len(clothing_cache_values), 2)
                 elif "points" in benefit["description"]:
                     points_value = rds().get("tornium:points-value")

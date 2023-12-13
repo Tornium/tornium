@@ -32,7 +32,7 @@ mod.add_url_rule(
     methods=["PUT"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/armory/<int:factionid>",
+    "/api/bot/<int:guild_id>/armory/<int:faction_tid>",
     view_func=bot.armory.armory_faction_toggle,
     methods=["PUT"],
 )
@@ -57,32 +57,32 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/assists/roles/<string:role_type>",
+    "/api/bot/<int:guild_id>/assists/roles/<string:role_type>",
     view_func=bot.assists.assists_role_set,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/faction",
+    "/api/bot/<int:guild_id>/faction",
     view_func=bot.faction.faction_setter,
     methods=["DELETE", "POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/faction/<int:factiontid>/banking",
+    "/api/bot/<int:guild_id>/faction/<int:faction_tid>/banking",
     view_func=bot.banking.banking_setter,
     methods=["GET", "POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/faction/<int:factiontid>/oc/<string:notif>/<string:element>",
+    "/api/bot/<int:guild_id>/faction/<int:faction_tid>/oc/<string:notif>/<string:element>",
     view_func=bot.oc.oc_config_setter,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/stocks/feed",
+    "/api/bot/<int:guild_id>/stocks/feed",
     view_func=bot.stocks.stocks_feed_options,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/<int:guildid>/stocks/feed/channel",
+    "/api/bot/<int:guild_id>/stocks/feed/channel",
     view_func=bot.stocks.stocks_feed_channel,
     methods=["POST"],
 )
@@ -97,22 +97,22 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/server/<int:guildid>",
+    "/api/bot/server/<int:guild_id>",
     view_func=bot.config.server_config,
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/bot/server/<int:guildid>/channels",
+    "/api/bot/server/<int:guild_id>/channels",
     view_func=bot.utils.get_channels,
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/bot/server/<int:guildid>/roles",
+    "/api/bot/server/<int:guild_id>/roles",
     view_func=bot.utils.get_roles,
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/bot/verify/<int:guildid>",
+    "/api/bot/verify/<int:guild_id>",
     view_func=bot.verify.verification_config,
     methods=["GET"],
 )
@@ -127,16 +127,20 @@ mod.add_url_rule(
     methods=["POST", "DELETE"],
 )
 mod.add_url_rule(
-    "/api/bot/verify/faction/<int:factiontid>/position/<string:position>",
+    "/api/bot/verify/faction/<int:faction_tid>/position/<string:position>",
     view_func=bot.verify.faction_position_roles,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/bot/verify/faction/<int:factiontid>/roles",
+    "/api/bot/verify/faction/<int:faction_tid>/roles",
     view_func=bot.verify.faction_roles,
     methods=["POST"],
 )
-mod.add_url_rule("/api/bot/verify/exclusion", view_func=bot.verify.guild_exclusion_roles, methods=["POST"])
+mod.add_url_rule(
+    "/api/bot/verify/exclusion",
+    view_func=bot.verify.guild_exclusion_roles,
+    methods=["POST"],
+)
 mod.add_url_rule("/api/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"])
 mod.add_url_rule(
     "/api/bot/verify/roles",
@@ -151,6 +155,7 @@ mod.add_url_rule(
 
 # /api/faction
 mod.add_url_rule("/api/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"])
+mod.add_url_rule("/api/faction/assists", view_func=faction.assist.valid_assists, methods=["GET"])
 mod.add_url_rule("/api/faction/banking", view_func=faction.banking.banking_request, methods=["POST"])
 mod.add_url_rule(
     "/api/faction/banking/vault",
@@ -173,13 +178,25 @@ mod.add_url_rule(
 mod.add_url_rule("/api/items", view_func=items.item_name_map, methods=["GET"])
 
 # /api/report
-mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.get_reports, methods=["GET"])
-mod.add_url_rule("/api/report/faction/members", view_func=report.faction_member.create_report, methods=["POST"])
 mod.add_url_rule(
-    "/api/report/faction/members/<string:rid>", view_func=report.faction_member.delete_report, methods=["DELETE"]
+    "/api/report/faction/members",
+    view_func=report.faction_member.get_reports,
+    methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/report/faction/members/<string:rid>", view_func=report.faction_member.get_report, methods=["GET"]
+    "/api/report/faction/members",
+    view_func=report.faction_member.create_report,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/report/faction/members/<string:rid>",
+    view_func=report.faction_member.delete_report,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
+    "/api/report/faction/members/<string:rid>",
+    view_func=report.faction_member.get_report,
+    methods=["GET"],
 )
 
 # /api/stat
@@ -194,4 +211,8 @@ mod.add_url_rule("/api/stocks/movers", view_func=stocks.movers.stock_movers, met
 # /api/user
 mod.add_url_rule("/api/user", view_func=user.get_user, methods=["GET"])
 mod.add_url_rule("/api/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
-mod.add_url_rule("/api/user/estimate/<int:tid>", view_func=user.estimate_specific_user, methods=["GET"])
+mod.add_url_rule(
+    "/api/user/estimate/<int:tid>",
+    view_func=user.estimate_specific_user,
+    methods=["GET"],
+)

@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 import json
 
 from flask import request
-from tornium_commons.models import ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Server
 
 from controllers.api.bot.config import jsonified_server_config
 from controllers.api.decorators import ratelimit, token_required
@@ -26,31 +26,31 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 
 @token_required
 @ratelimit
-def stocks_feed_channel(guildid: int, *args, **kwargs):
+def stocks_feed_channel(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    channel_id = data.get("channel")
-
-    if channel_id in ("", 0, None) or not channel_id.isdigit():
+    try:
+        channel_id = int(data["channel"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1002", key)
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
-    guild.stocks_channel = channel_id
-    guild.save()
+    Server.update(stocks_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
 
 @token_required
 @ratelimit
-def stocks_feed_options(guildid: int, *args, **kwargs):
+def stocks_feed_options(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -71,11 +71,12 @@ def stocks_feed_options(guildid: int, *args, **kwargs):
     elif type(max_price) not in (bool, None):
         return make_exception_response("0000", key, details={"key": "max_price"})
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     if percent_change is not None:
@@ -89,6 +90,5 @@ def stocks_feed_options(guildid: int, *args, **kwargs):
     if max_price is not None:
         guild.stocks_config["max_price"] = bool(max_price)
 
-    guild.save()
-
+    Server.update(stocks_config=guild.stocks_config).where(Server.sid == guild.sid).execute()
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

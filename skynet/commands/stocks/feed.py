@@ -16,7 +16,8 @@
 import inspect
 import typing
 
-from tornium_commons.models import ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 
@@ -36,9 +37,9 @@ def feed(interaction, *args, **kwargs):
             },
         }
 
-    server: typing.Optional[ServerModel] = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -52,7 +53,8 @@ def feed(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif kwargs["invoker"].tid not in server.admins:
+
+    if kwargs["invoker"].tid not in guild.admins:
         return {
             "type": 4,
             "data": {
@@ -75,15 +77,15 @@ def feed(interaction, *args, **kwargs):
                 {
                     "title": "Stocks Feed Configuration",
                     "description": inspect.cleandoc(
-                        f"""Stocks feed configuration for {server.name}...
+                        f"""Stocks feed configuration for {guild.name}...
 
-                Feed Channel: {"Disabled" if server.stocks_channel == 0 else f"<#{server.stocks_channel}>"}
+                Feed Channel: {"Disabled" if guild.stocks_channel == 0 else f"<#{guild.stocks_channel}>"}
 
-                Percent Change: {"Enabled" if server.stocks_config.get("percent_change", False) else "Disabled"}
-                Market Cap Change: {"Enabled" if server.stocks_config.get("cap_change", False) else "Disabled"}
-                New Day Price: {"Enabled" if server.stocks_config.get("new_day_price", False) else "Disabled"}
-                Minimum Price: {"Enabled" if server.stocks_config.get("min_price", False) else "Disabled"}
-                Maximum Price: {"Enabled" if server.stocks_config.get("max_price", False) else "Disabled"}
+                Percent Change: {"Enabled" if guild.stocks_config.get("percent_change", False) else "Disabled"}
+                Market Cap Change: {"Enabled" if guild.stocks_config.get("cap_change", False) else "Disabled"}
+                New Day Price: {"Enabled" if guild.stocks_config.get("new_day_price", False) else "Disabled"}
+                Minimum Price: {"Enabled" if guild.stocks_config.get("min_price", False) else "Disabled"}
+                Maximum Price: {"Enabled" if guild.stocks_config.get("max_price", False) else "Disabled"}
                 """
                     ),
                     "footer": {"text": "To modify the feed configuration, visit the guild dashboard."},

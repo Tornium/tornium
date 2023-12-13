@@ -245,9 +245,9 @@ $(document).ready(function () {
         );
     });
 
-    $("#assistfactionid").on("keypress", function (e) {
+    $("#assist-faction-id").on("keypress", function (e) {
         if (e.which === 13) {
-            const id = $("#assistfactionid").val();
+            const id = $("#assist-faction-id").val();
             const xhttp = new XMLHttpRequest();
 
             xhttp.onload = function () {

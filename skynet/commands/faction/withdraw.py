@@ -15,17 +15,17 @@
 
 import datetime
 import random
-import time
 import uuid
 
-from tornium_celery.tasks.api import discordpost, tornget
+from peewee import DoesNotExist, IntegrityError
+from tornium_celery.tasks.api import discorddelete, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list, text_to_num
-from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.skyutils import get_admin_keys, get_faction_keys
+from skynet.skyutils import get_faction_keys
 
 
 def withdraw(interaction, *args, **kwargs):
@@ -40,13 +40,27 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
+            },
+        }
+    elif "options" not in interaction["data"]:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Options Required",
+                        "description": "This command requires that options be passed.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             },
         }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -57,25 +71,70 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    user: UserModel = kwargs["invoker"]
+    user: User = kwargs["invoker"]
 
-    if "options" not in interaction["data"]:
+    if user is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Withdrawal Request Failed",
-                        "description": "No options were passed with the "
-                        "request. The withdrawal amount option is required.",
+                        "title": "User Not Located",
+                        "description": "No user was located for your Discord account. Please contact the developer",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
+            },
+        }
+    elif user.faction is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Configuration Required",
+                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        f"to the server. Please contact the server administrators to do this via "
+                        f"[the dashboard](https://tornium.com).",
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        }
+    elif (
+        str(user.faction.tid) not in guild.banking_config
+        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Configuration Required",
+                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
+                        "color": SKYNET_ERROR,
+                    }
+                ]
             },
         }
 
@@ -102,28 +161,7 @@ def withdraw(interaction, *args, **kwargs):
                         "footer": {"text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"},
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
-
-    if len(admin_keys) == 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Keys",
-                        "description": "No API keys were found to be run for this command. Please sign into "
-                        "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -141,7 +179,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     else:
@@ -161,7 +199,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -188,54 +226,7 @@ def withdraw(interaction, *args, **kwargs):
                     },
                 }
 
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Faction Not Located",
-                        "description": "Your faction could not be located in Tornium's database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif user.factionid not in server.factions or faction.guild != server.sid:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        }
-    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
-                        f"the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        }
-
-    aa_keys = get_faction_keys(interaction, faction)
+    aa_keys = get_faction_keys(interaction, user.faction)
 
     if len(aa_keys) == 0:
         return {
@@ -249,7 +240,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -266,7 +257,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -280,7 +271,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -294,13 +285,14 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Faction Error",
                         "description": (
-                            f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
-                            f"If you think that this is an error, please report this to the developers of this bot."
+                            f"{user.name} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
+                            f"indicate that they are not in the faction or that they don't have any funds in the "
+                            f"faction vault."
                         ),
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -327,7 +319,7 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
@@ -342,13 +334,18 @@ def withdraw(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    request_id = WithdrawalModel.objects().count()
+    last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
+
+    if last_request is None:
+        request_id = 0
+    else:
+        request_id = last_request.wid + 1
+
     guid = uuid.uuid4().hex
-    send_link = f"https://tornium.com/faction/banking/fulfill/{guid}"
 
     if withdrawal_amount != "all":
         message_payload = {
@@ -371,7 +368,12 @@ def withdraw(interaction, *args, **kwargs):
                             "label": "Faction Vault",
                             "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
+                        },
                         {
                             "type": 2,
                             "style": 3,
@@ -410,7 +412,12 @@ def withdraw(interaction, *args, **kwargs):
                             "label": "Faction Vault",
                             "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
                         },
-                        {"type": 2, "style": 5, "label": "Fulfill", "url": send_link},
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
+                        },
                         {
                             "type": 2,
                             "style": 3,
@@ -428,33 +435,50 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    for role in server.banking_config[str(faction.tid)]["roles"]:
+    for role in guild.banking_config[str(user.faction.tid)]["roles"]:
         if "content" not in message_payload:
             message_payload["content"] = ""
 
         message_payload["content"] += f"<@&{role}>"
 
     message = discordpost(
-        f'channels/{server.banking_config[str(faction.tid)]["channel"]}/messages',
+        f'channels/{guild.banking_config[str(user.faction.tid)]["channel"]}/messages',
         payload=message_payload,
-        channel=server.banking_config[str(faction.tid)]["channel"],
     )
 
-    withdrawal = WithdrawalModel(
-        wid=request_id,
-        guid=guid,
-        amount=withdrawal_amount
-        if withdrawal_amount != "all"
-        else faction_balances[str(user.tid)][withdrawal_option_str],
-        requester=user.tid,
-        factiontid=user.factionid,
-        time_requested=int(time.time()),
-        fulfiller=0,
-        time_fulfilled=0,
-        withdrawal_message=message["id"],
-        wtype=withdrawal_option,
-    )
-    withdrawal.save()
+    try:
+        Withdrawal.create(
+            wid=request_id,
+            guid=guid,
+            faction_tid=user.faction.tid,
+            amount=withdrawal_amount
+            if withdrawal_amount != "all"
+            else faction_balances[str(user.tid)][withdrawal_option_str],
+            requester=user.tid,
+            time_requested=datetime.datetime.utcnow(),
+            status=0,
+            fulfiller=None,
+            time_fulfilled=None,
+            withdrawal_message=message["id"],
+        )
+    except IntegrityError:
+        discorddelete.delay(
+            f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+        ).forget()
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Withdrawal Failure",
+                        "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     return {
         "type": 4,
@@ -472,6 +496,6 @@ def withdraw(interaction, *args, **kwargs):
                     ],
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }

@@ -14,18 +14,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import time
 import typing
 
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import commas, find_list, torn_timestamp
-from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.formatters import commas, find_list
+from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from models.faction import Faction
-from models.user import User
-from skynet.commands.faction.fulfill import fulfiller_string
 from skynet.skyutils import get_admin_keys
 
 
@@ -41,13 +38,13 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -58,15 +55,12 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    user: UserModel = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
+    user: User = kwargs["invoker"]
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
     if len(admin_keys) == 0:
         return {
@@ -80,13 +74,11 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
+    if user.faction is None:
         return {
             "type": 4,
             "data": {
@@ -97,25 +89,25 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif user.factionid not in server.factions or faction.guild != server.sid:
+    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
+                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
-    elif user.tid not in Faction(faction.tid).get_bankers():
+    elif user.tid not in user.faction.get_bankers():
         return {
             "type": 4,
             "data": {
@@ -127,19 +119,21 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
+    elif (
+        str(user.faction.tid) not in guild.banking_config
+        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
-                        f"the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
+                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
@@ -154,7 +148,9 @@ def cancel_command(interaction, *args, **kwargs):
     if withdrawal_id != -1:
         withdrawal_id = withdrawal_id[1]["value"]
 
-    if type(withdrawal_id) == str and not withdrawal_id.isdigit():
+    try:
+        withdrawal_id = int(withdrawal_id)
+    except (TypeError, ValueError):
         return {
             "type": 4,
             "data": {
@@ -165,16 +161,19 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    if withdrawal_id == -1:
-        withdrawal: WithdrawalModel = WithdrawalModel.objects(requester=user.tid).order_by("-time_requested").first()
-    else:
-        withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
-
-    if withdrawal is None:
+    try:
+        withdrawal: Withdrawal
+        if withdrawal_id == -1:
+            withdrawal = (
+                Withdrawal.select().where(Withdrawal.requester == user.tid).order_by(-Withdrawal.time_requested).get()
+            )
+        else:
+            withdrawal = Withdrawal.select().where(Withdrawal.wid == withdrawal_id).get()
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -185,17 +184,49 @@ def cancel_command(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif withdrawal.fulfiller != 0:
+
+    if withdrawal.status == 1:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Unable to Cancel Request",
-                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
+                        "title": "Request Already Fulfilled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 2:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 3:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
+                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -203,11 +234,15 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+    requester: typing.Optional[User]
+    try:
+        requester = User.get_by_id(withdrawal.requester)
+    except DoesNotExist:
+        requester = None
 
     try:
         discordpatch(
-            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -216,15 +251,13 @@ def cancel_command(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": commas(withdrawal.amount),
-                            },
-                            {
-                                "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                                "value": f"N/A [{withdrawal.requester}]"
+                                if requester is None
+                                else requester.user_str_self(),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -240,24 +273,28 @@ def cancel_command(interaction, *args, **kwargs):
                                 "style": 5,
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
                                 "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 3,
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 4,
                                 "label": "Cancel",
                                 "custom_id": "faction:vault:cancel",
+                                "disabled": True,
                             },
                         ],
                     }
@@ -278,7 +315,7 @@ def cancel_command(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -295,15 +332,15 @@ def cancel_command(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    withdrawal.fulfiller = -user.tid
-    withdrawal.time_fulfilled = int(time.time())
-    withdrawal.save()
+    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
-    if requester.discord_id not in (None, "", 0):
+    if requester.discord_id not in (None, 0):
         try:
             dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
         except Exception:
@@ -312,12 +349,12 @@ def cancel_command(interaction, *args, **kwargs):
                 "data": {
                     "embeds": [
                         {
-                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                            "description": "You have fulfilled the banking request.",
+                            "title": "Banking Request Cancelled",
+                            "description": f"You have cancelled banking request #{withdrawal.wid}.",
                             "color": SKYNET_GOOD,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -340,12 +377,12 @@ def cancel_command(interaction, *args, **kwargs):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal_id} Cancelled",
-                    "description": "You have cancelled the banking request.",
+                    "title": "Banking Request Cancelled",
+                    "description": f"You have cancelled banking request #{withdrawal.wid}.",
                     "color": SKYNET_GOOD,
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }
 
@@ -362,108 +399,7 @@ def cancel_button(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Not Located",
-                        "description": "This server could not be located in Tornium's database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    user: UserModel = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
-
-    if len(admin_keys) == 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Keys",
-                        "description": "No API keys were found to be run for this command. Please sign into "
-                        "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Faction Not Located",
-                        "description": "Your faction could not be located in Tornium's database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif user.factionid not in server.factions or faction.guild != server.sid:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        }
-    elif user.tid not in Faction(faction.tid).get_bankers():
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Permission Denied",
-                        "description": "Only faction members with banking permissions are allowed to cancel banking "
-                        "requests.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
-                        f"the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
-                        "color": SKYNET_ERROR,
-                    }
-                ]
+                "flags": 64,
             },
         }
     elif interaction["data"]["custom_id"] != "faction:vault:cancel" or interaction["data"]["component_type"] != 2:
@@ -480,31 +416,16 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"]).first()
-
-    if withdrawal is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Does not Exist",
-                        "description": "The Vault Request does not currently exist.",
-                        "color": SKYNET_ERROR,
-                        "footer": {"text": f"Message ID: {interaction['message']['id']}"},
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-    elif withdrawal.fulfiller != 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Unable to Cancel Request",
-                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -512,11 +433,162 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+    user: User = kwargs["invoker"]
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
+
+    if len(admin_keys) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No API Keys",
+                        "description": "No API keys were found to be run for this command. Please sign into "
+                        "Tornium or run this command in a server with signed-in admins.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    if user.faction is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Faction Not Located",
+                        "description": "Your faction could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Configuration Required",
+                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        f"to the server. Please contact the server administrators to do this via "
+                        f"[the dashboard](https://tornium.com).",
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        }
+    elif user.tid not in user.faction.get_bankers():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif (
+        str(user.faction.tid) not in guild.banking_config
+        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Configuration Required",
+                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        }
+
+    try:
+        withdrawal: Withdrawal = (
+            Withdrawal.select().where(Withdrawal.withdrawal_message == interaction["message"]["id"]).get()
+        )
+    except DoesNotExist:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Does Not Exist",
+                        "description": "The Vault Request does not currently exist.",
+                        "color": SKYNET_ERROR,
+                        "footer": {"text": f"Message ID: {interaction['message']['id']}"},
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    if withdrawal.status == 1:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Fulfilled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 2:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 3:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
+                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    requester: typing.Optional[User]
+    try:
+        requester = User.get_by_id(withdrawal.requester)
+    except DoesNotExist:
+        requester = None
 
     try:
         discordpatch(
-            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -525,15 +597,13 @@ def cancel_button(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": commas(withdrawal.amount),
-                            },
-                            {
-                                "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                                "value": f"N/A [{withdrawal.requester}]"
+                                if requester is None
+                                else requester.user_str_self(),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -549,24 +619,28 @@ def cancel_button(interaction, *args, **kwargs):
                                 "style": 5,
                                 "label": "Faction Vault",
                                 "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
                                 "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 3,
                                 "label": "Fulfill Manually",
                                 "custom_id": "faction:vault:fulfill",
+                                "disabled": True,
                             },
                             {
                                 "type": 2,
                                 "style": 4,
                                 "label": "Cancel",
                                 "custom_id": "faction:vault:cancel",
+                                "disabled": True,
                             },
                         ],
                     }
@@ -587,7 +661,7 @@ def cancel_button(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -604,15 +678,15 @@ def cancel_button(interaction, *args, **kwargs):
                         ],
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    withdrawal.fulfiller = -user.tid
-    withdrawal.time_fulfilled = int(time.time())
-    withdrawal.save()
+    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
-    if requester.discord_id not in (None, "", 0):
+    if requester.discord_id not in (None, 0):
         try:
             dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
         except Exception:
@@ -621,12 +695,12 @@ def cancel_button(interaction, *args, **kwargs):
                 "data": {
                     "embeds": [
                         {
-                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                            "description": "You have fulfilled the banking request.",
+                            "title": "Banking Request Cancelled",
+                            "description": f"You have cancelled banking request #{withdrawal.wid}.",
                             "color": SKYNET_GOOD,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -635,8 +709,8 @@ def cancel_button(interaction, *args, **kwargs):
             payload={
                 "embeds": [
                     {
-                        "title": "Vault Request Fulfilled",
-                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {user.name} [{user.tid}]",
+                        "title": "Vault Request Cancelled",
+                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {user.name} [{user.tid}]",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "color": SKYNET_ERROR,
                     }
@@ -649,11 +723,11 @@ def cancel_button(interaction, *args, **kwargs):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal.wid} Cancelled",
-                    "description": "You have cancelled the banking request.",
+                    "title": "Banking Request Cancelled",
+                    "description": f"You have cancelled banking request #{withdrawal.wid}.",
                     "color": SKYNET_GOOD,
                 }
             ],
-            "flags": 64,  # Ephemeral
+            "flags": 64,
         },
     }

@@ -14,27 +14,29 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import jsonify
+from peewee import DoesNotExist
+from tornium_celery.tasks.api import discordget
+from tornium_commons.models import Server
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
-from models.server import Server
 
 
 @token_required
 @ratelimit
-def get_channels(guildid, *args, **kwargs):
+def get_channels(guild_id, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     try:
-        server = Server(guildid)
-    except LookupError:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
 
-    if kwargs["user"].tid not in server.admins:
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     return (
-        jsonify({"channels": server.get_text_channels(include_threads=True, api=True)}),
+        jsonify({"channels": guild.get_text_channels(discord_get=discordget, include_threads=True, api=True)}),
         200,
         api_ratelimit_response(key),
     )
@@ -42,19 +44,19 @@ def get_channels(guildid, *args, **kwargs):
 
 @token_required
 @ratelimit
-def get_roles(guildid, *args, **kwargs):
+def get_roles(guild_id, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
 
     try:
-        server = Server(guildid)
-    except LookupError:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
 
-    if kwargs["user"].tid not in server.admins:
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     return (
-        jsonify({"roles": list(server.get_roles(api=True).values())}),
+        jsonify({"roles": list(guild.get_roles(discord_get=discordget, api=True).values())}),
         200,
         api_ratelimit_response(key),
     )

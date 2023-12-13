@@ -13,13 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
+import datetime
 import typing
 
-from mongoengine import QuerySet
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_commons.formatters import commas, find_list
-from tornium_commons.models import ItemModel, NotificationModel, ServerModel, UserModel
+from tornium_commons.models import Item, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 _NOTIF_TYPE_MAP = {
@@ -29,13 +28,17 @@ _NOTIF_TYPE_MAP = {
 }
 
 
-def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_data, *args, **kwargs):
+def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args, **kwargs):
     notif_type = find_list(subcommand_data, "name", "type")
     value = find_list(subcommand_data, "name", "value")
     channel = find_list(subcommand_data, "name", "channel")
     persistence = find_list(subcommand_data, "name", "persistent")
 
-    if notif_type == -1 or notif_type[1]["value"] not in ["percent", "price", "quantity"]:
+    if notif_type == -1 or notif_type[1]["value"] not in [
+        "percent",
+        "price",
+        "quantity",
+    ]:
         return {
             "type": 4,
             "data": {
@@ -94,11 +97,33 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
             },
         }
 
-    guild: typing.Optional[ServerModel] = None
-    if not private:
-        guild = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-        if guild is None:
+    if private:
+        if (
+            Notification.select()
+            .where(
+                (Notification.n_type == 3) & (Notification.recipient_guild == 0) & (Notification.invoker == user.tid)
+            )
+            .count()
+            > 10
+        ):
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Too Many Notifications",
+                            "description": "You have too many item notifications. To prevent service performance "
+                            "degradation, at this time, there is a maximum of 10 item notifications per user in DMs.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+    else:
+        try:
+            guild: Server = Server.get_by_id(interaction["guild_id"])
+        except DoesNotExist:
             return {
                 "type": 4,
                 "data": {
@@ -112,7 +137,8 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                     "flags": 64,
                 },
             }
-        elif user.tid not in guild.admins:
+
+        if user.tid not in guild.admins:
             return {
                 "type": 4,
                 "data": {
@@ -128,24 +154,11 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                 },
             }
 
-    if private:
-        if NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid)).count() > 10:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Too Many Notifications",
-                            "description": "You have too many item notifications. To prevent service performance "
-                            "degradation, there is a maximum of 10 item notifications per user in DMs.",
-                            "color": SKYNET_ERROR,
-                        },
-                    ],
-                    "flags": 64,
-                },
-            }
-    else:
-        n_count = NotificationModel.objects(Q(ntype=3) & (Q(recipient_guild=guild.sid))).count()
+        n_count = (
+            Notification.select()
+            .where((Notification.n_type == 3) & (Notification.recipient_guild == guild.sid))
+            .count()
+        )
 
         if n_count > 35:
             return {
@@ -155,7 +168,7 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                         {
                             "title": "Too Many Notifications",
                             "description": "You have too many item notifications. To prevent service performance "
-                            "degradation, there is a maximum of 35 item notifications per server.",
+                            "degradation, at this time, there is a maximum of 35 item notifications per server.",
                             "color": SKYNET_ERROR,
                         },
                     ],
@@ -178,19 +191,18 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                 },
             }
 
-    notification = NotificationModel(
+    notification = Notification(
         invoker=user.tid,
-        time_created=int(time.time()),
+        time_created=datetime.datetime.utcnow(),
         recipient=user.discord_id if private else channel,
         recipient_guild=0 if private else int(interaction["guild_id"]),
-        recipient_type=int(not private),
         ntype=3,
         target=item.tid,
         persistent=persistence,
-        value=value,
+        enabled=False,
         options={
             "type": notif_type,
-            "enabled": False,
+            "value": value,
         },
     ).save()
 
@@ -200,14 +212,18 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
             "embeds": [
                 {
                     "title": "Notification Created",
-                    "description": f"A item notification has been created for {item.name} with the following configuration.",
+                    "description": f"A item notification has been created for {item.name} with the following "
+                    f"configuration.",
                     "fields": [
                         {
                             "name": "Item",
                             "value": f"{item.name} [{item.tid}]",
                             "inline": True,
                         },
-                        {"name": "Notification Type", "value": _NOTIF_TYPE_MAP[notif_type].capitalize()},
+                        {
+                            "name": "Notification Type",
+                            "value": _NOTIF_TYPE_MAP[notif_type].capitalize(),
+                        },
                         {
                             "name": "Private",
                             "value": not bool(notification.recipient_type),
@@ -235,13 +251,13 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
                             "type": 2,
                             "style": 3,
                             "label": "Enable Notification",
-                            "custom_id": f"notify:items:{notification.id}:enable",
+                            "custom_id": f"notify:items:{notification.get_id()}:enable",
                         },
                         {
                             "type": 2,
                             "style": 4,
                             "label": "Delete Notification",
-                            "custom_id": f"notify:items:{notification.id}:delete",
+                            "custom_id": f"notify:items:{notification.get_id()}:delete",
                         },
                     ],
                 },
@@ -250,15 +266,19 @@ def item_notif_init(interaction, user: UserModel, item: ItemModel, subcommand_da
     }
 
 
-def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
-    notifications: QuerySet
+def list_item_notifs(interaction, user: User, *args, **kwargs):
     if "guild_id" in interaction:
-        notifications = NotificationModel.objects(
-            Q(ntype=3)
-            & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+        notifications = Notification.select().where(
+            (Notification.n_type == 3)
+            & (
+                (Notification.recipient_guild == int(interaction["guild_id"]))
+                | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
+            )
         )
     else:
-        notifications = NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid))
+        notifications = Notification.select().where(
+            (Notification.n_type == 3) & (Notification.recipient_guild == 0) & (Notification.invoker == user.tid)
+        )
 
     if notifications.count() == 0:
         return {
@@ -288,10 +308,10 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
         },
     }
 
-    notification: NotificationModel
+    notification: Notification
     for notification in notifications:
-        if notification.recipient_type == 0:
-            recipient = "DM"
+        if notification.recipient_guild == 0:
+            recipient = "Direct Message"
         else:
             recipient = f"<#{notification.recipient}>"
 
@@ -304,22 +324,19 @@ def list_item_notifs(interaction, user: UserModel, *args, **kwargs):
         else:
             value = "ERROR"
 
-        item_db = ItemModel.objects(tid=notification.target).first()
-        item_str = f"{item_db.name} [{item_db.tid}]" if item_db is not None else "ERROR"
-
-        payload["data"]["embeds"][0]["description"] += f"\n{value} {item_str} - {recipient}"
+        payload["data"]["embeds"][0]["description"] += f"\n{value} {Item.item_str(notification.target)} - {recipient}"
 
     return payload
 
 
 def _generate_item_info_payload(
-    notification: NotificationModel,
-    item: ItemModel,
+    notification: Notification,
+    item: Item,
     current_number,
     total_count,
-    previous_notif: typing.Optional[NotificationModel] = None,
-    next_notif: typing.Optional[NotificationModel] = None,
-):
+    previous_notif: typing.Optional[Notification] = None,
+    next_notif: typing.Optional[Notification] = None,
+) -> dict:
     notification_description = "This notification will trigger when "
 
     if notification.options["type"] == "percent":
@@ -337,7 +354,7 @@ def _generate_item_info_payload(
     else:
         notification_description = "ERROR"
 
-    enabled = notification.options["enabled"]
+    enabled = notification.enabled
     payload = {
         "embeds": [
             {
@@ -362,7 +379,7 @@ def _generate_item_info_payload(
                         "inline": True,
                     },
                 ],
-                "footer": {"text": f"DB ID: {notification.id} | Showing {current_number}/{total_count}..."},
+                "footer": {"text": f"DB ID: {notification.get_id()} | Showing {current_number}/{total_count}..."},
             }
         ],
         "components": [
@@ -373,13 +390,13 @@ def _generate_item_info_payload(
                         "type": 2,
                         "style": 4 if enabled else 3,
                         "label": "Disable Notification" if enabled else "Enable Notification",
-                        "custom_id": f"notify:items:{notification.id}:{'disable' if enabled else 'enable'}",
+                        "custom_id": f"notify:items:{notification.get_id()}:{'disable' if enabled else 'enable'}",
                     },
                     {
                         "type": 2,
                         "style": 4,
                         "label": "Delete Notification",
-                        "custom_id": f"notify:items:{notification.id}:delete",
+                        "custom_id": f"notify:items:{notification.get_id()}:delete",
                     },
                 ],
             },
@@ -390,14 +407,14 @@ def _generate_item_info_payload(
                         "type": 2,
                         "style": 2,
                         "label": "Previous Notification",
-                        "custom_id": f"notify:items:{-1 if previous_notif is None else previous_notif.id}:goto",
+                        "custom_id": f"notify:items:{-1 if previous_notif is None else previous_notif.get_id()}:goto",
                         "disabled": True if previous_notif is None else False,
                     },
                     {
                         "type": 2,
                         "style": 2,
                         "label": "Next Notification",
-                        "custom_id": f"notify:items:{-2 if next_notif is None else next_notif.id}:goto",
+                        "custom_id": f"notify:items:{-2 if next_notif is None else next_notif.get_id()}:goto",
                         "disabled": True if next_notif is None else False,
                     },
                 ],
@@ -408,17 +425,22 @@ def _generate_item_info_payload(
     return payload
 
 
-def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwargs):
-    notifications: QuerySet
+def item_notif_info(interaction, user: User, item: Item, *args, **kwargs):
     if "guild_id" in interaction:
-        notifications = NotificationModel.objects(
-            Q(ntype=3)
-            & Q(target=item.tid)
-            & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+        notifications = Notification.select().where(
+            (Notification.n_type == 3)
+            & (Notification.target == item.tid)
+            & (
+                (Notification.recipient_guild == int(interaction["guild_id"]))
+                | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
+            )
         )
     else:
-        notifications = NotificationModel.objects(
-            Q(ntype=3) & Q(target=item.tid) & Q(recipient_guild=0) & Q(invoker=user.tid)
+        notifications = Notification.select().where(
+            (Notification.n_type == 3)
+            & (Notification.target == item.tid)
+            & (Notification.recipient_guild == 0)
+            & (Notification.invoker == user.tid)
         )
 
     notification_count = notifications.count()
@@ -457,7 +479,7 @@ def item_notif_info(interaction, user: UserModel, item: ItemModel, *args, **kwar
 
 
 def items_switchboard(interaction, *args, **kwargs):
-    user: UserModel = kwargs["invoker"]
+    user: User = kwargs["invoker"]
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
@@ -478,12 +500,12 @@ def items_switchboard(interaction, *args, **kwargs):
         }
 
     item_name = find_list(subcommand_data, "name", "item")
-    item: typing.Optional[ItemModel] = None
+    item: typing.Optional[Item] = None
 
     if item_name != -1:
         try:
-            item = ItemModel.objects(tid=int(item_name[1]["value"])).first()
-        except TypeError:
+            item = Item.get_by_id(int(item_name[1]["value"]))
+        except (DoesNotExist, TypeError):
             return {
                 "type": 4,
                 "data": {
@@ -556,7 +578,9 @@ def items_autocomplete(interaction, *args, **kwargs):
                     "data": {
                         "choices": [
                             {"name": item.name, "value": str(item.tid)}
-                            for item in ItemModel.objects(name__icontains=option["value"]).limit(25)
+                            for item in Item.select(Item.name, Item.tid)
+                            .where(Item.name.startswith(option["value"]))
+                            .limit(25)
                         ]
                     },
                 }
@@ -570,16 +594,14 @@ def items_autocomplete(interaction, *args, **kwargs):
 
 
 def items_button_switchboard(interaction, *args, **kwargs):
-    print(interaction)
-
     user = kwargs["invoker"]
     button_data = interaction["data"]["custom_id"].split(":")
     notification_id: str = button_data[2]
     effect = button_data[3]
 
-    notification: typing.Optional[NotificationModel] = NotificationModel.objects(id=notification_id).first()
-
-    if notification is None:
+    try:
+        notification: Notification = Notification.get_by_id(notification_id)
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -596,14 +618,18 @@ def items_button_switchboard(interaction, *args, **kwargs):
         }
 
     if effect == "goto":
-        notifications: QuerySet
-        if notification.recipient_type == 1:
-            notifications = NotificationModel.objects(
-                Q(ntype=3)
-                & (Q(recipient_guild=int(interaction["guild_id"])) | (Q(recipient_guild=0) & Q(invoker=user.tid)))
+        if notification.recipient_guild == 0:
+            notifications = Notification.select().where(
+                (Notification.n_type == 3) & (Notification.recipient_guild == 0) & (Notification.invoker == user.tid)
             )
         else:
-            notifications = NotificationModel.objects(Q(ntype=3) & Q(recipient_guild=0) & Q(invoker=user.tid))
+            notifications = Notification.select().where(
+                (Notification.n_type == 3)
+                & (
+                    (Notification.recipient_guild == int(interaction["guild_id"]))
+                    | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
+                )
+            )
 
         notification_count = notifications.count()
 
@@ -613,9 +639,9 @@ def items_button_switchboard(interaction, *args, **kwargs):
         current_count = 1
 
         while current_count <= notification_count:
-            notif: NotificationModel = notifications[current_count - 1]
+            notif: Notification = notifications[current_count - 1]
 
-            if notif.id == notification.id:
+            if notif.get_id() == notification.get_id():
                 if current_count > 1:
                     previous_notif = notifications[current_count - 2]
                 else:
@@ -632,7 +658,11 @@ def items_button_switchboard(interaction, *args, **kwargs):
 
             current_count += 1
 
-        item: typing.Optional[ItemModel] = ItemModel.objects(tid=notification.target).first()
+        item: typing.Optional[Item]
+        try:
+            item = Item.get_by_id(notification.target)
+        except DoesNotExist:
+            item = None
 
         return {
             "type": 7,
@@ -658,7 +688,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                         "description": "The specified notification was deleted from the database.",
                         "color": SKYNET_GOOD,
                         "footer": {
-                            "text": f"DB ID: {notification.id}",
+                            "text": f"DB ID: {notification.get_id()}",
                         },
                     },
                 ],
@@ -667,9 +697,8 @@ def items_button_switchboard(interaction, *args, **kwargs):
         }
     elif effect in ("disable", "enable"):
         if effect == "disable":
-            if notification.options["enabled"]:
-                notification.options["enabled"] = False
-                notification.save()
+            if notification.enabled:
+                Notification.update(enabled=False).where(Notification.id == notification.get_id()).execute()
 
                 return {
                     "type": 4,
@@ -680,7 +709,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                                 "description": "The item notification has been enabled.",
                                 "color": SKYNET_GOOD,
                                 "footer": {
-                                    "text": f"DB ID: {notification.id}",
+                                    "text": f"DB ID: {notification.get_id()}",
                                 },
                             },
                         ],
@@ -697,7 +726,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                                 "description": "The notification is already disabled.",
                                 "color": SKYNET_ERROR,
                                 "footer": {
-                                    "text": f"DB ID: {notification.id}",
+                                    "text": f"DB ID: {notification.get_id()}",
                                 },
                             },
                         ],
@@ -705,9 +734,8 @@ def items_button_switchboard(interaction, *args, **kwargs):
                     },
                 }
         elif effect == "enable":
-            if not notification.options["enabled"]:
-                notification.options["enabled"] = True
-                notification.save()
+            if not notification.enabled:
+                Notification.update(enabled=True).where(Notification.id == notification.get_id()).execute()
 
                 return {
                     "type": 4,
@@ -718,7 +746,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                                 "description": "The item notification has been enabled.",
                                 "color": SKYNET_GOOD,
                                 "footer": {
-                                    "text": f"DB ID: {notification.id}",
+                                    "text": f"DB ID: {notification.get_id()}",
                                 },
                             },
                         ],
@@ -735,7 +763,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
                                 "description": "The notification is already enabled.",
                                 "color": SKYNET_ERROR,
                                 "footer": {
-                                    "text": f"DB ID: {notification.id}",
+                                    "text": f"DB ID: {notification.get_id()}",
                                 },
                             },
                         ],

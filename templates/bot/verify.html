@@ -48,7 +48,7 @@ Tornium - Verification
             <div class="row">
                 <div class="col-sm-12 col-md-8 col-xl-4">
                     <div class="form-floating">
-                        {% if guild.config.get("verify") %}
+                        {% if guild.verify_enabled %}
                         <button type="button" class="btn btn-outline-primary" id="verification-config-enable" disabled>
                             Enable
                         </button>

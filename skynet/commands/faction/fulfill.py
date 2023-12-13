@@ -14,43 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import time
 import typing
 
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import commas, find_list, torn_timestamp
-from tornium_commons.models import FactionModel, ServerModel, UserModel, WithdrawalModel
+from tornium_commons.formatters import commas, find_list
+from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from models.faction import Faction
-from models.user import User
 from skynet.skyutils import get_admin_keys
-
-
-def fulfiller_string(withdrawal: WithdrawalModel) -> str:
-    if withdrawal.fulfiller == 0:
-        return "is not fulfilled"
-    elif withdrawal.fulfiller == -1:
-        return "has been cancelled by the system"
-    elif withdrawal.fulfiller < -1:
-        user: typing.Optional[UserModel] = UserModel.objects(tid=-withdrawal.fulfiller).only("name", "tid").first()
-
-        if user is None:
-            return "has been cancelled by someone"
-
-        return f"has been cancelled by {user.name} [{user.tid}]"
-    elif withdrawal.fulfiller == 1:
-        return "has been fulfilled by someone"
-    elif withdrawal.fulfiller > 1:
-        user: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.fulfiller).only("name", "tid").first()
-
-        if user is None:
-            return "has been fulfilled by someone"
-
-        return f"has been fulfilled by {user.name} [{user.tid}]"
-
-    return "has an unknown fulfill type"
 
 
 def fulfill_command(interaction, *args, **kwargs):
@@ -69,9 +42,9 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -86,11 +59,8 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
+    user: User = kwargs["invoker"]
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
     if len(admin_keys) == 0:
         return {
@@ -108,25 +78,7 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    if "options" not in interaction["data"]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Withdrawal Request Failed",
-                        "description": "No options were passed with the "
-                        "request. The withdrawal amount option is required.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
+    if user.faction is None:
         return {
             "type": 4,
             "data": {
@@ -140,22 +92,22 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.factionid not in server.factions or faction.guild != server.sid:
+    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
+                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
-    elif user.tid not in Faction(faction.tid).get_bankers():
+    elif user.tid not in user.faction.get_bankers():
         return {
             "type": 4,
             "data": {
@@ -170,22 +122,26 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
+    elif (
+        str(user.faction.tid) not in guild.banking_config
+        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {faction.name}. Please contact "
-                        f"the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
+                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
 
+    # TODO: Something might be wrong here
+    # Code segment also used in cancel and fulfill Skynet function
     withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
 
     if withdrawal_id == -1:
@@ -203,17 +159,24 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal_id = withdrawal_id[1]["value"]
+    if "options" in interaction["data"]:
+        withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
+    else:
+        withdrawal_id = -1
 
-    if type(withdrawal_id) == str and not withdrawal_id.isdigit():
+    if withdrawal_id != -1:
+        withdrawal_id = withdrawal_id[1]["value"]
+
+    try:
+        withdrawal_id = int(withdrawal_id)
+    except (TypeError, ValueError):
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Illegal Parameter Value",
-                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an "
-                        "integer.",
+                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -221,15 +184,15 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(wid=int(withdrawal_id)).first()
-
-    if withdrawal is None:
+    try:
+        withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.wid == withdrawal_id).get()
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Does not Exist",
+                        "title": "Request Does Not Exist",
                         "description": f"Vault Request #{withdrawal_id} does not currently exist.",
                         "color": SKYNET_ERROR,
                     }
@@ -237,14 +200,46 @@ def fulfill_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif withdrawal.fulfiller != 0:
+
+    if withdrawal.status == 1:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Unable to Fulfill Request",
-                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
+                        "title": "Request Already Fulfilled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 2:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 3:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
+                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -252,11 +247,15 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+    requester: typing.Optional[User]
+    try:
+        requester = User.get_by_id(withdrawal.requester)
+    except DoesNotExist:
+        requester = None
 
     try:
         discordpatch(
-            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -265,15 +264,13 @@ def fulfill_command(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": commas(withdrawal.amount),
-                            },
-                            {
-                                "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                                "value": f"N/A [{withdrawal.requester}]"
+                                if requester is None
+                                else requester.user_str_self(),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -348,11 +345,11 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = int(time.time())
-    withdrawal.save()
+    Withdrawal.update(status=1, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
-    if requester.discord_id not in (None, "", 0):
+    if requester.discord_id not in (None, 0):
         try:
             dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
         except Exception:
@@ -361,8 +358,8 @@ def fulfill_command(interaction, *args, **kwargs):
                 "data": {
                     "embeds": [
                         {
-                            "title": f"Banking Request {withdrawal_id} Fulfilled",
-                            "description": "You have fulfilled the banking request.",
+                            "title": "Banking Request Fulfilled",
+                            "description": f"You have fulfilled banking request #{withdrawal.wid}.",
                             "color": SKYNET_GOOD,
                         }
                     ],
@@ -389,8 +386,8 @@ def fulfill_command(interaction, *args, **kwargs):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal_id} Fulfilled",
-                    "description": "You have fulfilled the banking request.",
+                    "title": "Banking Request Fulfilled",
+                    "description": f"You have fulfilled banking request #{withdrawal.wid}.",
                     "color": SKYNET_GOOD,
                 }
             ],
@@ -414,10 +411,23 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+    elif interaction["data"]["custom_id"] != "faction:vault:fulfill" or interaction["data"]["component_type"] != 2:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Unknown Button Press",
+                        "description": "The attributes of the button pressed does not match the attributes required.",
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        }
 
-    server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-    if server is None:
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -432,11 +442,8 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    user: UserModel = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
+    user: User = kwargs["invoker"]
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
     if len(admin_keys) == 0:
         return {
@@ -454,9 +461,7 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
+    if user.faction is None:
         return {
             "type": 4,
             "data": {
@@ -470,22 +475,22 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.factionid not in server.factions or faction.guild != server.sid:
+    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
+                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
-    elif user.tid not in Faction(faction.tid).get_bankers():
+    elif user.tid not in user.faction.get_bankers():
         return {
             "type": 4,
             "data": {
@@ -500,44 +505,35 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif str(faction.tid) not in server.banking_config or server.banking_config[str(faction.tid)]["channel"] == "0":
+    elif (
+        str(user.faction.tid) not in guild.banking_config
+        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+    ):
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {faction.name}'s bot configuration and to the "
-                        f"server. Please contact the server administrators to do this via "
-                        f"[the dashboard](https://tornium.com).",
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        }
-    elif interaction["data"]["custom_id"] != "faction:vault:fulfill" or interaction["data"]["component_type"] != 2:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Unknown Button Press",
-                        "description": "The attributes of the button pressed does not match the attributes required.",
+                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
             },
         }
 
-    withdrawal: WithdrawalModel = WithdrawalModel.objects(withdrawal_message=interaction["message"]["id"]).first()
-
-    if withdrawal is None:
+    try:
+        withdrawal: Withdrawal = (
+            Withdrawal.select().where(Withdrawal.withdrawal_message == interaction["message"]["id"]).get()
+        )
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Request Does not Exist",
+                        "title": "Request Does Not Exist",
                         "description": "The Vault Request does not currently exist.",
                         "color": SKYNET_ERROR,
                         "footer": {"text": f"Message ID: {interaction['message']['id']}"},
@@ -546,14 +542,46 @@ def fulfill_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif withdrawal.fulfiller != 0:
+
+    if withdrawal.status == 1:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Unable to Fulfill Request",
-                        "description": f"Vault Request #{withdrawal.wid} {fulfiller_string(withdrawal)} <t:{withdrawal.time_fulfilled}:R>.",
+                        "title": "Request Already Fulfilled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 2:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 3:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Request Already Cancelled",
+                        "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
+                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -561,11 +589,15 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[UserModel] = UserModel.objects(tid=withdrawal.requester).first()
+    requester: typing.Optional[User]
+    try:
+        requester = User.get_by_id(withdrawal.requester)
+    except DoesNotExist:
+        requester = None
 
     try:
         discordpatch(
-            f"channels/{server.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
                 "embeds": [
                     {
@@ -574,15 +606,13 @@ def fulfill_button(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Original Request Amount",
-                                "value": commas(withdrawal.amount),
-                            },
-                            {
-                                "name": "Original Request Type",
-                                "value": "Points" if withdrawal.wtype == 1 else "Cash",
+                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"{'Unknown' if requester is None else requester.name} [{withdrawal.requester}]",
+                                "value": f"N/A [{withdrawal.requester}]"
+                                if requester is None
+                                else requester.user_str_self(),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -657,9 +687,9 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.fulfiller = user.tid
-    withdrawal.time_fulfilled = int(time.time())
-    withdrawal.save()
+    Withdrawal.update(status=1, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
+        Withdrawal.wid == withdrawal.wid
+    ).execute()
 
     if requester.discord_id not in (None, "", 0):
         try:
@@ -670,8 +700,8 @@ def fulfill_button(interaction, *args, **kwargs):
                 "data": {
                     "embeds": [
                         {
-                            "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                            "description": "You have fulfilled the banking request.",
+                            "title": "Banking Request Fulfilled",
+                            "description": f"You have fulfilled banking request #{withdrawal.wid}.",
                             "color": SKYNET_GOOD,
                         }
                     ],
@@ -698,8 +728,8 @@ def fulfill_button(interaction, *args, **kwargs):
         "data": {
             "embeds": [
                 {
-                    "title": f"Banking Request {withdrawal.wid} Fulfilled",
-                    "description": "You have fulfilled the banking request.",
+                    "title": "Banking Request Fulfilled",
+                    "description": f"You have fulfilled banking request #{withdrawal.wid}.",
                     "color": SKYNET_GOOD,
                 }
             ],

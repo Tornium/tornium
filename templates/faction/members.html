@@ -33,14 +33,14 @@ Tornium - Faction Members
             </a>
         </div>
 
-        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        {% if current_user.is_authenticated and current_user.faction.tid != 0 %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/chain">
                 <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
             </a>
         </div>
 
-        {% if current_user.is_authenticated and current_user.aa %}
+        {% if current_user.is_authenticated and current_user.faction_aa %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/bankingaa">
                 <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
@@ -64,7 +64,7 @@ Tornium - Faction Members
         <div class="card-body">
             <h5 class="card-title">Faction Members</h5>
 
-            {% if current_user.factionaa %}
+            {% if current_user.faction_aa %}
             <p class="card-text">
                 Average Stat Score: {{ average_stat|round(2, 'common')|commas }}<br />
                 Average Stat Score (top 80%): {{ average_stat_80|round(2, 'common')|commas }}
@@ -87,7 +87,7 @@ Tornium - Faction Members
                 <tbody>
                     {% for member in members %}
                         <tr>
-                            {% if member.key == "" %}
+                            {% if not member.key %}
                                 <th>
                                     <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="right" title="Not Signed In"></i>
                                 </th>
@@ -101,20 +101,20 @@ Tornium - Faction Members
                                 <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
                             </th>
                             <th>{{ member.level }}</th>
-                            <th data-order="{{ member.last_action }}">
-                                <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action|tcttime }}">{{ member.last_action|reltime }}</span>
+                            <th data-order="{{ member.last_action.timestamp() }}">
+                                <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action.timestamp()|tcttime }}">{{ member.last_action.timestamp()|reltime }}</span>
                             </th>
 
-                            {% if current_user.aa or current_user.tid == member.tid %}
-                                <th>{{ member.factionaa }}</th>
-                                {% if member.battlescore == 0 %}
+                            {% if current_user.faction_aa or current_user.tid == member.tid %}
+                                <th>{{ member.faction_aa }}</th>
+				{% if not member.battlescore %}
                                     <th data-order="0">
                                         <i class="fa-solid fa-triangle-exclamation" data-bs-toggle="tooltip" data-bs-placement="right" title="Missing Battlestats. User is not signed into Tornium or TornStats."></i>
                                     </th>
-                                {% else %}
-                                    <th data-order="{{ member.battlescore }}">
-                                        <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
-                                    </th>
+				    {% else %}
+				    <th data-order="{{ member.battlescore }}">
+					    <span data-bs-toggle="tooltip" data-bs-placement="right" title="Strength: {{ member.strength|round|commas }}<br />Defense: {{ member.defense|round|commas }}<br />Speed: {{ member.speed|round|commas }}<br />Dexterity: {{ member.dexterity|round|commas }}">{{ member.battlescore|round|commas }}</span>
+				    </th>
                                 {% endif %}
                             {% else %}
                                 <th data-order="0">
@@ -125,8 +125,8 @@ Tornium - Faction Members
                                 </th>
                             {% endif %}
 
-                            <th data-order="{{ member.last_refresh }}">
-                                <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh|tcttime }}">{{ member.last_refresh|reltime }}</span>
+                            <th data-order="{{ member.last_refresh.timestamp() }}">
+                                <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh.timestamp()|tcttime }}">{{ member.last_refresh.timestamp()|reltime }}</span>
                             </th>
 
                             {% if member.discord_id == 0 %}

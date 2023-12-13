@@ -17,7 +17,6 @@ import datetime
 import hashlib
 import inspect
 import json
-import random
 import secrets
 import time
 import typing
@@ -31,31 +30,48 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
-from tornium_commons.errors import NetworkingError, TornError
-from tornium_commons.models import UserModel
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
 from controllers.api.utils import json_api_exception
 from controllers.decorators import token_required
-from models.user import User
+from models.user import AuthUser
 
 mod = Blueprint("authroutes", __name__)
+config = Config.from_json()
 
 
 @mod.route("/login", methods=["GET", "POST"])
-def login():
+def login(*args, **kwargs):
     if request.method == "GET":
         session["oauth_state"] = secrets.token_urlsafe()
 
         return render_template("login.html")
 
-    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).first()
+    if request.form.get("key") is None or len(request.form["key"]) < 16:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid API Key",
+                error="Torn API keys must be 16 characters in length. Please make sure that you're using the correct "
+                "API key (e.g. Torn Stats API keys will not work).",
+            ),
+            400,
+        )
+
+    user: typing.Optional[User]
+    try:
+        user = User.get(User.key == request.form["key"])
+    except DoesNotExist:
+        user = None
 
     if user is None:
         try:
@@ -65,10 +81,10 @@ def login():
         except NetworkingError as e:
             return utils.handle_networking_error(e)
         except Exception as e:
-            return render_template("errors/error.html", title="Error", error=str(e))
-
-        if "error" in key_info:
-            return utils.handle_torn_error(TornError(key_info["error"]["code"], "key/?selections=info"))
+            return (
+                render_template("errors/error.html", title="Error", error=str(e)),
+                500,
+            )
 
         if key_info["access_level"] < 3:
             return (
@@ -90,9 +106,19 @@ def login():
     except AttributeError:
         pass
 
-    user: typing.Optional[UserModel] = UserModel.objects(key=request.form["key"]).no_cache().first()
-
-    if user is None:
+    try:
+        auth_user: AuthUser = (
+            AuthUser.select(
+                AuthUser.discord_id,
+                AuthUser.security,
+                AuthUser.otp_secret,
+                AuthUser.otp_backups,
+                AuthUser.tid,
+            )
+            .where(AuthUser.key == request.form["key"])
+            .get()
+        )
+    except DoesNotExist:
         return render_template(
             "errors/error.html",
             title="User Not Found",
@@ -100,7 +126,7 @@ def login():
             "again and if this problem persists, contact tiksan [2383326] for support.",
         )
 
-    if not current_user.is_authenticated and user.discord_id not in (0, None, ""):
+    if not current_user.is_authenticated and auth_user.discord_id not in (0, None, ""):
         discord_payload = {
             "embeds": [
                 {
@@ -141,12 +167,12 @@ def login():
             ],
         }
 
-        send_dm.delay(user.discord_id, discord_payload).forget()
+        send_dm.delay(auth_user.discord_id, discord_payload).forget()
 
-    if user.security == 0:
-        login_user(User(user.tid), remember=True)
-    elif user.security == 1:
-        if user.otp_secret == "":  # nosec B105
+    if auth_user.security == 0 or auth_user.security is None:
+        login_user(auth_user, remember=True)
+    elif auth_user.security == 1:
+        if auth_user.otp_secret == "":  # nosec B105
             return (
                 render_template(
                     "errors/error.html",
@@ -169,7 +195,7 @@ def login():
         redis_client.setnx(f"tornium:login:{client_token}", time.time())
         redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
 
-        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
+        redis_client.setnx(f"tornium:login:{client_token}:tid", auth_user.tid)
         redis_client.expire(f"tornium:login:{client_token}:tid", 180)
 
         return redirect(f"/login/totp?token={client_token}")
@@ -199,7 +225,11 @@ def topt_verification():
         return (
             render_template("totp.html"),
             200,
-            {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+            {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
         )
 
     client_token = request.form.get("client-token")
@@ -216,20 +246,19 @@ def topt_verification():
     elif redis_client.get(f"tornium:login:{client_token}") is None:
         return redirect("/login")
 
-    user: typing.Optional[UserModel] = UserModel.objects(
-        tid=redis_client.get(f"tornium:login:{client_token}:tid")
-    ).first()
-
-    if user is None:
+    try:
+        user: AuthUser = AuthUser.get_by_id(int(redis_client.get(f"tornium:login:{client_token}:tid")))
+    except (TypeError, ValueError, DoesNotExist):
         return redirect("/login")
 
+    # TODO: rename next variable... shadows Py statement
     server_totp_tokens = utils.totp.totp(user.otp_secret)
     next = session.get("next")
 
     if secrets.compare_digest(totp_token, server_totp_tokens[0]) or secrets.compare_digest(
         totp_token, server_totp_tokens[1]
     ):
-        login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
+        login_user(user, remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
         if next is None:
@@ -239,9 +268,9 @@ def topt_verification():
             return redirect(next)
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
-        user.save()
+        User.update(otp_backups=user.otp_backups).where(User.tid == user.tid).execute()
 
-        login_user(User(redis_client.get(f"tornium:login:{client_token}:tid")), remember=True)
+        login_user(user, remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
         if next is None:
@@ -269,21 +298,32 @@ def skynet_login():
     d_code = request.args.get("code")
     oauth_state = request.args.get("state")
 
-    if oauth_state != session.get("oauth_state"):
+    if oauth_state is None:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the Discord callback. Please try again and make sure that you're on the correct website.",
+            ),
+            401,
+        )
+    elif oauth_state != session.get("oauth_state"):
+        print(oauth_state)
+        print(session.get("oauth_state"))
         session.pop("oauth_state", None)
         return (
             render_template(
                 "errors/error.html",
                 title="Unauthorized",
-                error="Security error. No state code was included in the Discord callback or in the session. Please "
+                error="Security error. An invalid state code was included in the Discord callback or in the session. Please "
                 "try again and make sure that you're on the correct website.",
             ),
             401,
         )
 
     payload = {
-        "client_id": Config()["skynet-applicationid"],
-        "client_secret": Config()["skynet-client-secret"],
+        "client_id": config.bot_application_id,
+        "client_secret": config.bot_client_secret,
         "grant_type": "authorization_code",
         "code": d_code,
         "redirect_uri": "https://tornium.com/login/skynet",
@@ -291,7 +331,10 @@ def skynet_login():
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     access_token_data = requests.post(
-        "https://discord.com/api/v10/oauth2/token", headers=headers, data=payload, timeout=5
+        "https://discord.com/api/v10/oauth2/token",
+        headers=headers,
+        data=payload,
+        timeout=5,
     )
     access_token_data.raise_for_status()
     access_token_json = access_token_data.json()
@@ -305,12 +348,12 @@ def skynet_login():
     user_request.raise_for_status()
     user_data = user_request.json()
 
-    user: typing.Optional[UserModel] = UserModel.objects(discord_id=user_data["id"]).first()
+    user: typing.Optional[AuthUser] = AuthUser.select().where(AuthUser.discord_id == user_data["id"]).first()
 
     if user is None:
         try:
             update_user(
-                key=random.choice(UserModel.objects(key__nin=[None, ""])).key,
+                key=User.random_key(),
                 discordid=user_data["id"],
                 refresh_existing=False,
             )
@@ -318,10 +361,19 @@ def skynet_login():
             return utils.handle_networking_error(e)
         except TornError as e:
             return utils.handle_torn_error(e)
+        except MissingKeyError:
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Internal Error",
+                    error="No API keys were available to update your user data. Please contact the server admin.",
+                ),
+                500,
+            )
 
-        user = UserModel.objects(discord_id=user_data["id"]).first()
-
-        if user is None:
+        try:
+            user = AuthUser.get(AuthUser.discord_id == user_data["id"])
+        except DoesNotExist:
             return render_template(
                 "errors/error.html",
                 title="User Not Found",
@@ -330,16 +382,19 @@ def skynet_login():
             )
 
         # Skip security alert as an alert to a compromised Discord account is useless
+        pass
 
     # Skip 2FA for now as it is assumed that Discord SSO is more secure than a Torn API key
-    # Especially if 2FA is already enabled on Discord for the user
+    # Especially if 2FA is already enabled on Discord for the user (is it?)
 
-    login_user(User(user.tid), remember=True)
+    login_user(user, remember=True)
+    next = session.get("next")
 
-    if session.get("next") is None:
+    if next is None:
         return redirect(url_for("baseroutes.index"))
     else:
-        return redirect(session.get("next"))
+        del session["next"]
+        return redirect(next)
 
 
 @mod.route("/login/skynet/callback", methods=["POST"])
@@ -408,10 +463,7 @@ def set_security_mode(*args, **kwargs):
             "details": response["details"],
         }, 400
 
-    user: UserModel = UserModel.objects(tid=current_user.tid).first()
-    user.security = mode
-    user.save()
-
+    User.update(security=mode).where(User.tid == current_user.tid).execute()
     response = json_api_exception("0001")
 
     return {

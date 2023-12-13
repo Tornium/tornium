@@ -38,7 +38,10 @@ def torn_error_handler(e: TornError):
 
 @mod.app_errorhandler(NetworkingError)
 def networking_error_handler(e: NetworkingError):
-    return render_template("errors/networking.html", code=e.code, message=e.message), 500
+    return (
+        render_template("errors/networking.html", code=e.code, message=e.message),
+        500,
+    )
 
 
 @mod.app_errorhandler(400)

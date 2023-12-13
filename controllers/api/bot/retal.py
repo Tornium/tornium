@@ -16,7 +16,8 @@
 import json
 
 from flask import jsonify, request
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -28,44 +29,50 @@ def faction_retal_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-    factiontid = data.get("factiontid")
-    channelid = data.get("channel")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif factiontid in ("", None, 0) or not factiontid.isdigit():
-        return make_exception_response("1102", key)
-    elif channelid in ("", None) or not channelid.isdigit():
-        return make_exception_response("1002", key)
 
-    guildid = int(guildid)
-    factiontid = int(factiontid)
-    channelid = int(channelid)
-
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
-        return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
-        return make_exception_response("4020", key)
-    elif factiontid not in guild.factions:
-        return make_exception_response("4021", key)
-
-    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
-
-    if faction is None or faction.guild != guildid:
+    try:
+        faction_tid = int(data["factiontid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1102", key)
 
     try:
-        guild.retal_config[str(factiontid)]["channel"] = str(channelid)
+        channel_id = int(data["channel"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1002", key)
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+
+    retal_config = guild.retal_config
+
+    try:
+        retal_config[str(faction_tid)]["channel"] = str(channel_id)
     except KeyError:
-        guild.retal_config[str(factiontid)] = {
-            "channel": str(channelid),
+        retal_config[str(faction_tid)] = {
+            "channel": str(channel_id),
             "roles": [],
         }
 
-    guild.save()
+    Server.update(retal_config=retal_config).where(Server.sid == guild.sid).execute()
 
     return jsonify(guild.retal_config), 200, api_ratelimit_response(key)
 
@@ -76,42 +83,49 @@ def faction_retal_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = data.get("guildid")
-    factiontid = data.get("factiontid")
-    roles = data.get("roles")
-
-    if guildid in ("", None, 0) or not guildid.isdigit():
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1001", key)
-    elif factiontid in ("", None, 0) or not factiontid.isdigit():
-        return make_exception_response("1102", key)
-    elif roles is None:
-        return make_exception_response("1003", key)
 
-    guildid = int(guildid)
-    factiontid = int(factiontid)
-
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
-        return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
-        return make_exception_response("4020", key)
-    elif factiontid not in guild.factions:
-        return make_exception_response("4021", key)
-
-    faction: FactionModel = FactionModel.objects(tid=factiontid).first()
-
-    if faction is None or faction.guild != guildid:
+    try:
+        faction_tid = int(data["factiontid"])
+    except (KeyError, ValueError, TypeError):
         return make_exception_response("1102", key)
 
     try:
-        guild.retal_config[str(factiontid)]["roles"] = roles
+        roles = data["roles"]
     except KeyError:
-        guild.retal_config[str(factiontid)] = {
+        return make_exception_response("1003", key)
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+
+    retal_config = guild.retal_config
+
+    try:
+        retal_config[str(faction_tid)]["roles"] = roles
+    except KeyError:
+        retal_config[str(faction_tid)] = {
             "channel": 0,
             "roles": roles,
         }
 
-    guild.save()
+    Server.update(retal_config=retal_config).where(Server.sid == guild.sid).execute()
 
     return jsonify(guild.retal_config), 200, api_ratelimit_response(key)

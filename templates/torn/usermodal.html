@@ -26,10 +26,10 @@
                         {% if user.factionid == 0 %}
                             <li class="list-group-item">Faction: None</li>
                         {% else %}
-                            {% if faction.name == '' %}
+                            {% if user.faction.name == '' %}
                                 <li class="list-group-item">Faction: <a href="/torn/factions?tid={{ user.factionid }}" target="_blank" rel="noopener noreferrer">{{ user.factionid }}</a></li>
                             {% else %}
-                                <li class="list-group-item">Faction: <a href="/torn/factions?tid={{ user.factionid }}" target="_blank" rel="noopener noreferrer">{{ faction.name }} [{{ faction.tid }}]</a></li>
+                                <li class="list-group-item">Faction: <a href="/torn/factions?tid={{ user.factionid }}" target="_blank" rel="noopener noreferrer">{{ user.faction.name }} [{{ user.faction.tid }}]</a></li>
                             {% endif %}
                         {% endif %}
                         <li class="list-group-item">Status: {{ user.status }}</li>

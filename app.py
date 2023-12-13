@@ -46,21 +46,12 @@ import time
 import flask
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
-from mongoengine import connect
+from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
-from tornium_commons.models import FactionModel
+from tornium_commons.models import Faction
 
-config = Config().load()
-
-if not hasattr(sys, "_called_from_test"):
-    connect(
-        db="Tornium",
-        username=config["username"],
-        password=config["password"],
-        host=f'mongodb://{config["host"]}',
-        connect=False,
-    )
+config = Config.from_json()
 
 import utils
 
@@ -94,21 +85,22 @@ def init__app():
     from skynet import mod as skynet_mod
 
     app = flask.Flask(__name__)
-    if config["secret"] is None:
+    if config.flask_secret is None:
         app.secret_key = config.regen_secret()
     else:
-        app.secret_key = config["secret"]
+        app.secret_key = config.flask_secret
 
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
     app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SAMESITE"] = "strict"
+    app.config["SESSION_COOKIE_DOMAIN"] = config.flask_domain
 
     CORS(
         app,
         resources={
             r"/api/*": {"origins": "*"},
-            r"/*": {"origins": config["domain"]},
+            r"/*": {"origins": config.flask_domain},
         },
         supports_credentials=True,
     )
@@ -148,9 +140,9 @@ app = init__app()
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models.user import User
+    from models.user import AuthUser
 
-    return User(user_id)
+    return AuthUser.select().join(Faction, JOIN.LEFT_OUTER).where(AuthUser.tid == user_id).first()
 
 
 @login_manager.unauthorized_handler
@@ -173,16 +165,24 @@ def refresh_needed():
 
 @app.template_filter("reltime")
 def relative_time(s):
+    if s is None:
+        return ""
+    elif isinstance(s, datetime.datetime):
+        return rel_time(s)
+
     return rel_time(datetime.datetime.fromtimestamp(s))
 
 
 @app.template_filter("tcttime")
 def tct_time(s):
-    return torn_timestamp(int(s))
+    return torn_timestamp(s)
 
 
 @app.template_filter("commas")
 def commas_filter(s):
+    if s is None:
+        return ""
+
     return commas(int(s))
 
 
@@ -203,12 +203,12 @@ def join_list(iter: typing.Iterable[str], and_seperator=False):
 
 @app.template_filter("faction")
 def faction_filter(tid):
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=int(tid)).first()
-
-    if faction is None or faction.name in ("", None):
+    try:
+        faction = Faction.select(Faction.name).where(Faction.tid == tid).get()
+    except DoesNotExist:
         return f"N/A {tid}"
-    else:
-        return f"{faction.name} [{faction.tid}]"
+
+    return f"{faction.name} [{tid}]"
 
 
 @app.before_request
@@ -253,9 +253,19 @@ def after_request(response: flask.Response):
             client_token = secrets.token_urlsafe()
 
             redis_client.set(
-                f"tornium:token:api:{client_token}", f"{int(time.time())}|{current_user.tid}", nx=True, ex=300
+                f"tornium:token:api:{client_token}",
+                f"{int(time.time())}|{current_user.tid}",
+                nx=True,
+                ex=300,
             )
 
-            response.set_cookie("token", client_token, max_age=300, secure=True, httponly=True, samesite="Strict")
+            response.set_cookie(
+                "token",
+                client_token,
+                max_age=300,
+                secure=True,
+                httponly=True,
+                samesite="Strict",
+            )
 
     return response

@@ -13,17 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import typing
 
-import mongoengine
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
-from tornium_commons.models import FactionModel, StatModel, UserModel
+from tornium_commons.models import Faction, Stat, User
 
+import utils
 from controllers.faction.decorators import aa_required
 
 mod = Blueprint("statroutes", __name__)
@@ -52,79 +51,55 @@ def stats_data():
     min_bs = request.args.get("minBS")
     max_bs = request.args.get("maxBS")
 
-    stats = []
-
-    stat_entries: mongoengine.QuerySet
-    if current_user.is_authenticated:
+    stat_entries: typing.Iterable[Stat]
+    if current_user.is_authenticated and current_user.faction_id not in (None, 0):
         if get_tid(search_value):
-            stat_entries = StatModel.objects(
-                Q(tid=get_tid(search_value))
-                & (Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid))
+            stat_entries = Stat.select().where(
+                (Stat.tid == get_tid(search_value))
+                & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
             )
         else:
-            stat_entries = StatModel.objects(
-                Q(globalstat=True) | Q(addedid=current_user.tid) | Q(addedfactiontid=current_user.factiontid)
-            )
+            stat_entries = Stat.select().where((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
     else:
         if get_tid(search_value):
-            stat_entries = StatModel.objects(Q(tid=get_tid(search_value)) & Q(globalstat=True))
+            stat_entries = Stat.select().where((Stat.tid == get_tid(search_value)) & (Stat.added_group == 0))
         else:
-            stat_entries = StatModel.objects(globalstat=True)
+            stat_entries = Stat.select().where(Stat.added_group == 0)
 
     if min_bs != "" and max_bs != "":
-        stat_entries = stat_entries.filter(Q(battlescore__gt=int(min_bs)) & Q(battlescore__lt=int(max_bs)))
+        stat_entries = stat_entries.where((Stat.battlescore >= int(min_bs)) & (Stat.battlescore <= int(max_bs)))
     elif min_bs == "" and max_bs != "":
-        stat_entries = stat_entries.filter(battlescore__lt=int(max_bs))
+        stat_entries = stat_entries.where(Stat.battlescore <= int(max_bs))
     elif min_bs != "" and max_bs == "":
-        stat_entries = stat_entries.filter(battlescore__gt=int(min_bs))
-
-    if ordering_direction == "asc":
-        ordering_direction = "+"
-    else:
-        ordering_direction = "-"
+        stat_entries = stat_entries.where(Stat.battlescore >= int(min_bs))
 
     if ordering == 0:
-        stat_entries = stat_entries.order_by(f"{ordering_direction}tid")
+        stat_entries = stat_entries.order_by(utils.table_order(ordering_direction, Stat.tid))
     elif ordering == 1:
-        stat_entries = stat_entries.order_by(f"{ordering_direction}battlescore")
+        stat_entries = stat_entries.order_by(utils.table_order(ordering_direction, Stat.battlescore))
     else:
-        stat_entries = stat_entries.order_by(f"{ordering_direction}timeadded")
+        stat_entries = stat_entries.order_by(utils.table_order(ordering_direction, Stat.time_added))
 
-    stat_entries_subset = stat_entries[start : start + length]
-    users = {}
+    # TODO: pagination doesn't work when the page is first loaded
+    # Shows the same data every time
+    stat_entries_subset = stat_entries.paginate(start // length, length)
+    stat_entries_subset.join(User)
 
-    stat_entry: StatModel
-    for stat_entry in stat_entries_subset:
-        if stat_entry.tid in users:
-            user: UserModel = users[stat_entry.tid]
-        else:
-            user: UserModel = UserModel.objects(_id=stat_entry.tid).first()
-            users[stat_entry.tid] = user
+    stats = [
+        [
+            stat_entry.tid_id if stat_entry.tid is None else f"{stat_entry.tid.name} [{stat_entry.tid_id}]",
+            commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
+            rel_time(stat_entry.time_added),
+        ]
+        for stat_entry in stat_entries_subset
+    ]
 
-        stats.append(
-            [
-                stat_entry.tid if user is None else f"{user.name} [{user.tid}]",
-                commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
-                rel_time(datetime.datetime.fromtimestamp(stat_entry.timeadded)),
-            ]
-        )
-
-    cached_count: typing.Optional[str] = rds().get("tornium:stats:count")
-
-    if cached_count is None or not cached_count.isdigit():
-        stat_count = StatModel.objects.count()
-        rds().set("tornium:stats:count", stat_count, ex=3600)
-    else:
-        stat_count = int(cached_count)
-
-    data = {
+    return {
         "draw": request.args.get("draw"),
-        "recordsTotal": stat_count,
-        "recordsFiltered": stat_count,
+        "recordsTotal": Stat.select().count(),
+        "recordsFiltered": stat_entries.select().count(),
         "data": stats,
-    }
-
-    return data
+    }, 200
 
 
 @mod.route("/stats/chain")
@@ -137,15 +112,15 @@ def chain():
 @fresh_login_required
 @aa_required
 def config():
-    faction_model = FactionModel.objects(tid=current_user.factiontid).first()
+    stats_global = current_user.faction.stats_db_global
 
     if request.method == "POST":
         if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
             if request.form.get("enabled") is not None:
-                faction_model.statconfig["global"] = 1
+                stats_global = True
             else:
-                faction_model.statconfig["global"] = 0
+                stats_global = False
 
-            faction_model.save()
+            Faction.update(stats_db_global=stats_global).where(Faction.tid == current_user.faction_id).execute()
 
-    return render_template("stats/config.html", config=faction_model.statconfig)
+    return render_template("stats/config.html", stats_global=stats_global)

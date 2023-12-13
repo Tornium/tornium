@@ -12,22 +12,27 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import typing
 
 from flask import jsonify
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.decorators import ratelimit, token_required
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
 def _faction_data(tid, guild=None):
-    faction: typing.Optional[FactionModel] = FactionModel.objects(tid=tid).first()
-
     data = {
         "id": tid,
         "name": "",
     }
+
+    try:
+        faction: Faction = Faction.select(Faction.name).where(Faction.tid == tid).get()
+    except DoesNotExist:
+        return data
 
     if faction is not None:
         data["name"] = faction.name
@@ -35,14 +40,14 @@ def _faction_data(tid, guild=None):
     return data
 
 
-def jsonified_server_config(guild: ServerModel):
+def jsonified_server_config(guild: Server):
     data = {
         "id": str(guild.sid),
         "name": guild.name,
         "admins": guild.admins,
         "factions": {tid: _faction_data(tid) for tid in guild.factions},
         "verify": {
-            "enabled": guild.config.get("verify"),
+            "enabled": guild.verify_enabled,
             "template": guild.verify_template,
             "verified_roles": list(map(str, guild.verified_roles)),
             "exclusion_roles": list(map(str, guild.exclusion_roles)),
@@ -53,7 +58,7 @@ def jsonified_server_config(guild: ServerModel):
         "banking": guild.banking_config,
         "armory": {"enabled": guild.armory_enabled, "config": {**guild.armory_config}},
         "assists": {
-            "channel": str(guild.assistschannel),
+            "channel": str(guild.assist_channel),
             "factions": guild.assist_factions,
             "roles": {
                 "smoker": list(map(str, guild.assist_smoker_roles)),
@@ -96,14 +101,15 @@ def jsonified_server_config(guild: ServerModel):
 
 @token_required
 @ratelimit
-def server_config(guildid, *args, **kwargs):
+def server_config(guild_id, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

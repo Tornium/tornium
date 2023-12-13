@@ -15,26 +15,24 @@
 
 import random
 import time
-from functools import wraps
+import typing
 
 import flask
 from nacl.signing import VerifyKey
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
-from tornium_commons import rds
-from tornium_commons.errors import NetworkingError, TornError
-from tornium_commons.models import FactionModel, ServerModel, UserModel
+from tornium_celery.tasks.user import update_user
+from tornium_commons import Config, rds
+from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from models.faction import Faction
+application_public = Config.from_json().bot_application_public
 
 
 def verify_headers(request: flask.Request):
     # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
-
-    redis = rds()
-    public_key = redis.get("tornium:settings:skynet-applicationpublic")
-
-    verify_key = VerifyKey(bytes.fromhex(public_key))
+    verify_key = VerifyKey(bytes.fromhex(application_public))
 
     signature = request.headers["X-Signature-Ed25519"]
     timestamp = request.headers["X-Signature-Timestamp"]
@@ -43,7 +41,7 @@ def verify_headers(request: flask.Request):
     verify_key.verify(f"{timestamp}{body}".encode(), bytes.fromhex(signature))
 
 
-def get_admin_keys(interaction, all_keys: bool = False):
+def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
     """
     Retrieves the keys to be used for a Discord interaction
 
@@ -51,28 +49,35 @@ def get_admin_keys(interaction, all_keys: bool = False):
     :param all_keys: Flag for whether all applicable keys should be included
     """
 
-    admin_keys = []
+    # TODO: Accept passed server model to prevent double query
 
-    if "member" in interaction:
-        invoker: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        invoker: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+    admin_keys: typing.List[str] = []
+
+    invoker: typing.Optional[User]
+    try:
+        if "member" in interaction:
+            invoker = User.get(User.discord_id == interaction["member"]["user"]["id"])
+        else:
+            invoker = User.get(User.discord_id == interaction["user"]["id"])
+    except DoesNotExist:
+        invoker = None
 
     if invoker is not None and invoker.key not in ("", None) and not all_keys:
         return tuple([invoker.key])
 
     if "guild_id" in interaction:
-        server = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-        if server is None:
+        try:
+            server: Server = Server.get_by_id(interaction["guild_id"])
+        except DoesNotExist:
             return tuple(admin_keys)
 
         for admin in server.admins:
-            admin_user: UserModel = UserModel.objects(tid=admin).first()
-
-            if admin_user is None:
+            try:
+                admin_user: User = User.select(User.key).where(User.tid == admin).get()
+            except DoesNotExist:
                 continue
-            elif admin_user.key in ("", None):
+
+            if admin_user.key == "" or admin_user.key is None:
                 continue
 
             admin_keys.append(admin_user.key)
@@ -80,7 +85,7 @@ def get_admin_keys(interaction, all_keys: bool = False):
     return tuple(admin_keys)
 
 
-def get_faction_keys(interaction, faction=None):
+def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> tuple:
     """
     Retrieves the AA keys to be used for a Discord interaction
 
@@ -91,36 +96,44 @@ def get_faction_keys(interaction, faction=None):
     if faction is not None:
         return tuple(faction.aa_keys)
 
-    if "member" in interaction:
-        invoker: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
-    else:
-        invoker: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+    invoker: typing.Optional[User]
+    try:
+        if "member" in interaction:
+            invoker = User.select(User.key, User.discord_id, User.faction, User.faction_aa).get(
+                User.discord_id == interaction["member"]["user"]["id"]
+            )
+        else:
+            invoker = User.select(User.key, User.discord_id, User.faction, User.faction_aa).get(
+                User.discord_id == interaction["user"]["id"]
+            )
+    except DoesNotExist:
+        return tuple()
 
-    if invoker is None:
-        return ()
-
-    if invoker.key not in ("", None) and invoker.factionaa:
+    if invoker.key not in ("", None) and invoker.faction_aa:
         return tuple([invoker.key])
 
-    if faction is None or type(faction) not in (Faction, FactionModel):
-        faction: FactionModel = FactionModel.objects(tid=invoker.factionid).first()
-
     if faction is None:
-        return ()
+        try:
+            faction = Faction.select(Faction.aa_keys).where(Faction.tid == invoker.faction.tid).get()
+        except DoesNotExist:
+            return tuple()
 
     return tuple(faction.aa_keys)
 
 
-def check_invoker_exists(interaction):
+def check_invoker_exists(interaction: dict):
+    discord_id = None
+
+    invoker: typing.Optional[User]
     if "member" in interaction:
-        user: UserModel = UserModel.objects(discord_id=interaction["member"]["user"]["id"]).first()
+        invoker = User.select().where(User.discord_id == interaction["member"]["user"]["id"]).first()
         discord_id = interaction["member"]["user"]["id"]
     else:
-        user: UserModel = UserModel.objects(discord_id=interaction["user"]["id"]).first()
+        invoker = User.select().where(User.discord_id == interaction["user"]["id"]).first()
         discord_id = interaction["user"]["id"]
 
-    if user is not None and user.tid != 0:
-        return user, None
+    if invoker is None:
+        return invoker, tuple()
 
     admin_keys = get_admin_keys(interaction)
 
@@ -136,15 +149,26 @@ def check_invoker_exists(interaction):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
+            },
+        }
+    elif discord_id is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No Discord ID",
+                        "description": "No Discord ID was found on the interaction. Please report this to the developer.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             },
         }
 
     try:
-        user_data = tornget(
-            f"user/{discord_id}?selections=profile,discord",
-            random.choice(admin_keys),
-        )
+        update_user(key=random.choice(admin_keys), discordid=discord_id)
     except TornError as e:
         if e.code == 6:
             return {
@@ -159,7 +183,7 @@ def check_invoker_exists(interaction):
                             "color": SKYNET_ERROR,
                         }
                     ],
-                    "flags": 64,  # Ephemeral
+                    "flags": 64,
                 },
             }
 
@@ -173,7 +197,7 @@ def check_invoker_exists(interaction):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -187,39 +211,27 @@ def check_invoker_exists(interaction):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-
-    user: UserModel = UserModel.objects(tid=user_data["player_id"]).modify(
-        upsert=True,
-        new=True,
-        set__name=user_data["name"],
-        set__level=user_data["level"],
-        set__last_refresh=int(time.time()),
-        set__discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
-        set__factionid=user_data["faction"]["faction_id"],
-        set__status=user_data["last_action"]["status"],
-        set__last_action=user_data["last_action"]["timestamp"],
-    )
-
-    if user.discord_id == 0:
+    except MissingKeyError:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "User Requires Verification",
-                        "description": "You are required to be verified officially by Torn through the "
-                        "[official Torn Discord server](https://www.torn.com/discord]. If you have recently "
-                        "verified yourself, please wait a minute or two before trying again.",
+                        "title": "Missing API Key",
+                        "description": "No API key was passed to the API call. Please try again or sign into Tornium.",
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-    elif user is None:
+
+    user = User.select().where(User.discord_id == discord_id).first()
+
+    if user is None:
         return {
             "type": 4,
             "data": {
@@ -231,7 +243,7 @@ def check_invoker_exists(interaction):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 

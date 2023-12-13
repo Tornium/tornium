@@ -22,8 +22,9 @@ from functools import partial, wraps
 import msgpack
 import redis
 from flask import Response, jsonify, request
+from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import UserModel
+from tornium_commons.models import User
 
 from controllers.api.utils import make_exception_response
 
@@ -73,9 +74,9 @@ def torn_key_required(func):
         if authorization == "":
             return make_exception_response("4001")
 
-        user = UserModel.objects(key=authorization).first()
-
-        if user is None:
+        try:
+            user: User = User.get(User.key == authorization)
+        except DoesNotExist:
             return make_exception_response("4001")
 
         kwargs["user"] = user
@@ -108,9 +109,9 @@ def token_required(func):
         except TypeError:
             return make_exception_response("4001")
 
-        user: UserModel = UserModel.objects(tid=tid).first()
-
-        if user is None:
+        try:
+            user: User = User.get_by_id(tid)
+        except DoesNotExist:
             return make_exception_response("4001")
 
         kwargs["user"] = user
@@ -144,9 +145,9 @@ def authentication_required(func):
             except TypeError:
                 return make_exception_response("4001")
 
-            user: UserModel = UserModel.objects(tid=tid).first()
-
-            if user is None:
+            try:
+                user: User = User.get_by_id(tid)
+            except DoesNotExist:
                 return make_exception_response("4001")
 
             kwargs["user"] = user
@@ -179,9 +180,9 @@ def authentication_required(func):
                 401,
             )
 
-        user = UserModel.objects(key=authorization[1]).first()
-
-        if user is None:
+        try:
+            user: User = User.get(User.key == authorization[1])
+        except DoesNotExist:
             return make_exception_response("4001")
 
         kwargs["user"] = user
@@ -209,9 +210,14 @@ def global_cache(func=None, duration=3600):
 
             if endpoint_response[1] // 100 != 2:
                 return endpoint_response
+            # TODO: Don't cache API errors
+            # TODO: Add type handling as only Response type responses would have the .json attribute
 
             client.set(
-                f"tornium:cache:{request.url_rule}", msgpack.dumps(endpoint_response[0].json), nx=True, ex=duration
+                f"tornium:cache:{request.url_rule}",
+                msgpack.dumps(endpoint_response[0].json),
+                nx=True,
+                ex=duration,
             )
 
             endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
@@ -223,7 +229,10 @@ def global_cache(func=None, duration=3600):
         return (
             unpacked_response,
             200,
-            {"Content-Type": "application/json", "Cache-Control": f"max-age={cache_ttl}, public"},
+            {
+                "Content-Type": "application/json",
+                "Cache-Control": f"max-age={cache_ttl}, public",
+            },
         )
 
     return wrapper

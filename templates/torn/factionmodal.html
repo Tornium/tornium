@@ -20,9 +20,9 @@
                         <li class="list-group-item">Name: {{ faction.name }}</li>
                         <li class="list-group-item">ID: {{ faction.tid }}</li>
                         <li class="list-group-item">Respect: {{ faction.respect|commas }}</li>
-                        <li class="list-group-item">Leader: <a href="/torn/users?tid={{ faction.leader }}">{{ leader.name }} [{{ faction.leader }}]</a></li>
+                        <li class="list-group-item">Leader: <a href="/torn/users?tid={{ faction.leader.tid }}">{{ faction.leader.name }} [{{ faction.leader.tid }}]</a></li>
                         {% if faction.coleader != 0 %}
-                            <li class="list-group-item">Co-Leader: <a href="/torn/users?tid={{ faction.coleader }}">{{ coleader.name }} [{{ faction.coleader }}]</a></li>
+                            <li class="list-group-item">Co-Leader: <a href="/torn/users?tid={{ faction.coleader.tid }}">{{ faction.coleader.name }} [{{ faction.coleader.tid }}]</a></li>
                         {% endif %}
                     </ul>
                 </div>

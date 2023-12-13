@@ -17,7 +17,9 @@ import json
 import time
 
 from flask import jsonify, request
-from tornium_commons.models import FactionModel, PositionModel, ServerModel
+from peewee import DoesNotExist
+from playhouse.shortcuts import model_to_dict
+from tornium_commons.models import Faction, FactionPosition, Server
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -28,38 +30,44 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def get_positions(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    guildid = request.args.get("guildid")
-    factiontid = request.args.get("factiontid")
+    try:
+        guild_id = int(request.args["guildid"])
+    except (KeyError, TypeError, ValueError):
+        return make_exception_response("1001", key)
 
-    if guildid not in (None, 0, "") and factiontid not in (None, 0, "") and guildid.isdigit() and factiontid.isdigit():
-        guildid = int(guildid)
-        factiontid = int(factiontid)
+    try:
+        faction_tid = int(request.args["factiontid"])
+    except (KeyError, TypeError, ValueError):
+        return make_exception_response("1102", key)
 
-        if kwargs["user"].factionid != factiontid or not kwargs["user"].factionaa:
-            guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-            if guild is None:
+    if guild_id != 0 and faction_tid != 0:
+        if kwargs["user"].faction.tid != faction_tid or not kwargs["user"].faction_aa:
+            try:
+                guild: Server = Server.get_by_id(guild_id)
+            except DoesNotExist:
                 return make_exception_response("1001", key)
-            elif kwargs["user"].tid not in guild.admins:
+
+            if kwargs["user"].tid not in guild.admins:
                 return make_exception_response("4020", key)
-            elif factiontid not in guild.factions:
+            elif faction_tid not in guild.factions:
                 return make_exception_response("1102", key)
 
-            faction: FactionModel = FactionModel.objects(tid=factiontid).first()
-
-            if faction is None:
+            try:
+                faction: Faction = Faction.get_by_id(faction_tid)
+            except DoesNotExist:
                 return make_exception_response("1102", key)
-            elif faction.guild != guildid:
+
+            if faction.guild_id != guild_id:
                 return make_exception_response("1102", key)
         else:
-            faction: FactionModel = FactionModel.objects(tid=kwargs["user"].factionid).first()
+            faction: Faction = kwargs["user"].faction
     else:
-        if kwargs["user"].factionid == 0:
+        if kwargs["user"].faction is None:
             return make_exception_response("1102", key)
-        elif not kwargs["user"].factionaa:
+        elif not kwargs["user"].faction_aa:
             return make_exception_response("4005", key)
 
-        faction: FactionModel = FactionModel.objects(tid=kwargs["user"].factionid).first()
+        faction: Faction = kwargs["user"].faction
 
     if faction is None:
         return make_exception_response("1102", key)
@@ -70,16 +78,16 @@ def get_positions(*args, **kwargs):
             details={"message": "The data hasn't been updated sufficiently recently."},
         )
 
-    positions = PositionModel.objects(factiontid=faction.tid)
+    positions = FactionPosition.select().where(FactionPosition.faction_tid == faction_tid)
 
     if positions.count() == 0:
         return make_exception_response("1103", key)
 
     positions_data = []
 
-    position: PositionModel
+    position: FactionPosition
     for position in positions:
-        position_data = json.loads(position.to_json())
+        position_data = model_to_dict(position)
         position_data["_id"] = str(position.pid)
         positions_data.append(position_data)
 

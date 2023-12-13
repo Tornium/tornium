@@ -13,16 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
+import datetime
 import typing
 
-import mongoengine.queryset
-from bson.objectid import ObjectId
-from mongoengine import QuerySet
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import commas, find_list
-from tornium_commons.models import NotificationModel, ServerModel, UserModel
+from tornium_commons.models import Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 
@@ -122,9 +119,9 @@ def notify(interaction, *args, **kwargs):
             }
 
         if not private:
-            guild: ServerModel = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-            if guild is None:
+            try:
+                guild: Server = Server.get_by_id(interaction["guild_id"])
+            except DoesNotExist:
                 return {
                     "type": 4,
                     "data": {
@@ -138,7 +135,8 @@ def notify(interaction, *args, **kwargs):
                         "flags": 64,
                     },
                 }
-            elif user.tid not in guild.admins:
+
+            if user.tid not in guild.admins:
                 return {
                     "type": 4,
                     "data": {
@@ -164,7 +162,7 @@ def notify(interaction, *args, **kwargs):
                         {
                             "title": "Tornium Cache Error",
                             "description": "Tornium's cache does not currently include stocks. Please try again in a "
-                            "bit. If this issue keeps occurring, please report it to the developer.",
+                            "few minutes. If this issue keeps occurring, please report it to the developer.",
                             "color": SKYNET_ERROR,
                         }
                     ],
@@ -205,18 +203,17 @@ def notify(interaction, *args, **kwargs):
         else:
             stock_id = int(stock_id[0])
 
-        notification = NotificationModel(
+        notification = Notification.insert(
             invoker=user.tid,
-            time_created=int(time.time()),
+            time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
             recipient_guild=0 if private else int(interaction["guild_id"]),
-            recipient_type=int(not private),
-            ntype=0,
+            n_type=0,
             target=stock_id,
             persistent=False,
-            value=price,
-            options={"equality": equality},
-        ).save()
+            enabled=True,
+            options={"equality": equality, "value": price},
+        ).execute()
 
         return {
             "type": 4,
@@ -229,14 +226,12 @@ def notify(interaction, *args, **kwargs):
                         "fields": [
                             {
                                 "name": "Private",
-                                "value": not bool(notification.recipient_type),
+                                "value": private,
                                 "inline": True,
                             },
                             {
                                 "name": "Target Channel",
-                                "value": f"<#{notification.recipient}>"
-                                if notification.recipient_type == 1
-                                else "Direct Message",
+                                "value": "Direct Message" if private else f"#{channel}",
                                 "inline": True,
                             },
                             {
@@ -256,7 +251,7 @@ def notify(interaction, *args, **kwargs):
                             },
                         ],
                         "footer": {
-                            "text": f"DB ID: {notification.id}",
+                            "text": f"DB ID: {notification}",
                         },
                     }
                 ],
@@ -285,14 +280,17 @@ def notify(interaction, *args, **kwargs):
             }
 
         notification_id = notification_id[1]["value"]
-        notifications: mongoengine.queryset.QuerySet
 
         if notification_id.lower() == "all":
-            notifications = NotificationModel.objects(invoker=user.tid)
+            notifications = Notification.select().where(Notification.invoker == user.tid)
         else:
-            notifications = NotificationModel.objects(Q(_id=ObjectId(notification_id)) & Q(invoker=user.tid))
+            notifications = Notification.select().where(
+                (Notification._id == notification_id) & (Notification.invoker == user.tid)
+            )
 
-        if notifications.count() == 0:
+        notification_count = notifications.count()
+
+        if notification_count == 0:
             return {
                 "type": 4,
                 "data": {
@@ -306,12 +304,10 @@ def notify(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        else:
-            notification_count = notifications.count()
 
-        notification: NotificationModel
+        notification: Notification
         for notification in notifications:
-            notification.delete()
+            notification.delete_instance()
 
         return {
             "type": 4,
@@ -352,18 +348,20 @@ def notify(interaction, *args, **kwargs):
 
         stocks = rds().json().get("tornium:stocks")
 
-        notification: NotificationModel
+        notification: Notification
         for notification in notifications[page * 9 : (page + 1) * 9]:
             payload["data"]["embeds"][0]["fields"].append(
                 {
-                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.value, stock_price=True)} - {'DM' if notification.recipient_type == 0 else f'<#{notification.recipient}>'}",
-                    "value": f"DB ID: {notification.id}",
+                    "name": f"{stocks[str(notification.target)]} {notification.options['equality']} ${commas(notification.options['value'], stock_price=True)} - {'DM' if notification.recipient_guild == 0 else f'<#{notification.recipient}>'}",
+                    "value": f"DB ID: {notification.get_id()}",
                 }
             )
 
         return payload
 
-    user: UserModel = kwargs["invoker"]
+    # End of component functions
+
+    user: User = kwargs["invoker"]
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
@@ -384,12 +382,11 @@ def notify(interaction, *args, **kwargs):
         }
 
     if subcommand != "initialize":
-        guild: typing.Optional[ServerModel]
-
+        guild: typing.Optional[Server]
         if "guild_id" in interaction:
-            guild = ServerModel.objects(sid=interaction["guild_id"]).first()
-
-            if guild is None:
+            try:
+                guild = Server.get_by_id(interaction["guild_id"])
+            except DoesNotExist:
                 return {
                     "type": 4,
                     "data": {
@@ -403,7 +400,8 @@ def notify(interaction, *args, **kwargs):
                         "flags": 64,
                     },
                 }
-            elif user.tid not in guild.admins:
+
+            if user.tid not in guild.admins:
                 return {
                     "type": 4,
                     "data": {
@@ -421,15 +419,18 @@ def notify(interaction, *args, **kwargs):
         else:
             guild = None
 
-        if subcommand not in ("initialize", "delete"):
-            notifications: QuerySet = NotificationModel.objects(ntype=0)
+        if subcommand not in ("create", "delete"):
+            notifications = Notification.select().where(Notification.n_type == 0)
 
             if guild is not None:
-                notifications.filter(
-                    Q(recipient_type=1) & (Q(recipient_guild=guild.sid)) | (Q(recipient_guild=0) & Q(invoker=user.tid))
+                notifications = notifications.where(
+                    (Notification.recipient_guild == guild.sid)
+                    | ((Notification.recipient_guild == 0) & (Notification.invoker == user.tid))
                 )
             else:
-                notifications.filter(Q(recipient_type=0) & Q(recipient_guild=0) & Q(invoker=user.tid))
+                notifications = notifications.where(
+                    (Notification.recipient_guild == 0) & (Notification.invoker == user.tid)
+                )
 
             if notifications.count() == 0:
                 return {
@@ -438,7 +439,7 @@ def notify(interaction, *args, **kwargs):
                         "embeds": [
                             {
                                 "title": "No Notification Found",
-                                "description": "No notifications could be located with the passed Torn ID and notifications type.",
+                                "description": "No notifications could be located with the passed parameters.",
                                 "color": SKYNET_ERROR,
                             }
                         ],

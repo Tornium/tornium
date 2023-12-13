@@ -70,7 +70,7 @@ _commands = {
     "withdraw": skynet.commands.faction.withdraw.withdraw,
     # Bot Commands
     "verify": skynet.commands.bot.verify.verify,
-    "verifyall": skynet.commands.bot.verifyall.verifyall,
+    "verifyall": skynet.commands.bot.verifyall.verify_all,
     # Notification Commands
     "notify": skynet.commands.notify.notify_switchboard,
     # Stat DB Commands
@@ -115,7 +115,7 @@ def skynet_interactions():
 
     response = skynet.skyutils.check_invoker_exists(request.json)
 
-    if type(response) == dict:
+    if isinstance(response, dict):
         return jsonify(response)
 
     invoker, admin_keys = response

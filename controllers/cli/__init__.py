@@ -23,14 +23,29 @@ import traceback
 import click
 from flask import Blueprint
 from tornium_celery.tasks.api import discordput
-from tornium_commons import rds
+from tornium_commons import Config, db, models, rds
 from tornium_commons.errors import DiscordError
+from tornium_commons.models import *  # noqa: F403  # Used for create_db()
 
 from utils.tornium_ext import TorniumExt
 
 mod = Blueprint("cli", __name__)
 
 EXCLUDE_KEYS = ("function", "active", "disabled")
+
+
+@mod.cli.command("create-db")
+@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
+def create_db(verbose=False):
+    if verbose:
+        click.echo(f"Located {len(models.__all__)} models: {models}")
+    else:
+        click.echo(f"Located {len(models.__all__)} models...")
+
+    with db() as _db:
+        _db.create_tables([globals()[n] for n in models.__all__ if globals().get(n) is not None])
+
+    click.echo("Tables created")
 
 
 @mod.cli.command("update-commands")
@@ -45,7 +60,7 @@ def update_commands(verbose=False):
     handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     botlogger.addHandler(handler)
 
-    application_id = rds().get("tornium:settings:skynet-applicationid")
+    application_id = Config.from_json().bot_application_id
     botlogger.debug(application_id)
 
     commands_data = []

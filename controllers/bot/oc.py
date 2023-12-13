@@ -18,8 +18,8 @@ from flask_login import fresh_login_required
 
 
 @fresh_login_required
-def oc_dashboard(guildid):
+def oc_dashboard(guild_id):
     return render_template(
         "bot/oc.html",
-        guildid=guildid,
+        guildid=guild_id,
     )

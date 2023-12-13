@@ -30,11 +30,21 @@ def index():
     return render_template("index.html", extensions=extensions)
 
 
+@mod.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
+@mod.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+
 @mod.route("/settings")
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
-    if current_user.key == "":
+    if current_user.key in ("", None):
         obfuscated_key = "Not Set"
     else:
         obfuscated_key = current_user.key[:6] + "*" * 10

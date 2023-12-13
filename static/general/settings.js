@@ -53,6 +53,7 @@ $(document).ready(function () {
                     "Security Mode Switch Failed",
                     response["message"]
                 );
+                window.location.reload();
             } else {
                 $("#disable-mfa").attr("disabled", true);
                 $("#enable-totp").attr("disabled", false);
@@ -85,6 +86,7 @@ $(document).ready(function () {
                     "Security Mode Switch Failed",
                     response["message"]
                 );
+                window.location.reload();
             } else {
                 $("#disable-mfa").attr("disabled", false);
                 $("#enable-totp").attr("disabled", true);

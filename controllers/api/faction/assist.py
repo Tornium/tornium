@@ -23,21 +23,16 @@ import uuid
 
 from celery.result import AsyncResult
 from flask import jsonify, request
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from redis.commands.json.path import Path
-from tornium_celery.tasks.api import discordpost
+from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import (
-    FactionModel,
-    PersonalStatModel,
-    ServerModel,
-    StatModel,
-    UserModel,
-)
+from tornium_commons.models import PersonalStats, Server, Stat, User
 
+from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
 
 
@@ -68,9 +63,9 @@ def forward_assist(*args, **kwargs):
     except TypeError:
         return make_exception_response("1000", redis_client=client)
 
-    user: typing.Optional[UserModel] = UserModel.objects(tid=user_tid).first()
-
-    if user is None:
+    try:
+        user: User = User.get_by_id(user_tid)
+    except DoesNotExist:
         return make_exception_response("1100", redis_client=client)
 
     key = f"tornium:ratelimit:{user_tid}"
@@ -79,22 +74,22 @@ def forward_assist(*args, **kwargs):
     if client.exists(assist_lock_key):
         return make_exception_response("4291", key, redis_client=client)
     else:
-        client.set(assist_lock_key, int(datetime.datetime.utcnow().timestamp()) + 10, nx=True, ex=10)
+        client.set(
+            assist_lock_key,
+            int(datetime.datetime.utcnow().timestamp()) + 10,
+            nx=True,
+            ex=10,
+        )
 
-    if user.factionid != 0:
-        user_faction: typing.Optional[FactionModel] = FactionModel.objects(tid=user.factionid).first()
-
-        if user_faction is None:
-            return make_exception_response("1102", key, redis_client=client)
-    else:
+    if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
 
     call_key: str
     if user.key in ("", None):
-        if user_faction is None or len(user_faction.aa_keys) == 0:
+        if len(user.faction.aa_keys) == 0:
             return make_exception_response("1200", redis_client=client)
 
-        call_key = random.choice(user_faction.aa_keys)
+        call_key = random.choice(user.faction.aa_keys)
     else:
         call_key = user.key
 
@@ -103,34 +98,24 @@ def forward_assist(*args, **kwargs):
     except AttributeError:
         pass
 
-    target: UserModel = UserModel.objects(tid=target_tid).no_cache().first()
-
-    if target is None:
+    try:
+        target: User = User.select().where(User.tid == target_tid).first()
+    except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
-    target_faction: typing.Optional[FactionModel]
-
-    if target.factionid != 0:
-        target_faction = FactionModel.objects(tid=target.factionid).first()
-
-        if target_faction is None:
-            return make_exception_response("1102", key, redis_client=client)
-    else:
-        target_faction = None
-
-    if target.factionid != 0 and target_faction is not None:
-        if target_faction.tag in ("", None):
-            content_target_faction = target_faction.name
+    if target.faction is not None:
+        if target.faction.tag in ("", None):
+            content_target_faction = target.faction.name
         else:
-            content_target_faction = target_faction.tag
+            content_target_faction = target.faction.tag
     else:
         content_target_faction = ""
 
-    if user.factionid != 0 and user_faction is not None:
-        if user_faction.tag in ("", None):
-            user_faction_str = user_faction.name
+    if user.faction is not None:
+        if user.faction.tag in ("", None):
+            user_faction_str = user.faction.name
         else:
-            user_faction_str = user_faction.tag
+            user_faction_str = user.faction.tag
     else:
         user_faction_str = ""
 
@@ -210,8 +195,16 @@ def forward_assist(*args, **kwargs):
     else:
         timeout_str = f" The attack times out <t:{timeout}:R>."
 
+    client.zadd(f"tornium:assists:faction:{user.faction_id}", {guid: int(time.time()) + 300})
+    client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
+
     # target_tid | user_tid | smokes | tears | heavies
-    client.set(f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", nx=True, ex=600)
+    client.set(
+        f"tornium:assists:{guid}",
+        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
+        nx=True,
+        ex=300,
+    )
 
     payload = {
         "content": f"Assist on {target.name} [{content_target_faction}]",
@@ -248,6 +241,7 @@ def forward_assist(*args, **kwargs):
             }
         ],
     }
+    second_embed_modified = False
 
     if len(components_payload) != 0:
         payload["components"].insert(
@@ -258,11 +252,10 @@ def forward_assist(*args, **kwargs):
             },
         )
 
-    stat: StatModel = (
-        StatModel.objects(
-            Q(tid=target_tid) & (Q(globalstat=True) | Q(addedfactiontid=user.factionid) | Q(addedid=user_tid))
-        )
-        .order_by("-timeadded")
+    stat: typing.Optional[Stat] = (
+        Stat.select(Stat.battlescore, Stat.time_added)
+        .where((Stat.tid == target_tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id)))
+        .order_by(-Stat.time_added)
         .first()
     )
 
@@ -281,12 +274,17 @@ def forward_assist(*args, **kwargs):
         payload["embeds"][1]["fields"].append(
             {
                 "name": "Stat Score Update",
-                "value": f"<t:{stat.timeadded}:R>",
+                "value": f"<t:{int(stat.time_added.timestamp())}:R>",
                 "inline": True,
             }
         )
+        second_embed_modified = True
 
-    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
+    ps: typing.Optional[PersonalStats]
+    try:
+        ps = PersonalStats.select().where(PersonalStats.tid == target_tid).order_by(-PersonalStats.timestamp).get()
+    except DoesNotExist:
+        ps = None
 
     if ps is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
@@ -300,12 +298,16 @@ def forward_assist(*args, **kwargs):
             Best Damage: {commas(ps.bestdamage)}
             Networth: ${commas(ps.networth)}
             
-            Personal Stat Last Update: <t:{ps.timestamp}:R>
+            Personal Stat Last Update: <t:{int(ps.timestamp.timestamp())}:R>
             """  # noqa: W293
         )
+        second_embed_modified = True
+
+    if not second_embed_modified:
+        payload["embeds"].pop(1)
 
     client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
-    client.expire(f"tornium:assists:{guid}:payload", 600)
+    client.expire(f"tornium:assists:{guid}:payload", 300)
 
     l0_roles_enabled = False  # 500m+
     l1_roles_enabled = False  # 1b+
@@ -337,11 +339,11 @@ def forward_assist(*args, **kwargs):
     servers_forwarded = []
     messages = []
 
-    server: ServerModel
-    for server in ServerModel.objects(assistchannel__ne=0):
-        if server.assistschannel in (0, "0", None):
+    server: Server
+    for server in Server.select().where(Server.assist_channel != 0):
+        if server.assist_channel in (0, "0", None):
             continue
-        elif user.factionid not in server.assist_factions:
+        elif user.faction.tid not in server.assist_factions:
             continue
 
         roles = []
@@ -370,7 +372,6 @@ def forward_assist(*args, **kwargs):
             roles.extend(heavies_roles)
 
         roles = list(set(roles))
-        print(roles)
 
         if len(roles) > 0:
             payload["content"] += "\n"
@@ -381,7 +382,9 @@ def forward_assist(*args, **kwargs):
         try:
             messages.append(
                 discordpost.delay(
-                    f"channels/{server.assistschannel}/messages", payload=payload, channel=server.assistschannel
+                    f"channels/{server.assist_channel}/messages",
+                    payload=payload,
+                    channel=server.assist_channel,
                 )
             )
         except (DiscordError, NetworkingError):
@@ -402,9 +405,18 @@ def forward_assist(*args, **kwargs):
             continue
 
         packed_messages.add(f"{message['channel_id']}|{message['id']}")
+        discorddelete.apply_async(
+            kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"},
+            countdown=300,
+        ).forget()
 
-    client.json().set(f"tornium:assists:{guid}:messages", Path.root_path(), list(packed_messages), nx=True)
-    client.expire(f"tornium:assists:{guid}:messages", 600)
+    client.json().set(
+        f"tornium:assists:{guid}:messages",
+        Path.root_path(),
+        list(packed_messages),
+        nx=True,
+    )
+    client.expire(f"tornium:assists:{guid}:messages", 300)
 
     return (
         jsonify(
@@ -419,3 +431,62 @@ def forward_assist(*args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@authentication_required
+@ratelimit
+def valid_assists(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    client = rds()
+
+    if kwargs["user"].faction_id in [None, 0]:
+        return make_exception_response("1102", key)
+
+    client.zremrangebyscore(f"tornium:assits:faction:{kwargs['user'].faction_id}", 0, int(time.time()))
+    assist_guids = client.zrange(
+        f"tornium:assists:faction:{kwargs['user'].faction_id}",
+        int(time.time()),
+        int(time.time()) + 300,
+        byscore=True,
+    )
+
+    possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}
+    possible_assists = {}
+
+    # target_tid | user_tid | smokes | tears | heavies
+    for guid, encoded_assist in possible_assists_encoded.items():
+        decoded_assist = encoded_assist.split("|")
+
+        target_db = User.select(User.name, User.level, User.faction).where(User.tid == int(decoded_assist[0])).first()
+
+        if target_db is None:
+            target_object = {"tid": int(decoded_assist[0])}
+        else:
+            target_object = {
+                "tid": int(decoded_assist[0]),
+                "name": target_db.name,
+                "level": target_db.level,
+                "faction": f"{target_db.faction.name} [{target_db.faction_id}]"
+                if target_db.faction_id not in (None, 0)
+                else None,
+            }
+
+        requester_db = User.select(User.name).where(User.tid == int(decoded_assist[1])).first()
+
+        if requester_db is None:
+            requester_object = {"tid": int(decoded_assist[1])}
+        else:
+            requester_object = {
+                "tid": int(decoded_assist[1]),
+                "name": requester_db.name,
+            }
+
+        possible_assists[guid] = {
+            "target": target_object,
+            "requester": requester_object,
+            "smokes": int(decoded_assist[2]),
+            "tears": int(decoded_assist[3]),
+            "heavies": int(decoded_assist[4]),
+        }
+
+    return possible_assists, 200, api_ratelimit_response(key)

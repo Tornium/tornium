@@ -16,7 +16,8 @@
 import json
 
 from flask import request
-from tornium_commons.models import ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 from controllers.api.bot.config import jsonified_server_config
 from controllers.api.decorators import ratelimit, token_required
@@ -25,7 +26,7 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 
 @token_required
 @ratelimit
-def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
+def oc_config_setter(guild_id, faction_tid, notif, element, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     _NOTIF_MAP = {
         "ready": ["roles", "channel"],
@@ -47,19 +48,28 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
     elif element not in ["roles"] and not element_id.isdigit():
         return make_exception_response("1000", key)
 
-    guild: ServerModel = ServerModel.objects(sid=guildid).first()
-
-    if guild is None:
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
         return make_exception_response("1001", key)
-    elif kwargs["user"].tid not in guild.admins:
+
+    if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif factiontid not in guild.factions:
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
         return make_exception_response("4021", key)
 
     oc_config = guild.oc_config
 
-    if str(factiontid) not in oc_config:
-        oc_config[str(factiontid)] = {
+    if str(faction_tid) not in oc_config:
+        oc_config[str(faction_tid)] = {
             "ready": {
                 "channel": 0,
                 "roles": [],
@@ -74,11 +84,11 @@ def oc_config_setter(guildid, factiontid, notif, element, *args, **kwargs):
         }
 
     try:
-        oc_config[str(factiontid)][notif][element] = element_id
+        oc_config[str(faction_tid)][notif][element] = element_id
     except KeyError:
-        oc_config[str(factiontid)][notif] = {element: element_id}
+        oc_config[str(faction_tid)][notif] = {element: element_id}
 
     guild.oc_config = oc_config
-    guild.save()
+    Server.update(oc_config=guild.oc_config).where(Server.sid == guild.sid).execute()
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)

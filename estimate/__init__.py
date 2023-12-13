@@ -3,17 +3,16 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
-import pathlib
 import os
+import pathlib
 import time
 import typing
 
 import pandas as pd
+import xgboost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
-from tornium_commons.models import PersonalStatModel, UserModel
-import xgboost
-
+from tornium_commons.models import PersonalStats, User
 
 model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None
@@ -42,20 +41,21 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except (ValueError, TypeError):
         pass
 
-    ps: typing.Optional[PersonalStatModel] = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
-
+    ps: typing.Optional[PersonalStats] = (
+        PersonalStats.select().where(PersonalStats.tid == user_tid).order_by(-PersonalStats.timestamp).first()
+    )
     df: pd.DataFrame
 
-    if ps is not None and int(time.time()) - ps.timestamp <= 604_800:  # One week
+    if ps is not None and int(time.time()) - ps.timestamp.timestamp() <= 604_800:  # One week
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
-            df[field_name][0] = ps[field_name]
+            df[field_name][0] = ps.__getattribute__(field_name)
 
         df["tid"][0] = user_tid
         df = df.astype("int64")
 
-        return model.predict(df), int(time.time()) - ps.timestamp + 604_800
+        return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800
 
     try:
         update_user(tid=user_tid, key=api_key, refresh_existing=True)
@@ -63,19 +63,19 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except Exception:
         update_error = True
 
-    ps = PersonalStatModel.objects(tid=user_tid).order_by("-timestamp").first()
+    ps = PersonalStats.select().where(PersonalStats.tid == user_tid).order_by(-PersonalStats.timestamp).first()
 
     if ps is None:
         raise ValueError("Personal stats could not be found in the database")
-    elif not update_error and int(time.time()) - ps.timestamp > 604_800:  # One week
+    elif not update_error and int(time.time()) - ps.timestamp.timestamp() > 604_800:  # One week
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])
 
     for field_name in model_features:
-        df[field_name][0] = ps[field_name]
+        df[field_name][0] = ps.__getattribute__(field_name)
 
     df["tid"][0] = user_tid
     df = df.astype("int64")
 
-    return model.predict(df), int(time.time()) - ps.timestamp + 604_800
+    return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800

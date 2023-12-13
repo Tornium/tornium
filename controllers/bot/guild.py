@@ -17,21 +17,33 @@ import typing
 
 from flask import render_template
 from flask_login import current_user, fresh_login_required, login_required
-from tornium_commons.models import FactionModel, ServerModel
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, Server
 
 
 @login_required
 def dashboard():
     return render_template(
-        "bot/dashboard.html", servers=list(ServerModel.objects(admins=current_user.tid).only("name", "sid", "icon"))
+        "bot/dashboard.html",
+        servers=Server.select(Server.name, Server.sid, Server.icon).where(Server.admins.contains(current_user.tid)),
     )
 
 
 @fresh_login_required
-def guild_dashboard(guildid: str):
-    server: typing.Optional[ServerModel] = ServerModel.objects(sid=guildid).first()
-
-    if server is None:
+def guild_dashboard(guild_id: str):
+    try:
+        guild: Server = (
+            Server.select(
+                Server.factions,
+                Server.sid,
+                Server.name,
+                Server.assist_factions,
+                Server.admins,
+            )
+            .where(Server.sid == int(guild_id))
+            .get()
+        )
+    except (ValueError, TypeError, DoesNotExist):
         return (
             render_template(
                 "errors/error.html",
@@ -40,7 +52,17 @@ def guild_dashboard(guildid: str):
             ),
             400,
         )
-    elif current_user.tid not in server.admins:
+
+    if guild is None:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Server Not Found",
+                error="The server ID could not be located in the database.",
+            ),
+            400,
+        )
+    elif current_user.tid not in guild.admins:
         return (
             render_template(
                 "errors/error.html",
@@ -50,37 +72,27 @@ def guild_dashboard(guildid: str):
             403,
         )
 
-    factions: typing.List[FactionModel] = []
-    assist_factions = []
+    factions: typing.List[Faction] = []
+    assist_factions: typing.List[Faction] = []
 
-    faction: typing.Union[int, FactionModel]
-    for faction in server.factions:
-        faction: typing.Optional[FactionModel] = FactionModel.objects(tid=faction).only("tid", "name", "guild").first()
-
-        if faction is None:
+    for faction in guild.factions:
+        try:
+            factions.append(
+                Faction.select(Faction.tid, Faction.name, Faction.guild).where(Faction.tid == faction).get()
+            )
+        except DoesNotExist:
             continue
 
-        factions.append(faction)
-
-    for faction in server.assist_factions:
-        faction: typing.Optional[FactionModel] = (
-            FactionModel.objects(tid=faction)
-            .only(
-                "tid",
-                "name",
-            )
-            .first()
-        )
-
-        if faction is None:
-            pass
-
-        assist_factions.append(faction)
+    for faction in guild.assist_factions:
+        try:
+            assist_factions.append(Faction.select(Faction.tid, Faction.name).where(Faction.tid == faction).get())
+        except DoesNotExist:
+            continue
 
     return render_template(
         "bot/guild.html",
-        server=server,
+        server=guild,
         factions=factions,
-        guildid=guildid,
+        guildid=guild_id,
         assist_factions=assist_factions,
     )

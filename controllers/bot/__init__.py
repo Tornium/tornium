@@ -20,33 +20,37 @@ from controllers.bot import armory, assists, guild, oc, verify
 mod = Blueprint("botroutes", __name__)
 
 # Armory Routes
-mod.add_url_rule("/bot/dashboard/<string:guildid>/armory", view_func=armory.armory_dashboard, methods=["GET"])
+mod.add_url_rule(
+    "/bot/dashboard/<string:guild_id>/armory",
+    view_func=armory.armory_dashboard,
+    methods=["GET"],
+)
 
 # Guild Routes
 mod.add_url_rule("/bot/dashboard", view_func=guild.dashboard, methods=["GET"])
 mod.add_url_rule(
-    "/bot/dashboard/<string:guildid>",
+    "/bot/dashboard/<string:guild_id>",
     view_func=guild.guild_dashboard,
     methods=["GET"],
 )
 
 # Assist Routes
 mod.add_url_rule(
-    "/bot/assists/<string:guildid>/update",
+    "/bot/assists/<string:guild_id>/update",
     view_func=assists.assists_update,
     methods=["GET", "POST"],
 )
 
 # Verify Routes
 mod.add_url_rule(
-    "/bot/dashboard/<string:guildid>/verify",
+    "/bot/dashboard/<string:guild_id>/verify",
     view_func=verify.verify_dashboard,
     methods=["GET"],
 )
 
 # OC Routes
 mod.add_url_rule(
-    "/bot/dashboard/<string:guildid>/oc",
+    "/bot/dashboard/<string:guild_id>/oc",
     view_func=oc.oc_dashboard,
     methods=["GET"],
 )

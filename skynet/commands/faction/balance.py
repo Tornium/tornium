@@ -16,26 +16,27 @@
 import random
 import typing
 
+from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list
-from tornium_commons.models import FactionModel, UserModel
+from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from skynet.skyutils import get_admin_keys, get_faction_keys
+from skynet.skyutils import get_faction_keys
 
 
 def balance(interaction, *args, **kwargs):
-    user: typing.Optional[UserModel] = kwargs["invoker"]
+    user: typing.Optional[User] = kwargs["invoker"]
     member = -1
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
 
         if member != -1:
-            user: UserModel = UserModel.objects(discord_id=int(member[1]["value"])).first()
-
-            if user is None or user.tid in (0, None):
+            try:
+                user = User.select().where(User.discord_id == int(member[1]["value"]))
+            except DoesNotExist:
                 return {
                     "type": 4,
                     "data": {
@@ -51,28 +52,22 @@ def balance(interaction, *args, **kwargs):
                     },
                 }
 
-    admin_keys = kwargs.get("admin_keys")
-
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
-
-    if len(admin_keys) == 0:
+    elif user is None:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "No API Keys",
-                        "description": "No API keys were found to be run for this command. Please sign into "
-                        "Tornium or run this command in a server with signed-in admins.",
+                        "title": "User Not Found",
+                        "description": "The mentioned user or the invoker could not be found in the database. Please "
+                        "try verifying or signing into Tornium.",
                         "color": SKYNET_ERROR,
                     }
                 ],
                 "flags": 64,
             },
         }
-
-    if user.factionid in (0, None):
+    elif user.faction is None:
         return {
             "type": 4,
             "data": {
@@ -87,7 +82,7 @@ def balance(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.factionid != kwargs["invoker"].factionid or (not kwargs["invoker"].factionaa and member != -1):
+    elif user.faction.tid != kwargs["invoker"].faction.tid or (not kwargs["invoker"].faction_aa and member != -1):
         return {
             "type": 4,
             "data": {
@@ -102,24 +97,7 @@ def balance(interaction, *args, **kwargs):
             },
         }
 
-    faction = FactionModel.objects(tid=user.factionid).first()
-
-    if faction is None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Faction Not Located",
-                        "description": "Your faction could not be located in Tornium's database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    aa_keys = get_faction_keys(interaction, faction)
+    aa_keys = get_faction_keys(interaction, user.faction)
 
     if len(aa_keys) == 0:
         return {
@@ -178,7 +156,7 @@ def balance(interaction, *args, **kwargs):
                     {
                         "title": "Faction Error",
                         "description": (
-                            f"{user.name} is not in {faction.name}'s donations list according to the Torn API. "
+                            f"{user.name} is not in {user.faction.name}'s donations list according to the Torn API. "
                             f"If you think that this is an error, please report this to the developers of this bot."
                         ),
                         "color": SKYNET_ERROR,

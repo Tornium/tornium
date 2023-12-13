@@ -16,18 +16,18 @@
 import random
 import typing
 
-from mongoengine.queryset.visitor import Q
+from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import bs_to_range, commas, find_list
-from tornium_commons.models import FactionModel, StatModel, UserModel
+from tornium_commons.models import Stat, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
 from skynet.skyutils import get_admin_keys
 
 
 def stat(interaction, *args, **kwargs):
-    user = kwargs["invoker"]
+    user: User = kwargs["invoker"]
 
     if "options" not in interaction["data"]:
         return {
@@ -40,7 +40,7 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -58,16 +58,13 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    admin_keys = kwargs.get("admin_keys")
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
-    if admin_keys is None:
-        admin_keys = get_admin_keys(interaction)
-
-    if len(admin_keys) == 0:
+    if not isinstance(admin_keys, tuple) or len(admin_keys) == 0:
         return {
             "type": 4,
             "data": {
@@ -79,23 +76,29 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
-    target: typing.Optional[StatModel]
-    if tid != -1:
-        target = (
-            StatModel.objects(
-                Q(tid=tid[1]["value"]) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
-            )
-            .order_by("-timeadded")
-            .first()
-        )
-    elif name != -1:
-        target_user: UserModel = UserModel.objects(name=name[1]["value"]).first()
+    target_user: typing.Optional[User] = None
 
-        if target_user is None:
+    target: typing.Optional[Stat]
+    if tid != -1:
+        try:
+            target = (
+                Stat.select()
+                .where(
+                    (Stat.tid == tid[1]["value"]) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid))
+                )
+                .order_by(-Stat.time_added)
+                .get()
+            )
+        except DoesNotExist:
+            target = None
+    elif name != -1:
+        try:
+            target_user = User.select(User.name, User.tid, User.faction).where(User.name == name[1]["value"]).get()
+        except DoesNotExist:
             return {
                 "type": 4,
                 "data": {
@@ -109,13 +112,17 @@ def stat(interaction, *args, **kwargs):
                 },
             }
 
-        target = (
-            StatModel.objects(
-                Q(tid=target_user.tid) & (Q(globalstat=True) | Q(addedid=user.tid) | Q(addedfactiontid=user.factionid))
+        try:
+            target = (
+                Stat.select()
+                .where(
+                    (Stat.tid == target_user.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid))
+                )
+                .order_by(-Stat.time_added)
+                .get()
             )
-            .order_by("-timeadded")
-            .first()
-        )
+        except DoesNotExist:
+            target = None
     else:
         target = None
 
@@ -131,12 +138,12 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
     try:
-        update_user(random.choice(admin_keys), tid=target.tid)
+        update_user(random.choice(admin_keys), tid=target.tid, refresh_existing=False)
     except TornError as e:
         return {
             "type": 4,
@@ -148,7 +155,7 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     except NetworkingError as e:
@@ -162,31 +169,29 @@ def stat(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
-
-    target_user = UserModel.objects(tid=target.tid).no_cache().first()
 
     if target_user is None:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "User Not Located",
-                        "description": "The user could not be located in the Tornium database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,  # Ephemeral
-            },
-        }
-
-    if target_user.factionid != 0:
-        target_faction = FactionModel.objects(tid=target_user.factionid).first()
-    else:
-        target_faction = None
+        try:
+            target_user = (
+                User.select(User.name, User.tid, User.faction, User.last_action).where(User.tid == target.tid).get()
+            )
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "User Not Located",
+                            "description": "The user could not be located in the Tornium database.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
     return {
         "type": 4,
@@ -198,11 +203,11 @@ def stat(interaction, *args, **kwargs):
                     "fields": [
                         {
                             "name": "Faction",
-                            "value": f"{target_faction.name if target_faction is not None else 'Unknown/No Faction'}",
+                            "value": f"{target_user.faction.name if target_user.faction is not None else 'Unknown/No Faction'}",
                         },
                         {
                             "name": "Last Action",
-                            "value": f"<t:{target_user.last_action}:R>",
+                            "value": f"<t:{int(target_user.last_action.timestamp())}:R>",
                         },
                         {
                             "name": "Minimum Total Stats",
@@ -221,7 +226,7 @@ def stat(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Stat Score Update",
-                            "value": f"<t:{target.timeadded}:R>",
+                            "value": f"<t:{int(target.time_added.timestamp())}:R>",
                             "inline": True,
                         },
                     ],

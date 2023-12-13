@@ -50,7 +50,7 @@ def assist_forward(guid: str):
             render_template(
                 "errors/error.html",
                 title="Unknown Assist ID",
-                error=f"No assist could be located with ID {guid}. Please make sure that the assist request wasn't sent more than ten minutes ago.",
+                error=f"No assist could be located with ID {guid}. Please make sure that the assist request wasn't sent more than five minutes ago.",
             ),
             400,
         )
@@ -83,7 +83,10 @@ def assist_forward(guid: str):
         )
 
     redis_client.set(
-        f"tornium:assists:{guid}", f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}", xx=True, keepttl=True
+        f"tornium:assists:{guid}",
+        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
+        xx=True,
+        keepttl=True,
     )
 
     messages = redis_client.json().get(f"tornium:assists:{guid}:messages")

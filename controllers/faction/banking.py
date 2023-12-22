@@ -18,7 +18,7 @@ import typing
 
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
-from peewee import DataError, DoesNotExist
+from peewee import JOIN, DataError, DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.misc import send_dm
 from tornium_commons.errors import DiscordError
@@ -114,7 +114,7 @@ def banking():
                 User.last_action,
                 User.faction_position,
             )
-            .join(FactionPosition)
+            .join(FactionPosition, JOIN.LEFT_OUTER)
             .where(User.tid == banker)
             .first()
         )

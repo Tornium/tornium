@@ -20,9 +20,8 @@ import typing
 import flask
 from nacl.signing import VerifyKey
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.user import update_user
-from tornium_commons import Config, rds
+from tornium_commons import Config
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR

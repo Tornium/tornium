@@ -127,9 +127,13 @@ def banking():
                 "name": banker_user.name,
                 "tid": banker_user.tid,
                 "last_action": int(current_user.last_action.timestamp()),
-                "money": banker_user.faction_position.give_money,
-                "points": banker_user.faction_position.give_points,
-                "adjust": banker_user.faction_position.adjust_balances,
+                "money": banker_user.faction_position.give_money if banker_user.faction_position is not None else True,
+                "points": banker_user.faction_position.give_points
+                if banker_user.faction_position is not None
+                else True,
+                "adjust": banker_user.faction_position.adjust_balances
+                if banker_user.faction_position is not None
+                else True,
             }
         )
 

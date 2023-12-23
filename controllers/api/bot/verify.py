@@ -87,11 +87,11 @@ def guild_verification(*args, **kwargs):
                 key,
                 details={
                     "message": "Setting already enabled.",
-                    "setting": "guild.config.verify",
+                    "setting": "guild.verify_enabled",
                 },
             )
     elif request.method == "DELETE":
-        if guild.config.verify_enabled:
+        if guild.verify_enabled:
             Server.update(verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -99,7 +99,7 @@ def guild_verification(*args, **kwargs):
                 key,
                 details={
                     "message": "Setting already disabled.",
-                    "setting": "guild.config.verify",
+                    "setting": "guild.verify_enabled",
                 },
             )
 

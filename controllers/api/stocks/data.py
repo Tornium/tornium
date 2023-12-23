@@ -67,7 +67,7 @@ def stocks_data(*args, **kwargs):
     tick: StockTick
     for tick in ticks:
         stocks_tick_data[tick.stock_id] = {
-            "timestamp": tick.timestamp.timestamp(),
+            "timestamp": tick.timestamp if isinstance(tick.timestamp, int) else tick.timestamp.timestamp(),
             "price": tick.price,
             "market_cap": tick.cap,
             "shares": tick.shares,

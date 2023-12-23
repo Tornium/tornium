@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import time
 
 from flask import jsonify, request
@@ -71,7 +70,7 @@ def get_positions(*args, **kwargs):
 
     if faction is None:
         return make_exception_response("1102", key)
-    elif int(time.time()) - faction.last_members >= 86400:  # one day
+    elif int(time.time()) - faction.last_members.timestamp() >= 86400:  # one day
         return make_exception_response(
             "0000",
             key,

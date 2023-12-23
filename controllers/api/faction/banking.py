@@ -86,12 +86,6 @@ def vault_balance(*args, **kwargs):
 @authentication_required
 @ratelimit
 def banking_request(*args, **kwargs):
-    return make_exception_response(
-        "0000",
-        f'tornium:ratelimit:{kwargs["user"].tid}',
-        details={"message": "This endpoint is temporarily disabled pending redesign"},
-    )
-
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -187,9 +181,14 @@ def banking_request(*args, **kwargs):
                 redis_client=client,
             )
 
-        request_id = Withdrawal.select().count()
+        last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
+
+        if last_request is None:
+            request_id = 0
+        else:
+            request_id = last_request + 1
+
         guid = uuid.uuid4().hex
-        send_link = f"https://tornium.com/faction/banking/fulfill/{guid}"
 
         if amount_requested != "all":
             message_payload = {
@@ -215,7 +214,7 @@ def banking_request(*args, **kwargs):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": send_link,
+                                "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
                             },
                             {
                                 "type": 2,
@@ -258,7 +257,7 @@ def banking_request(*args, **kwargs):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Fulfill",
-                                "url": send_link,
+                                "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
                             },
                             {
                                 "type": 2,

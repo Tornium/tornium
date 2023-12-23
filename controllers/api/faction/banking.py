@@ -16,6 +16,7 @@
 import datetime
 import json
 import random
+import typing
 import uuid
 
 from flask import jsonify, request
@@ -181,12 +182,12 @@ def banking_request(*args, **kwargs):
                 redis_client=client,
             )
 
-        last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
+        last_request: typing.Optional[Withdrawal] = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
         if last_request is None:
             request_id = 0
         else:
-            request_id = last_request + 1
+            request_id = last_request.wid + 1
 
         guid = uuid.uuid4().hex
 

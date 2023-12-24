@@ -16,7 +16,6 @@
 import operator
 import typing
 
-import celery
 from peewee import BigIntegerField, BooleanField, IntegerField, TextField
 from playhouse.postgres_ext import ArrayField, JSONField
 
@@ -81,7 +80,7 @@ class Server(BaseModel):
 
     def get_text_channels(
         self,
-        discord_get: typing.Union[typing.Callable, celery.Task],
+        discord_get: typing.Callable,
         api=False,
         include_threads=False,
     ):
@@ -171,7 +170,7 @@ class Server(BaseModel):
 
         return channels
 
-    def get_roles(self, discord_get: typing.Union[typing.Callable, celery.Task], api=False):
+    def get_roles(self, discord_get: typing.Callable, api=False):
         def parse(value):
             if api:
                 return str(value)

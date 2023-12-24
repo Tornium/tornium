@@ -16,7 +16,6 @@
 import datetime
 import typing
 
-import celery
 from peewee import (
     BigIntegerField,
     CharField,
@@ -40,7 +39,7 @@ class Item(BaseModel):
     circulation = BigIntegerField()
 
     @staticmethod
-    def update_items(torn_get: typing.Union[typing.Callable, celery.Task], api_key: str):
+    def update_items(torn_get: typing.Callable, api_key: str):
         """
         Update list of stored Torn items in the database via a Torn API call
 

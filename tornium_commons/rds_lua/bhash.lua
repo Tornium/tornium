@@ -27,7 +27,7 @@ end
 local bhash = redis.call("GET", KEYS[1])
 
 if bhash == false then
-    redis.call("SET", KEYS[1] .. ":lock:" .. ARGV[1], 2, "NX", "EX", ARGV[2])
+    redis.call("SET", KEYS[1] .. ":lock:" .. ARGV[1], 1, "NX", "EX", 5)
     return bhash
 end
 

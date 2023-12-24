@@ -16,5 +16,5 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-BHASH = "13dacb620fed207f5a375535d0feb10b7b6147fa"
+BHASH = "3dac03d5c063c82cac9cb26f994f3f63c30b1566"
 BHASH_CALL = "e539776d120146fa3a483d6156b539a27f5d0b31"

@@ -295,7 +295,7 @@ def verify_users(
 
     try:
         guild_members: list = discordget(
-            f"guilds/{guild.sid}/members?limit={15 * len(admin_keys)}&after={highest_id}",
+            f"guilds/{guild.sid}/members?limit={25 * len(admin_keys)}&after={highest_id}",
         )
     except DiscordError as e:
         if log_channel > 0:
@@ -351,7 +351,9 @@ def verify_users(
             highest_id = int(guild_member["user"]["id"])
 
         user: typing.Optional[User] = (
-            User.select(User.discord_id, User.tid).where(User.discord_id == guild_member["user"]["id"]).first()
+            User.select(User.discord_id, User.tid, User.last_refresh)
+            .where(User.discord_id == guild_member["user"]["id"])
+            .first()
         )
 
         if guild_member.get("nick") in (None, ""):
@@ -359,15 +361,24 @@ def verify_users(
         else:
             nick = guild_member["nick"]
 
-        if user is None or user.discord_id in (0, None) or force:
+        kwargs = {}
+
+        if counter >= 10:
+            kwargs["countdown"] = int(0.1 * counter)
+
+        if (
+            user is None
+            or user.discord_id in (0, None)
+            or (datetime.datetime.utcnow() - user.last_refresh).total_seconds() >= 604800  # One week
+            or force
+        ):
             update_user.signature(
                 kwargs={
-                    "key": random.choice(admin_keys),
+                    "key": random.choice(admin_keys),  # TODO: replace this with key rotation via counter
                     "discordid": guild_member["user"]["id"],
                 },
                 queue="default",
             ).apply_async(
-                countdown=int(1 + 0.1 * counter),
                 link=verify_member_sub.signature(
                     kwargs={
                         "member": {
@@ -380,6 +391,8 @@ def verify_users(
                         "guild_id": guild.sid,
                     }
                 ),
+                expires=300,
+                **kwargs,
             )
         else:
             verify_member_sub.signature(
@@ -398,7 +411,7 @@ def verify_users(
                 }
             ).apply_async(
                 expires=300,
-                countdown=int(1 + 0.1 * counter),
+                **kwargs,
             )
 
     verify_users.signature(
@@ -410,7 +423,7 @@ def verify_users(
             "log_channel": log_channel,
         }
     ).apply_async(
-        countdown=30,
+        countdown=60,
         expires=300,
     ).forget()
 

@@ -54,6 +54,7 @@ _tornerrors = {
         "A selection is being called of which this key does not have permission to access.",
     ),
     17: ("Backend error occurred", "Please try again."),
+    18: ("API key has been paused by the owner", ""),
 }
 
 

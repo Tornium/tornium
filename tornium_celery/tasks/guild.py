@@ -177,6 +177,7 @@ def verify_users(
     try:
         guild: Server = (
             Server.select(
+                Server.sid,
                 Server.verify_enabled,
                 Server.verify_template,
                 Server.verified_roles,
@@ -331,7 +332,7 @@ def verify_users(
 
         raise e
 
-    redis_client.incrby(f"tornium:verify:{guild_id}:member_count", len(guild_members))
+    redis_client.incrby(f"tornium:verify:{guild.sid}:member_count", len(guild_members))
     redis_client.incrby(f"tornium:verify:{guild.sid}:member_fetch_runs", 1)
     counter = 0
 
@@ -404,7 +405,7 @@ def verify_users(
 
     verify_users.signature(
         kwargs={
-            "guild_id": guild_id,
+            "guild_id": guild.sid,
             "admin_keys": admin_keys,
             "force": force,
             "highest_id": highest_id,

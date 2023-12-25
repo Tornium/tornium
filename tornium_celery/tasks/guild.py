@@ -441,7 +441,7 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
         return
 
     try:
-        user: User = User.select(User.discord_id).get_by_id(user_data["player_id"]).get()
+        user: User = User.select(User.discord_id).where(User.tid == user_data["player_id"]).get()
     except DoesNotExist:
         return
 

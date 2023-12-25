@@ -350,11 +350,9 @@ def verify_users(
         if int(guild_member["user"]["id"]) > highest_id:
             highest_id = int(guild_member["user"]["id"])
 
-        user: typing.Optional[User]
-        try:
-            user = User.select(User.discord_id, User.tid).where(User.discord_id == guild_member["user"]["id"])
-        except DoesNotExist:
-            user = None
+        user: typing.Optional[User] = (
+            User.select(User.discord_id, User.tid).where(User.discord_id == guild_member["user"]["id"]).first()
+        )
 
         if guild_member.get("nick") in (None, ""):
             nick = guild_member["user"]["username"]

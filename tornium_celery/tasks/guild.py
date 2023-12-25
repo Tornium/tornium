@@ -428,7 +428,7 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
         return
 
     try:
-        user: User = User.select(User.discord_id).get_by_id(user_data["player_id"])
+        user: User = User.select(User.discord_id).get_by_id(user_data["player_id"]).get()
     except DoesNotExist:
         return
 
@@ -436,6 +436,7 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
         return
 
     patch_json: dict = {}
+    # TODO: Cache guild verification config so the same database calls aren't made for every user
 
     try:
         guild: Server = Server.select().get_by_id(guild_id)

@@ -64,7 +64,7 @@ def discord_ratelimit_pre(
     except RatelimitError:
         raise self.retry(countdown=backoff(self) if backoff_var else countdown_wo())
 
-    logger.warning(f"{method}|{endpoint.split('?')[0]} :: {bucket.remaining} / {bucket.limit}")
+    logger.debuf(f"{method}|{endpoint.split('?')[0]} :: {bucket._id} :: {bucket.remaining} / {bucket.limit}")
 
     try:
         bucket.call()
@@ -150,12 +150,8 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     headers = {"Authorization": f'Bot {config["bot_token"]}'}
 
     bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
-
     request = requests.get(url, headers=headers)
-
     bucket.update_bucket(request.headers, "GET", endpoint)
-    logger.warning(request.headers)
-    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -213,10 +209,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.patch(url, headers=headers, data=payload)
-
     bucket.update_bucket(request.headers, "PATCH", endpoint)
-    logger.warning(request.headers)
-    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -274,9 +267,6 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.post(url, headers=headers, data=payload)
-    logger.warning(request.headers)
-    logger.warning(endpoint)
-
     bucket.update_bucket(request.headers, "POST", endpoint)
 
     if request.status_code == 429:
@@ -334,9 +324,6 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.put(url, headers=headers, data=payload)
-    logger.warning(request.headers)
-    logger.warning(endpoint)
-
     bucket.update_bucket(request.headers, "PUT", endpoint)
 
     if request.status_code == 429:
@@ -388,12 +375,8 @@ def discorddelete(self, endpoint, *args, **kwargs):
     }
 
     bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
-
     request = requests.delete(url, headers=headers)
-
     bucket.update_bucket(request.headers, "DELETE", endpoint)
-    logger.warning(request.headers)
-    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(

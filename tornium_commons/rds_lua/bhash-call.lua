@@ -24,42 +24,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -- KEYS[3] -> key for global ratelimit
 --
 -- Returns false if call is rate-limited
--- Returns [remaining, limit, expire] if call is OK
+-- Returns [remaining, limit] if call is OK
 --
 -- NOTE: redis.call("GET", ...) == false states that the key doesn't exist
 
 -- Sets the global ratelimit if doesn't exist
-redis.call("SET", KEYS[3], 49, "NX", "EX", 60)
+if redis.call("SET", KEYS[3], 50, "NX", "EX", 2) ~= "OK" then
+    redis.call("DECR", KEYS[3])
+end
 
+-- Gets remaining calls for the bucket
 local remaining = redis.call("GET", KEYS[1])
 
 -- Retrieve per-route limit
 local limit = redis.call("GET", KEYS[2])
 
 if limit == false then
+    -- no stored limit for the bucket
     limit = 1
     remaining = 1
-    redis.call("SET", KEYS[1], limit, "NX", "EX", 2)
+    redis.call("SET", KEYS[2], limit, "NX", "EX", 2)
 else
     limit = tonumber(limit)
 end
 
-if remaining ~= false then
-    remaining = tonumber(remaining)
-end
-
 if remaining == false then
-    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", tonumber(redis.call("TIME")[1]))
+    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", 2)
     remaining = limit - 1
-elseif remaining < 1 then
-    return false
 else
+    remaining = tonumber(remaining)
+
+    if remaining < 1 then
+        return false
+    end
+
     redis.call("DECR", KEYS[1])
 end
 
 -- OK
-return {
-    remaining,
-    limit,
-    tonumber(redis.call("TTL", KEYS[1]))
-}
+return {remaining, limit}

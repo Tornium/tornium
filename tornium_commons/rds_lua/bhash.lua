@@ -20,15 +20,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -- Creates a lock if the bucket hash for the method + endpoint is not already cached.
 -- Otherwise, returns the bucket bash.
 
-if redis.call("EXISTS", KEYS[1] .. ":lock:" .. ARGV[1]) == true then
+if redis.call("EXISTS", KEYS[1] .. ":lock") == true then
     return -1
 end
 
 local bhash = redis.call("GET", KEYS[1])
 
 if bhash == false then
-    redis.call("SET", KEYS[1] .. ":lock:" .. ARGV[1], 1, "NX", "EX", 5)
+    redis.call("SET", KEYS[1] .. ":lock", 1, "NX", "EX", 5)
     return bhash
 end
 
-return {bhash, redis.call("GET", ARGV[2] .. ":" .. bhash .. ":remaining:" .. ARGV[1]), redis.call("GET", ARGV[2] .. ":" .. bhash .. ":limit")}
+return bhash

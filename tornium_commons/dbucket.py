@@ -66,20 +66,6 @@ def _strip_endpoint(endpoint: str) -> str:
     return without_query
 
 
-def minute_timestamp() -> int:
-    """
-    Generates a timestamp for the start of the minute
-
-    Returns
-    -------
-    timestamp : int
-        Timestamp for the start of the minute
-    """
-
-    now = int(time.time())
-    return now - (now % 60)
-
-
 PREFIX = "tornium:discord:ratelimit:bucket"
 
 
@@ -108,7 +94,6 @@ class DBucket:
         self._id = bhash
         self.remaining = 1  # Default value in case hash is not found
         self.limit = 1  # Default value in case hash is not found
-        self.expires = minute_timestamp() + 60
 
     @property
     def id(self):
@@ -145,8 +130,6 @@ class DBucket:
             BHASH,
             1,
             f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}",
-            minute_timestamp(),
-            PREFIX,
         )
 
         if bhash == -1:
@@ -154,11 +137,7 @@ class DBucket:
         elif bhash is None:
             return DBucketNull(method, endpoint)
         else:
-            dbucket = cls(bhash[0])
-            dbucket.remaining = bhash[1]
-            dbucket.limit = bhash[2]
-
-            return dbucket
+            return cls(bhash)
 
     def call(self):
         """
@@ -174,9 +153,9 @@ class DBucket:
         response = rds().evalsha(
             BHASH_CALL,
             3,
-            f"{self.prefix}:{self.id}:remaining:{minute_timestamp()}",
+            f"{self.prefix}:{self.id}:remaining",
             f"{self.prefix}:{self.id}:limit",
-            f"tornium:discord:ratelimit:global:{minute_timestamp()}",
+            f"tornium:discord:ratelimit:global:{int(time.time())}",
         )
 
         if response is None:
@@ -184,7 +163,6 @@ class DBucket:
 
         self.remaining = response[0]
         self.limit = response[1]
-        self.expires = response[2]
 
     def update_bucket(
         self,
@@ -210,21 +188,22 @@ class DBucket:
 
         client = rds()
         bhash = headers["X-RateLimit-Bucket"]
-        client.set(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}", bhash, nx=True, ex=3600)
+        client.set(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}", bhash, ex=86400)
 
         if "X-RateLimit-Limit" in headers:
-            client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"])
+            client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=86400)
             self.limit = headers["X-RateLimit-Limit"]
 
         if "X-RateLimit-Remaining" in headers:
             client.set(
-                f"{PREFIX}:{bhash}:remaining:{minute_timestamp()}",
+                f"{PREFIX}:{bhash}:remaining",
                 min(int(headers["X-RateLimit-Remaining"]), self.remaining),
-                ex=60,
+                pxat=int(headers["X-RateLimit-Reset"] * 1000),
             )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock:{minute_timestamp()}")
+        # rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")
+        # Isn't need as there shouldn't be a lock on a DBucket that is not an object of the DBucketNull child class
 
 
 class DBucketNull(DBucket):
@@ -253,7 +232,7 @@ class DBucketNull(DBucket):
         super().__init__(bhash=None)
 
         self.method = method
-        self.endpoint = endpoint.split("?")[0]
+        self.endpoint = _strip_endpoint(endpoint)
 
     @property
     def id(self):
@@ -263,7 +242,6 @@ class DBucketNull(DBucket):
     def prefix(self):
         return PREFIX + ":temp"
 
-    # Child function primarily exists for testing purposes
     def update_bucket(
         self,
         headers: typing.Union[dict, requests.structures.CaseInsensitiveDict],
@@ -288,31 +266,18 @@ class DBucketNull(DBucket):
 
         client = rds()
         bhash = headers["X-RateLimit-Bucket"]
-        client.set(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}", bhash, nx=True, ex=3600)
+        client.set(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}", bhash, nx=True, ex=86400)
 
         if "X-RateLimit-Limit" in headers:
-            client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=3600)
+            client.set(f"{PREFIX}:{bhash}:limit", headers["X-RateLimit-Limit"], ex=86400)
             self.limit = int(headers["X-RateLimit-Limit"])
 
-        if "X-RateLimit-Remaining" in headers and "X-RateLimit-Limit" in headers:
+        if "X-RateLimit-Remaining" in headers:
             client.set(
-                f"{PREFIX}:{bhash}:remaining:{minute_timestamp()}",
-                min(
-                    int(headers["X-RateLimit-Remaining"]),
-                    int(headers["X-RateLimit-Limit"]) - 1,
-                ),
-                ex=60,
-            )
-            self.remaining = min(
-                int(headers["X-RateLimit-Remaining"]),
-                int(headers["X-RateLimit-Limit"]) - 1,
-            )
-        elif "X-RateLimit-Remaining" in headers:
-            client.set(
-                f"{PREFIX}:{bhash}:remaining:{minute_timestamp()}",
+                f"{PREFIX}:{bhash}:remaining",
                 min(int(headers["X-RateLimit-Remaining"]), self.remaining),
-                ex=60,
+                pxat=int(headers["X-RateLimit-Reset"] * 1000),
             )
             self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
 
-        rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock:{minute_timestamp()}")
+        rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")

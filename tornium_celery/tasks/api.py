@@ -64,7 +64,7 @@ def discord_ratelimit_pre(
     except RatelimitError:
         raise self.retry(countdown=backoff(self) if backoff_var else countdown_wo())
 
-    logger.warning(f"{method}|{endpoint.split('?')[0]} :: {bucket.remaining}")
+    logger.warning(f"{method}|{endpoint.split('?')[0]} :: {bucket.remaining} / {bucket.limit}")
 
     try:
         bucket.call()
@@ -154,6 +154,8 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     request = requests.get(url, headers=headers)
 
     bucket.update_bucket(request.headers, "GET", endpoint)
+    logger.warning(request.headers)
+    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -213,6 +215,8 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
     request = requests.patch(url, headers=headers, data=payload)
 
     bucket.update_bucket(request.headers, "PATCH", endpoint)
+    logger.warning(request.headers)
+    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -270,6 +274,8 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.post(url, headers=headers, data=payload)
+    logger.warning(request.headers)
+    logger.warning(endpoint)
 
     bucket.update_bucket(request.headers, "POST", endpoint)
 
@@ -328,6 +334,8 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.put(url, headers=headers, data=payload)
+    logger.warning(request.headers)
+    logger.warning(endpoint)
 
     bucket.update_bucket(request.headers, "PUT", endpoint)
 
@@ -384,6 +392,8 @@ def discorddelete(self, endpoint, *args, **kwargs):
     request = requests.delete(url, headers=headers)
 
     bucket.update_bucket(request.headers, "DELETE", endpoint)
+    logger.warning(request.headers)
+    logger.warning(endpoint)
 
     if request.status_code == 429:
         raise self.retry(

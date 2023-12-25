@@ -210,7 +210,7 @@ def verify_users(
         admin: int
         for admin in guild.admins:
             try:
-                admin_keys.append(User.select(User.key).get_by_id(admin))
+                admin_keys.append(User.select(User.key).where(User.tid == admin).get())
             except DoesNotExist:
                 continue
 
@@ -452,7 +452,7 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
     # TODO: Cache guild verification config so the same database calls aren't made for every user
 
     try:
-        guild: Server = Server.select().get_by_id(guild_id)
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
     except DoesNotExist:
         raise LookupError("Server not found in database")
 

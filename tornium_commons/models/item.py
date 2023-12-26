@@ -128,7 +128,7 @@ class Item(BaseModel):
     @staticmethod
     def item_str(tid: int) -> str:
         try:
-            _item: Item = Item.select(Item.name).get_by_id(tid)
+            _item: Item = Item.select(Item.name).where(Item.tid == tid).get()
         except DoesNotExist:
             return f"Unknown {tid}"
 

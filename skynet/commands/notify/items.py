@@ -314,11 +314,11 @@ def list_item_notifs(interaction, user: User, *args, **kwargs):
             recipient = f"<#{notification.recipient}>"
 
         if notification.options.get("type") == "percent":
-            value = f"{notification.value}% below market value of"
+            value = f"{notification.options['value']}% below market value of"
         elif notification.options.get("type") == "price":
-            value = f"Below ${commas(int(notification.value))} for"
+            value = f"Below ${commas(int(notification.options['value']))} for"
         elif notification.options.get("type") == "quantity":
-            value = f"Above {commas(int(notification.value))}x of"
+            value = f"Above {commas(int(notification.options['value']))}x of"
         else:
             value = "ERROR"
 

@@ -120,13 +120,13 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
             result = update_user_self(api_result, key=key)
         else:
             result = update_user_other(api_result)
+
+        return result
     else:  # Run in a Celery worker
         if update_self:
             result = result_sig.apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
         else:
             result = result_sig.apply_async(expires=300, link=update_user_other.s())
-
-    return result
 
 
 @celery.shared_task(

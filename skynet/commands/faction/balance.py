@@ -35,7 +35,7 @@ def balance(interaction, *args, **kwargs):
 
         if member != -1:
             try:
-                user = User.select().where(User.discord_id == int(member[1]["value"]))
+                user = User.select().where(User.discord_id == int(member[1]["value"])).get()
             except DoesNotExist:
                 return {
                     "type": 4,

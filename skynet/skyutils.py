@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import random
-import time
 import typing
 
 import flask
@@ -166,67 +166,70 @@ def check_invoker_exists(interaction: dict):
             },
         }
 
-    try:
-        update_user(key=random.choice(admin_keys), discordid=discord_id)
-    except TornError as e:
-        if e.code == 6:
+    if (
+        invoker is not None and (datetime.datetime.utcnow() - invoker.last_refresh).total_seconds() < 14400
+    ):  # Four hours
+        try:
+            update_user(key=random.choice(admin_keys), discordid=discord_id)
+        except TornError as e:
+            if e.code == 6:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "User Requires Verification",
+                                "description": "You are required to be verified officially by Torn through the "
+                                "[official Torn Discord server](https://www.torn.com/discord]. If you have recently "
+                                "verified yourself, please wait a minute or two before trying again.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
-                            "title": "User Requires Verification",
-                            "description": "You are required to be verified officially by Torn through the "
-                            "[official Torn Discord server](https://www.torn.com/discord]. If you have recently "
-                            "verified yourself, please wait a minute or two before trying again.",
+                            "title": "Torn API Error",
+                            "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
                             "color": SKYNET_ERROR,
                         }
                     ],
                     "flags": 64,
                 },
             }
-
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except MissingKeyError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Missing API Key",
-                        "description": "No API key was passed to the API call. Please try again or sign into Tornium.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+        except NetworkingError as e:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "HTTP Error",
+                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        except MissingKeyError:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Missing API Key",
+                            "description": "No API key was passed to the API call. Please try again or sign into Tornium.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
     user = User.select().where(User.discord_id == discord_id).first()
 

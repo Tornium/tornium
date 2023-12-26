@@ -28,7 +28,7 @@ from controllers.api.utils import api_ratelimit_response, make_exception_respons
 def get_closest_tick(stock_id: int, start_timestamp: int):
     for n in range(1, 30):
         tick_id = int(bin(stock_id), 2) + int(bin((start_timestamp + n * 60) << 8), 2)
-        tick: typing.Optional[StockTick] = StockTick.objects(tick_id=tick_id).first()
+        tick: typing.Optional[StockTick] = StockTick.select().where(StockTick.tick_id == tick_id).first()
 
         if tick is not None:
             return tick

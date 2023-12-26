@@ -226,19 +226,17 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
                         },
                         {
                             "name": "Private",
-                            "value": not bool(notification.recipient_type),
+                            "value": private,
                             "inline": True,
                         },
                         {
                             "name": "Target Channel",
-                            "value": f"<#{notification.recipient}>"
-                            if notification.recipient_type == 1
-                            else "Direct Message",
+                            "value": "Direct Message" if private else f"<#{notification.recipient}>",
                             "inline": True,
                         },
                     ],
                     "footer": {
-                        "text": f"DB ID: {notification.id}",
+                        "text": f"DB ID: {notification.get_id()}",
                     },
                     "color": SKYNET_GOOD,
                 },

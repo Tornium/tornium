@@ -675,7 +675,7 @@ def items_button_switchboard(interaction, *args, **kwargs):
         }
 
     elif effect == "delete":
-        notification.delete()
+        notification.delete_instance()
 
         return {
             "type": 4,

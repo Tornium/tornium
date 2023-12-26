@@ -58,7 +58,7 @@ def stocks_data(*args, **kwargs):
 
         for stock_id in stock_id_list:
             try:
-                ticks[stock_id] = StockTick.get_by_id(int(bin(stock_id), 2) + int(bin(now << 8), 2))
+                ticks.append(StockTick.get_by_id(int(bin(stock_id), 2) + int(bin(now << 8), 2)))
             except DoesNotExist:
                 return make_exception_response("1000", key, details={"message": "Unknown stocks tick."})
 

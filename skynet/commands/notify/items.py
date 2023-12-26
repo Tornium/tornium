@@ -339,15 +339,15 @@ def _generate_item_info_payload(
 
     if notification.options["type"] == "percent":
         notification_description += (
-            f"{item.name} can be found on the market for {notification.value}% below market value."
+            f"{item.name} can be found on the market for {notification.options['value']}% below market value."
         )
     elif notification.options["type"] == "price":
         notification_description += (
-            f"{item.name} can be found on the market for less than ${commas(int(notification.value))}."
+            f"{item.name} can be found on the market for less than ${commas(int(notification.options['value']))}."
         )
     elif notification.options["type"] == "quantity":
         notification_description += (
-            f"more than {commas(int(notification.value))}x of {item.name} can be found on the market."
+            f"more than {commas(int(notification.options['value']))}x of {item.name} can be found on the market."
         )
     else:
         notification_description = "ERROR"
@@ -361,7 +361,7 @@ def _generate_item_info_payload(
                 "fields": [
                     {
                         "name": "Time Created",
-                        "value": f"<t:{notification.time_created}:f>",
+                        "value": f"<t:{int(notification.time_created.timestamp())}:f>",
                         "inline": True,
                     },
                     {

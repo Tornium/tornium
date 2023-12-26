@@ -167,7 +167,7 @@ def check_invoker_exists(interaction: dict):
         }
 
     if (
-        invoker is not None and (datetime.datetime.utcnow() - invoker.last_refresh).total_seconds() < 14400
+        invoker is not None and (datetime.datetime.utcnow() - invoker.last_refresh).total_seconds() > 14400
     ):  # Four hours
         try:
             update_user(key=random.choice(admin_keys), discordid=discord_id)

@@ -191,12 +191,12 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
                 },
             }
 
-    notification = Notification(
+    notification = Notification.create(
         invoker=user.tid,
         time_created=datetime.datetime.utcnow(),
         recipient=user.discord_id if private else channel,
         recipient_guild=0 if private else int(interaction["guild_id"]),
-        ntype=3,
+        n_type=3,
         target=item.tid,
         persistent=persistence,
         enabled=False,
@@ -204,7 +204,7 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
             "type": notif_type,
             "value": value,
         },
-    ).save()
+    )
 
     return {
         "type": 4,

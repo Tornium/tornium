@@ -54,7 +54,7 @@ def stocks_data(*args, **kwargs):
 
         now = int(now.replace(second=0, microsecond=0, tzinfo=datetime.timezone.utc).timestamp())
 
-        ticks: typing.Dict[int, StockTick] = {}
+        ticks: typing.List[StockTick] = []
 
         for stock_id in stock_id_list:
             try:
@@ -67,7 +67,7 @@ def stocks_data(*args, **kwargs):
     tick: StockTick
     for tick in ticks:
         stocks_tick_data[tick.stock_id] = {
-            "timestamp": tick.timestamp if isinstance(tick.timestamp, int) else tick.timestamp.timestamp(),
+            "timestamp": tick.timestamp.timestamp(),
             "price": tick.price,
             "market_cap": tick.cap,
             "shares": tick.shares,

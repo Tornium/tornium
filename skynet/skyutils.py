@@ -231,9 +231,9 @@ def check_invoker_exists(interaction: dict):
                 },
             }
 
-    user = User.select().where(User.discord_id == discord_id).first()
+        invoker = User.select().where(User.discord_id == discord_id).first()
 
-    if user is None:
+    if invoker is None:
         return {
             "type": 4,
             "data": {
@@ -249,4 +249,4 @@ def check_invoker_exists(interaction: dict):
             },
         }
 
-    return user, admin_keys
+    return invoker, admin_keys

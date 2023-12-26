@@ -45,7 +45,7 @@ dependencies = [
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]
-name = "Tornium-Pro"
+name = "tornium-core"
 version = "0.3.1"
 
 [project.optional-dependencies]
@@ -55,7 +55,6 @@ dev = [
     "flake8",
     "isort",
     "pre-commit",
-    "tox"
 ]
 test = [
     "pytest",
@@ -66,11 +65,8 @@ ci = [
     "black",
     "flake8",
     "isort",
-    "mongomock",
     "pytest",
     "pytest-sugar",
-    "tox",
-    "tox-gh-actions"
 ]
 extra = [
     "orjson",
@@ -83,8 +79,8 @@ docs = [
 
 [project.urls]
 homepage = "https://tornium.com"
-repository = "https://github.com/dssecret/tornium-pro"
-changelog = "https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc"
+repository = "https://github.com/tornium/tornium-core"
+changelog = "https://github.com/tornium/tornium-core/blob/master/CHANGELOG.adoc"
 
 [tool.bandit]
 exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv", "./docs"]

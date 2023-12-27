@@ -93,8 +93,8 @@ for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
             _buttons[button["custom_id"]] = button["function"]
 
 
-def handle_interaction_errors(f):
-    @wraps
+def _handle_interaction_errors(f):
+    @wraps(f)
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
@@ -167,7 +167,7 @@ def handle_interaction_errors(f):
 
 
 @mod.route("/skynet", methods=["POST"])
-@handle_interaction_errors
+@_handle_interaction_errors
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)

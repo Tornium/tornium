@@ -20,7 +20,7 @@ import jinja2
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import DiscordError, MissingKeyError, NetworkingError
+from tornium_commons.errors import TornError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -129,37 +129,7 @@ def verify(interaction, *args, **kwargs):
         update_user_kwargs["discordid"] = user.discord_id
 
     if member != -1:
-        try:
-            discord_member = discordget(f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}")
-        except DiscordError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Discord API Error",
-                            "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-        except NetworkingError as e:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "HTTP Error",
-                            "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
+        discord_member = discordget(f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}")
         user_roles = discord_member["roles"]
 
         if discord_member.get("nick") in (None, ""):
@@ -192,37 +162,26 @@ def verify(interaction, *args, **kwargs):
 
     try:
         update_user(**update_user_kwargs)  # TODO: Handle Torn and Network errors
-    except MissingKeyError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Key Available",
-                        "description": "No Torn API key could be utilized for this request.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except Exception:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Verification Failed",
-                        "description": "API call failed. Please verify that you are officially verified by Torn. "
-                        "Otherwise, try forcing the verification. To verify on Torn, you can match your Discord and "
-                        "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
-                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    except TornError as e:
+        if e.code == 6:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Verification Failed",
+                            "description": "API call failed. Please verify that you are officially verified by Torn. "
+                            "Otherwise, try forcing the verification. To verify on Torn, you can match your Discord and "
+                            "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
+                            "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        raise e
 
     try:
         user: User = User.get(User.discord_id == update_user_kwargs["discordid"])
@@ -241,7 +200,6 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    # TODO: Is this necessary?
     if user.discord_id in (0, None):
         return {
             "type": 4,
@@ -370,39 +328,10 @@ def verify(interaction, *args, **kwargs):
     if "roles" in patch_json:
         patch_json["roles"] = list(set(patch_json["roles"]))
 
-    try:
-        discordpatch(
-            f"guilds/{guild.sid}/members/{user.discord_id}",
-            patch_json,
-        )
-    except DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": f'The Discord API has raised error code {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": 0xC83F49,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    discordpatch(
+        f"guilds/{guild.sid}/members/{user.discord_id}",
+        patch_json,
+    )
 
     if user.faction is None:
         faction_str = "None"

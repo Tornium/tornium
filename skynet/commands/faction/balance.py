@@ -18,7 +18,6 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
-from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
@@ -115,38 +114,7 @@ def balance(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))
-    except TornError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    faction_balances = faction_balances["donations"]
+    faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))["donations"]
 
     if str(user.tid) not in faction_balances:
         return {

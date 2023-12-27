@@ -14,10 +14,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+from functools import wraps
 
 from flask import Blueprint, abort, jsonify, request
 from nacl.exceptions import BadSignatureError
-from tornium_commons.skyutils import SKYNET_INFO
+from tornium_commons.errors import (
+    DiscordError,
+    MissingKeyError,
+    NetworkingError,
+    TornError,
+)
+from tornium_commons.skyutils import SKYNET_ERROR
 
 import skynet.commands
 import skynet.skyutils
@@ -37,21 +44,6 @@ handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(me
 botlogger.addHandler(handler)
 
 mod = Blueprint("botinteractions", __name__)
-
-
-def in_dev_command(interaction, *args, **kwargs):
-    return {
-        "type": 4,
-        "data": {
-            "embeds": [
-                {
-                    "title": "Command In Development",
-                    "description": "This command is not yet ready for production use.",
-                    "color": SKYNET_INFO,
-                }
-            ]
-        },
-    }
 
 
 _autocomplete = {"notify": skynet.commands.notify.notify_autocomplete_switchboard}
@@ -101,7 +93,81 @@ for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
             _buttons[button["custom_id"]] = button["function"]
 
 
+def handle_interaction_errors(f):
+    @wraps
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except NetworkingError as e:
+            return jsonify(
+                {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Networking Error",
+                                "description": f"A networking error has occurred on an API call resulting in HTTP f{e.code}: {e.message}",
+                                "color": SKYNET_ERROR,
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            )
+        except TornError as e:
+            return jsonify(
+                {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Torn API Error",
+                                "description": f"An error has occurred on a Torn API call resulting in error code f{e.code}: {e.message}",
+                                "color": SKYNET_ERROR,
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            )
+        except MissingKeyError:
+            return jsonify(
+                {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Missing API Key",
+                                "description": "There wasn't an API key available for a Torn API call.",
+                                "color": SKYNET_ERROR,
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            )
+        except DiscordError as e:
+            return jsonify(
+                {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Discord API Error",
+                                "description": f"A Discord API error has occurred resulting in an error f{e.code}: {e.message}",
+                                "color": SKYNET_ERROR,
+                            },
+                        ],
+                        "flags": 64,
+                    },
+                }
+            )
+
+    return wrapper
+
+
 @mod.route("/skynet", methods=["POST"])
+@handle_interaction_errors
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
@@ -166,4 +232,18 @@ def skynet_interactions():
                 _autocomplete[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
             )
 
-    return jsonify(in_dev_command(request.json))
+    return jsonify(
+        {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Unknown Interaction",
+                        "description": "This interaction did not match any implemented slash commands or button interactions.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    )

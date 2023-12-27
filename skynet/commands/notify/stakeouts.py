@@ -20,7 +20,6 @@ import typing
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpost
 from tornium_commons import rds
-from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -808,27 +807,14 @@ def stakeout_flying_button(interaction, *args, **kwargs):
         3: "Business Class Ticket",
     }
 
-    try:
-        dm_channel = discordpost(
-            "users/@me/channels",
-            payload={
-                "recipient_id": interaction["member"]["user"]["id"]
-                if "guild_id" in interaction
-                else interaction["user"]["id"],
-            },
-        )
-    except (DiscordError, NetworkingError) as e:
-        return {
-            "type": 4,
-            "embeds": [
-                {
-                    "title": "Unable to Create DM",
-                    "description": f"The bot was unable to create a DM with you due to code {e.code}.",
-                    "color": SKYNET_ERROR,
-                },
-            ],
-            "flags": 64,
-        }
+    dm_channel = discordpost(
+        "users/@me/channels",
+        payload={
+            "recipient_id": interaction["member"]["user"]["id"]
+            if "guild_id" in interaction
+            else interaction["user"]["id"],
+        },
+    )
 
     payload = {
         "embeds": [
@@ -916,27 +902,14 @@ def stakeout_hospital_button(interaction, *args, **kwargs):
     except DoesNotExist:
         user = None
 
-    try:
-        dm_channel = discordpost(
-            "users/@me/channels",
-            payload={
-                "recipient_id": interaction["member"]["user"]["id"]
-                if "guild_id" in interaction
-                else interaction["user"]["id"]
-            },
-        )
-    except (DiscordError, NetworkingError) as e:
-        return {
-            "type": 4,
-            "embeds": [
-                {
-                    "title": "Unable to Create DM",
-                    "description": f"The bot was unable to create a DM with you due to code {e.code}.",
-                    "color": SKYNET_ERROR,
-                },
-            ],
-            "flags": 64,
-        }
+    dm_channel = discordpost(
+        "users/@me/channels",
+        payload={
+            "recipient_id": interaction["member"]["user"]["id"]
+            if "guild_id" in interaction
+            else interaction["user"]["id"]
+        },
+    )
 
     payload = {
         "embeds": [

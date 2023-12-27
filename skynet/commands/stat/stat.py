@@ -18,7 +18,6 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import bs_to_range, commas, find_list
 from tornium_commons.models import Stat, User
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -142,36 +141,7 @@ def stat(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        update_user(random.choice(admin_keys), tid=target.tid, refresh_existing=False)
-    except TornError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    update_user(random.choice(admin_keys), tid=target.tid, refresh_existing=False)
 
     if target_user is None:
         try:

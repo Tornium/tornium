@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import inspect
-import typing
 
 from peewee import DoesNotExist
 from tornium_commons.models import Server

@@ -18,7 +18,6 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost
-from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
@@ -240,101 +239,66 @@ def cancel_command(interaction, *args, **kwargs):
     except DoesNotExist:
         requester = None
 
-    try:
-        discordpatch(
-            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
-            {
-                "embeds": [
-                    {
-                        "title": f"Vault Request #{withdrawal_id}",
-                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
-                        "fields": [
-                            {
-                                "name": "Original Request Amount",
-                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                            },
-                            {
-                                "name": "Original Requester",
-                                "value": f"N/A [{withdrawal.requester}]"
-                                if requester is None
-                                else requester.user_str_self(),
-                            },
-                        ],
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 3,
-                                "label": "Fulfill Manually",
-                                "custom_id": "faction:vault:fulfill",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 4,
-                                "label": "Cancel",
-                                "custom_id": "faction:vault:cancel",
-                                "disabled": True,
-                            },
-                        ],
-                    }
-                ],
-            },
-        )
-    except DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": "The Discord API has returned an error.",
-                        "fields": [
-                            {"name": "Error Code", "value": e.code},
-                            {"name": "Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord Networking Error",
-                        "description": "The Discord API has returned an HTTP error.",
-                        "fields": [
-                            {"name": "HTTP Error Code", "value": e.code},
-                            {"name": "HTTP Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    discordpatch(
+        f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        {
+            "embeds": [
+                {
+                    "title": f"Vault Request #{withdrawal_id}",
+                    "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                    "fields": [
+                        {
+                            "name": "Original Request Amount",
+                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
+                        },
+                        {
+                            "name": "Original Requester",
+                            "value": f"N/A [{withdrawal.requester}]"
+                            if requester is None
+                            else requester.user_str_self(),
+                        },
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "color": SKYNET_ERROR,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Cancel",
+                            "custom_id": "faction:vault:cancel",
+                            "disabled": True,
+                        },
+                    ],
+                }
+            ],
+        },
+    )
 
     Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
         Withdrawal.wid == withdrawal.wid
@@ -586,101 +550,66 @@ def cancel_button(interaction, *args, **kwargs):
     except DoesNotExist:
         requester = None
 
-    try:
-        discordpatch(
-            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
-            {
-                "embeds": [
-                    {
-                        "title": f"Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been cancelled by {user.name} [{user.tid}].",
-                        "fields": [
-                            {
-                                "name": "Original Request Amount",
-                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                            },
-                            {
-                                "name": "Original Requester",
-                                "value": f"N/A [{withdrawal.requester}]"
-                                if requester is None
-                                else requester.user_str_self(),
-                            },
-                        ],
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 3,
-                                "label": "Fulfill Manually",
-                                "custom_id": "faction:vault:fulfill",
-                                "disabled": True,
-                            },
-                            {
-                                "type": 2,
-                                "style": 4,
-                                "label": "Cancel",
-                                "custom_id": "faction:vault:cancel",
-                                "disabled": True,
-                            },
-                        ],
-                    }
-                ],
-            },
-        )
-    except DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": "The Discord API has returned an error.",
-                        "fields": [
-                            {"name": "Error Code", "value": e.code},
-                            {"name": "Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord Networking Error",
-                        "description": "The Discord API has returned an HTTP error.",
-                        "fields": [
-                            {"name": "HTTP Error Code", "value": e.code},
-                            {"name": "HTTP Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    discordpatch(
+        f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        {
+            "embeds": [
+                {
+                    "title": f"Vault Request #{withdrawal.wid}",
+                    "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                    "fields": [
+                        {
+                            "name": "Original Request Amount",
+                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
+                        },
+                        {
+                            "name": "Original Requester",
+                            "value": f"N/A [{withdrawal.requester}]"
+                            if requester is None
+                            else requester.user_str_self(),
+                        },
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "color": SKYNET_ERROR,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill",
+                            "disabled": True,
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Cancel",
+                            "custom_id": "faction:vault:cancel",
+                            "disabled": True,
+                        },
+                    ],
+                }
+            ],
+        },
+    )
 
     Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
         Withdrawal.wid == withdrawal.wid

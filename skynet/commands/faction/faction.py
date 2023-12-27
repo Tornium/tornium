@@ -13,16 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import random
 import re
 import time
 import typing
 
-import requests
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost, tornget
-from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
@@ -385,47 +382,15 @@ def members_switchboard(interaction, *args, **kwargs):
             },
         }
 
-    try:
-        discordpost(
-            f"interactions/{interaction['id']}/{interaction['token']}/callback",
-            payload={"type": 5},
-        )
-    except (requests.exceptions.JSONDecodeError, json.JSONDecodeError):
-        pass
+    discordpost(
+        f"interactions/{interaction['id']}/{interaction['token']}/callback",
+        payload={"type": 5},
+    )
 
-    try:
-        member_data = tornget(
-            f"faction/{faction.tid}?selections=",
-            key=random.choice(admin_keys),
-        )
-    except TornError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Torn API Error",
-                        "description": f'The Torn API has raised error code {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "HTTP Error",
-                        "description": f'The Torn API has returned an HTTP error {e.code}: "{e.message}".',
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    member_data = tornget(
+        f"faction/{faction.tid}?selections=",
+        key=random.choice(admin_keys),
+    )
 
     if subcommand == "online":
         return online()

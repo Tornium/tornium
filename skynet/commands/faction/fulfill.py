@@ -140,8 +140,6 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    # TODO: Something might be wrong here
-    # Code segment also used in cancel and fulfill Skynet function
     withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
 
     if withdrawal_id == -1:
@@ -253,97 +251,62 @@ def fulfill_command(interaction, *args, **kwargs):
     except DoesNotExist:
         requester = None
 
-    try:
-        discordpatch(
-            f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
-            {
-                "embeds": [
-                    {
-                        "title": f"Vault Request #{withdrawal_id}",
-                        "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
-                        "fields": [
-                            {
-                                "name": "Original Request Amount",
-                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                            },
-                            {
-                                "name": "Original Requester",
-                                "value": f"N/A [{withdrawal.requester}]"
-                                if requester is None
-                                else requester.user_str_self(),
-                            },
-                        ],
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                            },
-                            {
-                                "type": 2,
-                                "style": 3,
-                                "label": "Fulfill Manually",
-                                "custom_id": "faction:vault:fulfill",
-                            },
-                            {
-                                "type": 2,
-                                "style": 4,
-                                "label": "Cancel",
-                                "custom_id": "faction:vault:cancel",
-                            },
-                        ],
-                    }
-                ],
-            },
-        )
-    except DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": "The Discord API has returned an error.",
-                        "fields": [
-                            {"name": "Error Code", "value": e.code},
-                            {"name": "Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord Networking Error",
-                        "description": "The Discord API has returned an HTTP error.",
-                        "fields": [
-                            {"name": "HTTP Error Code", "value": e.code},
-                            {"name": "HTTP Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+    discordpatch(
+        f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        {
+            "embeds": [
+                {
+                    "title": f"Vault Request #{withdrawal_id}",
+                    "description": f"This request has been fulfilled by {user.name} [{user.tid}].",
+                    "fields": [
+                        {
+                            "name": "Original Request Amount",
+                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
+                        },
+                        {
+                            "name": "Original Requester",
+                            "value": f"N/A [{withdrawal.requester}]"
+                            if requester is None
+                            else requester.user_str_self(),
+                        },
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "color": SKYNET_GOOD,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Cancel",
+                            "custom_id": "faction:vault:cancel",
+                        },
+                    ],
+                }
+            ],
+        },
+    )
 
     Withdrawal.update(status=1, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
         Withdrawal.wid == withdrawal.wid

@@ -253,24 +253,25 @@ def update_user_self(user_data, key=None):
 
     # TODO: Attach latest PersonalStats obj to User obj
 
-    now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    if "personal_stats" in user_data:
+        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
-    PersonalStats.insert(
-        pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
-        tid=user_data["player_id"],
-        timestamp=now,
-        **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-    ).on_conflict(
-        conflict_target=[PersonalStats.pstat_id],
-        preserve=[
-            PersonalStats.timestamp,
-            *(
-                getattr(PersonalStats, k)
-                for k in user_data["personal_stats"].keys()
-                if k in PersonalStats._meta.sorted_field_names
-            ),
-        ],
-    ).execute()
+        PersonalStats.insert(
+            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personal_stats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict(
+            conflict_target=[PersonalStats.pstat_id],
+            preserve=[
+                PersonalStats.timestamp,
+                *(
+                    getattr(PersonalStats, k)
+                    for k in user_data["personal_stats"].keys()
+                    if k in PersonalStats._meta.sorted_field_names
+                ),
+            ],
+        ).execute()
 
 
 @celery.shared_task(
@@ -351,24 +352,26 @@ def update_user_other(user_data):
     ).execute()
 
     # TODO: Attach latest PersonalStats obj to User obj
-    now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
-    PersonalStats.insert(
-        pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
-        tid=user_data["player_id"],
-        timestamp=now,
-        **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-    ).on_conflict(
-        conflict_target=[PersonalStats.pstat_id],
-        preserve=[
-            PersonalStats.timestamp,
-            *(
-                getattr(PersonalStats, k)
-                for k in user_data["personal_stats"].keys()
-                if k in PersonalStats._meta.sorted_field_names
-            ),
-        ],
-    ).execute()
+    if "personal_stats" in user_data:
+        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        PersonalStats.insert(
+            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personal_stats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict(
+            conflict_target=[PersonalStats.pstat_id],
+            preserve=[
+                PersonalStats.timestamp,
+                *(
+                    getattr(PersonalStats, k)
+                    for k in user_data["personal_stats"].keys()
+                    if k in PersonalStats._meta.sorted_field_names
+                ),
+            ],
+        ).execute()
 
     # TODO: What is this for?
     try:

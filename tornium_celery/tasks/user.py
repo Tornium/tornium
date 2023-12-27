@@ -202,6 +202,45 @@ def update_user_self(user_data, key=None):
         user_data_kwargs["faction_position"] = None
         user_data_kwargs["faction_aa"] = False
 
+    if "personalstats" in user_data:
+        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        pstat_id = (int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),)
+
+        logger.debug(now.timestamp())
+        logger.debug(user_data["player_id"])
+        logger.debug(pstat_id)
+
+        PersonalStats.insert(
+            pstat_id=pstat_id,
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict(
+            conflict_target=[PersonalStats.pstat_id],
+            preserve=[
+                PersonalStats.timestamp,
+                *(
+                    getattr(PersonalStats, k)
+                    for k in user_data["personalstats"].keys()
+                    if k in PersonalStats._meta.sorted_field_names
+                ),
+            ],
+        ).execute()
+
+        stored_ps: typing.Optional[PersonalStats] = (
+            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
+        )
+
+        if (
+            stored_ps is not None
+            and len(
+                set(PersonalStats._meta.sorted_field_names)
+                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+            )
+            == 0
+        ):
+            user_data_kwargs["personal_stats"] = pstat_id
+
     User.insert(
         tid=user_data["player_id"],
         name=user_data["name"],
@@ -250,32 +289,6 @@ def update_user_self(user_data, key=None):
             Faction.update(aa_keys=fn.array_append(Faction.aa_keys, key)).where(
                 Faction.tid == user_data["faction"]["faction_id"]
             ).execute()
-
-    # TODO: Attach latest PersonalStats obj to User obj
-
-    if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-
-        logger.debug(now.timestamp())
-        logger.debug(user_data["player_id"])
-        logger.debug(int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2))
-
-        PersonalStats.insert(
-            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
-            tid=user_data["player_id"],
-            timestamp=now,
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
 
 
 @celery.shared_task(
@@ -331,6 +344,45 @@ def update_user_other(user_data):
         user_data_kwargs["faction_position"] = None
         user_data_kwargs["faction_aa"] = False
 
+    if "personalstats" in user_data:
+        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        pstat_id = (int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),)
+
+        logger.debug(now.timestamp())
+        logger.debug(user_data["player_id"])
+        logger.debug(pstat_id)
+
+        PersonalStats.insert(
+            pstat_id=pstat_id,
+            tid=user_data["player_id"],
+            timestamp=now,
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict(
+            conflict_target=[PersonalStats.pstat_id],
+            preserve=[
+                PersonalStats.timestamp,
+                *(
+                    getattr(PersonalStats, k)
+                    for k in user_data["personalstats"].keys()
+                    if k in PersonalStats._meta.sorted_field_names
+                ),
+            ],
+        ).execute()
+
+        stored_ps: typing.Optional[PersonalStats] = (
+            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
+        )
+
+        if (
+            stored_ps is not None
+            and len(
+                set(PersonalStats._meta.sorted_field_names)
+                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+            )
+            == 0
+        ):
+            user_data_kwargs["personal_stats"] = pstat_id
+
     User.insert(
         tid=user_data["player_id"],
         name=user_data["name"],
@@ -355,33 +407,7 @@ def update_user_other(user_data):
         ],
     ).execute()
 
-    # TODO: Attach latest PersonalStats obj to User obj
-
-    if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-
-        logger.debug(now.timestamp())
-        logger.debug(user_data["player_id"])
-        logger.debug(int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2))
-
-        PersonalStats.insert(
-            pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
-            tid=user_data["player_id"],
-            timestamp=now,
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
-
-    # TODO: What is this for?
+    # Caches valid public personal stat keys
     try:
         n = rds().sadd("tornium:personal-stats", *(user_data["personal_stats"].keys()))
 

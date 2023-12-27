@@ -17,8 +17,6 @@ import typing
 
 from flask import Blueprint, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
-from peewee import DoesNotExist
-from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import Faction, Stat, User
 
@@ -80,9 +78,7 @@ def stats_data():
     else:
         stat_entries = stat_entries.order_by(utils.table_order(ordering_direction, Stat.time_added))
 
-    # TODO: pagination doesn't work when the page is first loaded
-    # Shows the same data every time
-    stat_entries_subset = stat_entries.paginate(start // length, length)
+    stat_entries_subset = stat_entries.paginate(start // length + 1, length)
     stat_entries_subset.join(User)
 
     stats = [

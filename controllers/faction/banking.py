@@ -176,7 +176,7 @@ def user_banking_data():
     else:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.time_requested))
 
-    withdrawals_db = withdrawals_db.paginate(start // length, length)
+    withdrawals_db = withdrawals_db.paginate(start // length + 1, length)
 
     withdrawal: Withdrawal
     for withdrawal in withdrawals_db:

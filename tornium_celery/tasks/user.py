@@ -256,6 +256,10 @@ def update_user_self(user_data, key=None):
     if "personal_stats" in user_data:
         now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
+        logger.debug(now.timestamp())
+        logger.debug(user_data["player_id"])
+        logger.debug(int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2))
+
         PersonalStats.insert(
             pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
             tid=user_data["player_id"],
@@ -355,6 +359,10 @@ def update_user_other(user_data):
 
     if "personal_stats" in user_data:
         now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        logger.debug(now.timestamp())
+        logger.debug(user_data["player_id"])
+        logger.debug(int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2))
 
         PersonalStats.insert(
             pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),

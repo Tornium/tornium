@@ -67,7 +67,7 @@ def fetch_market():
                 continue
         else:
             recipient = unique_notif.recipient_guild
-            guild: typing.Optional[Server] = Server.select(User.admins).where(Server.sid == recipient).first()
+            guild: typing.Optional[Server] = Server.select(Server.admins).where(Server.sid == recipient).first()
 
             if guild is None:
                 unique_notif.delete_instance()

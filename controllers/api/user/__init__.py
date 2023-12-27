@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import logging
 import typing
 
 from flask import jsonify, request
@@ -21,7 +22,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
-from tornium_commons.models import Faction, User
+from tornium_commons.models import User
 
 from controllers.api.decorators import authentication_required, ratelimit
 from controllers.api.utils import api_ratelimit_response, make_exception_response
@@ -115,6 +116,8 @@ def estimate_specific_user(tid: int, *args, **kwargs):
                 return make_exception_response("4293", key)
         except TypeError:
             redis_client.set(estimate_ratelimit, 10, ex=60 - datetime.datetime.utcnow().second)
+
+    logging.getLogger("server").error(f"{tid}: <{type(tid)}>")
 
     estimated_bs, expiration_ts = estimate_user(tid, kwargs["user"].key)
     min_bs, max_bs = bs_to_range(estimated_bs)

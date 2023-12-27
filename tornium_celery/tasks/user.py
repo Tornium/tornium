@@ -21,7 +21,7 @@ from decimal import DivisionByZero
 
 import celery
 from celery.utils.log import get_task_logger
-from peewee import DoesNotExist, IntegrityError, fn
+from peewee import DoesNotExist, fn
 from tornium_commons import db, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import Faction, FactionPosition, PersonalStats, Stat, User
@@ -253,7 +253,7 @@ def update_user_self(user_data, key=None):
 
     # TODO: Attach latest PersonalStats obj to User obj
 
-    if "personal_stats" in user_data:
+    if "personalstats" in user_data:
         now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         logger.debug(now.timestamp())
@@ -264,14 +264,14 @@ def update_user_self(user_data, key=None):
             pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
             tid=user_data["player_id"],
             timestamp=now,
-            **{k: v for k, v in user_data["personal_stats"].items() if k in PersonalStats._meta.sorted_field_names},
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
         ).on_conflict(
             conflict_target=[PersonalStats.pstat_id],
             preserve=[
                 PersonalStats.timestamp,
                 *(
                     getattr(PersonalStats, k)
-                    for k in user_data["personal_stats"].keys()
+                    for k in user_data["personalstats"].keys()
                     if k in PersonalStats._meta.sorted_field_names
                 ),
             ],
@@ -357,7 +357,7 @@ def update_user_other(user_data):
 
     # TODO: Attach latest PersonalStats obj to User obj
 
-    if "personal_stats" in user_data:
+    if "personalstats" in user_data:
         now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         logger.debug(now.timestamp())
@@ -368,14 +368,14 @@ def update_user_other(user_data):
             pstat_id=int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2),
             tid=user_data["player_id"],
             timestamp=now,
-            **{k: v for k, v in user_data["personal_stats"].items() if k in PersonalStats._meta.sorted_field_names},
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
         ).on_conflict(
             conflict_target=[PersonalStats.pstat_id],
             preserve=[
                 PersonalStats.timestamp,
                 *(
                     getattr(PersonalStats, k)
-                    for k in user_data["personal_stats"].keys()
+                    for k in user_data["personalstats"].keys()
                     if k in PersonalStats._meta.sorted_field_names
                 ),
             ],

@@ -17,6 +17,7 @@ from flask import abort, jsonify, render_template, request
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.faction import update_faction
 from tornium_commons import rds
 from tornium_commons.formatters import commas
 from tornium_commons.models import Faction, MemberReport, User
@@ -81,8 +82,10 @@ def faction_data(tid: int):
     if tid == 0 or current_user.key == "":
         return abort(400)
 
-    # TODO: Replace with Celery task
-    # Faction(tid).refresh(key=current_user.key, force=True)
+    tornget.signature(
+        kwargs={"endpoint": f"faction/{tid}?selections=", "key": current_user.key},
+        queue="api",
+    ).apply_async(expires=300, link=update_faction.s())
 
     try:
         faction: Faction = (

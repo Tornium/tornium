@@ -56,24 +56,26 @@ def fetch_market():
     notifications = Notification.select().where((Notification.n_type == 3) & (Notification.enabled == True))
     unique_items = list(notifications.distinct(Notification.target))
 
-    for item_id in unique_items:
-        item_notifications = notifications.where(Notification.target == item_id)
+    unique_notif: Notification
+    for unique_notif in unique_items:
+        if unique_notif.recipient_guild == 0:
+            recipient = unique_notif.recipient
+            key_user: typing.Optional[User] = User.select(User.key).where(User.discord_id == recipient).first()
 
-        if item_notifications.count() == 0:
-            continue
-
-        if item_notifications.first().recipient_guild == 0:
-            recipient = item_notifications.first().recipient
-            key_user: typing.Optional[User] = User.select().where(User.discord_id == recipient).first()
+            if key_user is None:
+                unique_notif.delete_instance()
+                continue
         else:
-            recipient = item_notifications.first().recipient_guild
-            guild: typing.Optional[Server] = Server.select().where(Server.sid == recipient).first()
+            recipient = unique_notif.recipient_guild
+            guild: typing.Optional[Server] = Server.select(User.admins).where(Server.sid == recipient).first()
 
             if guild is None:
-                item_notifications.delete_instance()
+                unique_notif.delete_instance()
                 continue
 
-            key_user: typing.Optional[User] = User.select().where(User.tid == random.choice(guild.admins)).first()
+            key_user: typing.Optional[User] = (
+                User.select(User.key).where(User.tid == random.choice(guild.admins)).first()
+            )
 
         if key_user is None:
             continue
@@ -82,11 +84,11 @@ def fetch_market():
 
         tornget.signature(
             kwargs={
-                "endpoint": f"market/{item_id}?selections=itemmarket,bazaar",
+                "endpoint": f"market/{unique_notif.target}?selections=itemmarket,bazaar",
                 "key": key_user.key,
             },
             queue="api",
-        ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": item_id}))
+        ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": unique_notif.target}))
 
 
 @celery.shared_task(

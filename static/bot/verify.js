@@ -425,6 +425,7 @@ $(document).ready(function () {
         }
 
         const xhttp = new XMLHttpRequest();
+        const factionID = this.getAttribute("data-faction");
 
         xhttp.onload = function () {
             let response = xhttp.response;
@@ -478,18 +479,16 @@ $(document).ready(function () {
             $.each(discordRoles, function (role_id, role) {
                 $.each($(".faction-position-roles-selector"), function (index, item) {
                     if (
-                        !Object.keys(
-                            serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"]
-                        ).includes(item.getAttribute("data-position"))
+                        !Object.keys(serverConfig["verify"]["faction_verify"][factionID]["positions"]).includes(
+                            item.getAttribute("data-position")
+                        )
                     ) {
-                        console.log("Position not in config");
                         item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
                     } else if (
-                        serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"][
+                        serverConfig["verify"]["faction_verify"][factionID]["positions"][
                             item.getAttribute("data-position")
                         ].includes(role["id"])
                     ) {
-                        console.log("Position in config");
                         item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
                     } else {
                         item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
@@ -520,9 +519,7 @@ $(document).ready(function () {
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/verify/faction/${this.getAttribute("data-faction")}/position/${this.getAttribute(
-                        "data-position"
-                    )}`
+                    `/api/bot/verify/faction/${factionID}/position/${this.getAttribute("data-position")}`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(

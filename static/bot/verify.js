@@ -448,6 +448,7 @@ $(document).ready(function () {
                 $(`.row[data-row-index="${Math.floor(index / 2)}"]`).append(
                     $("<div>", {
                         class: "column col-sm-12 col-md-6",
+                        style: "background-color: inherit;",
                         "data-position": position._id,
                     })
                 );
@@ -472,6 +473,7 @@ $(document).ready(function () {
                         "data-live-search": "true",
                         "data-selected-text-format": "count > 2",
                         multiple: "",
+                        style: "background-color: inherit; border: transparent;",
                     })
                 );
             });

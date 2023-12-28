@@ -13,12 +13,13 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+var serverConfig = null;
+
 $(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
     });
 
-    var serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {

@@ -183,7 +183,7 @@ $(document).ready(function () {
                 return;
             }
 
-            $(this).remove();
+            window.location.reload();
         };
 
         xhttp.responseType = "json";

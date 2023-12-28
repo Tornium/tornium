@@ -61,6 +61,20 @@ Tornium - Server Selector
         </div>
         {% endfor %}
 
+        <div class="col-sm-12 col-md-6 col-xl-2">
+            <div class="card m-1 px-1 align-items-center">
+                <div class="card-header border-bottom-0">
+                    Invite the Bot
+                </div>
+
+                <img width="128" height="128" src="/static/favicon.svg" class="rounded img-thumbnail" alt="invite the bot">
+
+                <a href="https://docs.tornium.com/en/latest/user/skynet/skynet.html#inviting-the-bot">
+                    <button type="button" class="btn btn-outline my-2">https://docs.tornium.com/en/latest/user/skynet/skynet.html#inviting-the-bot</button>
+                </a>
+            </div>
+        </div>
+
         {% if servers|length == 0 %}
         <p class="card-text">
             No servers found...

@@ -450,7 +450,7 @@ def fetch_attacks_user_runner():
 
     if (
         redis.exists("tornium:celery-lock:fetch-attacks-user")
-        and redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1
+        and redis.ttl("tornium:celery-lock:fetch-attacks-user") > 1
     ):  # Lock enabled
         logger.debug("Fetch attacks task terminated due to pre-existing task")
         raise Exception(
@@ -467,14 +467,12 @@ def fetch_attacks_user_runner():
     for user in User.select().where((User.key.is_null(False)) & (User.key != "")):
         if user.key in ("", None):
             continue
-        if user.faction_aa:
+        elif user.faction_aa:
             continue
-        if user.last_attacks is None:
-            user.last_attacks = datetime.datetime.utcnow()
-            user.save()
+        elif user.last_attacks is None:
+            User.update(last_attacks=datetime.datetime.utcnow()).where(User.tid == user.tid).execute()
             continue
-
-        if user.faction is not None and len(user.faction.aa_keys) > 0:
+        elif user.faction is not None and len(user.faction.aa_keys) > 0:
             continue
 
         tornget.signature(
@@ -501,11 +499,26 @@ def stat_db_attacks_user(user_data):
         return
 
     try:
-        user: User = User.get_by_id(user_data["player_id"])
+        user: User = User.select().where(User.tid == user_data["player_id"]).get()
     except DoesNotExist:
         return
 
+    if (
+        user.battlescore not in [None, 0]
+        and user.battlescore_update is not None
+        and user.battlescore_update.timestamp() - int(time.time()) <= 259200
+    ):  # Three days
+        user_score = user.battlescore
+    else:
+        return
+
     stats_data = []
+
+    User.update(
+        last_attacks=datetime.datetime.fromtimestamp(
+            list(user_data["attacks"].values())[-1]["timestamp_ended"], tz=datetime.timezone.utc
+        ),
+    ).where(User.tid == user.tid).execute()
 
     attack: dict
     for attack in user_data["attacks"].values():
@@ -538,28 +551,10 @@ def stat_db_attacks_user(user_data):
             continue
         elif attack["respect"] == 0:
             continue
-        elif user is None:
-            continue
-
-        try:
-            if (
-                user.battlescore_update is not None and user.battlescore_update.timestamp() - int(time.time()) <= 259200
-            ):  # Three days
-                user_score = user.battlescore
-            else:
-                continue
-        except IndexError:
-            continue
-        except AttributeError as e:
-            logger.exception(e)
-            continue
-
-        if user_score == 0:
-            continue
 
         # User: faction member
         # Opponent: non-faction member regardless of attack or defend
-        if attack["attacker_id"] == user.tid:  # Attacker is user
+        if attack["attacker_id"] == user.tid:  # User is the attacker
             if attack["defender_faction"] != 0:
                 Faction.insert(
                     tid=attack["defender_faction"],
@@ -581,7 +576,7 @@ def stat_db_attacks_user(user_data):
                 ],
             ).execute()
             opponent_id = attack["defender_id"]
-        else:  # Defender is user
+        else:  # User is the defender
             if attack["attacker_id"] in ("", 0):  # Attacker stealthed
                 continue
 
@@ -629,15 +624,13 @@ def stat_db_attacks_user(user_data):
             }
         )
 
-    try:
-        if len(stats_data) > 0:
-            with db().atomic():
-                Stat.insert_many(stats_data).execute()
-    except Exception as e:
-        logger.exception(e)
-
-    user.last_attacks = datetime.datetime.fromtimestamp(
-        list(user_data["attacks"].values())[-1]["timestamp_ended"],
-        tz=datetime.timezone.utc,
-    )
-    user.save()
+        try:
+            Stat.create(
+                tid=opponent_id,
+                battlescore=int(opponent_score),
+                time_added=datetime.datetime.fromtimestamp(attack["timestamp_ended"], tz=datetime.timezone.utc),
+                added_group=0,
+            )
+        except Exception as e:
+            logger.exception(e)
+            continue

@@ -107,21 +107,18 @@ def refresh_factions():
                 link=update_faction_ts.s(),
             )
 
-        try:
-            if faction.od_channel not in (None, 0) and faction.guild is not None:
-                tornget.signature(
-                    kwargs={
-                        "endpoint": "faction/?selections=basic,contributors",
-                        "stat": "drugoverdoses",
-                        "key": random.choice(faction.aa_keys),
-                    },
-                    queue="api",
-                ).apply_async(
-                    expires=300,
-                    link=check_faction_ods.s(),
-                )
-        except DoesNotExist:
-            pass
+        if faction.od_channel not in (None, 0) and faction.guild is not None and faction.tid in faction.guild.factions:
+            tornget.signature(
+                kwargs={
+                    "endpoint": "faction/?selections=basic,contributors",
+                    "stat": "drugoverdoses",
+                    "key": random.choice(faction.aa_keys),
+                },
+                queue="api",
+            ).apply_async(
+                expires=300,
+                link=check_faction_ods.s(),
+            )
 
 
 @celery.shared_task(
@@ -441,21 +438,22 @@ def update_faction_ts(faction_ts_data):
 def check_faction_ods(faction_od_data):
     try:
         faction: Faction = (
-            Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == faction_od_data["ID"]).get()
+            Faction.select(Faction.od_data, Faction.od_channel)
+            .join(Server, JOIN.LEFT_OUTER)
+            .where(Faction.tid == faction_od_data["ID"])
+            .get()
         )
     except (KeyError, DoesNotExist):
         return
 
     if len(faction.od_data) == 0:
-        faction.od_data = faction_od_data["contributors"]["drugoverdoses"]
-        faction.save()
+        Faction.update(od_data=faction_od_data["contributors"]["drugoverdoses"]).where(
+            Faction.tid == faction_od_data["ID"]
+        ).execute()
         return
     elif faction.od_channel in (0, None):
         return
-
-    if faction.guild is None:
-        faction.od_data = faction_od_data["contributors"]["drugoverdoses"]
-        faction.save()
+    elif faction.tid not in faction.guild.factions:
         return
 
     for tid, user_od in faction_od_data["contributors"]["drugoverdoses"].items():

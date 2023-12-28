@@ -448,7 +448,6 @@ $(document).ready(function () {
                 $(`.row[data-row-index="${Math.floor(index / 2)}"]`).append(
                     $("<div>", {
                         class: "column col-sm-12 col-md-6",
-                        style: "background-color: inherit;",
                         "data-position": position._id,
                     })
                 );
@@ -456,6 +455,7 @@ $(document).ready(function () {
                     $("<div>", {
                         class: "card mr-3 mb-3",
                         "data-position": position._id,
+                        style: "background-color: inherit;",
                     })
                 );
                 $(`.card[data-position="${position._id}"]`).append(

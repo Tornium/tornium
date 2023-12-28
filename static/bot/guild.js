@@ -170,7 +170,7 @@ $(document).ready(function () {
             addFaction();
         }
     });
-    $("#faction-id-submit").on("click", addFaction());
+    $("#faction-id-submit").on("click", addFaction);
 
     $(".remove-faction").on("click", function () {
         const xhttp = new XMLHttpRequest();
@@ -235,7 +235,7 @@ $(document).ready(function () {
             addAssistsFaction;
         }
     });
-    $("#assist-faction-submit").on("click", addAssistsFaction());
+    $("#assist-faction-submit").on("click", addAssistsFaction);
 
     $(".assist-role-selector").on("change", function () {
         var selectedOptions = $(this).find(":selected");

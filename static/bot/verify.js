@@ -190,7 +190,7 @@ $(document).ready(function () {
             addFactionVerify();
         }
     });
-    $("#faction-verification-submit").on("click", addFactionVerify());
+    $("#faction-verification-submit").on("click", addFactionVerify);
 
     $("#verification-log-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();

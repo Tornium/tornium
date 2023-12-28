@@ -161,9 +161,10 @@ Tornium - Verification
 
             <div class="row">
                 <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                    <div class="form-floating">
+                    <div class="form-floating input-group">
                         <input class="form-control" id="faction-verification-input" name="factiontid">
                         <label for="factiontid">Torn Faction ID</label>
+                        <button type="button" id="faction-verification-submit" class="btn btn-outline-success">Add</button>
                         <div class="form-text">
                             Please enter the faction ID of the Torn faction to be verified in the Discord server.
                         </div>
@@ -180,19 +181,18 @@ Tornium - Verification
                                 <i class="fa-solid fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
                                    title="Faction Disabled"></i>
                             {% endif %}
-
-                            <div class="float-md-end">
-                                <button type="button" class="btn verification-faction-edit" data-faction="{{ faction }}" style="color: inherit;">
-                                    <i class="fa-solid fa-file-pen" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Faction"></i>
-                                </button>
-                                <button type="button" class="btn verification-faction-remove" data-faction="{{ faction }}" style="color: inherit;">
-                                    <i class="fa-solid fa-circle-minus" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Faction"></i>
-                                </button>
-                            </div>
                         </div>
 
                         <div class="form-floating px-3 py-3">
                             <select class="discord-role-selector verification-faction-roles" data-faction="{{ faction }}" aria-label="Verification Faction Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            <div class="form-text">
+                                The roles that are assigned to members of this faction.
+                            </div>
+                        </div>
+
+                        <div class="form-floating px-3 py-3">
+                            <button type="button" class="btn btn-outline-warning verification-faction-edit" data-faction="{{ faction }}">Edit Faction Config</button>
+                            <button type="button" class="btn btn-outline-danger verification-faction-remove" data-faction="{{ faction }}">Remove Faction Config</button>
                         </div>
 
                         <div class="card-footer">

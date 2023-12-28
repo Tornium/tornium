@@ -18,7 +18,7 @@ $(document).ready(function () {
         html: true,
     });
 
-    let serverConfig = null;
+    var serverConfig = null;
     let xhttp = new XMLHttpRequest();
 
     xhttp.onload = function () {
@@ -37,11 +37,30 @@ $(document).ready(function () {
 
         rolesRequest()
             .then(function () {
-                $.each(
-                    serverConfig["verify"]["verified_roles"],
-                    function (index, role) {
+                $.each(serverConfig["verify"]["verified_roles"], function (index, role) {
+                    let option = $(`#verification-roles option[value="${role}"]`);
+
+                    if (option.length === 0) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+
+                $.each(serverConfig["verify"]["exclusion_roles"], function (index, role) {
+                    let option = $(`#exclusion-roles option[value="${role}"]`);
+
+                    if (option.length === 0) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+
+                $.each(serverConfig["verify"]["faction_verify"], function (factionid, factionConfig) {
+                    $.each(factionConfig["roles"], function (index, role) {
                         let option = $(
-                            `#verification-roles option[value="${role}"]`
+                            `.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`
                         );
 
                         if (option.length === 0) {
@@ -49,40 +68,8 @@ $(document).ready(function () {
                         }
 
                         option.attr("selected", "");
-                    }
-                );
-
-                $.each(
-                    serverConfig["verify"]["exclusion_roles"],
-                    function (index, role) {
-                        let option = $(
-                            `#exclusion-roles option[value="${role}"]`
-                        );
-
-                        if (option.length === 0) {
-                            return;
-                        }
-
-                        option.attr("selected", "");
-                    }
-                );
-
-                $.each(
-                    serverConfig["verify"]["faction_verify"],
-                    function (factionid, factionConfig) {
-                        $.each(factionConfig["roles"], function (index, role) {
-                            let option = $(
-                                `.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`
-                            );
-
-                            if (option.length === 0) {
-                                return;
-                            }
-
-                            option.attr("selected", "");
-                        });
-                    }
-                );
+                    });
+                });
             })
             .finally(function () {
                 $(".discord-role-selector").selectpicker();
@@ -170,11 +157,7 @@ $(document).ready(function () {
         );
     });
 
-    $("#faction-verification-input").on("keypress", function (e) {
-        if (e.which !== 13) {
-            return;
-        }
-
+    function addFactionVerify() {
         const xhttp = new XMLHttpRequest();
 
         xhttp.onload = function () {
@@ -200,7 +183,14 @@ $(document).ready(function () {
                 factiontid: $("#faction-verification-input").val(),
             })
         );
+    }
+
+    $("#faction-verification-input").on("keypress", function (e) {
+        if (e.which == 13) {
+            addFactionVerify();
+        }
     });
+    $("#faction-verification-submit").on("click", addFactionVerify());
 
     $("#verification-log-channel").on("change", function () {
         const xhttp = new XMLHttpRequest();
@@ -354,10 +344,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "POST",
-            `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`
-        );
+        xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -431,9 +418,7 @@ $(document).ready(function () {
 
     $(".verification-faction-edit").on("click", function () {
         if ($("#verify-settings-modal").length != 0) {
-            let modal = bootstrap.Modal.getInstance(
-                document.getElementById("verify-settings-modal")
-            );
+            let modal = bootstrap.Modal.getInstance(document.getElementById("verify-settings-modal"));
             modal.dispose();
             $("#verify-settings-modal").remove();
         }
@@ -490,32 +475,25 @@ $(document).ready(function () {
             });
 
             $.each(discordRoles, function (role_id, role) {
-                $.each(
-                    $(".faction-position-roles-selector"),
-                    function (index, item) {
-                        if (
-                            !Object.keys(
-                                serverConfig["verify"]["faction_verify"][
-                                    item.getAttribute("data-faction")
-                                ]["positions"]
-                            ).includes(item.getAttribute("data-position"))
-                        ) {
-                            console.log("Position not in config");
-                            item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
-                        } else if (
-                            serverConfig["verify"]["faction_verify"][
-                                item.getAttribute("data-faction")
-                            ]["positions"][
-                                item.getAttribute("data-position")
-                            ].includes(role["id"])
-                        ) {
-                            console.log("Position in config");
-                            item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
-                        } else {
-                            item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
-                        }
+                $.each($(".faction-position-roles-selector"), function (index, item) {
+                    if (
+                        !Object.keys(
+                            serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"]
+                        ).includes(item.getAttribute("data-position"))
+                    ) {
+                        console.log("Position not in config");
+                        item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
+                    } else if (
+                        serverConfig["verify"]["faction_verify"][item.getAttribute("data-faction")]["positions"][
+                            item.getAttribute("data-position")
+                        ].includes(role["id"])
+                    ) {
+                        console.log("Position in config");
+                        item.innerHTML += `<option value="${role.id}" selected>${role.name}</option>`;
+                    } else {
+                        item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
                     }
-                );
+                });
             });
 
             $(".faction-position-roles-selector").on("change", function () {
@@ -541,9 +519,9 @@ $(document).ready(function () {
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/verify/faction/${this.getAttribute(
-                        "data-faction"
-                    )}/position/${this.getAttribute("data-position")}`
+                    `/api/bot/verify/faction/${this.getAttribute("data-faction")}/position/${this.getAttribute(
+                        "data-position"
+                    )}`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -558,12 +536,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "GET",
-            `/api/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute(
-                "data-faction"
-            )}`
-        );
+        xhttp.open("GET", `/api/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 
@@ -597,9 +570,7 @@ $(document).ready(function () {
         $("#verify-settings-modal-header").append(
             $("<h5>", {
                 class: "modal-title",
-                text: `Advanced Verification Dashboard: NYI [${this.getAttribute(
-                    "data-faction"
-                )}]`,
+                text: `Advanced Verification Dashboard: NYI [${this.getAttribute("data-faction")}]`,
             })
         );
         $("#verify-settings-modal-header").append(

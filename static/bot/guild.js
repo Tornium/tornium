@@ -140,11 +140,7 @@ $(document).ready(function () {
         container: ".list-group",
     });
 
-    $("#faction-id-input").on("keypress", function (e) {
-        if (e.which !== 13) {
-            return;
-        }
-
+    function addFaction() {
         const xhttp = new XMLHttpRequest();
         let factiontid = $("#faction-id-input").val();
 
@@ -156,37 +152,7 @@ $(document).ready(function () {
                 return;
             }
 
-            $("#faction-list").append(
-                $("<li>", {
-                    class: "list-group-item d-flex justify-content-between",
-                }).append([
-                    $("<p>", {
-                        class: "px-1 my-2",
-                        text: `N/A [${factiontid}]`,
-                    }).append(
-                        $("<i>", {
-                            class: "fa-regular fa-circle-question",
-                            "data-bs-toggle": "tooltip",
-                            "data-bs-placement": "top",
-                            title: "It is currently unknown if this faction has been set up. Please refresh the page to check.",
-                        })
-                    ),
-                    $("<div>", {
-                        class: "px-1",
-                    }).append(
-                        $("<button>", {
-                            type: "button",
-                            class: "btn btn-outline-danger remove-faction",
-                            "data-factiontid": factiontid,
-                            text: "Remove",
-                        })
-                    ),
-                ])
-            );
-
-            $('[data-bs-toggle="tooltip"]').tooltip({
-                container: ".list-group",
-            });
+            window.location.reload();
         };
 
         xhttp.responseType = "json";
@@ -197,7 +163,14 @@ $(document).ready(function () {
                 factiontid: factiontid,
             })
         );
+    }
+
+    $("#faction-id-input").on("keypress", function (e) {
+        if (e.which == 13) {
+            addFaction();
+        }
     });
+    $("#faction-id-submit").on("click", addFaction());
 
     $(".remove-faction").on("click", function () {
         const xhttp = new XMLHttpRequest();
@@ -245,19 +218,24 @@ $(document).ready(function () {
         );
     });
 
+    function addAssistsFaction() {
+        const id = $("#assist-faction-id").val();
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            window.location.reload();
+        };
+
+        xhttp.open("POST", `/bot/assists/${guildid}/update?action=faction&value=${id}`);
+        xhttp.send();
+    }
+
     $("#assist-faction-id").on("keypress", function (e) {
         if (e.which === 13) {
-            const id = $("#assist-faction-id").val();
-            const xhttp = new XMLHttpRequest();
-
-            xhttp.onload = function () {
-                window.location.reload();
-            };
-
-            xhttp.open("POST", `/bot/assists/${guildid}/update?action=faction&value=${id}`);
-            xhttp.send();
+            addAssistsFaction;
         }
     });
+    $("#assist-faction-submit").on("click", addAssistsFaction());
 
     $(".assist-role-selector").on("change", function () {
         var selectedOptions = $(this).find(":selected");

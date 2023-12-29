@@ -54,41 +54,43 @@ def update_items(items_data):
 )
 def fetch_market():
     notifications = Notification.select().where((Notification.n_type == 3) & (Notification.enabled == True))
-    unique_items = list(notifications.distinct(Notification.target))
+    unique_items = [n.target for n in notifications.distinct(Notification.target)]
 
-    unique_notif: Notification
-    for unique_notif in unique_items:
-        if unique_notif.recipient_guild == 0:
-            recipient = unique_notif.recipient
-            key_user: typing.Optional[User] = User.select(User.key).where(User.discord_id == recipient).first()
+    item_id: int
+    for item_id in unique_items:
+        notification: Notification
+        for notification in notifications.where(Notification.target == item_id):
+            if notification.recipient_guild == 0:
+                recipient = notification.recipient
+                key_user: typing.Optional[User] = User.select(User.key).where(User.discord_id == recipient).first()
+
+                if key_user is None:
+                    notification.delete_instance()
+                    continue
+            else:
+                recipient = notification.recipient_guild
+                guild: typing.Optional[Server] = Server.select(Server.admins).where(Server.sid == recipient).first()
+
+                if guild is None:
+                    notification.delete_instance()
+                    continue
+
+                key_user: typing.Optional[User] = (
+                    User.select(User.key).where(User.tid == random.choice(guild.admins)).first()
+                )
 
             if key_user is None:
-                unique_notif.delete_instance()
                 continue
-        else:
-            recipient = unique_notif.recipient_guild
-            guild: typing.Optional[Server] = Server.select(Server.admins).where(Server.sid == recipient).first()
-
-            if guild is None:
-                unique_notif.delete_instance()
+            elif key_user.key in ("", None):
                 continue
 
-            key_user: typing.Optional[User] = (
-                User.select(User.key).where(User.tid == random.choice(guild.admins)).first()
-            )
-
-        if key_user is None:
-            continue
-        elif key_user.key in ("", None):
-            continue
-
-        tornget.signature(
-            kwargs={
-                "endpoint": f"market/{unique_notif.target}?selections=itemmarket,bazaar",
-                "key": key_user.key,
-            },
-            queue="api",
-        ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": unique_notif.target}))
+            tornget.signature(
+                kwargs={
+                    "endpoint": f"market/{item_id}?selections=itemmarket,bazaar",
+                    "key": key_user.key,
+                },
+                queue="api",
+            ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": notification.target}))
 
 
 @celery.shared_task(

@@ -91,6 +91,7 @@ def fetch_market():
                 },
                 queue="api",
             ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": notification.target}))
+            break
 
 
 @celery.shared_task(

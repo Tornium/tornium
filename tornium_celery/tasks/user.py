@@ -22,7 +22,7 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 from peewee import DoesNotExist, fn
-from tornium_commons import db, rds
+from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.models import Faction, FactionPosition, PersonalStats, Stat, User
 

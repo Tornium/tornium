@@ -53,7 +53,7 @@ def send_notification(notification: Notification, payload: dict):
     if not notification.enabled:
         return
 
-    if notification.recipient_type == 0:
+    if notification.recipient_guild == 0:
         try:
             dm_channel = int(rds().get(f"tornium:discord:dm:{notification.recipient}"))
         except TypeError:

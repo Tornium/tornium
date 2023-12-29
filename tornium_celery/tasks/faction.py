@@ -107,18 +107,25 @@ def refresh_factions():
                 link=update_faction_ts.s(),
             )
 
-        if faction.od_channel not in (None, 0) and faction.guild is not None and faction.tid in faction.guild.factions:
-            tornget.signature(
-                kwargs={
-                    "endpoint": "faction/?selections=basic,contributors",
-                    "stat": "drugoverdoses",
-                    "key": random.choice(faction.aa_keys),
-                },
-                queue="api",
-            ).apply_async(
-                expires=300,
-                link=check_faction_ods.s(),
-            )
+        try:
+            if (
+                faction.od_channel not in (None, 0)
+                and faction.guild is not None
+                and faction.tid in faction.guild.factions
+            ):
+                tornget.signature(
+                    kwargs={
+                        "endpoint": "faction/?selections=basic,contributors",
+                        "stat": "drugoverdoses",
+                        "key": random.choice(faction.aa_keys),
+                    },
+                    queue="api",
+                ).apply_async(
+                    expires=300,
+                    link=check_faction_ods.s(),
+                )
+        except DoesNotExist:
+            pass
 
 
 @celery.shared_task(

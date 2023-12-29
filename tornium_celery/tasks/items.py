@@ -98,7 +98,9 @@ def fetch_market():
     time_limit=15,
 )
 def market_notifications(market_data: dict, item_id: int):
-    if len(market_data.get("itemmarket", [])) == 0 and len(market_data.get("bazaar", [])) == 0:
+    if (market_data.get("itemmarket") is None or len(market_data.get("itemmarket", [])) == 0) and (
+        market_data.get("bazaar") is None or len(market_data.get("bazaar", [])) == 0
+    ):
         return
 
     notifications = Notification.select().where(

@@ -1,5 +1,7 @@
 .. _assists:
 
+Assists are currently in the process of being rebuilt.
+
 Assist Requests
 ===============
 Members can send requests to other members of the server and to other applicable servers that request members to join the attack and help take down a target.

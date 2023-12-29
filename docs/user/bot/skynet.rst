@@ -1,8 +1,8 @@
-.. _skynet:
+.. _bot:
 
-SkyNet
-===============
-SkyNet is Tornium's latest Discord bot module built from scratch using the Discord API preventing other packages from influencing the long-term stability of SkyNet.
+Tornium Bot
+===========
+Tornium Bot (previously known as SkyNet) is Tornium's latest Discord bot module built from scratch using the Discord API preventing other packages from influencing the long-term stability of the bot.
 
 Inviting the Bot
 ----------------
@@ -14,7 +14,7 @@ You can invite SkyNet onto your server with either specific, required permission
  * Administrator permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 
 .. note::
-    SkyNet utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at 30 minutes past every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass (or optionally if tiksan is online, you can ask to have the list of servers manually refreshed).
+    SkyNet utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at 30 minutes past every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass.
 
 Bot Modules
 -----------
@@ -26,7 +26,7 @@ Almost all of the bot's configuration will be done through the bot dashboard fou
  * :ref:`Retaliations<retals>`
  * :ref:`Organized Crime Notifications<ocnotifs>`
  * :ref:`Stakeouts<stakeouts>`
- * :ref:`Stat Estimation<estimate>` [ALPHA]
+ * :ref:`Item Notifications<item_notifs>`
  * :ref:`Stocks<stocks>` [in-dev]
 
 Argument Format

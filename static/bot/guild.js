@@ -132,7 +132,7 @@ $(document).ready(function () {
     };
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/bot/server/${guildid}`);
+    xhttp.open("GET", `/api/v1/bot/server/${guildid}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 
@@ -156,7 +156,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/faction`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/faction`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -187,7 +187,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", `/api/bot/${guildid}/faction`);
+        xhttp.open("DELETE", `/api/v1/bot/${guildid}/faction`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -209,7 +209,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/assists/channel`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/assists/channel`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -258,7 +258,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/assists/roles/${$(this).attr("id").split("-")[1]}`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/assists/roles/${$(this).attr("id").split("-")[1]}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -281,7 +281,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/retal/faction/channel");
+        xhttp.open("POST", "/api/v1/bot/retal/faction/channel");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -313,7 +313,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/retal/faction/roles");
+        xhttp.open("POST", "/api/v1/bot/retal/faction/roles");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -338,7 +338,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -368,7 +368,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -427,7 +427,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/stocks/feed`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/stocks/feed`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -454,7 +454,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/${guildid}/stocks/feed/channel`);
+        xhttp.open("POST", `/api/v1/bot/${guildid}/stocks/feed/channel`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({

@@ -37,9 +37,7 @@ $(document).ready(function () {
                     }),
                     $("<div>", {
                         class: "col-sm-12 col-md-6 col-xl-4 mt-1",
-                        text: `${new Date(
-                            item.start_timestamp * 1000 - tzOffset
-                        ).toDateString()} to ${new Date(
+                        text: `${new Date(item.start_timestamp * 1000 - tzOffset).toDateString()} to ${new Date(
                             item.end_timestamp * 1000 - tzOffset
                         ).toDateString()}`,
                     }),
@@ -85,7 +83,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", `/api/report/faction/members/${rid}`);
+        xhttp.open("DELETE", `/api/v1/report/faction/members/${rid}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
     }
@@ -129,7 +127,7 @@ $(document).ready(function () {
     };
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/report/faction/members`);
+    xhttp.open("GET", `/api/v1/report/faction/members`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 
@@ -137,12 +135,8 @@ $(document).ready(function () {
         $("#generate-report").attr("disabled", true);
 
         const faction = $("#faction-id-input").val();
-        let startTime = Math.ceil(
-            (new Date($("#start-time-input").val()) - tzOffset) / 1000
-        );
-        let endTime = Math.ceil(
-            (new Date($("#end-time-input").val()) - tzOffset) / 1000
-        );
+        let startTime = Math.ceil((new Date($("#start-time-input").val()) - tzOffset) / 1000);
+        let endTime = Math.ceil((new Date($("#end-time-input").val()) - tzOffset) / 1000);
         let availability = $('input[name="data-availability"]:checked').val();
 
         if (availability === undefined) {
@@ -156,26 +150,16 @@ $(document).ready(function () {
             selectedPS.push(item.text);
         });
 
-        if (
-            faction === "" ||
-            selectedPS.length === 0 ||
-            (availability !== "user" && availability !== "faction")
-        ) {
+        if (faction === "" || selectedPS.length === 0 || (availability !== "user" && availability !== "faction")) {
             generateToast("Invalid Input", "An inputted value was not valid");
             $("#generate-report").attr("disabled", false);
             return;
         } else if (endTime - startTime < 3600 * 24 * 2) {
-            generateToast(
-                "Invalid Dates",
-                "The selected dates must be two or more days apart"
-            );
+            generateToast("Invalid Dates", "The selected dates must be two or more days apart");
             $("#generate-report").attr("disabled", false);
             return;
         } else if (startTime <= 0 || endTime <= 0) {
-            generateToast(
-                "Invalid Time",
-                "An inputted date time was not valid"
-            );
+            generateToast("Invalid Time", "An inputted date time was not valid");
             $("#generate-report").attr("disabled", false);
             return;
         }
@@ -203,7 +187,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/report/faction/members");
+        xhttp.open("POST", "/api/v1/report/faction/members");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({

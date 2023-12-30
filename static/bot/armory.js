@@ -31,7 +31,7 @@ $(document).ready(function () {
         };
 
         xhttpRemoveItem.responseType = "json";
-        xhttpRemoveItem.open("DELETE", `/api/bot/${guildid}/armory/${faction}/item`);
+        xhttpRemoveItem.open("DELETE", `/api/v1/bot/${guildid}/armory/${faction}/item`);
         xhttpRemoveItem.setRequestHeader("Content-Type", "application/json");
         xhttpRemoveItem.send(
             JSON.stringify({
@@ -315,7 +315,7 @@ $(document).ready(function () {
             };
 
             xhttpItem.responseType = "json";
-            xhttpItem.open("POST", `/api/bot/${guildid}/armory/${factionID}/item`);
+            xhttpItem.open("POST", `/api/v1/bot/${guildid}/armory/${factionID}/item`);
             xhttpItem.setRequestHeader("Content-Type", "application/json");
             xhttpItem.send(
                 JSON.stringify({
@@ -344,7 +344,7 @@ $(document).ready(function () {
             };
 
             xhttpRoles.responseType = "json";
-            xhttpRoles.open("POST", `/api/bot/${guildid}/armory/${$(this).attr("data-faction")}/roles`);
+            xhttpRoles.open("POST", `/api/v1/bot/${guildid}/armory/${$(this).attr("data-faction")}/roles`);
             xhttpRoles.setRequestHeader("Content-Type", "application/json");
             xhttpRoles.send(
                 JSON.stringify({
@@ -365,7 +365,7 @@ $(document).ready(function () {
             };
 
             xhttpChannel.responseType = "json";
-            xhttpChannel.open("POST", `/api/bot/${guildid}/armory/${$(this).attr("data-faction")}/channel`);
+            xhttpChannel.open("POST", `/api/v1/bot/${guildid}/armory/${$(this).attr("data-faction")}/channel`);
             xhttpChannel.setRequestHeader("Content-Type", "application/json");
             xhttpChannel.send(
                 JSON.stringify({
@@ -396,7 +396,7 @@ $(document).ready(function () {
             };
 
             xhttpToggle.responseType = "json";
-            xhttpToggle.open("PUT", `/api/bot/${guildid}/armory`);
+            xhttpToggle.open("PUT", `/api/v1/bot/${guildid}/armory`);
             xhttpToggle.setRequestHeader("Content-Type", "application/json");
             xhttpToggle.send(
                 JSON.stringify({
@@ -428,7 +428,7 @@ $(document).ready(function () {
             };
 
             xhttpFactionToggle.responseType = "json";
-            xhttpFactionToggle.open("PUT", `/api/bot/${guildid}/armory/${faction}`);
+            xhttpFactionToggle.open("PUT", `/api/v1/bot/${guildid}/armory/${faction}`);
             xhttpFactionToggle.setRequestHeader("Content-Type", "application/json");
             xhttpFactionToggle.send(
                 JSON.stringify({
@@ -441,7 +441,7 @@ $(document).ready(function () {
     };
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/bot/server/${guildid}`);
+    xhttp.open("GET", `/api/v1/bot/server/${guildid}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 });

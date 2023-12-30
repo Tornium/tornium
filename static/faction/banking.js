@@ -13,9 +13,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-const bankingEnabled = document.currentScript.getAttribute(
-    "data-banking-enabled"
-);
+const bankingEnabled = document.currentScript.getAttribute("data-banking-enabled");
 
 $(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
@@ -56,7 +54,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("GET", "/api/faction/banking/vault");
+        xhttp.open("GET", "/api/v1/faction/banking/vault");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 
@@ -96,7 +94,7 @@ $(document).ready(function () {
             };
 
             xhttp.responseType = "json";
-            xhttp.open("POST", "/api/faction/banking");
+            xhttp.open("POST", "/api/v1/faction/banking");
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send(
                 JSON.stringify({

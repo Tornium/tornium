@@ -90,8 +90,7 @@ $(document).ready(function () {
                                         "data-factionid": faction,
                                         "aria-label": "OC Ready Roles",
                                         "data-live-search": "true",
-                                        "data-selected-text-format":
-                                            "count > 2",
+                                        "data-selected-text-format": "count > 2",
                                         multiple: "",
                                     })
                                 ),
@@ -146,8 +145,7 @@ $(document).ready(function () {
                                         "data-factionid": faction,
                                         "aria-label": "OC Delay Roles",
                                         "data-live-search": "true",
-                                        "data-selected-text-format":
-                                            "count > 2",
+                                        "data-selected-text-format": "count > 2",
                                         multiple: "",
                                     })
                                 ),
@@ -192,9 +190,7 @@ $(document).ready(function () {
             rolesRequest().then(function () {
                 $.each(serverConfig["oc"], function (factionid, oc_config) {
                     $.each(oc_config["ready"]["roles"], function (index, role) {
-                        let roleElement = $(
-                            `.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`
-                        );
+                        let roleElement = $(`.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`);
 
                         if (roleElement.length === 0) {
                             return;
@@ -204,9 +200,7 @@ $(document).ready(function () {
                     });
 
                     $.each(oc_config["delay"]["roles"], function (index, role) {
-                        let roleElement = $(
-                            `.oc-delay-roles[data-factionid="${factionid}"] option[value="${role}"]`
-                        );
+                        let roleElement = $(`.oc-delay-roles[data-factionid="${factionid}"] option[value="${role}"]`);
 
                         if (roleElement.length === 0) {
                             return;
@@ -254,19 +248,14 @@ $(document).ready(function () {
                     let response = xhttp.response;
 
                     if ("code" in response) {
-                        generateToast(
-                            "OC Ready Channel Failed",
-                            response["message"]
-                        );
+                        generateToast("OC Ready Channel Failed", response["message"]);
                     }
                 };
 
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/${guildid}/faction/${this.getAttribute(
-                        "data-factionid"
-                    )}/oc/ready/channel`
+                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/channel`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -290,19 +279,14 @@ $(document).ready(function () {
                     let response = xhttp.response;
 
                     if ("code" in response) {
-                        generateToast(
-                            "OC Ready Roles Failed",
-                            response["message"]
-                        );
+                        generateToast("OC Ready Roles Failed", response["message"]);
                     }
                 };
 
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/${guildid}/faction/${this.getAttribute(
-                        "data-factionid"
-                    )}/oc/ready/roles`
+                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -319,19 +303,14 @@ $(document).ready(function () {
                     let response = xhttp.response;
 
                     if ("code" in response) {
-                        generateToast(
-                            "OC Delay Channel Failed",
-                            response["message"]
-                        );
+                        generateToast("OC Delay Channel Failed", response["message"]);
                     }
                 };
 
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/${guildid}/faction/${this.getAttribute(
-                        "data-factionid"
-                    )}/oc/delay/channel`
+                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/channel`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -355,19 +334,14 @@ $(document).ready(function () {
                     let response = xhttp.response;
 
                     if ("code" in response) {
-                        generateToast(
-                            "OC Ready Roles Failed",
-                            response["message"]
-                        );
+                        generateToast("OC Ready Roles Failed", response["message"]);
                     }
                 };
 
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/${guildid}/faction/${this.getAttribute(
-                        "data-factionid"
-                    )}/oc/delay/roles`
+                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -384,19 +358,14 @@ $(document).ready(function () {
                     let response = xhttp.response;
 
                     if ("code" in response) {
-                        generateToast(
-                            "OC Initiated Channel Failed",
-                            response["message"]
-                        );
+                        generateToast("OC Initiated Channel Failed", response["message"]);
                     }
                 };
 
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/${guildid}/faction/${this.getAttribute(
-                        "data-factionid"
-                    )}/oc/initiated/channel`
+                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/initiated/channel`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(

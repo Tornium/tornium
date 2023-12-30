@@ -41,10 +41,7 @@ $(document).ready(function () {
         let diffSum = 0;
 
         $.each(response.members, function (tid, member_data) {
-            if (
-                response.start_data[tid] == null ||
-                response.end_data[tid] == null
-            ) {
+            if (response.start_data[tid] == null || response.end_data[tid] == null) {
                 return;
             }
 
@@ -52,22 +49,16 @@ $(document).ready(function () {
                 `${member_data.name} [${tid}]`,
                 commas(response.start_data[tid][stat]),
                 commas(response.end_data[tid][stat]),
-                commas(
-                    response.end_data[tid][stat] -
-                        response.start_data[tid][stat]
-                ),
+                commas(response.end_data[tid][stat] - response.start_data[tid][stat]),
             ]);
 
             startData.push(response.start_data[tid][stat]);
             endData.push(response.end_data[tid][stat]);
-            diffData.push(
-                response.end_data[tid][stat] - response.start_data[tid][stat]
-            );
+            diffData.push(response.end_data[tid][stat] - response.start_data[tid][stat]);
 
             startSum += response.start_data[tid][stat];
             endSum += response.end_data[tid][stat];
-            diffSum +=
-                response.end_data[tid][stat] - response.start_data[tid][stat];
+            diffSum += response.end_data[tid][stat] - response.start_data[tid][stat];
         });
 
         startData.sort();
@@ -108,15 +99,11 @@ $(document).ready(function () {
 
         if (response.status < 2) {
             if (response.expected_end_time === undefined) {
-                $("#temp-container").text(
-                    "The report has not finished generating. Please try again later..."
-                );
+                $("#temp-container").text("The report has not finished generating. Please try again later...");
             } else {
                 $("#temp-container").text(
                     `The report has not finished generating. The report should finish generating around 
-                    ${tcttime(
-                        response.expected_end_time
-                    )}. Please try again later...`
+                    ${tcttime(response.expected_end_time)}. Please try again later...`
                 );
             }
             return;
@@ -138,10 +125,7 @@ $(document).ready(function () {
         });
 
         drawTable(response.requested_data[0]);
-        $(`.stat-select[id="radio-${response.requested_data[0]}"]`).attr(
-            "checked",
-            ""
-        );
+        $(`.stat-select[id="radio-${response.requested_data[0]}"]`).attr("checked", "");
         $("#report-stat-selector").removeAttr("hidden");
         $("#temp-container").hide();
         $("#stats-container").removeAttr("hidden");
@@ -150,12 +134,7 @@ $(document).ready(function () {
     };
 
     xhttp.responseType = "json";
-    xhttp.open(
-        "GET",
-        `/api/report/faction/members/${new URL(document.location.href).pathname
-            .split("/")
-            .at(-1)}`
-    );
+    xhttp.open("GET", `/api/v1/report/faction/members/${new URL(document.location.href).pathname.split("/").at(-1)}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 

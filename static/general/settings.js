@@ -25,9 +25,7 @@ $(document).ready(function () {
             return localStorage.getItem("theme");
         }
 
-        return window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "custom-dark"
-            : "light";
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "custom-dark" : "light";
     };
 
     $("#theme-selector").on("change", function (e) {
@@ -49,10 +47,7 @@ $(document).ready(function () {
             let response = xhttp.response;
 
             if ("code" in response) {
-                generateToast(
-                    "Security Mode Switch Failed",
-                    response["message"]
-                );
+                generateToast("Security Mode Switch Failed", response["message"]);
                 window.location.reload();
             } else {
                 $("#disable-mfa").attr("disabled", true);
@@ -82,10 +77,7 @@ $(document).ready(function () {
             let response = xhttp.response;
 
             if ("code" in response) {
-                generateToast(
-                    "Security Mode Switch Failed",
-                    response["message"]
-                );
+                generateToast("Security Mode Switch Failed", response["message"]);
                 window.location.reload();
             } else {
                 $("#disable-mfa").attr("disabled", false);
@@ -135,10 +127,7 @@ $(document).ready(function () {
                 })
             );
 
-            new QRCode(
-                document.getElementById("qr-code-container"),
-                response["url"]
-            );
+            new QRCode(document.getElementById("qr-code-container"), response["url"]);
 
             $("#settings-modal-body").append(
                 $("<p>", {
@@ -168,10 +157,7 @@ $(document).ready(function () {
             let response = xhttp.response;
 
             if ("code" in response && response["code"] !== 1) {
-                generateToast(
-                    "TOTP Secret Generation Failed",
-                    response["message"]
-                );
+                generateToast("TOTP Secret Generation Failed", response["message"]);
             } else {
                 generateToast(
                     "TOTP Secret Generation Successful",
@@ -249,21 +235,13 @@ $(document).ready(function () {
             $("#save-totp-backup").attr("disabled", true);
 
             $("#copy-totp-backup").on("click", function () {
-                navigator.clipboard
-                    .writeText(response["codes"].join("\n"))
-                    .then(function () {
-                        generateToast(
-                            "Codes Copied",
-                            "The TOTP backup codes have been copied to your clipboard"
-                        );
-                    });
+                navigator.clipboard.writeText(response["codes"].join("\n")).then(function () {
+                    generateToast("Codes Copied", "The TOTP backup codes have been copied to your clipboard");
+                });
             });
 
             $("#save-totp-backup").on("click", function () {
-                window.open(
-                    "data:text/plain;charset=utf-8," +
-                        response["codes"].join("\n")
-                );
+                window.open("data:text/plain;charset=utf-8," + response["codes"].join("\n"));
             });
 
             let modal = new bootstrap.Modal($("#settings-modal"));
@@ -294,16 +272,13 @@ $(document).ready(function () {
                 return;
             }
 
-            generateToast(
-                "API Key Input Successful",
-                "The Tornium API server has successfully set your API key."
-            );
+            generateToast("API Key Input Successful", "The Tornium API server has successfully set your API key.");
             $("#api-key-input").attr("placeholder", response["obfuscated_key"]);
             $("#api-key-input").val("");
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/key");
+        xhttp.open("POST", "/api/v1/key");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({

@@ -63,9 +63,7 @@ $(document).ready(function () {
             return;
         }
 
-        difficulty = parseInt(
-            difficulty.first()[0].getAttribute("data-difficulty")
-        );
+        difficulty = parseInt(difficulty.first()[0].getAttribute("data-difficulty"));
 
         switch (sorting.first()[0].id) {
             case "recently-updated-sort":
@@ -101,9 +99,7 @@ $(document).ready(function () {
                 return;
             }
 
-            response["data"].sort(
-                (a, b) => parseFloat(b.respect) - parseFloat(a.respect)
-            );
+            response["data"].sort((a, b) => parseFloat(b.respect) - parseFloat(a.respect));
 
             const fragment = document.createDocumentFragment();
 
@@ -127,9 +123,7 @@ $(document).ready(function () {
                                 }),
                                 $("<h6>", {
                                     class: "card-subtitle mb-2",
-                                    text: `Last Update: ${reltime(
-                                        user.timeadded
-                                    )}`,
+                                    text: `Last Update: ${reltime(user.timeadded)}`,
                                 }),
                             ]),
                             $("<ul>", {
@@ -145,15 +139,11 @@ $(document).ready(function () {
                                 }),
                                 $("<li>", {
                                     class: "list-group-item",
-                                    text: `Minimum Estimated Stats: ${commas(
-                                        bsMinMax[0]
-                                    )}`,
+                                    text: `Minimum Estimated Stats: ${commas(bsMinMax[0])}`,
                                 }),
                                 $("<li>", {
                                     class: "list-group-item",
-                                    text: `Maximum Estimated Stats: ${commas(
-                                        bsMinMax[1]
-                                    )}`,
+                                    text: `Maximum Estimated Stats: ${commas(bsMinMax[1])}`,
                                 }),
                             ]),
                             $("<ul>", {
@@ -210,9 +200,7 @@ $(document).ready(function () {
                         return;
                     }
 
-                    const targetDataContainer = $(
-                        `div[data-tid="${userID}"] .target-user-data`
-                    );
+                    const targetDataContainer = $(`div[data-tid="${userID}"] .target-user-data`);
                     let factionName;
 
                     if (response.faction === null) {
@@ -235,9 +223,7 @@ $(document).ready(function () {
                             }),
                             $("<li>", {
                                 class: "list-group-item",
-                                text: `Status: ${response.status} (${reltime(
-                                    response.last_action
-                                )})`,
+                                text: `Status: ${response.status} (${reltime(response.last_action)})`,
                             }),
                         ])
                     );
@@ -246,7 +232,7 @@ $(document).ready(function () {
                 };
 
                 xhttp.responseType = "json";
-                xhttp.open("GET", `/api/user/${userID}?refresh=true`);
+                xhttp.open("GET", `/api/v1/user/${userID}?refresh=true`);
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send();
             });
@@ -255,10 +241,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open(
-            "GET",
-            `/api/stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`
-        );
+        xhttp.open("GET", `/api/v1/stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 

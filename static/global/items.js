@@ -61,7 +61,7 @@ let itemsRequest = (obj) => {
             };
 
             xhttp.responseType = "json";
-            xhttp.open("GET", "/api/items");
+            xhttp.open("GET", "/api/v1/items");
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send();
         });

@@ -22,21 +22,21 @@ let benefitsPage = 0;
 let benefitsLoaded = false;
 
 const stocksQuery = async function () {
-    return fetch("/api/stocks", {
+    return fetch("/api/v1/stocks", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
 };
 
 const moversQuery = async function () {
-    return fetch("/api/stocks/movers", {
+    return fetch("/api/v1/stocks/movers", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
 };
 
 const benefitsQuery = async function () {
-    return fetch("/api/stocks/benefits", {
+    return fetch("/api/v1/stocks/benefits", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
@@ -44,17 +44,11 @@ const benefitsQuery = async function () {
 
 function renderStocksBenefitsPage() {
     if (!benefitsLoaded) {
-        generateToast(
-            "Benefits Render Failed",
-            "The stock benefits haven't been loaded from the Tornium API yet."
-        );
+        generateToast("Benefits Render Failed", "The stock benefits haven't been loaded from the Tornium API yet.");
         return;
     }
 
-    let benefitsListed = benefitsSorted.slice(
-        6 * benefitsPage,
-        6 * benefitsPage + 6
-    );
+    let benefitsListed = benefitsSorted.slice(6 * benefitsPage, 6 * benefitsPage + 6);
 
     for (let i = 0; i < benefitsListed.length; i++) {
         let stock = STOCKS_DATA[benefitsListed[i]["stock_id"]];
@@ -70,9 +64,7 @@ function renderStocksBenefitsPage() {
 
         $(`#passive-${i} .card-text`)
             .empty()
-            .text(
-                `${stock.acronym} pays ${benefitsListed[i].description} every ${benefitsListed[i].frequency} days.`
-            )
+            .text(`${stock.acronym} pays ${benefitsListed[i].description} every ${benefitsListed[i].frequency} days.`)
             .removeClass("placeholder");
 
         $(`#passive-${i} .list-group-flush`)
@@ -89,19 +81,12 @@ function renderStocksBenefitsPage() {
                 $("<li>", {
                     class: "list-group-item",
                     text: `Average Daily Return: $${commas(
-                        parseInt(
-                            benefitsListed[i].value /
-                                benefitsListed[i].frequency
-                        )
+                        parseInt(benefitsListed[i].value / benefitsListed[i].frequency)
                     )}`,
                 }),
                 $("<li>", {
                     class: "list-group-item",
-                    text: `Yearly ROI: ${(
-                        benefitsListed[i].daily_roi *
-                        365 *
-                        100
-                    ).toFixed(2)}%`,
+                    text: `Yearly ROI: ${(benefitsListed[i].daily_roi * 365 * 100).toFixed(2)}%`,
                 }),
             ]);
 
@@ -195,9 +180,7 @@ $(document).ready(async function () {
             BENEFITS_DATA["active"].forEach(function (stockBenefit) {
                 for (let i = 1; i < 4; i++) {
                     let cost =
-                        i *
-                        stockBenefit["benefit"]["requirement"] *
-                        STOCKS_DATA[stockBenefit["stock_id"]]["price"];
+                        i * stockBenefit["benefit"]["requirement"] * STOCKS_DATA[stockBenefit["stock_id"]]["price"];
                     benefitsSorted.push({
                         stock_id: stockBenefit["stock_id"],
                         value: stockBenefit["benefit"]["value"],
@@ -205,10 +188,7 @@ $(document).ready(async function () {
                         frequency: stockBenefit["benefit"]["frequency"],
                         cost: cost,
                         bb_n: i,
-                        daily_roi:
-                            stockBenefit["benefit"]["value"] /
-                            stockBenefit["benefit"]["frequency"] /
-                            cost,
+                        daily_roi: stockBenefit["benefit"]["value"] / stockBenefit["benefit"]["frequency"] / cost,
                     });
                 }
             });
@@ -278,22 +258,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.gainers.d1[
-                                        n
-                                    ].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.d1[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.gainers.d1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(
-                                MOVERS_DATA.gainers.d1[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `+${Number(MOVERS_DATA.gainers.d1[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }
@@ -303,22 +275,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.gainers.d7[
-                                        n
-                                    ].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.d7[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.gainers.d7[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(
-                                MOVERS_DATA.gainers.d7[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `+${Number(MOVERS_DATA.gainers.d7[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }
@@ -328,22 +292,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.gainers.m1[
-                                        n
-                                    ].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.m1[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.gainers.m1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(
-                                MOVERS_DATA.gainers.m1[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `+${Number(MOVERS_DATA.gainers.m1[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }
@@ -353,20 +309,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.losers.d1[n].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.losers.d1[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.losers.d1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(
-                                MOVERS_DATA.losers.d1[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `${Number(MOVERS_DATA.losers.d1[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }
@@ -376,20 +326,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.losers.d7[n].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.losers.d7[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.losers.d7[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(
-                                MOVERS_DATA.losers.d7[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `${Number(MOVERS_DATA.losers.d7[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }
@@ -399,20 +343,14 @@ $(document).ready(async function () {
                     .empty()
                     .append([
                         $("<span>", {
-                            text: `${
-                                STOCKS_DATA[
-                                    MOVERS_DATA.losers.m1[n].stock_id.toString()
-                                ].acronym
-                            } → $${Number(
+                            text: `${STOCKS_DATA[MOVERS_DATA.losers.m1[n].stock_id.toString()].acronym} → $${Number(
                                 MOVERS_DATA.losers.m1[n].price
                             ).toFixed(2)}`,
                         }),
                         $("<span>", {
                             class: "badge bg-primary rounded-pill",
                             style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(
-                                MOVERS_DATA.losers.m1[n].change * 100
-                            ).toFixed(2)}%`,
+                            text: `${Number(MOVERS_DATA.losers.m1[n].change * 100).toFixed(2)}%`,
                         }),
                     ]);
             }

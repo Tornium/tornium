@@ -40,11 +40,7 @@ $(document).ready(function () {
 
     $("#stats-table tbody").on("click", "tr", function () {
         if (battlescore === "-1") {
-            generateToast(
-                "Permission Denied",
-                "You must be signed in to access this feature.",
-                "Error"
-            );
+            generateToast("Permission Denied", "You must be signed in to access this feature.", "Error");
             return;
         }
 
@@ -53,11 +49,7 @@ $(document).ready(function () {
             let response = xhttp.response;
 
             if ("code" in response) {
-                generateToast(
-                    "User Retrieval Failed",
-                    response["message"],
-                    "Error"
-                );
+                generateToast("User Retrieval Failed", response["message"], "Error");
                 return;
             }
 
@@ -70,14 +62,9 @@ $(document).ready(function () {
 
             let lastStat =
                 response["stat_entries"][
-                    Object.keys(response["stat_entries"])[
-                        Object.keys(response["stat_entries"]).length - 1
-                    ]
+                    Object.keys(response["stat_entries"])[Object.keys(response["stat_entries"]).length - 1]
                 ];
-            let ff = (
-                1 +
-                ((8 / 3) * lastStat["stat_score"]) / battlescore
-            ).toFixed(2);
+            let ff = (1 + ((8 / 3) * lastStat["stat_score"]) / battlescore).toFixed(2);
             if (ff > 3) {
                 ff = 3;
             }
@@ -230,14 +217,8 @@ $(document).ready(function () {
             );
 
             $("#stat-modal-label").text(`${user.name} [${user.tid}]`);
-            $("#stat-modal-attack-link").attr(
-                "href",
-                `https://www.torn.com/loader.php?sid=attack&user2ID=${user.tid}`
-            );
-            $("#stat-modal-profile-link").attr(
-                "href",
-                `https://www.torn.com/profiles.php?XID=${user.tid}`
-            );
+            $("#stat-modal-attack-link").attr("href", `https://www.torn.com/loader.php?sid=attack&user2ID=${user.tid}`);
+            $("#stat-modal-profile-link").attr("href", `https://www.torn.com/profiles.php?XID=${user.tid}`);
 
             $("#stat-modal-body").append(
                 $("<table>", {
@@ -319,7 +300,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("GET", `/api/stat/${getTID(table.row(this).data()[0])}`);
+        xhttp.open("GET", `/api/v1/stat/${getTID(table.row(this).data()[0])}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
     });

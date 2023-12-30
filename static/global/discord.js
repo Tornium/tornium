@@ -71,7 +71,7 @@ let rolesRequest = (obj) => {
                 resolve();
             };
             xhttp.responseType = "json";
-            xhttp.open("GET", `/api/bot/server/${guildid}/roles`);
+            xhttp.open("GET", `/api/v1/bot/server/${guildid}/roles`);
             xhttp.setRequestHeader("Content-Type", "application/json");
 
             if (guildid !== null) {
@@ -181,7 +181,7 @@ let channelsRequest = (obj) => {
                 resolve();
             };
             xhttp.responseType = "json";
-            xhttp.open("GET", `/api/bot/server/${guildid}/channels`);
+            xhttp.open("GET", `/api/v1/bot/server/${guildid}/channels`);
             xhttp.setRequestHeader("Content-Type", "application/json");
 
             if (guildid !== null) {
@@ -214,7 +214,7 @@ let configRequest = (obj) => {
             };
 
             xhttp.responseType = "json";
-            xhttp.open("GET", `/api/bot/server/${guildid}`);
+            xhttp.open("GET", `/api/v1/bot/server/${guildid}`);
             xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send();
         }

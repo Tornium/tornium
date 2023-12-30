@@ -92,7 +92,7 @@ $(document).ready(function () {
     };
 
     xhttp.responseType = "json";
-    xhttp.open("GET", `/api/bot/server/${guildid}`);
+    xhttp.open("GET", `/api/v1/bot/server/${guildid}`);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
 
@@ -118,7 +118,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify");
+        xhttp.open("POST", "/api/v1/bot/verify");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -149,7 +149,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/bot/verify");
+        xhttp.open("DELETE", "/api/v1/bot/verify");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -176,7 +176,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/faction");
+        xhttp.open("POST", "/api/v1/bot/verify/faction");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -210,7 +210,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/log");
+        xhttp.open("POST", "/api/v1/bot/verify/log");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -241,7 +241,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/template");
+        xhttp.open("POST", "/api/v1/bot/verify/template");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -265,7 +265,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/faction");
+        xhttp.open("POST", "/api/v1/bot/verify/faction");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -289,7 +289,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/bot/verify/faction");
+        xhttp.open("DELETE", "/api/v1/bot/verify/faction");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -313,7 +313,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/bot/verify/faction");
+        xhttp.open("DELETE", "/api/v1/bot/verify/faction");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -345,7 +345,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", `/api/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
+        xhttp.open("POST", `/api/v1/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -376,7 +376,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/roles");
+        xhttp.open("POST", "/api/v1/bot/verify/roles");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -407,7 +407,7 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("POST", "/api/bot/verify/exclusion");
+        xhttp.open("POST", "/api/v1/bot/verify/exclusion");
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send(
             JSON.stringify({
@@ -521,7 +521,7 @@ $(document).ready(function () {
                 xhttp.responseType = "json";
                 xhttp.open(
                     "POST",
-                    `/api/bot/verify/faction/${factionID}/position/${this.getAttribute("data-position")}`
+                    `/api/v1/bot/verify/faction/${factionID}/position/${this.getAttribute("data-position")}`
                 );
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.send(
@@ -536,7 +536,10 @@ $(document).ready(function () {
         };
 
         xhttp.responseType = "json";
-        xhttp.open("GET", `/api/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`);
+        xhttp.open(
+            "GET",
+            `/api/v1/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`
+        );
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
 

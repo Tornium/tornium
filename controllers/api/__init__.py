@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.v1 import mod as api_v1_mod
+from controllers.api.v1 import mod as api_v1_mod
 
 __all__ = ["api_v1_mod"]

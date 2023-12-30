@@ -18,8 +18,8 @@ import json
 from flask import jsonify, request
 from tornium_commons.models import Faction
 
-from controllers.api.decorators import ratelimit, token_required
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @token_required

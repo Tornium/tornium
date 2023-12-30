@@ -41,7 +41,7 @@ from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
-from controllers.api.utils import json_api_exception
+from controllers.api.v1.utils import json_api_exception
 from controllers.decorators import token_required
 from models.user import AuthUser
 

@@ -16,7 +16,7 @@
 import typing
 
 import redis
-from flask import Response, jsonify
+from flask import jsonify
 from tornium_commons import rds
 
 API_EXCEPTIONS = {

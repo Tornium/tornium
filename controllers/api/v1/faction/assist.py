@@ -32,8 +32,8 @@ from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
 from tornium_commons.models import PersonalStats, Server, Stat, User
 
-from controllers.api.decorators import authentication_required, ratelimit
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 def forward_assist(*args, **kwargs):

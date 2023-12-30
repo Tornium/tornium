@@ -18,12 +18,12 @@ import json
 from flask import request
 from tornium_commons.models import User
 
-from controllers.api.decorators import (
+from controllers.api.v1.decorators import (
     authentication_required,
     ratelimit,
     token_required,
 )
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required

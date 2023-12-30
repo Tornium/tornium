@@ -26,7 +26,7 @@ from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.models import User
 
-from controllers.api.utils import make_exception_response
+from controllers.api.v1.utils import make_exception_response
 
 
 def ratelimit(func):

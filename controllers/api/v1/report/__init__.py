@@ -13,4 +13,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.report import faction_member
+from controllers.api.v1.report import faction_member

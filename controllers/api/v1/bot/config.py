@@ -13,14 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
 from flask import jsonify
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server
 
-from controllers.api.decorators import ratelimit, token_required
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 def _faction_data(tid, guild=None):

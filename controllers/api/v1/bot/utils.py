@@ -18,8 +18,8 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget
 from tornium_commons.models import Server
 
-from controllers.api.decorators import ratelimit, token_required
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @token_required

@@ -25,8 +25,12 @@ from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
 from tornium_commons.models import Item, StockTick
 
-from controllers.api.decorators import authentication_required, global_cache, ratelimit
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import (
+    authentication_required,
+    global_cache,
+    ratelimit,
+)
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required

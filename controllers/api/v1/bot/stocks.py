@@ -19,9 +19,9 @@ from flask import request
 from peewee import DoesNotExist
 from tornium_commons.models import Server
 
-from controllers.api.bot.config import jsonified_server_config
-from controllers.api.decorators import ratelimit, token_required
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.bot.config import jsonified_server_config
+from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @token_required

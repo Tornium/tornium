@@ -30,13 +30,13 @@ from tornium_celery.tasks.reports.member_report import (
 from tornium_commons import rds
 from tornium_commons.models import Faction, MemberReport, PersonalStats, User
 
-from controllers.api.bot.config import _faction_data
-from controllers.api.decorators import (
+from controllers.api.v1.bot.config import _faction_data
+from controllers.api.v1.decorators import (
     authentication_required,
     ratelimit,
     token_required,
 )
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @authentication_required

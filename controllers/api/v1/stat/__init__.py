@@ -14,17 +14,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
-import operator
-import typing
 
 from flask import jsonify, request
-from peewee import DoesNotExist, fn
+from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons.db_connection import db
-from tornium_commons.models import Faction, Stat, User
+from tornium_commons.models import Stat, User
 
-from controllers.api.decorators import authentication_required, ratelimit
-from controllers.api.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 _DIFFICULTY_MAP = {
     0: (1.25, 1.75),

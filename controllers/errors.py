@@ -16,7 +16,7 @@
 from flask import Blueprint, render_template, request
 from tornium_commons.errors import DiscordError, NetworkingError, TornError
 
-from controllers.api.decorators import make_exception_response
+from controllers.api.v1.decorators import make_exception_response
 
 mod = Blueprint("errors", __name__)
 FRONTEND_API_ROUTES = ("/api", "/api/documentation")

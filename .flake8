@@ -13,4 +13,6 @@ extend-ignore =
     # F401: ?
     F401,
     # E712: peewee query (? == True)
-    E712
+    E712,
+    # W391: Black autoformatting
+    W391

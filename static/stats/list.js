@@ -147,8 +147,13 @@ $(document).ready(function () {
                                 }),
                             ]),
                             $("<ul>", {
-                                class: "list-group list-group-flush mt-2 d-none target-user-data",
-                            }),
+                                class: "list-group list-group-flush mt-2",
+                            }).append([
+                                $("<li>", {
+                                    class: "list-gorup-item",
+                                    text: `Faction: ${user.faction.name} [${user.faction.tid}]`,
+                                }),
+                            ]),
                             $("<div>", {
                                 class: "card-footer my-1",
                             }).append([
@@ -185,6 +190,7 @@ $(document).ready(function () {
             $("#targets-container").append(fragment);
 
             $(".refresh-target-data").on("click", function () {
+                return; // TODO: rewrite this to show more data
                 $(this).attr("disabled", true);
                 const userID = this.getAttribute("data-tid");
                 const xhttp = new XMLHttpRequest();

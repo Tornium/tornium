@@ -11,10 +11,9 @@
         "faction/data/faction",
         "notify/notify",
         "stats/stat",
+        "stats/chainlist",
         "stocks/stocks",
         "user/user"
     ],
-    "disabled": [
-        "stats/chainlist"
-    ]
+    "disabled": []
 }

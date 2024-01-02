@@ -151,7 +151,7 @@ $(document).ready(function () {
                             }).append([
                                 $("<li>", {
                                     class: "list-gorup-item",
-                                    text: `Faction: ${user.faction.name} [${user.faction.tid}]`,
+                                    text: `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
                                 }),
                             ]),
                             $("<div>", {

@@ -120,7 +120,7 @@ def chain(interaction, *args, **kwargs):
         embed["fields"].append(
             {
                 "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
-                "value": f"Stat Score: {commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}\nLast Update: <t:{stat_entry['timeadded']}:R>\nFaction: {stat_entry['faction']['name']}",
+                "value": f"Stat Score: {commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}\nLast Update: <t:{stat_entry['timeadded']}:R>\nFaction: {stat_entry['user']['faction']['name']}",
                 "inline": True,
             }
         )

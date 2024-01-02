@@ -361,37 +361,7 @@ def fulfill(guid: str):
                         "color": SKYNET_GOOD,
                     }
                 ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Faction Vault",
-                                "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Fulfill",
-                                "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                            },
-                            {
-                                "type": 2,
-                                "style": 3,
-                                "label": "Fulfill Manually",
-                                "custom_id": "faction:vault:fulfill",
-                            },
-                            {
-                                "type": 2,
-                                "style": 4,
-                                "label": "Cancel",
-                                "custom_id": "faction:vault:cancel",
-                            },
-                        ],
-                    }
-                ],
+                "components": [],
             },
         )
     except DiscordError as e:

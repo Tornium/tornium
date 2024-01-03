@@ -87,13 +87,7 @@ def base_statics():
 
 @mod.route("/shields/server_count.json")
 def shields_server_count():
-    return jsonify(
-        {
-            "schemaVersion": 1,
-            "label": "Server Count",
-            "message": Server.select().where().count(),
-        }
-    )
+    return jsonify({"schemaVersion": 1, "label": "Server Count", "message": str(Server.select().count())})
 
 
 @mod.route("/shields/user_count.json")
@@ -102,6 +96,6 @@ def shields_user_count():
         {
             "schemaVersion": 1,
             "label": "User Count",
-            "message": User.select().where((User.key != "") & (User.key.is_null(False))).count(),
+            "message": str(User.select().where((User.key != "") & (User.key.is_null(False))).count()),
         }
     )

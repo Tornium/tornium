@@ -35,7 +35,7 @@ def estimate_command(interaction, *args, **kwargs):
         user_mention = -1
         user_tid = -1
 
-    if (user_mention != -1) ^ (user_tid != -1):
+    if not ((user_mention != -1) ^ (user_tid != -1)):
         return {
             "type": 4,
             "data": {
@@ -59,7 +59,7 @@ def estimate_command(interaction, *args, **kwargs):
         else:
             mentioned_user = User.select(User.tid).where(User.name == user_tid[1]["value"]).first()
 
-    api_key = kwargs["user"].key
+    api_key = kwargs["invoker"].key if kwargs["invoker"] is not None else None
 
     if api_key in (None, ""):
         if len(kwargs["admin_keys"]) == 0:

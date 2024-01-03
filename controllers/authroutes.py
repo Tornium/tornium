@@ -291,9 +291,16 @@ def topt_verification():
         )
 
 
-@mod.route("/login/skynet", methods=["GET"])
-def skynet_login():
+@mod.route("/login/discord", methods=["GET"])
+def discord_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
+
+    if request.args.get("error") is not None:
+        return render_template(
+            "errors/error.html",
+            title=request.args["errors"],
+            error=request.args.get("error_description"),
+        )
 
     d_code = request.args.get("code")
     oauth_state = request.args.get("state")
@@ -326,7 +333,7 @@ def skynet_login():
         "client_secret": config.bot_client_secret,
         "grant_type": "authorization_code",
         "code": d_code,
-        "redirect_uri": "https://tornium.com/login/skynet",
+        "redirect_uri": "https://tornium.com/login/discord",
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
@@ -397,8 +404,8 @@ def skynet_login():
         return redirect(next)
 
 
-@mod.route("/login/skynet/callback", methods=["POST"])
-def skynet_login_callback():
+@mod.route("/login/discord/callback", methods=["POST"])
+def discord_login_callback():
     data = json.loads(request.get_data().decode("utf-8"))
 
     return data

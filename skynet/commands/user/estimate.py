@@ -81,7 +81,23 @@ def estimate_command(interaction, *args, **kwargs):
         else:
             api_key = random.choice(kwargs["admin_keys"])
 
-    stat_score, _ = estimate_user(mentioned_user.tid, api_key)
+    try:
+        stat_score, _ = estimate_user(mentioned_user.tid, api_key)
+    except ValueError:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Internal Error",
+                        "description": "Required data could not be found in the database. This is a known issue.",
+                        "color": SKYNET_ERROR,
+                    },
+                ],
+                "flags": 64,
+            },
+        }
+
     stat_score = int(stat_score)
 
     minimum_stats, maximum_stats = bs_to_range(stat_score)

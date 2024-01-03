@@ -19,7 +19,7 @@ Tornium supports verification of server members by verification status, faction,
 
 Verified Name
 `````````````
-For applicable members (see above), while being verified SkyNet will change their nickname to reflect a passed `Jinja2 <https://jinja.palletsprojects.com/en/3.1.x/>`_ template. The default template is ``{{ name }} [{{ tid }}]`` such that the nickname of `tiksan <https://www.torn.com/profiles.php?XID=2383326>`_ will be set to ``tiksan [2383326]``.
+For applicable members (see above), while being verified, Tornium bot will change their nickname to reflect a passed `Jinja2 <https://jinja.palletsprojects.com/en/3.1.x/>`_ template. The default template is ``{{ name }} [{{ tid }}]`` such that the nickname of `tiksan <https://www.torn.com/profiles.php?XID=2383326>`_ will be set to ``tiksan [2383326]``.
 
 .. list-table:: Available Jinja Variables
     :header-rows: 1
@@ -50,9 +50,9 @@ This feature allows servers to give members roles based on their position in the
 
 Miscellaneous Options
 `````````````````````
-SkyNet can post messages regarding verification status to a specific channel. This can be set up in the verification dashboard under "Basic Verification Configuration".
+Tornium can post messages regarding verification status to a specific channel. This can be set up in the verification dashboard under "Basic Verification Configuration".
 
-Server administrators can specify and give exclusion role(s) that causes SkyNet to skip members who are attempting to be verified. This configuration can be located under "Verified Role and Names" in the verification dashboard.
+Server administrators can specify and give exclusion role(s) that causes Tornium to skip members who are attempting to be verified. This configuration can be located under "Verified Role and Names" in the verification dashboard.
 
 
 Verification Slash Commands
@@ -67,7 +67,7 @@ Verify
 
 Verifies a single member in the Discord server. Updates the member's nickname and/or roles depending on server configuration as detailed `above <Verification Options>`_.
 
-For a member to be successfully verified by SkyNet, they must be verified through the `official Torn Discord server <https://torn.com/discord>`_.
+For a member to be successfully verified by Tornium, they must be verified through the `official Torn Discord server <https://torn.com/discord>`_.
 
 .. list-table::
     :header-rows: 1
@@ -93,7 +93,7 @@ Verify All Members
 
 Verifies all members in the Discord server in a background task. Attempts to update the members' nicknames and/or roles depending on the server configuration as detailed `above <Verification Options>`_.
 
-For a member to be successfully verified by SkyNet, they must be verified through the `official Torn Discord server <https://torn.com/discord>`_.
+For a member to be successfully verified by Tornium, they must be verified through the `official Torn Discord server <https://torn.com/discord>`_.
 
 .. list-table::
     :header-rows: 1

@@ -4,9 +4,9 @@ Quickstart
 ==========
 First of all, make sure that you have an API key ready to use. Tornium will accept "Limited" and "Full Access" API keys, although none of Tornium's features will utilize the extra permissions granted by a "Full Access" key. Generally, you'd want to use a freshly generated so that you can easily revoke the key and monitor the key's usage.
 
-Setting Up SkyNet
------------------
-SkyNet is the latest iteration of Discord bots built for Tornium. More information on how SkyNet works and detailed setup information can be found :ref:`here<bot>`.
+Setting Up Tornium Bot
+----------------------
+More information on how Tornium Bot works and detailed setup information can be found :ref:`here<bot>`.
 
 #. Invite the bot using one of the following links:
 

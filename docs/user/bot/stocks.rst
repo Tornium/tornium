@@ -79,7 +79,7 @@ Delete the specified notification by database ID (which can be found with the ``
 
 Stock Notification Feed
 -----------------------
-SkyNet will send all enabled feed options to a specified channel that can be set in the server's dashboard under "Stocks".
+Tornium will send all enabled feed options to a specified channel that can be set in the server's dashboard under "Stocks".
 
 .. warning::
     Stocks feed notifications are still under development and are currently disabled in all servers.

@@ -2,7 +2,7 @@
 
 Faction Banking
 ===============
-Members can send vault requests via SkyNet to validate the requests and notify faction bankers.
+Members can send vault requests via Tornium to validate the requests and notify faction bankers.
 
 Banking Options
 ---------------

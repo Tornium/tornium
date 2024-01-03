@@ -637,6 +637,8 @@ def stakeouts(interaction, *args, **kwargs):
 
         if stype is not None:
             notifications = notifications.where(Notification.n_type == _STYPE_NID_MAP[stype])
+        else:
+            notifications = notifications.where(Notification.n_type.in_(list(_STYPE_NID_MAP.values())))
 
         if "guild_id" in interaction:
             notifications = notifications.where(

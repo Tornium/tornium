@@ -25,8 +25,7 @@ from estimate import estimate_user
 
 
 def estimate_command(interaction, *args, **kwargs):
-    # member: Discord member
-    # tid: Torn ID or name
+    start_time = time.time()
 
     if "options" in interaction["data"]:
         user_mention = find_list(interaction["data"]["options"], "name", "member")
@@ -100,7 +99,7 @@ def estimate_command(interaction, *args, **kwargs):
                     ],
                     "color": SKYNET_GOOD,
                     "footer": {
-                        "text": f"Latency: {round(time.time() - kwargs['start_time'], 2)} seconds",
+                        "text": f"Latency: {round(time.time() - start_time, 2)} seconds",
                     },
                 }
             ],

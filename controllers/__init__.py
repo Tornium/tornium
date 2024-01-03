@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Blueprint, render_template, request, send_from_directory
+from flask import Blueprint, jsonify, render_template, request, send_from_directory
 from flask_login import current_user, fresh_login_required
+from tornium_commons.models import Server, User
 
 import utils
 from controllers.decorators import token_required
@@ -82,3 +83,25 @@ def static():
 @mod.route("/robots.txt")
 def base_statics():
     return send_from_directory("static", request.path[1:])
+
+
+@mod.route("/shields/server_count.json")
+def shields_server_count():
+    return jsonify(
+        {
+            "schemaVersion": 1,
+            "label": "Server Count",
+            "message": Server.select().where().count(),
+        }
+    )
+
+
+@mod.route("/shields/user_count.json")
+def shields_user_count():
+    return jsonify(
+        {
+            "schemaVersion": 1,
+            "label": "User Count",
+            "message": User.select().where((User.key != "") & (User.key.is_null(False))).count(),
+        }
+    )

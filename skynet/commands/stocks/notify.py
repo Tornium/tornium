@@ -337,7 +337,7 @@ def notify(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "List of Notifications",
-                        "description": f"{notifications[page * 9 : (page + 1) * 9].count()} notification(s) located...\n",
+                        "description": f"{notifications.count()} notification(s) located...\n",
                         "color": SKYNET_INFO,
                         "fields": [],
                     }

@@ -51,12 +51,12 @@ def estimate_command(interaction, *args, **kwargs):
 
     mentioned_user: typing.Optional[User]
     if user_mention != -1:
-        mentioned_user = User.select(User.tid).where(User.discord_id == user_mention[1]["value"]).first()
+        mentioned_user = User.select(User.tid, User.name).where(User.discord_id == user_mention[1]["value"]).first()
     elif user_tid != -1:
         if user_tid[1]["value"].isdigit():
-            mentioned_user = User.select(User.tid).where(User.tid == user_tid[1]["value"]).first()
+            mentioned_user = User.select(User.tid, User.name).where(User.tid == user_tid[1]["value"]).first()
         else:
-            mentioned_user = User.select(User.tid).where(User.name == user_tid[1]["value"]).first()
+            mentioned_user = User.select(User.tid, User.name).where(User.name == user_tid[1]["value"]).first()
 
     api_key = kwargs["invoker"].key if kwargs["invoker"] is not None else None
 

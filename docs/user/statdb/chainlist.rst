@@ -4,11 +4,6 @@ Chain List Generator
 ====================
 The chain list generator generates a list of potential targets based on the specified configuration and your stat score utilizing the available stat records visible to you. For more details about what stats records are available to you to view, take a look at the :ref:`stat database documentation<statdb>`.
 
-.. note::
-    The chain list generator is currently in beta, so there may be issues and potential enhancements. Please notify the developer on `Discord <https://docs.tornium.com/en/latest/user/statdb/chainlist.html>`_ about these.
-
-The chain list generator on the website differs from the version available on SkyNet, so this documentation mostly does not apply to the SkyNet command.
-
 .. warning::
     Older target data will not be as accurate as newer target data if the target has been active since the data was recorded. All target data is only for a specific point in time specified by the "Last Updated" time.
 

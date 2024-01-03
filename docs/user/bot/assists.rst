@@ -6,8 +6,6 @@ Assist Requests
 ===============
 Members can send requests to other members of the server and to other applicable servers that request members to join the attack and help take down a target.
 
-Assists can currently be sent through the Discord bot or via the `userscript <https://tornium.com/userscripts/tornium-assists.user.js>`_.
-
 Assist Options
 --------------
 Assists can be set up through the bot dashboard under ``Assist Requests``. When setting various settings, make sure to press the submit button.
@@ -56,11 +54,3 @@ Sends an assist request on the specified target to all applicable servers.
       - False
       -
 
-Assist Userscript
------------------
-The assist userscript can be found at `<https://tornium.com/userscripts/tornium-assists.user.js>`_ and has been tested on Tampermonkey for Firefox and Chrome. Support for TornPDA is not currently known.
-
-To install this userscript, follow normal userscript installation guidelines for your platform. Once the userscript is installed, set line 21 on the userscript to use your API key that's used by Tornium.
-
-.. note::
-    Tornium's API currently only supports using the key that was used to sign into Tornium.

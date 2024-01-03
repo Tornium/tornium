@@ -1,18 +1,18 @@
 .. _verification:
 
-SkyNet Verification
-===================
-Similar to many other Torn-related Discord bots, SkyNet supports verifying members with varying options. You can find the configuration for these options below.
+Verification
+============
+Similar to many other Torn-related Discord bots, Tornium supports verifying members with varying options. You can find the configuration for these options below.
 
 .. note::
-    Due to restrictions with Discord's permission system, SkyNet will be unable to modify the nicknames and roles of server members with a role higher than the bot's highest role or the server owner. Changes to these members will have to be done manually by a server administrator.
+    Due to restrictions with Discord's permission system, Torniumwill be unable to modify the nicknames and roles of server members with a role higher than the bot's highest role or the server owner. Changes to these members will have to be done manually by a server administrator.
 
 .. warning::
     Due to resource limitations, Tornium does not support automatic daily verification at this time. The ``/verifyall`` slash command will have to be run manually instead of an automatic schedule job.
 
 Verification Options
 --------------------
-SkyNet supports verification of server members by verification status, faction, and faction position.
+Tornium supports verification of server members by verification status, faction, and faction position.
 
 .. note::
     Many of these features have buttons to enable and disable them. This allows you to save your settings while the feature isn't being used. But you need to make sure that it's enabled when you wish for it to be in use.

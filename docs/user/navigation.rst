@@ -28,7 +28,7 @@ This section includes various information and components regarding the faction.
 
 Discord Bot
 -----------
-This section is for the configuration for the various parts of the Discord bot. Fore more information check out :ref:`Skynet<skynet>`.
+This section is for the configuration for the various parts of the Discord bot. For more information check out :ref:`bot<bot>`.
 
 Stat DB
 -------

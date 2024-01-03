@@ -98,12 +98,16 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
     invoker: typing.Optional[User]
     try:
         if "member" in interaction:
-            invoker = User.select(User.key, User.discord_id, User.faction, User.faction_aa).get(
-                User.discord_id == interaction["member"]["user"]["id"]
+            invoker = (
+                User.select(User.key, User.discord_id, User.faction, User.faction_aa)
+                .where(User.discord_id == interaction["member"]["user"]["id"])
+                .get()
             )
         else:
-            invoker = User.select(User.key, User.discord_id, User.faction, User.faction_aa).get(
-                User.discord_id == interaction["user"]["id"]
+            invoker = (
+                User.select(User.key, User.discord_id, User.faction, User.faction_aa)
+                .where(User.discord_id == interaction["user"]["id"])
+                .get()
             )
     except DoesNotExist:
         return tuple()

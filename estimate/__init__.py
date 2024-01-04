@@ -54,7 +54,10 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
         df["tid"][0] = user_tid
         df = df.astype("int64")
 
-        return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800
+        estimate = int(model.predict(df))
+        redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
+
+        return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800
 
     try:
         update_user(tid=user_tid, key=api_key, refresh_existing=True)
@@ -77,4 +80,7 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     df["tid"][0] = user_tid
     df = df.astype("int64")
 
-    return model.predict(df), int(time.time()) - ps.timestamp.timestamp() + 604_800
+    estimate = int(model.predict(df))
+    redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
+
+    return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800

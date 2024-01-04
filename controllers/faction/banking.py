@@ -27,16 +27,18 @@ from tornium_commons.models import Faction, FactionPosition, Server, User, Withd
 from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
-from controllers.faction.decorators import aa_required
+from controllers.faction.decorators import aa_required, fac_required
 
 
 @login_required
+@fac_required
 @aa_required
 def banking_aa():
     return render_template("faction/banking_aa.html")
 
 
 @login_required
+@fac_required
 @aa_required
 def banking_data():
     start = int(request.args.get("start"))

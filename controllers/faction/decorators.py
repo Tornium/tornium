@@ -38,7 +38,7 @@ def fac_required(f):
                 render_template(
                     "errors/error.html",
                     title="Permission Denied",
-                    error=f"{current_user.name} is not in a faction or the faction is not stored in the database.",
+                    error=f"{current_user.name} is not in a faction or the faction is not stored in the database. If you recently signed into Tornium, please wait for crons to run and the database to be updated with necessary data.",
                 ),
                 403,
             )

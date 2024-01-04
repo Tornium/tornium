@@ -101,9 +101,13 @@ Tornium - Faction Members
                                 <a href="https://www.torn.com/profiles.php?XID={{ member.tid }}" style="text-decoration: none; color: inherit" target="_blank" rel="noopener noreferrer">{{ member.name }} [{{ member.tid }}]</a>
                             </th>
                             <th>{{ member.level }}</th>
+                            {% if member.last_action is none %}
+                            <th><span></span></th>
+                            {% else %}
                             <th data-order="{{ member.last_action.timestamp() }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_action.timestamp()|tcttime }}">{{ member.last_action.timestamp()|reltime }}</span>
                             </th>
+                            {% endif %}
 
                             {% if current_user.faction_aa or current_user.tid == member.tid %}
                                 <th>{{ member.faction_aa }}</th>

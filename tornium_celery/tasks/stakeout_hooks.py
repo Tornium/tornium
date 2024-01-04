@@ -78,13 +78,11 @@ def send_notification(notification: Notification, payload: dict):
                 return
 
         discordpost.delay(endpoint=f"channels/{dm_channel}/messages", payload=payload).forget()
-    elif notification.recipient_type == 1:
+    else:
         discordpost.delay(
             endpoint=f"channels/{notification.recipient}/messages",
             payload=payload,
         ).forget()
-    else:
-        return
 
     if not notification.persistent:
         notification.delete_instance()

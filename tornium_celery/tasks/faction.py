@@ -460,6 +460,8 @@ def check_faction_ods(faction_od_data):
         return
     elif faction.od_channel in (0, None):
         return
+    elif faction.guild is None:
+        return
     elif faction.tid not in faction.guild.factions:
         return
 

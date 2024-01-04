@@ -253,106 +253,130 @@ $(document).ready(async function () {
             }
         })
         .then(() => {
-            for (let n = 0; n < 5; n++) {
-                $(`#gain-d1-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.d1[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.gainers.d1[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(MOVERS_DATA.gainers.d1[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#gain-d1-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${
+                                    STOCKS_DATA[MOVERS_DATA.gainers.d1[n].stock_id.toString()].acronym
+                                } → $${Number(MOVERS_DATA.gainers.d1[n].price).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #32CD32 !important; color: white",
+                                text: `+${Number(MOVERS_DATA.gainers.d1[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            for (let n = 0; n < 5; n++) {
-                $(`#gain-d7-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.d7[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.gainers.d7[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(MOVERS_DATA.gainers.d7[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#gain-d7-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${
+                                    STOCKS_DATA[MOVERS_DATA.gainers.d7[n].stock_id.toString()].acronym
+                                } → $${Number(MOVERS_DATA.gainers.d7[n].price).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #32CD32 !important; color: white",
+                                text: `+${Number(MOVERS_DATA.gainers.d7[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            for (let n = 0; n < 5; n++) {
-                $(`#gain-m1-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.gainers.m1[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.gainers.m1[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #32CD32 !important; color: white",
-                            text: `+${Number(MOVERS_DATA.gainers.m1[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#gain-m1-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${
+                                    STOCKS_DATA[MOVERS_DATA.gainers.m1[n].stock_id.toString()].acronym
+                                } → $${Number(MOVERS_DATA.gainers.m1[n].price).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #32CD32 !important; color: white",
+                                text: `+${Number(MOVERS_DATA.gainers.m1[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            for (let n = 0; n < 5; n++) {
-                $(`#loss-d1-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.losers.d1[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.losers.d1[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(MOVERS_DATA.losers.d1[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#loss-d1-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${STOCKS_DATA[MOVERS_DATA.losers.d1[n].stock_id.toString()].acronym} → $${Number(
+                                    MOVERS_DATA.losers.d1[n].price
+                                ).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #C83F49 !important; color: white",
+                                text: `${Number(MOVERS_DATA.losers.d1[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            for (let n = 0; n < 5; n++) {
-                $(`#loss-d7-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.losers.d7[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.losers.d7[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(MOVERS_DATA.losers.d7[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#loss-d7-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${STOCKS_DATA[MOVERS_DATA.losers.d7[n].stock_id.toString()].acronym} → $${Number(
+                                    MOVERS_DATA.losers.d7[n].price
+                                ).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #C83F49 !important; color: white",
+                                text: `${Number(MOVERS_DATA.losers.d7[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
 
-            for (let n = 0; n < 5; n++) {
-                $(`#loss-m1-${n}`)
-                    .empty()
-                    .append([
-                        $("<span>", {
-                            text: `${STOCKS_DATA[MOVERS_DATA.losers.m1[n].stock_id.toString()].acronym} → $${Number(
-                                MOVERS_DATA.losers.m1[n].price
-                            ).toFixed(2)}`,
-                        }),
-                        $("<span>", {
-                            class: "badge bg-primary rounded-pill",
-                            style: "background-color: #C83F49 !important; color: white",
-                            text: `${Number(MOVERS_DATA.losers.m1[n].change * 100).toFixed(2)}%`,
-                        }),
-                    ]);
+            try {
+                for (let n = 0; n < 5; n++) {
+                    $(`#loss-m1-${n}`)
+                        .empty()
+                        .append([
+                            $("<span>", {
+                                text: `${STOCKS_DATA[MOVERS_DATA.losers.m1[n].stock_id.toString()].acronym} → $${Number(
+                                    MOVERS_DATA.losers.m1[n].price
+                                ).toFixed(2)}`,
+                            }),
+                            $("<span>", {
+                                class: "badge bg-primary rounded-pill",
+                                style: "background-color: #C83F49 !important; color: white",
+                                text: `${Number(MOVERS_DATA.losers.m1[n].change * 100).toFixed(2)}%`,
+                            }),
+                        ]);
+                }
+            } catch (error) {
+                console.log(error);
             }
         });
 

@@ -86,7 +86,22 @@ def stakeouts(interaction, *args, **kwargs):
                 },
             }
 
-        passed_scat = find_list(subcommand_data, "name", "category")[1]["value"].lower()
+        try:
+            passed_scat = find_list(subcommand_data, "name", "category")["value"].lower()
+        except (KeyError, ValueError):
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Missing Parameter",
+                            "description": "The interaction is missing the category paramter.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
         try:
             notification: Notification = notifications.get()
@@ -288,11 +303,11 @@ def stakeouts(interaction, *args, **kwargs):
     def initialize():
         channel = find_list(subcommand_data, "name", "channel")
 
-        if channel == -1:
+        if channel is None:
             channel = None
             private = True
         else:
-            channel = channel[1]["value"]
+            channel = channel["value"]
             private = False
 
         if private and user.discord_id == 0:
@@ -585,15 +600,11 @@ def stakeouts(interaction, *args, **kwargs):
     tid = find_list(subcommand_data, "name", "tid")
     stype = find_list(subcommand_data, "name", "type")
 
-    if tid == -1:
-        tid = None
-    else:
-        tid = tid[1]["value"]
+    if tid is not None:
+        tid = tid["value"]
 
-    if stype == -1:
-        stype = None
-    else:
-        stype = stype[1]["value"]
+    if stype is not None:
+        stype = stype["value"]
 
     if subcommand != "initialize":
         if "guild_id" in interaction:
@@ -731,15 +742,11 @@ def stakeout_autocomplete(interaction, *args, **kwargs):
     tid = find_list(subcommand_data, "name", "tid")
     stype = find_list(subcommand_data, "name", "type")
 
-    if tid == -1:
-        tid = None
-    else:
-        tid = tid[1]["value"]
+    if tid is not None:
+        tid = tid["value"]
 
-    if stype == -1:
-        stype = None
-    else:
-        stype = stype[1]["value"]
+    if stype is not None:
+        stype = stype["value"]
 
     notifications = Notification.select().where(Notification.target == tid)
 

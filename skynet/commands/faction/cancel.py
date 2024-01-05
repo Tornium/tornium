@@ -142,10 +142,10 @@ def cancel_command(interaction, *args, **kwargs):
     if "options" in interaction["data"]:
         withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
     else:
-        withdrawal_id = -1
+        withdrawal_id = None
 
-    if withdrawal_id != -1:
-        withdrawal_id = withdrawal_id[1]["value"]
+    if withdrawal_id is not None:
+        withdrawal_id = withdrawal_id["value"]
 
     try:
         withdrawal_id = int(withdrawal_id)
@@ -166,7 +166,7 @@ def cancel_command(interaction, *args, **kwargs):
 
     try:
         withdrawal: Withdrawal
-        if withdrawal_id == -1:
+        if withdrawal_id is None:
             withdrawal = (
                 Withdrawal.select().where(Withdrawal.requester == user.tid).order_by(-Withdrawal.time_requested).get()
             )

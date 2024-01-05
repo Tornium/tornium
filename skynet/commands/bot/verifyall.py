@@ -105,6 +105,11 @@ def verify_all(interaction, *args, **kwargs):
 
     if "options" in interaction["data"]:
         force = find_list(interaction["data"]["options"], "name", "force")
+
+        if force is None:
+            force = False
+        else:
+            force = force["value"]
     else:
         force = False
 

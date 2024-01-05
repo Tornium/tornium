@@ -142,7 +142,7 @@ def fulfill_command(interaction, *args, **kwargs):
 
     withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
 
-    if withdrawal_id == -1:
+    if withdrawal_id is None:
         return {
             "type": 4,
             "data": {
@@ -160,10 +160,10 @@ def fulfill_command(interaction, *args, **kwargs):
     if "options" in interaction["data"]:
         withdrawal_id = find_list(interaction["data"]["options"], "name", "id")
     else:
-        withdrawal_id = -1
+        withdrawal_id = None
 
-    if withdrawal_id != -1:
-        withdrawal_id = withdrawal_id[1]["value"]
+    if withdrawal_id is not None:
+        withdrawal_id = withdrawal_id["value"]
 
     try:
         withdrawal_id = int(withdrawal_id)

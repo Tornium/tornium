@@ -20,7 +20,6 @@ import uuid
 from peewee import DoesNotExist, IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpost, tornget
 from tornium_commons import rds
-from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas, find_list, text_to_num
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -143,11 +142,11 @@ def withdraw(interaction, *args, **kwargs):
     # 1: points
     withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
-    if withdrawal_option == -1:
+    if withdrawal_option is None:
         withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "Cash":
+    elif withdrawal_option["value"] == "Cash":
         withdrawal_option = 0
-    elif withdrawal_option[1]["value"] == "Points":
+    elif withdrawal_option["value"] == "Points":
         withdrawal_option = 1
     else:
         return {
@@ -158,7 +157,7 @@ def withdraw(interaction, *args, **kwargs):
                         "title": "Withdrawal Request Failed",
                         "description": "An incorrect withdrawal type was passed.",
                         "color": SKYNET_ERROR,
-                        "footer": {"text": f"Inputted withdrawal type: {withdrawal_option[1]['value']}"},
+                        "footer": {"text": f"Inputted withdrawal type: {withdrawal_option['value']}"},
                     }
                 ],
                 "flags": 64,
@@ -188,7 +187,7 @@ def withdraw(interaction, *args, **kwargs):
 
     withdrawal_amount = find_list(interaction["data"]["options"], "name", "amount")
 
-    if withdrawal_amount == -1:
+    if withdrawal_amount is None:
         return {
             "type": 4,
             "data": {
@@ -203,7 +202,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal_amount = withdrawal_amount[1]["value"]
+    withdrawal_amount = withdrawal_amount["value"]
 
     if type(withdrawal_amount) == str:
         if withdrawal_amount.lower() == "all":

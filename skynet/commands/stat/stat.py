@@ -46,7 +46,7 @@ def stat(interaction, *args, **kwargs):
     tid = find_list(interaction["data"]["options"], "name", "tornid")
     name = find_list(interaction["data"]["options"], "name", "name")
 
-    if (tid == -1 and name == -1) or (tid != -1 and name != -1):
+    if (tid is None and name is None) or (tid is not None and name is not None):
         return {
             "type": 4,
             "data": {
@@ -82,21 +82,19 @@ def stat(interaction, *args, **kwargs):
     target_user: typing.Optional[User] = None
 
     target: typing.Optional[Stat]
-    if tid != -1:
+    if tid is not None:
         try:
             target = (
                 Stat.select()
-                .where(
-                    (Stat.tid == tid[1]["value"]) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid))
-                )
+                .where((Stat.tid == tid["value"]) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid)))
                 .order_by(-Stat.time_added)
                 .get()
             )
         except DoesNotExist:
             target = None
-    elif name != -1:
+    elif name is not None:
         try:
-            target_user = User.select(User.name, User.tid, User.faction).where(User.name == name[1]["value"]).get()
+            target_user = User.select(User.name, User.tid, User.faction).where(User.name == name["value"]).get()
         except DoesNotExist:
             return {
                 "type": 4,

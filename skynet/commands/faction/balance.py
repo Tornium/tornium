@@ -27,14 +27,14 @@ from skynet.skyutils import get_faction_keys
 
 def balance(interaction, *args, **kwargs):
     user: typing.Optional[User] = kwargs["invoker"]
-    member = -1
+    member = None
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
 
-        if member != -1:
+        if member is not None:
             try:
-                user = User.select().where(User.discord_id == int(member[1]["value"])).get()
+                user = User.select().where(User.discord_id == int(member["value"])).get()
             except DoesNotExist:
                 return {
                     "type": 4,

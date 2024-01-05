@@ -238,10 +238,10 @@ def members_switchboard(interaction, *args, **kwargs):
     def inactive():
         days: typing.Union[dict, int] = find_list(subcommand_data, "name", "days")
 
-        if days == -1:
+        if days is None:
             days = 3
         else:
-            days = days[1]["value"]
+            days = days["value"]
 
         payload[0]["title"] = f"Inactive Members of {member_data['name']}"
         indices = sorted(
@@ -297,7 +297,7 @@ def members_switchboard(interaction, *args, **kwargs):
     user: User = kwargs["invoker"]
     faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
 
-    if faction == -1:
+    if faction is None:
         if user is None:
             return {
                 "type": 4,
@@ -329,9 +329,9 @@ def members_switchboard(interaction, *args, **kwargs):
             }
 
         faction = user.faction
-    elif faction[1]["value"].isdigit():
+    elif faction["value"].isdigit():
         try:
-            faction: Faction = Faction.get_by_id(int(faction[1]["value"]))
+            faction: Faction = Faction.get_by_id(int(faction["value"]))
         except DoesNotExist:
             return {
                 "type": 4,
@@ -348,7 +348,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
     else:
         try:
-            faction: Faction = Faction.select().where(Faction.name ** faction[1]["value"]).get()
+            faction: Faction = Faction.select().where(Faction.name ** faction["value"]).get()
         except DoesNotExist:
             return {
                 "type": 4,

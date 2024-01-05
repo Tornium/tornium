@@ -31,7 +31,7 @@ def notify(interaction, *args, **kwargs):
         private = find_list(subcommand_data, "name", "private")
         channel = find_list(subcommand_data, "name", "channel")
 
-        if stock == -1 or price == -1:
+        if stock is None or price is None:
             return {
                 "type": 4,
                 "data": {
@@ -46,19 +46,17 @@ def notify(interaction, *args, **kwargs):
                 },
             }
 
-        stock = stock[1]["value"]
-        price = price[1]["value"]
-        equality = equality[1]["value"]
+        stock = stock["value"]
+        price = price["value"]
+        equality = equality["value"]
 
-        if private == -1:
+        if private is None:
             private = True
         else:
-            private = private[1]["value"]
+            private = private["value"]
 
-        if channel == -1:
-            channel = None
-        else:
-            channel = channel[1]["value"]
+        if channel is not None:
+            channel = channel["value"]
             private = False
 
         if price <= 0:
@@ -262,7 +260,7 @@ def notify(interaction, *args, **kwargs):
     def delete():
         notification_id = find_list(subcommand_data, "name", "notification")
 
-        if notification_id == -1:
+        if notification_id is None:
             return {
                 "type": 4,
                 "data": {
@@ -279,7 +277,7 @@ def notify(interaction, *args, **kwargs):
                 },
             }
 
-        notification_id = notification_id[1]["value"]
+        notification_id = notification_id["value"]
 
         if notification_id.lower() == "all":
             notifications = Notification.select().where(Notification.invoker == user.tid)
@@ -326,10 +324,10 @@ def notify(interaction, *args, **kwargs):
     def list_stocks():
         page = find_list(subcommand_data, "name", "page")
 
-        if page == -1:
+        if page is None:
             page = 0
         else:
-            page = int(page[1]["value"])
+            page = int(page["value"])
 
         payload = {
             "type": 4,

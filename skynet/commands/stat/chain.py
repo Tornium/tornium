@@ -37,17 +37,17 @@ def chain(interaction, *args, **kwargs):
     sort: typing.Literal["timestamp", "random", "respect"]
 
     if not isinstance(length, int):
-        length = length[1]["value"]
+        length = length["value"]
     else:
         length = 9
 
     if not isinstance(difficulty, int):
-        difficulty = difficulty[1]["value"]
+        difficulty = difficulty["value"]
     else:
         difficulty = 2
 
     if not isinstance(sort, str):
-        sort = sort[1]["value"]
+        sort = sort["value"]
     else:
         sort = "timestamp"
 

@@ -34,7 +34,7 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
     channel = find_list(subcommand_data, "name", "channel")
     persistence = find_list(subcommand_data, "name", "persistent")
 
-    if notif_type == -1 or notif_type[1]["value"] not in [
+    if notif_type is None or notif_type["value"] not in [
         "percent",
         "price",
         "quantity",
@@ -53,20 +53,20 @@ def item_notif_init(interaction, user: User, item: Item, subcommand_data, *args,
             },
         }
 
-    notif_type = notif_type[1]["value"]
-    value = value[1]["value"]
+    notif_type = notif_type["value"]
+    value = value["value"]
 
-    if channel == -1:
+    if channel is None:
         channel = None
         private = True
     else:
-        channel = channel[1]["value"]
+        channel = channel["value"]
         private = False
 
-    if persistence == -1:
+    if persistence is None:
         persistence = False
     else:
-        persistence = persistence[1]["value"]
+        persistence = persistence["value"]
 
     if private and user.discord_id == 0:
         return {
@@ -500,9 +500,9 @@ def items_switchboard(interaction, *args, **kwargs):
     item_name = find_list(subcommand_data, "name", "item")
     item: typing.Optional[Item] = None
 
-    if item_name != -1:
+    if item_name is not None:
         try:
-            item = Item.get_by_id(int(item_name[1]["value"]))
+            item = Item.get_by_id(int(item_name["value"]))
         except (DoesNotExist, TypeError):
             return {
                 "type": 4,

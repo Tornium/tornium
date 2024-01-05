@@ -97,8 +97,8 @@ def verify(interaction, *args, **kwargs):
         member = find_list(interaction["data"]["options"], "name", "member")
         force = find_list(interaction["data"]["options"], "name", "force")
     else:
-        member = -1
-        force = -1
+        member = None
+        force = None
 
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
@@ -123,12 +123,12 @@ def verify(interaction, *args, **kwargs):
         "refresh_existing": True,
     }
 
-    if member != -1:
-        update_user_kwargs["discordid"] = int(member[1]["value"])
+    if member is not None:
+        update_user_kwargs["discordid"] = int(member["value"])
     else:
         update_user_kwargs["discordid"] = user.discord_id
 
-    if member != -1:
+    if member is not None:
         discord_member = discordget(f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}")
         user_roles = discord_member["roles"]
 
@@ -309,7 +309,7 @@ def verify(interaction, *args, **kwargs):
 
                     patch_json["roles"].remove(str(position_role))
 
-    if len(patch_json) == 0 and (force == -1 or (type(force) == list and not force[1].get("value"))):
+    if len(patch_json) == 0 and (force is None or (type(force) == list and not force.get("value"))):
         return {
             "type": 4,
             "data": {

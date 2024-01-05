@@ -31,10 +31,10 @@ def estimate_command(interaction, *args, **kwargs):
         user_mention = find_list(interaction["data"]["options"], "name", "member")
         user_tid = find_list(interaction["data"]["options"], "name", "tid")
     else:
-        user_mention = -1
-        user_tid = -1
+        user_mention = None
+        user_tid = None
 
-    if not ((user_mention != -1) ^ (user_tid != -1)):
+    if not ((user_mention is not None) ^ (user_tid is not None)):
         return {
             "type": 4,
             "data": {
@@ -50,13 +50,13 @@ def estimate_command(interaction, *args, **kwargs):
         }
 
     mentioned_user: typing.Optional[User]
-    if user_mention != -1:
-        mentioned_user = User.select(User.tid, User.name).where(User.discord_id == user_mention[1]["value"]).first()
-    elif user_tid != -1:
-        if user_tid[1]["value"].isdigit():
-            mentioned_user = User.select(User.tid, User.name).where(User.tid == user_tid[1]["value"]).first()
+    if user_mention is not None:
+        mentioned_user = User.select(User.tid, User.name).where(User.discord_id == user_mention["value"]).first()
+    elif user_tid is not None:
+        if user_tid["value"].isdigit():
+            mentioned_user = User.select(User.tid, User.name).where(User.tid == user_tid["value"]).first()
         else:
-            mentioned_user = User.select(User.tid, User.name).where(User.name == user_tid[1]["value"]).first()
+            mentioned_user = User.select(User.tid, User.name).where(User.name == user_tid["value"]).first()
 
     api_key = kwargs["invoker"].key if kwargs["invoker"] is not None else None
 
@@ -99,7 +99,6 @@ def estimate_command(interaction, *args, **kwargs):
         }
 
     stat_score = int(stat_score)
-
     minimum_stats, maximum_stats = bs_to_range(stat_score)
 
     return {

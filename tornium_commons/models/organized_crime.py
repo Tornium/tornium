@@ -40,4 +40,4 @@ class OrganizedCrime(BaseModel):
     respect_gain = IntegerField(null=True)
     delayers = ArrayField(IntegerField, index=False)  # Array of delayer user IDs
     notified = BooleanField(default=False)
-    initiated = BooleanField(default=False)
+    canceled = BooleanField(default=False)

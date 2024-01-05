@@ -445,7 +445,7 @@ def update_faction_ts(faction_ts_data):
 def check_faction_ods(faction_od_data):
     try:
         faction: Faction = (
-            Faction.select(Faction.od_data, Faction.od_channel)
+            Faction.select(Faction.tid, Faction.name, Faction.od_data, Faction.od_channel, Faction.guild)
             .join(Server, JOIN.LEFT_OUTER)
             .where(Faction.tid == faction_od_data["ID"])
             .get()

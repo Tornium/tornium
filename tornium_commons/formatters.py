@@ -21,7 +21,6 @@ import typing
 from decimal import Decimal
 
 from boltons.timeutils import relative_time
-from peewee import DoesNotExist
 
 from .models import Item
 
@@ -110,7 +109,7 @@ def commas(number: typing.Union[int, float], stock_price: bool = False) -> str:
     return "{:,}".format(number)
 
 
-def find_list(lst: list, key, value) -> typing.Union[int, typing.List[typing.Union[int, typing.Dict[str, typing.Any]]]]:
+def find_list(lst: list, key, value, default: typing.Any = None) -> typing.Optional[typing.Dict]:
     """
     Locate a dictionary in a list of dictionaries by a value in the dictionary.
 
@@ -126,27 +125,29 @@ def find_list(lst: list, key, value) -> typing.Union[int, typing.List[typing.Uni
         Key in the dictionary
     value :
         Value to be matched to the dictionary's value
+    default : Any
+        Value to be returned if there are no matches
 
     Returns
     -------
-    value : int, list
-        -1 if not found or [index, dictionary] if found
+    value : dict
+        None if not found or the dictionary if found
 
     Examples
     --------
     If the key and value are found,
     >>> find_list(interaction["data"]["options"], "tid", 2383326)
-    [0, {...}]
+    {...}
 
     Otherwise,
     >>> find_list(interaction["data"]["options"], "tid", 2383326)
-    -1
+    None
     """
 
-    for i, dic in enumerate(lst):
+    for _, dic in enumerate(lst):
         if dic.get(key) == value:
-            return [i, dic]
-    return -1
+            return dic
+    return default
 
 
 def text_to_num(text: str) -> int:
@@ -309,11 +310,7 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[Item]]:
         if quantity <= 0:
             raise ValueError("Illegal quantity")
 
-    item: typing.Optional[Item]
-    try:
-        item = Item.get(Item.name == item_str)
-    except DoesNotExist:
-        item = None
+    item: typing.Optional[Item] = Item.select().where(Item.name == item_str).first()
 
     return quantity, item
 

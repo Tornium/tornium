@@ -28,28 +28,28 @@ def chain(interaction, *args, **kwargs):
         difficulty = find_list(interaction["data"]["options"], "name", "difficulty")
         sort = find_list(interaction["data"]["options"], "name", "sort")
     else:
-        length = 9
-        difficulty = 2
-        sort = "timestamp"
+        length = None
+        difficulty = None
+        sort = None
 
     length: int
     difficulty: int
     sort: typing.Literal["timestamp", "random", "respect"]
 
-    if not isinstance(length, int):
-        length = length["value"]
-    else:
+    if length is None:
         length = 9
-
-    if not isinstance(difficulty, int):
-        difficulty = difficulty["value"]
     else:
+        length = length["value"]
+
+    if difficulty is None:
         difficulty = 2
-
-    if not isinstance(sort, str):
-        sort = sort["value"]
     else:
+        difficulty = difficulty["value"]
+
+    if sort is None:
         sort = "timestamp"
+    else:
+        sort = sort["value"]
 
     admin_keys = kwargs.get("admin_keys")
 

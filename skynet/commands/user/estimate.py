@@ -58,6 +58,21 @@ def estimate_command(interaction, *args, **kwargs):
         else:
             mentioned_user = User.select(User.tid, User.name).where(User.name == user_tid["value"]).first()
 
+    if mentioned_user is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Unknown User",
+                        "description": "The mentioned user could not be located in the database.",
+                        "color": SKYNET_ERROR,
+                    },
+                ],
+                "flags": 64,
+            },
+        }
+
     api_key = kwargs["invoker"].key if kwargs["invoker"] is not None else None
 
     if api_key in (None, ""):
@@ -109,8 +124,16 @@ def estimate_command(interaction, *args, **kwargs):
                     "title": "User Stat Estimate",
                     "description": f"{mentioned_user.name} [{mentioned_user.tid}] is estimated to have a stat score of {commas(stat_score)}.",
                     "fields": [
-                        {"name": "Minimum Total", "value": commas(minimum_stats), "inline": True},
-                        {"name": "Maximum Total", "value": commas(maximum_stats), "inline": True},
+                        {
+                            "name": "Minimum Total",
+                            "value": commas(minimum_stats),
+                            "inline": True,
+                        },
+                        {
+                            "name": "Maximum Total",
+                            "value": commas(maximum_stats),
+                            "inline": True,
+                        },
                     ],
                     "color": SKYNET_GOOD,
                     "footer": {

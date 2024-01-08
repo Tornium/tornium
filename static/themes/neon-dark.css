@@ -33,6 +33,12 @@
 [data-bs-theme=neon-dark] .card .card-title {
   color: rgb(57, 255, 20);
 }
+[data-bs-theme=neon-dark] .form-control {
+  height: 38px;
+}
+[data-bs-theme=neon-dark] .form-control .ts-control {
+  max-height: 100%;
+}
 @media (max-height: 992px) {
   [data-bs-theme=neon-dark] .secondary {
     height: fit-content;
@@ -133,6 +139,25 @@
 [data-bs-theme=neon-dark] .primary .dropdown-toggle {
   background-color: rgb(35, 35, 35);
   color: rgb(57, 255, 20);
+}
+[data-bs-theme=neon-dark] .primary .ts-control {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border: none;
+}
+[data-bs-theme=neon-dark] .primary .ts-dropdown {
+  background-color: rgb(35, 35, 35);
+  border: 1px solid rgb(57, 255, 20);
+  border-radius: 0.25rem;
+  color: rgb(57, 255, 20);
+}
+[data-bs-theme=neon-dark] .primary .accordion-button {
+  background-color: rgb(35, 35, 35);
+  color: rgb(57, 255, 20);
+}
+[data-bs-theme=neon-dark] .primary .accordion-button:after {
+  -webkit-filter: grayscale(1) invert(1);
+  filter: grayscale(1) invert(1);
 }
 [data-bs-theme=neon-dark] .secondary {
   background-color: rgb(25, 25, 25);

@@ -141,7 +141,11 @@ mod.add_url_rule(
     view_func=bot.verify.guild_exclusion_roles,
     methods=["POST"],
 )
-mod.add_url_rule("/api/v1/bot/verify/log", view_func=bot.verify.guild_verification_log, methods=["POST"])
+mod.add_url_rule(
+    "/api/v1/bot/verify/log",
+    view_func=bot.verify.guild_verification_log,
+    methods=["POST"],
+)
 mod.add_url_rule(
     "/api/v1/bot/verify/roles",
     view_func=bot.verify.guild_verification_roles,
@@ -156,7 +160,11 @@ mod.add_url_rule(
 # /api/v1/faction
 mod.add_url_rule("/api/v1/faction/assist", view_func=faction.assist.forward_assist, methods=["POST"])
 mod.add_url_rule("/api/v1/faction/assists", view_func=faction.assist.valid_assists, methods=["GET"])
-mod.add_url_rule("/api/v1/faction/banking", view_func=faction.banking.banking_request, methods=["POST"])
+mod.add_url_rule(
+    "/api/v1/faction/banking",
+    view_func=faction.banking.banking_request,
+    methods=["POST"],
+)
 mod.add_url_rule(
     "/api/v1/faction/banking/vault",
     view_func=faction.banking.vault_balance,
@@ -167,6 +175,11 @@ mod.add_url_rule(
     "/api/v1/faction/chain/od/channel",
     view_func=faction.chain.chain_od_channel,
     methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/crimes",
+    view_func=faction.crimes.crimes_data,
+    methods=["GET"],
 )
 mod.add_url_rule(
     "/api/v1/faction/positions",

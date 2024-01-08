@@ -27,6 +27,12 @@
   border-color: rgb(229, 229, 229);
   color: rgb(229, 229, 229);
 }
+[data-bs-theme=custom-dark] .form-control {
+  height: 38px;
+}
+[data-bs-theme=custom-dark] .form-control .ts-control {
+  max-height: 100%;
+}
 @media (max-height: 992px) {
   [data-bs-theme=custom-dark] .secondary {
     height: fit-content;
@@ -128,6 +134,25 @@
 [data-bs-theme=custom-dark] .primary .dropdown-toggle {
   background-color: rgb(35, 35, 35);
   color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .ts-control {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border: none;
+}
+[data-bs-theme=custom-dark] .primary .ts-dropdown {
+  background-color: rgb(35, 35, 35);
+  border: 1px solid rgb(229, 229, 229);
+  border-radius: 0.25rem;
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .accordion-button {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .accordion-button:after {
+  -webkit-filter: grayscale(1) invert(1);
+  filter: grayscale(1) invert(1);
 }
 [data-bs-theme=custom-dark] .secondary {
   background-color: rgb(25, 25, 25);

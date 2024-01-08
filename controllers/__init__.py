@@ -70,6 +70,7 @@ def settings(*args, **kwargs):
 @mod.route("/static/faction/banking.js")
 @mod.route("/static/faction/bankingaa.js")
 @mod.route("/static/faction/chain.js")
+@mod.route("/static/faction/crimes.js")
 @mod.route("/static/faction/members.js")
 @mod.route("/static/fonts/JetBrainsMono-Light.woff2")
 @mod.route("/static/stats/db.js")
@@ -87,7 +88,13 @@ def base_statics():
 
 @mod.route("/shields/server_count.json")
 def shields_server_count():
-    return jsonify({"schemaVersion": 1, "label": "Server Count", "message": str(Server.select().count())})
+    return jsonify(
+        {
+            "schemaVersion": 1,
+            "label": "Server Count",
+            "message": str(Server.select().count()),
+        }
+    )
 
 
 @mod.route("/shields/user_count.json")

@@ -41,6 +41,14 @@
         }
     }
 
+    .form-control {
+        height: 38px;
+
+        .ts-control {
+            max-height: 100%;
+        }
+    }
+
     @media (max-height: 992px) {
         .secondary {
             height: fit-content;
@@ -168,6 +176,29 @@
         & .dropdown-toggle {
             background-color: $primary-grey;
             color: $white;
+        }
+
+        & .ts-control {
+            background-color: $primary-grey;
+            color: $white;
+            border: none;
+        }
+
+        & .ts-dropdown {
+            background-color: $primary-grey;
+            border: 1px solid $white;
+            border-radius: 0.25rem;
+            color: $white;
+        }
+
+        & .accordion-button {
+            background-color: $primary-grey;
+            color: $white;
+
+            &:after {
+                -webkit-filter: grayscale(1) invert(1);
+                filter: grayscale(1) invert(1);
+            }
         }
     }
 

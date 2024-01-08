@@ -1,3 +1,9 @@
+[data-bs-theme=light] .form-control {
+  height: 38px;
+}
+[data-bs-theme=light] .form-control .ts-control {
+  max-height: 100%;
+}
 @media (min-height: 992px) {
   [data-bs-theme=light] #verticalNavContainer {
     border-right-color: rgb(226, 226, 230);
@@ -13,6 +19,9 @@
   background-color: rgb(35, 35, 35);
   color: rgb(229, 229, 229);
   border-color: rgb(25, 25, 25);
+}
+[data-bs-theme=light] .primary .ts-control {
+  border: none;
 }
 
 /*# sourceMappingURL=light.css.map */

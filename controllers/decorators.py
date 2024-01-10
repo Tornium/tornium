@@ -76,7 +76,7 @@ def admin_required(f):
     def wrapper(*args, **kwargs):
         if not current_user.is_authenticated or not login_fresh():
             return redirect(url_for("authroutes.login")), 401
-        elif not current_user.tid not in Config.from_json().admin_users:
+        elif current_user.tid not in Config.from_json().admin_users:
             return render_template("errors/admin_denied.html"), 403
 
         return f(*args, **kwargs)

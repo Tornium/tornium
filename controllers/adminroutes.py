@@ -19,6 +19,7 @@ import inspect
 
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import fresh_login_required, login_user
+from peewee import DoesNotExist
 from tornium_celery.tasks.misc import send_dm
 from tornium_commons import Config
 from tornium_commons.skyutils import SKYNET_INFO
@@ -66,8 +67,8 @@ def load_user(tid):
         )
 
     try:
-        user = OverrideUser(tid)
-    except ValueError:
+        user = OverrideUser.select().where(OverrideUser.tid == tid).get()
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
@@ -77,7 +78,7 @@ def load_user(tid):
             400,
         )
 
-    if user.key == "":
+    if user.key in (None, ""):
         return (
             render_template(
                 "errors/error.html",

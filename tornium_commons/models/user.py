@@ -17,6 +17,7 @@ import base64
 import hashlib
 import os
 import typing
+from functools import lru_cache
 
 from peewee import (
     BigIntegerField,
@@ -91,9 +92,17 @@ class User(BaseModel):
             return "Someone"
 
         try:
-            return f"{User.select(User.name).where(User.tid == tid).get().name} [{tid}]"
+            return f"{User.user_name(tid)} [{tid}]"
         except DoesNotExist:
             return f"N/A {tid}"
+
+    @staticmethod
+    @lru_cache
+    def user_name(tid: int) -> str:
+        try:
+            return User.select(User.name).where(User.tid == tid).get().name
+        except DoesNotExist:
+            return "N/A"
 
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"

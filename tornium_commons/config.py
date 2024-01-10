@@ -39,6 +39,8 @@ class Config(BaseModel):
 
     redis_dsn: RedisDsn = Field()
 
+    admin_users: typing.Optional[typing.List[int]] = Field()
+
     # Internal Data
     _file: typing.Optional[pathlib.Path] = None
     _loaded = False
@@ -62,7 +64,9 @@ class Config(BaseModel):
         loaded_data: dict = load(file)
 
         for data_key, data_value in loaded_data.items():
-            if isinstance(data_value, bool):
+            if isinstance(data_value, list):
+                continue
+            elif isinstance(data_value, bool):
                 data_value = int(data_value)
 
             if not disable_cache:

@@ -57,6 +57,9 @@ class AuthUser(User):
 
 
 class OverrideUser(AuthUser):
+    class Meta:
+        table_name = "user"
+
     def generate_otp_secret(self):
         raise PermissionError
 

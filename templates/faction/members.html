@@ -129,9 +129,13 @@ Tornium - Faction Members
                                 </th>
                             {% endif %}
 
+                            {% if member.last_refresh is none %}
+                            <th><span></span></th>
+                            {% else %}
                             <th data-order="{{ member.last_refresh.timestamp() }}">
                                 <span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ member.last_refresh.timestamp()|tcttime }}">{{ member.last_refresh.timestamp()|reltime }}</span>
                             </th>
+                            {% endif %}
 
                             {% if member.discord_id == 0 %}
                                 <th>

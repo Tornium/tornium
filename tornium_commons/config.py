@@ -40,6 +40,7 @@ class Config(BaseModel):
     redis_dsn: RedisDsn = Field()
 
     admin_users: typing.Optional[typing.List[int]] = Field()
+    admin_passphrase: typing.Optional[str] = Field()
 
     # Internal Data
     _file: typing.Optional[pathlib.Path] = None
@@ -64,7 +65,7 @@ class Config(BaseModel):
         loaded_data: dict = load(file)
 
         for data_key, data_value in loaded_data.items():
-            if isinstance(data_value, list):
+            if data_key.startswith("admin_"):
                 continue
             elif isinstance(data_value, bool):
                 data_value = int(data_value)

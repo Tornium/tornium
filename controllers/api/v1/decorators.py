@@ -106,7 +106,7 @@ def token_required(func):
                 return make_exception_response("4001")
 
             tid = int(redis_token.split("|")[1])
-        except TypeError:
+        except (TypeError, AttributeError):
             return make_exception_response("4001")
 
         try:

@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import inspect
 import math
 import random
 import time
@@ -32,6 +33,7 @@ from tornium_commons.models import (
     FactionPosition,
     Item,
     OrganizedCrime,
+    PersonalStats,
     Server,
     Stat,
     User,
@@ -445,7 +447,13 @@ def update_faction_ts(faction_ts_data):
 def check_faction_ods(faction_od_data):
     try:
         faction: Faction = (
-            Faction.select(Faction.tid, Faction.name, Faction.od_data, Faction.od_channel, Faction.guild)
+            Faction.select(
+                Faction.tid,
+                Faction.name,
+                Faction.od_data,
+                Faction.od_channel,
+                Faction.guild,
+            )
             .join(Server, JOIN.LEFT_OUTER)
             .where(Faction.tid == faction_od_data["ID"])
             .get()
@@ -677,24 +685,43 @@ def retal_attacks(faction_data, last_attacks=None):
         elif now - attack["timestamp_ended"] >= 300:
             continue
 
-        user: typing.Optional[User] = User.select().where(User.tid == attack["defender_id"]).first()
-        opponent: typing.Optional[User] = User.select().where(User.tid == attack["attacker_id"]).first()
+        user: typing.Optional[User] = (
+            User.select(User.tid, User.name, User.battlescore, User.battlescore_update, User.faction)
+            .where(User.tid == attack["defender_id"])
+            .first()
+        )
+        opponent: typing.Optional[User] = (
+            User.select(
+                User.tid,
+                User.name,
+                PersonalStats.xantaken,
+                PersonalStats.useractivity,
+                PersonalStats.elo,
+                PersonalStats.statenhancersused,
+                PersonalStats.energydrinkused,
+                PersonalStats.booksread,
+                PersonalStats.attackswon,
+                PersonalStats.respectforfaction,
+                PersonalStats.timestamp,
+            )
+            .join(JOIN.LEFT_OUTER)
+            .where(User.tid == attack["attacker_id"])
+            .first()
+        )
 
         if user is None:
-            user = User(
+            user = User.create(
                 tid=attack["defender_id"],
                 name=attack["defender_name"],
                 faction=attack["defender_faction"],
             )
-            user.save()
 
         if opponent is None:
-            opponent = User(
+            opponent = User.create(
                 tid=attack["attacker_id"],
                 name=attack["attacker_name"],
                 faction=attack["attacker_faction"],
             )
-            opponent.save()
 
         if attack["attacker_faction"] == 0:
             title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
@@ -741,7 +768,7 @@ def retal_attacks(faction_data, last_attacks=None):
         else:
             stat: typing.Optional[Stat]
             try:
-                if user is not None and user.faction.tid is not None:
+                if user is not None and user.faction_id is not None:
                     stat = (
                         Stat.select()
                         .where(
@@ -784,12 +811,34 @@ def retal_attacks(faction_data, last_attacks=None):
             fields.append(
                 {
                     "name": "Opponent Faction Chaining",
-                    "value": "True",
+                    "value": f"True ({commas(attack['chain'])})",
                     "inline": False,
                 }
             )
         else:
-            fields.append({"name": "Opponent Faction Chaining", "value": "False", "inline": False})
+            fields.append(
+                {"name": "Opponent Faction Chaining", "value": f"False ({commas(attack['chain'])})", "inline": False}
+            )
+
+        if (
+            opponent.personal_stats is not None
+            and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
+        ):  # One week
+            fields.append(
+                {
+                    "name": "Personal Stats",
+                    "value": inspect.cleandoc(
+                        f"""Xanax Used: {commas(opponent.personal_stats.xantaken)}
+                        SEs Used: {commas(opponent.personal_stats.statenhancersused)}
+                        E-Cans Used: {commas(opponent.personal_stats.energydrinkused)}
+                        Books Read: {commas(opponent.personal_stats.booksread)}
+
+                        ELO: {commas(opponent.personal_stats.elo)}
+                        Average Respect: {commas(opponent.personal_stats.respectforfaction / opponent.personal_stats.attackswon, stock_price=True)}
+                        """
+                    ),
+                }
+            )
 
         payload = {
             "embeds": [

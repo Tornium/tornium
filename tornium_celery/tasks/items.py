@@ -90,7 +90,10 @@ def fetch_market():
                     "key": key_user.key,
                 },
                 queue="api",
-            ).apply_async(expires=300, link=market_notifications.signature(kwargs={"item_id": notification.target}))
+            ).apply_async(
+                expires=300,
+                link=market_notifications.signature(kwargs={"item_id": notification.target}),
+            )
             break
 
 

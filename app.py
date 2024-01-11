@@ -91,6 +91,11 @@ def init__app():
         app.secret_key = config.flask_secret
 
     app.config["REMEMBER_COOKIE_DURATION"] = 604800
+    app.config["REMEMBER_COOKIE_DOMAIN"] = config.flask_domain
+    app.config["REMEMBER_COOKIE_SECURE"] = True
+    app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+    app.config["REMEMBER_COOKIE_SAMESITE"] = "lax"
+
     app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "lax"

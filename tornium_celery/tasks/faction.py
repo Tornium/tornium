@@ -704,7 +704,7 @@ def retal_attacks(faction_data, last_attacks=None):
                 PersonalStats.respectforfaction,
                 PersonalStats.timestamp,
             )
-            .join(JOIN.LEFT_OUTER)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
             .where(User.tid == attack["attacker_id"])
             .first()
         )

@@ -78,6 +78,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -118,6 +119,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -158,6 +160,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -193,6 +196,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -230,6 +234,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -271,6 +276,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
+        callback.get()
         discordpatch(
             endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
             payload={"embeds": payload},
@@ -382,7 +388,7 @@ def members_switchboard(interaction, *args, **kwargs):
             },
         }
 
-    discordpost(
+    callback = discordpost.delay(
         f"interactions/{interaction['id']}/{interaction['token']}/callback",
         payload={"type": 5},
     )

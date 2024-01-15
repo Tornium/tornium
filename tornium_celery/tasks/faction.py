@@ -1438,7 +1438,7 @@ def auto_cancel_requests():
 
         try:
             faction: Faction = (
-                Faction.select(Faction.guild)
+                Faction.select(Faction.tid, Faction.guild)
                 .join(Server, JOIN.LEFT_OUTER)
                 .where(Faction.tid == withdrawal.faction_tid)
                 .first()
@@ -1473,7 +1473,6 @@ def auto_cancel_requests():
                         "components": [],
                     },
                 )
-
         except Exception as e:
             logger.exception(e)
 

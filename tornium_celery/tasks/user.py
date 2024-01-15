@@ -173,14 +173,14 @@ def update_user_self(user_data, key=None):
                     user_data_kwargs["faction_aa"] = True
                     update_faction_positions(positions_data)
 
-        if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
+        if user_data["faction"]["position"].lower() in ("leader", "co-leader"):
             user_data_kwargs["faction_position"] = None
             user_data_kwargs["faction_aa"] = True
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-Leader",
+        elif user_data["faction"]["position"].lower() not in (
+            "none",
+            "recruit",
+            "leader",
+            "co-leader",
         ):
             faction_position: typing.Optional[FactionPosition] = (
                 FactionPosition.select()
@@ -205,10 +205,6 @@ def update_user_self(user_data, key=None):
     if "personalstats" in user_data:
         now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         pstat_id = int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2)
-
-        logger.debug(now.timestamp())
-        logger.debug(user_data["player_id"])
-        logger.debug(pstat_id)
 
         PersonalStats.insert(
             pstat_id=pstat_id,
@@ -315,14 +311,14 @@ def update_user_other(user_data):
             .execute()
         )
 
-        if user_data["faction"]["position"] in ("Leader", "Co-Leader"):
+        if user_data["faction"]["position"].lower() in ("leader", "co-leader"):
             user_data_kwargs["faction_position"] = None
             user_data_kwargs["faction_aa"] = True
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-Leader",
+        elif user_data["faction"]["position"].lower() not in (
+            "none",
+            "recruit",
+            "leader",
+            "co-leader",
         ):
             faction_position: typing.Optional[FactionPosition] = (
                 FactionPosition.select()
@@ -335,6 +331,7 @@ def update_user_other(user_data):
 
             if faction_position is None:
                 user_data_kwargs["faction_position"] = None
+
                 user_data_kwargs["faction_aa"] = False
             else:
                 user_data_kwargs["faction_position"] = faction_position

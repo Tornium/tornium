@@ -119,7 +119,7 @@ def faction_members_data(tid: int):
             User.discord_id,
         )
         .join(Faction)
-        .where(User.faction.tid == tid)
+        .where(User.faction_id == tid)
     ):
         members.append(
             {
@@ -136,7 +136,7 @@ def faction_members_data(tid: int):
 
 @login_required
 def faction_members_report():
-    if current_user.faction.tid not in [15644, 12894]:
+    if current_user.faction_id not in [15644, 12894]:
         return (
             "Permission Denied... This page is currently being tested by NSO factions. Please check back later.",
             403,
@@ -187,7 +187,7 @@ def view_member_report(rid: str):
         )
 
     if (report.requested_by_user is not None and report.requested_by_user != current_user.tid) or (
-        report.requested_by_faction is not None and report.requested_by_faction != current_user.faction.tid
+        report.requested_by_faction is not None and report.requested_by_faction != current_user.faction_id
     ):
         return render_template(
             "errors/error.html",

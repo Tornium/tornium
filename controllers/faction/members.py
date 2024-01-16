@@ -43,7 +43,7 @@ def members(*args, **kwargs):
             User.dexterity,
         )
         .join(Faction)
-        .where(User.faction.tid == int(current_user.faction.tid))
+        .where(User.faction_id == int(current_user.faction.tid))
         .execute()
     )
 

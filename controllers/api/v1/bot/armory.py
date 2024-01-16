@@ -190,7 +190,7 @@ def armory_toggle(guildid: int, *args, **kwargs):
 
     if kwargs["user"].tid not in guild.admins:
         return make_exception_response("4020", key)
-    elif kwargs["user"].faction.tid not in guild.factions:
+    elif kwargs["user"].faction_id not in guild.factions:
         return make_exception_response("4021", key)
 
     if guild.sid != kwargs["user"].faction.guild_id:

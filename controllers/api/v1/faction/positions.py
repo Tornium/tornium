@@ -40,7 +40,7 @@ def get_positions(*args, **kwargs):
         return make_exception_response("1102", key)
 
     if guild_id != 0 and faction_tid != 0:
-        if kwargs["user"].faction.tid != faction_tid or not kwargs["user"].faction_aa:
+        if kwargs["user"].faction_id != faction_tid or not kwargs["user"].faction_aa:
             try:
                 guild: Server = Server.get_by_id(guild_id)
             except DoesNotExist:

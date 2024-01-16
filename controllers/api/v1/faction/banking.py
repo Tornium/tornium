@@ -72,7 +72,7 @@ def vault_balance(*args, **kwargs):
             jsonify(
                 {
                     "player_id": user.tid,
-                    "faction_id": user.faction.tid,
+                    "faction_id": user.faction_id,
                     "money_balance": vault_balances["donations"][str(user.tid)]["money_balance"],
                     "points_balance": vault_balances["donations"][str(user.tid)]["points_balance"],
                 }
@@ -129,12 +129,12 @@ def banking_request(*args, **kwargs):
 
     if server is None:
         return make_exception_response("1001", key, redis_client=client)
-    elif user.faction.tid not in server.factions:
+    elif user.faction_id not in server.factions:
         return make_exception_response("4021", key, redis_client=client)
 
     if (
-        str(user.faction.tid) not in server.banking_config
-        or server.banking_config[str(user.faction.tid)]["channel"] == "0"
+        str(user.faction_id) not in server.banking_config
+        or server.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return make_exception_response(
             "0000",
@@ -277,22 +277,22 @@ def banking_request(*args, **kwargs):
                 ],
             }
 
-        for role in server.banking_config[str(user.faction.tid)]["roles"]:
+        for role in server.banking_config[str(user.faction_id)]["roles"]:
             if "content" not in message_payload:
                 message_payload["content"] = ""
 
             message_payload["content"] += f"<@&{role}>"
 
         message = discordpost(
-            f'channels/{server.banking_config[str(user.faction.tid)]["channel"]}/messages',
+            f'channels/{server.banking_config[str(user.faction_id)]["channel"]}/messages',
             payload=message_payload,
-            channel=server.banking_config[str(user.faction.tid)]["channel"],
+            channel=server.banking_config[str(user.faction_id)]["channel"],
         )
 
         withdrawal = Withdrawal.create(
             wid=request_id,
             guid=guid,
-            faction_tid=user.faction.tid,
+            faction_tid=user.faction_id,
             amount=amount_requested
             if amount_requested != "all"
             else vault_balances["donations"][str(user.tid)]["money_balance"],

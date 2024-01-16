@@ -47,7 +47,7 @@ def banking_data():
     ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid)
+    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction_id)
 
     if ordering == 0:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.wid))
@@ -95,7 +95,7 @@ def banking_data():
     data = {
         "draw": request.args.get("draw"),
         "recordsTotal": Withdrawal.select().count(),
-        "recordsFiltered": Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction.tid).count(),
+        "recordsFiltered": Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction_id).count(),
         "data": withdrawals,
     }
     return data
@@ -144,10 +144,10 @@ def banking():
     except DoesNotExist:
         guild = None
 
-    if guild is None or str(current_user.faction.tid) not in guild.banking_config:
+    if guild is None or str(current_user.faction_id) not in guild.banking_config:
         banking_enabled = False
     else:
-        banking_enabled = guild.banking_config[str(current_user.faction.tid)]["channel"]
+        banking_enabled = guild.banking_config[str(current_user.faction_id)]["channel"]
 
     return render_template(
         "faction/banking.html",

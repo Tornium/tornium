@@ -47,7 +47,7 @@ def get_reports(*args, **kwargs):
     if kwargs["user"].faction is not None:
         reports: typing.Iterable[MemberReport] = MemberReport.select().where(
             (MemberReport.requested_by_user == kwargs["user"].tid)
-            | (MemberReport.requested_by_faction == kwargs["user"].faction.tid)
+            | (MemberReport.requested_by_faction == kwargs["user"].faction_id)
         )
     else:
         reports: typing.Iterable[MemberReport] = MemberReport.select().where(
@@ -236,7 +236,7 @@ def delete_report(rid, *args, **kwargs):
         return make_exception_response("4004", key)
     elif (
         report.requested_by_faction is not None
-        and report.requested_by_faction != kwargs["user"].faction.tid
+        and report.requested_by_faction != kwargs["user"].faction_id
         and not kwargs["user"].faction_aa
     ):
         return make_exception_response("4005", key)
@@ -260,7 +260,7 @@ def get_report(rid, *args, **kwargs):
         return make_exception_response("4004", key)
     elif (
         report.requested_by_faction is not None
-        and report.requested_by_faction != kwargs["user"].faction.tid
+        and report.requested_by_faction != kwargs["user"].faction_id
         and not kwargs["user"].faction_aa
     ):
         return make_exception_response("4005", key)

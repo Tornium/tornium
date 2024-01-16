@@ -86,7 +86,7 @@ def stat(interaction, *args, **kwargs):
         try:
             target = (
                 Stat.select()
-                .where((Stat.tid == tid["value"]) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid)))
+                .where((Stat.tid == tid["value"]) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id)))
                 .order_by(-Stat.time_added)
                 .get()
             )
@@ -113,7 +113,7 @@ def stat(interaction, *args, **kwargs):
             target = (
                 Stat.select()
                 .where(
-                    (Stat.tid == target_user.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction.tid))
+                    (Stat.tid == target_user.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
                 )
                 .order_by(-Stat.time_added)
                 .get()

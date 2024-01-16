@@ -81,7 +81,7 @@ def balance(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid != kwargs["invoker"].faction.tid or (not kwargs["invoker"].faction_aa and member is not None):
+    elif user.faction_id != kwargs["invoker"].faction_id or (not kwargs["invoker"].faction_aa and member is not None):
         return {
             "type": 4,
             "data": {

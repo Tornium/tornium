@@ -343,7 +343,7 @@ def forward_assist(*args, **kwargs):
     for server in Server.select().where(Server.assist_channel != 0):
         if server.assist_channel in (0, "0", None):
             continue
-        elif user.faction.tid not in server.assist_factions:
+        elif user.faction_id not in server.assist_factions:
             continue
 
         roles = []

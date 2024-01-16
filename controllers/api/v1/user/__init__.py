@@ -42,7 +42,7 @@ def get_user(*args, **kwargs):
                 "battlescore": kwargs["user"].battlescore,
                 "battlescore_update": kwargs["user"].battlescore_update.timestamp(),
                 "discord_id": kwargs["user"].discord_id,
-                "factiontid": kwargs["user"].faction.tid,
+                "factiontid": kwargs["user"].faction_id,
                 "aa": kwargs["user"].faction_aa,
                 "status": kwargs["user"].status,
                 "last_action": kwargs["user"].last_action.timestamp(),
@@ -90,7 +90,7 @@ def get_specific_user(tid: int, *args, **kwargs):
                 "level": user.level,
                 "last_refresh": user.last_refresh,
                 "discord_id": user.discord_id,
-                "faction": {"tid": user.faction.tid, "name": user.faction.name} if user.faction is not None else None,
+                "faction": {"tid": user.faction_id, "name": user.faction.name} if user.faction is not None else None,
                 "status": user.status,
                 "last_action": user.last_action,
             }

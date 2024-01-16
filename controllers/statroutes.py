@@ -54,7 +54,7 @@ def stats_data():
         if get_tid(search_value):
             stat_entries = Stat.select().where(
                 (Stat.tid == get_tid(search_value))
-                & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction.tid))
+                & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
             )
         else:
             stat_entries = Stat.select().where((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))

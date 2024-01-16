@@ -91,7 +91,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
@@ -122,8 +122,7 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction.tid) not in guild.banking_config
-        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -240,7 +239,7 @@ def cancel_command(interaction, *args, **kwargs):
         requester = None
 
     discordpatch(
-        f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
         {
             "embeds": [
                 {
@@ -396,7 +395,7 @@ def cancel_button(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
@@ -427,8 +426,7 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction.tid) not in guild.banking_config
-        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -517,7 +515,7 @@ def cancel_button(interaction, *args, **kwargs):
         requester = None
 
     discordpatch(
-        f"channels/{guild.banking_config[str(user.faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
         {
             "embeds": [
                 {

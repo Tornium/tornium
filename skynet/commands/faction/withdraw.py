@@ -104,7 +104,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction.tid not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
         return {
             "type": 4,
             "data": {
@@ -120,8 +120,7 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction.tid) not in guild.banking_config
-        or guild.banking_config[str(user.faction.tid)]["channel"] == "0"
+        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -403,14 +402,14 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    for role in guild.banking_config[str(user.faction.tid)]["roles"]:
+    for role in guild.banking_config[str(user.faction_id)]["roles"]:
         if "content" not in message_payload:
             message_payload["content"] = ""
 
         message_payload["content"] += f"<@&{role}>"
 
     message = discordpost(
-        f'channels/{guild.banking_config[str(user.faction.tid)]["channel"]}/messages',
+        f'channels/{guild.banking_config[str(user.faction_id)]["channel"]}/messages',
         payload=message_payload,
     )
 
@@ -418,7 +417,7 @@ def withdraw(interaction, *args, **kwargs):
         Withdrawal.create(
             wid=request_id,
             guid=guid,
-            faction_tid=user.faction.tid,
+            faction_tid=user.faction_id,
             amount=withdrawal_amount
             if withdrawal_amount != "all"
             else faction_balances[str(user.tid)][withdrawal_option_str],

@@ -52,7 +52,7 @@ def users_data():
     elif ordering == 2:
         users_db = users_db.order_by(ordering_direction * User.level)
     elif ordering == 3:
-        users_db = users_db.order_by(ordering_direction * User.faction.tid)
+        users_db = users_db.order_by(ordering_direction * User.faction_id)
     elif ordering == 4:
         users_db = users_db.order_by(ordering_direction * User.last_action)
     else:
@@ -68,7 +68,7 @@ def users_data():
                 "tid": user.tid,
                 "name": user.name,
                 "level": user.level,
-                "faction": "Unknown" if user.faction is None else f"{user.faction.name} [{user.faction.tid}]",
+                "faction": "Unknown" if user.faction is None else f"{user.faction.name} [{user.faction_id}]",
                 "last_action": {
                     "display": rel_time(user.last_action) if user.last_action is not None else "",
                     "timestamp": user.last_action,

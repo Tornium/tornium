@@ -482,13 +482,13 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
 
     if (
         user.faction is None
-        and guild.faction_verify.get(str(user.faction.tid)) is not None
-        and guild.faction_verify[str(user.faction.tid)].get("roles") is not None
-        and len(guild.faction_verify[str(user.faction.tid)]["roles"]) != 0
-        and guild.faction_verify[str(user.faction.tid)].get("enabled") not in (None, False)
+        and guild.faction_verify.get(str(user.faction_id)) is not None
+        and guild.faction_verify[str(user.faction_id)].get("roles") is not None
+        and len(guild.faction_verify[str(user.faction_id)]["roles"]) != 0
+        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
     ):
         faction_role: int
-        for faction_role in guild.faction_verify[str(user.faction.tid)]["roles"]:
+        for faction_role in guild.faction_verify[str(user.faction_id)]["roles"]:
             if str(faction_role) in member["roles"]:
                 continue
             elif patch_json.get("roles") is None:
@@ -498,9 +498,9 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
 
     for faction_tid, verify_data in guild.faction_verify.items():
         for faction_role in verify_data["roles"]:
-            if str(faction_role) in member["roles"] and int(faction_tid) != user.faction.tid:
-                if guild.faction_verify.get(str(user.faction.tid)) is not None and faction_role in guild.faction_verify[
-                    str(user.faction.tid)
+            if str(faction_role) in member["roles"] and int(faction_tid) != user.faction_id:
+                if guild.faction_verify.get(str(user.faction_id)) is not None and faction_role in guild.faction_verify[
+                    str(user.faction_id)
                 ].get("roles", []):
                     continue
                 elif patch_json.get("roles") is None:
@@ -511,14 +511,14 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
     if (
         user.faction is not None
         and user.faction_position is not None
-        and guild.faction_verify.get(str(user.faction.tid)) is not None
-        and guild.faction_verify[str(user.faction.tid)].get("positions") is not None
-        and len(guild.faction_verify[str(user.faction.tid)]["positions"]) != 0
-        and str(user.faction_position) in guild.faction_verify[str(user.faction.tid)]["positions"].keys()
-        and guild.faction_verify[str(user.faction.tid)].get("enabled") not in (None, False)
+        and guild.faction_verify.get(str(user.faction_id)) is not None
+        and guild.faction_verify[str(user.faction_id)].get("positions") is not None
+        and len(guild.faction_verify[str(user.faction_id)]["positions"]) != 0
+        and str(user.faction_position) in guild.faction_verify[str(user.faction_id)]["positions"].keys()
+        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
     ):
         position_role: int
-        for position_role in guild.faction_verify[str(user.faction.tid)]["positions"][str(user.faction_position)]:
+        for position_role in guild.faction_verify[str(user.faction_id)]["positions"][str(user.faction_position)]:
             if str(position_role) in member["roles"]:
                 continue
             elif patch_json.get("roles") is None:

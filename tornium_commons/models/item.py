@@ -133,3 +133,22 @@ class Item(BaseModel):
             return f"Unknown {tid}"
 
         return f"{_item.name} [{tid}]"
+
+    @staticmethod
+    def item_name_map() -> typing.Dict[int, str]:
+        redis_client = rds()
+
+        cached_map = redis_client.hgetall("tornium:items:name-map")
+
+        if len(cached_map) != 0:
+            return {int(k): v for k, v in cached_map.items()}
+
+        built_map = {item.tid: item.name for item in Item.select(Item.tid, Item.name)}
+
+        if len(built_map) == 0:
+            raise ValueError
+
+        redis_client.hset("tornium:items:name-map", mapping=built_map)
+        redis_client.expire("tornium:items:name-map", 86400)
+
+        return built_map

@@ -41,6 +41,6 @@ def item_name_map(*args, **kwargs):
             return make_exception_response("1000", key, details={"element": "torn_items"})
 
         redis_client.hset("tornium:items:name-map", mapping=torn_items)
-        redis_client.expire("tornium:items:name-map", 3600)
+        redis_client.expire("tornium:items:name-map", 86400)
 
     return jsonify({"items": torn_items}), 200, api_ratelimit_response(key)

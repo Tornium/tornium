@@ -178,9 +178,13 @@ def update_user_self(user_data, key=None):
             user_data_kwargs["faction_aa"] = True
 
             if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(tid=user_data["faction"]["faction_id"]).execute()
+                Faction.update(leader=user_data["player_id"]).where(
+                    User.tid == user_data["faction"]["faction_id"]
+                ).execute()
             elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(tid=user_data["faction"]["faction_id"]).execute()
+                Faction.update(coleader=user_data["player_id"]).where(
+                    User.tid == user_data["faction"]["faction_id"]
+                ).execute()
         elif user_data["faction"]["position"] not in (
             "None",
             "Recruit",
@@ -321,9 +325,13 @@ def update_user_other(user_data):
             user_data_kwargs["faction_aa"] = True
 
             if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(tid=user_data["faction"]["faction_id"]).execute()
+                Faction.update(leader=user_data["player_id"]).where(
+                    User.tid == user_data["faction"]["faction_id"]
+                ).execute()
             elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(tid=user_data["faction"]["faction_id"]).execute()
+                Faction.update(coleader=user_data["player_id"]).where(
+                    User.tid == user_data["faction"]["faction_id"]
+                ).execute()
         elif user_data["faction"]["position"] not in (
             "None",
             "Recruit",

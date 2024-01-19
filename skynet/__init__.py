@@ -222,6 +222,10 @@ def skynet_interactions():
                     request.json, invoker=invoker, admin_keys=admin_keys
                 )
             )
+        elif request.json["data"]["custom_id"].startswith("oc:participants:"):
+            return jsonify(
+                skynet.commands.faction.oc.oc_participants_button(request.json, invoker=invoker, admin_keys=admin_keys)
+            )
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
             return jsonify(

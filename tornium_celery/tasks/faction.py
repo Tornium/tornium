@@ -1123,7 +1123,10 @@ def oc_refresh():
     queue="default",
     time_limit=5,
 )
-def oc_refresh_subtask(oc_data):  # TODO: Refactor this to be more readable
+def oc_refresh_subtask(oc_data):
+    # TODO: Refactor this to be more readable
+    # TODO: Refactor this to allow OC data to be updated without OC notifications configured
+
     try:
         faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == oc_data["ID"]).get()
     except DoesNotExist:
@@ -1242,6 +1245,19 @@ def oc_refresh_subtask(oc_data):  # TODO: Refactor this to be more readable
                         "footer": {"text": f"#{oc_db.oc_id}"},
                     }
                 ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 3 if len(oc_db.delayers) == 0 else 4,
+                                "label": "Participants",
+                                "custom_id": f"oc:participants:{oc_db.oc_id}",
+                            }
+                        ],
+                    }
+                ],
             }
 
             try:
@@ -1340,7 +1356,7 @@ def oc_refresh_subtask(oc_data):  # TODO: Refactor this to be more readable
                                         "type": 2,
                                         "style": 2,
                                         "label": f"{participant['description']}",
-                                        "custom_id": f"participant:delay:{participant_id}",
+                                        "custom_id": f"oc:participant:delay:{participant_id}",
                                         "disabled": True,
                                     },
                                 ],
@@ -1361,7 +1377,7 @@ def oc_refresh_subtask(oc_data):  # TODO: Refactor this to be more readable
                                         "type": 2,
                                         "style": 2,
                                         "label": f"{participant['description']}",
-                                        "custom_id": f"participant:delay:{participant_id}",
+                                        "custom_id": f"oc:participant:delay:{participant_id}",
                                         "disabled": True,
                                     },
                                 ],

@@ -714,6 +714,7 @@ def retal_attacks(faction_data, last_attacks=None):
                     (Retaliation.attacker == attack["defender_id"])
                     & (Retaliation.defender.faction == attack["attacker_faction"])
                 )
+                .join(User, on=Retaliation.defender)
                 .join(Faction)
                 .first()
             )
@@ -974,10 +975,10 @@ def retal_attacks(faction_data, last_attacks=None):
 
     retal_bulk = []
 
-    for retal in possible_retals:
+    for retal in possible_retals.values():
         retal["task"]: celery.result.AsyncResult
         try:
-            message = retal["task"].get()
+            message = retal["task"].get(disable_sync_subtasks=False)
         except celery.exceptions.CeleryError as e:
             logger.exception(e)
             continue

@@ -607,7 +607,7 @@ def fetch_attacks_runner():
 
     retal: Retaliation
     for retal in Retaliation.select().where(
-        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=6))
+        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
     ):
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
         try:

@@ -708,7 +708,8 @@ def retal_attacks(faction_data, last_attacks=None):
             if attack["modifiers"]["retaliation"] == 1:
                 continue
 
-            retal: typing.Optional[Retaliation] = (
+            retal: Retaliation
+            for retal in (
                 Retaliation.select()
                 .where(
                     (Retaliation.attacker == attack["defender_id"])
@@ -716,29 +717,25 @@ def retal_attacks(faction_data, last_attacks=None):
                 )
                 .join(User, on=Retaliation.defender)
                 .join(Faction)
-                .first()
-            )
+            ):
+                discordpatch.delay(
+                    f"channels/{retal.channel_id}/messages/{retal.message_id}",
+                    {
+                        "embeds": [
+                            {
+                                "title": f"Retal Completed for {faction.name}",
+                                "description": (
+                                    f"{attack['attacker_name']} [{attack['attacker_id']} hospitalized {attack['defender_name']} [{attack['defender_id']}] (+{attack['respect_gain']})."
+                                ),
+                                "color": SKYNET_GOOD,
+                            }
+                        ],
+                        "components": [],
+                    },
+                ).forget()
 
-            if retal is None:
-                continue
+                retal.delete_instance()
 
-            discordpatch.delay(
-                f"channels/{retal.channel_id}/messages/{retal.message_id}",
-                {
-                    "embeds": [
-                        {
-                            "title": f"Retal Completed for {faction.name}",
-                            "description": (
-                                f"{attack['attacker_name']} [{attack['attacker_id']} hospitalized {attack['defender_name']} [{attack['defender_id']} (+{attack['respect_gain']})."
-                            ),
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "components": [],
-                },
-            ).forget()
-
-            retal.delete_instance()
             continue
         elif attack["attacker_id"] in ("", 0):  # Stealthed attacker
             continue

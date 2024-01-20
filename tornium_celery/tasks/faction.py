@@ -714,6 +714,7 @@ def retal_attacks(faction_data, last_attacks=None):
                     (Retaliation.attacker == attack["defender_id"])
                     & (Retaliation.defender.faction == attack["attacker_faction"])
                 )
+                .join(Faction)
                 .first()
             )
 

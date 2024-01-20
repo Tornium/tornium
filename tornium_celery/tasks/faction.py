@@ -25,7 +25,7 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 from peewee import JOIN, DoesNotExist
-from tornium_commons import db, rds
+from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
@@ -973,8 +973,6 @@ def retal_attacks(faction_data, last_attacks=None):
             logger.exception(e)
             continue
 
-    retal_bulk = []
-
     for retal in possible_retals.values():
         retal["task"]: celery.result.AsyncResult
         try:
@@ -983,20 +981,14 @@ def retal_attacks(faction_data, last_attacks=None):
             logger.exception(e)
             continue
 
-        retal_bulk.append(
-            {
-                "attack_code": retal["code"],
-                "attack_ended": datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
-                "defender": retal["defender_id"],
-                "attacker": retal["attacker_id"],
-                "message_id": message["id"],
-                "channel_id": message["channel_id"],
-            }
-        )
-
-    if len(retal_bulk) != 0:
-        with db().atomic():
-            Retaliation.insert_many(retal_bulk).execute()
+        Retaliation.insert(
+            attack_code=retal["code"],
+            attack_ended=datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
+            defender=retal["defender_id"],
+            attacker=retal["attacker_id"],
+            message_id=message["id"],
+            channel_id=message["channel_id"],
+        ).on_conflict_ignore().execute()
 
 
 @celery.shared_task(

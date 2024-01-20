@@ -13,32 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .faction import Faction
-from .faction_position import FactionPosition
-from .item import Item
-from .member_report import MemberReport
-from .notification import Notification
-from .organized_crime import OrganizedCrime
-from .personal_stats import PersonalStats
-from .retaliation import Retaliation
-from .server import Server
-from .stat import Stat
-from .stock_tick import StockTick
-from .user import User
-from .withdrawal import Withdrawal
+from peewee import BigIntegerField, DateTimeField, FixedCharField, ForeignKeyField
 
-__all__ = [
-    "Faction",
-    "FactionPosition",
-    "Item",
-    "MemberReport",
-    "Notification",
-    "OrganizedCrime",
-    "PersonalStats",
-    "Retaliation",
-    "Server",
-    "Stat",
-    "StockTick",
-    "User",
-    "Withdrawal",
-]
+from .base_model import BaseModel
+from .user import User
+
+
+class Retaliation(BaseModel):
+    attack_code = FixedCharField(max_length=32, primary_key=True)  # Code of the attack according to the Torn API
+    attack_ended = DateTimeField(null=False)
+    defender = ForeignKeyField(User, null=False)
+    attacker = ForeignKeyField(User, null=False)
+
+    # Discord data related to the retal's notification
+    message_id = BigIntegerField(null=False)
+    channel_id = BigIntegerField(null=False)

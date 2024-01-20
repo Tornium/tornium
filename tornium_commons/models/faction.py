@@ -13,12 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from functools import lru_cache
+
 from peewee import (
     BigIntegerField,
     BooleanField,
     CharField,
     DateTimeField,
     DeferredForeignKey,
+    DoesNotExist,
     IntegerField,
 )
 from playhouse.postgres_ext import ArrayField, JSONField
@@ -79,3 +82,18 @@ class Faction(BaseModel):
             bankers.add(self.coleader_id)
 
         return bankers
+
+    @staticmethod
+    def faction_str(tid: int) -> str:
+        try:
+            return f"{Faction.faction_name(tid)} [{tid}]"
+        except DoesNotExist:
+            return f"N/A {tid}"
+
+    @staticmethod
+    @lru_cache
+    def faction_name(tid: int) -> str:
+        try:
+            return Faction.select(Faction.name).where(Faction.tid == tid).get().name
+        except DoesNotExist:
+            return "N/A"

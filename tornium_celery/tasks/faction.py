@@ -25,7 +25,7 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 from peewee import JOIN, DoesNotExist
-from tornium_commons import rds
+from tornium_commons import db, rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import (
@@ -34,6 +34,7 @@ from tornium_commons.models import (
     Item,
     OrganizedCrime,
     PersonalStats,
+    Retaliation,
     Server,
     Stat,
     User,
@@ -594,15 +595,45 @@ def fetch_attacks_runner():
             expires=300,
             link=celery.group(
                 retal_attacks.signature(
-                    kwargs={"last_attacks": last_attacks},
+                    kwargs={"last_attacks": int(last_attacks)},
                     queue="quick",
                 ),
                 stat_db_attacks.signature(
-                    kwargs={"last_attacks": last_attacks},
+                    kwargs={"last_attacks": int(last_attacks)},
                     queue="quick",
                 ),
             ),
         )
+
+    retal: Retaliation
+    for retal in Retaliation.select().where(
+        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
+    ):
+        try:
+            discordpatch.delay(
+                f"channels/{retal.channel_id}/messages/{retal.message_id}",
+                {
+                    "embeds": [
+                        {
+                            "title": f"Retal Timeout for {retal.defender.faction.name}",
+                            "description": (
+                                f"{retal.attacker.user_str_self()} of {retal.attacker.faction.name} has attacked "
+                                f"{retal.defender.user_str_self()}, but the retaliation timed out "
+                                f"<t:{int(retal.attack_ended.timestamp() + 300)}:R>"
+                            ),
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "components": [],
+                },
+            ).forget()
+        except Exception as e:
+            logger.exception(e)
+            continue
+
+    Retaliation.delete().where(
+        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
+    ).execute()
 
 
 @celery.shared_task(
@@ -648,6 +679,7 @@ def retal_attacks(faction_data, last_attacks=None):
         last_attacks = faction.last_attacks.timestamp()
 
     now = int(time.time())
+    possible_retals = {}
 
     for attack in faction_data["attacks"].values():
         if attack["result"] in [
@@ -673,6 +705,38 @@ def retal_attacks(faction_data, last_attacks=None):
         elif attack["timestamp_ended"] <= last_attacks:
             continue
         elif attack["defender_faction"] != faction.tid:  # Not a defend
+            if attack["modifiers"]["retaliation"] == 1:
+                continue
+
+            retal: typing.Optional[Retaliation] = (
+                Retaliation.select()
+                .where(
+                    (Retaliation.attacker == attack["defender_id"])
+                    & (Retaliation.defender.faction == attack["attacker_faction"])
+                )
+                .first()
+            )
+
+            if retal is None:
+                continue
+
+            discordpatch.delay(
+                f"channels/{retal.channel_id}/messages/{retal.message_id}",
+                {
+                    "embeds": [
+                        {
+                            "title": f"Retal Completed for {faction.name}",
+                            "description": (
+                                f"{attack['attacker_name']} [{attack['attacker']} hospitalized {attack['defender_name']} [{attack['defender']} (+{attack['respect_gain']})."
+                            ),
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "components": [],
+                },
+            ).forget()
+
+            retal.delete_instance()
             continue
         elif attack["attacker_id"] in ("", 0):  # Stealthed attacker
             continue
@@ -896,13 +960,41 @@ def retal_attacks(faction_data, last_attacks=None):
             payload["content"] += f"<@&{role}>"
 
         try:
-            discordpost.delay(
-                f"channels/{faction.guild.retal_config[str(faction.tid)]['channel']}/messages",
-                payload=payload,
-            ).forget()
+            possible_retals[attack["code"]] = {
+                "task": discordpost.delay(
+                    f"channels/{faction.guild.retal_config[str(faction.tid)]['channel']}/messages",
+                    payload=payload,
+                ),
+                **attack,
+            }
         except Exception as e:
             logger.exception(e)
             continue
+
+    retal_bulk = []
+
+    for retal in possible_retals:
+        retal["task"]: celery.result.AsyncResult
+        try:
+            message = retal["task"].get()
+        except celery.exceptions.CeleryError as e:
+            logger.exception(e)
+            continue
+
+        retal_bulk.append(
+            {
+                "attack_code": retal["code"],
+                "attack_ended": datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
+                "defender": retal["defender_id"],
+                "attacker": retal["attacker_id"],
+                "message_id": message["id"],
+                "channel_id": message["channel_id"],
+            }
+        )
+
+    if len(retal_bulk) != 0:
+        with db().atomic():
+            Retaliation.insert_many(retal_bulk).execute()
 
 
 @celery.shared_task(

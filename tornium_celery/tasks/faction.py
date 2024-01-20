@@ -633,7 +633,7 @@ def fetch_attacks_runner():
             continue
 
     Retaliation.delete().where(
-        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
+        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=6))
     ).execute()
 
 

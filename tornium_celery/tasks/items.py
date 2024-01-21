@@ -281,7 +281,7 @@ def market_notifications(market_data: dict, item_id: int):
         total_quantity = sum(listing["quantity"] for listing in market_data["bazaar"][:3])
 
         for n in notifications:
-            if n.options["type"] != "quantity" or n.options["value"] < total_quantity:
+            if n.options["type"] != "quantity" or total_quantity < n.options["value"]:
                 continue
 
             fields = []

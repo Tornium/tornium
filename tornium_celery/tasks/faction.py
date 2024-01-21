@@ -1684,7 +1684,31 @@ def armory_check_subtask(_armory_data, faction_id: int):
     elif len(faction_config.get("items", {})) == 0:
         return
 
-    role_str = "".join([f"<@&{role}>" for role in faction_config.get("roles", [])])
+    payload = {
+        "embeds": [],
+        "components": [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Armory",
+                        "url": "https://www.torn.com/factions.php?step=your&type=1#/tab=armoury",
+                    },
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Item Market",
+                        "url": "https://www.torn.com/imarket.php",
+                    },
+                ],
+            },
+        ],
+    }
+
+    if len(faction_config.get("roles", [])) == 0:
+        payload["content"] = "".join([f"<@&{role}>" for role in faction_config.get("roles", [])])
 
     for armory_type in _armory_data:
         for armory_item in _armory_data[armory_type]:
@@ -1704,47 +1728,28 @@ def armory_check_subtask(_armory_data, faction_id: int):
             else:
                 suffix = f" (worth about ${commas(item.market_value * (minimum - quantity))})"
 
-            payload = {
-                "embeds": [
-                    {
-                        "title": "Low Armory Stock",
-                        "description": f"{faction.name} is currently low on {armory_item['name']} ({commas(quantity)} "
-                        f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity{suffix}.",
-                        "color": SKYNET_ERROR,
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": torn_timestamp()},
-                    }
-                ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Armory",
-                                "url": "https://www.torn.com/factions.php?step=your&type=1#/tab=armoury",
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
-                                "label": "Item Market",
-                                "url": f"https://www.torn.com/imarket.php#/p=shop&step=shop&type=&searchname={armory_item['ID']}",
-                            },
-                        ],
-                    },
-                ],
-            }
+            payload["embeds"].append(
+                {
+                    "title": "Low Armory Stock",
+                    "description": f"{faction.name} is currently low on {armory_item['name']} ({commas(quantity)} "
+                    f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity{suffix}.",
+                    "color": SKYNET_ERROR,
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "footer": {"text": torn_timestamp()},
+                }
+            )
 
-            if role_str != "":
-                payload["content"] = role_str
-
-            try:
+            if len(payload["embeds"]) == 10:
                 discordpost.delay(
                     f"channels/{faction_config['channel']}/messages",
                     payload=payload,
                     channel=faction_config["channel"],
                 ).forget()
-            except Exception as e:
-                logger.exception(e)
-                continue
+                payload["embeds"].clear()
+
+    if len(payload["embeds"]) != 0:
+        discordpost.delay(
+            f"channels/{faction_config['channel']}/messages",
+            payload=payload,
+            channel=faction_config["channel"],
+        ).forget()

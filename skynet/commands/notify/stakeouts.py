@@ -223,21 +223,12 @@ def stakeouts(interaction, *args, **kwargs):
 
         notification: Notification
         for notification in notifications:
+            notification_object: typing.Optional[typing.Union[User, Faction]]
             if notification.n_type == 1:
-                notification_object: typing.Optional[User]
-                try:
-                    notification_object = User.get_by_id(notification.target)
-                except DoesNotExist:
-                    notification_object = None
-
+                notification_object = User.select().where(User.tid == notification.target).first()
                 title = "User Stakeout"
             else:
-                notification_object: typing.Optional[Faction]
-                try:
-                    notification_object = Faction.get_by_id(notification.target)
-                except DoesNotExist:
-                    notification_object = None
-
+                notification_object = Faction.select().where(Faction.tid == notification.target).first()
                 title = "Faction Stakeout"
 
             if len(notification.options["value"]) == 0:
@@ -341,7 +332,7 @@ def stakeouts(interaction, *args, **kwargs):
 
         if not private:
             try:
-                guild: Server = Server.get_id(interaction["guild_id"])
+                guild: Server = Server.select().where(Server.sid == interaction["guild_id"]).get()
             except DoesNotExist:
                 return {
                     "type": 4,
@@ -609,7 +600,7 @@ def stakeouts(interaction, *args, **kwargs):
     if subcommand != "initialize":
         if "guild_id" in interaction:
             try:
-                guild: Server = Server.get_by_id(interaction["guild_id"])
+                guild: Server = Server.select().where(Server.sid == interaction["guild_id"]).first()
             except DoesNotExist:
                 return {
                     "type": 4,
@@ -803,11 +794,7 @@ def stakeout_flying_button(interaction, *args, **kwargs):
             },
         }
 
-    user: typing.Optional[User]
-    try:
-        user = User.get_by_id(tid)
-    except DoesNotExist:
-        user = None
+    user: typing.Optional[User] = User.select().where(User.tid == tid).first()
 
     _flying_type_str = {
         0: "Standard",
@@ -905,11 +892,7 @@ def stakeout_hospital_button(interaction, *args, **kwargs):
             },
         }
 
-    user: typing.Optional[User]
-    try:
-        user = User.get_by_id(tid)
-    except DoesNotExist:
-        user = None
+    user = User.select().where(User.tid == tid).first()
 
     dm_channel = discordpost(
         "users/@me/channels",

@@ -52,7 +52,21 @@ def oc_participants_button(interaction, *args, **kwargs):
 
     user: User = kwargs["invoker"]
 
-    if user.faction is None:
+    if user is None:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Unknown User",
+                        "description": "Your user could not be found in the database. Please verify yourself or sign into Tornium.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction is None:
         return {
             "type": 4,
             "data": {

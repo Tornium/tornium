@@ -28,7 +28,6 @@ def notify(interaction, *args, **kwargs):
         stock = find_list(subcommand_data, "name", "stock")
         price = find_list(subcommand_data, "name", "price")
         equality = find_list(subcommand_data, "name", "equality")
-        private = find_list(subcommand_data, "name", "private")
         channel = find_list(subcommand_data, "name", "channel")
 
         if stock is None or price is None:
@@ -50,14 +49,11 @@ def notify(interaction, *args, **kwargs):
         price = price["value"]
         equality = equality["value"]
 
-        if private is None:
-            private = True
-        else:
-            private = private["value"]
-
         if channel is not None:
             channel = channel["value"]
             private = False
+        else:
+            private = True
 
         if price <= 0:
             return {

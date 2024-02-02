@@ -1531,7 +1531,9 @@ def auto_cancel_requests():
             Withdrawal.wid == withdrawal.wid
         ).execute()
 
-        requester: typing.Optional[User] = User.select(User.discord_id).where(User.tid == withdrawal.requester).first()
+        requester: typing.Optional[User] = (
+            User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).first()
+        )
 
         if requester is None or requester.discord_id in (0, None):
             continue

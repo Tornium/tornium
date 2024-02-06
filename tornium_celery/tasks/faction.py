@@ -1176,23 +1176,11 @@ def oc_refresh():
     for faction in Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.aa_keys != []):
         if len(faction.aa_keys) == 0:
             continue
-        try:
-            if faction.guild is None:
-                continue
-        except DoesNotExist:
-            continue
-
-        if faction.tid not in faction.guild.factions:
-            continue
-        elif str(faction.tid) not in faction.guild.oc_config:
-            continue
-
-        aa_key = random.choice(faction.aa_keys)
 
         tornget.signature(
             kwargs={
                 "endpoint": "faction/?selections=basic,crimes",
-                "key": aa_key,
+                "key": random.choice(faction.aa_keys),
             },
             queue="api",
         ).apply_async(
@@ -1209,21 +1197,17 @@ def oc_refresh():
 )
 def oc_refresh_subtask(oc_data):
     # TODO: Refactor this to be more readable
-    # TODO: Refactor this to allow OC data to be updated without OC notifications configured
 
     try:
         faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == oc_data["ID"]).get()
     except DoesNotExist:
         return
 
-    if faction.guild is None:
-        return
-
     OC_DELAY = False
     OC_READY = False
     OC_INITIATED = False
 
-    if str(faction.tid) in faction.guild.oc_config:
+    if faction.guild is not None and str(faction.tid) in faction.guild.oc_config:
         OC_DELAY = faction.guild.oc_config[str(faction.tid)].get("delay", {"channel": 0, "roles": []}).get(
             "channel"
         ) not in [
@@ -1367,32 +1351,8 @@ def oc_refresh_subtask(oc_data):
             )
         )
 
-        if OC_DELAY and len(oc_db.delayers) == 0 and not all(ready):
+        if len(oc_db.delayers) == 0 and not all(ready):
             # OC has been delayed
-            payload = {
-                "embeds": [
-                    {
-                        "title": f"OC of {faction.name} Delayed",
-                        "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
-                        f"({ready.count(True)}/{len(oc_data['participants'])}).",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": f"#{oc_db.oc_id}"},
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "components": [],
-            }
-
-            roles = faction.guild.oc_config[str(faction.tid)]["delay"]["roles"]
-
-            if len(roles) != 0:
-                roles_str = ""
-
-                for role in roles:
-                    roles_str += f"<@&{role}>"
-
-                payload["content"] = roles_str
-
             delayers = []
 
             for participant in oc_data["participants"]:
@@ -1402,6 +1362,35 @@ def oc_refresh_subtask(oc_data):
                 if participant["color"] != "green":
                     delayers.append(int(participant_id))
 
+            if len(delayers) != 0:
+                OrganizedCrime.update(delayers=delayers).where(OrganizedCrime.oc_id == oc_db.oc_id).execute()
+
+            if OC_DELAY:
+                payload = {
+                    "embeds": [
+                        {
+                            "title": f"OC of {faction.name} Delayed",
+                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
+                            f"({ready.count(True)}/{len(oc_data['participants'])}).",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "footer": {"text": f"#{oc_db.oc_id}"},
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "components": [],
+                }
+
+                roles = faction.guild.oc_config[str(faction.tid)]["delay"]["roles"]
+
+                if len(roles) != 0:
+                    roles_str = ""
+
+                    for role in roles:
+                        roles_str += f"<@&{role}>"
+
+                    payload["content"] = roles_str
+
+                for delayer in delayers:
                     participant_db: typing.Optional[User] = (
                         User.select(User.name, User.discord_id).where(User.tid == participant_id).first()
                     )
@@ -1468,51 +1457,49 @@ def oc_refresh_subtask(oc_data):
                             }
                         )
 
-            if len(delayers) != 0:
-                OrganizedCrime.update(delayers=delayers).where(OrganizedCrime.oc_id == oc_db.oc_id).execute()
-
-            try:
-                discordpost.delay(
-                    f'channels/{faction.guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
-                    payload=payload,
-                ).forget()
-            except Exception as e:
-                logger.exception(e)
-                continue
-        elif OC_READY and not oc_db.notified and all(ready):
+                try:
+                    discordpost.delay(
+                        f'channels/{faction.guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
+                        payload=payload,
+                    ).forget()
+                except Exception as e:
+                    logger.exception(e)
+                    continue
+        elif not oc_db.notified and all(ready):
             # OC is ready
             OrganizedCrime.update(notified=True).where(OrganizedCrime.oc_id == oc_db.oc_id).execute()
 
-            payload = {
-                "embeds": [
-                    {
-                        "title": f"OC of {faction.name} Ready",
-                        "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": f"#{oc_db.oc_id}"},
-                        "color": SKYNET_GOOD,
-                    }
-                ],
-            }
+            if OC_READY:
+                payload = {
+                    "embeds": [
+                        {
+                            "title": f"OC of {faction.name} Ready",
+                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "footer": {"text": f"#{oc_db.oc_id}"},
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                }
 
-            roles = faction.guild.oc_config[str(faction.tid)]["ready"]["roles"]
+                roles = faction.guild.oc_config[str(faction.tid)]["ready"]["roles"]
 
-            if len(roles) != 0:
-                roles_str = ""
+                if len(roles) != 0:
+                    roles_str = ""
 
-                for role in roles:
-                    roles_str += f"<@&{role}>"
+                    for role in roles:
+                        roles_str += f"<@&{role}>"
 
-                payload["content"] = roles_str
+                    payload["content"] = roles_str
 
-            try:
-                discordpost.delay(
-                    f'channels/{faction.guild.oc_config[str(faction.tid)]["ready"]["channel"]}/messages',
-                    payload=payload,
-                )
-            except Exception as e:
-                logger.exception(e)
-                continue
+                try:
+                    discordpost.delay(
+                        f'channels/{faction.guild.oc_config[str(faction.tid)]["ready"]["channel"]}/messages',
+                        payload=payload,
+                    )
+                except Exception as e:
+                    logger.exception(e)
+                    continue
 
 
 @celery.shared_task(

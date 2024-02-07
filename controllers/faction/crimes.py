@@ -38,6 +38,7 @@ def crimes_dashboard():
             (OrganizedCrime.faction_tid == current_user.faction_id)
             & (OrganizedCrime.time_completed.is_null(True))
             & (OrganizedCrime.time_ready <= now)
+            & (OrganizedCrime.canceled == False)
         )
         .order_by(-OrganizedCrime.time_ready)
         .limit(10)

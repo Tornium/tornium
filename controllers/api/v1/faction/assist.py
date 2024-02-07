@@ -71,6 +71,7 @@ def forward_assist(*args, **kwargs):
     key = f"tornium:ratelimit:{user_tid}"
     assist_lock_key = f"tornium:assists:{target_tid}:lock"
 
+    # TODO: Change to use one redis call
     if client.exists(assist_lock_key):
         return make_exception_response("4291", key, redis_client=client)
     else:

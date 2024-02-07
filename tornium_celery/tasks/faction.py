@@ -1227,6 +1227,40 @@ def oc_refresh_subtask(oc_data):
             0,
         ]
 
+    current_oc_keys = set(int(k) for k in oc_data["crimes"].keys())
+
+    try:
+        oldest_oc_id = next(iter(reversed(oc_data["crimes"])))
+    except StopIteration:
+        oldest_oc_id = None
+
+    try:
+        newest_oc_id = next(iter(oc_data["crimes"]))
+    except StopIteration:
+        newest_oc_id = None
+
+    if oldest_oc_id is not None and newest_oc_id is not None and oldest_oc_id != newest_oc_id:
+        db_oc_keys = set(
+            oc.oc_id
+            for oc in OrganizedCrime.select(OrganizedCrime.oc_id).where(
+                (OrganizedCrime.faction_tid == faction.tid)
+                & (
+                    OrganizedCrime.time_started
+                    >= datetime.datetime.fromtimestamp(
+                        oc_data["crimes"][oldest_oc_id]["time_started"], tz=datetime.timezone.utc
+                    )
+                )
+                & (
+                    OrganizedCrime.time_started
+                    <= datetime.datetime.fromtimestamp(
+                        oc_data["crimes"][newest_oc_id]["time_started"], tz=datetime.timezone.utc
+                    )
+                )
+            )
+        )
+
+        OrganizedCrime.update(canceled=True).where(OrganizedCrime.oc_id << list(db_oc_keys - current_oc_keys)).execute()
+
     # OC ready/delay/init notifs
     for oc_id, oc_data in oc_data["crimes"].items():
         oc_db: OrganizedCrime = (

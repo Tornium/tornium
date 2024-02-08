@@ -1207,25 +1207,28 @@ def oc_refresh_subtask(oc_data):
     OC_READY = False
     OC_INITIATED = False
 
-    if faction.guild is not None and str(faction.tid) in faction.guild.oc_config:
-        OC_DELAY = faction.guild.oc_config[str(faction.tid)].get("delay", {"channel": 0, "roles": []}).get(
-            "channel"
-        ) not in [
-            None,
-            0,
-        ]
-        OC_READY = faction.guild.oc_config[str(faction.tid)].get("ready", {"channel": 0, "roles": []}).get(
-            "channel"
-        ) not in [
-            None,
-            0,
-        ]
-        OC_INITIATED = faction.guild.oc_config[str(faction.tid)].get("initiated", {"channel": 0}).get(
-            "channel"
-        ) not in [
-            None,
-            0,
-        ]
+    try:
+        if faction.guild is not None and str(faction.tid) in faction.guild.oc_config:
+            OC_DELAY = faction.guild.oc_config[str(faction.tid)].get("delay", {"channel": 0, "roles": []}).get(
+                "channel"
+            ) not in [
+                None,
+                0,
+            ]
+            OC_READY = faction.guild.oc_config[str(faction.tid)].get("ready", {"channel": 0, "roles": []}).get(
+                "channel"
+            ) not in [
+                None,
+                0,
+            ]
+            OC_INITIATED = faction.guild.oc_config[str(faction.tid)].get("initiated", {"channel": 0}).get(
+                "channel"
+            ) not in [
+                None,
+                0,
+            ]
+    except DoesNotExist:
+        pass
 
     current_oc_keys = set(int(k) for k in oc_data["crimes"].keys())
 

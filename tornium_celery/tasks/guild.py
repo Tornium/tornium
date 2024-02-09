@@ -232,8 +232,8 @@ def verify_users(
         else:
             try:
                 discordget(f"channels/{guild.verify_log_channel}")
-            except (DiscordError, NetworkingError):
-                raise LookupError("Unknown log channel")
+            except (DiscordError, NetworkingError) as e:
+                raise LookupError(f"Unknown log channel: {e}")
 
             log_channel = guild.verify_log_channel
 
@@ -405,9 +405,6 @@ def verify_users(
                     },
                     "log_channel": log_channel,
                     "guild_id": guild.sid,
-                    "user_data": {
-                        "player_id": user.tid,
-                    },
                 }
             ).apply_async(
                 expires=300,
@@ -428,130 +425,129 @@ def verify_users(
     ).forget()
 
 
+def member_verification_name(
+    name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
+) -> typing.Optional[str]:
+    if name_template == "":
+        return None
+
+    return (
+        jinja2.Environment(autoescape=True)
+        .from_string(name_template)
+        .render(
+            name=name,
+            tid=tid,
+            tag=tag,
+        )
+    )
+
+
+def member_verified_roles(verified_roles: typing.List[int]) -> typing.Set[str]:
+    return set(str(role) for role in verified_roles)
+
+
+def member_faction_roles(faction_verify: dict, faction_id: int) -> typing.Set[str]:
+    if faction_id in (0, None):
+        return set()
+    elif faction_verify.get(str(faction_id)) is None:
+        return set()
+    elif len(faction_verify[str(faction_id)].get("roles", [])) == 0:
+        return set()
+    elif not faction_verify[str(faction_id)].get("enabled"):
+        return set()
+
+    return set(str(role) for role in faction_verify[str(faction_id)]["roles"])
+
+
+def invalid_member_faction_roles(faction_verify: dict, faction_id: int) -> typing.Tuple[str]:
+    roles = set()
+
+    faction_id: int
+    verify_data: dict
+    for verify_faction_id, verify_data in faction_verify.items():
+        if int(verify_faction_id) == faction_id:
+            continue
+
+        roles.update(set(str(role) for role in verify_data.get("roles", tuple())))
+
+    return roles
+
+
+def member_position_roles(
+    faction_verify: dict, faction_id: int, position: typing.Optional[FactionPosition]
+) -> typing.Set[str]:
+    if faction_id in (0, None):
+        return set()
+    elif position is None:
+        return set()
+    elif faction_verify.get(str(faction_id)) is None:
+        return set()
+    elif not faction_verify[str(faction_id)].get("enabled"):
+        return set()
+    elif str(position.pid) not in faction_verify[str(faction_id)].get("positions", {}):
+        return set()
+
+    return set(str(role) for role in faction_verify[str(faction_id)]["positions"][str(position.pid)])
+
+
+def invalid_member_position_roles(
+    faction_verify: dict, faction_id: int, position: typing.Optional[FactionPosition]
+) -> typing.Set[str]:
+    roles = set()
+
+    for verify_faction_id, faction_positions_data in faction_verify.items():
+        if int(verify_faction_id) == faction_id:
+            continue
+
+        for position_uuid, position_roles in faction_positions_data.get("positions", {}).items():
+            if position_uuid == str(position.pid):
+                continue
+
+            roles.update(set(str(role) for role in faction_positions_data.get))
+
+    return roles
+
+
 @celery.shared_task(
     name="tasks.guild.verify_member_sub",
     routing_key="quick.verify_member_sub",
     queue="quick",
     time_limit=60,
 )
-def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id: int):
-    if "error" in user_data:
-        return
-    elif user_data["player_id"] == 0:
-        return
+def verify_member_sub(log_channel: int, member: dict, guild_id: int):
+    user: User = User.select().where(User.tid == member["id"]).get()
+    guild: Server = Server.select().where(Server.sid == guild_id).get()
 
-    try:
-        user: User = User.select().where(User.tid == user_data["player_id"]).get()
-    except DoesNotExist:
-        return
-
-    if user.discord_id in (0, None):
-        return
-
-    patch_json: dict = {}
     # TODO: Cache guild verification config so the same database calls aren't made for every user
 
-    try:
-        guild: Server = Server.select().where(Server.sid == guild_id).get()
-    except DoesNotExist:
-        raise LookupError("Server not found in database")
+    patch_json: dict = {
+        "nick": member_verification_name(name=user.name, tid=user.tid, name_template=guild.verify_template),
+        "roles": set(member["roles"]),
+    }
 
-    if guild.verify_template != "":
-        nick = (
-            jinja2.Environment(autoescape=True)
-            .from_string(guild.verify_template)
-            .render(
-                name=user.name,
-                tid=user.tid,
-                tag="" if user.faction is None else user.faction.tag,
-            )
+    patch_json["roles"] -= invalid_member_faction_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+    )
+    patch_json["roles"] -= invalid_member_position_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+    )
+
+    patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles)).update(
+        member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id)
+    ).update(
+        member_position_roles(
+            faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
         )
+    )
 
-        if nick != member["name"]:
-            patch_json["nick"] = nick
-
-    if len(guild.verified_roles) != 0:
-        verified_role: int
-        for verified_role in guild.verified_roles:
-            if str(verified_role) in member["roles"]:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = member["roles"]
-
-            patch_json["roles"].append(str(verified_role))
-
-    if (
-        user.faction is None
-        and guild.faction_verify.get(str(user.faction_id)) is not None
-        and guild.faction_verify[str(user.faction_id)].get("roles") is not None
-        and len(guild.faction_verify[str(user.faction_id)]["roles"]) != 0
-        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
-    ):
-        faction_role: int
-        for faction_role in guild.faction_verify[str(user.faction_id)]["roles"]:
-            if str(faction_role) in member["roles"]:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = member["roles"]
-
-            patch_json["roles"].append(str(faction_role))
-
-    for faction_tid, verify_data in guild.faction_verify.items():
-        for faction_role in verify_data["roles"]:
-            if str(faction_role) in member["roles"] and int(faction_tid) != user.faction_id:
-                if guild.faction_verify.get(str(user.faction_id)) is not None and faction_role in guild.faction_verify[
-                    str(user.faction_id)
-                ].get("roles", []):
-                    continue
-                elif patch_json.get("roles") is None:
-                    patch_json["roles"] = member["roles"]
-
-                patch_json["roles"].remove(str(faction_role))
-
-    if (
-        user.faction is not None
-        and user.faction_position is not None
-        and guild.faction_verify.get(str(user.faction_id)) is not None
-        and guild.faction_verify[str(user.faction_id)].get("positions") is not None
-        and len(guild.faction_verify[str(user.faction_id)]["positions"]) != 0
-        and str(user.faction_position) in guild.faction_verify[str(user.faction_id)]["positions"].keys()
-        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
-    ):
-        position_role: int
-        for position_role in guild.faction_verify[str(user.faction_id)]["positions"][str(user.faction_position)]:
-            if str(position_role) in member["roles"]:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = member["roles"]
-
-            patch_json["roles"].append(str(position_role))
-
-    valid_position_roles = []
-
-    for faction_tid, faction_positions_data in guild.faction_verify.items():
-        if "positions" not in faction_positions_data:
-            continue
-
-        for position_uuid, position_data in faction_positions_data["positions"].items():
-            for position_role in position_data:
-                if position_role in valid_position_roles:
-                    continue
-                elif position_role in member["roles"]:
-                    if (
-                        str(user.faction_position) in faction_positions_data["positions"]
-                        and position_role in faction_positions_data["positions"][str(user.faction_position)]
-                    ):
-                        valid_position_roles.append(position_role)
-                        continue
-                    elif patch_json.get("roles") is None:
-                        patch_json["roles"] = member["roles"]
-
-                    patch_json["roles"].remove(str(position_role))
-
+    if patch_json["nick"] == member["name"]:
+        patch_json.pop("nick")
+    if patch_json["roles"] == member[""]:
+        patch_json.pop("roles")
     if len(patch_json) == 0:
         return
-    elif "roles" in patch_json:
-        patch_json["roles"] = list(set(patch_json["roles"]))
 
     discordpatch.delay(
         endpoint=f"guilds/{guild_id}/members/{user.discord_id}",
@@ -560,12 +556,35 @@ def verify_member_sub(user_data: dict, log_channel: int, member: dict, guild_id:
     ).forget()
 
     if log_channel > 0:
+        roles_added = patch_json["roles"] - set(member["roles"]) if "roles" in patch_json else set()
+        roles_removed = set(member["roles"]) - patch_json["roles"] if "roles" in patch_json else set()
+
         payload = {
             "embeds": [
                 {
                     "title": "API Verification Attempted",
                     "description": f"<@{member['id']}> is officially verified by Torn. Their roles and nickname "
-                    f"have been updated.",
+                    f"are being updated.",
+                    "fields": [
+                        {
+                            "name": "Nickname",
+                            "value": f"{member['name']} -> {patch_json['nick']}"
+                            if "nick" in patch_json
+                            else "Unchanged",
+                        },
+                        {
+                            "name": "Roles Added",
+                            "value": " ".join(tuple(f"<@&{role_id}>" for role_id in roles_added))
+                            if len(roles_added) != 0
+                            else "None",
+                        },
+                        {
+                            "name": "Roles Removed",
+                            "value": " ".join(tuple(f"<@&{role_id}>" for role_id in roles_removed))
+                            if len(roles_removed) != 0
+                            else "None",
+                        },
+                    ],
                     "color": SKYNET_INFO,
                     "author": {
                         "name": member["name"],

@@ -548,8 +548,12 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
 
     if patch_json["nick"] == member["name"]:
         patch_json.pop("nick")
-    if patch_json["roles"] == member[""]:
+
+    if not patch_json["roles"] - set(member["roles"]):
         patch_json.pop("roles")
+    else:
+        patch_json["roles"] = list(patch_json["roles"])
+
     if len(patch_json) == 0:
         return
 
@@ -560,8 +564,8 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
     ).forget()
 
     if log_channel > 0:
-        roles_added = patch_json["roles"] - set(member["roles"]) if "roles" in patch_json else set()
-        roles_removed = set(member["roles"]) - patch_json["roles"] if "roles" in patch_json else set()
+        roles_added = set(patch_json["roles"]) - set(member["roles"]) if "roles" in patch_json else set()
+        roles_removed = set(member["roles"]) - set(patch_json["roles"]) if "roles" in patch_json else set()
 
         payload = {
             "embeds": [

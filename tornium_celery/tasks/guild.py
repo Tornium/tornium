@@ -174,23 +174,20 @@ def verify_users(
     # -1: disabled
     #  n: channel ID
 
-    try:
-        guild: Server = (
-            Server.select(
-                Server.sid,
-                Server.verify_enabled,
-                Server.verify_template,
-                Server.verified_roles,
-                Server.faction_verify,
-                Server.admins,
-                Server.verify_log_channel,
-                Server.exclusion_roles,
-            )
-            .where(Server.sid == guild_id)
-            .get()
+    guild: Server = (
+        Server.select(
+            Server.sid,
+            Server.verify_enabled,
+            Server.verify_template,
+            Server.verified_roles,
+            Server.faction_verify,
+            Server.admins,
+            Server.verify_log_channel,
+            Server.exclusion_roles,
         )
-    except DoesNotExist:
-        raise LookupError
+        .where(Server.sid == guild_id)
+        .get()
+    )
 
     if not guild.verify_enabled:
         raise ValueError("Verification not enabled")
@@ -389,7 +386,8 @@ def verify_users(
                         },
                         "log_channel": log_channel,
                         "guild_id": guild.sid,
-                    }
+                    },
+                    immutable=True,
                 ),
                 expires=300,
                 **kwargs,
@@ -515,13 +513,18 @@ def invalid_member_position_roles(
     time_limit=60,
 )
 def verify_member_sub(log_channel: int, member: dict, guild_id: int):
-    user: User = User.select().where(User.tid == member["id"]).get()
+    user: User = User.select().where(User.discord_id == member["id"]).get()
     guild: Server = Server.select().where(Server.sid == guild_id).get()
 
     # TODO: Cache guild verification config so the same database calls aren't made for every user
 
     patch_json: dict = {
-        "nick": member_verification_name(name=user.name, tid=user.tid, name_template=guild.verify_template),
+        "nick": member_verification_name(
+            name=user.name,
+            tid=user.tid,
+            tag=user.faction.tag if user.faction is not None else "",
+            name_template=guild.verify_template,
+        ),
         "roles": set(member["roles"]),
     }
 
@@ -532,11 +535,12 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
     patch_json["roles"] -= invalid_member_position_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,
+        position=user.faction_position,
     )
 
-    patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles)).update(
-        member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id)
-    ).update(
+    patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles))
+    patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
+    patch_json["roles"].update(
         member_position_roles(
             faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
         )

@@ -13,10 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
 import celery
-from peewee import DoesNotExist
+from peewee import DoesNotExist, fn
 from tornium_commons import rds
 from tornium_commons.models import Faction, User
 
@@ -54,8 +52,9 @@ def send_dm(discord_id: int, payload: dict):
 )
 def remove_key_error(key: str, error: int):
     try:
-        user: User = User.get(User.key == key)
+        user: User = User.select().where(User.key == key).get()
     except DoesNotExist:
+        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
         return
 
     if error == 7:
@@ -63,26 +62,12 @@ def remove_key_error(key: str, error: int):
         user.faction_position = None
         user.save()
 
-        if user.faction is not None:
-            try:
-                keys = list(user.faction.aa_keys)
-                keys.remove(key)
-                user.faction.aa_keys = keys
-                user.faction.save()
-            except ValueError:
-                pass
+        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
     elif error in (2, 10, 13):
         user.key = None
         user.save()
 
-        if user.faction is not None:
-            try:
-                keys = list(user.faction.aa_keys)
-                keys.remove(key)
-                user.faction.aa_keys = keys
-                user.faction.save()
-            except ValueError:
-                pass
+        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
 
 
 # TODO: Rewrite this section to be more efficient

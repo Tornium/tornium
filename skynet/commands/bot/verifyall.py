@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import math
+import time
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.guild import verify_users
@@ -70,7 +70,7 @@ def verify_all(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif not guild.verify_enabled:
@@ -84,7 +84,7 @@ def verify_all(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     elif guild.verify_template == "" and len(guild.verified_roles) == 0 and len(guild.faction_verify) == 0:
@@ -99,7 +99,7 @@ def verify_all(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
 
@@ -128,18 +128,18 @@ def verify_all(interaction, *args, **kwargs):
                         "color": SKYNET_ERROR,
                     }
                 ],
-                "flags": 64,  # Ephemeral
+                "flags": 64,
             },
         }
     if redis_client.exists(f"tornium:verify:{guild.sid}:lock"):
         ttl = redis_client.ttl(f"tornium:verify:{guild.sid}:lock")
-        payload = {
+        return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
                         "title": "Too Many Requests",
-                        "description": "Server-wide verification can be run every ten minutes. Please try again in ",
+                        "description": f"Server-wide verification can be run every ten minutes. Please try again <t:{int(time.time()) + ttl}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -147,20 +147,11 @@ def verify_all(interaction, *args, **kwargs):
             },
         }
 
-        if ttl > 60:
-            payload["data"]["embeds"][0]["description"] += f"{math.ceil(ttl / 60)} minutes."
-        else:
-            payload["data"]["embeds"][0]["description"] += f"{ttl} seconds."
-
-        return payload
-
     task = verify_users.delay(
         guild_id=guild.sid,
         admin_keys=admin_keys,
         force=force,
     )
-    task_id = task.id
-    task.forget()
 
     return {
         "type": 4,
@@ -172,7 +163,7 @@ def verify_all(interaction, *args, **kwargs):
                     "by the Torn API, the Discord API, and Tornium. If a log channel is enabled, details will be sent "
                     "to it as verification proceeds.",
                     "color": SKYNET_INFO,
-                    "footer": {"text": f"Task ID: {task_id}"},
+                    "footer": {"text": f"Task ID: {task.id}"},
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ]

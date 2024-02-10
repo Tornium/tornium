@@ -523,7 +523,7 @@ def invalid_member_position_roles(
             if position is not None and position_uuid == str(position.pid):
                 continue
 
-            roles.update(set(str(role) for role in faction_positions_data.get))
+            roles.update(set(str(role) for role in position_roles))
 
     return roles
 

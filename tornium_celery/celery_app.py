@@ -129,6 +129,11 @@ if celery_app is None:
                 "task": "tasks.guild.refresh_guilds",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "0", "hour": "*"},
+            },
+            "verify-guilds": {
+                "task": "tasks.guild.verify_guilds",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
             },  # User tasks
             "refresh-users": {
                 "task": "tasks.user.refresh_users",

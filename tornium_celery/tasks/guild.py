@@ -24,7 +24,7 @@ import typing
 import celery
 import jinja2
 from celery.utils.log import get_task_logger
-from peewee import DoesNotExist
+from peewee import DoesNotExist, Expression
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
@@ -154,6 +154,26 @@ def refresh_guilds():
 
         logger.info(f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)")
         guild.delete_instance()
+
+
+@celery.shared_task(
+    name="tasks.guild.verify_guilds", routing_key="default.verify_guilds", queue="default", time_limit=600
+)
+def verify_guilds():
+    def _modulo(lhs, rhs):
+        return Expression(lhs, "%", rhs)
+
+    # This task will run every 15 minutes.
+    # Each server will be part of a certain run of the task based on the server ID
+    for guild in Server.select().where(
+        (Server.verify_enabled == True)
+        & (Server.auto_verify_enabled)
+        & (_modulo(Server.sid, 96) == (int(time.time()) // 3600) % 96)
+    ):
+        verify_users.delay(
+            guild_id=guild.sid,
+            force=False,
+        ).forget()
 
 
 @celery.shared_task(

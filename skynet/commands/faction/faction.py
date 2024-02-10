@@ -178,7 +178,7 @@ def members_switchboard(interaction, *args, **kwargs):
         for tid, member in member_data["members"].items():
             tid = int(tid)
 
-            if member["last_action"]["status"] == "Okay":
+            if member["status"]["state"] == "Okay":
                 line_payload = f"{member['name']} [{tid}] - {member['last_action']['status']} - {member['last_action']['relative']}"
             else:
                 continue

@@ -129,7 +129,7 @@ def guild_auto_verification(*args, **kwargs):
     # TODO: Replace below error messages
 
     if request.method == "POST":
-        if not guild.verify_enabled:
+        if not guild.auto_verify_enabled:
             Server.update(auto_verify_enabled=True).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -141,7 +141,7 @@ def guild_auto_verification(*args, **kwargs):
                 },
             )
     elif request.method == "DELETE":
-        if guild.verify_enabled:
+        if guild.auto_verify_enabled:
             Server.update(auto_verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(

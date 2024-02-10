@@ -27,6 +27,7 @@ def jsonified_verify_config(guild: Server):
     return jsonify(
         {
             "enabled": guild.verify_enabled,
+            "automatic_enabled": guild.auto_verify_enabled,
             "verify_template": guild.verify_template,
             "verified_roles": guild.verified_roles,
             "faction_verify": guild.faction_verify,
@@ -93,6 +94,55 @@ def guild_verification(*args, **kwargs):
     elif request.method == "DELETE":
         if guild.verify_enabled:
             Server.update(verify_enabled=False).where(Server.sid == guild.sid).execute()
+        else:
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already disabled.",
+                    "setting": "guild.verify_enabled",
+                },
+            )
+
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@token_required
+@ratelimit
+def guild_auto_verification(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1001", key)
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    # TODO: Replace below error messages
+
+    if request.method == "POST":
+        if not guild.verify_enabled:
+            Server.update(auto_verify_enabled=True).where(Server.sid == guild.sid).execute()
+        else:
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already enabled.",
+                    "setting": "guild.verify_enabled",
+                },
+            )
+    elif request.method == "DELETE":
+        if guild.verify_enabled:
+            Server.update(auto_verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
                 "0000",

@@ -46,6 +46,7 @@ def jsonified_server_config(guild: Server):
         "factions": {tid: _faction_data(tid) for tid in guild.factions},
         "verify": {
             "enabled": guild.verify_enabled,
+            "automatic_enabled": guild.auto_verify_enabled,
             "template": guild.verify_template,
             "verified_roles": list(map(str, guild.verified_roles)),
             "exclusion_roles": list(map(str, guild.exclusion_roles)),

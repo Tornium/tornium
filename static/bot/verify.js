@@ -158,6 +158,68 @@ $(document).ready(function () {
         );
     });
 
+    $("#auto-verification-config-enable").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast(
+                    "Auto Verification Enable Failed",
+                    `The Tornium API server has responded with \"${response["message"]}\".`
+                );
+            } else {
+                generateToast(
+                    "Auto Verification Enable Successful",
+                    "The Tornium API server has been successfully enabled."
+                );
+                $("#auto-verification-config-enable").prop("disabled", true);
+                $("#auto-verification-config-disable").prop("disabled", false);
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("POST", "/api/v1/bot/verify/auto");
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                guildid: guildid,
+            })
+        );
+    });
+
+    $("#auto-verification-config-disable").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast(
+                    "Auto Verification Enable Failed",
+                    `The Tornium API server has responded with \"${response["message"]}\".`
+                );
+            } else {
+                generateToast(
+                    "Auto Verification Enable Successful",
+                    "The Tornium API server has been successfully enabled."
+                );
+                $("#auto-verification-config-enable").prop("disabled", false);
+                $("#auto-verification-config-disable").prop("disabled", true);
+            }
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", "/api/v1/bot/verify/auto");
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                guildid: guildid,
+            })
+        );
+    });
+
     function addFactionVerify() {
         const xhttp = new XMLHttpRequest();
 

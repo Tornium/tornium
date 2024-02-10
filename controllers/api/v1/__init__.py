@@ -122,6 +122,11 @@ mod.add_url_rule(
     methods=["POST", "DELETE"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/verify/auto",
+    view_func=bot.verify.guild_auto_verification,
+    methods=["POST", "DELETE"],
+)
+mod.add_url_rule(
     "/api/v1/bot/verify/faction",
     view_func=bot.verify.faction_verification,
     methods=["POST", "DELETE"],

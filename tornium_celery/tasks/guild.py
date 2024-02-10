@@ -511,6 +511,8 @@ def member_position_roles(
 def invalid_member_position_roles(
     faction_verify: dict, faction_id: int, position: typing.Optional[FactionPosition]
 ) -> typing.Set[str]:
+    # All position roles are invalid for leader, co-leader, and recruits
+
     roles = set()
 
     for verify_faction_id, faction_positions_data in faction_verify.items():
@@ -518,7 +520,7 @@ def invalid_member_position_roles(
             continue
 
         for position_uuid, position_roles in faction_positions_data.get("positions", {}).items():
-            if position_uuid == str(position.pid):
+            if position is not None and position_uuid == str(position.pid):
                 continue
 
             roles.update(set(str(role) for role in faction_positions_data.get))

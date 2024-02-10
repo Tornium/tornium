@@ -15,14 +15,15 @@
 
 
 class DiscordError(Exception):
-    def __init__(self, code, message):
+    def __init__(self, code, message, url):
         super().__init__()
 
-        self.code = code
-        self.message = message
+        self.code: int = code
+        self.message: str = message
+        self.url: str = url
 
     def __str__(self):
         return f"The Discord API has return error code {self.code}"
 
     def __reduce__(self):
-        return self.__class__, (self.code, self.message)
+        return self.__class__, (self.code, self.message, self.url)

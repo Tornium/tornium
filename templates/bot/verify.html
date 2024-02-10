@@ -92,13 +92,7 @@ Tornium - Verification
         <div class="card-body">
             <h5 class="card-title">Automatic Verification</h5>
             <p class="card-text">
-                The bot will automatically re-verify all members of the server at a specified time in the day (based on the server's ID). This server's verification will occur at 
-                {% if guild.sid % 24 %}
-                {{ guild.sid % 96 // 4 }}:00
-                {% else %}
-                {{ guild.sid % 96 // 4 }}:{{ guild.sid % 96 % 4 }}
-                {% endif %}
-                TCT every day.
+                The bot will automatically re-verify all members of the server at a specified time in the day (based on the server's ID). This server's verification will occur at {{ guild.sid % 96 // 4 }}:{{ guild.sid % 96 % 4 }} TCT every day.
             </p>
 
             <div class="row">
@@ -119,11 +113,6 @@ Tornium - Verification
                             Disable
                         </button>
                         {% endif %}
-
-                        <div class="form-text">
-                            Enable or disable verification.
-                            <b>NOTE:</b> Does NOT delete settings upon disabling of verification.
-                        </div>
                     </div>
                 </div>
             </div>

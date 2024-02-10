@@ -161,14 +161,14 @@ def refresh_guilds():
 )
 def verify_guilds():
     def _modulo(lhs, rhs):
-        return Expression(lhs, "%", rhs)
+        return Expression(lhs, "%%", rhs)
 
     # This task will run every 15 minutes.
     # Each server will be part of a certain run of the task based on the server ID
-    for guild in Server.select().where(
+    for guild in Server.select(Server.sid).where(
         (Server.verify_enabled == True)
         & (Server.auto_verify_enabled)
-        & (_modulo(Server.sid, 96) == (int(time.time()) // 3600) % 96)
+        & (_modulo(Server.sid, 96) == (int(time.time()) // 3600 % 96))
     ):
         verify_users.delay(
             guild_id=guild.sid,

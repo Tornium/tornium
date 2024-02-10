@@ -158,9 +158,11 @@ def stock_price_notifications(stocks_data: dict):
                     "fields": [
                         {
                             "name": "Original Price",
-                            "value": f"${commas(stock_tick.price, stock_price=True)}"
-                            if stock_tick is not None
-                            else "Unknown",
+                            "value": (
+                                f"${commas(stock_tick.price, stock_price=True)}"
+                                if stock_tick is not None
+                                else "Unknown"
+                            ),
                             "inline": True,
                         },
                         {
@@ -389,9 +391,9 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
             if seven_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"7-Day Low: {stock['name']}"
-                embed[
-                    "description"
-                ] = f"{stock['name']} is within 1% of the 7 day low (${commas(seven_min, stock_price=True)})."
+                embed["description"] = (
+                    f"{stock['name']} is within 1% of the 7 day low (${commas(seven_min, stock_price=True)})."
+                )
                 embed["color"] = SKYNET_ERROR
 
                 embed["fields"].append(
@@ -414,9 +416,9 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
             if fourteen_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"14-Day Low: {stock['name']}"
-                embed[
-                    "description"
-                ] = f"{stock['name']} is within 1% of the 14 day low (${commas(fourteen_min, stock_price=True)})."
+                embed["description"] = (
+                    f"{stock['name']} is within 1% of the 14 day low (${commas(fourteen_min, stock_price=True)})."
+                )
                 embed["color"] = SKYNET_ERROR
 
                 embed["fields"].append(
@@ -435,9 +437,9 @@ def stock_notifications(stocks_data: dict, stocks_timestamp: datetime.datetime =
             if month_min * 1.01 > stock["current_price"]:
                 embed = base_embed(stock)
                 embed["title"] = f"1-Month Low: {stock['name']}"
-                embed[
-                    "description"
-                ] = f"{stock['name']} is within 1% of the 1 month low (${commas(seven_min, stock_price=True)})."
+                embed["description"] = (
+                    f"{stock['name']} is within 1% of the 1 month low (${commas(seven_min, stock_price=True)})."
+                )
                 embed["color"] = SKYNET_ERROR
 
                 embed["fields"].append(

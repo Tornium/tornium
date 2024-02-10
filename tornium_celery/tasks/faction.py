@@ -150,9 +150,11 @@ def update_faction(faction_data):
         respect=faction_data["respect"],
         capacity=faction_data["capacity"],
         leader=User.select().where(User.tid == faction_data["leader"]).first(),
-        coleader=User.select().where(User.tid == faction_data["co-leader"]).first()
-        if faction_data["co-leader"] != 0
-        else None,
+        coleader=(
+            User.select().where(User.tid == faction_data["co-leader"]).first()
+            if faction_data["co-leader"] != 0
+            else None
+        ),
         last_members=datetime.datetime.utcnow(),
     ).on_conflict(
         conflict_target=[Faction.tid],
@@ -1283,15 +1285,21 @@ def oc_refresh_subtask(oc_data):
             oc_id=oc_id,
             crime_id=oc_data["crime_id"],
             participants=[int(list(participant.keys())[0]) for participant in oc_data["participants"]],
-            time_started=None
-            if oc_data["time_started"] == 0
-            else datetime.datetime.fromtimestamp(oc_data["time_started"], tz=datetime.timezone.utc),
-            time_ready=None
-            if oc_data["time_ready"] == 0
-            else datetime.datetime.fromtimestamp(oc_data["time_ready"], tz=datetime.timezone.utc),
-            time_completed=None
-            if oc_data["time_completed"] == 0
-            else datetime.datetime.fromtimestamp(oc_data["time_completed"], tz=datetime.timezone.utc),
+            time_started=(
+                None
+                if oc_data["time_started"] == 0
+                else datetime.datetime.fromtimestamp(oc_data["time_started"], tz=datetime.timezone.utc)
+            ),
+            time_ready=(
+                None
+                if oc_data["time_ready"] == 0
+                else datetime.datetime.fromtimestamp(oc_data["time_ready"], tz=datetime.timezone.utc)
+            ),
+            time_completed=(
+                None
+                if oc_data["time_completed"] == 0
+                else datetime.datetime.fromtimestamp(oc_data["time_completed"], tz=datetime.timezone.utc)
+            ),
             planned_by=oc_data["planned_by"],
             initiated_by=oc_data["initiated_by"] if oc_data["initiated_by"] != 0 else None,
             money_gain=oc_data["money_gain"] if oc_data["money_gain"] != 0 else None,
@@ -1381,9 +1389,11 @@ def oc_refresh_subtask(oc_data):
 
         ready = list(
             map(
-                lambda participant: list(participant.values())[0].get("color") in (None, "green")
-                if list(participant.values())[0] is not None
-                else True,
+                lambda participant: (
+                    list(participant.values())[0].get("color") in (None, "green")
+                    if list(participant.values())[0] is not None
+                    else True
+                ),
                 oc_data["participants"],
             )
         )

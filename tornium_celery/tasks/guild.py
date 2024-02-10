@@ -596,21 +596,25 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
                     "fields": [
                         {
                             "name": "Nickname",
-                            "value": f"{member['name']} -> {patch_json['nick']}"
-                            if "nick" in patch_json
-                            else "Unchanged",
+                            "value": (
+                                f"{member['name']} -> {patch_json['nick']}" if "nick" in patch_json else "Unchanged"
+                            ),
                         },
                         {
                             "name": "Roles Added",
-                            "value": " ".join(tuple(f"<@&{role_id}>" for role_id in roles_added))
-                            if len(roles_added) != 0
-                            else "None",
+                            "value": (
+                                " ".join(tuple(f"<@&{role_id}>" for role_id in roles_added))
+                                if len(roles_added) != 0
+                                else "None"
+                            ),
                         },
                         {
                             "name": "Roles Removed",
-                            "value": " ".join(tuple(f"<@&{role_id}>" for role_id in roles_removed))
-                            if len(roles_removed) != 0
-                            else "None",
+                            "value": (
+                                " ".join(tuple(f"<@&{role_id}>" for role_id in roles_removed))
+                                if len(roles_removed) != 0
+                                else "None"
+                            ),
                         },
                     ],
                     "color": SKYNET_INFO,

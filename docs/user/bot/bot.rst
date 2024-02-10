@@ -10,7 +10,7 @@ Only members that have the server administrator permission will be allowed to se
 
 You can invite Tornium Bot onto your server with either specific, required permissions or administrator permissions. The former is preferred for privacy/security reasons, but the latter will be easier to set up for most server administrators. However, unlike previous Discord bots, Tornium Bot relies entirely upon slash commands to call a command so the bot will be unable to read any messages posted in your servers.
 
- * Required permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=275347811376&scope=bot%20applications.commands>`_
+ * Required permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=275884682288&scope=applications.commands+bot>`_
  * Administrator permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 
 .. note::

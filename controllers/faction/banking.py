@@ -130,12 +130,12 @@ def banking():
                 "tid": banker_user.tid,
                 "last_action": int(current_user.last_action.timestamp()),
                 "money": banker_user.faction_position.give_money if banker_user.faction_position is not None else True,
-                "points": banker_user.faction_position.give_points
-                if banker_user.faction_position is not None
-                else True,
-                "adjust": banker_user.faction_position.adjust_balances
-                if banker_user.faction_position is not None
-                else True,
+                "points": (
+                    banker_user.faction_position.give_points if banker_user.faction_position is not None else True
+                ),
+                "adjust": (
+                    banker_user.faction_position.adjust_balances if banker_user.faction_position is not None else True
+                ),
             }
         )
 
@@ -354,9 +354,9 @@ def fulfill(guid: str):
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"N/A [{withdrawal.requester}]"
-                                if requester is None
-                                else requester.user_str_self(),
+                                "value": (
+                                    f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
+                                ),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),

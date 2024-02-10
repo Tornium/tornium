@@ -418,9 +418,11 @@ def withdraw(interaction, *args, **kwargs):
             wid=request_id,
             guid=guid,
             faction_tid=user.faction_id,
-            amount=withdrawal_amount
-            if withdrawal_amount != "all"
-            else faction_balances[str(user.tid)][withdrawal_option_str],
+            amount=(
+                withdrawal_amount
+                if withdrawal_amount != "all"
+                else faction_balances[str(user.tid)][withdrawal_option_str]
+            ),
             requester=user.tid,
             time_requested=datetime.datetime.utcnow(),
             status=0,

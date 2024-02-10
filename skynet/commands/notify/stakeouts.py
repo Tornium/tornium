@@ -272,9 +272,11 @@ def stakeouts(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Target Channel",
-                            "value": f"<#{notification.recipient}>"
-                            if notification.recipient_guild != 0
-                            else "Direct Message",
+                            "value": (
+                                f"<#{notification.recipient}>"
+                                if notification.recipient_guild != 0
+                                else "Direct Message"
+                            ),
                             "inline": True,
                         },
                     ],
@@ -806,9 +808,9 @@ def stakeout_flying_button(interaction, *args, **kwargs):
     dm_channel = discordpost(
         "users/@me/channels",
         payload={
-            "recipient_id": interaction["member"]["user"]["id"]
-            if "guild_id" in interaction
-            else interaction["user"]["id"],
+            "recipient_id": (
+                interaction["member"]["user"]["id"] if "guild_id" in interaction else interaction["user"]["id"]
+            ),
         },
     )
 
@@ -897,9 +899,9 @@ def stakeout_hospital_button(interaction, *args, **kwargs):
     dm_channel = discordpost(
         "users/@me/channels",
         payload={
-            "recipient_id": interaction["member"]["user"]["id"]
-            if "guild_id" in interaction
-            else interaction["user"]["id"]
+            "recipient_id": (
+                interaction["member"]["user"]["id"] if "guild_id" in interaction else interaction["user"]["id"]
+            )
         },
     )
 

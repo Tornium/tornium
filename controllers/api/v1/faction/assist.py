@@ -467,9 +467,11 @@ def valid_assists(*args, **kwargs):
                 "tid": int(decoded_assist[0]),
                 "name": target_db.name,
                 "level": target_db.level,
-                "faction": f"{target_db.faction.name} [{target_db.faction_id}]"
-                if target_db.faction_id not in (None, 0)
-                else None,
+                "faction": (
+                    f"{target_db.faction.name} [{target_db.faction_id}]"
+                    if target_db.faction_id not in (None, 0)
+                    else None
+                ),
             }
 
         requester_db = User.select(User.name).where(User.tid == int(decoded_assist[1])).first()

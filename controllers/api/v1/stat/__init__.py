@@ -111,9 +111,11 @@ def get_stat_user(tid: int, *args, **kwargs):
         "level": user.level,
         "last_refresh": user.last_refresh,
         "discord_id": user.discord_id,
-        "faction": {"tid": user.faction.tid, "name": user.faction.name}
-        if user.faction is not None
-        else {"tid": 0, "name": "None"},
+        "faction": (
+            {"tid": user.faction.tid, "name": user.faction.name}
+            if user.faction is not None
+            else {"tid": 0, "name": "None"}
+        ),
         "status": user.status,
         "last_action": user.last_action,
     }

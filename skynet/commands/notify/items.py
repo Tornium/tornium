@@ -366,9 +366,9 @@ def _generate_item_info_payload(
                     },
                     {
                         "name": "Recipient",
-                        "value": "Direct Message"
-                        if notification.recipient_guild == 0
-                        else f"<#{notification.recipient}>",
+                        "value": (
+                            "Direct Message" if notification.recipient_guild == 0 else f"<#{notification.recipient}>"
+                        ),
                         "inline": True,
                     },
                     {

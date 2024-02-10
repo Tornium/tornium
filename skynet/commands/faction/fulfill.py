@@ -264,9 +264,9 @@ def fulfill_command(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Original Requester",
-                            "value": f"N/A [{withdrawal.requester}]"
-                            if requester is None
-                            else requester.user_str_self(),
+                            "value": (
+                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
+                            ),
                         },
                     ],
                     "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -571,9 +571,9 @@ def fulfill_button(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Original Requester",
-                                "value": f"N/A [{withdrawal.requester}]"
-                                if requester is None
-                                else requester.user_str_self(),
+                                "value": (
+                                    f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
+                                ),
                             },
                         ],
                         "timestamp": datetime.datetime.utcnow().isoformat(),

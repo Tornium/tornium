@@ -175,9 +175,11 @@ def stat(interaction, *args, **kwargs):
                         },
                         {
                             "name": "Last Action",
-                            "value": "Unkown"
-                            if target_user.last_action is None
-                            else f"<t:{int(target_user.last_action.timestamp())}:R>",
+                            "value": (
+                                "Unkown"
+                                if target_user.last_action is None
+                                else f"<t:{int(target_user.last_action.timestamp())}:R>"
+                            ),
                         },
                         {
                             "name": "Minimum Total Stats",

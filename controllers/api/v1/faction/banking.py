@@ -293,9 +293,11 @@ def banking_request(*args, **kwargs):
             wid=request_id,
             guid=guid,
             faction_tid=user.faction_id,
-            amount=amount_requested
-            if amount_requested != "all"
-            else vault_balances["donations"][str(user.tid)]["money_balance"],
+            amount=(
+                amount_requested
+                if amount_requested != "all"
+                else vault_balances["donations"][str(user.tid)]["money_balance"]
+            ),
             cash_request=True,
             requester=user.tid,
             status=0,

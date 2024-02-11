@@ -571,7 +571,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
     if patch_json["nick"] == member["name"]:
         patch_json.pop("nick")
 
-    if not patch_json["roles"] - set(member["roles"]):
+    if patch_json["roles"] == set(member["roles"]):
         patch_json.pop("roles")
     else:
         patch_json["roles"] = list(patch_json["roles"])

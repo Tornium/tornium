@@ -179,6 +179,7 @@ $(document).ready(function () {
                                             type: "number",
                                             class: "form-control tracked-item-quantity",
                                             placeholder: "Quantity",
+                                            inputmode: "numeric",
                                             min: "0",
                                             style: "min-width: 100px",
                                             "aria-label": "Quantity notified when under",

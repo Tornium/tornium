@@ -1400,17 +1400,19 @@ def oc_refresh_subtask(oc_data):
 
         if len(oc_db.delayers) == 0 and not all(ready):
             # OC has been delayed
-            delayers = []
+            delayers: typing.Dict[int, str] = {}
 
             for participant in oc_data["participants"]:
                 participant_id = list(participant.keys())[0]
                 participant = participant[participant_id]
 
                 if participant["color"] != "green":
-                    delayers.append(int(participant_id))
+                    delayers[int(participant_id)] = participant["description"]
 
             if len(delayers) != 0:
-                OrganizedCrime.update(delayers=delayers).where(OrganizedCrime.oc_id == oc_db.oc_id).execute()
+                OrganizedCrime.update(delayers=list(delayers.keys())).where(
+                    OrganizedCrime.oc_id == oc_db.oc_id
+                ).execute()
 
             if OC_DELAY:
                 payload = {
@@ -1437,7 +1439,7 @@ def oc_refresh_subtask(oc_data):
 
                     payload["content"] = roles_str
 
-                for delayer in delayers:
+                for delayer, delayer_reason in delayers.items():
                     participant_db: typing.Optional[User] = (
                         User.select(User.name, User.discord_id).where(User.tid == participant_id).first()
                     )
@@ -1475,7 +1477,7 @@ def oc_refresh_subtask(oc_data):
                                     {
                                         "type": 2,
                                         "style": 2,
-                                        "label": f"{participant['description']}",
+                                        "label": delayer_reason,
                                         "custom_id": f"oc:participant:delay:{participant_id}",
                                         "disabled": True,
                                     },
@@ -1496,7 +1498,7 @@ def oc_refresh_subtask(oc_data):
                                     {
                                         "type": 2,
                                         "style": 2,
-                                        "label": f"{participant['description']}",
+                                        "label": delayer_reason,
                                         "custom_id": f"oc:participant:delay:{participant_id}",
                                         "disabled": True,
                                     },

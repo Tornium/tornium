@@ -1441,7 +1441,7 @@ def oc_refresh_subtask(oc_data):
 
                 for delayer, delayer_reason in delayers.items():
                     participant_db: typing.Optional[User] = (
-                        User.select(User.name, User.discord_id).where(User.tid == participant_id).first()
+                        User.select(User.name, User.discord_id).where(User.tid == delayer).first()
                     )
 
                     if participant_db is not None and participant_db.discord_id not in ("", 0, None):
@@ -1471,14 +1471,14 @@ def oc_refresh_subtask(oc_data):
                                     {
                                         "type": 2,
                                         "style": 5,
-                                        "label": f"Unknown [{participant_id}]",
-                                        "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                        "label": f"Unknown [{delayer}]",
+                                        "url": f"https://www.torn.com/profiles.php?XID={delayer}",
                                     },
                                     {
                                         "type": 2,
                                         "style": 2,
                                         "label": delayer_reason,
-                                        "custom_id": f"oc:participant:delay:{participant_id}",
+                                        "custom_id": f"oc:participant:delay:{delayer}",
                                         "disabled": True,
                                     },
                                 ],
@@ -1492,14 +1492,14 @@ def oc_refresh_subtask(oc_data):
                                     {
                                         "type": 2,
                                         "style": 5,
-                                        "label": f"{participant_db.name} [{participant_id}]",
-                                        "url": f"https://www.torn.com/profiles.php?XID={participant_id}",
+                                        "label": f"{participant_db.name} [{delayer}]",
+                                        "url": f"https://www.torn.com/profiles.php?XID={delayer}",
                                     },
                                     {
                                         "type": 2,
                                         "style": 2,
                                         "label": delayer_reason,
-                                        "custom_id": f"oc:participant:delay:{participant_id}",
+                                        "custom_id": f"oc:participant:delay:{delayer}",
                                         "disabled": True,
                                     },
                                 ],

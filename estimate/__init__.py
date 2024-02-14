@@ -9,9 +9,10 @@ import typing
 
 import pandas as pd
 import xgboost
+from peewee import JOIN, DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
-from tornium_commons.models import PersonalStats
+from tornium_commons.models import PersonalStats, User
 
 model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None
@@ -40,9 +41,18 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except (ValueError, TypeError):
         pass
 
-    ps: typing.Optional[PersonalStats] = (
-        PersonalStats.select().where(PersonalStats.tid == user_tid).order_by(-PersonalStats.timestamp).first()
-    )
+    ps: typing.Optional[PersonalStats]
+    try:
+        ps = (
+            User.select(User.personal_stats)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == user_tid)
+            .get()
+            .personal_stats
+        )
+    except DoesNotExist:
+        ps = None
+
     df: pd.DataFrame
 
     if ps is not None and int(time.time()) - ps.timestamp.timestamp() <= 604_800:  # One week
@@ -65,11 +75,18 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
     except Exception:
         update_error = True
 
-    ps = PersonalStats.select().where(PersonalStats.tid == user_tid).order_by(-PersonalStats.timestamp).first()
-
-    if ps is None:
+    try:
+        ps = (
+            User.select(User.personal_stats)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == user_tid)
+            .get()
+            .personal_stats
+        )
+    except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
-    elif not update_error and int(time.time()) - ps.timestamp.timestamp() > 604_800:  # One week
+
+    if not update_error and int(time.time()) - ps.timestamp.timestamp() > 604_800:  # One week
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])

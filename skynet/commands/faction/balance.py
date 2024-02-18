@@ -51,7 +51,7 @@ def balance(interaction, *args, **kwargs):
                     },
                 }
 
-    elif user is None:
+    if user is None:
         return {
             "type": 4,
             "data": {

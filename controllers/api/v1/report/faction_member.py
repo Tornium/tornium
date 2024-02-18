@@ -122,9 +122,7 @@ def create_report(*args, **kwargs):
 
     if type(faction_tid) == str and not faction_tid.isdigit():
         try:
-            faction: Faction = Faction.get(
-                Faction.name**faction_tid
-            )  # ** = ILIKE (case-insensitive pattern matching)
+            faction: Faction = Faction.get(Faction.name**faction_tid)  # ** = ILIKE (case-insensitive pattern matching)
         except DoesNotExist:
             return make_exception_response("1102", key)
 

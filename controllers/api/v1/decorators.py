@@ -24,7 +24,7 @@ import redis
 from flask import Response, jsonify, request
 from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import User
+from tornium_commons.models import TornKey, User
 
 from controllers.api.v1.utils import make_exception_response
 
@@ -181,7 +181,7 @@ def authentication_required(func):
             )
 
         try:
-            user: User = User.get(User.key == authorization[1])
+            user: User = TornKey.select(TornKey.user).where(TornKey.api_key == authorization[1]).get().user
         except DoesNotExist:
             return make_exception_response("4001")
 

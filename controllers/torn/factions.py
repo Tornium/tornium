@@ -79,7 +79,7 @@ def factions_data():
 
 @login_required
 def faction_data(tid: int):
-    if tid == 0 or current_user.key == "":
+    if tid == 0 or current_user.key is None:
         return abort(400)
 
     tornget.signature(

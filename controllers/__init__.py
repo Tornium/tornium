@@ -15,7 +15,7 @@
 
 from flask import Blueprint, jsonify, render_template, request, send_from_directory
 from flask_login import current_user, fresh_login_required
-from tornium_commons.models import Server, User
+from tornium_commons.models import Server, TornKey, User
 
 import utils
 from controllers.decorators import token_required
@@ -45,10 +45,12 @@ def privacy():
 @fresh_login_required
 @token_required(setnx=True)
 def settings(*args, **kwargs):
-    if current_user.key in ("", None):
+    if current_user.key is None:
         obfuscated_key = "Not Set"
     else:
         obfuscated_key = current_user.key[:6] + "*" * 10
+
+    # TODO: This needs to be updated to support multiple API keys
 
     return render_template(
         "settings.html",
@@ -103,6 +105,6 @@ def shields_user_count():
         {
             "schemaVersion": 1,
             "label": "User Count",
-            "message": str(User.select().where((User.key != "") & (User.key.is_null(False))).count()),
+            "message": str(TornKey.select().distinct(TornKey.user).count()),
         }
     )

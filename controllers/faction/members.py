@@ -29,7 +29,6 @@ def members(*args, **kwargs):
     fac_members: typing.Iterable[User] = (
         User.select(
             User.battlescore,
-            User.key,
             User.tid,
             User.faction_aa,
             User.level,

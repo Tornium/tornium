@@ -55,13 +55,13 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
     invoker: typing.Optional[User]
     try:
         if "member" in interaction:
-            invoker = User.get(User.discord_id == interaction["member"]["user"]["id"])
+            invoker = User.select(User.tid).where(User.discord_id == interaction["member"]["user"]["id"]).get()
         else:
-            invoker = User.get(User.discord_id == interaction["user"]["id"])
+            invoker = User.select(User.tid).where(User.discord_id == interaction["user"]["id"]).get()
     except DoesNotExist:
         invoker = None
 
-    if invoker is not None and invoker.key not in ("", None) and not all_keys:
+    if invoker is not None and not all_keys and invoker.key is not None:
         return tuple([invoker.key])
 
     if "guild_id" in interaction:
@@ -72,14 +72,12 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
 
         for admin in server.admins:
             try:
-                admin_user: User = User.select(User.key).where(User.tid == admin).get()
+                admin_key: typing.Optinal[str] = User.select(User.tid).where(User.tid == admin).get().key
             except DoesNotExist:
                 continue
 
-            if admin_user.key == "" or admin_user.key is None:
-                continue
-
-            admin_keys.append(admin_user.key)
+            if admin_key is not None:
+                admin_keys.append(admin_key)
 
     return tuple(admin_keys)
 
@@ -93,26 +91,26 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
     """
 
     if faction is not None:
-        return tuple(faction.aa_keys)
+        return tuple([faction.aa_keys])
 
     invoker: typing.Optional[User]
     try:
         if "member" in interaction:
             invoker = (
-                User.select(User.key, User.discord_id, User.faction, User.faction_aa)
+                User.select(User.tid, User.discord_id, User.faction, User.faction_aa)
                 .where(User.discord_id == interaction["member"]["user"]["id"])
                 .get()
             )
         else:
             invoker = (
-                User.select(User.key, User.discord_id, User.faction, User.faction_aa)
+                User.select(User.tid, User.discord_id, User.faction, User.faction_aa)
                 .where(User.discord_id == interaction["user"]["id"])
                 .get()
             )
     except DoesNotExist:
         return tuple()
 
-    if invoker.key not in ("", None) and invoker.faction_aa:
+    if invoker.key is not None and invoker.faction_aa:
         return tuple([invoker.key])
 
     if faction is None:
@@ -121,7 +119,7 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
         except DoesNotExist:
             return tuple()
 
-    return tuple(faction.aa_keys)
+    return tuple([faction.aa_keys])
 
 
 def check_invoker_exists(interaction: dict):

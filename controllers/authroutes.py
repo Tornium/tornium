@@ -36,7 +36,7 @@ from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import User
+from tornium_commons.models import TornKey, User
 from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
@@ -69,7 +69,7 @@ def login(*args, **kwargs):
 
     user: typing.Optional[User]
     try:
-        user = User.get(User.key == request.form["key"])
+        user = TornKey.select(TornKey.user).where(TornKey.api_key == request.form["key"]).get().user
     except DoesNotExist:
         user = None
 
@@ -103,21 +103,9 @@ def login(*args, **kwargs):
         return utils.handle_networking_error(e)
     except TornError as e:
         return utils.handle_torn_error(e)
-    except AttributeError:
-        pass
 
     try:
-        auth_user: AuthUser = (
-            AuthUser.select(
-                AuthUser.discord_id,
-                AuthUser.security,
-                AuthUser.otp_secret,
-                AuthUser.otp_backups,
-                AuthUser.tid,
-            )
-            .where(AuthUser.key == request.form["key"])
-            .get()
-        )
+        user = TornKey.select(TornKey.user).where(TornKey.api_key == request.form["key"]).get().user
     except DoesNotExist:
         return render_template(
             "errors/error.html",
@@ -126,7 +114,7 @@ def login(*args, **kwargs):
             "again and if this problem persists, contact tiksan [2383326] for support.",
         )
 
-    if not current_user.is_authenticated and auth_user.discord_id not in (0, None, ""):
+    if not current_user.is_authenticated and user.discord_id not in (0, None, ""):
         discord_payload = {
             "embeds": [
                 {
@@ -167,12 +155,19 @@ def login(*args, **kwargs):
             ],
         }
 
-        send_dm.delay(auth_user.discord_id, discord_payload).forget()
+        send_dm.delay(user.discord_id, discord_payload).forget()
 
-    if auth_user.security == 0 or auth_user.security is None:
+    if user.security == 0 or user.security is None:
+        auth_user: AuthUser = (
+            AuthUser.select(
+                AuthUser.tid,
+            )
+            .where(AuthUser.tid == user.tid)
+            .get()
+        )
         login_user(auth_user, remember=True)
-    elif auth_user.security == 1:
-        if auth_user.otp_secret == "":  # nosec B105
+    elif user.security == 1:
+        if user.otp_secret == "":  # nosec B105
             return (
                 render_template(
                     "errors/error.html",
@@ -195,8 +190,10 @@ def login(*args, **kwargs):
         redis_client.setnx(f"tornium:login:{client_token}", time.time())
         redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
 
-        redis_client.setnx(f"tornium:login:{client_token}:tid", auth_user.tid)
+        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
         redis_client.expire(f"tornium:login:{client_token}:tid", 180)
+
+        # TODO: Reduce count of redis calls during login
 
         return redirect(f"/login/totp?token={client_token}")
     else:

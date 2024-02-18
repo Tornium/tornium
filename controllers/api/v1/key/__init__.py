@@ -16,7 +16,8 @@
 import json
 
 from flask import request
-from tornium_commons.models import User
+from peewee import IntegrityError
+from tornium_commons.models import TornKey
 
 from controllers.api.v1.decorators import (
     authentication_required,
@@ -51,7 +52,10 @@ def set_key(*args, **kwargs):
     if api_key in (None, "") or len(api_key) != 16:
         return make_exception_response("1200", key)
 
-    User.update(key=api_key).where(User.tid == kwargs["user"].tid).execute()
+    try:
+        TornKey.insert(api_key=api_key, user=None, default=False, disabled=False, paused=False, access_level=None)
+    except IntegrityError:
+        return make_exception_response("0000", key, details={"message": "Key already exists"})
 
     return (
         {

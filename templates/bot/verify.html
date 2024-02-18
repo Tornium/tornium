@@ -92,7 +92,7 @@ Tornium - Verification
         <div class="card-body">
             <h5 class="card-title">Automatic Verification</h5>
             <p class="card-text">
-                The bot will automatically re-verify all members of the server at a specified time in the day (based on the server's ID). This server's verification will occur at {{ '%02d' | format(guild.sid % 96 // 4) }}:{{ '%02d' | format(guild.sid % 96 % 4) }} TCT every day.
+                The bot will automatically re-verify all members of the server at a specified time in the day (based on the server's ID). This server's verification will occur at {{ '%02d' | format(guild.sid % 96 // 4) }}:{{ '%02d' | format(guild.sid % 96 % 4 * 15) }} TCT every day.
             </p>
 
             <div class="row">

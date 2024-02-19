@@ -254,11 +254,7 @@ $(document).ready(function () {
         xhttp.send();
     });
 
-    $("#api-key-input").on("keypress", function (e) {
-        if (e.which !== 13) {
-            return;
-        }
-
+    function addNewKey() {
         const xhttp = new XMLHttpRequest();
 
         xhttp.onload = function () {
@@ -273,8 +269,7 @@ $(document).ready(function () {
             }
 
             generateToast("API Key Input Successful", "The Tornium API server has successfully set your API key.");
-            $("#api-key-input").attr("placeholder", response["obfuscated_key"]);
-            $("#api-key-input").val("");
+            window.location.reload();
         };
 
         xhttp.responseType = "json";
@@ -285,5 +280,81 @@ $(document).ready(function () {
                 key: $("#api-key-input").val(),
             })
         );
+    }
+
+    $("#api-key-input").on("keypress", function (e) {
+        if (e.which === 13) {
+            addNewKey();
+        }
+    });
+    $("#submit-new-key").on("click", addNewKey);
+
+    $(".disable-key").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast();
+                return;
+            }
+
+            window.location.reload();
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("PATCH", `/api/v1/key/${$(this).attr("data-key-guid")}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                disabled: true,
+            })
+        );
+    });
+
+    $(".enable-key").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast();
+                return;
+            }
+
+            window.location.reload();
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("PATCH", `/api/v1/key/${$(this).attr("data-key-guid")}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(
+            JSON.stringify({
+                disabled: false,
+            })
+        );
+    });
+
+    $(".delete-key").on("click", function () {
+        const xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            let response = xhttp.response;
+
+            if ("code" in response) {
+                generateToast();
+                return;
+            }
+
+            generateToast();
+            $(this).closest(".key-parent").remove();
+        };
+
+        xhttp.responseType = "json";
+        xhttp.open("DELETE", `/api/v1/key/${$(this).attr("data-key-guid")}`);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send();
     });
 });

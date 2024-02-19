@@ -50,12 +50,20 @@ def settings(*args, **kwargs):
     else:
         obfuscated_key = current_user.key[:6] + "*" * 10
 
-    # TODO: This needs to be updated to support multiple API keys
+    api_keys = list(
+        k
+        for k in TornKey.select(
+            TornKey.guid, TornKey.api_key, TornKey.access_level, TornKey.disabled, TornKey.paused, TornKey.default
+        )
+        .join(User)
+        .where(TornKey.user.tid == current_user.tid)
+    )
 
     return render_template(
         "settings.html",
         enabled_mfa=current_user.security,
         obfuscated_key=obfuscated_key,
+        api_keys=api_keys,
         discord_linked="Not Linked" if current_user.discord_id in ("", None, 0) else "Linked",
     )
 

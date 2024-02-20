@@ -75,7 +75,7 @@ def torn_key_required(func):
             return make_exception_response("4001")
 
         try:
-            user: User = User.get(User.key == authorization)
+            user: User = TornKey.select().where(TornKey.api_key == authorization).get().user
         except DoesNotExist:
             return make_exception_response("4001")
 

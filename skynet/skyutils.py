@@ -115,7 +115,7 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
 
     if faction is None:
         try:
-            faction = Faction.select(Faction.aa_keys).where(Faction.tid == invoker.faction_id).get()
+            faction = Faction.select().where(Faction.tid == invoker.faction_id).get()
         except DoesNotExist:
             return tuple()
 

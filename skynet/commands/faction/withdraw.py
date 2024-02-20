@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import logging
 import random
 import uuid
 
@@ -204,7 +203,7 @@ def withdraw(interaction, *args, **kwargs):
 
     withdrawal_amount = withdrawal_amount["value"]
 
-    if type(withdrawal_amount) == str:
+    if isinstance(withdrawal_amount, str):
         if withdrawal_amount.lower() == "all":
             withdrawal_amount = "all"
         else:
@@ -226,8 +225,6 @@ def withdraw(interaction, *args, **kwargs):
                 }
 
     aa_keys = get_faction_keys(interaction, user.faction)
-    logging.getLogger("server").error(aa_keys)
-    logging.getLogger("server").error(user.faction)
 
     if len(aa_keys) == 0:
         return {

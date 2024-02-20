@@ -1187,6 +1187,10 @@ def oc_refresh():
 def oc_refresh_subtask(oc_data):
     # TODO: Refactor this to be more readable
 
+    if oc_data.get("crimes") is None or isinstance(oc_data["crimes"], list):
+        # A faction with no OCs will have an empty list of crimes
+        return
+
     try:
         faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == oc_data["ID"]).get()
     except DoesNotExist:

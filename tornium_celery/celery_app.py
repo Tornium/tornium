@@ -144,6 +144,11 @@ if celery_app is None:
                 "task": "tasks.user.fetch_attacks_user_runner",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+            },
+            "check-api-keys": {
+                "task": "tasks.user.check_api_keys",
+                "enabled": True,
+                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
             },  # Stock tasks
             "stocks-prefetch": {
                 "task": "tasks.stocks.stocks_prefetch",

@@ -17,7 +17,6 @@ import datetime
 import json
 import random
 import typing
-from functools import wraps
 
 if globals().get("orjson:loaded"):
     import orjson
@@ -230,8 +229,6 @@ def tornget(
     )
 
     if key is None or key == "":
-        User.update(key=None).where(User.key == "").execute()
-
         raise MissingKeyError
 
     redis_client = rds()

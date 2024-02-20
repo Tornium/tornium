@@ -27,7 +27,7 @@ from celery.utils.log import get_task_logger
 from peewee import JOIN, DoesNotExist
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import commas, torn_timestamp
+from tornium_commons.formatters import commas, timestamp, torn_timestamp
 from tornium_commons.models import (
     Faction,
     FactionPosition,
@@ -37,6 +37,7 @@ from tornium_commons.models import (
     Retaliation,
     Server,
     Stat,
+    TornKey,
     User,
     Withdrawal,
 )
@@ -103,7 +104,7 @@ def refresh_factions():
             if faction.coleader is not None and faction.coleader.key not in ("", None):
                 ts_key = faction.coleader.key
 
-        if ts_key != "":
+        if ts_key is not None:
             torn_stats_get.signature(
                 kwargs={"endpoint": f"spy/faction/{faction.tid}", "key": ts_key},
                 expires=300,
@@ -225,36 +226,9 @@ def update_faction(faction_data):
                 ],
             ).execute()
 
-    leader: typing.Optional[User] = User.select(User.key).where(User.tid == faction_data["leader"]).first()
-    coleader: typing.Optional[User] = (
-        User.select(User.key).where(User.tid == faction_data["co-leader"]).first()
-        if faction_data["co-leader"] != 0
-        else None
-    )
-    aa_keys: typing.Set[str] = set()
-
-    if leader is not None and leader.key not in (None, ""):
-        aa_keys.add(leader.key)
-    if coleader is not None and coleader.key not in (None, ""):
-        aa_keys.add(coleader.key)
-
-    aa_keys = aa_keys.union(
-        {
-            u.key
-            for u in User.select(User.key).where(
-                (User.key.is_null(False))
-                & (User.key != "")
-                & (User.faction_id == faction_data["ID"])
-                & (User.faction_aa == True)  # noqa 712
-            )
-        }
-    )
-    aa_keys = [k for k in aa_keys if k not in (None, "")]
-    Faction.update(aa_keys=aa_keys).where(Faction.tid == faction_data["ID"]).execute()
-
     # Strips old faction members of their faction data
     User.update(faction=None, faction_position=None, faction_aa=False).where(
-        (User.faction_id == faction_data["ID"]) & (User.tid.not_in(users))
+        (User.faction.tid == faction_data["ID"]) & (User.tid.not_in(users))
     ).execute()
 
 
@@ -420,8 +394,8 @@ def update_faction_ts(faction_ts_data):
 
         if user.key is not None:
             continue
-        elif (
-            user.battlescore_update is not None and user_data["spy"]["timestamp"] <= user.battlescore_update.timestamp()
+        elif user.battlescore_update is not None and user_data["spy"]["timestamp"] <= timestamp(
+            user.battlescore_update
         ):
             continue
 
@@ -569,28 +543,32 @@ def fetch_attacks_runner():
     if redis.ttl("tornium:celery-lock:fetch-attacks") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks", 1)
 
-    faction: Faction
-    for faction in Faction.select().where((Faction.aa_keys != [])):
-        if len(faction.aa_keys) == 0:
+    for api_key in (
+        TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
+    ):
+        faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction.tid).first()
+
+        if faction is None:
             continue
-        elif faction.last_attacks is None or faction.last_attacks.timestamp() == 0:
+        elif len(faction.aa_keys) == 0:
+            continue
+        elif faction.last_attacks is None or timestamp(faction.last_attacks) == 0:
             faction.last_attacks = datetime.datetime.utcnow()
             faction.save()
             continue
-        elif time.time() - faction.last_attacks.timestamp() > 86401:  # One day
+        elif time.time() - timestamp(faction.last_attacks) > 86401:  # One day
             # Prevents old data from being added (especially for retals)
             faction.last_attacks = datetime.datetime.utcnow()
             faction.save()
             continue
 
-        aa_key = random.choice(faction.aa_keys)
-        last_attacks: int = faction.last_attacks.timestamp()
+        last_attacks: int = timestamp(faction.last_attacks)
 
         tornget.signature(
             kwargs={
                 "endpoint": "faction/?selections=basic,attacks",
                 "fromts": last_attacks + 1,  # timestamp is inclusive
-                "key": aa_key,
+                "key": random.choice(faction.aa_keys),
             },
             queue="api",
         ).apply_async(
@@ -622,7 +600,7 @@ def fetch_attacks_runner():
                             "description": (
                                 f"{retal.attacker.user_str_self()} of {retal.attacker.faction.name} has attacked "
                                 f"{retal.defender.user_str_self()}, but the retaliation timed out "
-                                f"<t:{int(retal.attack_ended.timestamp() + 300)}:R>"
+                                f"<t:{int(timestamp(retal.attack_ended) + 300)}:R>"
                             ),
                             "color": SKYNET_ERROR,
                         }
@@ -679,7 +657,7 @@ def retal_attacks(faction_data, last_attacks=None):
         return
 
     if last_attacks is None or last_attacks >= time.time():
-        last_attacks = faction.last_attacks.timestamp()
+        last_attacks = timestamp(faction.last_attacks)
 
     now = int(time.time())
     possible_retals = {}
@@ -809,7 +787,7 @@ def retal_attacks(faction_data, last_attacks=None):
                 user is not None
                 and user.battlescore != 0
                 and user.battlescore_update is not None
-                and int(time.time()) - user.battlescore_update.timestamp() <= 259200
+                and int(time.time()) - timestamp(user.battlescore_update) <= 259200
             ):  # Three days
                 try:
                     opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
@@ -865,7 +843,7 @@ def retal_attacks(faction_data, last_attacks=None):
                         },
                         {
                             "name": "Stat Score Update",
-                            "value": f"<t:{int(stat.time_added.timestamp())}:R>",
+                            "value": f"<t:{int(timestamp(stat.time_added))}:R>",
                             "inline": True,
                         },
                     )
@@ -1067,7 +1045,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
             if user is None or user.battlescore in (None, 0):
                 continue
             elif (
-                user.battlescore_update is None or int(time.time()) - user.battlescore_update.timestamp() > 259200
+                user.battlescore_update is None or int(time.time()) - timestamp(user.battlescore_update) > 259200
             ):  # Three days
                 continue
 
@@ -1100,7 +1078,7 @@ def stat_db_attacks(faction_data, last_attacks=None):
             if user is None or user.battlescore in (None, 0):
                 continue
             elif (
-                user.battlescore_update is None or int(time.time()) - user.battlescore_update.timestamp() > 259200
+                user.battlescore_update is None or int(time.time()) - timestamp(user.battlescore_update) > 259200
             ):  # Three days
                 continue
 
@@ -1174,9 +1152,18 @@ def stat_db_attacks(faction_data, last_attacks=None):
     time_limit=5,
 )
 def oc_refresh():
-    faction: Faction
-    for faction in Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.aa_keys != []):
-        if len(faction.aa_keys) == 0:
+    for api_key in (
+        TornKey.select()
+        .distinct(TornKey.user.faction.tid)
+        .join(User)
+        .join(Faction)
+        .where((TornKey.default == True) & (TornKey.user.faction_aa == True))
+    ):
+        faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction_id).first()
+
+        if faction is None:
+            continue
+        elif len(faction.aa_keys) == 0:
             continue
 
         tornget.signature(
@@ -1382,7 +1369,7 @@ def oc_refresh_subtask(oc_data):
                 logger.exception(e)
 
             continue
-        elif oc_db.time_ready.timestamp() > int(time.time()):
+        elif timestamp(oc_db.time_ready) > time.time():
             continue
         elif next(iter(oc_data["participants"][0].values())) is None:
             continue
@@ -1453,7 +1440,7 @@ def oc_refresh_subtask(oc_data):
                                         "title": "OC Delayed",
                                         "description": f"You are currently delaying the "
                                         f"{ORGANIZED_CRIMES[oc_data['crime_id']]} that you are participating in which "
-                                        f"was ready <t:{int(oc_db.time_ready.timestamp())}:R>. Please return to Torn or otherwise "
+                                        f"was ready <t:{int(timestamp(oc_db.time_ready))}:R>. Please return to Torn or otherwise "
                                         f"become available for the OC to be initiated.",
                                         "timestamp": datetime.datetime.utcnow().isoformat(),
                                         "footer": {"text": f"#{oc_db.oc_id}"},
@@ -1646,13 +1633,18 @@ def auto_cancel_requests():
     time_limit=5,
 )
 def armory_check():
-    faction: Faction
-    for faction in (
-        Faction.select(Faction.guild, Faction.tid, Faction.aa_keys)
-        .join(Server, JOIN.LEFT_OUTER)
-        .where(Faction.aa_keys != [])
+    for api_key in (
+        TornKey.select()
+        .distinct(TornKey.user.faction.tid)
+        .join(User)
+        .join(Faction)
+        .where((TornKey.default == True) & (TornKey.user.faction_aa == True))
     ):
-        if len(faction.aa_keys) == 0:
+        faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction_id).first()
+
+        if faction is None:
+            continue
+        elif len(faction.aa_keys) == 0:
             continue
         try:
             if faction.guild is None:
@@ -1673,12 +1665,10 @@ def armory_check():
         elif len(faction.guild.armory_config[str(faction.tid)].get("items", {})) == 0:
             continue
 
-        aa_key = random.choice(faction.aa_keys)
-
         tornget.signature(
             kwargs={
                 "endpoint": "faction/?selections=armor,boosters,drugs,medical,temporary,weapons",
-                "key": aa_key,
+                "key": random.choice(faction.aa_keys),
             },
             queue="api",
         ).apply_async(

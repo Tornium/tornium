@@ -17,14 +17,23 @@ import datetime
 import math
 import time
 import typing
+import uuid
 from decimal import DivisionByZero
 
 import celery
 from celery.utils.log import get_task_logger
-from peewee import DoesNotExist, fn
+from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import Faction, FactionPosition, PersonalStats, Stat, User
+from tornium_commons.formatters import timestamp
+from tornium_commons.models import (
+    Faction,
+    FactionPosition,
+    PersonalStats,
+    Stat,
+    TornKey,
+    User,
+)
 
 from .api import tornget
 
@@ -60,20 +69,20 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         if (
             user is not None
             and user.last_refresh is not None
-            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
+            and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
         ):
             return
 
         user_id = tid
     elif discordid == tid == 0:
-        user = User.select(User.last_refresh).where(User.key == key).first()
-
-        if (
-            user is not None
-            and user.last_refresh is not None
-            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
-        ):
-            return
+        try:
+            user = TornKey.select(TornKey.user).where(TornKey.api_key == key).get().user
+        except DoesNotExist:
+            pass
+        else:
+            if user.last_refresh is not None and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE:
+                print("too old")
+                return
 
         user_id = 0
         update_self = True
@@ -84,7 +93,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         if (
             user is not None
             and user.last_refresh is not None
-            and time.time() - user.last_refresh.timestamp() <= MIN_USER_UPDATE
+            and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
         ):
             return
 
@@ -135,11 +144,19 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     queue="quick",
     time_limit=10,
 )
-def update_user_self(user_data, key=None):
+def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     user_data_kwargs = {"faction_aa": False}
 
     if key is not None:
-        user_data_kwargs["key"] = key
+        TornKey.insert(
+            guid=uuid.uuid4(),
+            api_key=key,
+            user=user_data["player_id"],
+            default=False,
+            disabled=False,
+            paused=False,
+            access_level=None,
+        ).on_conflict_ignore().execute()
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
@@ -157,7 +174,7 @@ def update_user_self(user_data, key=None):
         )
 
         if key is not None:
-            faction = Faction.select(Faction.aa_keys).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+            faction = Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
 
             if faction is not None and len(faction.aa_keys) == 0:
                 from .faction import update_faction_positions
@@ -287,14 +304,6 @@ def update_user_self(user_data, key=None):
         ],
     ).execute()
 
-    if user_data_kwargs.get("faction_aa"):
-        _faction = Faction.select(Faction.aa_keys).where(Faction.tid == user_data["faction"]["faction_id"]).first()
-
-        if _faction is not None and key is not None and key not in _faction.aa_keys:
-            Faction.update(aa_keys=fn.array_append(Faction.aa_keys, key)).where(
-                Faction.tid == user_data["faction"]["faction_id"]
-            ).execute()
-
 
 @celery.shared_task(
     name="tasks.user.update_user_other",
@@ -349,7 +358,6 @@ def update_user_other(user_data):
 
             if faction_position is None:
                 user_data_kwargs["faction_position"] = None
-
                 user_data_kwargs["faction_aa"] = False
             else:
                 user_data_kwargs["faction_position"] = faction_position
@@ -435,17 +443,21 @@ def update_user_other(user_data):
     time_limit=5,
 )
 def refresh_users():
-    user: User
-    for user in User.select().where((User.key.is_null(False)) & (User.key != "")):
+    for api_key in TornKey.select(TornKey.user).join(User).distinct(TornKey.user).where(TornKey.default == True):
+        try:
+            api_key = User.select(User.tid).where(User.tid == api_key.user_id).get().key
+        except DoesNotExist:
+            continue
+
         tornget.signature(
             kwargs={
                 "endpoint": "user/?selections=profile,discord,personalstats,battlestats",
-                "key": user.key,
+                "key": api_key,
             },
             queue="api",
         ).apply_async(
             expires=300,
-            link=update_user_self.s(),
+            link=update_user_self.signature(kwargs={"key": api_key}),
             ignore_result=True,
         )
 
@@ -474,22 +486,26 @@ def fetch_attacks_user_runner():
     if redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks-user", 1)
 
-    user: User
-    for user in User.select().where((User.key.is_null(False)) & (User.key != "")):
-        if user.key in ("", None):
+    for api_key in TornKey.select(TornKey.user).distinct(TornKey.user).join(User).where(TornKey.default == True):
+        try:
+            user = User.select().where(User.tid == api_key.user_id).get()
+        except DoesNotExist:
+            continue
+
+        if user.key is None:
             continue
         elif user.faction_aa:
             continue
+        elif user.faction is not None and len(user.faction.aa_keys) > 0:
+            continue
         elif user.last_attacks is None:
             User.update(last_attacks=datetime.datetime.utcnow()).where(User.tid == user.tid).execute()
-            continue
-        elif user.faction is not None and len(user.faction.aa_keys) > 0:
             continue
 
         tornget.signature(
             kwargs={
                 "endpoint": "user/?selections=basic,attacks",
-                "fromts": user.last_attacks.timestamp() + 1,  # Timestamp is inclusive,
+                "fromts": timestamp(user.last_attacks) + 1,  # Timestamp is inclusive,
                 "key": user.key,
             },
             queue="api",
@@ -517,7 +533,7 @@ def stat_db_attacks_user(user_data):
     if (
         user.battlescore not in [None, 0]
         and user.battlescore_update is not None
-        and user.battlescore_update.timestamp() - int(time.time()) <= 259200
+        and timestamp(user.battlescore_update) - time.time() <= 259200
     ):  # Three days
         user_score = user.battlescore
     else:
@@ -559,7 +575,7 @@ def stat_db_attacks_user(user_data):
             3,
         ):  # 3x FF can be greater than the defender battlescore indicated
             continue
-        elif user.last_attacks is not None and attack["timestamp_ended"] <= user.last_attacks.timestamp():
+        elif user.last_attacks is not None and attack["timestamp_ended"] <= timestamp(user.last_attacks):
             continue
         elif attack["respect"] == 0:
             continue
@@ -646,3 +662,79 @@ def stat_db_attacks_user(user_data):
         except Exception as e:
             logger.exception(e)
             continue
+
+
+@celery.shared_task(
+    name="tasks.user.check_api_keys",
+    routing_key="quick.check_api_keys",
+    queue="quick",
+    time_limit=5,
+)
+def check_api_keys():
+    for key in TornKey.select().where((TornKey.user.is_null(True)) | (TornKey.access_level.is_null(True))):
+        celery.chord(
+            [
+                tornget.signature(
+                    kwargs={"endpoint": "key/?selections=info", "key": key.api_key, "pass_error": True}, queue="api"
+                ),
+                tornget.signature(
+                    kwargs={"endpoint": "user/?selections=basic", "key": key.api_key, "pass_error": True}, queue="api"
+                ),
+            ]
+        )(check_api_key_sub.signature(kwargs={"guid": key.guid}))
+
+    for key_user in (
+        TornKey.select(TornKey.user)
+        .join(User)
+        .distinct(TornKey.user)
+        .where((TornKey.disabled == False) & (TornKey.paused == False))
+    ):
+        base_query = TornKey.select().where(TornKey.user == key_user.user_id)
+
+        default_key = base_query.where(TornKey.default == True).first()
+
+        if default_key is not None and (default_key.paused or default_key.disabled):
+            TornKey.update(default=False).where(TornKey.guid == default_key.guid).execute()
+        elif default_key is not None and not default_key.paused and not default_key.disabled:
+            continue
+
+        new_default_key = base_query.where(
+            (TornKey.access_level >= 3) & (TornKey.disabled == False) & (TornKey.paused == False)
+        ).first()
+
+        if new_default_key is not None:
+            TornKey.update(default=True).where(TornKey.guid == new_default_key.guid).execute()
+
+
+@celery.shared_task(
+    name="tasks.user.check_api_key_sub",
+    routing_key="quick.check_api_key_sub",
+    queue="quick",
+    time_limit=5,
+)
+def check_api_key_sub(args, guid: str):
+    key_data, user_data = args
+    if "error" in key_data:
+        if key_data["error"]["code"] in (
+            1,  # Key is empty
+            2,  # Incorrect key
+            16,  # Access level of this key is not high enough
+        ):
+            TornKey.delete().where(TornKey.guid == guid).execute()
+            return
+        elif key_data["error"]["code"] in (
+            10,  # Key owner is in federal jail
+            18,  # API key has been paused by the owner
+        ):
+            TornKey.update(paused=True).where(TornKey.guid == guid).execute()
+            return
+
+    key_db: TornKey = TornKey.select().where(TornKey.guid == guid).get()
+
+    if key_data["access_level"] == 0:
+        key_db.delete_instance()
+        return
+
+    TornKey.update(user=user_data["player_id"], access_level=key_data["access_level"]).where(
+        TornKey.guid == guid
+    ).execute()

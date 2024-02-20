@@ -205,7 +205,11 @@ def store_member_ps(member_data: dict, tid: int, rid: str, timestamp: int):
         if report.start_timestamp > timestamp > report.end_timestamp:
             raise ValueError("Illegal timestamp")
 
-        timestamp = int(datetime.datetime.fromtimestamp(timestamp).replace(minute=0, second=0).timestamp())
+        timestamp = int(
+            datetime.datetime.fromtimestamp(timestamp)
+            .replace(minute=0, second=0, tzinfo=datetime.timezone.utc)
+            .timestamp()
+        )
 
         if report.end_timestamp == timestamp:
             logger.info(f"Storing {tid} for {timestamp} as end timestamp")

@@ -20,9 +20,9 @@ import typing
 import celery
 from celery.utils.log import get_task_logger
 from redis.commands.json.path import Path
-from tornium_commons import db, rds
-from tornium_commons.formatters import commas, torn_timestamp
-from tornium_commons.models import Notification, Server, StockTick, User
+from tornium_commons import rds
+from tornium_commons.formatters import commas, timestamp, torn_timestamp
+from tornium_commons.models import Notification, StockTick, TornKey
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from .api import discordpost, tornget
@@ -36,21 +36,21 @@ def _map_stock_image(acronym: str):
 
 
 def _get_stocks_tick(
-    stock_id: int, timestamp: typing.Optional[datetime.datetime] = None, **kwargs
+    stock_id: int, stocks_timestamp: typing.Optional[datetime.datetime] = None, **kwargs
 ) -> typing.Optional[StockTick]:
     minutes_ago = kwargs.get("minutes", 0)
     hours_ago = kwargs.get("hours", 0)
     days_ago = kwargs.get("days", 0)
     binary_stock_id = bin(stock_id)
 
-    if timestamp is None:
-        timestamp = datetime.datetime.utcnow()
+    if stocks_timestamp is None:
+        stocks_timestamp = datetime.datetime.utcnow()
 
-    timestamp = timestamp - datetime.timedelta(minutes=minutes_ago, hours=hours_ago, days=days_ago)
+    stocks_timestamp = stocks_timestamp - datetime.timedelta(minutes=minutes_ago, hours=hours_ago, days=days_ago)
 
     return (
         StockTick.select()
-        .where(StockTick.tick_id == int(binary_stock_id, 2) + int(bin(int(timestamp.timestamp()) << 8), 2))
+        .where(StockTick.tick_id == int(binary_stock_id, 2) + int(bin(int(timestamp(stocks_timestamp)) << 8), 2))
         .first()
     )
 
@@ -72,7 +72,7 @@ def stocks_prefetch():
     return tornget.signature(
         kwargs={
             "endpoint": "torn/?selections=stocks",
-            "key": User.random_key(),
+            "key": TornKey.random_key().api_key,
         },
         queue="api",
     ).apply_async(
@@ -103,7 +103,7 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
         raise ValueError
 
     stocks_timestamp = stocks_timestamp.replace(second=0, tzinfo=datetime.timezone.utc)
-    binary_timestamp = bin(int(stocks_timestamp.timestamp()) << 8)
+    binary_timestamp = bin(int(timestamp(stocks_timestamp)) << 8)
 
     stocks = {stock["stock_id"]: stock["acronym"] for stock in stocks_data["stocks"].values()}
     stock_benefits = {stock["stock_id"]: stock["benefit"] for stock in stocks_data["stocks"].values()}
@@ -139,7 +139,7 @@ def stock_price_notifications(stocks_data: dict):
     for notification in Notification.select().where(Notification.n_type == 0):
         target_stock = stocks_data["stocks"][str(notification.target)]
 
-        stock_timestamp = int(notification.time_created.timestamp() // 60 * 60)
+        stock_timestamp = int(timestamp(notification.time_created) // 60 * 60)
         stock_tick: typing.Optional[StockTick] = (
             StockTick.select(StockTick.price)
             .where(StockTick.tick_id == int(bin(target_stock["stock_id"]), 2) + int(bin(stock_timestamp << 8), 2))

@@ -19,6 +19,7 @@ import typing
 
 import celery
 from celery.utils.log import get_task_logger
+from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import Item, Notification, Server, User
@@ -37,7 +38,7 @@ logger = get_task_logger("celery_app")
     time_limit=15,
 )
 def update_items(items_data):
-    Item.update_items(torn_get=tornget, key=User.random_key())
+    Item.update_items(torn_get=tornget, key=User.random_key().api_key)
 
     rds().set(
         "tornium:items:last-update",
@@ -62,9 +63,10 @@ def fetch_market():
         for notification in notifications.where(Notification.target == item_id):
             if notification.recipient_guild == 0:
                 recipient = notification.recipient
-                key_user: typing.Optional[User] = User.select(User.key).where(User.discord_id == recipient).first()
 
-                if key_user is None:
+                try:
+                    api_key: typing.Optional[str] = User.select(User.tid).where(User.discord_id == recipient).get().key
+                except DoesNotExist:
                     notification.delete_instance()
                     continue
             else:
@@ -75,19 +77,20 @@ def fetch_market():
                     notification.delete_instance()
                     continue
 
-                key_user: typing.Optional[User] = (
-                    User.select(User.key).where(User.tid == random.choice(guild.admins)).first()
-                )
+                try:
+                    api_key: typing.Optional[str] = (
+                        User.select(User.tid).where(User.tid == random.choice(guild.admins)).get().key
+                    )
+                except DoesNotExist:
+                    continue
 
-            if key_user is None:
-                continue
-            elif key_user.key in ("", None):
+            if api_key is None:
                 continue
 
             tornget.signature(
                 kwargs={
                     "endpoint": f"market/{item_id}?selections=itemmarket,bazaar",
-                    "key": key_user.key,
+                    "key": api_key,
                 },
                 queue="api",
             ).apply_async(

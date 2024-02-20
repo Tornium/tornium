@@ -112,7 +112,7 @@ def run_user_stakeouts():
     for notification in (
         Notification.select().join(User).where((Notification.n_type == 1) & (Notification.enabled == True))
     ):
-        if notification.invoker is None or notification.invoker.key in ("", None):
+        if notification.invoker is None or notification.invoker.key is None:
             if notification.recipient_guild == 0:
                 notification.delete_instance()
                 continue
@@ -132,7 +132,7 @@ def run_user_stakeouts():
         else:
             key = notification.invoker.key
 
-        if key in ("", None):
+        if key is None:
             continue
 
         tornget.signature(
@@ -474,7 +474,7 @@ def run_faction_stakeouts():
     ):
         invoker: typing.Optional[User] = User.select().where(User.tid == notification.invoker).first()
 
-        if invoker is None or invoker.key in ("", None):
+        if invoker is None or invoker.key is None:
             if notification.recipient_guild == 1:
                 continue
 
@@ -486,7 +486,7 @@ def run_faction_stakeouts():
                 continue
 
             key_user: typing.Optional[User] = (
-                User.select(User.key).where(User.tid == random.choice(guild.admins)).first()
+                User.select(User.tid).where(User.tid == random.choice(guild.admins)).first()
             )
 
             if key_user is None:
@@ -496,7 +496,7 @@ def run_faction_stakeouts():
         else:
             key = invoker.key
 
-        if key in ("", None):
+        if key is None:
             continue
 
         tornget.signature(
@@ -679,8 +679,9 @@ def faction_hook(faction_data):
                     else:
                         valid_notifications.append(notification)
 
-            for notification in valid_notifications:
-                send_notification(notification, payload)
+            if valid_notifications is not None:
+                for notification in valid_notifications:
+                    send_notification(notification, payload)
 
         payload["embeds"][0]["title"] = "Peace Treaty Ended"
         payload["embeds"][0]["color"] = SKYNET_ERROR
@@ -715,8 +716,9 @@ def faction_hook(faction_data):
                     else:
                         valid_notifications.append(notification)
 
-            for notification in valid_notifications:
-                send_notification(notification, payload)
+            if valid_notifications is not None:
+                for notification in valid_notifications:
+                    send_notification(notification, payload)
 
         if len(faction_add) > 0:
             redis_client.sadd(f"{redis_key}:peace", *faction_add)

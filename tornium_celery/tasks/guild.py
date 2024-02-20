@@ -28,7 +28,7 @@ from peewee import DoesNotExist, Expression
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
-from tornium_commons.models import FactionPosition, Server, User
+from tornium_commons.models import FactionPosition, Server, TornKey, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost
@@ -104,11 +104,7 @@ def refresh_guilds():
                     # Checks if the user has the role and the role has the administrator permission
                     if guild_role["id"] == role and (int(guild_role["permissions"]) & 0x0000000008) == 0x0000000008:
                         try:
-                            user: User = (
-                                User.select(User.discord_id, User.tid, User.key)
-                                .where(User.discord_id == member["user"]["id"])
-                                .get()
-                            )
+                            user: User = User.select(User.tid).where(User.discord_id == member["user"]["id"]).get()
                         except DoesNotExist:
                             user_exists = False
                             break
@@ -230,7 +226,7 @@ def verify_users(
         admin: int
         for admin in guild.admins:
             try:
-                admin_keys.append(User.select(User.key).where(User.tid == admin).get())
+                admin_keys.append(User.select(User.tid).where(User.tid == admin).get().key)
             except DoesNotExist:
                 continue
 

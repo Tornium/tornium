@@ -14,9 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import celery
-from peewee import DoesNotExist, fn
+from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import Faction, User
+from tornium_commons.models import TornKey, User
 
 
 @celery.shared_task(
@@ -52,22 +52,15 @@ def send_dm(discord_id: int, payload: dict):
 )
 def remove_key_error(key: str, error: int):
     try:
-        user: User = User.select().where(User.key == key).get()
+        key: TornKey = TornKey.select(TornKey.user).where(TornKey.api_key == key).get()
     except DoesNotExist:
-        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
         return
 
+    user_id = key.user_id
+    key.delete_instance()
+
     if error == 7:
-        user.faction_aa = False
-        user.faction_position = None
-        user.save()
-
-        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
-    elif error in (2, 10, 13):
-        user.key = None
-        user.save()
-
-        Faction.update(aa_keys=fn.array_remove(Faction.aa_keys, key)).execute()
+        User.update(faction_aa=False, faction_position=None).where(User.tid == user_id).execute()
 
 
 # TODO: Rewrite this section to be more efficient

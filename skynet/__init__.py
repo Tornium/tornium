@@ -107,7 +107,7 @@ def _handle_interaction_errors(f):
                         "embeds": [
                             {
                                 "title": "Networking Error",
-                                "description": f"A networking error has occurred on an API call resulting in HTTP f{e.code}: {e.message}",
+                                "description": f"A networking error has occurred on an API call resulting in HTTP {e.code}: {e.message}",
                                 "color": SKYNET_ERROR,
                             },
                         ],
@@ -123,7 +123,7 @@ def _handle_interaction_errors(f):
                         "embeds": [
                             {
                                 "title": "Torn API Error",
-                                "description": f"An error has occurred on a Torn API call resulting in error code f{e.code}: {e.message}",
+                                "description": f"An error has occurred on a Torn API call resulting in error code {e.code}: {e.message}",
                                 "color": SKYNET_ERROR,
                             },
                         ],

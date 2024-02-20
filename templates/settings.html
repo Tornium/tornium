@@ -70,20 +70,70 @@ Tornium - Settings
                 <h5 class="card-title">Tornium API Key Settings</h5>
 
                 <div class="col-sm-12 col-md-8 col-xl-4">
-                    <div class="input-group">
-                        <span class="input-group-text">API Key</span>
-                        <input type="text" class="form-control" placeholder="{{ obfuscated_key }}" aria-label="API key" id="api-key-input">
-                    </div>
-
                     <div class="input-group mt-1">
                         <span class="input-group-text">Discord Linked</span>
                         <span class="form-control">{{ discord_linked }}</span>
                     </div>
                 </div>
+
+                <div class="col-sm-12 col-md-8 col-xl-6">
+                    <div class="card mt-3">
+                        <div class="card-header">API Keys</div>
+                        <ul class="list-group list-group-flush">
+                            {% for api_key in api_keys %}
+                                <li class="list-group-item d-flex flex-wrap justify-content-between">
+                                    <div>
+                                        {{ api_key.api_key[:6] ~ "*" * 10 }}
+
+                                        {% if api_key.default %}
+                                        <div class="btn btn-sm btn-outline-primary disabled">Default</div>
+                                        {% endif %}
+
+                                        {% if api_key.paused %}
+                                        <div class="btn btn-sm btn-outline-warning disabled">Paused</div>
+                                        {% endif %}
+
+                                        {% if api_key.access_level == 1 %}
+                                        <div class="btn btn-sm btn-outline disabled">Public</div>
+                                        {% elif api_key.access_level == 2 %}
+                                        <div class="btn btn-sm btn-outline-success disabled">Minimal</div>
+                                        {% elif api_key.access_level == 3 %}
+                                        <div class="btn btn-sm btn-outline-warning disabled">Limited</div>
+                                        {% elif api_key.access_level == 4 %}
+                                        <div class="btn btn-sm btn-outline-danger disabled">Full</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mt-3 mt-md-0">
+                                        {% if api_key.disabled %}
+                                        <button type="button" class="btn btn-sm btn-outline-success enable-key" data-key-guid="{{ api_key.guid }}">Enable</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger disable-key" data-key-guid="{{ api_key.guid }}">Disable</button>
+                                        {% endif %}
+
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-key" data-key-guid="{{ api_key.guid }}">Delete</button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="card-footer">
+                            <div class="form-floating">
+                                <div class="input-group py-1">
+                                    <input type="password" minlength="16" maxlength="16" required class="form-control form-control-sm" id="api-key-input" placeholder="Torn API key" autocomplete="off">
+                                    <button type="button" class="btn btn-sm btn-outline-success input-group-text" id="submit-new-key">Add</button>
+                                </div>
+
+                                <div class="form-text">
+                                    <b>NOTE:</b> Tornium will not accept custom access API keys.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button disabled class="m-2 btn btn-outline-danger">Delete Account</button>
+        {# <button disabled class="m-2 btn btn-outline-danger">Delete Account</button> #}
     </div>
 </div>
 

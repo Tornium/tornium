@@ -14,9 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import uuid
 
 from flask import request
-from tornium_commons.models import User
+from peewee import DoesNotExist, IntegrityError
+from tornium_celery.tasks.api import tornget
+from tornium_commons.errors import NetworkingError, TornError
+from tornium_commons.models import TornKey
 
 from controllers.api.v1.decorators import (
     authentication_required,
@@ -51,7 +55,30 @@ def set_key(*args, **kwargs):
     if api_key in (None, "") or len(api_key) != 16:
         return make_exception_response("1200", key)
 
-    User.update(key=api_key).where(User.tid == kwargs["user"].tid).execute()
+    try:
+        key_info = tornget("key/?selections=info", api_key)
+        user_info = tornget("user/?selections=basic", api_key)
+    except NetworkingError as e:
+        return make_exception_response("4100", key, details={"code": e.code, "message": e.message})
+    except TornError as e:
+        return make_exception_response("4101", key, details={"code": e.code, "message": e.message})
+
+    if key_info["access_level"] == 0:
+        return make_exception_response("4002", key)
+
+    try:
+        TornKey.insert(
+            guid=uuid.uuid4(),
+            api_key=api_key,
+            user=user_info["player_id"],
+            default=False,
+            disabled=False,
+            paused=False,
+            access_level=key_info["access_level"],
+        ).execute()
+    except IntegrityError as e:
+        print(e)
+        return make_exception_response("0000", key, details={"message": "Key already exists"})
 
     return (
         {
@@ -60,3 +87,65 @@ def set_key(*args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@token_required
+@ratelimit
+def toggle_key(guid: str, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    disabled = data.get("disabled")
+
+    if disabled is None or not isinstance(disabled, bool):
+        return make_exception_response("", key)
+
+    try:
+        key_db = TornKey.select(TornKey.user).where(TornKey.guid == uuid.UUID(guid)).get()
+    except DoesNotExist:
+        return make_exception_response("", key)
+
+    if key_db.user_id != kwargs["user"].tid:
+        return make_exception_response("", key)
+
+    TornKey.update(disabled=bool(disabled)).where(TornKey.guid == uuid.UUID(guid)).execute()
+
+    try:
+        api_key: TornKey = (
+            TornKey.select(TornKey.api_key, TornKey.disabled, TornKey.paused, TornKey.default, TornKey.access_level)
+            .where(TornKey.guid == uuid.UUID(guid))
+            .get()
+        )
+    except DoesNotExist:
+        return {}, 200, api_ratelimit_response(key)
+
+    return (
+        {
+            "guid": guid,
+            "obfuscated_key": api_key.api_key[:6] + "*" * 10,
+            "disabled": api_key.disabled,
+            "paused": api_key.paused,
+            "default": api_key.default,
+            "access_level": api_key.access_level,
+        },
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@token_required
+@ratelimit
+def delete_key(guid: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        key_db = TornKey.select().where(TornKey.guid == uuid.UUID(guid)).get()
+    except DoesNotExist:
+        return make_exception_response("", key)
+
+    if key_db.user_id != kwargs["user"].tid:
+        return make_exception_response("", key)
+
+    key_db.delete_instance()
+
+    return "", 204

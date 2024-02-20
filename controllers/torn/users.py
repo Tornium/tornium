@@ -92,7 +92,7 @@ def users_data():
 
 @login_required
 def user_data(tid: int):
-    if tid == 0 or current_user.key == "":
+    if tid == 0 or current_user.key is None:
         return abort(400)
 
     update_user(current_user.key, tid=tid)

@@ -94,6 +94,9 @@ def forward_assist(*args, **kwargs):
     else:
         call_key = user.key
 
+    if user.key is None:
+        return make_exception_response("1200", redis_client=client)
+
     try:
         update_user(key=call_key, tid=target_tid, refresh_existing=False)
     except AttributeError:

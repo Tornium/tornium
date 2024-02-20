@@ -203,7 +203,7 @@ def withdraw(interaction, *args, **kwargs):
 
     withdrawal_amount = withdrawal_amount["value"]
 
-    if type(withdrawal_amount) == str:
+    if isinstance(withdrawal_amount, str):
         if withdrawal_amount.lower() == "all":
             withdrawal_amount = "all"
         else:

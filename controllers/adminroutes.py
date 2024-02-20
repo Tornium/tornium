@@ -78,7 +78,7 @@ def load_user(tid):
             400,
         )
 
-    if user.key in (None, ""):
+    if user.key is None:
         return (
             render_template(
                 "errors/error.html",

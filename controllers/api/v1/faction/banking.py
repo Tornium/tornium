@@ -37,6 +37,9 @@ def vault_balance(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user: User = kwargs["user"]
 
+    if user.key is None:
+        return make_exception_response("1200", None)
+
     if user.faction is None:
         update_user(key=user.key, tid=user.tid)
 
@@ -93,6 +96,9 @@ def banking_request(*args, **kwargs):
     user: User = kwargs["user"]
     amount_requested = data.get("amount_requested")
 
+    if user.key is None:
+        return make_exception_response("1200", None, redis_client=client)
+
     if amount_requested is None:
         return make_exception_response("1000", key, details={"element": "amount_requested"}, redis_client=client)
     elif amount_requested <= 0:
@@ -106,8 +112,8 @@ def banking_request(*args, **kwargs):
     if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
         return make_exception_response("4292", key, redis_client=client)
     else:
-        client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
-        client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
+        client.set(f"tornium:banking-ratelimit:{user.tid}", 1, ex=60)
+        # TODO: Make this one redis call and check response
 
     amount_requested = str(amount_requested)
 

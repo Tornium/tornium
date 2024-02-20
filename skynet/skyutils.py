@@ -91,7 +91,7 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
     """
 
     if faction is not None:
-        return tuple([faction.aa_keys])
+        return tuple(faction.aa_keys)
 
     invoker: typing.Optional[User]
     try:
@@ -119,7 +119,7 @@ def get_faction_keys(interaction, faction: typing.Optional[Faction] = None) -> t
         except DoesNotExist:
             return tuple()
 
-    return tuple([faction.aa_keys])
+    return tuple(faction.aa_keys)
 
 
 def check_invoker_exists(interaction: dict):

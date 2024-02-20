@@ -228,7 +228,7 @@ def update_faction(faction_data):
 
     # Strips old faction members of their faction data
     User.update(faction=None, faction_position=None, faction_aa=False).where(
-        (User.faction.tid == faction_data["ID"]) & (User.tid.not_in(users))
+        (User.faction_id == faction_data["ID"]) & (User.tid.not_in(users))
     ).execute()
 
 

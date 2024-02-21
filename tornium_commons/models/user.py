@@ -17,7 +17,7 @@ import base64
 import hashlib
 import os
 import typing
-from functools import lru_cache
+from functools import cached_property, lru_cache
 
 from peewee import (
     BigIntegerField,
@@ -30,7 +30,6 @@ from peewee import (
     IntegerField,
     SmallIntegerField,
     TextField,
-    fn,
 )
 from playhouse.postgres_ext import ArrayField
 
@@ -38,6 +37,7 @@ from .base_model import BaseModel
 from .faction import Faction
 from .faction_position import FactionPosition
 from .personal_stats import PersonalStats
+from .torn_key import TornKey
 
 
 class User(BaseModel):
@@ -48,7 +48,6 @@ class User(BaseModel):
     tid = IntegerField(primary_key=True)
     name = CharField(max_length=15, null=True)
     level = SmallIntegerField(null=True)
-    key = CharField(max_length=16, index=True, null=True)
     discord_id = BigIntegerField(index=True, null=True)
     personal_stats = ForeignKeyField(PersonalStats, null=True)
     # Must be the lstest personal stats entry containing all the data
@@ -78,13 +77,6 @@ class User(BaseModel):
     security = SmallIntegerField(null=True)
     otp_secret = TextField(null=True)
     otp_backups = ArrayField(TextField, index=False, default=[])
-
-    @staticmethod
-    def random_key() -> typing.Optional[str]:
-        try:
-            return User.select(User.key).where(User.key != "").order_by(fn.Random()).get().key
-        except DoesNotExist:
-            return None
 
     @staticmethod
     def user_str(tid: int) -> str:
@@ -134,3 +126,33 @@ class User(BaseModel):
         self.save()
 
         return codes
+
+    @cached_property
+    def key(self) -> typing.Optional[str]:
+        def _v(k):
+            if k == "":
+                return None
+            return k
+
+        api_keys = TornKey.select(TornKey.api_key).where(
+            (TornKey.user_id == self.tid) & (TornKey.paused == False) & (TornKey.disabled == False)
+        )
+        keys_count = api_keys.count()
+
+        if keys_count == 0:
+            return None
+        elif keys_count == 1:
+            try:
+                return _v(api_keys.get().api_key)
+            except DoesNotExist:
+                return None
+
+        try:
+            return _v(api_keys.where(TornKey.default == True).get().api_key)
+        except DoesNotExist:
+            pass
+
+        try:
+            return _v(api_keys.where(TornKey.access_level << [3, 4]).get().api_key)
+        except DoesNotExist:
+            return None

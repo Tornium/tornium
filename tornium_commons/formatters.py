@@ -319,6 +319,10 @@ def discord_escaper(value: str) -> str:
     return value.replace("*", "\\*").replace("_", "\\_")
 
 
+def timestamp(dt: datetime.datetime) -> int:
+    return dt.replace(tzinfo=datetime.timezone.utc).timestamp()
+
+
 @dataclasses.dataclass
 class HumanTimeDelta:
     seconds: int = 0

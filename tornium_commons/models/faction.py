@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from functools import lru_cache
+import typing
+from functools import cached_property, lru_cache
 
 from peewee import (
     BigIntegerField,
@@ -24,13 +25,15 @@ from peewee import (
     DoesNotExist,
     IntegerField,
 )
-from playhouse.postgres_ext import ArrayField, JSONField
+from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
 from .faction_position import FactionPosition
+from .torn_key import TornKey
 
 
 class Faction(BaseModel):
+
     # Basic data
     tid = IntegerField(primary_key=True)
     name = CharField(max_length=50, null=True)
@@ -39,10 +42,6 @@ class Faction(BaseModel):
     capacity = IntegerField(null=True)
     leader = DeferredForeignKey("User", null=True)
     coleader = DeferredForeignKey("User", null=True)
-
-    # API keys
-    # TODO: Switch to key db (#188)
-    aa_keys = ArrayField(CharField, field_kwargs={"max_length": 16}, default=[])
 
     # Guild data
     guild = DeferredForeignKey("Server", null=True)  # noqa: F712
@@ -97,3 +96,21 @@ class Faction(BaseModel):
             return Faction.select(Faction.name).where(Faction.tid == tid).get().name
         except DoesNotExist:
             return "N/A"
+
+    @cached_property
+    def aa_keys(self) -> typing.List[TornKey]:
+        from .user import User
+
+        return [
+            k.api_key
+            for k in TornKey.select(TornKey.api_key)
+            .join(User)
+            .join(Faction)
+            .where(
+                (TornKey.user.faction.tid == self.tid)
+                & (TornKey.user.faction_aa == True)
+                & (TornKey.paused == False)
+                & (TornKey.disabled == False)
+            )
+            if k.api_key != ""
+        ]

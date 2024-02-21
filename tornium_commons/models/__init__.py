@@ -24,6 +24,7 @@ from .retaliation import Retaliation
 from .server import Server
 from .stat import Stat
 from .stock_tick import StockTick
+from .torn_key import TornKey
 from .user import User
 from .withdrawal import Withdrawal
 
@@ -39,6 +40,7 @@ __all__ = [
     "Server",
     "Stat",
     "StockTick",
+    "TornKey",
     "User",
     "Withdrawal",
 ]

@@ -33,7 +33,6 @@ from .torn_key import TornKey
 
 
 class Faction(BaseModel):
-
     # Basic data
     tid = IntegerField(primary_key=True)
     name = CharField(max_length=50, null=True)
@@ -107,10 +106,6 @@ class Faction(BaseModel):
             .join(User)
             .join(Faction)
             .where(
-                (TornKey.user.faction.tid == self.tid)
-                & (TornKey.user.faction_aa == True)
-                & (TornKey.paused == False)
-                & (TornKey.disabled == False)
+                (TornKey.user.faction.tid == self.tid) & (TornKey.user.faction_aa == True) & (TornKey.default == True)
             )
-            if k.api_key != ""
         ]

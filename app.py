@@ -21,7 +21,7 @@ if sys.version_info < (3, 9):
     raise RuntimeError("This package requires Python 3.9+")
 
 # fmt: off
-for module in ["ddtrace"]:
+for module in ("ddtrace",):
     try:
         globals()[f"{module}:loaded"] = importlib.util.find_spec(module) is not None
     except (ValueError, ModuleNotFoundError):
@@ -44,12 +44,14 @@ import secrets
 import time
 
 import flask
+from authlib.oauth2.rfc7636 import CodeChallenge
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, rds
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
-from tornium_commons.models import Faction
+from tornium_commons.models import Faction, OAuthClient, OAuthToken
+from tornium_commons.oauth import AuthorizationCodeGrant
 
 config = Config.from_json()
 
@@ -78,8 +80,11 @@ def init__app():
     from controllers.authroutes import mod as auth_mod
     from controllers.bot import mod as bot_mod
     from controllers.cli import mod as cli_mod
+    from controllers.developers import mod as developers_mod
     from controllers.errors import mod as error_mod
     from controllers.faction import mod as faction_mod
+    from controllers.oauth import mod as oauth_mod
+    from controllers.oauth import oauth_server
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
@@ -117,6 +122,9 @@ def init__app():
     login_manager.login_message = ""
     login_manager.message = ""
 
+    oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
+    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
+
     tornium_ext: utils.tornium_ext.TorniumExt
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
         logger.info(f"Initializing Tornium extension {tornium_ext.name}")
@@ -135,6 +143,8 @@ def init__app():
         app.register_blueprint(skynet_mod)
         app.register_blueprint(cli_mod)
         app.register_blueprint(admin_mod)
+        app.register_blueprint(oauth_mod)
+        app.register_blueprint(developers_mod)
 
     return app
 

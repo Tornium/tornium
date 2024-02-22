@@ -34,7 +34,7 @@ from controllers.api.v1.bot.config import _faction_data
 from controllers.api.v1.decorators import (
     authentication_required,
     ratelimit,
-    token_required,
+    session_required,
 )
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
@@ -78,7 +78,7 @@ def get_reports(*args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def create_report(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -220,7 +220,7 @@ def create_report(*args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def delete_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -244,7 +244,7 @@ def delete_report(rid, *args, **kwargs):
     return make_exception_response("0001", key)
 
 
-@token_required
+@session_required
 @ratelimit
 def get_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

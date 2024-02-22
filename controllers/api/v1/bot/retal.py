@@ -19,11 +19,11 @@ from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server
 
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@token_required
+@session_required
 @ratelimit
 def faction_retal_channel(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -77,7 +77,7 @@ def faction_retal_channel(*args, **kwargs):
     return jsonify(guild.retal_config), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def faction_retal_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

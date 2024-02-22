@@ -231,6 +231,9 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
+    if current_user.is_authenticated:
+        flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
+
     if globals().get("ddtrace:loaded") is None:
         try:
             import ddtrace
@@ -259,28 +262,5 @@ def after_request(response: flask.Response):
 
     # X-Frame-Options
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
-
-    if current_user.is_authenticated:
-        api_token = flask.request.cookies.get("token")
-
-        if api_token is None:
-            redis_client = rds()
-            client_token = secrets.token_urlsafe()
-
-            redis_client.set(
-                f"tornium:token:api:{client_token}",
-                f"{int(time.time())}|{current_user.tid}",
-                nx=True,
-                ex=300,
-            )
-
-            response.set_cookie(
-                "token",
-                client_token,
-                max_age=300,
-                secure=True,
-                httponly=True,
-                samesite="Strict",
-            )
 
     return response

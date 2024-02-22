@@ -17,7 +17,7 @@ from flask import jsonify
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server
 
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
@@ -98,7 +98,7 @@ def jsonified_server_config(guild: Server):
     return jsonify(data)
 
 
-@token_required
+@session_required
 @ratelimit
 def server_config(guild_id, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

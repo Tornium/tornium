@@ -19,7 +19,7 @@ from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server
 
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
@@ -36,7 +36,7 @@ def jsonified_verify_config(guild: Server):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def verification_config(guild_id, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -58,7 +58,7 @@ def verification_config(guild_id, *args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -107,7 +107,7 @@ def guild_verification(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_auto_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -156,7 +156,7 @@ def guild_auto_verification(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -186,7 +186,7 @@ def guild_verification_log(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_verification_template(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -216,7 +216,7 @@ def guild_verification_template(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -275,7 +275,7 @@ def faction_verification(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -309,7 +309,7 @@ def guild_verification_roles(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def guild_exclusion_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -343,7 +343,7 @@ def guild_exclusion_roles(*args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def faction_roles(faction_tid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -375,7 +375,7 @@ def faction_roles(faction_tid, *args, **kwargs):
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

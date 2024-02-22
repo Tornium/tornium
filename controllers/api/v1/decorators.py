@@ -21,7 +21,8 @@ from functools import partial, wraps
 
 import msgpack
 import redis
-from flask import Response, jsonify, request
+from flask import Response, jsonify, request, session
+from flask_login import current_user
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.models import TornKey, User
@@ -88,34 +89,21 @@ def torn_key_required(func):
     return wrapper
 
 
-def token_required(func):
+def session_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        authorization = request.cookies.get("token")
 
-        if authorization in (None, ""):
+        if not current_user.is_authenticated:
             return make_exception_response("4001")
 
-        redis_client = rds()
-        redis_token = redis_client.get(f"tornium:token:api:{authorization}")
+        csrf_token = request.headers.get("X-CSRF-Token") or request.headers.get("CSRF-Token")
 
-        try:
-            # Token is too old
-            if int(time.time()) - 300 > int(redis_token.split("|")[0]):
-                return make_exception_response("4001")
+        if csrf_token != session.get("csrf_token"):
+            return make_exception_response("4002")
 
-            tid = int(redis_token.split("|")[1])
-        except (TypeError, AttributeError):
-            return make_exception_response("4001")
-
-        try:
-            user: User = User.get_by_id(tid)
-        except DoesNotExist:
-            return make_exception_response("4001")
-
-        kwargs["user"] = user
-        kwargs["key"] = user.key
+        kwargs["user"] = current_user
+        kwargs["key"] = current_user.key
         kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
@@ -127,31 +115,18 @@ def authentication_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        token_authorization = request.cookies.get("token")
 
-        if request.headers.get("Authorization") is None and token_authorization is None:
+        if request.headers.get("Authorization") is None and not current_user.is_authenticated:
             return make_exception_response("4001")
 
-        if token_authorization is not None:
-            redis_client = rds()
-            redis_token = redis_client.get(f"tornium:token:api:{token_authorization}")
+        if current_user.is_authenticated:
+            csrf_token = request.headers.get("X-CSRF-Token") or request.headers.get("CSRF-Token")
 
-            try:
-                # Token is too old
-                if int(time.time()) - 300 > int(redis_token.split("|")[0]):
-                    return make_exception_response("4001")
+            if csrf_token != session.get("csrf_token"):
+                return make_exception_response("4002")
 
-                tid = int(redis_token.split("|")[1])
-            except TypeError:
-                return make_exception_response("4001")
-
-            try:
-                user: User = User.get_by_id(tid)
-            except DoesNotExist:
-                return make_exception_response("4001")
-
-            kwargs["user"] = user
-            kwargs["key"] = user.key
+            kwargs["user"] = current_user
+            kwargs["key"] = current_user.key
             kwargs["start_time"] = start_time
 
             return func(*args, **kwargs)

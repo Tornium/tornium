@@ -13,17 +13,18 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-function generateToast(title, message, type = "Info", options={}) {
+function generateToast(title, message, type = "Info", options = {}) {
     let icon;
-    const toastContainer = document.getElementById('toast-container');
+    const toastContainer = document.getElementById("toast-container");
+    type = type.toLowerCase();
 
-    if(type === "Info") {
+    if (type === "info") {
         icon = '<i class="fas fa-info-circle"></i>';
-    } else if(type === "Warning") {
+    } else if (type === "warning") {
         icon = '<i class="fas fa-exclamation-circle"></i>';
-    } else if(type === "Error") {
+    } else if (type === "error") {
         icon = '<i class="fas fa-times-circle"></i>';
-    } else if(type === "Debug") {
+    } else if (type === "debug") {
         icon = '<i class="fas fa-bug"></i>';
     }
 
@@ -40,10 +41,10 @@ function generateToast(title, message, type = "Info", options={}) {
     </div>
     `;
 
-    toastContainer.insertAdjacentHTML('beforeend', template);
-    const toasts = document.getElementById('toast-container').getElementsByClassName('toast');
+    toastContainer.insertAdjacentHTML("beforeend", template);
+    const toasts = document.getElementById("toast-container").getElementsByClassName("toast");
     const toastElement = toasts[toasts.length - 1];
     const toast = new bootstrap.Toast(toastElement, options);
-    toast.show()
-    return toast
+    toast.show();
+    return toast;
 }

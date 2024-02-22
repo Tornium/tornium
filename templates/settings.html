@@ -137,6 +137,38 @@ Tornium - Settings
     </div>
 </div>
 
+<div class="card mx-3 my-3">
+    <div class="card-body">
+        <h5 class="card-title">Authorized Applications</h5>
+        <p class="card-text">
+            You have granted {{ tokens|count }} application(s) to your Tornium account. 
+        </p>
+
+        <ul class="list-group list-group-flush">
+            {% for token in tokens %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="ms-2 me-auto">
+                    <div class="fw-bold align-middle">
+                        {{ token.client.client_name }}
+                        
+                        {% if token.client.official %}
+                        <div class="btn btn-sm btn-outline-success">Official</div>
+                        {% endif %}
+
+                        {% if token.client.verified %}
+                        <div class="btn btn-sm btn-outline-success">Verified</div>
+                        {% else %}
+                        <div class="btn btn-sm btn-outline-warning">Unverified</div>
+                        {% endif %}
+                    </div>
+                    Created by: {{ token.client.user.user_str_self() }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
 <div class="modal fade" id="settings-modal" tabindex="-1" aria-labelledby="settings-modal" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">

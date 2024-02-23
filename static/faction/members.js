@@ -13,21 +13,27 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function() {
+$(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
-        html: true
+        html: true,
     });
 
-    $('#members-table').DataTable({
-        "paging": true,
-        "ordering": true,
-        "responsive": false,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "displayLength": 25,
-        "order": [[2, "desc"], [1, "desc"]],
-        "columnDefs": [{orderable: false, targets: 0}],
-        "scrollX": true
-    })
+    $("#members-table").DataTable({
+        paging: true,
+        ordering: true,
+        responsive: false,
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"],
+        ],
+        displayLength: 25,
+        order: [
+            [2, "desc"],
+            [1, "desc"],
+        ],
+        columnDefs: [{ orderable: false, targets: 0 }],
+        scrollX: true,
+    });
 
     $.fn.dataTable.ext.pager.numbers_length = 5;
 });

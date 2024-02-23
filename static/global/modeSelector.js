@@ -5,31 +5,31 @@
  */
 
 (() => {
-    'use strict';
+    "use strict";
 
-    const storedTheme = localStorage.getItem('theme');
+    const storedTheme = localStorage.getItem("theme");
 
     const getPreferredTheme = function () {
         if (storedTheme) {
             return storedTheme;
         }
 
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'custom-dark' : 'light';
-    }
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "custom-dark" : "light";
+    };
 
     const setTheme = function (theme) {
-        if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-bs-theme', 'custom-dark');
+        if (theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.documentElement.setAttribute("data-bs-theme", "custom-dark");
         } else {
-            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.documentElement.setAttribute("data-bs-theme", theme);
         }
-    }
+    };
 
     setTheme(getPreferredTheme());
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (storedTheme !== 'light' || storedTheme !== 'custom-dark') {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        if (storedTheme !== "light" || storedTheme !== "custom-dark") {
             setTheme(getPreferredTheme());
         }
     });
-})()
+})();

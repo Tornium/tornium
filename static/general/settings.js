@@ -255,30 +255,11 @@ $(document).ready(function () {
     });
 
     function addNewKey() {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "API Key Input Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-                return;
+        tfetch("POST", "key", { body: { key: $("#api-key-input").val() }, errorTitle: "API Key Add Failed" }).then(
+            () => {
+                generateToast("API Key Input Successful", "The Tornium API server has successfully set your API key.");
+                window.location.reload();
             }
-
-            generateToast("API Key Input Successful", "The Tornium API server has successfully set your API key.");
-            window.location.reload();
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/key");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                key: $("#api-key-input").val(),
-            })
         );
     }
 
@@ -290,71 +271,27 @@ $(document).ready(function () {
     $("#submit-new-key").on("click", addNewKey);
 
     $(".disable-key").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast();
-                return;
-            }
-
+        tfetch("PATCH", `key/${$(this).attr("data-key-guid")}`, {
+            body: { disabled: true },
+            errorTitle: "API Key Disable Failed",
+        }).then(() => {
             window.location.reload();
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("PATCH", `/api/v1/key/${$(this).attr("data-key-guid")}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                disabled: true,
-            })
-        );
+        });
     });
 
     $(".enable-key").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast();
-                return;
-            }
-
+        tfetch("PATCH", `key/${$(this).attr("data-key-guid")}`, {
+            body: { disabled: false },
+            errorTitle: "API Key Enable Failed",
+        }).then(() => {
             window.location.reload();
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("PATCH", `/api/v1/key/${$(this).attr("data-key-guid")}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                disabled: false,
-            })
-        );
+        });
     });
 
     $(".delete-key").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast();
-                return;
-            }
-
-            generateToast();
+        tfetch("DELETE", `key/${$(this).attr("data-key-guid")}`, { errorTitle: "API Key Delete Failed" }).then(() => {
+            generateToast("API Key Delete Successful");
             $(this).closest(".key-parent").remove();
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("DELETE", `/api/v1/key/${$(this).attr("data-key-guid")}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send();
+        });
     });
 });

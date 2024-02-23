@@ -13,101 +13,70 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-var serverConfig = null;
-
 $(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
     });
 
-    let xhttp = new XMLHttpRequest();
+    let configPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Failed to Load Server Config" });
+    let rolesPromise = rolesRequest();
+    let channelsPromise = channelsRequest();
 
-    xhttp.onload = function () {
-        let response = xhttp.response;
+    Promise.all([configPromise, rolesPromise])
+        .then((response) => {
+            let serverConfig = response[0];
 
-        if ("code" in response) {
-            generateToast("Discord Config Not Located", response["message"]);
-            generateToast(
-                "Verification Loading Halted",
-                "The lack of verification configs has prevented the page from loading."
-            );
-            throw new Error("Verification config error");
-        }
+            $.each(serverConfig.verify.verified_roles, function (index, role) {
+                let option = $(`#verification-roles option[value="${role}"]`);
 
-        serverConfig = response;
-
-        rolesRequest()
-            .then(function () {
-                $.each(serverConfig["verify"]["verified_roles"], function (index, role) {
-                    let option = $(`#verification-roles option[value="${role}"]`);
-
-                    if (option.length === 0) {
-                        return;
-                    }
-
-                    option.attr("selected", "");
-                });
-
-                $.each(serverConfig["verify"]["exclusion_roles"], function (index, role) {
-                    let option = $(`#exclusion-roles option[value="${role}"]`);
-
-                    if (option.length === 0) {
-                        return;
-                    }
-
-                    option.attr("selected", "");
-                });
-
-                $.each(serverConfig["verify"]["faction_verify"], function (factionid, factionConfig) {
-                    $.each(factionConfig["roles"], function (index, role) {
-                        let option = $(
-                            `.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`
-                        );
-
-                        if (option.length === 0) {
-                            return;
-                        }
-
-                        option.attr("selected", "");
-                    });
-                });
-            })
-            .finally(function () {
-                $(".discord-role-selector").selectpicker();
-            });
-
-        channelsRequest()
-            .then(function () {
-                let logChannel = $(
-                    `#verification-log-channel option[value="${serverConfig["verify"]["log_channel"]}"]`
-                );
-
-                if (logChannel.length !== 0) {
-                    logChannel.attr("selected", "");
+                if (option.length === 0) {
+                    return;
                 }
-            })
-            .finally(function () {
-                $(".discord-channel-selector").selectpicker();
-            });
-    };
 
-    xhttp.responseType = "json";
-    xhttp.open("GET", `/api/v1/bot/server/${guildid}`);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send();
+                option.attr("selected", "");
+            });
+
+            $.each(serverConfig.verify.exclusion_roles, function (index, role) {
+                let option = $(`#exclusion-roles option[value="${role}"]`);
+
+                if (option.length === 0) {
+                    return;
+                }
+
+                option.attr("selected", "");
+            });
+
+            $.each(serverConfig.verify.faction_verify, function (factionid, factionConfig) {
+                $.each(factionConfig["roles"], function (index, role) {
+                    let option = $(`.verification-faction-roles[data-faction="${factionid}"] option[value="${role}"]`);
+
+                    if (option.length === 0) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+            });
+        })
+        .finally(function () {
+            $(".discord-role-selector").selectpicker();
+        });
+
+    Promise.all([configPromise, channelsPromise])
+        .then((response) => {
+            let logChannel = $(`#verification-log-channel option[value="${serverConfig.verify.log_channel}"]`);
+
+            if (logChannel.length !== 0) {
+                logChannel.attr("selected", "");
+            }
+        })
+        .finally(function () {
+            $(".discord-channel-selector").selectpicker();
+        });
 
     $("#verification-config-enable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Verification Enable Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
+        tfetch("POST", "bot/verify", { body: { guildid: guildid }, errorTitle: "Verification Enable Failed" }).then(
+            (response) => {
                 generateToast(
                     "Verification Enable Successful",
                     "The Tornium API server has been successfully enabled."
@@ -115,137 +84,58 @@ $(document).ready(function () {
                 $("#verification-config-enable").prop("disabled", true);
                 $("#verification-config-disable").prop("disabled", false);
             }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-            })
         );
     });
 
     $("#verification-config-disable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
+        tfetch("DELETE", "bot/verify", { body: { guildid: guildid }, errorTitle: "Verification Disable Failed" }).then(
+            (response) => {
                 generateToast(
-                    "Verification Enable Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast(
-                    "Verification Enable Successful",
+                    "Verification Disable Successful",
                     "The Tornium API server has been successfully enabled."
                 );
                 $("#verification-config-enable").prop("disabled", false);
                 $("#verification-config-disable").prop("disabled", true);
             }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/v1/bot/verify");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-            })
         );
     });
 
     $("#auto-verification-config-enable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Auto Verification Enable Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast(
-                    "Auto Verification Enable Successful",
-                    "The Tornium API server has been successfully enabled."
-                );
-                $("#auto-verification-config-enable").prop("disabled", true);
-                $("#auto-verification-config-disable").prop("disabled", false);
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/auto");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-            })
-        );
+        tfetch("POST", "bot/verify/auto", {
+            body: { guildid: guildid },
+            errorTitle: "Auto Verificable Enable Failed",
+        }).then((response) => {
+            generateToast(
+                "Auto Verification Enable Successful",
+                "The Tornium API server has been successfully enabled."
+            );
+            $("#auto-verification-config-enable").prop("disabled", true);
+            $("#auto-verification-config-disable").prop("disabled", false);
+        });
     });
 
     $("#auto-verification-config-disable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Auto Verification Enable Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast(
-                    "Auto Verification Enable Successful",
-                    "The Tornium API server has been successfully enabled."
-                );
-                $("#auto-verification-config-enable").prop("disabled", false);
-                $("#auto-verification-config-disable").prop("disabled", true);
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/v1/bot/verify/auto");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-            })
-        );
+        tfetch("DELETE", "bot/verify/auto", {
+            body: { guildid: guildid },
+            errorTitle: "Auto Verification Disable Failed",
+        }).then((response) => {
+            generateToast(
+                "Auto Verification Diable Successful",
+                "The Tornium API server has been successfully enabled."
+            );
+            $("#auto-verification-config-enable").prop("disabled", false);
+            $("#auto-verification-config-disable").prop("disabled", true);
+        });
     });
 
     function addFactionVerify() {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Faction Input Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast("Faction Input Successful");
-                window.location.reload(); // TODO: Replace with dynamically adding code
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/faction");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                factiontid: $("#faction-verification-input").val(),
-            })
-        );
+        tfetch("POST", "bot/verify/faction", {
+            body: { guildid: guildid, factiontid: $("#faction-verification-input").val() },
+            errorTitle: "Verification Faction Set Failed",
+        }).then((response) => {
+            generateToast("Verification Faction Set Successful");
+            window.location.reload(); // TODO: Replace with dynamically adding code
+        });
     }
 
     $("#faction-verification-input").on("keypress", function (e) {
@@ -256,30 +146,12 @@ $(document).ready(function () {
     $("#faction-verification-submit").on("click", addFactionVerify);
 
     $("#verification-log-channel").on("change", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Log Channel Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast("Log Channel Successful");
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/log");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                channel: this.options[this.selectedIndex].value,
-            })
-        );
+        tfetch("POST", "bot/verify/log", {
+            body: { guildid: guildid, channel: this.options[this.selectedIndex].value },
+            errorTitle: "Verification Log Channel Set Failed",
+        }).then(() => {
+            generateToast("Verification Log Channel Set Successful");
+        });
     });
 
     $("#verification-name-template").on("keypress", function (e) {
@@ -287,103 +159,42 @@ $(document).ready(function () {
             return;
         }
 
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast(
-                    "Verification Template Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\".`
-                );
-            } else {
-                generateToast("Verification Template Successful");
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/template");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                template: $("#verification-name-template").val(),
-            })
-        );
+        tfetch("POST", "bot/verify/template", {
+            body: { guildid: guildid, template: $("#verification-name-template").val() },
+            errorTitle: "Verification Template Set Failed",
+        }).then(() => {
+            generateToast("Verification Template Set Successful");
+        });
     });
 
     $(".verification-faction-enable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-            } else {
-                generateToast("Faction Enabled Successfully");
-                window.location.reload();
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/faction");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                factiontid: this.getAttribute("data-faction"),
-            })
-        );
+        tfetch("POST", "bot/verify/faction", {
+            body: { guildid: guildid, factiontid: this.getAttribute("data-faction") },
+            errorTitle: "Faction Verification Enable Failed",
+        }).then(() => {
+            generateToast("Faction Verification Enable Successful");
+            window.location.reload();
+        });
     });
 
     $(".verification-faction-disable").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-            } else {
-                generateToast("Faction Disabled Successfully");
-                window.location.reload();
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/v1/bot/verify/faction");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                factiontid: this.getAttribute("data-faction"),
-            })
-        );
+        tfetch("DELETE", "bot/verify/faction", {
+            body: { guildid: guildid, factiontid: this.getAttribute("data-faction") },
+            errorTitle: "Faction Verification Disable Failed",
+        }).then(() => {
+            generateToast("Faction Verification Disable Successful");
+            window.location.reload();
+        });
     });
 
     $(".verification-faction-remove").on("click", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-            } else {
-                generateToast("Faction Removed Successfully");
-                window.location.reload();
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("DELETE", "/api/v1/bot/verify/faction");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                factiontid: this.getAttribute("data-faction"),
-                remove: true,
-            })
-        );
+        tfetch("DELETE", "bot/verify/faction", {
+            body: { guildid: guildid, factiontid: this.getAttribute("data-faction"), remove: true },
+            errorTitle: "Faction Verification Removal Failed",
+        }).then(() => {
+            generateToast("Faction Verification Removal Successful");
+            window.location.reload();
+        });
     });
 
     $(".verification-faction-roles").on("change", function () {
@@ -394,27 +205,12 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast("Role Add Failed");
-            } else {
-                generateToast("Role Add Successful");
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", `/api/v1/bot/verify/faction/${this.getAttribute("data-faction")}/roles`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                roles: selectedRoles,
-            })
-        );
+        tfetch("POST", `bot/verify/faction/${this.getAttribute("data-faction")}/roles`, {
+            body: { guildid: guildid, roles: selectedRoles },
+            errorTitle: "Faction Verification Role Set Failed",
+        }).then(() => {
+            generateToast("Faction Verification Role Set Successful");
+        });
     });
 
     $("#verification-roles").on("change", function () {
@@ -425,27 +221,12 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast("Role Add Failed");
-            } else {
-                generateToast("Role Add Successful");
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/roles");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                roles: selectedRoles,
-            })
-        );
+        tfetch("POST", "bot/verify/roles", {
+            body: { guildid: guildid, roles: selectedRoles },
+            errorTitle: "Verification Role Add Failed",
+        }).then(() => {
+            generateToast("Verification Role Add Successful");
+        });
     });
 
     $("#exclusion-roles").on("change", function () {
@@ -456,27 +237,12 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast("Role Add Failed");
-            } else {
-                generateToast("Role Add Successful");
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/bot/verify/exclusion");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                guildid: guildid,
-                roles: selectedRoles,
-            })
-        );
+        tfetch("POST", "bot/verify/exclusion", {
+            body: { guildid: guildid, roles: selectedRoles },
+            errorTitle: "Verification Exlcusion Role Add Failed",
+        }).then(() => {
+            generateToast("Verification Exclusion Role Add Successful");
+        });
     });
 
     $(".verification-faction-edit").on("click", function () {
@@ -486,18 +252,12 @@ $(document).ready(function () {
             $("#verify-settings-modal").remove();
         }
 
-        const xhttp = new XMLHttpRequest();
         const factionID = this.getAttribute("data-faction");
 
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast("Position Load Failed", response["message"]);
-                return;
-            }
-
-            $.each(response["positions"], function (index, position) {
+        tfetch("GET", `faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`, {
+            errorTitle: "Position Load Failed",
+        }).then((response) => {
+            $.each(response.positions, function (index, position) {
                 if (index % 2 == 0) {
                     $("#verify-settings-modal-body").append(
                         $("<div>", {
@@ -568,42 +328,16 @@ $(document).ready(function () {
                     selectedRoles.push(item.getAttribute("value"));
                 });
 
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("Role Add Failed");
-                    } else {
-                        generateToast("Role Add Successful");
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/verify/faction/${factionID}/position/${this.getAttribute("data-position")}`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        guildid: guildid,
-                        roles: selectedRoles,
-                    })
-                );
+                tfetch("POST", `bot/verify/faction/${factionID}/position/${this.getAttribute("data-position")}`, {
+                    body: { guildid: guildid, roles: selectedRoles },
+                    errorTitle: "Faction Position Role Add Failed",
+                }).then(() => {
+                    generateToast("Faction Position Role Add Successful");
+                });
             });
 
             $(".discord-role-selector").selectpicker();
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open(
-            "GET",
-            `/api/v1/faction/positions?guildid=${guildid}&factiontid=${this.getAttribute("data-faction")}`
-        );
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send();
+        });
 
         $("body").append(
             $("<div>", {

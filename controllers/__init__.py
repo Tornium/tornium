@@ -71,7 +71,6 @@ def settings(*args, **kwargs):
     )
 
 
-@mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
 @mod.route("/static/logo.svg")
 @mod.route("/static/utils.js")
@@ -86,6 +85,11 @@ def settings(*args, **kwargs):
 @mod.route("/static/faction/crimes.js")
 @mod.route("/static/faction/members.js")
 @mod.route("/static/fonts/JetBrainsMono-Light.woff2")
+@mod.route("/static/global/api.js")
+@mod.route("/static/global/discord.js")
+@mod.route("/static/global/items.js")
+@mod.route("/static/global/modeSelector.js")
+@mod.route("/static/global/utils.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

@@ -59,176 +59,162 @@ function generateViewer() {
         urlParams.set("offset", startCount);
     }
 
-    const xhttp = new XMLHttpRequest();
+    tfetch("GET", urlParams.size === 0 ? "faction/crimes" : "faction/crimes?" + urlParams.toString(), {
+        errorTitle: "Faction OC Data Load Failed",
+    })
+        .then((response) => {
+            if (response.crimes.length === 0) {
+                statusSpan.text("No data available...");
+                return;
+            }
 
-    xhttp.onload = function () {
-        let response = xhttp.response;
+            statusSpan.text("Rendering...");
 
-        if ("code" in response) {
-            generateToast(
-                "Data Load Failed",
-                `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`
-            );
-            statusSpan.text("Failed to load");
-            return;
-        } else if (response.crimes.length === 0) {
-            statusSpan.text("No data available...");
-            return;
-        }
+            let dataContainer = $("#oc-viewer-data");
+            dataContainer.addClass("d-none");
+            dataContainer.empty();
 
-        statusSpan.text("Rendering...");
+            $.each(response.crimes, function (index, crime) {
+                console.log(crime);
 
-        let dataContainer = $("#oc-viewer-data");
-        dataContainer.addClass("d-none");
-        dataContainer.empty();
+                let participantsElement = $("<ul>", {
+                    class: "list-group list-group-flush",
+                });
+                $.each(crime.participants, function (index, participant) {
+                    let participantText = `${participant.name} [${participant.id}]`;
 
-        $.each(response.crimes, function (index, crime) {
-            console.log(crime);
+                    if (crime.delayers.includes(participant.id)) {
+                        participantText += " - Delayer";
+                    }
 
-            let participantsElement = $("<ul>", {
-                class: "list-group list-group-flush",
-            });
-            $.each(crime.participants, function (index, participant) {
-                let participantText = `${participant.name} [${participant.id}]`;
+                    participantsElement.append(
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: participantText,
+                        })
+                    );
+                });
 
-                if (crime.delayers.includes(participant.id)) {
-                    participantText += " - Delayer";
+                let outcomeElement = $("<ul>", {
+                    class: "list-group list-group-flush",
+                });
+
+                if (crime.money_gain !== null && crime.money_gain > 0) {
+                    outcomeElement.append([
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: "Status: Success",
+                        }),
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: `Money Gain: \$${commas(crime.money_gain)}`,
+                        }),
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: `Respect Gain: ${commas(crime.respect_gain)}`,
+                        }),
+                    ]);
+                } else if (crime.canceled) {
+                    outcomeElement.append([
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: "Status: Canceled",
+                        }),
+                    ]);
+                } else if (crime.time_ready >= Date.now() / 1000) {
+                    outcomeElement.append([
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: "Status: In-Progress",
+                        }),
+                    ]);
+                } else if (crime.time_completed !== null) {
+                    outcomeElement.append([
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: "Status: Failure",
+                        }),
+                    ]);
+                } else {
+                    outcomeElement.append([
+                        $("<li>", {
+                            class: "list-group-item",
+                            text: "Status: Unknown",
+                        }),
+                    ]);
                 }
 
-                participantsElement.append(
+                let bodyElement = $("<div>", {
+                    class: "accordion-body row",
+                }).append(
+                    $("<div>", {
+                        class: "card col-md-6 col-lg-3 mx-2",
+                    }).append([
+                        $("<div>", {
+                            class: "card-header fw-bold",
+                            text: "Participants",
+                        }),
+                        participantsElement,
+                    ]),
+                    $("<div>", {
+                        class: "card col-md-6 col-lg-3 mx-2",
+                    }).append([
+                        $("<div>", {
+                            class: "card-header fw-bold",
+                            text: "Outcome",
+                        }),
+                        outcomeElement,
+                    ])
+                );
+
+                let crimeHeader = crime.crime_type;
+
+                if (crime.canceled) {
+                    crimeHeader += " - Canceled";
+                } else if (crime.delayers.length > 0) {
+                    crimeHeader += " - Delayed";
+                }
+
+                if (crime.time_completed !== null && crime.money_gain != null && crime.money_gain > 0) {
+                    crimeHeader += " - Success";
+                } else if (crime.time_ready >= Date.now() / 1000) {
+                    crimeHeader += " - In-Progress";
+                } else if (crime.time_completed !== null) {
+                    crimeHeader += " - Failure";
+                }
+
+                dataContainer.append(
                     $("<li>", {
-                        class: "list-group-item",
-                        text: participantText,
-                    })
+                        class: "list-group-item accordion-item",
+                    }).append([
+                        $("<h6>", {
+                            class: "accordion-header",
+                        }).append(
+                            $("<button>", {
+                                class: "accordion-button collapsed",
+                                type: "button",
+                                text: crimeHeader,
+                                "data-bs-toggle": "collapse",
+                                "data-bs-target": `#oc-data-${crime.id}`,
+                                "aria-expanded": false,
+                                "aria-controls": `oc-data-${crime.id}`,
+                            })
+                        ),
+                        $("<div>", {
+                            id: `oc-data-${crime.id}`,
+                            class: "accordion-collapse collapse",
+                            "data-bs-parent": "#oc-viewer-data",
+                        }).append(bodyElement),
+                    ])
                 );
             });
 
-            let outcomeElement = $("<ul>", {
-                class: "list-group list-group-flush",
-            });
-
-            if (crime.money_gain !== null && crime.money_gain > 0) {
-                outcomeElement.append([
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: "Status: Success",
-                    }),
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: `Money Gain: \$${commas(crime.money_gain)}`,
-                    }),
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: `Respect Gain: ${commas(crime.respect_gain)}`,
-                    }),
-                ]);
-            } else if (crime.canceled) {
-                outcomeElement.append([
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: "Status: Canceled",
-                    }),
-                ]);
-            } else if (crime.time_ready >= Date.now() / 1000) {
-                outcomeElement.append([
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: "Status: In-Progress",
-                    }),
-                ]);
-            } else if (crime.time_completed !== null) {
-                outcomeElement.append([
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: "Status: Failure",
-                    }),
-                ]);
-            } else {
-                outcomeElement.append([
-                    $("<li>", {
-                        class: "list-group-item",
-                        text: "Status: Unknown",
-                    }),
-                ]);
-            }
-
-            let bodyElement = $("<div>", {
-                class: "accordion-body row",
-            }).append(
-                $("<div>", {
-                    class: "card col-md-6 col-lg-3 mx-2",
-                }).append([
-                    $("<div>", {
-                        class: "card-header fw-bold",
-                        text: "Participants",
-                    }),
-                    participantsElement,
-                ]),
-                $("<div>", {
-                    class: "card col-md-6 col-lg-3 mx-2",
-                }).append([
-                    $("<div>", {
-                        class: "card-header fw-bold",
-                        text: "Outcome",
-                    }),
-                    outcomeElement,
-                ])
-            );
-
-            let crimeHeader = crime.crime_type;
-
-            if (crime.canceled) {
-                crimeHeader += " - Canceled";
-            } else if (crime.delayers.length > 0) {
-                crimeHeader += " - Delayed";
-            }
-
-            if (crime.time_completed !== null && crime.money_gain != null && crime.money_gain > 0) {
-                crimeHeader += " - Success";
-            } else if (crime.time_ready >= Date.now() / 1000) {
-                crimeHeader += " - In-Progress";
-            } else if (crime.time_completed !== null) {
-                crimeHeader += " - Failure";
-            }
-
-            dataContainer.append(
-                $("<li>", {
-                    class: "list-group-item accordion-item",
-                }).append([
-                    $("<h6>", {
-                        class: "accordion-header",
-                    }).append(
-                        $("<button>", {
-                            class: "accordion-button collapsed",
-                            type: "button",
-                            text: crimeHeader,
-                            "data-bs-toggle": "collapse",
-                            "data-bs-target": `#oc-data-${crime.id}`,
-                            "aria-expanded": false,
-                            "aria-controls": `oc-data-${crime.id}`,
-                        })
-                    ),
-                    $("<div>", {
-                        id: `oc-data-${crime.id}`,
-                        class: "accordion-collapse collapse",
-                        "data-bs-parent": "#oc-viewer-data",
-                    }).append(bodyElement),
-                ])
-            );
+            dataContainer.removeClass("d-none");
+            statusText.addClass("d-none");
+        })
+        .catch((err) => {
+            statusSpan.text("Failed to load");
         });
-
-        dataContainer.removeClass("d-none");
-        statusText.addClass("d-none");
-    };
-
-    xhttp.responseType = "json";
-    if (urlParams.size == 0) {
-        xhttp.open("GET", "/api/v1/faction/crimes");
-    } else {
-        xhttp.open("GET", "/api/v1/faction/crimes?" + urlParams.toString());
-    }
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send();
 }
 
 $(document).ready(function () {

@@ -21,26 +21,9 @@ let benefitsSorted = [];
 let benefitsPage = 0;
 let benefitsLoaded = false;
 
-const stocksQuery = async function () {
-    return fetch("/api/v1/stocks", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-};
-
-const moversQuery = async function () {
-    return fetch("/api/v1/stocks/movers", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-};
-
-const benefitsQuery = async function () {
-    return fetch("/api/v1/stocks/benefits", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-};
+const stocksQuery = tfetch("GET", "stocks", { errorTitle: "Failed to Load Stocks" });
+const moversQuery = tfetch("GET", "stocks/movers", { errorTitle: "Failed to Load Stock Movers" });
+const benefitsQuery = tfetch("GET", "stocks/benefits", { errorTitle: "Failed to Load Stock Benefits" });
 
 function renderStocksBenefitsPage() {
     if (!benefitsLoaded) {
@@ -112,83 +95,22 @@ function renderStocksBenefitsPage() {
 }
 
 $(document).ready(async function () {
-    await Promise.all([await stocksQuery(), await benefitsQuery()])
-        .then(async (response) => {
-            STOCKS_DATA = await response[0].json();
-            BENEFITS_DATA = await response[1].json();
-        })
-        .then(() => {
-            if ("code" in STOCKS_DATA) {
-                generateToast(
-                    "Stock Data Load Failed",
-                    `The Tornium API server has responded with \"${STOCKS_DATA["message"]}\" to the submitted request.`
-                );
-                $("[id^=passive-] .card-header")
-                    .empty()
-                    .removeClass("placeholder")
-                    .append([
-                        $("<i>", {
-                            class: "fa-solid fa-circle-exclamation",
-                            style: "color: #C83F49",
-                        }),
-                        $("<span>", {
-                            class: "ps-2",
-                            text: "Data failed to load.",
-                        }),
-                    ]);
-                $(".mover-data")
-                    .empty()
-                    .append(
-                        $("<li>", {
-                            class: "list-group-item",
-                        }).append([
-                            $("<i>", {
-                                class: "fa-solid fa-circle-exclamation",
-                                style: "color: #C83F49",
-                            }),
-                            $("<span>", {
-                                class: "ps-2",
-                                text: "Data failed to load.",
-                            }),
-                        ])
-                    );
-                $("[id^=passive-] .card-text").hide();
-                return { then: function () {} };
-            } else if ("code" in BENEFITS_DATA) {
-                generateToast(
-                    "Stock Movers Load Failed",
-                    `The Tornium API server has responded with \"${BENEFITS_DATA["message"]}\" to the submitted request.`
-                );
-                $("[id^=passive-] .card-header")
-                    .empty()
-                    .removeClass("placeholder")
-                    .append([
-                        $("<i>", {
-                            class: "fa-solid fa-circle-exclamation",
-                            style: "color: #C83F49",
-                        }),
-                        $("<span>", {
-                            class: "ps-2",
-                            text: "Data failed to load.",
-                        }),
-                    ]);
-                $("[id^=passive-] .card-text").hide();
-                throw undefined;
-            }
-        })
-        .then(() => {
-            BENEFITS_DATA["active"].forEach(function (stockBenefit) {
+    Promise.all([stocksQuery, benefitsQuery])
+        .then((response) => {
+            let stocksData = response[0];
+            let benefitsData = response[1];
+
+            benefitsData.active.forEach(function (stockBenefit) {
                 for (let i = 1; i < 4; i++) {
-                    let cost =
-                        i * stockBenefit["benefit"]["requirement"] * STOCKS_DATA[stockBenefit["stock_id"]]["price"];
+                    let cost = i * stockBenefit.benefit.requirement * STOCKS_DATA[stockBenefit.stock_id]["price"];
                     benefitsSorted.push({
-                        stock_id: stockBenefit["stock_id"],
-                        value: stockBenefit["benefit"]["value"],
-                        description: stockBenefit["benefit"]["description"],
-                        frequency: stockBenefit["benefit"]["frequency"],
+                        stock_id: stockBenefit.stock_id,
+                        value: stockBenefit.benefit.value,
+                        description: stockBenefit.benefit.description,
+                        frequency: stockBenefit.benefit.frequency,
                         cost: cost,
                         bb_n: i,
-                        daily_roi: stockBenefit["benefit"]["value"] / stockBenefit["benefit"]["frequency"] / cost,
+                        daily_roi: stockBenefit.benefit.value / stockBenefit.benefit.frequency / cost,
                     });
                 }
             });
@@ -198,61 +120,29 @@ $(document).ready(async function () {
             });
             benefitsLoaded = true;
             renderStocksBenefitsPage();
+        })
+        .catch((err) => {
+            $("[id^=passive-] .card-header")
+                .empty()
+                .removeClass("placeholder")
+                .append([
+                    $("<i>", {
+                        class: "fa-solid fa-circle-exclamation",
+                        style: "color: #C83F49",
+                    }),
+                    $("<span>", {
+                        class: "ps-2",
+                        text: "Data failed to load.",
+                    }),
+                ]);
+            $("[id^=passive-] .card-text").hide();
         });
 
-    await Promise.all([await stocksQuery(), await moversQuery()])
-        .then(async (response) => {
-            STOCKS_DATA = await response[0].json();
-            MOVERS_DATA = await response[1].json();
-        })
-        .then(() => {
-            if ("code" in STOCKS_DATA) {
-                generateToast(
-                    "Stock Data Load Failed",
-                    `The Tornium API server has responded with \"${STOCKS_DATA["message"]}\" to the submitted request.`
-                );
-                $(".mover-data")
-                    .empty()
-                    .append(
-                        $("<li>", {
-                            class: "list-group-item",
-                        }).append([
-                            $("<i>", {
-                                class: "fa-solid fa-circle-exclamation",
-                                style: "color: #C83F49",
-                            }),
-                            $("<span>", {
-                                class: "ps-2",
-                                text: "Data failed to load.",
-                            }),
-                        ])
-                    );
-                throw undefined;
-            } else if ("code" in MOVERS_DATA) {
-                generateToast(
-                    "Stock Movers Load Failed",
-                    `The Tornium API server has responded with \"${MOVERS_DATA["message"]}\" to the submitted request.`
-                );
-                $(".mover-data")
-                    .empty()
-                    .append(
-                        $("<li>", {
-                            class: "list-group-item",
-                        }).append([
-                            $("<i>", {
-                                class: "fa-solid fa-circle-exclamation",
-                                style: "color: #C83F49",
-                            }),
-                            $("<span>", {
-                                class: "ps-2",
-                                text: "Data failed to load.",
-                            }),
-                        ])
-                    );
-                throw undefined;
-            }
-        })
-        .then(() => {
+    Promise.all([stocksQuery, moversQuery])
+        .then((response) => {
+            let stocksData = response[0];
+            let moversData = response[1];
+
             try {
                 for (let n = 0; n < 5; n++) {
                     $(`#gain-d1-${n}`)
@@ -378,6 +268,24 @@ $(document).ready(async function () {
             } catch (error) {
                 console.log(error);
             }
+        })
+        .catch((err) => {
+            $(".mover-data")
+                .empty()
+                .append(
+                    $("<li>", {
+                        class: "list-group-item",
+                    }).append([
+                        $("<i>", {
+                            class: "fa-solid fa-circle-exclamation",
+                            style: "color: #C83F49",
+                        }),
+                        $("<span>", {
+                            class: "ps-2",
+                            text: "Data failed to load.",
+                        }),
+                    ])
+                );
         });
 
     $(".passives-previous-page").on("click", function () {

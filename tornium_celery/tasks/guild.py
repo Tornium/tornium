@@ -550,23 +550,30 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
         "roles": set(str(role) for role in member["roles"]),
     }
 
+    logger.error(patch_json)
+
     patch_json["roles"] -= invalid_member_faction_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,
     )
+    logger.error(patch_json)
     patch_json["roles"] -= invalid_member_position_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,
         position=user.faction_position,
     )
+    logger.error(patch_json)
 
     patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles))
+    logger.error(patch_json)
     patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
+    logger.error(patch_json)
     patch_json["roles"].update(
         member_position_roles(
             faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
         )
     )
+    logger.error(patch_json)
 
     if patch_json["nick"] == member["name"]:
         patch_json.pop("nick")

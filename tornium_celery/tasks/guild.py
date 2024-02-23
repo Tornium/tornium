@@ -28,7 +28,7 @@ from peewee import DoesNotExist, Expression
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
-from tornium_commons.models import FactionPosition, Server, TornKey, User
+from tornium_commons.models import FactionPosition, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost
@@ -538,6 +538,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
     guild: Server = Server.select().where(Server.sid == guild_id).get()
 
     # TODO: Cache guild verification config so the same database calls aren't made for every user
+    # Roles will always be strings in this task
 
     patch_json: dict = {
         "nick": member_verification_name(
@@ -546,7 +547,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
             tag=user.faction.tag if user.faction is not None else "",
             name_template=guild.verify_template,
         ),
-        "roles": set(member["roles"]),
+        "roles": set(str(role) for role in member["roles"]),
     }
 
     patch_json["roles"] -= invalid_member_faction_roles(

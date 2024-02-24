@@ -22,7 +22,7 @@ $(document).ready(function () {
     let rolesPromise = rolesRequest();
     let channelsPromise = channelsRequest();
 
-    let configSetupLogic = configPromise.then(function () {
+    let configSetupLogic = configPromise.then((serverConfig) => {
         $.each(serverConfig.factions, function (faction, factionData) {
             $("#card-container").append(
                 $("<div>", {
@@ -190,7 +190,9 @@ $(document).ready(function () {
         });
     });
 
-    let rolesSetupLogic = Promise.all([configPromise, rolesPromise]).then(() => {
+    let rolesSetupLogic = Promise.all([configPromise, rolesPromise]).then((response) => {
+        let serverConfig = response[0];
+
         $.each(serverConfig.oc, function (factionid, oc_config) {
             $.each(oc_config.ready.roles, function (index, role) {
                 let roleElement = $(`.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`);
@@ -216,7 +218,9 @@ $(document).ready(function () {
         $(".discord-role-selector").selectpicker();
     });
 
-    let channelsSetupLogic = Promise.all([configPromise, channelsPromise]).then(() => {
+    let channelsSetupLogic = Promise.all([configPromise, channelsPromise]).then((response) => {
+        let serverConfig = response[0];
+
         $.each(serverConfig.oc, function (factionid, oc_config) {
             let delayChannel = $(
                 `.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config.delay.channel}"]`

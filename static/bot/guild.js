@@ -14,14 +14,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 $(document).ready(function () {
-    serverConfigPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Server Config Failed to Load" });
-    channelsPromise = channelsRequest();
-    rolesPromise = rolesRequest();
+    let serverConfigPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Server Config Failed to Load" });
+    let channelsPromise = channelsRequest();
+    let rolesPromise = rolesRequest();
 
     Promise.all([serverConfigPromise, channelsPromise])
         .then((configs) => {
-            let serverConfig,
-                channels = configs;
+            let serverConfig = configs[0];
+            let channels = configs[1];
             let assistsChannel = $(`#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`);
 
             if (assistsChannel.length !== 0) {
@@ -83,8 +83,8 @@ $(document).ready(function () {
 
     Promise.all([serverConfigPromise, rolesPromise])
         .then((configs) => {
-            let serverConfig,
-                roles = configs;
+            let serverConfig = configs[0];
+            let roles = configs[1];
 
             $.each(serverConfig["retals"], function (factionid, factionConfig) {
                 $.each(factionConfig["roles"], function (index, role) {

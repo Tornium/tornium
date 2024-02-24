@@ -174,7 +174,7 @@ $(document).ready(function () {
                 $("#tracker-config-disable").attr("disabled", true);
             }
 
-            itemsRequest().finally(function () {
+            itemsRequest().finally(() => {
                 $(".item-selector").selectpicker();
 
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {

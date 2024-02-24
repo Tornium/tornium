@@ -23,7 +23,7 @@ function tfetch(method, endpoint, { body, errorTitle }) {
                 "Content-Type": "application/json",
                 "X-CSRF-Token": csrfToken,
             },
-            ...(body && { data: JSON.stringify(body) }),
+            ...(body !== undefined && { body: JSON.stringify(body) }),
         })
         .then(async (response) => {
             try {

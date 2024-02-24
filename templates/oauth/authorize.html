@@ -53,6 +53,54 @@
                                     </div>
                                 </li>
                                 {% endif %}
+                                {% if scope == "faction" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-sitemap"></i> Faction - All</div>
+                                        This application will be able to read and write all applicable faction data.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:assist" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-circle-question"></i> Faction - Assists</div>
+                                        This application will be able to make a call for assists and to see the available assists.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:banking" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-vault"></i> Faction - Banking</div>
+                                        This application will be able to retrieve data about their faction vault balance and make a call to withdraw from their vault balance.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:crimes" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-people-robbery"></i> Faction - Crimes</div>
+                                        This application will be able to retrieve data on current and historical organized crimes of the faction.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "torn_key" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-key"></i> Torn API Key - All</div>
+                                        Not Yet Implemented
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "torn_key:usage" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-unlock-keyhole"></i> Torn API Key - Usage</div>
+                                        This application will be able to make Torn API calls using your API key within Tornium. Your API key will NOT be shared with the application.
+                                    </div>
+                                </li>
+                                {% endif %}
                                 {% endfor %}
 
                                 {% if scopes|length == 0 %}

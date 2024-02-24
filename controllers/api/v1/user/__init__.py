@@ -17,6 +17,7 @@ import datetime
 import logging
 import typing
 
+from authlib.integrations.flask_oauth2 import current_token
 from authlib.oauth2.rfc6749 import InvalidScopeError, OAuth2Error
 from flask import jsonify, request
 from peewee import DoesNotExist
@@ -107,7 +108,7 @@ def get_specific_user(tid: int, *args, **kwargs):
     )
 
 
-@require_oauth()
+@require_oauth(["", "torn_key:usage"])
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -126,7 +127,16 @@ def estimate_specific_user(tid: int, *args, **kwargs):
 
     logging.getLogger("server").error(f"{tid}: <{type(tid)}>")
 
-    estimated_bs, expiration_ts = estimate_user(tid, kwargs["user"].key)
+    try:
+        estimated_bs, expiration_ts = estimate_user(
+            tid, kwargs["user"].key, allow_api_calls="torn_key:usage" in current_token.get_scope()
+        )
+    except ValueError as e:
+        logging.getLogger("server").exception(e)
+        return make_exception_response("1100", key)
+    except PermissionError:
+        return require_oauth.raise_error_response(InvalidScopeError())
+
     min_bs, max_bs = bs_to_range(estimated_bs)
 
     return (

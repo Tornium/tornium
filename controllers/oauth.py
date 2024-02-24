@@ -21,7 +21,16 @@ from authlib.oauth2 import OAuth2Error
 mod = flask.Blueprint("oauth_routes", __name__)
 oauth_server = AuthorizationServer()
 
-valid_scopes = ("identity",)
+valid_scopes = (
+    "identity",
+    # Faction scopes
+    "faction",
+    "faction:assists",
+    "faction:banking",
+    "faction:crimes",
+    # API key scopes
+    "torn_key:usage",
+)
 
 
 @mod.route("/oauth/authorize", methods=["GET", "POST"])

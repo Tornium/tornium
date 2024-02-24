@@ -20,8 +20,11 @@ from flask import redirect, render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from tornium_commons.models import OAuthClient
 
+from controllers.decorators import admin_required
+
 
 @login_required
+@admin_required
 def clients_list():
     clients = [_client for _client in OAuthClient.select().where(OAuthClient.user_id == current_user.tid)]
 
@@ -29,6 +32,7 @@ def clients_list():
 
 
 @fresh_login_required
+@admin_required
 def create_client():
     client: OAuthClient = OAuthClient.create(
         client_id=secrets.token_hex(24),  # Each byte is two characters
@@ -51,6 +55,7 @@ def create_client():
 
 
 @fresh_login_required
+@admin_required
 def client_dashboard(client_id: str):
     client: OAuthClient = OAuthClient.select().where(OAuthClient.client_id == client_id).first()
 

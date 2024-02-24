@@ -17,6 +17,7 @@ import datetime
 import logging
 import typing
 
+from authlib.oauth2.rfc6749 import InvalidScopeError, OAuth2Error
 from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
@@ -24,12 +25,12 @@ from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
 from tornium_commons.models import User
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 from estimate import estimate_user
 
 
-@authentication_required
+@require_oauth("identity")
 @ratelimit
 def get_user(*args, **kwargs):
     return (
@@ -53,13 +54,13 @@ def get_user(*args, **kwargs):
     )
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 def get_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     refresh: typing.Union[str, bool] = request.args.get("refresh", False)
 
-    if type(refresh) == str:
+    if isinstance(refresh, str):
         if refresh.lower() == "true":
             refresh = True
         elif refresh.lower() == "false":
@@ -72,6 +73,12 @@ def get_specific_user(tid: int, *args, **kwargs):
                     "message": "Invalid refresh type",
                 },
             )
+
+    try:
+        if refresh and require_oauth.validate_request("torn_key:usage", request):
+            return require_oauth.raise_error_response(InvalidScopeError())
+    except OAuth2Error as e:
+        return require_oauth.raise_error_response(e)
 
     if refresh:
         update_user(kwargs["user"].key, tid=tid, refresh_existing=True)
@@ -88,11 +95,11 @@ def get_specific_user(tid: int, *args, **kwargs):
                 "name": user.name,
                 "username": f"{user.name} [{user.tid}]",
                 "level": user.level,
-                "last_refresh": user.last_refresh,
+                "last_refresh": user.last_refresh.timestamp(),
                 "discord_id": user.discord_id,
                 "faction": {"tid": user.faction_id, "name": user.faction.name} if user.faction is not None else None,
                 "status": user.status,
-                "last_action": user.last_action,
+                "last_action": user.last_action.timestamp(),
             }
         ),
         200,
@@ -100,7 +107,7 @@ def get_specific_user(tid: int, *args, **kwargs):
     )
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

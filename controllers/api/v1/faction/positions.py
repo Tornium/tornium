@@ -20,11 +20,11 @@ from peewee import DoesNotExist
 from playhouse.shortcuts import model_to_dict
 from tornium_commons.models import Faction, FactionPosition, Server
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@require_oauth("faction")
 @ratelimit
 def get_positions(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

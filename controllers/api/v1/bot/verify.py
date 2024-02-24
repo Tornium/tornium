@@ -283,7 +283,7 @@ def guild_verification_roles(*args, **kwargs):
 
     roles = data.get("roles")
 
-    if roles is None or type(roles) != list:
+    if roles is None or not isinstance(roles, list):
         return make_exception_response("1000", key)
 
     try:

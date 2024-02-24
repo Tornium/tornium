@@ -16,11 +16,11 @@
 from flask import jsonify
 from tornium_commons.models import Item
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response
 
 
-@authentication_required
+@require_oauth
 @ratelimit
 def item_name_map(*args, **kwargs):
     return (

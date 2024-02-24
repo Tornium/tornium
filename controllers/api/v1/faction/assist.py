@@ -32,27 +32,27 @@ from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
 from tornium_commons.models import PersonalStats, Server, Stat, User
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
+@require_oauth("faction:assist")
+@ratelimit
 def forward_assist(*args, **kwargs):
     start_ts = time.time()
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
 
-    user_tid = data.get("user_tid")
     target_tid = data.get("target_tid")
     smokes = data.get("smokes", 0)
     tears = data.get("tears", 0)
     heavies = data.get("heavies", 0)
     timeout = data.get("timeout")
 
-    if user_tid is None or target_tid is None:
+    if kwargs["user"] is None or target_tid is None:
         return make_exception_response("1100", redis_client=client)
 
     try:
-        user_tid = int(user_tid)
         target_tid = int(target_tid)
         smokes = int(smokes)
         tears = int(tears)
@@ -63,12 +63,9 @@ def forward_assist(*args, **kwargs):
     except TypeError:
         return make_exception_response("1000", redis_client=client)
 
-    try:
-        user: User = User.get_by_id(user_tid)
-    except DoesNotExist:
-        return make_exception_response("1100", redis_client=client)
+    user: User = kwargs["user"]
 
-    key = f"tornium:ratelimit:{user_tid}"
+    key = f"tornium:ratelimit:{user.tid}"
     assist_lock_key = f"tornium:assists:{target_tid}:lock"
 
     # TODO: Change to use one redis call
@@ -202,10 +199,10 @@ def forward_assist(*args, **kwargs):
     client.zadd(f"tornium:assists:faction:{user.faction_id}", {guid: int(time.time()) + 300})
     client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
 
-    # target_tid | user_tid | smokes | tears | heavies
+    # target_tid | user.tid | smokes | tears | heavies
     client.set(
         f"tornium:assists:{guid}",
-        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
+        f"{target_tid}|{user.tid}|{smokes}|{tears}|{heavies}",
         nx=True,
         ex=300,
     )
@@ -437,7 +434,7 @@ def forward_assist(*args, **kwargs):
     )
 
 
-@authentication_required
+@require_oauth("faction:assist")
 @ratelimit
 def valid_assists(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

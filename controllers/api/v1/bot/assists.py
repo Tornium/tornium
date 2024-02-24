@@ -32,9 +32,9 @@ def assists_channel(guildid, *args, **kwargs):
 
     channel_id = data.get("channel")
 
-    if guildid in ("", None, 0) or (type(guildid) != int and not guildid.isdigit()):
+    if guildid in ("", None, 0) or (not isinstance(guildid, int) and not guildid.isdigit()):
         return make_exception_response("1001", key)
-    elif channel_id in ("", None, 0) or (type(channel_id) != int and not channel_id.isdigit()):
+    elif channel_id in ("", None, 0) or (not isinstance(channel_id, int) and not channel_id.isdigit()):
         return make_exception_response("1002", key)
 
     channel_id = int(channel_id)
@@ -63,7 +63,7 @@ def assists_role_set(guild_id: int, role_type: str, *args, **kwargs):
 
     roles = data.get("roles")
 
-    if type(roles) != list:
+    if not isinstance(roles, list):
         return make_exception_response("1000", key, details={"element": "roles"})
 
     try:

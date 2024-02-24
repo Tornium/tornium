@@ -13,76 +13,45 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import base64
-import datetime
 import time
 import typing
 from functools import partial, wraps
 
 import msgpack
 import redis
-from flask import Response, jsonify, request, session
+from authlib.integrations.flask_oauth2 import current_token
+from flask import Response, request, session
 from flask_login import current_user
-from peewee import DoesNotExist
 from tornium_commons import rds
-from tornium_commons.models import TornKey, User
+from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
-from controllers.api.v1.utils import make_exception_response
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        client = rds()
-        key = f'tornium:ratelimit:{kwargs["user"].tid}'
-        limit = 250
-
-        if client.setnx(key, limit):
-            client.expire(key, 60 - datetime.datetime.utcnow().second)
-
-        value = client.get(key)
-
-        if client.ttl(key) < 0:
-            client.expire(key, 1)
-
-        if value and int(value) > 0:
-            client.decrby(key, 1)
-        else:
-            return make_exception_response("4000", key)
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def torn_key_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-
-        if request.headers.get("Authorization") is None:
-            return make_exception_response("4001")
-        elif request.headers.get("Authorization").split(" ")[0] != "Basic":
-            return make_exception_response("4003")
-
-        authorization = str(
-            base64.b64decode(request.headers.get("Authorization").split(" ")[1]),
-            "utf-8",
-        ).split(
-            ":"
-        )[0]
-
-        if authorization == "":
-            return make_exception_response("4001")
+        kwargs["start_time"] = int(time.time())
 
         try:
-            user: User = TornKey.select().where(TornKey.api_key == authorization).get().user
-        except DoesNotExist:
-            return make_exception_response("4001")
+            # OAuth token
+            kwargs["user"] = current_token.user
+            kwargs["key"] = current_token.user.key
+        except AttributeError:
+            # CSRF token
+            kwargs["user"] = current_user
+            kwargs["key"] = current_user.key
 
-        kwargs["user"] = user
-        kwargs["key"] = authorization
-        kwargs["start_time"] = start_time
+        client = rds()
+        key = f"tornium:ratelimit:{kwargs['user'].tid}"
+        limit = 250
+
+        current_count = int(client.incr(key))
+
+        if current_count <= 1:
+            client.expireat(key, int(time.time()) // 60 * 60 + 60)
+        elif current_count > limit:
+            return make_exception_response("4000", key)
 
         return func(*args, **kwargs)
 
@@ -111,64 +80,6 @@ def session_required(func):
     return wrapper
 
 
-def authentication_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-
-        if request.headers.get("Authorization") is None and not current_user.is_authenticated:
-            return make_exception_response("4001")
-
-        if current_user.is_authenticated:
-            csrf_token = request.headers.get("X-CSRF-Token") or request.headers.get("CSRF-Token")
-
-            if csrf_token != session.get("csrf_token"):
-                return make_exception_response("4002")
-
-            kwargs["user"] = current_user
-            kwargs["key"] = current_user.key
-            kwargs["start_time"] = start_time
-
-            return func(*args, **kwargs)
-
-        authorization = request.headers.get("Authorization").split(" ")
-
-        if authorization[0] == "Basic":
-            authorization[1] = str(
-                base64.b64decode(authorization[1]),
-                "utf-8",
-            ).split(
-                ":"
-            )[0]
-        else:
-            return make_exception_response("4003")
-
-        if authorization[1] == "":
-            return (
-                jsonify(
-                    {
-                        "code": 4001,
-                        "name": "NoAuthenticationInformation",
-                        "message": "Server failed to authenticate the request. No authentication code was provided.",
-                    }
-                ),
-                401,
-            )
-
-        try:
-            user: User = TornKey.select(TornKey.user).where(TornKey.api_key == authorization[1]).get().user
-        except DoesNotExist:
-            return make_exception_response("4001")
-
-        kwargs["user"] = user
-        kwargs["key"] = authorization
-        kwargs["start_time"] = start_time
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 def global_cache(func=None, duration=3600):
     if not func:
         return partial(global_cache, duration=duration)
@@ -185,6 +96,7 @@ def global_cache(func=None, duration=3600):
 
             if endpoint_response[1] // 100 != 2:
                 return endpoint_response
+
             # TODO: Don't cache API errors
             # TODO: Add type handling as only Response type responses would have the .json attribute
 
@@ -207,7 +119,12 @@ def global_cache(func=None, duration=3600):
             {
                 "Content-Type": "application/json",
                 "Cache-Control": f"max-age={cache_ttl}, public",
+                **api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}", client),
             },
         )
 
     return wrapper
+
+
+require_oauth = ResourceProtector()
+require_oauth.register_token_validator(BearerTokenValidator())

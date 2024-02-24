@@ -18,11 +18,11 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons.models import Stat, User
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 def generate_chain_list(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -85,7 +85,7 @@ def generate_chain_list(*args, **kwargs):
     )
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 def get_stat_user(tid: int, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

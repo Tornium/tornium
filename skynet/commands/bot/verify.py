@@ -309,7 +309,7 @@ def verify(interaction, *args, **kwargs):
 
                     patch_json["roles"].remove(str(position_role))
 
-    if len(patch_json) == 0 and (force is None or (type(force) == list and not force.get("value"))):
+    if len(patch_json) == 0 and (force is None or (isinstance(force, list) and not force.get("value"))):
         return {
             "type": 4,
             "data": {

@@ -41,17 +41,16 @@ if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
 import datetime
 import logging
 import secrets
-import time
 
 import flask
 from authlib.oauth2.rfc7636 import CodeChallenge
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
-from tornium_commons import Config, rds
+from tornium_commons import Config
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 from tornium_commons.models import Faction, OAuthClient, OAuthToken
-from tornium_commons.oauth import AuthorizationCodeGrant
+from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
 config = Config.from_json()
 
@@ -106,6 +105,8 @@ def init__app():
     app.config["SESSION_COOKIE_SAMESITE"] = "lax"
     app.config["SESSION_COOKIE_DOMAIN"] = config.flask_domain
 
+    app.config["OAUTH2_REFRESH_TOKEN_GENERATOR"] = True
+
     CORS(
         app,
         resources={
@@ -124,6 +125,7 @@ def init__app():
 
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
     oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
+    oauth_server.register_grant(RefreshTokenGrant)
 
     tornium_ext: utils.tornium_ext.TorniumExt
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():

@@ -253,7 +253,7 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
 
     return {
         "X-RateLimit-Limit": 250,
-        "X-RateLimit-Remaining": client.get(ratelimit_key),
+        "X-RateLimit-Remaining": 250 - int(client.get(ratelimit_key)),
         "X-RateLimit-Reset": client.ttl(ratelimit_key),
     }
 

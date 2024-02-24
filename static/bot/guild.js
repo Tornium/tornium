@@ -190,7 +190,6 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        const xhttp = new XMLHttpRequest();
         tfetch("POST", `bot/${guildid}/assists/roles/${$(this).attr("id").split("-")[1]}`, {
             body: { roles: selectedRoles },
             errorTitle: "Assist Role Add Failed",
@@ -245,7 +244,6 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        const xhttp = new XMLHttpRequest();
         tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-faction")}/banking`, {
             body: { roles: selectedRoles },
             errorTitle: "Banking Roles Add Failed",

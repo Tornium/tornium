@@ -41,7 +41,18 @@
                             {{ grant.client.client_name }} (owned by {{ grant.client.user.user_str_self() }}) wants access to your Tornium account.
                         </p>
 
+                        {% if grant.client.token_endpoint_auth_method == "none" %}
                         <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> WARNING</h5>
+                                <p class="card-text">
+                                    This application is most likely a userscript, and therefore it is not possible to verify that the originating userscript is the application registered in Tornium. Make sure that you're installing the original version of the userscript from the original developer.
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="card mt-3">
                             <div class="card-header">Requested Permissions</div>
                             <ul class="list-group list-group-flush">
                                 {% for scope in scopes %}

@@ -5,7 +5,7 @@
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
-// @match        https://www.torn.com/tornium/callback*
+// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -32,13 +32,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-// Production configuration
 const baseURL = "https://tornium.com";
 const clientID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
-
-// Development configuration
-// const baseURL = "http://127.0.0.1:5000";
-// const clientID = "";
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -59,7 +54,7 @@ function arrayToString(array) {
         data.set("code", params.get("code"));
         data.set("grant_type", "authorization_code");
         data.set("scope", "identity");
-        data.set("redirect_uri", "https://torn.com/tornium/callback");
+        data.set("redirect_uri", `${baseURL}/oauth/${clientID}/callback`);
         data.set("client_id", clientID);
         data.set("code_verifier", GM_getValue("tornium:codeVerifier"));
 
@@ -98,7 +93,7 @@ function arrayToString(array) {
         console.log(codeChallenge);
         codeChallenge = arrayToString(new Uint8Array(codeChallenge));
 
-        const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=https://torn.com/tornium/callback`;
+        const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${baseURL}/oauth/${clientID}/callback`;
 
         $("#tornium-estimation").text("Signed out");
         $(".content-title").append(

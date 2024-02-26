@@ -17,6 +17,8 @@ import flask
 import flask_login
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 from authlib.oauth2 import OAuth2Error
+from authlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from tornium_commons.models import OAuthClient
 
 mod = flask.Blueprint("oauth_routes", __name__)
 oauth_server = AuthorizationServer()
@@ -69,3 +71,17 @@ def oauth_authorize():
 @mod.route("/oauth/token", methods=["POST"])
 def issue_token():
     return oauth_server.create_token_response(request=flask.request)
+
+
+@mod.route("/oauth/<client_id>/callback")
+def client_callback(client_id: str):
+    client: OAuthClient = oauth_server.query_client(client_id)
+
+    if client is None:
+        return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
+    elif client.token_endpoint_auth_method != "none":
+        return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
+    elif not client.check_redirect_uri(flask.request.url):
+        return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidGrantError())
+
+    return flask.render_template("oauth/callback.html", client=client)

@@ -81,7 +81,7 @@ def client_callback(client_id: str):
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
     elif client.token_endpoint_auth_method != "none":
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
-    elif not client.check_redirect_uri(flask.request.url):
+    elif not client.check_redirect_uri(flask.request.base_url):
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidGrantError())
 
     return flask.render_template("oauth/callback.html", client=client)

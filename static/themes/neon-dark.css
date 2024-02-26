@@ -133,13 +133,6 @@
 [data-bs-theme=neon-dark] .primary .dataTables_wrapper {
   color: rgb(229, 229, 229);
 }
-[data-bs-theme=neon-dark] .primary .dropdown-menu {
-  background-color: rgb(35, 35, 35);
-}
-[data-bs-theme=neon-dark] .primary .dropdown-toggle {
-  background-color: rgb(35, 35, 35);
-  color: rgb(57, 255, 20);
-}
 [data-bs-theme=neon-dark] .primary .ts-control {
   background-color: rgb(35, 35, 35);
   color: rgb(229, 229, 229);
@@ -158,6 +151,13 @@
 [data-bs-theme=neon-dark] .primary .accordion-button:after {
   -webkit-filter: grayscale(1) invert(1);
   filter: grayscale(1) invert(1);
+}
+[data-bs-theme=neon-dark] .dropdown-menu {
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=neon-dark] .dropdown-toggle {
+  background-color: rgb(35, 35, 35);
+  color: rgb(57, 255, 20);
 }
 [data-bs-theme=neon-dark] .secondary {
   background-color: rgb(25, 25, 25);

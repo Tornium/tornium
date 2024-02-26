@@ -18,361 +18,282 @@ $(document).ready(function () {
         html: true,
     });
 
-    configRequest()
-        .then(function () {
-            $.each(serverConfig["factions"], function (faction, factionData) {
-                $("#card-container").append(
+    let configPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Failed to Load Server Config" });
+    let rolesPromise = rolesRequest();
+    let channelsPromise = channelsRequest();
+
+    let configSetupLogic = configPromise.then((serverConfig) => {
+        $.each(serverConfig.factions, function (faction, factionData) {
+            $("#card-container").append(
+                $("<div>", {
+                    class: "card mt-3",
+                    "data-factionid": faction,
+                })
+            );
+            $(`div .card[data-factionid="${faction}"]`).append(
+                $("<div>", {
+                    class: "card-body",
+                    "data-factionid": faction,
+                })
+            );
+            $(`div .card-body[data-factionid="${faction}"]`).append([
+                $("<h5>", {
+                    class: "card-title",
+                    text: `Organized Crime Notification Configuration for NYI [${faction}]`,
+                }),
+                $("<p>", {
+                    class: "card-text",
+                    text: "The channel used for notifications and the roles that can be pinged.",
+                }),
+                $("<div>", {
+                    class: "row",
+                }).append([
                     $("<div>", {
-                        class: "card mt-3",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .card[data-factionid="${faction}"]`).append(
-                    $("<div>", {
-                        class: "card-body",
-                        "data-factionid": faction,
-                    })
-                );
-                $(`div .card-body[data-factionid="${faction}"]`).append([
-                    $("<h5>", {
-                        class: "card-title",
-                        text: `Organized Crime Notification Configuration for NYI [${faction}]`,
-                    }),
-                    $("<p>", {
-                        class: "card-text",
-                        text: "The channel used for notifications and the roles that can be pinged.",
-                    }),
-                    $("<div>", {
-                        class: "row",
-                    }).append([
+                        class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                    }).append(
                         $("<div>", {
-                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
-                        }).append(
+                            class: "card my-3",
+                        }).append([
                             $("<div>", {
-                                class: "card my-3",
-                            }).append([
-                                $("<div>", {
-                                    class: "card-header",
-                                    text: "OC Ready Channel",
-                                }),
-                                $("<div>", {
-                                    class: "form-floating px-3 py-3",
-                                }).append(
-                                    $("<select>", {
-                                        class: "discord-channel-selector oc-ready-channel",
-                                        "data-factionid": faction,
-                                        "aria-label": "OC Ready Channel",
-                                        "data-live-search": "true",
-                                    }).append(
-                                        $("<option>", {
-                                            value: "0",
-                                            text: "Disabled",
-                                        })
-                                    )
-                                ),
-                            ])
-                        ),
-                        $("<div>", {
-                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
-                        }).append(
+                                class: "card-header",
+                                text: "OC Ready Channel",
+                            }),
                             $("<div>", {
-                                class: "card my-3",
-                            }).append([
-                                $("<div>", {
-                                    class: "card-header",
-                                    text: "OC Ready Roles",
-                                }),
-                                $("<div>", {
-                                    class: "form-floating px-3 py-3",
+                                class: "form-floating px-3 py-3",
+                            }).append(
+                                $("<select>", {
+                                    class: "discord-channel-selector oc-ready-channel",
+                                    "data-factionid": faction,
+                                    "aria-label": "OC Ready Channel",
+                                    "data-live-search": "true",
                                 }).append(
-                                    $("<select>", {
-                                        class: "discord-role-selector oc-ready-roles",
-                                        "data-factionid": faction,
-                                        "aria-label": "OC Ready Roles",
-                                        "data-live-search": "true",
-                                        "data-selected-text-format": "count > 2",
-                                        multiple: "",
+                                    $("<option>", {
+                                        value: "0",
+                                        text: "Disabled",
                                     })
-                                ),
-                            ])
-                        ),
-                    ]),
+                                )
+                            ),
+                        ])
+                    ),
                     $("<div>", {
-                        class: "row",
-                    }).append([
+                        class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                    }).append(
                         $("<div>", {
-                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
-                        }).append(
+                            class: "card my-3",
+                        }).append([
                             $("<div>", {
-                                class: "card my-3",
-                            }).append([
-                                $("<div>", {
-                                    class: "card-header",
-                                    text: "OC Delay Channel",
-                                }),
-                                $("<div>", {
-                                    class: "form-floating px-3 py-3",
-                                }).append(
-                                    $("<select>", {
-                                        class: "discord-channel-selector oc-delay-channel",
-                                        "data-factionid": faction,
-                                        "aria-label": "OC Delay Channel",
-                                        "data-live-search": "true",
-                                    }).append(
-                                        $("<option>", {
-                                            value: "0",
-                                            text: "Disabled",
-                                        })
-                                    )
-                                ),
-                            ])
-                        ),
+                                class: "card-header",
+                                text: "OC Ready Roles",
+                            }),
+                            $("<div>", {
+                                class: "form-floating px-3 py-3",
+                            }).append(
+                                $("<select>", {
+                                    class: "discord-role-selector oc-ready-roles",
+                                    "data-factionid": faction,
+                                    "aria-label": "OC Ready Roles",
+                                    "data-live-search": "true",
+                                    "data-selected-text-format": "count > 2",
+                                    multiple: "",
+                                })
+                            ),
+                        ])
+                    ),
+                ]),
+                $("<div>", {
+                    class: "row",
+                }).append([
+                    $("<div>", {
+                        class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                    }).append(
                         $("<div>", {
-                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
-                        }).append(
+                            class: "card my-3",
+                        }).append([
                             $("<div>", {
-                                class: "card my-3",
-                            }).append([
-                                $("<div>", {
-                                    class: "card-header",
-                                    text: "OC Delay Roles",
-                                }),
-                                $("<div>", {
-                                    class: "form-floating px-3 py-3",
+                                class: "card-header",
+                                text: "OC Delay Channel",
+                            }),
+                            $("<div>", {
+                                class: "form-floating px-3 py-3",
+                            }).append(
+                                $("<select>", {
+                                    class: "discord-channel-selector oc-delay-channel",
+                                    "data-factionid": faction,
+                                    "aria-label": "OC Delay Channel",
+                                    "data-live-search": "true",
                                 }).append(
-                                    $("<select>", {
-                                        class: "discord-role-selector oc-delay-roles",
-                                        "data-factionid": faction,
-                                        "aria-label": "OC Delay Roles",
-                                        "data-live-search": "true",
-                                        "data-selected-text-format": "count > 2",
-                                        multiple: "",
+                                    $("<option>", {
+                                        value: "0",
+                                        text: "Disabled",
                                     })
-                                ),
-                            ])
-                        ),
-                    ]),
+                                )
+                            ),
+                        ])
+                    ),
                     $("<div>", {
-                        class: "row",
-                    }).append([
+                        class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                    }).append(
                         $("<div>", {
-                            class: "col-sm-12 col-md-8 col-xl-4 mt-2",
-                        }).append(
+                            class: "card my-3",
+                        }).append([
                             $("<div>", {
-                                class: "card my-3",
-                            }).append([
-                                $("<div>", {
-                                    class: "card-header",
-                                    text: "OC Initiated Channel",
-                                }),
-                                $("<div>", {
-                                    class: "form-floating px-3 py-3",
+                                class: "card-header",
+                                text: "OC Delay Roles",
+                            }),
+                            $("<div>", {
+                                class: "form-floating px-3 py-3",
+                            }).append(
+                                $("<select>", {
+                                    class: "discord-role-selector oc-delay-roles",
+                                    "data-factionid": faction,
+                                    "aria-label": "OC Delay Roles",
+                                    "data-live-search": "true",
+                                    "data-selected-text-format": "count > 2",
+                                    multiple: "",
+                                })
+                            ),
+                        ])
+                    ),
+                ]),
+                $("<div>", {
+                    class: "row",
+                }).append([
+                    $("<div>", {
+                        class: "col-sm-12 col-md-8 col-xl-4 mt-2",
+                    }).append(
+                        $("<div>", {
+                            class: "card my-3",
+                        }).append([
+                            $("<div>", {
+                                class: "card-header",
+                                text: "OC Initiated Channel",
+                            }),
+                            $("<div>", {
+                                class: "form-floating px-3 py-3",
+                            }).append(
+                                $("<select>", {
+                                    class: "discord-channel-selector oc-initiated-channel",
+                                    "data-factionid": faction,
+                                    "aria-label": "OC Initiated Channel",
+                                    "data-live-search": "true",
                                 }).append(
-                                    $("<select>", {
-                                        class: "discord-channel-selector oc-initiated-channel",
-                                        "data-factionid": faction,
-                                        "aria-label": "OC Initiated Channel",
-                                        "data-live-search": "true",
-                                    }).append(
-                                        $("<option>", {
-                                            value: "0",
-                                            text: "Disabled",
-                                        })
-                                    )
-                                ),
-                            ])
-                        ),
-                    ]),
-                ]);
-            });
-        })
-        .then(function () {
-            rolesRequest().then(function () {
-                $.each(serverConfig["oc"], function (factionid, oc_config) {
-                    $.each(oc_config["ready"]["roles"], function (index, role) {
-                        let roleElement = $(`.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`);
+                                    $("<option>", {
+                                        value: "0",
+                                        text: "Disabled",
+                                    })
+                                )
+                            ),
+                        ])
+                    ),
+                ]),
+            ]);
+        });
+    });
 
-                        if (roleElement.length === 0) {
-                            return;
-                        }
+    let rolesSetupLogic = Promise.all([configPromise, rolesPromise]).then((response) => {
+        let serverConfig = response[0];
 
-                        roleElement.attr("selected", "");
-                    });
+        $.each(serverConfig.oc, function (factionid, oc_config) {
+            $.each(oc_config.ready.roles, function (index, role) {
+                let roleElement = $(`.oc-ready-roles[data-factionid="${factionid}"] option[value="${role}"]`);
 
-                    $.each(oc_config["delay"]["roles"], function (index, role) {
-                        let roleElement = $(`.oc-delay-roles[data-factionid="${factionid}"] option[value="${role}"]`);
+                if (roleElement.length === 0) {
+                    return;
+                }
 
-                        if (roleElement.length === 0) {
-                            return;
-                        }
-
-                        roleElement.attr("selected", "");
-                    });
-                });
-
-                $(".discord-role-selector").selectpicker();
-            });
-        })
-        .then(function () {
-            channelsRequest().then(function () {
-                $.each(serverConfig["oc"], function (factionid, oc_config) {
-                    let delayChannel = $(
-                        `.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config["delay"]["channel"]}"]`
-                    );
-                    let readyChannel = $(
-                        `.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config["ready"]["channel"]}"]`
-                    );
-                    let initiatedChannel = $(
-                        `.oc-initiated-channel[data-factionid="${factionid}"] option[value="${oc_config["initiated"]["channel"]}"]`
-                    );
-
-                    if (delayChannel.length !== 0) {
-                        delayChannel.attr("selected", "");
-                    }
-                    if (readyChannel.length !== 0) {
-                        readyChannel.attr("selected", "");
-                    }
-                    if (initiatedChannel.length !== 0) {
-                        initiatedChannel.attr("selected", "");
-                    }
-                });
-
-                $(".discord-channel-selector").selectpicker();
-            });
-        })
-        .finally(function () {
-            $(".oc-ready-channel").on("change", function () {
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("OC Ready Channel Failed", response["message"]);
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/channel`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        channel: this.options[this.selectedIndex].value,
-                    })
-                );
+                roleElement.attr("selected", "");
             });
 
-            $(".oc-ready-roles").on("change", function () {
-                var selectedOptions = $(this).find(":selected");
-                var selectedRoles = [];
+            $.each(oc_config.delay.roles, function (index, role) {
+                let roleElement = $(`.oc-delay-roles[data-factionid="${factionid}"] option[value="${role}"]`);
 
-                $.each(selectedOptions, function (index, item) {
-                    selectedRoles.push(item.getAttribute("value"));
-                });
+                if (roleElement.length === 0) {
+                    return;
+                }
 
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("OC Ready Roles Failed", response["message"]);
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        roles: selectedRoles,
-                    })
-                );
-            });
-
-            $(".oc-delay-channel").on("change", function () {
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("OC Delay Channel Failed", response["message"]);
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/channel`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        channel: this.options[this.selectedIndex].value,
-                    })
-                );
-            });
-
-            $(".oc-delay-roles").on("change", function () {
-                var selectedOptions = $(this).find(":selected");
-                var selectedRoles = [];
-
-                $.each(selectedOptions, function (index, item) {
-                    selectedRoles.push(item.getAttribute("value"));
-                });
-
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("OC Ready Roles Failed", response["message"]);
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        roles: selectedRoles,
-                    })
-                );
-            });
-
-            $(".oc-initiated-channel").on("change", function () {
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    let response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast("OC Initiated Channel Failed", response["message"]);
-                    }
-                };
-
-                xhttp.responseType = "json";
-                xhttp.open(
-                    "POST",
-                    `/api/v1/bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/initiated/channel`
-                );
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send(
-                    JSON.stringify({
-                        channel: this.options[this.selectedIndex].value,
-                    })
-                );
+                roleElement.attr("selected", "");
             });
         });
+
+        $(".discord-role-selector").selectpicker();
+    });
+
+    let channelsSetupLogic = Promise.all([configPromise, channelsPromise]).then((response) => {
+        let serverConfig = response[0];
+
+        $.each(serverConfig.oc, function (factionid, oc_config) {
+            let delayChannel = $(
+                `.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config.delay.channel}"]`
+            );
+            let readyChannel = $(
+                `.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config.ready.channel}"]`
+            );
+            let initiatedChannel = $(
+                `.oc-initiated-channel[data-factionid="${factionid}"] option[value="${oc_config.initiated.channel}"]`
+            );
+
+            if (delayChannel.length !== 0) {
+                delayChannel.attr("selected", "");
+            }
+            if (readyChannel.length !== 0) {
+                readyChannel.attr("selected", "");
+            }
+            if (initiatedChannel.length !== 0) {
+                initiatedChannel.attr("selected", "");
+            }
+        });
+
+        $(".discord-channel-selector").selectpicker();
+    });
+
+    Promise.all([configSetupLogic, rolesSetupLogic, channelsSetupLogic]).then(() => {
+        $(".oc-ready-channel").on("change", function () {
+            tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/channel`, {
+                body: { channel: this.options[this.selectedIndex].value },
+                errorTitle: "OC Ready Channel Set Failed",
+            }).then(() => {});
+        });
+
+        $(".oc-ready-roles").on("change", function () {
+            var selectedOptions = $(this).find(":selected");
+            var selectedRoles = [];
+
+            $.each(selectedOptions, function (index, item) {
+                selectedRoles.push(item.getAttribute("value"));
+            });
+
+            tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`, {
+                body: { roles: selectedRoles },
+                errorTitle: "OC Ready Roles Set Failed",
+            }).then(() => {});
+        });
+
+        $(".oc-delay-channel").on("change", function () {
+            tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/channel`, {
+                body: { channel: this.options[this.selectedIndex].value },
+                errorTitle: "OC Delay Channel Set Failed",
+            }).then(() => {});
+        });
+
+        $(".oc-delay-roles").on("change", function () {
+            var selectedOptions = $(this).find(":selected");
+            var selectedRoles = [];
+
+            $.each(selectedOptions, function (index, item) {
+                selectedRoles.push(item.getAttribute("value"));
+            });
+
+            tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`, {
+                body: { roles: selectedRoles },
+                errorTitle: "OC Delay Roles Set Failed",
+            }).then(() => {});
+        });
+
+        $(".oc-initiated-channel").on("change", function () {
+            tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/initiated/channel`, {
+                body: { channel: this.options[this.selectedIndex].value },
+                errorTitle: "OC Initiated Channel Set Failed",
+            }).then(() => {});
+        });
+    });
 });

@@ -85,171 +85,145 @@ $(document).ready(function () {
         $("#generate-list").attr("disabled", true);
         $("#targets-container").empty();
 
-        const xhttp = new XMLHttpRequest();
+        tfetch("GET", `stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`, {
+            errorTitle: "Chain List Request Failed",
+        })
+            .then((response) => {
+                response["data"].sort((a, b) => parseFloat(b.respect) - parseFloat(a.respect));
 
-        xhttp.onload = function () {
-            var response = xhttp.response;
+                const fragment = document.createDocumentFragment();
 
-            if ("code" in response) {
-                generateToast(
-                    "Chain List Request Failed",
-                    `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`
-                );
-                $("#generate-list").attr("disabled", false);
-                return;
-            }
+                response.data.forEach(function (user) {
+                    let bsMinMax = bsRange(user.battlescore);
 
-            response["data"].sort((a, b) => parseFloat(b.respect) - parseFloat(a.respect));
-
-            const fragment = document.createDocumentFragment();
-
-            response.data.forEach(function (user) {
-                let bsMinMax = bsRange(user.battlescore);
-
-                $(fragment).append(
-                    $("<div>", {
-                        class: "col-sm-12 col-md-6 col-xl-4",
-                    }).append(
+                    $(fragment).append(
                         $("<div>", {
-                            class: "card mt-3",
-                            "data-tid": user.tid,
-                        }).append([
+                            class: "col-sm-12 col-md-6 col-xl-4",
+                        }).append(
                             $("<div>", {
-                                class: "card-body",
+                                class: "card mt-3",
+                                "data-tid": user.tid,
                             }).append([
-                                $("<h5>", {
-                                    class: "card-title",
-                                    text: user.user.username,
-                                }),
-                                $("<h6>", {
-                                    class: "card-subtitle mb-2",
-                                    text: `Last Update: ${reltime(user.timeadded)}`,
-                                }),
-                            ]),
-                            $("<ul>", {
-                                class: "list-group list-group-flush",
-                            }).append([
-                                $("<li>", {
-                                    class: "list-group-item",
-                                    text: `Estimated Fair Fight: ${user.ff}`,
-                                }),
-                                $("<li>", {
-                                    class: "list-group-item",
-                                    text: `Estimated Respect: ${user.respect}`,
-                                }),
-                                $("<li>", {
-                                    class: "list-group-item",
-                                    text: `Minimum Estimated Stats: ${commas(bsMinMax[0])}`,
-                                }),
-                                $("<li>", {
-                                    class: "list-group-item",
-                                    text: `Maximum Estimated Stats: ${commas(bsMinMax[1])}`,
-                                }),
-                            ]),
-                            $("<ul>", {
-                                class: "list-group list-group-flush mt-2",
-                            }).append([
-                                $("<li>", {
-                                    class: "list-gorup-item",
-                                    text: `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
-                                }),
-                            ]),
-                            $("<div>", {
-                                class: "card-footer my-1",
-                            }).append([
-                                $("<button>", {
-                                    class: "btn btn-outline-primary refresh-target-data mx-1",
-                                    "data-tid": user.tid,
-                                }).append(
-                                    $("<i>", {
-                                        class: "fa-solid fa-rotate-right",
-                                    })
-                                ),
-                                $("<button>", {
-                                    class: "btn btn-outline-primary mx-1",
-                                    onclick: `window.open("https://www.torn.com/profiles.php?XID=${user.tid}", "_blank")`,
-                                }).append(
-                                    $("<i>", {
-                                        class: "fa-regular fa-address-card",
-                                    })
-                                ),
-                                $("<button>", {
-                                    class: "btn btn-outline-primary mx-1",
-                                    onclick: `window.open("https://www.torn.com/loader.php?sid=attack&user2ID=${user.tid}", "_blank")`,
-                                }).append(
-                                    $("<i>", {
-                                        class: "fa-solid fa-crosshairs",
-                                    })
-                                ),
-                            ]),
-                        ])
-                    )
-                );
-            });
-
-            $("#targets-container").append(fragment);
-
-            $(".refresh-target-data").on("click", function () {
-                return; // TODO: rewrite this to show more data
-                $(this).attr("disabled", true);
-                const userID = this.getAttribute("data-tid");
-                const xhttp = new XMLHttpRequest();
-
-                xhttp.onload = function () {
-                    var response = xhttp.response;
-
-                    if ("code" in response) {
-                        generateToast(
-                            "User Update Failed",
-                            `The Tornium API server has responded with \"${response["message"]}\" to the submitted request.`
-                        );
-                        return;
-                    }
-
-                    const targetDataContainer = $(`div[data-tid="${userID}"] .target-user-data`);
-                    let factionName;
-
-                    if (response.faction === null) {
-                        factionName = "None";
-                    } else {
-                        factionName = `${response.faction.name} [${response.faction.tid}]`;
-                    }
-
-                    targetDataContainer.append(
-                        $("<ul>", {
-                            class: "list-group list-group-flush",
-                        }).append([
-                            $("<li>", {
-                                class: "list-group-item",
-                                text: `Level: ${response.level}`,
-                            }),
-                            $("<li>", {
-                                class: "list-group-item",
-                                text: `Faction: ${factionName}`,
-                            }),
-                            $("<li>", {
-                                class: "list-group-item",
-                                text: `Status: ${response.status} (${reltime(response.last_action)})`,
-                            }),
-                        ])
+                                $("<div>", {
+                                    class: "card-body",
+                                }).append([
+                                    $("<h5>", {
+                                        class: "card-title",
+                                        text: user.user.username,
+                                    }),
+                                    $("<h6>", {
+                                        class: "card-subtitle mb-2",
+                                        text: `Last Update: ${reltime(user.timeadded)}`,
+                                    }),
+                                ]),
+                                $("<ul>", {
+                                    class: "list-group list-group-flush",
+                                }).append([
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Estimated Fair Fight: ${user.ff}`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Estimated Respect: ${user.respect}`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Minimum Estimated Stats: ${commas(bsMinMax[0])}`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Maximum Estimated Stats: ${commas(bsMinMax[1])}`,
+                                    }),
+                                ]),
+                                $("<ul>", {
+                                    class: "list-group list-group-flush mt-2",
+                                }).append([
+                                    $("<li>", {
+                                        class: "list-gorup-item",
+                                        text: `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
+                                    }),
+                                ]),
+                                $("<div>", {
+                                    class: "card-footer my-1",
+                                }).append([
+                                    $("<button>", {
+                                        class: "btn btn-outline-primary refresh-target-data mx-1",
+                                        "data-tid": user.tid,
+                                    }).append(
+                                        $("<i>", {
+                                            class: "fa-solid fa-rotate-right",
+                                        })
+                                    ),
+                                    $("<button>", {
+                                        class: "btn btn-outline-primary mx-1",
+                                        onclick: `window.open("https://www.torn.com/profiles.php?XID=${user.tid}", "_blank")`,
+                                    }).append(
+                                        $("<i>", {
+                                            class: "fa-regular fa-address-card",
+                                        })
+                                    ),
+                                    $("<button>", {
+                                        class: "btn btn-outline-primary mx-1",
+                                        onclick: `window.open("https://www.torn.com/loader.php?sid=attack&user2ID=${user.tid}", "_blank")`,
+                                    }).append(
+                                        $("<i>", {
+                                            class: "fa-solid fa-crosshairs",
+                                        })
+                                    ),
+                                ]),
+                            ])
+                        )
                     );
+                });
 
-                    targetDataContainer.removeClass("d-none");
-                };
+                $("#targets-container").append(fragment);
 
-                xhttp.responseType = "json";
-                xhttp.open("GET", `/api/v1/user/${userID}?refresh=true`);
-                xhttp.setRequestHeader("Content-Type", "application/json");
-                xhttp.send();
+                $(".refresh-target-data").on("click", function () {
+                    return; // TODO: rewrite this to show more data
+                    $(this).attr("disabled", true);
+                    const userID = this.getAttribute("data-tid");
+
+                    tfetch("GET", `user/${userID}?refresh=true`, { errorTitle: "User Update Failed" }).then(
+                        (response) => {
+                            const targetDataContainer = $(`div[data-tid="${userID}"] .target-user-data`);
+                            let factionName;
+
+                            if (response.faction === null) {
+                                factionName = "None";
+                            } else {
+                                factionName = `${response.faction.name} [${response.faction.tid}]`;
+                            }
+
+                            targetDataContainer.append(
+                                $("<ul>", {
+                                    class: "list-group list-group-flush",
+                                }).append([
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Level: ${response.level}`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Faction: ${factionName}`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Status: ${response.status} (${reltime(response.last_action)})`,
+                                    }),
+                                ])
+                            );
+
+                            targetDataContainer.removeClass("d-none");
+                        }
+                    );
+                });
+
+                $("#generate-list").attr("disabled", false);
+            })
+            .catch((err) => {
+                $("#generate-list").attr("disabled", false);
             });
-
-            $("#generate-list").attr("disabled", false);
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("GET", `/api/v1/stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send();
 
         generateToast(
             "Chain List Request Sent",

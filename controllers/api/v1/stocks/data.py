@@ -25,15 +25,11 @@ from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
 from tornium_commons.models import Item, StockTick
 
-from controllers.api.v1.decorators import (
-    authentication_required,
-    global_cache,
-    ratelimit,
-)
+from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 @global_cache
 def stocks_data(*args, **kwargs):
@@ -82,7 +78,7 @@ def stocks_data(*args, **kwargs):
     return jsonify(stocks_tick_data), 200, api_ratelimit_response(key)
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 @global_cache(duration=86400)
 def stock_benefits(*args, **kwargs):

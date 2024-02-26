@@ -31,15 +31,11 @@ from tornium_commons import rds
 from tornium_commons.models import Faction, MemberReport, PersonalStats, User
 
 from controllers.api.v1.bot.config import _faction_data
-from controllers.api.v1.decorators import (
-    authentication_required,
-    ratelimit,
-    token_required,
-)
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@session_required
 @ratelimit
 def get_reports(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -78,7 +74,7 @@ def get_reports(*args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def create_report(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -120,7 +116,7 @@ def create_report(*args, **kwargs):
             details={"message": "During the test period, faction availability isn't permitted"},
         )
 
-    if type(faction_tid) == str and not faction_tid.isdigit():
+    if isinstance(faction_tid, str) and not faction_tid.isdigit():
         try:
             faction: Faction = Faction.get(Faction.name**faction_tid)  # ** = ILIKE (case-insensitive pattern matching)
         except DoesNotExist:
@@ -220,7 +216,7 @@ def create_report(*args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def delete_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -244,7 +240,7 @@ def delete_report(rid, *args, **kwargs):
     return make_exception_response("0001", key)
 
 
-@token_required
+@session_required
 @ratelimit
 def get_report(rid, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

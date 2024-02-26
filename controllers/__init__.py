@@ -15,7 +15,7 @@
 
 from flask import Blueprint, jsonify, render_template, request, send_from_directory
 from flask_login import current_user, fresh_login_required
-from tornium_commons.models import Server, TornKey, User
+from tornium_commons.models import OAuthToken, Server, TornKey, User
 
 import utils
 from controllers.decorators import token_required
@@ -59,16 +59,18 @@ def settings(*args, **kwargs):
         .where(TornKey.user.tid == current_user.tid)
     )
 
+    tokens = list(t for t in OAuthToken.select().where(OAuthToken.user == current_user.tid))
+
     return render_template(
         "settings.html",
         enabled_mfa=current_user.security,
         obfuscated_key=obfuscated_key,
         api_keys=api_keys,
+        tokens=tokens,
         discord_linked="Not Linked" if current_user.discord_id in ("", None, 0) else "Linked",
     )
 
 
-@mod.route("/static/toast.js")
 @mod.route("/static/favicon.svg")
 @mod.route("/static/logo.svg")
 @mod.route("/static/utils.js")
@@ -83,6 +85,11 @@ def settings(*args, **kwargs):
 @mod.route("/static/faction/crimes.js")
 @mod.route("/static/faction/members.js")
 @mod.route("/static/fonts/JetBrainsMono-Light.woff2")
+@mod.route("/static/global/api.js")
+@mod.route("/static/global/discord.js")
+@mod.route("/static/global/items.js")
+@mod.route("/static/global/modeSelector.js")
+@mod.route("/static/global/utils.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

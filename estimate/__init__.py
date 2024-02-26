@@ -28,7 +28,7 @@ if model is None:
     model_features = list(model.feature_names_in_)
 
 
-def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
+def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:
     if model is None:
         raise ValueError("No model was loaded")
 
@@ -68,6 +68,9 @@ def estimate_user(user_tid: int, api_key: str) -> typing.Tuple[int, int]:
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
 
         return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800
+
+    if not allow_api_calls:
+        raise PermissionError
 
     try:
         update_user(tid=user_tid, key=api_key, refresh_existing=True)

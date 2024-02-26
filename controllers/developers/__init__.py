@@ -13,18 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import jsonify
-from tornium_commons.models import Item
+import flask
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
-from controllers.api.v1.utils import api_ratelimit_response
+from controllers.developers import clients
+
+mod = flask.Blueprint("developers_routes", __name__)
 
 
-@require_oauth
-@ratelimit
-def item_name_map(*args, **kwargs):
-    return (
-        jsonify({"items": Item.item_name_map()}),
-        200,
-        api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}"),
-    )
+mod.add_url_rule("/developers/clients", view_func=clients.clients_list, methods=["GET"])
+mod.add_url_rule("/developers/clients", view_func=clients.create_client, methods=["POST"])
+mod.add_url_rule("/developers/clients/<client_id>", view_func=clients.client_dashboard, methods=["GET"])

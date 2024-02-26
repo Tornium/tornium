@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Client Dashboard
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/developers">Developers</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/developers/clients">OAuth Clients</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/developers/clients/{{ client.client_id }}">Client Dashboard</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/developers/clients">
+                <i class="col-1 col-sm-2 fa-solid fa-file-invoice"></i> <span class="col">OAuth Clients</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body row">
+        <h5 class="card-title">Client</h5>
+
+        <div class="row">
+            <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+                <label for="client-name" class="form-label">Client Name</label>
+                <input type="text" class="form-control" id="client-name" name="client-name" value="{{ client.client_name }}"></input>
+            </div>
+
+            <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+                <label for="client-id" class="form-label">Client ID</label>
+                <input type="text" class="form-control disabled card-text text-nowrap" id="client-id" value="{{ client.client_id }}" readonly></input>
+            </div>
+        </div>
+
+        <div class="row mt-4 mx-0">
+            <div class="col-sm-12 col-md-6 col-lg-4 p-0 pe-4">
+                <div class="card">
+                    <div class="card-header">Redirect URIs</div>
+                    <ul class="list-group list-group-flush">
+                        {% for uri in client.redirect_uris %}
+                        <li class="list-group-item d-flex justify-content-around align-items-center">
+                            <span class="">{{ uri }}</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="card-footer">
+                        <label for="new-redirect-uri" class="form-label">New Redirect URI</label>
+                        <input type="url" class="form-control w-100" id="new-redirect-uri" name="new-redirect-uri"></input>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

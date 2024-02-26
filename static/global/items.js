@@ -37,17 +37,7 @@ let itemsRequest = (obj) => {
         });
     } else {
         return new Promise((resolve, reject) => {
-            let xhttp = new XMLHttpRequest();
-
-            xhttp.onload = function () {
-                let response = xhttp.response;
-
-                if ("code" in response) {
-                    generateToast("Torn Items Not Located", response["message"]);
-                    reject();
-                    return;
-                }
-
+            tfetch("GET", "items", { errorTitle: "Torn Items Not Loaded" }).then((response) => {
                 items = response.items;
                 _writeItems();
                 localStorage.setItem(
@@ -58,12 +48,7 @@ let itemsRequest = (obj) => {
                     })
                 );
                 resolve();
-            };
-
-            xhttp.responseType = "json";
-            xhttp.open("GET", "/api/v1/items");
-            xhttp.setRequestHeader("Content-Type", "application/json");
-            xhttp.send();
+            });
         });
     }
 };

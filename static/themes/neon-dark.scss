@@ -174,15 +174,6 @@
             color: $white;
         }
 
-        & .dropdown-menu {
-            background-color: $primary-grey;
-        }
-
-        & .dropdown-toggle {
-            background-color: $primary-grey;
-            color: $neon;
-        }
-
         & .ts-control {
             background-color: $primary-grey;
             color: $white;
@@ -205,6 +196,16 @@
                 filter: grayscale(1) invert(1);
             }
         }
+    }
+
+    // .dropdown-menu and .dropdown-toggle can't be in .primary as it conflict with modals
+    & .dropdown-menu {
+        background-color: $primary-grey;
+    }
+
+    & .dropdown-toggle {
+        background-color: $primary-grey;
+        color: $neon;
     }
 
     .secondary {

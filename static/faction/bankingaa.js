@@ -13,18 +13,18 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function() {
-    $('#banking-table').DataTable({
-        "processing": true,
-        "serverSide": true,
-        "ordering": true,
-        "responsive": false,
-        "searching": false,
-        "ajax": {
-            url: "/faction/bankingdata"
+$(document).ready(function () {
+    $("#banking-table").DataTable({
+        processing: true,
+        serverSide: true,
+        ordering: true,
+        responsive: false,
+        searching: false,
+        ajax: {
+            url: "/faction/bankingdata",
         },
-        "order": [[3, "desc"]],
-        "scrollX": true
+        order: [[3, "desc"]],
+        scrollX: true,
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;

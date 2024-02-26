@@ -21,7 +21,7 @@ if sys.version_info < (3, 9):
     raise RuntimeError("This package requires Python 3.9+")
 
 # fmt: off
-for module in ["ddtrace"]:
+for module in ("ddtrace",):
     try:
         globals()[f"{module}:loaded"] = importlib.util.find_spec(module) is not None
     except (ValueError, ModuleNotFoundError):
@@ -41,15 +41,16 @@ if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
 import datetime
 import logging
 import secrets
-import time
 
 import flask
+from authlib.oauth2.rfc7636 import CodeChallenge
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
-from tornium_commons import Config, rds
+from tornium_commons import Config
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
-from tornium_commons.models import Faction
+from tornium_commons.models import Faction, OAuthClient, OAuthToken
+from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
 config = Config.from_json()
 
@@ -78,8 +79,11 @@ def init__app():
     from controllers.authroutes import mod as auth_mod
     from controllers.bot import mod as bot_mod
     from controllers.cli import mod as cli_mod
+    from controllers.developers import mod as developers_mod
     from controllers.errors import mod as error_mod
     from controllers.faction import mod as faction_mod
+    from controllers.oauth import mod as oauth_mod
+    from controllers.oauth import oauth_server
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
@@ -101,6 +105,8 @@ def init__app():
     app.config["SESSION_COOKIE_SAMESITE"] = "lax"
     app.config["SESSION_COOKIE_DOMAIN"] = config.flask_domain
 
+    app.config["OAUTH2_REFRESH_TOKEN_GENERATOR"] = True
+
     CORS(
         app,
         resources={
@@ -116,6 +122,10 @@ def init__app():
     login_manager.session_protection = "strong"
     login_manager.login_message = ""
     login_manager.message = ""
+
+    oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
+    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
+    oauth_server.register_grant(RefreshTokenGrant)
 
     tornium_ext: utils.tornium_ext.TorniumExt
     for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
@@ -135,6 +145,8 @@ def init__app():
         app.register_blueprint(skynet_mod)
         app.register_blueprint(cli_mod)
         app.register_blueprint(admin_mod)
+        app.register_blueprint(oauth_mod)
+        app.register_blueprint(developers_mod)
 
     return app
 
@@ -221,6 +233,9 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
+    if current_user.is_authenticated:
+        flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
+
     if globals().get("ddtrace:loaded") is None:
         try:
             import ddtrace
@@ -249,28 +264,5 @@ def after_request(response: flask.Response):
 
     # X-Frame-Options
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
-
-    if current_user.is_authenticated:
-        api_token = flask.request.cookies.get("token")
-
-        if api_token is None:
-            redis_client = rds()
-            client_token = secrets.token_urlsafe()
-
-            redis_client.set(
-                f"tornium:token:api:{client_token}",
-                f"{int(time.time())}|{current_user.tid}",
-                nx=True,
-                ex=300,
-            )
-
-            response.set_cookie(
-                "token",
-                client_token,
-                max_age=300,
-                secure=True,
-                httponly=True,
-                samesite="Strict",
-            )
 
     return response

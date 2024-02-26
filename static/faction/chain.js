@@ -27,74 +27,37 @@ $(document).ready(function () {
         throw new Error("Faction guild error");
     }
 
-    let xhttp = new XMLHttpRequest();
+    let chainPromise = tfetch("GET", "faction/chain", { errorTitle: "Chain OD Config Not Located" });
+    let channelsPromise = channelsRequest();
 
-    xhttp.onload = function () {
-        let response = xhttp.response;
+    Promise.all([chainPromise, channelsRequest]).then((response) => {
+        chainConfig = response[0];
 
-        if ("code" in response) {
-            generateToast("Chain OD Config Not Located", response["message"]);
-            throw new Error("Chain OD config error");
-        }
+        $.each(channels, function (category_id, category) {
+            let optgroup = $("<optgroup>", {
+                label: category["name"],
+            });
 
-        chainConfig = response;
+            $("#od-channel").append(optgroup);
 
-        xhttp.onload = function () {
-            let response = xhttp.response;
+            $.each(category["channels"], function (channel_id, channel) {
+                if (chainConfig["od"]["channel"] === parseInt(channel.id)) {
+                    optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`));
+                } else {
+                    optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
+                }
+            });
+        });
 
-            if ("code" in response) {
-                generateToast("Discord Channels Not Located", response["message"]);
-            } else {
-                channels = response["channels"];
-
-                $.each(response["channels"], function (category_id, category) {
-                    let optgroup = $("<optgroup>", {
-                        label: category["name"],
-                    });
-
-                    $("#od-channel").append(optgroup);
-
-                    $.each(category["channels"], function (channel_id, channel) {
-                        if (chainConfig["od"]["channel"] === parseInt(channel.id)) {
-                            optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`));
-                        } else {
-                            optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
-                        }
-                    });
-                });
-
-                $(".discord-channel-selector").selectpicker();
-            }
-        };
-
-        xhttp.open("GET", `/api/v1/bot/server/${guildid}/channels`);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send();
-    };
-
-    xhttp.responseType = "json";
-    xhttp.open("GET", `/api/v1/faction/chain`);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send();
+        $(".discord-channel-selector").selectpicker();
+    });
 
     $("#od-channel").on("change", function () {
-        const xhttp = new XMLHttpRequest();
-
-        xhttp.onload = function () {
-            let response = xhttp.response;
-
-            if ("code" in response) {
-                generateToast("Log Channel Failed", response["message"]);
-            }
-        };
-
-        xhttp.responseType = "json";
-        xhttp.open("POST", "/api/v1/faction/chain/od/channel");
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(
-            JSON.stringify({
-                channel: this.options[this.selectedIndex].value,
-            })
-        );
+        tfetch("POST", "faction/chain/od/channel", {
+            body: { channel: this.options[this.selectedIndex].value },
+            errorTitle: "OD Channel Set Failed",
+        }).then(() => {
+            generateToast("OD Channel Set Successful");
+        });
     });
 });

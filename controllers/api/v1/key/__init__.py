@@ -22,29 +22,11 @@ from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.models import TornKey
 
-from controllers.api.v1.decorators import (
-    authentication_required,
-    ratelimit,
-    token_required,
-)
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
-@ratelimit
-def test_key(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    return make_exception_response("0001", key)
-
-
-@token_required
-@ratelimit
-def test_token(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    return make_exception_response("0001", key)
-
-
-@token_required
+@session_required
 @ratelimit
 def set_key(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -89,7 +71,7 @@ def set_key(*args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def toggle_key(guid: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -133,7 +115,7 @@ def toggle_key(guid: str, *args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def delete_key(guid: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

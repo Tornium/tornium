@@ -21,11 +21,7 @@ from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.models import StockTick
 
-from controllers.api.v1.decorators import (
-    authentication_required,
-    global_cache,
-    ratelimit,
-)
+from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
@@ -40,7 +36,7 @@ def get_closest_tick(stock_id: int, start_timestamp: int):
     return None
 
 
-@authentication_required
+@require_oauth()
 @ratelimit
 @global_cache
 def stock_movers(*args, **kwargs):

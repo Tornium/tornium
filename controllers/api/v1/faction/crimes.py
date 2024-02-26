@@ -20,11 +20,11 @@ from flask import request
 from tornium_celery.tasks.faction import ORGANIZED_CRIMES
 from tornium_commons.models import OrganizedCrime, User
 
-from controllers.api.v1.decorators import authentication_required, ratelimit
+from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@authentication_required
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
 def crimes_data(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

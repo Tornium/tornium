@@ -20,11 +20,11 @@ from peewee import DoesNotExist
 from tornium_commons.models import Server
 
 from controllers.api.v1.bot.config import jsonified_server_config
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@token_required
+@session_required
 @ratelimit
 def assists_channel(guildid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -32,9 +32,9 @@ def assists_channel(guildid, *args, **kwargs):
 
     channel_id = data.get("channel")
 
-    if guildid in ("", None, 0) or (type(guildid) != int and not guildid.isdigit()):
+    if guildid in ("", None, 0) or (not isinstance(guildid, int) and not guildid.isdigit()):
         return make_exception_response("1001", key)
-    elif channel_id in ("", None, 0) or (type(channel_id) != int and not channel_id.isdigit()):
+    elif channel_id in ("", None, 0) or (not isinstance(channel_id, int) and not channel_id.isdigit()):
         return make_exception_response("1002", key)
 
     channel_id = int(channel_id)
@@ -52,7 +52,7 @@ def assists_channel(guildid, *args, **kwargs):
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def assists_role_set(guild_id: int, role_type: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -63,7 +63,7 @@ def assists_role_set(guild_id: int, role_type: str, *args, **kwargs):
 
     roles = data.get("roles")
 
-    if type(roles) != list:
+    if not isinstance(roles, list):
         return make_exception_response("1000", key, details={"element": "roles"})
 
     try:

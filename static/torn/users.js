@@ -13,83 +13,83 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function() {
-    var table = $('#users-table').DataTable({
-        "processing": true,
-        "serverSide": true,
-        "ordering": true,
-        "responsive": false,
-        "ajax": {
-            url: "/torn/usersdata"
+$(document).ready(function () {
+    var table = $("#users-table").DataTable({
+        processing: true,
+        serverSide: true,
+        ordering: true,
+        responsive: false,
+        ajax: {
+            url: "/torn/usersdata",
         },
-        "columns": [
-            {data: "tid"},
-            {data: "name"},
-            {data: "level"},
-            {data: "faction"},
-            {data: {_: "last_action.display", sort: "last_action.timestamp"}},
-            {data: {_: "last_refresh.display", sort: "last_refresh.timestamp"}}
+        columns: [
+            { data: "tid" },
+            { data: "name" },
+            { data: "level" },
+            { data: "faction" },
+            { data: { _: "last_action.display", sort: "last_action.timestamp" } },
+            { data: { _: "last_refresh.display", sort: "last_refresh.timestamp" } },
         ],
-        "scrollX": true
+        scrollX: true,
     });
 
     $.fn.dataTable.ext.pager.numbers_length = 3;
 
-    $('#users-table tbody').on('click', 'tr', function() {
-        if(table.row(this).data().tid == 0) {
+    $("#users-table tbody").on("click", "tr", function () {
+        if (table.row(this).data().tid == 0) {
             return;
         }
 
         const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            if($('#user-modal').length) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+        xhttp.onload = function () {
+            if ($("#user-modal").length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById("user-modal"));
                 modal.dispose();
             }
 
-            document.getElementById('modal').innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($('#user-modal'));
+            document.getElementById("modal").innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($("#user-modal"));
             modal.show();
-        }
-        xhttp.open('GET', '/torn/user/' + table.row(this).data().tid);
+        };
+        xhttp.open("GET", "/torn/user/" + table.row(this).data().tid);
         xhttp.send();
     });
 
     const urlParams = new URLSearchParams(window.location.search);
 
-    if(urlParams.get('tid') !== null && urlParams.get('tid') != 0) {
+    if (urlParams.get("tid") !== null && urlParams.get("tid") != 0) {
         const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            if($('#user-modal').length) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+        xhttp.onload = function () {
+            if ($("#user-modal").length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById("user-modal"));
                 modal.dispose();
             }
 
-            document.getElementById('modal').innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($('#user-modal'));
+            document.getElementById("modal").innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($("#user-modal"));
             modal.show();
-        }
-        xhttp.open('GET', '/torn/user/' + urlParams.get('tid'));
+        };
+        xhttp.open("GET", "/torn/user/" + urlParams.get("tid"));
         xhttp.send();
     }
 
-    $('#userid-button').on('click', function() {
-        if($('#userid-input').val() == 0) {
+    $("#userid-button").on("click", function () {
+        if ($("#userid-input").val() == 0) {
             return;
         }
 
         const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            if($('#user-modal').length) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('user-modal'));
+        xhttp.onload = function () {
+            if ($("#user-modal").length) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById("user-modal"));
                 modal.dispose();
             }
 
-            document.getElementById('modal').innerHTML = this.responseText;
-            var modal = new bootstrap.Modal($('#user-modal'));
+            document.getElementById("modal").innerHTML = this.responseText;
+            var modal = new bootstrap.Modal($("#user-modal"));
             modal.show();
-        }
-        xhttp.open('GET', '/torn/user/' + $('#userid-input').val());
+        };
+        xhttp.open("GET", "/torn/user/" + $("#userid-input").val());
         xhttp.send();
     });
 });

@@ -18,11 +18,11 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget
 from tornium_commons.models import Server
 
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@token_required
+@session_required
 @ratelimit
 def get_channels(guild_id, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -42,7 +42,7 @@ def get_channels(guild_id, *args, **kwargs):
     )
 
 
-@token_required
+@session_required
 @ratelimit
 def get_roles(guild_id, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

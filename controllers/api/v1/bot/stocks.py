@@ -20,11 +20,11 @@ from peewee import DoesNotExist
 from tornium_commons.models import Server
 
 from controllers.api.v1.bot.config import jsonified_server_config
-from controllers.api.v1.decorators import ratelimit, token_required
+from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@token_required
+@session_required
 @ratelimit
 def stocks_feed_channel(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
@@ -48,7 +48,7 @@ def stocks_feed_channel(guild_id: int, *args, **kwargs):
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
 
 
-@token_required
+@session_required
 @ratelimit
 def stocks_feed_options(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))

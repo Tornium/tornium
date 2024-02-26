@@ -32,7 +32,6 @@ from tornium_commons.errors import (
     RatelimitError,
     TornError,
 )
-from tornium_commons.models import User
 
 from .misc import remove_key_error
 
@@ -224,7 +223,7 @@ def tornget(
     pass_error=False,
 ):
     url = (
-        f'https://api.torn.com/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
+        f'{config.torn_api_uri}/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
         f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'
     )
 

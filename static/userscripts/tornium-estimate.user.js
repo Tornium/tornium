@@ -34,7 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 // Production configuration
 const baseURL = "https://tornium.com";
-const clientID = "";
+const clientID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 
 // Development configuration
 // const baseURL = "http://127.0.0.1:5000";

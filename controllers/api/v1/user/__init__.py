@@ -129,7 +129,9 @@ def estimate_specific_user(tid: int, *args, **kwargs):
 
     try:
         estimated_bs, expiration_ts = estimate_user(
-            tid, kwargs["user"].key, allow_api_calls="torn_key:usage" in current_token.get_scope()
+            tid,
+            kwargs["user"].key,
+            allow_api_calls="torn_key:usage" in current_token.get_scope() and kwargs["user"].key not in ("", None),
         )
     except ValueError as e:
         logging.getLogger("server").exception(e)

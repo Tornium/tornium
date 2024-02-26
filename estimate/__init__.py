@@ -33,6 +33,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         raise ValueError("No model was loaded")
 
     redis_client = rds()
+    allow_api_calls = False if api_key in (None, "") else allow_api_calls
 
     try:
         return int(redis_client.get(f"tornium:estimate:cache:{user_tid}")), int(time.time()) + redis_client.ttl(

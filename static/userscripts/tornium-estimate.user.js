@@ -5,7 +5,7 @@
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
-// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback
+// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -42,7 +42,7 @@ function arrayToString(array) {
 (async function () {
     "use strict";
 
-    if (window.location.pathname.startsWith("/tornium/callback")) {
+    if (window.location.pathname.startsWith("/oauth/") && window.location.pathname.endsWith("/callback")) {
         let params = new URLSearchParams(window.location.search);
 
         if (params.get("state") != GM_getValue("tornium:state")) {

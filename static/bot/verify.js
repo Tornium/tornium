@@ -22,9 +22,11 @@ $(document).ready(function () {
     let rolesPromise = rolesRequest();
     let channelsPromise = channelsRequest();
 
+    let serverConfig;
+
     Promise.all([configPromise, rolesPromise])
         .then((response) => {
-            let serverConfig = response[0];
+            serverConfig = response[0];
 
             $.each(serverConfig.verify.verified_roles, function (index, role) {
                 let option = $(`#verification-roles option[value="${role}"]`);

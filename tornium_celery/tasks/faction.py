@@ -80,11 +80,13 @@ ATTACK_RESULTS = {
     name="tasks.faction.refresh_factions",
     routing_key="default.refresh_factions",
     queue="default",
-    time_limit=5,
+    time_limit=30,
 )
 def refresh_factions():
     faction: Faction
     for faction in Faction.select().join(Server, JOIN.LEFT_OUTER):
+        # Optimize this query to use one query to select valid factions
+
         if len(faction.aa_keys) == 0:
             continue
 

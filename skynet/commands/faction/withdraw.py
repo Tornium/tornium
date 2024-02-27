@@ -20,7 +20,7 @@ import uuid
 from peewee import DoesNotExist, IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpost, tornget
 from tornium_commons import rds
-from tornium_commons.formatters import commas, find_list, text_to_num
+from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
@@ -111,7 +111,7 @@ def withdraw(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
                         f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -128,7 +128,7 @@ def withdraw(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        "description": f"The banking channels needs to be set for {discord_escaper(user.faction.name)}. Please contact "
                         f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -252,7 +252,7 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Faction Error",
                         "description": (
-                            f"{user.name} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
+                            f"{discord_escaper(user.name)} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
                             f"indicate that they are not in the faction or that they don't have any funds in the "
                             f"faction vault."
                         ),
@@ -319,7 +319,7 @@ def withdraw(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting {commas(withdrawal_amount)} "
+                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting {commas(withdrawal_amount)} "
                     f"in {'points' if withdrawal_option == 1 else 'cash'}"
                     f" from the faction vault.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -362,7 +362,7 @@ def withdraw(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{user.name} [{user.tid}] is requesting "
+                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
                     f"{commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
                     f"{'points' if withdrawal_option == 1 else 'cash'}"
                     f" from the faction vault.",

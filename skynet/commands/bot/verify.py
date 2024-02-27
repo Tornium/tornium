@@ -21,7 +21,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import TornError
-from tornium_commons.formatters import find_list
+from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
@@ -336,7 +336,7 @@ def verify(interaction, *args, **kwargs):
     if user.faction is None:
         faction_str = "None"
     else:
-        faction_str = f"{faction.name} [{faction.tid}]"
+        faction_str = f"{discord_escaper(faction.name)} [{faction.tid}]"
 
     return {
         "type": 4,
@@ -345,7 +345,7 @@ def verify(interaction, *args, **kwargs):
                 {
                     "title": "Verification Successful",
                     "description": inspect.cleandoc(
-                        f"""User: [{user.name} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
+                        f"""User: [{discord_escaper(user.name)} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
                         Faction: {faction_str}
                         Discord: <@{user.discord_id}>"""
                     ),

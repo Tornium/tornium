@@ -20,7 +20,7 @@ import typing
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpost
 from tornium_commons import rds
-from tornium_commons.formatters import find_list
+from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Faction, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
@@ -817,9 +817,9 @@ def stakeout_flying_button(interaction, *args, **kwargs):
     payload = {
         "embeds": [
             {
-                "title": f"{'Unknown' if user is None else user.name} is Landing",
+                "title": f"{'Unknown' if user is None else discord_escaper(user.name)} is Landing",
                 "description": (
-                    f"{'Unknown' if user is None else user.name} [{tid}] is landing within the next minute if they're "
+                    f"{'Unknown' if user is None else discord_escaper(user.name)} [{tid}] is landing within the next minute if they're "
                     f"flying with {_flying_type_str[int(flying_type)]}."
                 ),
                 "color": SKYNET_INFO,
@@ -908,8 +908,8 @@ def stakeout_hospital_button(interaction, *args, **kwargs):
     payload = {
         "embeds": [
             {
-                "title": f"{'Unknown' if user is None else user.name} is Leaving Hospital",
-                "description": f"{'Unknown' if user is None else user.name} is leaving the hospital within the "
+                "title": f"{'Unknown' if user is None else discord_escaper(user.name)} is Leaving Hospital",
+                "description": f"{'Unknown' if user is None else discord_escaper(user.name)} is leaving the hospital within the "
                 f"next minute or so.",
                 "color": SKYNET_INFO,
             }

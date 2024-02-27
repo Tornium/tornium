@@ -17,7 +17,7 @@ import random
 import time
 import typing
 
-from tornium_commons.formatters import bs_to_range, commas, find_list
+from tornium_commons.formatters import bs_to_range, commas, discord_escaper, find_list
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
@@ -122,7 +122,7 @@ def estimate_command(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": "User Stat Estimate",
-                    "description": f"{mentioned_user.name} [{mentioned_user.tid}] is estimated to have a stat score of {commas(stat_score)}.",
+                    "description": f"{discord_escaper(mentioned_user.name)} [{mentioned_user.tid}] is estimated to have a stat score of {commas(stat_score)}.",
                     "fields": [
                         {
                             "name": "Minimum Total",

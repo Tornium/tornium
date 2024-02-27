@@ -16,6 +16,7 @@
 import inspect
 
 from peewee import DoesNotExist
+from tornium_commons.formatters import discord_escaper
 from tornium_commons.models import Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
@@ -76,7 +77,7 @@ def feed(interaction, *args, **kwargs):
                 {
                     "title": "Stocks Feed Configuration",
                     "description": inspect.cleandoc(
-                        f"""Stocks feed configuration for {guild.name}...
+                        f"""Stocks feed configuration for {discord_escaper(guild.name)}...
 
                 Feed Channel: {"Disabled" if guild.stocks_channel == 0 else f"<#{guild.stocks_channel}>"}
 

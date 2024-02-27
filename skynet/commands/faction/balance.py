@@ -18,7 +18,7 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
-from tornium_commons.formatters import commas, find_list
+from tornium_commons.formatters import commas, discord_escaper, find_list
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
@@ -124,7 +124,7 @@ def balance(interaction, *args, **kwargs):
                     {
                         "title": "Faction Error",
                         "description": (
-                            f"{user.name} is not in {user.faction.name}'s donations list according to the Torn API. "
+                            f"{discord_escaper(user.name)} is not in {discord_escaper(user.faction.name)}'s donations list according to the Torn API. "
                             f"If you think that this is an error, please report this to the developers of this bot."
                         ),
                         "color": SKYNET_ERROR,

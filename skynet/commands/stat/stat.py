@@ -18,7 +18,7 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
-from tornium_commons.formatters import bs_to_range, commas, find_list
+from tornium_commons.formatters import bs_to_range, commas, discord_escaper, find_list
 from tornium_commons.models import Stat, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
@@ -166,12 +166,12 @@ def stat(interaction, *args, **kwargs):
         "data": {
             "embeds": [
                 {
-                    "title": f"{target_user.name} [{target_user.tid}]",
+                    "title": f"{discord_escaper(target_user.name)} [{target_user.tid}]",
                     "url": f"https://www.torn.com/profiles.php?XID={target_user.tid}",
                     "fields": [
                         {
                             "name": "Faction",
-                            "value": f"{target_user.faction.name if target_user.faction is not None else 'Unknown/No Faction'}",
+                            "value": f"{discord_escaper(target_user.faction.name) if target_user.faction is not None else 'Unknown/No Faction'}",
                         },
                         {
                             "name": "Last Action",

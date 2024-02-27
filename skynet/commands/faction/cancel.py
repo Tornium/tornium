@@ -18,7 +18,7 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost
-from tornium_commons.formatters import commas, find_list
+from tornium_commons.formatters import commas, discord_escaper, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
@@ -98,7 +98,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
                         f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -130,7 +130,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        "description": f"The banking channels needs to be set for {discord_escaper(user.faction.name)}. Please contact "
                         f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -244,7 +244,7 @@ def cancel_command(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{withdrawal_id}",
-                    "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                    "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
                     "fields": [
                         {
                             "name": "Original Request Amount",
@@ -293,7 +293,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Vault Request Cancelled",
-                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {user.name} [{user.tid}]",
+                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {discord_escaper(user.name)} [{user.tid}]",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "color": SKYNET_ERROR,
                     }
@@ -402,7 +402,7 @@ def cancel_button(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The server needs to be added to {user.faction.name}'s bot configuration and "
+                        "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
                         f"to the server. Please contact the server administrators to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
@@ -434,7 +434,7 @@ def cancel_button(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Server Configuration Required",
-                        "description": f"The banking channels needs to be set for {user.faction.name}. Please contact "
+                        "description": f"The banking channels needs to be set for {discord_escaper(user.faction.name)}. Please contact "
                         f"the server administrators to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -520,7 +520,7 @@ def cancel_button(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{withdrawal.wid}",
-                    "description": f"This request has been cancelled by {user.name} [{user.tid}].",
+                    "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
                     "fields": [
                         {
                             "name": "Original Request Amount",
@@ -569,7 +569,7 @@ def cancel_button(interaction, *args, **kwargs):
                 "embeds": [
                     {
                         "title": "Vault Request Cancelled",
-                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {user.name} [{user.tid}]",
+                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {discord_escaper(user.name)} [{user.tid}]",
                         "timestamp": datetime.datetime.utcnow().isoformat(),
                         "color": SKYNET_ERROR,
                     }

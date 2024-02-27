@@ -14,22 +14,30 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.models import PersonalStats, User
 
-model: typing.Optional[xgboost.XGBRegressor] = None
+_model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None
 
-if model is None:
-    model = xgboost.XGBRegressor()
+
+def model() -> xgboost.XGBRegressor:
+    global _model, model_features
+
+    if _model is not None:
+        return _model
+
+    _model = xgboost.XGBRegressor()
 
     if pathlib.Path("estimate/models/base-model.json").exists():
-        model.load_model("estimate/models/base-model.json")
+        _model.load_model("estimate/models/base-model.json")
     else:
-        model.load_model("estimate/models/base-model-0.0.1.json")
+        _model.load_model("estimate/models/base-model-0.0.1.json")
 
-    model_features = list(model.feature_names_in_)
+    model_features = list(_model.feature_names_in_)
+
+    return _model
 
 
 def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:
-    if model is None:
+    if model() is None:
         raise ValueError("No model was loaded")
 
     redis_client = rds()
@@ -65,7 +73,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         df["tid"][0] = user_tid
         df = df.astype("int64")
 
-        estimate = int(model.predict(df))
+        estimate = int(model().predict(df))
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
 
         return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800
@@ -101,7 +109,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     df["tid"][0] = user_tid
     df = df.astype("int64")
 
-    estimate = int(model.predict(df))
+    estimate = int(model().predict(df))
     redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
 
     return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800

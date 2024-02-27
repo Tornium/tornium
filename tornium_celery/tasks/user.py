@@ -304,6 +304,12 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         ],
     ).execute()
 
+    if user_data["discord"]["discordID"] != 0:
+        # Remove users' Discord IDs if another user has the same Discord ID
+        User.update(discord_id=None).where(
+            (User.discord_id == user_data["discord"]["discordID"]) & (User.tid != user_data["player_id"])
+        ).execute()
+
 
 @celery.shared_task(
     name="tasks.user.update_user_other",

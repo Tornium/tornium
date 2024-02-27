@@ -179,6 +179,7 @@ def update_faction(faction_data):
     users = [member_id for member_id in faction_data["members"].keys()]
 
     for member_id, member in faction_data["members"].items():
+        # TODO: Switch upsert to bulk upsert
         if "positions" in faction_data:
             User.insert(
                 tid=int(member_id),

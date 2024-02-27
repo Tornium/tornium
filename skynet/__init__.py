@@ -155,7 +155,7 @@ def _handle_interaction_errors(f):
                         "embeds": [
                             {
                                 "title": "Discord API Error",
-                                "description": f"A Discord API error has occurred resulting in an error f{e.code}: {e.message}",
+                                "description": f"A Discord API error has occurred resulting in an error {e.code}: {e.message}",
                                 "color": SKYNET_ERROR,
                             },
                         ],

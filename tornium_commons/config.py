@@ -17,7 +17,7 @@ import pathlib
 import secrets
 import typing
 
-from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
+from pydantic import AnyUrl, BaseModel, Field, PostgresDsn, RedisDsn
 
 from .altjson import load
 
@@ -41,6 +41,8 @@ class Config(BaseModel):
 
     admin_users: typing.Optional[typing.List[int]] = Field()
     admin_passphrase: typing.Optional[str] = Field()
+
+    torn_api_uri: typing.Optional[AnyUrl] = Field(default="https://api.torn.com")
 
     # Internal Data
     _file: typing.Optional[pathlib.Path] = None

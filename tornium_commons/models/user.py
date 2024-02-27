@@ -156,3 +156,6 @@ class User(BaseModel):
             return _v(api_keys.where(TornKey.access_level << [3, 4]).get().api_key)
         except DoesNotExist:
             return None
+
+    def get_user_id(self):
+        return self.tid

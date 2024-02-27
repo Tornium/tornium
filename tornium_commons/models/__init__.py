@@ -18,6 +18,9 @@ from .faction_position import FactionPosition
 from .item import Item
 from .member_report import MemberReport
 from .notification import Notification
+from .oauth_authorization_code import OAuthAuthorizationCode
+from .oauth_client import OAuthClient
+from .oauth_token import OAuthToken
 from .organized_crime import OrganizedCrime
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
@@ -34,6 +37,9 @@ __all__ = [
     "Item",
     "MemberReport",
     "Notification",
+    "OAuthAuthorizationCode",
+    "OAuthClient",
+    "OAuthToken",
     "OrganizedCrime",
     "PersonalStats",
     "Retaliation",

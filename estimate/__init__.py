@@ -52,13 +52,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
 
     ps: typing.Optional[PersonalStats]
     try:
-        ps = (
-            User.select(User.personal_stats)
-            .join(PersonalStats, JOIN.LEFT_OUTER)
-            .where(User.tid == user_tid)
-            .get()
-            .personal_stats
-        )
+        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
     except DoesNotExist:
         ps = None
 
@@ -88,13 +82,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         update_error = True
 
     try:
-        ps = (
-            User.select(User.personal_stats)
-            .join(PersonalStats, JOIN.LEFT_OUTER)
-            .where(User.tid == user_tid)
-            .get()
-            .personal_stats
-        )
+        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
     except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
 

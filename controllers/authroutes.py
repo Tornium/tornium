@@ -357,7 +357,7 @@ def discord_login():
     if user is None:
         try:
             update_user(
-                key=User.random_key(),
+                key=TornKey.random_key(),
                 discordid=user_data["id"],
                 refresh_existing=False,
             )

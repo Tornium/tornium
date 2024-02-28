@@ -30,8 +30,9 @@ $(document).ready(function () {
     let chainPromise = tfetch("GET", "faction/chain", { errorTitle: "Chain OD Config Not Located" });
     let channelsPromise = channelsRequest();
 
-    Promise.all([chainPromise, channelsRequest]).then((response) => {
+    Promise.all([chainPromise, channelsPromise]).then((response) => {
         chainConfig = response[0];
+        channels = response[1];
 
         $.each(channels, function (category_id, category) {
             let optgroup = $("<optgroup>", {

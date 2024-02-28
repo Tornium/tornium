@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.2.1
+// @version      0.2.2
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -11,7 +11,6 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @connect      tornium.com
-// @connect      127.0.0.1
 // @downloadURL  https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-estimate.user.js
 // @updateURL    https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-estimate.user.js
 // @supportURL   https://discord.gg/pPcqTRTRyF
@@ -114,8 +113,8 @@ function arrayToString(array) {
         responseType: "json",
         onload: (response) => {
             if (response.response.error !== undefined) {
-                GM_removeValue("tornium:access-token");
-                GM_removeValue("tornium:access-token-expires");
+                GM_deleteValue("tornium:access-token");
+                GM_deleteValue("tornium:access-token-expires");
             }
 
             if (response.response.error !== undefined) {

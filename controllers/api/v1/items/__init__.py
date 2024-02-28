@@ -20,7 +20,7 @@ from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response
 
 
-@require_oauth
+@require_oauth()
 @ratelimit
 def item_name_map(*args, **kwargs):
     return (

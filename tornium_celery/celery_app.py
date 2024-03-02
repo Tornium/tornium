@@ -108,7 +108,7 @@ if celery_app is None:
             "fetch-attacks-runner": {
                 "task": "tasks.faction.fetch_attacks_runner",
                 "enabled": True,
-                "schedule": {"type": "periodic", "second": "30"},
+                "schedule": {"type": "periodic", "second": "10"},
             },
             "oc-refresh": {
                 "task": "tasks.faction.oc_refresh",

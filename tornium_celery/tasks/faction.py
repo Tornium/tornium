@@ -530,22 +530,6 @@ def check_faction_ods(faction_od_data):
     time_limit=5,
 )
 def fetch_attacks_runner():
-    redis = rds()
-
-    if (
-        redis.exists("tornium:celery-lock:fetch-attacks") and redis.ttl("tornium:celery-lock:fetch-attacks") > 1
-    ):  # Lock enabled
-        logger.debug("Fetch attacks task terminated due to pre-existing task")
-        raise Exception(
-            f"Can not run task as task is already being run. Try again in "
-            f"{redis.ttl('tornium:celery-lock:fetch-attacks')} seconds."
-        )
-
-    if redis.setnx("tornium:celery-lock:fetch-attacks", 1):
-        redis.expire("tornium:celery-lock:fetch-attacks", 30)
-    if redis.ttl("tornium:celery-lock:fetch-attacks") < 1:
-        redis.expire("tornium:celery-lock:fetch-attacks", 1)
-
     for api_key in (
         TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
     ):

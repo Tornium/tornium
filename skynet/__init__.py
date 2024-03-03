@@ -61,6 +61,7 @@ _commands = {
     "fulfill": skynet.commands.faction.fulfill.fulfill_command,
     "withdraw": skynet.commands.faction.withdraw.withdraw,
     # Bot Commands
+    "server": skynet.commands.bot.server.sever_config_switchboard,
     "verify": skynet.commands.bot.verify.verify,
     "verifyall": skynet.commands.bot.verifyall.verify_all,
     # Notification Commands

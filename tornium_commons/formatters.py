@@ -316,6 +316,26 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[Item]]:
 
 
 def discord_escaper(value: str) -> str:
+    """
+    Escape the characters for italics and underscore for text sent through Discord.
+    Effective for uses such as user names.
+
+    Parameters
+    ----------
+    value : str
+        String to be escaped
+
+    Returns
+    -------
+    escaped_string : str
+        String that's been escaped
+
+    Examples
+    --------
+    >>> discord_escaper("_tiksan_")
+    "\_tiksan\_"
+    """  # noqa W605
+
     return value.replace("*", "\\*").replace("_", "\\_")
 
 

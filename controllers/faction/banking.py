@@ -343,9 +343,10 @@ def fulfill(guid: str):
         discordpatch.delay(
             f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
             payload={
+                "content": "",
                 "embeds": [
                     {
-                        "title": f"Vault Request #{withdrawal.wid}",
+                        "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
                         "description": f"This request has been fulfilled by {fulfiller_str}",
                         "fields": [
                             {

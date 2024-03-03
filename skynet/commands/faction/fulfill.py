@@ -253,9 +253,10 @@ def fulfill_command(interaction, *args, **kwargs):
     discordpatch(
         f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
         {
+            "content": "",
             "embeds": [
                 {
-                    "title": f"Vault Request #{withdrawal_id}",
+                    "title": f"Fulfill - Vault Request #{withdrawal_id}",
                     "description": f"This request has been fulfilled by {discord_escaper(user.name)} [{user.tid}].",
                     "fields": [
                         {
@@ -560,9 +561,10 @@ def fulfill_button(interaction, *args, **kwargs):
         discordpatch(
             f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
             {
+                "content": "",
                 "embeds": [
                     {
-                        "title": f"Vault Request #{withdrawal.wid}",
+                        "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
                         "description": f"This request has been fulfilled by {discord_escaper(user.name)} [{user.tid}].",
                         "fields": [
                             {

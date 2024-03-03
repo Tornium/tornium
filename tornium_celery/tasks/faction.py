@@ -1556,15 +1556,12 @@ def auto_cancel_requests():
 
         tornget.signature(
             kwargs={
-                "endpoint": "faction/?selections=fundsnews",
+                "endpoint": "faction/?selections=fundsnews,basic",
                 "key": random.choice(faction.aa_keys),
                 "pass_error": True,
             },
             queue="api",
-        ).apply_async(
-            expires=300,
-            link=verify_faction_withdrawals.signature(args=tuple(withdrawals), kwargs={"faction_tid": faction_tid}),
-        )
+        ).apply_async(expires=300, link=verify_faction_withdrawals.signature(args=tuple(withdrawals)))
 
     withdrawal: Withdrawal
     for withdrawal in Withdrawal.select().where(
@@ -1653,7 +1650,8 @@ def auto_cancel_requests():
     queue="quick",
     time_limit=5,
 )
-def verify_faction_withdrawals(funds_news: dict, faction_tid: int, *withdrawals):
+def verify_faction_withdrawals(funds_news: dict, *withdrawals):
+    faction_tid = funds_news["ID"]
     missing_fulfillments: typing.List[Withdrawal] = [
         w for w in Withdrawal.select().where(Withdrawal.wid << withdrawals).first() if w is not None
     ]

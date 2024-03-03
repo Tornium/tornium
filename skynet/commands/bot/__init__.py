@@ -14,3 +14,4 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from skynet.commands.bot import verify, verifyall
+from skynet.commands.bot.server import server_config_switchboard

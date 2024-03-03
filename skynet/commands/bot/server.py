@@ -195,8 +195,8 @@ def unlink_server(interaction, subcommand_data, *args, **kwargs):
 
 def server_config_switchboard(interaction, *args, **kwargs):
     try:
-        subcommand = interaction["data"]["options"][0]["options"][0]["name"]
-        subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
+        subcommand = interaction["data"]["options"][0]["name"]
+        subcommand_data = interaction["data"]["options"][0]["options"]
     except Exception:
         return {
             "type": 4,

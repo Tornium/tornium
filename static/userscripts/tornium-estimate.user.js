@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.2.2
+// @version      0.3.0
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
 // @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
+// @match        https://www.torn.com/tornium/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -14,6 +15,7 @@
 // @downloadURL  https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-estimate.user.js
 // @updateURL    https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-estimate.user.js
 // @supportURL   https://discord.gg/pPcqTRTRyF
+// @require     https://github.com/Kwack-Kwack/GMforPDA/raw/main/GMforPDA.user.js
 // ==/UserScript==
 
 /* Copyright (C) 2021-2023 tiksan
@@ -41,11 +43,12 @@ function arrayToString(array) {
 (async function () {
     "use strict";
 
-    if (window.location.pathname.startsWith("/oauth/") && window.location.pathname.endsWith("/callback")) {
+    if (window.location.pathname.includes("/oauth/") && window.location.pathname.endsWith("/callback")) {
         let params = new URLSearchParams(window.location.search);
 
         if (params.get("state") != GM_getValue("tornium:state")) {
             unsafeWindow.alert("Invalid State");
+            console.log("invalid state");
             return;
         }
 
@@ -53,7 +56,12 @@ function arrayToString(array) {
         data.set("code", params.get("code"));
         data.set("grant_type", "authorization_code");
         data.set("scope", "identity");
-        data.set("redirect_uri", `${baseURL}/oauth/${clientID}/callback`);
+        data.set(
+            "redirect_uri",
+            "###PDA-APIKEY###".toString().startsWith("###")
+                ? `${baseURL}/oauth/${clientID}/callback`
+                : `https://www.torn.com/tornium/oauth/${clientID}/callback`
+        );
         data.set("client_id", clientID);
         data.set("code_verifier", GM_getValue("tornium:codeVerifier"));
 
@@ -66,14 +74,26 @@ function arrayToString(array) {
             data: data.toString(),
             responseType: "json",
             onload: (response) => {
-                console.log(response);
+                if (response.responseType === undefined) {
+                    response.response = JSON.parse(response.responseText);
+                    response.responseType = "json";
+                }
+
                 let accessToken = response.response.access_token;
                 let expiresAt = Math.floor(Date.now() / 1000) + response.response.expires_in;
 
                 GM_setValue("tornium:access-token", accessToken);
                 GM_setValue("tornium:access-token-expires", expiresAt);
+
+                if ("###PDA-APIKEY###".toString().startsWith("###")) {
+                    unsafeWindow.location.href = "https://torn.com";
+                }
             },
         });
+        return;
+    }
+
+    if (!window.location.href.startsWith("https://www.torn.com/profiles.php")) {
         return;
     }
 
@@ -92,7 +112,10 @@ function arrayToString(array) {
         console.log(codeChallenge);
         codeChallenge = arrayToString(new Uint8Array(codeChallenge));
 
-        const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${baseURL}/oauth/${clientID}/callback`;
+        const redirectURI = "###PDA-APIKEY###".toString().startsWith("###")
+            ? `${baseURL}/oauth/${clientID}/callback`
+            : `https://www.torn.com/tornium/oauth/${clientID}/callback`;
+        const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${redirectURI}`;
 
         $("#tornium-estimation").text("Signed out");
         $(".content-title").append(
@@ -112,6 +135,11 @@ function arrayToString(array) {
         },
         responseType: "json",
         onload: (response) => {
+            if (response.responseType === undefined) {
+                response.response = JSON.parse(response.responseText);
+                response.responseType = "json";
+            }
+
             if (response.response.error !== undefined) {
                 GM_deleteValue("tornium:access-token");
                 GM_deleteValue("tornium:access-token-expires");

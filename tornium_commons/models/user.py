@@ -96,6 +96,11 @@ class User(BaseModel):
         except DoesNotExist:
             return "N/A"
 
+    @staticmethod
+    @lru_cache
+    def user_discord_id(tid: int) -> int:
+        return User.select(User.discord_id).where(User.tid == tid).get().discord_id
+
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"
 

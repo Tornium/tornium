@@ -19,7 +19,7 @@ import time
 import typing
 
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import discordpatch, discordpost, tornget
+from tornium_celery.tasks.api import tornget
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
@@ -78,11 +78,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     def offline():
         payload[0]["title"] = f"Offline Members of {member_data['name']}"
@@ -119,11 +118,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     def flying():
         payload[0]["title"] = f"Abroad Members of {member_data['name']}"
@@ -160,11 +158,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     def okay():
         payload[0]["title"] = f"Okay Members of {member_data['name']}"
@@ -196,11 +193,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     def hospital():
         payload[0]["title"] = f"Hospitalized Members of {member_data['name']}"
@@ -234,11 +230,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     def inactive():
         days: typing.Union[dict, int] = find_list(subcommand_data, "name", "days")
@@ -276,11 +271,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        callback.get()
-        discordpatch(
-            endpoint=f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",
-            payload={"embeds": payload},
-        )
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
@@ -387,11 +381,6 @@ def members_switchboard(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-
-    callback = discordpost.delay(
-        f"interactions/{interaction['id']}/{interaction['token']}/callback",
-        payload={"type": 5},
-    )
 
     member_data = tornget(
         f"faction/{faction.tid}?selections=",

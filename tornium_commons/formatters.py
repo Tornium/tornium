@@ -15,6 +15,7 @@
 
 import dataclasses
 import datetime
+import html.parser
 import math
 import re
 import typing
@@ -430,3 +431,24 @@ class HumanTimeDelta:
                 return f"{seperator.join(_s[:-1])}, and {_s[-1]}"
             else:
                 return seperator.join(_s)
+
+
+class LinkHTMLParser(html.parser.HTMLParser):
+    def __init__(self):
+        super().__init__()
+
+        self.href: typing.Optional[str] = None
+        self.value: typing.Optional[str] = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag != "a":
+            return
+
+        for attr_key, attr_value in attrs:
+            if attr_key != "href":
+                continue
+
+            self.href = attr_value
+
+    def handle_data(self, data):
+        self.value = data

@@ -1650,10 +1650,10 @@ def auto_cancel_requests():
     queue="quick",
     time_limit=5,
 )
-def verify_faction_withdrawals(funds_news: dict, *withdrawals):
+def verify_faction_withdrawals(funds_news: dict, withdrawals):
     faction_tid = funds_news["ID"]
     missing_fulfillments: typing.List[Withdrawal] = [
-        w for w in Withdrawal.select().where(Withdrawal.wid << withdrawals).first() if w is not None
+        w for w in Withdrawal.select().where(Withdrawal.wid << list(withdrawals)) if w is not None
     ]
 
     if "error" in funds_news:
@@ -1671,7 +1671,7 @@ def verify_faction_withdrawals(funds_news: dict, *withdrawals):
                             "title": "Vault Request Unknown Status",
                             "description": (
                                 f"Your vault request #{withdrawal.wid} may not have been fulfilled after being marked as fulfilled by "
-                                f"{'Someone' if withdrawal.fulfilled == -1 else User.user_str(withdrawal.fulfiller)} due to an "
+                                f"{'Someone' if withdrawal.fulfiller == -1 else User.user_str(withdrawal.fulfiller)} due to an "
                                 f"error with the Torn API. If you didn't receive the {'money' if withdrawal.cash_request else 'points'}, "
                                 f"please redo the vault request for {'$' + commas(withdrawal.amount) if withdrawal.cash_request else commas(withdrawal.amount) + ' points'}."
                             ),
@@ -1754,7 +1754,7 @@ def verify_faction_withdrawals(funds_news: dict, *withdrawals):
                                     },
                                     {
                                         "name": "Original Requester",
-                                        "value": f"{requester.name} [{requester.tid}]",
+                                        "value": User.user_str(withdrawal.requester),
                                     },
                                 ],
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -1780,7 +1780,7 @@ def verify_faction_withdrawals(funds_news: dict, *withdrawals):
                         "title": "Vault Request Not Fulfilled",
                         "description": (
                             f"Your vault request #{withdrawal.wid} may not have been fulfilled after being marked as fulfilled by "
-                            f"{'Someone' if withdrawal.fulfilled == -1 else User.user_str(withdrawal.fulfiller)} but no subsequent "
+                            f"{'Someone' if withdrawal.fulfiller == -1 else User.user_str(withdrawal.fulfiller)} but no subsequent "
                             f"action could be found in the faction logs. If you didn't receive the "
                             f"{'money' if withdrawal.cash_request else 'points'}, please redo the vault request for "
                             f"{'$' + commas(withdrawal.amount) if withdrawal.cash_request else commas(withdrawal.amount) + ' points'}."

@@ -534,7 +534,27 @@ def invalid_member_position_roles(
     time_limit=60,
 )
 def verify_member_sub(log_channel: int, member: dict, guild_id: int):
-    user: User = User.select().where(User.discord_id == member["id"]).get()
+    try:
+        user: User = User.select().where(User.discord_id == member["id"]).get()
+    except DoesNotExist:
+        if log_channel <= 0:
+            return
+
+        discordpost.delay(
+            endpoint=f"channels/{log_channel}/messages",
+            payload={
+                "embeds": [
+                    {
+                        "title": "API Verification Failed",
+                        "description": f"<@{member['id']}> is not found in the database and is most likely not verified by Torn.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+            },
+            countdown=math.floor(random.uniform(0, 15)),
+            channel=log_channel,
+        ).forget()
+
     guild: Server = Server.select().where(Server.sid == guild_id).get()
 
     # TODO: Cache guild verification config so the same database calls aren't made for every user

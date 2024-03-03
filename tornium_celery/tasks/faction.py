@@ -17,17 +17,18 @@ import datetime
 import inspect
 import math
 import random
+import re
 import time
 import typing
+import urllib.parse
 import uuid
 from decimal import DivisionByZero
 
 import celery
 from celery.utils.log import get_task_logger
 from peewee import JOIN, DoesNotExist
-from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import commas, timestamp, torn_timestamp
+from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
 from tornium_commons.models import (
     Faction,
     FactionPosition,
@@ -1536,6 +1537,35 @@ def oc_refresh_subtask(oc_data):
     time_limit=5,
 )
 def auto_cancel_requests():
+    faction_withdrawals: typing.Dict[int, typing.List[int]] = {}
+
+    withdrawal: Withdrawal
+    for withdrawal in Withdrawal.select().where(
+        (Withdrawal.status == 1)
+        & (Withdrawal.time_fulfilled >= datetime.datetime.utcnow() - datetime.timedelta(minutes=11))
+        & (Withdrawal.time_fulfilled <= datetime.datetime.utcnow() - datetime.timedelta(minutes=1))
+    ):
+        # Fulfilled requests that were fulfilled between 1 and 11 minutes before now
+        faction_withdrawals.setdefault(withdrawal.faction_tid, []).append(withdrawal.wid)
+
+    for faction_tid, withdrawals in faction_withdrawals.items():
+        try:
+            faction: Faction = Faction.select().where(Faction.tid == faction_tid).get()
+        except DoesNotExist:
+            continue
+
+        tornget.signature(
+            kwargs={
+                "endpoint": "faction/?selections=fundsnews",
+                "key": random.choice(faction.aa_keys),
+                "pass_error": True,
+            },
+            queue="api",
+        ).apply_async(
+            expires=300,
+            link=verify_faction_withdrawals.signature(args=tuple(withdrawals), kwargs={"faction_tid": faction_tid}),
+        )
+
     withdrawal: Withdrawal
     for withdrawal in Withdrawal.select().where(
         (Withdrawal.status == 0)
@@ -1615,6 +1645,154 @@ def auto_cancel_requests():
                 ]
             },
         ).forget()
+
+
+@celery.shared_task(
+    name="tasks.faction.verify_faction_withdrawals",
+    routing_key="quick.verify_faction_withdrawals",
+    queue="quick",
+    time_limit=5,
+)
+def verify_faction_withdrawals(funds_news: dict, faction_tid: int, *withdrawals):
+    missing_fulfillments: typing.List[Withdrawal] = [
+        w for w in Withdrawal.select().where(Withdrawal.wid << withdrawals).first() if w is not None
+    ]
+
+    if "error" in funds_news:
+        for withdrawal in missing_fulfillments:
+            try:
+                requester_discord_id = User.user_discord_id(withdrawal.requester)
+            except DoesNotExist:
+                continue
+
+            send_dm(
+                requester_discord_id,
+                payload={
+                    "embeds": [
+                        {
+                            "title": "Vault Request Unknown Status",
+                            "description": (
+                                f"Your vault request #{withdrawal.wid} may not have been fulfilled after being marked as fulfilled by "
+                                f"{'Someone' if withdrawal.fulfilled == -1 else User.user_str(withdrawal.fulfiller)} due to an "
+                                f"error with the Torn API. If you didn't receive the {'money' if withdrawal.cash_request else 'points'}, "
+                                f"please redo the vault request for {'$' + commas(withdrawal.amount) if withdrawal.cash_request else commas(withdrawal.amount) + ' points'}."
+                            ),
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "color": SKYNET_ERROR,
+                        }
+                    ]
+                },
+            )
+        return
+
+    for fund_action in funds_news.get("fundnews", {}).values():
+        if "was given" not in fund_action["news"]:
+            continue
+
+        money_sent = "$" in fund_action["news"]
+        requester_html, fulfiller_html = re.findall(r"(<a.+?</a>)", fund_action["news"])
+        requester = urllib.parse.parse_qs(urllib.parse.urlparse(LinkHTMLParser().feed(requester_html).href).query).get(
+            "XID"
+        )
+        fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(LinkHTMLParser().feed(fulfiller_html).href).query).get(
+            "XID"
+        )
+
+        if requester is None or fulfiller is None:
+            continue
+
+        value = re.search(
+            r"</a> was given \$(.+?) by <a" if money_sent else r"</a> was given (.+?) points by <a", fund_action["news"]
+        ).groups()
+
+        try:
+            value = int("".join(value[0].split(",")))
+        except (TypeError, ValueError, IndexError):
+            continue
+
+        withdrawal: Withdrawal
+        for withdrawal in missing_fulfillments:
+            update_kwargs = {}
+
+            if withdrawal.requester != int(requester):
+                continue
+            elif withdrawal.cash_request != money_sent:
+                continue
+            elif withdrawal.amount != value:
+                continue
+            elif withdrawals.fulfiller != int(fulfiller):
+                update_kwargs["fulfiller"] = int(fulfiller)
+
+            update_kwargs["time_fulfilled"] = datetime.datetime.fromtimestamp(
+                fund_action["timestamp"], tz=datetime.timezone.utc
+            )
+            Withdrawal.update(**update_kwargs).where(Withdrawal.wid == withdrawal.wid).execute()
+
+            missing_fulfillments.remove(withdrawal)
+            break
+
+    if len(missing_fulfillments) == 0:
+        return
+
+    try:
+        faction = Faction.select().where(Faction.tid == faction_tid).get()
+    except DoesNotExist:
+        return
+
+    for withdrawal in missing_fulfillments:
+        try:
+            if faction.guild is not None and str(faction.tid) in faction.guild.banking_config:
+                discordpatch.delay(
+                    f"channels/{faction.guild.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+                    {
+                        "embeds": [
+                            {
+                                "title": f"Vault Request #{withdrawal.wid}",
+                                "description": f"This request has been marked as fulfilled by {'Someone' if withdrawal.fulfiller == -1 else User.user_str(withdrawal.fulfiller)} but no subsequent action could be found in the faction logs.",
+                                "fields": [
+                                    {
+                                        "name": "Original Request Amount",
+                                        "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
+                                    },
+                                    {
+                                        "name": "Original Requester",
+                                        "value": f"{requester.name} [{requester.tid}]",
+                                    },
+                                ],
+                                "timestamp": datetime.datetime.utcnow().isoformat(),
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "components": [],
+                    },
+                )
+        except Exception as e:
+            logger.exception(e)
+
+        try:
+            requester_discord_id = User.user_discord_id(withdrawal.requester)
+        except DoesNotExist:
+            continue
+
+        send_dm(
+            requester_discord_id,
+            payload={
+                "embeds": [
+                    {
+                        "title": "Vault Request Not Fulfilled",
+                        "description": (
+                            f"Your vault request #{withdrawal.wid} may not have been fulfilled after being marked as fulfilled by "
+                            f"{'Someone' if withdrawal.fulfilled == -1 else User.user_str(withdrawal.fulfiller)} but no subsequent "
+                            f"action could be found in the faction logs. If you didn't receive the "
+                            f"{'money' if withdrawal.cash_request else 'points'}, please redo the vault request for "
+                            f"{'$' + commas(withdrawal.amount) if withdrawal.cash_request else commas(withdrawal.amount) + ' points'}."
+                        ),
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_ERROR,
+                    }
+                ]
+            },
+        )
 
 
 @celery.shared_task(

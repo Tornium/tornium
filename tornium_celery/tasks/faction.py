@@ -1561,7 +1561,7 @@ def auto_cancel_requests():
                 "pass_error": True,
             },
             queue="api",
-        ).apply_async(expires=300, link=verify_faction_withdrawals.signature(args=tuple(withdrawals)))
+        ).apply_async(expires=300, link=verify_faction_withdrawals.signature(kwargs={"withdrawals": withdrawals}))
 
     withdrawal: Withdrawal
     for withdrawal in Withdrawal.select().where(

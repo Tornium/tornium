@@ -1695,8 +1695,11 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
         requester_parser.feed(requester_html)
         fulfiller_parser.feed(fulfiller_html)
 
-        requester = urllib.parse.parse_qs(urllib.parse.urlparse(requester_parser.href).query).get("XID")
-        fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(fulfiller_parser.href).query).get("XID")
+        try:
+            requester = urllib.parse.parse_qs(urllib.parse.urlparse(requester_parser.href).query).get("XID")[0]
+            fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(fulfiller_parser.href).query).get("XID")[0]
+        except IndexError:
+            continue
 
         if requester is None or fulfiller is None:
             continue
@@ -1720,7 +1723,11 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
                 continue
             elif withdrawal.amount != value:
                 continue
-            elif withdrawals.fulfiller != int(fulfiller):
+            elif withdrawal.time_requested >= datetime.datetime.fromtimestamp(
+                fund_action["timestamp"], tz=datetime.timezone.utc
+            ):
+                continue
+            elif withdrawal.fulfiller != int(fulfiller):
                 update_kwargs["fulfiller"] = int(fulfiller)
 
             update_kwargs["time_fulfilled"] = datetime.datetime.fromtimestamp(

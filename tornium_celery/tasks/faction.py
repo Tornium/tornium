@@ -1683,18 +1683,20 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
             )
         return
 
-    for fund_action in funds_news.get("fundnews", {}).values():
+    for fund_action in funds_news.get("fundsnews", {}).values():
         if "was given" not in fund_action["news"]:
             continue
 
         money_sent = "$" in fund_action["news"]
         requester_html, fulfiller_html = re.findall(r"(<a.+?</a>)", fund_action["news"])
-        requester = urllib.parse.parse_qs(urllib.parse.urlparse(LinkHTMLParser().feed(requester_html).href).query).get(
-            "XID"
-        )
-        fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(LinkHTMLParser().feed(fulfiller_html).href).query).get(
-            "XID"
-        )
+
+        requester_parser = LinkHTMLParser()
+        fulfiller_parser = LinkHTMLParser()
+        requester_parser.feed(requester_html)
+        fulfiller_parser.feed(fulfiller_html)
+
+        requester = urllib.parse.parse_qs(urllib.parse.urlparse(requester_parser.href).query).get("XID")
+        fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(fulfiller_parser.href).query).get("XID")
 
         if requester is None or fulfiller is None:
             continue

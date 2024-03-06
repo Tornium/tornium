@@ -25,7 +25,7 @@ from peewee import (
     DoesNotExist,
     IntegerField,
 )
-from playhouse.postgres_ext import JSONField
+from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel
 from .faction_position import FactionPosition
@@ -44,6 +44,9 @@ class Faction(BaseModel):
 
     # Guild data
     guild = DeferredForeignKey("Server", null=True)  # noqa: F712
+
+    # Assists configuration
+    assist_servers = ArrayField(IntegerField, default=[], index=False)
 
     # Configuration data
     stats_db_enabled = BooleanField(default=True)  # noqa: F712

@@ -15,6 +15,7 @@
 
 import operator
 import typing
+from functools import lru_cache
 
 from peewee import BigIntegerField, BooleanField, IntegerField, TextField
 from playhouse.postgres_ext import ArrayField, JSONField
@@ -202,3 +203,12 @@ class Server(BaseModel):
                 reverse=True,
             )
         )
+
+    @staticmethod
+    def server_str(sid: int) -> str:
+        return f"{Server.server_name(sid)} [{sid}]"
+
+    @staticmethod
+    @lru_cache
+    def server_name(tid: int) -> str:
+        return Server.select(Server.name).where(Server.tid == tid).get().name

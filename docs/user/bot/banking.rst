@@ -53,7 +53,7 @@ Withdraw
 
 Sends a vault request to the banking channel and mentions the banker roles if banking is enabled by the faction.
 
-A vault request will be marked as cancelled if it is not fulfilled within one hour of the request.
+A vault request will be marked as cancelled if it is not fulfilled within one hour of the request. If a vault request is marked as fulfilled but no log of this is found in the faction logs within ten minutes of being marked as fulfilled, the request will be marked as cancelled.
 
 .. list-table::
     :header-rows: 1

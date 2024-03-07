@@ -8,6 +8,9 @@ Stakeout Slash Commands
 -----------------------
 All commands can be run in DMs or in a server depending on if you want the notifications to be sent in a DM or in the server.
 
+.. warning::
+   It is recommended to create notifications in a server. Discord will block messages detected to be spam to users' DMs, and potentially can block the bot from sending DMs to anyone.
+
 .. note::
     For stakeout slash commands (other than the initialization of the stakeout), there will be an optional ``type`` parameter if there's a stakeout on two objects with the same ID.
 

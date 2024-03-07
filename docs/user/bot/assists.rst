@@ -16,27 +16,48 @@ The assist channel is the channel to which all applicable assist requests will b
 
 Assist Factions
 ```````````````
-This is the list of factions that are selected to apply the assist forwarding option upon.
+The whitelist of factions that can send assist requests to that server.
 
-.. note::
-    During the v0.5.x release cycle, when forwarding is modified to a whitelist instead of a selection, this list of factions will be the list of whitelisted factions.
+Assist Roles
+````````````
+There are certain roles that can be configured for different types of positions in the attack.
 
-Assist Forwarding Options
-`````````````````````````
-This list of options represents how incoming assist requests are filtered.
+Smoker Role
+~~~~~~~~~~~
+Users to be pinged when there's a request for a smoke to be used.
 
-If ``whitelist`` is selected, only assist requests from factions listed in the ``Assist Factions`` will be sent on the server.
-If ``blacklist`` is selected, only assist requests not from the factions listed in the ``Assist Factions`` will be on the server.
-If ``global`` is selected, any and all assist requests will be sent on the server.
+Tear Role
+~~~~~~~~~
+Users to be pinged when there's a request for a tear to be used.
 
-.. warning::
-    Assist forwarding options are deprecated and will be removed in favor of a permanent whitelist during the v0.5.x release cycle.
+500M+ Heavy Role
+~~~~~~~~~~~~~~~~
+Role for members that are 500m+ total. This role is also used as a generic role for heavies when necessary.
+
+1B+ Heavy Role
+~~~~~~~~~~~~~~
+Role for members that are 1b+ total.
+
+2B+ Heavy Role
+~~~~~~~~~~~~~~
+Role for members that are 2b+ total.
+
+5B+ Heavy Role
+~~~~~~~~~~~~~~
+Role for members that are 5b+ total.
+
+Assist Servers
+``````````````
+The servers that can receive an assists request from your faction.
 
 Assist Slash Command
 --------------------
 Assist
 ``````
 Sends an assist request on the specified target to all applicable servers.
+
+.. warning::
+   This command is disabled pending a rewrite.
 
 .. list-table::
     :header-rows: 1

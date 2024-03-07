@@ -29,7 +29,7 @@ from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import PersonalStats, Server, Stat, User
+from tornium_commons.models import Server, Stat, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -259,23 +259,19 @@ def forward_assist(target_tid: int, *args, **kwargs):
         )
         second_embed_modified = True
 
-    ps: typing.Optional[PersonalStats] = (
-        PersonalStats.select().where(PersonalStats.tid == target_tid).order_by(-PersonalStats.timestamp).first()
-    )
-
-    if ps is not None:
+    if target.personal_stats is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
-            f"""Xanax Used: {commas(ps.xantaken)}
-            Refills Used: {commas(ps.refills)}
-            Energy Drinks Drunk: {commas(ps.energydrinkused)}
-            LSD Used: {commas(ps.lsdtaken)}
-            SEs Used: {commas(ps.statenhancersused)}
+            f"""Xanax Used: {commas(target.personal_stats.xantaken)}
+            Refills Used: {commas(target.personal_stats.refills)}
+            Energy Drinks Drunk: {commas(target.personal_stats.energydrinkused)}
+            LSD Used: {commas(target.personal_stats.lsdtaken)}
+            SEs Used: {commas(target.personal_stats.statenhancersused)}
             
-            ELO: {commas(ps.elo)}
-            Best Damage: {commas(ps.bestdamage)}
-            Networth: ${commas(ps.networth)}
+            ELO: {commas(target.personal_stats.elo)}
+            Best Damage: {commas(target.personal_stats.bestdamage)}
+            Networth: ${commas(target.personal_stats.networth)}
             
-            Personal Stat Last Update: <t:{int(ps.timestamp.timestamp())}:R>
+            Personal Stat Last Update: <t:{int(target.personal_stats.timestamp.timestamp())}:R>
             """  # noqa: W293
         )
         second_embed_modified = True

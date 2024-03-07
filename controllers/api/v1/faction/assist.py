@@ -35,7 +35,7 @@ from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@require_oauth("faction:assist")
+@require_oauth("faction:assists")
 @ratelimit
 def forward_assist(target_tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -407,7 +407,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
     )
 
 
-@require_oauth("faction:assist")
+@require_oauth("faction:assists")
 @ratelimit
 def valid_assists(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

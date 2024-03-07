@@ -51,7 +51,7 @@ def add_assist_server(guild_id: int, *args, **kwargs):
     )
 
 
-@require_oauth
+@require_oauth()
 @ratelimit
 def remove_assist_server(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

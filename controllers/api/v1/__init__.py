@@ -176,7 +176,7 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/v1/faction/assists/server/<int:guild_id>", view_func=faction.bot.add_assist_server, methods=["GET"]
+    "/api/v1/faction/assists/server/<int:guild_id>", view_func=faction.bot.add_assist_server, methods=["POST"]
 )
 mod.add_url_rule(
     "/api/v1/faction/assists/server/<int:guild_id>", view_func=faction.bot.remove_assist_server, methods=["DELETE"]

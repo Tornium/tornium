@@ -143,9 +143,7 @@ function arrayToString(array) {
             if (response.response.error !== undefined) {
                 GM_deleteValue("tornium:access-token");
                 GM_deleteValue("tornium:access-token-expires");
-            }
 
-            if (response.response.error !== undefined) {
                 $("#tornium-estimation").text(
                     `[${response.response.error}] OAuth Error - ${response.response.error_description}`
                 );

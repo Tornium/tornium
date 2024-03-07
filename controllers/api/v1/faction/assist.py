@@ -28,32 +28,28 @@ from redis.commands.json.path import Path
 from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
-from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import PersonalStats, Server, Stat, User
+from tornium_commons.models import Server, Stat, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@require_oauth("faction:assist")
+@require_oauth("faction:assists")
 @ratelimit
-def forward_assist(*args, **kwargs):
-    start_ts = time.time()
+def forward_assist(target_tid: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    assist_lock_key = f"tornium:assists:{target_tid}:lock"
+    user: User = kwargs["user"]
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
 
-    target_tid = data.get("target_tid")
     smokes = data.get("smokes", 0)
     tears = data.get("tears", 0)
     heavies = data.get("heavies", 0)
     timeout = data.get("timeout")
 
-    if kwargs["user"] is None or target_tid is None:
-        return make_exception_response("1100", redis_client=client)
-
     try:
-        target_tid = int(target_tid)
         smokes = int(smokes)
         tears = int(tears)
         heavies = int(heavies)
@@ -61,64 +57,46 @@ def forward_assist(*args, **kwargs):
         if timeout is not None:
             timeout = int(timeout)
     except TypeError:
-        return make_exception_response("1000", redis_client=client)
+        return make_exception_response("1000", key, redis_client=client)
 
-    user: User = kwargs["user"]
-
-    key = f"tornium:ratelimit:{user.tid}"
-    assist_lock_key = f"tornium:assists:{target_tid}:lock"
-
-    # TODO: Change to use one redis call
-    if client.exists(assist_lock_key):
+    if not client.set(
+        assist_lock_key,
+        int(datetime.datetime.utcnow().timestamp()) + 10,
+        nx=True,
+        ex=10,
+    ):
         return make_exception_response("4291", key, redis_client=client)
-    else:
-        client.set(
-            assist_lock_key,
-            int(datetime.datetime.utcnow().timestamp()) + 10,
-            nx=True,
-            ex=10,
-        )
 
     if user.faction is None:
         return make_exception_response("1102", key, redis_client=client)
 
-    call_key: str
-    if user.key in ("", None):
-        if len(user.faction.aa_keys) == 0:
-            return make_exception_response("1200", redis_client=client)
-
-        call_key = random.choice(user.faction.aa_keys)
+    if user.key is not None:
+        call_key: str = user.key
+    elif len(user.faction.aa_keys) != 0:
+        call_key: str = random.choice(user.faction.aa_keys)
     else:
-        call_key = user.key
+        return make_exception_response("1200", key, redis_client=client)
 
-    if user.key is None:
-        return make_exception_response("1200", redis_client=client)
-
-    try:
-        update_user(key=call_key, tid=target_tid, refresh_existing=False)
-    except AttributeError:
-        pass
+    update_user(key=call_key, tid=target_tid, refresh_existing=False)
 
     try:
-        target: User = User.select().where(User.tid == target_tid).first()
+        target: User = User.select().where(User.tid == target_tid).get()
     except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
-    if target.faction is not None:
-        if target.faction.tag in ("", None):
-            content_target_faction = target.faction.name
-        else:
-            content_target_faction = target.faction.tag
-    else:
+    if target.faction is None:
         content_target_faction = ""
-
-    if user.faction is not None:
-        if user.faction.tag in ("", None):
-            user_faction_str = user.faction.name
-        else:
-            user_faction_str = user.faction.tag
+    elif target.faction.tag in ("", None):
+        content_target_faction = target.faction.name
     else:
+        content_target_faction = target.faction.tag
+
+    if user.faction is None:
         user_faction_str = ""
+    elif user.faction.tag in ("", None):
+        user_faction_str = user.faction.name
+    else:
+        user_faction_str = user.faction.tag
 
     requested_types = []
     components_payload = []
@@ -219,7 +197,7 @@ def forward_assist(*args, **kwargs):
             {
                 "title": "Additional Target Information",
                 "fields": [],
-                "footer": {"text": f"Latency: {round(time.time() - start_ts, 1)} second(s)"},
+                "footer": {"text": f"Latency: {round(time.time() - kwargs['start_time'], 1)} second(s)"},
             },
         ],
         "components": [
@@ -281,25 +259,19 @@ def forward_assist(*args, **kwargs):
         )
         second_embed_modified = True
 
-    ps: typing.Optional[PersonalStats]
-    try:
-        ps = PersonalStats.select().where(PersonalStats.tid == target_tid).order_by(-PersonalStats.timestamp).get()
-    except DoesNotExist:
-        ps = None
-
-    if ps is not None:
+    if target.personal_stats is not None:
         payload["embeds"][1]["description"] = inspect.cleandoc(
-            f"""Xanax Used: {commas(ps.xantaken)}
-            Refills Used: {commas(ps.refills)}
-            Energy Drinks Drunk: {commas(ps.energydrinkused)}
-            LSD Used: {commas(ps.lsdtaken)}
-            SEs Used: {commas(ps.statenhancersused)}
+            f"""Xanax Used: {commas(target.personal_stats.xantaken)}
+            Refills Used: {commas(target.personal_stats.refills)}
+            Energy Drinks Drunk: {commas(target.personal_stats.energydrinkused)}
+            LSD Used: {commas(target.personal_stats.lsdtaken)}
+            SEs Used: {commas(target.personal_stats.statenhancersused)}
             
-            ELO: {commas(ps.elo)}
-            Best Damage: {commas(ps.bestdamage)}
-            Networth: ${commas(ps.networth)}
+            ELO: {commas(target.personal_stats.elo)}
+            Best Damage: {commas(target.personal_stats.bestdamage)}
+            Networth: ${commas(target.personal_stats.networth)}
             
-            Personal Stat Last Update: <t:{int(ps.timestamp.timestamp())}:R>
+            Personal Stat Last Update: <t:{int(target.personal_stats.timestamp.timestamp())}:R>
             """  # noqa: W293
         )
         second_embed_modified = True
@@ -341,10 +313,12 @@ def forward_assist(*args, **kwargs):
     messages = []
 
     server: Server
-    for server in Server.select().where(Server.assist_channel != 0):
-        if server.assist_channel in (0, "0", None):
-            continue
-        elif user.faction_id not in server.assist_factions:
+    for server in Server.select().where(
+        (Server.sid << user.faction.assist_servers)
+        & (Server.assist_channel.is_null(False))
+        & (Server.assist_channel != 0)
+    ):
+        if user.faction_id not in server.assist_factions:
             continue
 
         roles = []
@@ -358,13 +332,13 @@ def forward_assist(*args, **kwargs):
         if heavies > 0:
             heavies_roles = []
 
-            if l0_roles_enabled and len(server.assist_l0_roles) != 0:
+            if l0_roles_enabled:
                 heavies_roles.extend(list(server.assist_l0_roles))
-            if l1_roles_enabled and len(server.assist_l1_roles) != 0:
+            if l1_roles_enabled:
                 heavies_roles.extend(list(server.assist_l1_roles))
-            if l2_roles_enabled and len(server.assist_l2_roles) != 0:
+            if l2_roles_enabled:
                 heavies_roles.extend(list(server.assist_l2_roles))
-            if l3_roles_enabled and len(server.assist_l3_roles) != 0:
+            if l3_roles_enabled:
                 heavies_roles.extend(list(server.assist_l3_roles))
 
             if len(heavies_roles) == 0 and len(server.assist_l0_roles) != 0:
@@ -380,16 +354,13 @@ def forward_assist(*args, **kwargs):
             for role in roles:
                 payload["content"] += f"<@&{role}>"
 
-        try:
-            messages.append(
-                discordpost.delay(
-                    f"channels/{server.assist_channel}/messages",
-                    payload=payload,
-                    channel=server.assist_channel,
-                )
+        messages.append(
+            discordpost.delay(
+                f"channels/{server.assist_channel}/messages",
+                payload=payload,
+                channel=server.assist_channel,
             )
-        except (DiscordError, NetworkingError):
-            continue
+        )
 
         payload["content"] = payload["content"].split("\n")[0]
         servers_forwarded.append(server)
@@ -400,8 +371,6 @@ def forward_assist(*args, **kwargs):
     for message in messages:
         try:
             message: dict = message.get()
-        except (DiscordError, NetworkingError):
-            continue
         except Exception:
             continue
 
@@ -426,7 +395,7 @@ def forward_assist(*args, **kwargs):
                 "name": "OK",
                 "message": "Server request was successful.",
                 "servers_forwarded": len(servers_forwarded),
-                "latency": round(time.time() - start_ts, 2),
+                "latency": round(time.time() - kwargs["start_time"], 2),
             }
         ),
         200,
@@ -434,7 +403,7 @@ def forward_assist(*args, **kwargs):
     )
 
 
-@require_oauth("faction:assist")
+@require_oauth("faction:assists")
 @ratelimit
 def valid_assists(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

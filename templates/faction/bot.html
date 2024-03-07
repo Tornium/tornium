@@ -76,5 +76,46 @@ Tornium - Faction Bot Dashboard
             </form>
         </div>
     </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Assists</h5>
+            <p class="card-text">
+                Per faction configuration for assists can be performed here. Most configuration will occur in individual servers through server admins.
+            </p>
+
+            <p class="card-text">
+                The userscript for assists is compatible/tested with TamperMonkey and TornPDA (PDA support depends on beta version currently).
+            </p>
+
+            <div class="card">
+                <div class="card-header">Assist Servers</div>
+
+                <ul class="list-group list-group-flush">
+                    {% for server in assist_servers %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ server.name }} [{{ server.sid }}]
+
+                        <button class="btn btn-sm remove-assists-server" type="button">
+                            <i class="fa-solid fa-garbage"></i>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="card-footer">
+                    <div class="my-3 form-floating input-group">
+                        <input class="form-control" id="assist-server-id" name="assist-server-id" inputmode="numeric">
+                        <label for="assist-server-id">Server ID</label>
+                        <button type="button" id="assist-server-submit" class="btn btn-outline-success">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/faction/guild.js"></script>
 {% endblock %}

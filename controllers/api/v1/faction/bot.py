@@ -13,9 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
-
-from flask import request
 from peewee import fn
 from tornium_commons.models import Faction, Server, User
 
@@ -25,12 +22,9 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 
 @require_oauth()
 @ratelimit
-def add_assist_server(*args, **kwargs):
+def add_assist_server(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    data = json.loads(request.get_data().decode("utf-8"))
     user: User = kwargs["user"]
-
-    guild_id: int = data.get("guild_id")
 
     if user.faction_id is None:
         return make_exception_response("1102", key)
@@ -59,12 +53,9 @@ def add_assist_server(*args, **kwargs):
 
 @require_oauth
 @ratelimit
-def remove_assist_server(*args, **kwargs):
+def remove_assist_server(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    data = json.loads(request.get_data().decode("utf-8"))
     user: User = kwargs["user"]
-
-    guild_id: int = data.get("guild_id")
 
     if user.faction_id is None:
         return make_exception_response("1102", key)

@@ -81,6 +81,7 @@ def settings(*args, **kwargs):
 @mod.route("/static/faction/armory.js")
 @mod.route("/static/faction/banking.js")
 @mod.route("/static/faction/bankingaa.js")
+@mod.route("/static/faction/bot.js")
 @mod.route("/static/faction/chain.js")
 @mod.route("/static/faction/crimes.js")
 @mod.route("/static/faction/members.js")

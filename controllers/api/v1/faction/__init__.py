@@ -13,4 +13,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import assist, banking, chain, crimes, positions
+from controllers.api.v1.faction import assist, banking, bot, chain, crimes, positions

@@ -1,11 +1,14 @@
 // ==UserScript==
 // @name         Tornium Assist
 // @namespace    https://tornium.com
-// @version      1.0.0
+// @version      1.0.1
 // @description  Sent an assist request to applicable Discord servers
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/loader.php?sid=attack*
+// @match        https://www.torn.com/profiles.php?*
 // @match        https://www.torn.com/factions.php*
+// @match        https://www.torn.com/tornium/oauth/*/callback*
+// @match        https://tornium.com/oauth/*/callback*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        GM_getValue
@@ -37,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 "use strict";
 
 const baseURL = "https://tornium.com";
-const clientID = "";
+const clientID = "809be3486c11af540a3258dd3c31185c08f9518abcd08f4e";
 
 let assistsViewerInterval = null;
 
@@ -48,7 +51,7 @@ function arrayToString(array) {
 if (window.location.pathname.includes("/oauth/") && window.location.pathname.endsWith("/callback")) {
     let params = new URLSearchParams(window.location.search);
 
-    if (params.get("state") != GM_getValue("tornium:state")) {
+    if (params.get("state") != GM_getValue("tornium-assists:state")) {
         unsafeWindow.alert("Invalid State");
         console.log("invalid state");
         return;
@@ -65,7 +68,7 @@ if (window.location.pathname.includes("/oauth/") && window.location.pathname.end
             : `https://www.torn.com/tornium/oauth/${clientID}/callback`
     );
     data.set("client_id", clientID);
-    data.set("code_verifier", GM_getValue("tornium:codeVerifier"));
+    data.set("code_verifier", GM_getValue("tornium-assists:codeVerifier"));
 
     GM_xmlhttpRequest({
         method: "POST",
@@ -76,6 +79,7 @@ if (window.location.pathname.includes("/oauth/") && window.location.pathname.end
         data: data.toString(),
         responseType: "json",
         onload: (response) => {
+            console.log(response);
             if (response.responseType === undefined) {
                 response.response = JSON.parse(response.responseText);
                 response.responseType = "json";
@@ -84,8 +88,8 @@ if (window.location.pathname.includes("/oauth/") && window.location.pathname.end
             let accessToken = response.response.access_token;
             let expiresAt = Math.floor(Date.now() / 1000) + response.response.expires_in;
 
-            GM_setValue("tornium:access-token", accessToken);
-            GM_setValue("tornium:access-token-expires", expiresAt);
+            GM_setValue("tornium-assists:access-token", accessToken);
+            GM_setValue("tornium-assists:access-token-expires", expiresAt);
 
             if ("###PDA-APIKEY###".toString().startsWith("###")) {
                 unsafeWindow.location.href = "https://torn.com";
@@ -95,14 +99,17 @@ if (window.location.pathname.includes("/oauth/") && window.location.pathname.end
     return;
 }
 
-const accessToken = GM_getValue("tornium:access-token", null);
-const accessTokenExpiration = GM_getValue("tornium:access-token-expires", 0);
+const accessToken = GM_getValue("tornium-assists:access-token", null);
+const accessTokenExpiration = GM_getValue("tornium-assists:access-token-expires", 0);
 
-if (accessToken === null || accessTokenExpiration <= Math.floor(Date.now() / 1000)) {
+if (
+    window.location.pathname.startsWith("/profiles.php") &&
+    (accessToken === null || accessTokenExpiration <= Math.floor(Date.now() / 1000))
+) {
     const state = arrayToString(window.crypto.getRandomValues(new Uint8Array(24)));
     const codeVerifier = arrayToString(window.crypto.getRandomValues(new Uint8Array(48)));
-    GM_setValue("tornium:state", state);
-    GM_setValue("tornium:codeVerifier", codeVerifier);
+    GM_setValue("tornium-assists:state", state);
+    GM_setValue("tornium-assists:codeVerifier", codeVerifier);
 
     let codeChallenge = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
     codeChallenge = arrayToString(new Uint8Array(codeChallenge));
@@ -110,7 +117,7 @@ if (accessToken === null || accessTokenExpiration <= Math.floor(Date.now() / 100
     const redirectURI = "###PDA-APIKEY###".toString().startsWith("###")
         ? `${baseURL}/oauth/${clientID}/callback`
         : `https://www.torn.com/tornium/oauth/${clientID}/callback`;
-    const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${redirectURI}`;
+    const authorizeURL = `${baseURL}/oauth/authorize?response_type=code&client_id=${clientID}&state=${state}&scope=torn_key:usage faction:assists&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${redirectURI}`;
 
     $(".content-title").append(
         $(`<a class='torn-btn' id='tornium-authenticate' href='${authorizeURL}'>Signed Out - Authenticate</a>`)
@@ -141,8 +148,8 @@ function forwardAssist(smokes, tears, heavies) {
             }
 
             if (response.response.error !== undefined) {
-                GM_deleteValue("tornium:access-token");
-                GM_deleteValue("tornium:access-token-expires");
+                GM_deleteValue("tornium-assists:access-token");
+                GM_deleteValue("tornium-assists:access-token-expires");
 
                 document.getElementById("tornium-assist-status").textContent =
                     `[${response.response.error}] OAuth Error - ${response.response.error_description}`;
@@ -176,7 +183,7 @@ function forwardAssistQuick() {
 function checkAssists() {
     GM_xmlhttpRequest({
         method: "GET",
-        url: "https://tornium.com/api/faction/assists",
+        url: `${baseURL}/api/v1/faction/assists`,
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,

@@ -14,7 +14,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 function addAssistsFaction() {
-    tfetch("DELETE", `faction/assists/server/${$("#assist-server-id").value}`, {
+    tfetch("POST", `faction/assists/server/${$("#assist-server-id").val()}`, {
         errorTitle: "Failed to remove server",
     }).then(() => {
         window.location.reload();
@@ -30,7 +30,7 @@ $(document).ready(function () {
     $("#assist-server-submit").on("click", addAssistsFaction);
 
     $(".remove-assists-server").on("click", function () {
-        const serverSID = this.getAttribute("data-server-sid");
+        const serverSID = this.getAttribute("data-server-id");
 
         tfetch("DELETE", `faction/assists/server/${serverSID}`, { errorTitle: "Failed to remove server" }).then(() => {
             window.location.reload();

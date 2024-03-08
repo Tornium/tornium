@@ -71,7 +71,7 @@ def chain(interaction, *args, **kwargs):
                 "flags": 64,  # Ephemeral
             },
         }
-    elif kwargs["invoker"].battlescore == 0:
+    elif kwargs["invoker"].battlescore == 0 or kwargs["invoker"].battlescore is None:
         return {
             "type": 4,
             "data": {

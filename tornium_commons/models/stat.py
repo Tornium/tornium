@@ -55,7 +55,7 @@ class Stat(BaseModel):
 
         if invoker is None:
             raise ValueError("User does not exist") from None
-        elif invoker.battlescore == 0:
+        elif invoker.battlescore == 0 or invoker.battlescore is None:
             raise ValueError("User does not have a battlescore") from None
 
         # f = fair fight

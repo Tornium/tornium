@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Tornium Assist
 // @namespace    https://tornium.com
-// @version      1.0.1
+// @version      1.0.2
 // @description  Sent an assist request to applicable Discord servers
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/profiles.php?*
 // @match        https://www.torn.com/factions.php*
-// @match        https://www.torn.com/tornium/oauth/*/callback*
+// @match        https://www.torn.com/tornium/oauth/809be3486c11af540a3258dd3c31185c08f9518abcd08f4e/callback*
 // @match        https://tornium.com/oauth/*/callback*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
@@ -48,7 +48,7 @@ function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
 }
 
-if (window.location.pathname.includes("/oauth/") && window.location.pathname.endsWith("/callback")) {
+if (window.location.pathname == "/oauth/809be3486c11af540a3258dd3c31185c08f9518abcd08f4e/callback") {
     let params = new URLSearchParams(window.location.search);
 
     if (params.get("state") != GM_getValue("tornium-assists:state")) {

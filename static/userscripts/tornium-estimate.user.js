@@ -43,12 +43,13 @@ function arrayToString(array) {
 (async function () {
     "use strict";
 
-    if (window.location.pathname.includes("/oauth/") && window.location.pathname.endsWith("/callback")) {
+    if (window.location.pathname == "/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback") {
         let params = new URLSearchParams(window.location.search);
 
-        if (params.get("state") != GM_getValue("tornium:state")) {
-            unsafeWindow.alert("Invalid State");
+        if (params.get("state") !== GM_getValue("tornium:state")) {
             console.log("invalid state");
+            unsafeWindow.alert("Invalid State");
+            window.location.href = "https://torn.com";
             return;
         }
 
@@ -109,7 +110,6 @@ function arrayToString(array) {
         GM_setValue("tornium:codeVerifier", codeVerifier);
 
         let codeChallenge = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
-        console.log(codeChallenge);
         codeChallenge = arrayToString(new Uint8Array(codeChallenge));
 
         const redirectURI = "###PDA-APIKEY###".toString().startsWith("###")

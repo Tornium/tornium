@@ -554,6 +554,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
             countdown=math.floor(random.uniform(0, 15)),
             channel=log_channel,
         ).forget()
+        return
 
     guild: Server = Server.select().where(Server.sid == guild_id).get()
 

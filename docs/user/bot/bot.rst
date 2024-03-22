@@ -14,7 +14,7 @@ You can invite Tornium Bot onto your server with either specific, required permi
  * Administrator permissions invite link: `<https://discord.com/api/oauth2/authorize?client_id=979105784627593266&permissions=8&scope=bot%20applications.commands>`_
 
 .. note::
-    Tornium bot utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs at 30 minutes past every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass.
+    Tornium bot utilizes an automated task to update the database's list of servers the bot is in (as well as the server's list of admin users). This automated task runs every hour, so it will take up to an hour for this to update from when the bot is invited into your server. Go out and touch some grass.
 
 Faction Linking
 ---------------

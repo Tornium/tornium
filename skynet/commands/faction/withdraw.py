@@ -218,7 +218,7 @@ def withdraw(interaction, *args, **kwargs):
                                 "title": "Invalid Withdrawal Amount",
                                 "description": f"You have tried to withdraw `{withdrawal_amount}`, but this is not a "
                                 f"valid amount. For proper formatting, take a look at the "
-                                f"[documentation](https://docs.tornium.com/en/latest/user/skynet/banking.html#withdraw)",
+                                f"[documentation](https://docs.tornium.com/en/latest/user/bot/banking.html#withdraw)",
                             }
                         ]
                     },

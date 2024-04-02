@@ -25,7 +25,7 @@ from tornium_commons import Config
 from tornium_commons.skyutils import SKYNET_INFO
 
 from controllers.decorators import admin_required
-from models.user import OverrideUser
+from models.user import AuthUser
 
 mod = Blueprint("adminroutes", __name__)
 
@@ -67,7 +67,7 @@ def load_user(tid):
         )
 
     try:
-        user = OverrideUser.select().where(OverrideUser.tid == tid).get()
+        user = AuthUser.select().where(AuthUser.tid == tid).get()
     except DoesNotExist:
         return (
             render_template(

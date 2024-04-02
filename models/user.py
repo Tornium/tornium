@@ -54,17 +54,3 @@ class AuthUser(User):
         if equal is NotImplemented:
             return NotImplemented
         return not equal
-
-
-class OverrideUser(AuthUser):
-    class Meta:
-        table_name = "user"
-
-    def generate_otp_secret(self):
-        raise PermissionError
-
-    def generate_otp_url(self):
-        raise PermissionError
-
-    def generate_otp_backups(self, num_codes=5):
-        raise PermissionError

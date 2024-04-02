@@ -4,9 +4,9 @@ A third party, general-purpose website and Discord bot dedicated to simplifying 
 
 Tornium is split into three main repositories:
 
--   (https://www.github.com/Tornium/tornium-core)[tornium-core] - Flask app for frontend and Discord bot
--   (https://www.github.com/Tornium/tornium-celery)[tornium-celery] - Celery app containing Celery tasks and configuration
--   (https://www.github.com/Tornium/tornium-commons)[tornium-commons] - common utility functions and classes for Tornium
+-   [https://www.github.com/Tornium/tornium-core](tornium-core) - Flask app for frontend and Discord bot
+-   [https://www.github.com/Tornium/tornium-celery](tornium-celery) - Celery app containing Celery tasks and configuration
+-   [https://www.github.com/Tornium/tornium-commons](tornium-commons) - common utility functions and classes for Tornium
 -   Plus several features built on Tornium extensions
 
 ## Features
@@ -35,21 +35,21 @@ Tornium can be run without all of the below optional packages, but will auto-det
 
 ## Tornium Extensions
 
-Tornium partially supports extensions for new Discord commands and new Flask endpoints (with no support for Celery tasks currently). However, over-writing pre-existing commands and endpoints is not supported. A template for Tornium extensions can be found at (https://github.com/dssecret/tornium-extension-template)[dssecret/tornium-extension-template]. Extensions automatically install into Tornium upon start up of Tornium with auto-detection of extensions (must start with `tornium-`). For more information or if you find any issues, please open an issue in either repository.
+Tornium partially supports extensions for new Discord commands and new Flask endpoints (with no support for Celery tasks currently). However, over-writing pre-existing commands and endpoints is not supported. A template for Tornium extensions can be found at [https://github.com/dssecret/tornium-extension-template](dssecret/tornium-extension-template). Extensions automatically install into Tornium upon start up of Tornium with auto-detection of extensions (must start with `tornium-`). For more information or if you find any issues, please open an issue in either repository.
 
-NOTE: Tornium extensions must be released as open source code under a GPLv3 or another GPL license due to the restrictions of the (https://github.com/dssecret/tornium-pro/blob/master/LICENSE)[tornium-pro license]. For more details, take a look at (https://www.gnu.org/licenses/gpl-3.0.en.html)[GPL website].
+NOTE: Tornium extensions must be released as open source code under a GPLv3 or another GPL license due to the restrictions of the [https://github.com/dssecret/tornium-pro/blob/master/LICENSE](tornium license). For more details, take a look at [https://www.gnu.org/licenses/gpl-3.0.en.html](GPL website).
 
 ## License
 
-Tornium repositories are licensed under (https://github.com/dssecret/tornium-pro/blob/master/LICENSE)[AGPLv3]. For information about how the AGPL license affects you, please take a look at the [GNU website].
+Tornium repositories are licensed under [https://github.com/dssecret/tornium-pro/blob/master/LICENSE](AGPLv3). For information about how the AGPL license affects you, please take a look at the [https://www.gnu.org/licenses/agpl-3.0.en.html](GNU website).
 
 ## Release Notes
 
-This project follows (https://semver.org/)[semver v2.0] so all bug fixes, breaking changes, features, etc. can be found in the (https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc)[changelog].
+This project follows [https://semver.org/](semver v2.0) so all bug fixes, breaking changes, features, etc. can be found in the [https://github.com/dssecret/tornium-pro/blob/master/CHANGELOG.adoc](changelog).
 
 ## Contributing to Tornium
 
-All commits must be signed with a `Signed-off-by` line in the commit description matching the commit author. This certifies (under the Developer Certificate of Origin) that you have written the code or have the right to submit the code to the project. Full details can be found (https://developercertificate.org/)[here].
+All commits must be signed with a `Signed-off-by` line in the commit description matching the commit author. This certifies (under the Developer Certificate of Origin) that you have written the code or have the right to submit the code to the project. Full details can be found [https://developercertificate.org/](here).
 
 ## Donations
 
@@ -58,9 +58,9 @@ Torn's RMT rules, donors using real life money should NOT expect anything (e.g. 
 support, etc.) from their contributions. Contributions with real life money will go towards
 server costs (and other hosting costs).
 
-Donate (https://www.buymeacoffee.com/tornium)[here] via buymeacoffee!
+Donate [https://www.buymeacoffee.com/tornium](here) via buymeacoffee!
 
 == Contact
 
 -   tiksan on Discord at @tiksan
--   tiksan on Torn at (https://www.torn.com/profiles.php?XID=2383326)[tiksan [2383326\]]
+-   tiksan on Torn at [https://www.torn.com/profiles.php?XID=2383326](tiksan [2383326\])

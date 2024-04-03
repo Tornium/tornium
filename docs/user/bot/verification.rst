@@ -5,7 +5,7 @@ Verification
 Similar to many other Torn-related Discord bots, Tornium supports verifying members with varying options. You can find the configuration for these options below.
 
 .. note::
-    Due to restrictions with Discord's permission system, Tornium will be unable to modify the nicknames and roles of server members with a role higher than the bot's highest role or the server owner. Changes to these members will have to be done manually by a server administrator.
+    Due to restrictions with Discord's permission system, Tornium will be unable to modify the nicknames and roles of server members with a role higher than the bot's highest role or the server owner. Changes to these members will have to be done manually by a server administrator. Server owners are considered to be the highest role in the server (and the role can't be modified), so the bot will never be able to verify them.
 
 Verification Options
 --------------------

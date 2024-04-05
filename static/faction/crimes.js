@@ -233,7 +233,10 @@ $(document).ready(function () {
     });
     generateViewer();
 
-    $("#generate-viewer").on("click", generateViewer);
+    $("#generate-viewer").on("click", function () {
+        startCount = 0;
+        generateViewer();
+    });
 
     $(".data-next-page").on("click", function () {
         startCount += queryLimit;

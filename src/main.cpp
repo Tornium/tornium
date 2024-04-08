@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     for (size_t shard_id = 0; shard_id < shard_count; shard_id++) {
         std::cout << "Creating shard ID " << shard_id << std::endl;
-        const auto s = std::make_shared<shard>(io_context, ctx, shard_id, gateway_url);
+        const auto s = std::make_shared<shard>(io_context, ctx, shard_id, shard_count, discord_token, gateway_url);
         s->run(resolved_gateway);
     }
 

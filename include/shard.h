@@ -10,6 +10,8 @@ class shard : public std::enable_shared_from_this<shard> {
     boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> ws_;
     boost::beast::flat_buffer buffer_;
     const size_t shard_id;
+    const size_t &shard_count;
+    const std::string &discord_token;
     const std::string gateway_url;
     size_t heartbeat_interval;
     std::optional<size_t> last_sequence = std::nullopt;
@@ -17,7 +19,7 @@ class shard : public std::enable_shared_from_this<shard> {
 
    public:
     explicit shard(boost::asio::io_context &io_context, boost::asio::ssl::context &ctx, size_t &shard_id,
-                   std::string &gateway_url);
+                   size_t &shard_count, std::string &discord_token, std::string &gateway_url);
     void run(boost::asio::ip::tcp::resolver::results_type &resolved_gateway);
     void on_resolve(boost::beast::error_code error_code, boost::asio::ip::tcp::resolver::results_type results);
     void on_connect(boost::beast::error_code error_code,

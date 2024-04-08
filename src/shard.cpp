@@ -17,11 +17,13 @@ using namespace nlohmann;
 void fail(boost::beast::error_code ec, char const *what) { std::cerr << what << ": " << ec.message() << "\n"; }
 
 namespace ws_shard {
-shard::shard(boost::asio::io_context &io_context, boost::asio::ssl::context &ctx, size_t &shard_id,
-             std::string &gateway_url)
+shard::shard(boost::asio::io_context &io_context, boost::asio::ssl::context &ctx, size_t &shard_id, size_t &shard_count,
+             std::string &discord_token, std::string &gateway_url)
     : resolver_(boost::asio::make_strand(io_context)),
       ws_(boost::asio::make_strand(io_context), ctx),
       shard_id(shard_id),
+      shard_count(shard_count),
+      discord_token(discord_token),
       gateway_url(gateway_url) {}
 
 void shard::run(boost::asio::ip::tcp::resolver::results_type &resolved_gateway) {
@@ -132,6 +134,6 @@ void shard::send_ident() {
     ws_.write(boost::asio::buffer("{'op': 2, 'd': {'token': '" + discord_token +
                                   "', 'intents': 2, 'properties': {'os': 'linux', 'browser': 'dateway', "
                                   "'device': 'dateway'}, 'shard': [" +
-                                  shard_id + ", " + shard_count + "]}"));
+                                  std::to_string(shard_id) + ", " + std::to_string(shard_count) + "]}"));
 }
 }  // namespace ws_shard

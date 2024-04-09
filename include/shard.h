@@ -1,3 +1,4 @@
+#include <boost/asio/steady_timer.hpp>
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
@@ -5,17 +6,25 @@
 #include <optional>
 
 namespace ws_shard {
+enum class shard_status { not_started, connecting, ready, disconnected, reconnecting };
+
 class shard : public std::enable_shared_from_this<shard> {
     boost::asio::ip::tcp::resolver resolver_;
     boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> ws_;
     boost::beast::flat_buffer buffer_;
+
     const size_t shard_id;
     const size_t &shard_count;
     const std::string &discord_token;
-    const std::string gateway_url;
+    shard_status status = shard_status::not_started;
+
+    std::string gateway_url;
+    std::optional<std::string> session_id = std::nullopt;
+
     size_t heartbeat_interval;
     std::optional<size_t> last_sequence = std::nullopt;
     std::optional<std::time_t> last_heartbeat = std::nullopt;
+    boost::asio::steady_timer heartbeat_timer;
 
    public:
     explicit shard(boost::asio::io_context &io_context, boost::asio::ssl::context &ctx, size_t &shard_id,
@@ -27,8 +36,10 @@ class shard : public std::enable_shared_from_this<shard> {
     void on_ssl_handshake(boost::beast::error_code error_code);
     void on_handshake(boost::beast::error_code error_code);
     void on_write(boost::beast::error_code error_code, size_t bytes_transferred);
+    void on_read(boost::beast::error_code error_code, size_t bytes_transferred);
     void on_hello(boost::beast::error_code error_code, size_t bytes_transferred);
     void send_heartbeat();
+    void heartbeat();
     void send_ident();
     void on_close(boost::beast::error_code error_code);
 

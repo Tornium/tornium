@@ -32,6 +32,7 @@ shard::shard(boost::asio::io_context &io_context, boost::asio::ssl::context &ctx
              std::string &discord_token, std::string &gateway_url)
     : resolver_(boost::asio::make_strand(io_context)),
       ws_(boost::asio::make_strand(io_context), ctx),
+      ioc(io_context),
       shard_id(shard_id),
       shard_count(shard_count),
       discord_token(discord_token),
@@ -53,7 +54,9 @@ void shard::on_connect(boost::beast::error_code error_code,
         return fail(error_code, "connect");
     }
 
-    status = shard_status::connecting;
+    if (status != shard_status::reconnecting) {
+        status = shard_status::connecting;
+    }
 
     boost::beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
@@ -73,7 +76,9 @@ void shard::on_ssl_handshake(boost::beast::error_code error_code) {
         return fail(error_code, "ssl_handshake");
     }
 
-    status = shard_status::connecting;
+    if (status != shard_status::reconnecting) {
+        status = shard_status::connecting;
+    }
 
     // Turn off the timeout on the tcp_stream, because
     // the websocket stream has its own timeout system.
@@ -98,9 +103,13 @@ void shard::on_handshake(boost::beast::error_code error_code) {
         return fail(error_code, "handshake");
     }
 
-    status = shard_status::connecting;
+    if (status == shard_status::reconnecting) {
+        ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_reconnect, shared_from_this()));
+    } else {
+        ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_hello, shared_from_this()));
+    }
 
-    ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_hello, shared_from_this()));
+    status = shard_status::connecting;
 }
 
 void shard::on_hello(boost::beast::error_code error_code, size_t bytes_transferred) {
@@ -140,6 +149,36 @@ void shard::on_hello(boost::beast::error_code error_code, size_t bytes_transferr
     ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_read, shared_from_this()));
 }
 
+void shard::on_reconnect(boost::beast::error_code error_code, size_t bytes_transferred) {
+    if (error_code) {
+        return fail(error_code, "handshake");
+    }
+
+    // TODO: Check sequence and session ID for existence
+
+    const auto parsed_op_response =
+        json::parse(boost::asio::buffers_begin(buffer_.data()), boost::asio::buffers_end(buffer_.data()));
+    buffer_.consume(bytes_transferred);
+
+    if (not parsed_op_response.contains("op") or parsed_op_response["op"] != 10) {
+        std::cerr << "Invalid OP response on heartbeat" << std::endl;
+        std::cerr << parsed_op_response << std::endl;
+
+        // TODO: Send disconnect OP
+        status = shard_status::disconnected;
+        return;
+    }
+
+    heartbeat_interval = parsed_op_response["d"]["heartbeat_interval"];
+    std::cout << "Setting hardbeat of shard ID " << shard_id << " to " << heartbeat_interval << " milliseconds"
+              << std::endl;
+
+    json resume_op{
+        {"op", 6},
+        {"d", {{"token", discord_token}, {"session_id", session_id.value()}, {"seq", last_sequence.value()}}}};
+    ws_.write(boost::asio::buffer(resume_op.dump(4)));
+}
+
 void shard::send_heartbeat() {
     json heartbeat_op{{"op", 1}};
 
@@ -174,7 +213,7 @@ void shard::heartbeat() {
 
     heartbeat_timer.expires_at(
         heartbeat_timer.expires_at() +
-        boost::asio::chrono::milliseconds((size_t)((float)(std::rand()) / (float)(RAND_MAX)*heartbeat_interval)));
+        boost::asio::chrono::milliseconds((size_t)((float)(std::rand()) * heartbeat_interval / (float)(RAND_MAX))));
     heartbeat_timer.async_wait(boost::bind(&shard::heartbeat, this));
 }
 
@@ -233,6 +272,17 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
     if (parsed_buffer["op"] == 11) {
         // Heartbeat ACK
         last_heartbeat = std::time(0);
+    } else if (parsed_buffer["op"] == 7) {
+        // Reconnect (op 7)
+        // https://discord.com/developers/docs/topics/gateway#resuming
+        shard::reconnect();
+        return;
+    } else if (parsed_buffer["op"] == 9) {
+        // Invalid session (op 9)
+        // Upon an attempted reconnect, the session was too old and will need to be reconnected from scratch
+        // https://discord.com/developers/docs/topics/gateway#resuming
+        //
+        // TODO: Reconnect from scratch
     } else if (parsed_buffer["op"] == 0 and parsed_buffer["t"] == "READY") {
         // Gateway ready to interact with this client
         // https://discord.com/developers/docs/topics/gateway#ready-event
@@ -251,5 +301,19 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
     }
 
     ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_read, shared_from_this()));
+}
+
+void shard::reconnect() {
+    // Reconnect to the gateway
+    // https://discord.com/developers/docs/topics/gateway#resuming
+
+    status = shard_status::reconnecting;
+    std::cout << "Shard ID " << shard_id << " reconnecting to gateway" << std::endl;
+
+    boost::asio::ip::tcp::resolver resolver(ioc);
+
+    boost::beast::get_lowest_layer(ws_).async_connect(
+        resolver.resolve(gateway_url.substr(6)),
+        boost::beast::bind_front_handler(&shard::on_connect, shared_from_this()));
 }
 }  // namespace ws_shard

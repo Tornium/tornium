@@ -1,3 +1,4 @@
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
@@ -12,6 +13,7 @@ class shard : public std::enable_shared_from_this<shard> {
     boost::asio::ip::tcp::resolver resolver_;
     boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> ws_;
     boost::beast::flat_buffer buffer_;
+    boost::asio::io_context &ioc;
 
     const size_t shard_id;
     const size_t &shard_count;
@@ -38,10 +40,12 @@ class shard : public std::enable_shared_from_this<shard> {
     void on_write(boost::beast::error_code error_code, size_t bytes_transferred);
     void on_read(boost::beast::error_code error_code, size_t bytes_transferred);
     void on_hello(boost::beast::error_code error_code, size_t bytes_transferred);
+    void on_reconnect(boost::beast::error_code error_code, size_t bytes_transferred);
     void send_heartbeat();
     void heartbeat();
     void send_ident();
     void on_close(boost::beast::error_code error_code);
+    void reconnect();
 
    private:
 };

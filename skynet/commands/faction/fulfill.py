@@ -206,7 +206,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -221,7 +221,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -236,7 +236,7 @@ def fulfill_command(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
-                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"<t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -513,7 +513,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Fulfilled",
                         "description": f"Vault Request #{withdrawal.wid} has already been fulfilled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -528,7 +528,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by "
-                        f"{User.user_str(withdrawal.fulfiller)} <t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"{User.user_str(withdrawal.fulfiller)} <t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -543,7 +543,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     {
                         "title": "Request Already Cancelled",
                         "description": f"Vault Request #{withdrawal.wid} has already been cancelled by the system "
-                        f"<t:{withdrawal.time_fulfilled.timestamp()}:R>.",
+                        f"<t:{int(withdrawal.time_fulfilled.timestamp())}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],

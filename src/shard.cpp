@@ -1,6 +1,5 @@
 #include "shard.h"
 
-#include <math.h>
 #include <unistd.h>
 
 #include <boost/asio.hpp>
@@ -22,6 +21,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
+
+#include "celery.h"
 
 using namespace nlohmann;
 
@@ -296,8 +297,9 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
         // Discord user joined server
         // {"t":"GUILD_MEMBER_ADD","s":2,"op":0,"d":{"user":{"username":"tiksantesting","public_flags":0,"id":"760910136960745493","global_name":null,"discriminator":"0","avatar_decoration_data":null,"avatar":"b4f5107be04841665055788f029ab7f5"},"unusual_dm_activity_until":null,"roles":[],"premium_since":null,"pending":false,"nick":null,"mute":false,"joined_at":"2024-04-09T04:00:26.288963+00:00","guild_id":"1132079436691415120","flags":0,"deaf":false,"communication_disabled_until":null,"avatar":null}}
 
-        uint64_t user_discord_id = parsed_buffer["d"]["id"];
+        uint64_t user_discord_id = (uint64_t)std::stoll((std::string)parsed_buffer["d"]["user"]["id"]);
         std::cout << "Discord user ID " << user_discord_id << " joined server" << std::endl;
+        celery::send_guild_member_add(parsed_buffer);
     }
 
     ws_.async_read(buffer_, boost::beast::bind_front_handler(&shard::on_read, shared_from_this()));

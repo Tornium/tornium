@@ -207,6 +207,8 @@ void shard::heartbeat() {
         ws_.write(boost::asio::buffer(reconnect_op.dump(4)));
 
         status = shard_status::reconnecting;
+
+        shard::reconnect();
         return;
     }
 
@@ -242,6 +244,9 @@ void shard::send_ident() {
 void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferred) {
     if (error_code) {
         return fail(error_code, "read");
+    } else if (status != shard_status::ready) {
+        std::cerr << "Shard ID " << shard_id << " is not ready. Blocking reads." << std::endl;
+        return;
     }
 
     json parsed_buffer;
@@ -278,12 +283,22 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
         // https://discord.com/developers/docs/topics/gateway#resuming
         shard::reconnect();
         return;
-    } else if (parsed_buffer["op"] == 9) {
+    } else if (parsed_buffer["op"] == 9 and parsed_buffer["d"] == false) {
         // Invalid session (op 9)
         // Upon an attempted reconnect, the session was too old and will need to be reconnected from scratch
         // https://discord.com/developers/docs/topics/gateway#resuming
-        //
-        // TODO: Reconnect from scratch
+        // https://discord.com/developers/docs/topics/gateway-events#invalid-session
+
+        shard::force_reconnect();
+        return;
+    } else if (parsed_buffer["op"] == 9 and parsed_buffer["d"] == true) {
+        // Invalid session (op 9)
+        // Unlikely event, but client should resume the connection
+        // https://discord.com/developers/docs/topics/gateway#resuming
+        // https://discord.com/developers/docs/topics/gateway-events#invalid-session
+
+        shard::reconnect();
+        return;
     } else if (parsed_buffer["op"] == 0 and parsed_buffer["t"] == "READY") {
         // Gateway ready to interact with this client
         // https://discord.com/developers/docs/topics/gateway#ready-event
@@ -317,5 +332,16 @@ void shard::reconnect() {
     boost::beast::get_lowest_layer(ws_).async_connect(
         resolver.resolve(gateway_url.substr(6)),
         boost::beast::bind_front_handler(&shard::on_connect, shared_from_this()));
+}
+
+void shard::force_reconnect() {
+    // Force reconnect to the gateway if connecting for the first time or if OP code 9 is received
+
+    status = shard_status::connecting;
+    std::cout << "Shard ID " << shard_id << " reconnecting to the gateway" << std::endl;
+
+    // TODO: Use gateway URL from original call at start of application
+    boost::asio::ip::tcp::resolver::results_type resolved_gateway = resolver_.resolve(gateway_url.substr(6), "443");
+    this->run(resolved_gateway);
 }
 }  // namespace ws_shard

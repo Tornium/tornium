@@ -46,6 +46,7 @@ class shard : public std::enable_shared_from_this<shard> {
     void send_ident();
     void on_close(boost::beast::error_code error_code);
     void reconnect();
+    void force_reconnect();
 
    private:
 };

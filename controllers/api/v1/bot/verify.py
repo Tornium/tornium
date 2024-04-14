@@ -81,6 +81,7 @@ def guild_verification(*args, **kwargs):
 
     if request.method == "POST":
         if not guild.verify_enabled:
+            guild.verify_enabled = True
             Server.update(verify_enabled=True).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -93,6 +94,7 @@ def guild_verification(*args, **kwargs):
             )
     elif request.method == "DELETE":
         if guild.verify_enabled:
+            guild.verify_enabled = False
             Server.update(verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -130,6 +132,7 @@ def guild_auto_verification(*args, **kwargs):
 
     if request.method == "POST":
         if not guild.auto_verify_enabled:
+            guild.auto_verify_enabled = True
             Server.update(auto_verify_enabled=True).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -137,11 +140,12 @@ def guild_auto_verification(*args, **kwargs):
                 key,
                 details={
                     "message": "Setting already enabled.",
-                    "setting": "guild.verify_enabled",
+                    "setting": "guild.auto_verify_enabled",
                 },
             )
     elif request.method == "DELETE":
         if guild.auto_verify_enabled:
+            guild.auto_verify_enabled = False
             Server.update(auto_verify_enabled=False).where(Server.sid == guild.sid).execute()
         else:
             return make_exception_response(
@@ -149,7 +153,7 @@ def guild_auto_verification(*args, **kwargs):
                 key,
                 details={
                     "message": "Setting already disabled.",
-                    "setting": "guild.verify_enabled",
+                    "setting": "guild.auto_verify_enabled",
                 },
             )
 

@@ -29,7 +29,7 @@ from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
 from tornium_commons.models import FactionPosition, Server, User
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost
 from .user import update_user
@@ -405,6 +405,7 @@ def verify_users(
                         },
                         "log_channel": log_channel,
                         "guild_id": guild.sid,
+                        "gateway": False,
                     },
                     immutable=True,
                 ),
@@ -422,6 +423,7 @@ def verify_users(
                     },
                     "log_channel": log_channel,
                     "guild_id": guild.sid,
+                    "gateway": False,
                 }
             ).apply_async(
                 expires=300,
@@ -533,7 +535,10 @@ def invalid_member_position_roles(
     queue="quick",
     time_limit=60,
 )
-def verify_member_sub(log_channel: int, member: dict, guild_id: int):
+def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bool = False):
+    # TODO: Cache guild verification config so the same database calls aren't made for every user
+    guild: Server = Server.select().where(Server.sid == guild_id).get()
+
     try:
         user: User = User.select().where(User.discord_id == member["id"]).get()
     except DoesNotExist:
@@ -552,13 +557,38 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
                 ],
             },
             countdown=math.floor(random.uniform(0, 15)),
-            channel=log_channel,
         ).forget()
+
+        if gateway and guild.verify_jail_channel != 0:
+            discordpost.delay(
+                endpoint=f"channels/{guild.verify_jail_channel}/messages",
+                payload={
+                    "content": f"<@{member['id']}>",
+                    "embeds": [
+                        {
+                            "title": "API Verification Failed",
+                            "description": f"<@{member['id']}> could not be found in the database. This is typically caused by failed verification. Please make sure that you've been officially verified through Torn. Once you're verified, you can reverify with the `/verify` command.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "components": [
+                        {
+                            "type": 1,
+                            "components": [
+                                {
+                                    "type": 2,
+                                    "style": 5,
+                                    "label": "Official Discord Server",
+                                    "url": "https://www.torn.com/discord",
+                                }
+                            ],
+                        }
+                    ],
+                },
+            )
+
         return
 
-    guild: Server = Server.select().where(Server.sid == guild_id).get()
-
-    # TODO: Cache guild verification config so the same database calls aren't made for every user
     # Roles will always be strings in this task
 
     patch_json: dict = {
@@ -571,30 +601,23 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
         "roles": set(str(role) for role in member["roles"]),
     }
 
-    logger.error(patch_json)
-
     patch_json["roles"] -= invalid_member_faction_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,
     )
-    logger.error(patch_json)
     patch_json["roles"] -= invalid_member_position_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,
         position=user.faction_position,
     )
-    logger.error(patch_json)
 
     patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles))
-    logger.error(patch_json)
     patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
-    logger.error(patch_json)
     patch_json["roles"].update(
         member_position_roles(
             faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
         )
     )
-    logger.error(patch_json)
 
     if patch_json["nick"] == member["name"]:
         patch_json.pop("nick")
@@ -612,6 +635,20 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
         payload=patch_json,
         countdown=math.floor(random.uniform(0, 30)),
     ).forget()
+
+    if gateway and guild.verify_jail_channel != 0:
+        payload = {
+            "content": f"<@{member['id']}",
+            "embeds": [
+                {
+                    "title": "Verification Complete",
+                    "description": f"Welcome to {guild.name}, <@{member['id']}. Your verification should now be complete. Contact server administrators if you are having any issues with verification.",
+                    "color": SKYNET_GOOD,
+                }
+            ],
+        }
+
+        discordpost.delay(endpoint=f"channels/{guild.verify_log_channel}/messages", payload=payload).forget()
 
     if log_channel > 0:
         roles_added = set(patch_json["roles"]) - set(member["roles"]) if "roles" in patch_json else set()
@@ -666,5 +703,4 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int):
             endpoint=f"channels/{log_channel}/messages",
             payload=payload,
             countdown=math.floor(random.uniform(0, 15)),
-            channel=log_channel,
         ).forget()

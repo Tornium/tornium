@@ -190,6 +190,7 @@ if celery_app is None:
         include=[
             "tasks.api",
             "tasks.faction",
+            "tasks.gateway",
             "tasks.guild",
             "tasks.items",
             "tasks.misc",

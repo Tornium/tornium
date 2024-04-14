@@ -20,7 +20,7 @@ import jinja2
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
 from tornium_celery.tasks.user import update_user
-from tornium_commons.errors import TornError
+from tornium_commons.errors import DiscordError, TornError
 from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -328,10 +328,28 @@ def verify(interaction, *args, **kwargs):
     if "roles" in patch_json:
         patch_json["roles"] = list(set(patch_json["roles"]))
 
-    discordpatch(
-        f"guilds/{guild.sid}/members/{user.discord_id}",
-        patch_json,
-    )
+    try:
+        discordpatch(
+            f"guilds/{guild.sid}/members/{user.discord_id}",
+            patch_json,
+        )
+    except DiscordError as e:
+        if e.code == 50013:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Verification Failed",
+                            "description": "Discord prevents bots from modifying the roles and nickname of users that are the server owner or have a role higher than the bot's highest role. For more information, check out the [docs](https://docs.tornium.com/en/latest/user/bot/verification.html#verification).",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        raise e
 
     if user.faction is None:
         faction_str = "None"

@@ -144,8 +144,8 @@ $(document).ready(function () {
                 "Gateway Verification Enable Successful",
                 "The Tornium API server has successfully enabled gateway verification."
             );
-            $("#gateway-verification-config-enable").prop("disabed", true);
-            $("#gateway-verification-config-disable").prop("disabed", false);
+            $("#gateway-verification-config-enable").prop("disabled", true);
+            $("#gateway-verification-config-disable").prop("disabled", false);
         });
     });
 
@@ -157,8 +157,8 @@ $(document).ready(function () {
                 "Gateway Verification Disable Successful",
                 "The Tornium API server has successfully disabled gateway verification."
             );
-            $("#gateway-verification-config-enable").prop("disabed", false);
-            $("#gateway-verification-config-disable").prop("disabed", true);
+            $("#gateway-verification-config-enable").prop("disabled", false);
+            $("#gateway-verification-config-disable").prop("disabled", true);
         });
     });
 

@@ -21,6 +21,10 @@ Verification details such as member roles changed will be logged to this specifi
 .. warning::
    This feature is somewhat spammy if there are many members of the server that aren't verified or need to be changed.
 
+Verification Jail Channel
+`````````````````````````
+Un-verified members are stuck in this channel by default. Applicable logs from verification when the members joins the server will be sent here.
+
 Verified Name
 `````````````
 For applicable members (see above), while being verified, Tornium bot will change their nickname to reflect a passed `Jinja2 <https://jinja.palletsprojects.com/en/3.1.x/>`_ template. The default template is ``{{ name }} [{{ tid }}]`` such that the nickname of `tiksan <https://www.torn.com/profiles.php?XID=2383326>`_ will be set to ``tiksan [2383326]``.
@@ -44,6 +48,10 @@ Tornium will skip verifying certain members if they have a certain role. For exa
 Daily Automatic Reverification
 ``````````````````````````````
 When enabled, this will automatically re-verify all members of the server once a day at a pre-determined time specified on the server's verification dashboard (determined from the server's ID) logging to the verification log channel is enabled.
+
+Automatic Verification on Join
+``````````````````````````````
+When enabled, this will allow the backend to automatically attempt to verify a member joining a server. Respective log messages will be sent to the specified jail channel if enabled.
 
 Verification by Status
 ``````````````````````

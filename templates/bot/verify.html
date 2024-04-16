@@ -85,6 +85,20 @@ Tornium - Verification
                     </div>
                 </div>
             </div>
+            
+            <div class="row pt-3">
+                <div class="col-sm-12 col-md-8 col-xl-4 my-2">
+                    <div class="form-floating">
+                        <div class="form-text">
+                            Select the channel members that join a server will be locked within by default until they're verified.
+                        </div>
+
+                        <select class="discord-channel-selector" id="verification-jail-channel" aria-label="Verification Jail Channel" data-live-search="true">
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -110,6 +124,32 @@ Tornium - Verification
                             Enable
                         </button>
                         <button type="button" class="btn btn-outline-primary" id="auto-verification-config-disable" disabled>
+                            Disable
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <p class="card-text">
+                The bot will automatically verify members when they join a server. <b>NOTE: This feature is in alpha.</b>
+            </p>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <div class="form-floating">
+                        {% if guild.gateway_verify_enabled %}
+                        <button type="button" class="btn btn-outline-primary" id="gateway-verification-config-enable" disabled>
+                            Enable
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="gateway-verification-config-disable">
+                            Disable
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-outline-primary" id="gateway-verification-config-enable">
+                            Enable
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="gateway-verification-config-disable" disabled>
                             Disable
                         </button>
                         {% endif %}

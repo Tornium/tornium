@@ -71,6 +71,12 @@ $(document).ready(function () {
             if (logChannel.length !== 0) {
                 logChannel.attr("selected", "");
             }
+
+            let jailChannel = $(`#verification-jail-channel option[value=${serverConfig.verify.jail_channel}"]`);
+
+            if (jailChannel.length != 0) {
+                jailChannel.attr("selected", "");
+            }
         })
         .finally(function () {
             $(".discord-channel-selector").selectpicker();
@@ -130,6 +136,32 @@ $(document).ready(function () {
         });
     });
 
+    $("#gateway-verification-config-enable").on("click", function () {
+        tfetch("POST", `bot/${guildid}/verify/jail`, {
+            errorTitle: "Gateway Verification Enable Failed",
+        }).then((response) => {
+            generateToast(
+                "Gateway Verification Enable Successful",
+                "The Tornium API server has successfully enabled gateway verification."
+            );
+            $("#gateway-verification-config-enable").prop("disabed", true);
+            $("#gateway-verification-config-disable").prop("disabed", false);
+        });
+    });
+
+    $("#gateway-verification-config-disable").on("click", function () {
+        tfetch("DELETE", `bot/${guildid}/verify/jail`, {
+            errorTitle: "Gateway Verification Disable Failed",
+        }).then((response) => {
+            generateToast(
+                "Gateway Verification Disable Successful",
+                "The Tornium API server has successfully disabled gateway verification."
+            );
+            $("#gateway-verification-config-enable").prop("disabed", false);
+            $("#gateway-verification-config-disable").prop("disabed", true);
+        });
+    });
+
     function addFactionVerify() {
         tfetch("POST", "bot/verify/faction", {
             body: { guildid: guildid, factiontid: $("#faction-verification-input").val() },
@@ -153,6 +185,15 @@ $(document).ready(function () {
             errorTitle: "Verification Log Channel Set Failed",
         }).then(() => {
             generateToast("Verification Log Channel Set Successful");
+        });
+    });
+
+    $("#verification-jail-channel").on("change", function () {
+        tfetch("POST", `bot/${guildid}/verify/jail/channel`, {
+            body: { channel: this.options[this.selectedIndex].value },
+            errorTitle: "Verification Jail Channel Set Failed",
+        }).then(() => {
+            generateToast("Verification Jail Channel Set Successful");
         });
     });
 

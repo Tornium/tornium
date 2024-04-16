@@ -28,10 +28,12 @@ def jsonified_verify_config(guild: Server):
         {
             "enabled": guild.verify_enabled,
             "automatic_enabled": guild.auto_verify_enabled,
+            "gateway_verify_enabled": guild.gateway_verify_enabled,
             "verify_template": guild.verify_template,
             "verified_roles": guild.verified_roles,
             "faction_verify": guild.faction_verify,
             "verify_log_channel": guild.verify_log_channel,
+            "verify_jail_channel": guild.verify_jail_channel,
         }
     )
 
@@ -162,6 +164,49 @@ def guild_auto_verification(*args, **kwargs):
 
 @session_required
 @ratelimit
+def guild_gateway_verification(guild_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    if request.method == "POST":
+        if not guild.gateway_verify_enabled:
+            guild.gateway_verify_enabled = True
+            Server.update(gateway_verify_enabled=True).where(Server.sid == guild.sid).execute()
+        else:
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already enabled.",
+                    "setting": "guild.gateway_verify_enabled",
+                },
+            )
+    elif request.method == "DELETE":
+        if guild.auto_verify_enabled:
+            guild.gateway_verify_enabled = False
+            Server.update(gateway_verify_enabled=False).where(Server.sid == guild.sid).execute()
+        else:
+            return make_exception_response(
+                "0000",
+                key,
+                details={
+                    "message": "Setting already disabled.",
+                    "setting": "guild.gateway_verify_enabled",
+                },
+            )
+
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
 def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -185,6 +230,31 @@ def guild_verification_log(*args, **kwargs):
         return make_exception_response("4020", key)
 
     guild.verify_log_channel = channel_id
+    Server.update(verify_log_channel=channel_id).where(Server.sid == guild.sid).execute()
+
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def guild_jail_channel(guild_id: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        channel_id = int(data["channel"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1001", key)
+
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    guild.verify_jail_channel = channel_id
     Server.update(verify_log_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)

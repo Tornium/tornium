@@ -69,7 +69,7 @@ def on_member_join(guild_id: int, discord_id: int, user_nick: str):
 
     if guild.verify_jail_channel != 0:
         error_link["link_error"] = on_member_join_error.signature(
-            kwargs={"jail_channel": guild.verify_jail_channel, "user_id": discord_id}
+            kwargs={"verify_jail_channel": guild.verify_jail_channel, "user_id": discord_id}
         )
 
     tornget.signature(

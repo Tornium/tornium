@@ -47,11 +47,13 @@ def jsonified_server_config(guild: Server):
         "verify": {
             "enabled": guild.verify_enabled,
             "automatic_enabled": guild.auto_verify_enabled,
+            "gateway_verify_enabled": guild.gateway_verify_enabled,
             "template": guild.verify_template,
             "verified_roles": list(map(str, guild.verified_roles)),
             "exclusion_roles": list(map(str, guild.exclusion_roles)),
             "faction_verify": guild.faction_verify,
             "log_channel": str(guild.verify_log_channel),
+            "jail_channel": str(guild.verify_jail_channel),
         },
         "retals": dict(zip(guild.retal_config.keys(), map(dict, guild.retal_config.values()))),
         "banking": guild.banking_config,

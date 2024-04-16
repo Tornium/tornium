@@ -67,8 +67,8 @@ function createChannels() {
     $.each(discordChannels, function (category_id, category) {
         $(".discord-channel-selector").append(
             $("<optgroup>", {
-                label: category.name,
-                "data-category-id": category["id"],
+                label: category.name == "?" ? "No category" : category.name,
+                "data-category-id": category_id,
             })
         );
 

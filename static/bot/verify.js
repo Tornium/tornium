@@ -72,7 +72,7 @@ $(document).ready(function () {
                 logChannel.attr("selected", "");
             }
 
-            let jailChannel = $(`#verification-jail-channel option[value=${serverConfig.verify.jail_channel}"]`);
+            let jailChannel = $(`#verification-jail-channel option[value="${serverConfig.verify.jail_channel}"]`);
 
             if (jailChannel.length != 0) {
                 jailChannel.attr("selected", "");

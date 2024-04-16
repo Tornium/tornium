@@ -648,7 +648,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
             ],
         }
 
-        discordpost.delay(endpoint=f"channels/{guild.verify_log_channel}/messages", payload=payload).forget()
+        discordpost.delay(endpoint=f"channels/{guild.verify_jail_channel}/messages", payload=payload).forget()
 
     if log_channel > 0:
         roles_added = set(patch_json["roles"]) - set(member["roles"]) if "roles" in patch_json else set()

@@ -36,11 +36,13 @@ class Server(BaseModel):
     # Verification configuration
     verify_enabled = BooleanField(default=False)
     auto_verify_enabled = BooleanField(default=False)
+    gateway_verify_enabled = BooleanField(default=False)
     verify_template = TextField(default="{{ name }} [{{ tid }}]")
     verified_roles = ArrayField(BigIntegerField, default=[], index=False)
     exclusion_roles = ArrayField(BigIntegerField, default=[], index=False)
     faction_verify = JSONField(default={})
     verify_log_channel = BigIntegerField(default=0)
+    verify_jail_channel = BigIntegerField(default=0)
 
     # Retal configuration
     retal_config = JSONField(default={})

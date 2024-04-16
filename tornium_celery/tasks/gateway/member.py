@@ -23,9 +23,9 @@ from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import Item, Notification, Server, User
-from tornium_commons.skyutils import SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
-from ..api import tornget
+from ..api import discordpost, tornget
 from ..guild import verify_member_sub
 from ..misc import send_dm
 
@@ -65,6 +65,13 @@ def on_member_join(guild_id: int, discord_id: int, user_nick: str):
     if len(admin_keys) == 0:
         return
 
+    error_link = {}
+
+    if guild.verify_jail_channel != 0:
+        error_link["link_error"] = on_member_join_error.signature(
+            kwargs={"jail_channel": guild.verify_jail_channel, "user_id": discord_id}
+        )
+
     tornget.signature(
         kwargs={
             "endpoint": f"user/{discord_id}?selections=",
@@ -85,4 +92,40 @@ def on_member_join(guild_id: int, discord_id: int, user_nick: str):
             },
             immutable=True,
         ),
+        **error_link,
+    )
+
+
+@celery.shared_task(
+    name="tasks.gateway.on_member_join_error",
+    routing_key="quick.gateway.on_member_join_error",
+    queue="quick",
+    time_limit=15,
+)
+def on_member_join_error(request, exc, traceback, verify_jail_channel, user_id):
+    discordpost(
+        f"channels/{verify_jail_channel}/messages",
+        payload={
+            "content": f"<@{user_id}>",
+            "embeds": [
+                {
+                    "title": "API Verification Failed",
+                    "description": f"<@{user_id}> could not be found in the database. This is typically caused by failed verification. Please make sure that you've been officially verified through Torn. Once you're verified, you can reverify with the `/verify` command.",
+                    "color": SKYNET_ERROR,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Official Discord Server",
+                            "url": "https://www.torn.com/discord",
+                        }
+                    ],
+                }
+            ],
+        },
     )

@@ -638,11 +638,11 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
 
     if gateway and guild.verify_jail_channel != 0:
         payload = {
-            "content": f"<@{member['id']}",
+            "content": f"<@{member['id']}>",
             "embeds": [
                 {
                     "title": "Verification Complete",
-                    "description": f"Welcome to {guild.name}, <@{member['id']}. Your verification should now be complete. Contact server administrators if you are having any issues with verification.",
+                    "description": f"Welcome to {guild.name}, <@{member['id']}>. Your verification should now be complete. Contact server administrators if you are having any issues with verification.",
                     "color": SKYNET_GOOD,
                 }
             ],

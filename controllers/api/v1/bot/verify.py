@@ -255,7 +255,7 @@ def guild_jail_channel(guild_id: int, *args, **kwargs):
         return make_exception_response("4020", key)
 
     guild.verify_jail_channel = channel_id
-    Server.update(verify_log_channel=channel_id).where(Server.sid == guild.sid).execute()
+    Server.update(verify_jail_channel=channel_id).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 

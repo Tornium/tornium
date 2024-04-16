@@ -28,6 +28,7 @@ def verify_dashboard(guild_id: int):
                 Server.verify_enabled,
                 Server.verify_template,
                 Server.auto_verify_enabled,
+                Server.gateway_verify_enabled,
                 Server.faction_verify,
                 Server.admins,
             )

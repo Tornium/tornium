@@ -18,7 +18,6 @@ import hashlib
 import inspect
 import json
 import secrets
-import time
 import typing
 
 import requests
@@ -177,23 +176,14 @@ def login(*args, **kwargs):
                 401,
             )
 
-        redis_client = rds()
         client_token = secrets.token_urlsafe()
 
-        if redis_client.exists(f"tornium:login:{client_token}"):
+        if not rds().set(f"tornium:login:{client_token}", user.tid, nx=True, ex=180):
             return render_template(
                 "errors/error.html",
                 title="Security Error",
                 error="The generated client token already exists. Please try again.",
             )
-
-        redis_client.setnx(f"tornium:login:{client_token}", time.time())
-        redis_client.expire(f"tornium:login:{client_token}", 180)  # Expires after three minutes
-
-        redis_client.setnx(f"tornium:login:{client_token}:tid", user.tid)
-        redis_client.expire(f"tornium:login:{client_token}:tid", 180)
-
-        # TODO: Reduce count of redis calls during login
 
         return redirect(f"/login/totp?token={client_token}")
     else:
@@ -207,13 +197,13 @@ def login(*args, **kwargs):
             500,
         )
 
-    next = session.get("next")
+    next_route = session.get("next")
 
-    if next is None:
+    if next_route is None:
         return redirect(url_for("baseroutes.index"))
     else:
         del session["next"]
-        return redirect(next)
+        return redirect(next_route)
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
@@ -238,19 +228,18 @@ def topt_verification():
     redis_client = rds()
 
     if totp_token is None:
-        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
-        return redirect("/login")
-    elif redis_client.get(f"tornium:login:{client_token}") is None:
+        redis_client.delete(f"tornium:login:{client_token}")
         return redirect("/login")
 
+    user_id: typing.Optional[str] = redis_client.get(f"tornium:login:{client_token}")
+
     try:
-        user: AuthUser = AuthUser.get_by_id(int(redis_client.get(f"tornium:login:{client_token}:tid")))
+        user: AuthUser = AuthUser.get_by_id(int(user_id))
     except (TypeError, ValueError, DoesNotExist):
         return redirect("/login")
 
-    # TODO: rename next variable... shadows Py statement
     server_totp_tokens = utils.totp.totp(user.otp_secret)
-    next = session.get("next")
+    next_route = session.get("next")
 
     if secrets.compare_digest(totp_token, server_totp_tokens[0]) or secrets.compare_digest(
         totp_token, server_totp_tokens[1]
@@ -258,11 +247,11 @@ def topt_verification():
         login_user(user, remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
-        if next is None:
+        if next_route is None:
             return redirect(url_for("baseroutes.index"))
         else:
             del session["next"]
-            return redirect(next)
+            return redirect(next_route)
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
         user.otp_backups.remove(hashlib.sha256(totp_token.encode("utf-8")).hexdigest())
         User.update(otp_backups=user.otp_backups).where(User.tid == user.tid).execute()
@@ -270,11 +259,11 @@ def topt_verification():
         login_user(user, remember=True)
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
-        if next is None:
+        if next_route is None:
             return redirect(url_for("baseroutes.index"))
         else:
             del session["next"]
-            return redirect(next)
+            return redirect(next_route)
     else:
         redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
 
@@ -392,13 +381,13 @@ def discord_login():
     # Especially if 2FA is already enabled on Discord for the user (is it?)
 
     login_user(user, remember=True)
-    next = session.get("next")
+    next_route = session.get("next")
 
-    if next is None:
+    if next_route is None:
         return redirect(url_for("baseroutes.index"))
     else:
         del session["next"]
-        return redirect(next)
+        return redirect(next_route)
 
 
 @mod.route("/login/discord/callback", methods=["POST"])

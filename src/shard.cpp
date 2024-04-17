@@ -330,7 +330,8 @@ void shard::reconnect() {
     boost::asio::ip::tcp::resolver resolver(ioc);
 
     boost::beast::get_lowest_layer(ws_).async_connect(
-        resolver.resolve(gateway_url.substr(6)),
+        // resolver.resolve(gateway_url.substr(6)),
+        resolver.resolve((std::string) "gateway.discord.gg", "443"),
         boost::beast::bind_front_handler(&shard::on_connect, shared_from_this()));
 }
 
@@ -341,7 +342,8 @@ void shard::force_reconnect() {
     std::cout << "Shard ID " << shard_id << " reconnecting to the gateway" << std::endl;
 
     // TODO: Use gateway URL from original call at start of application
-    boost::asio::ip::tcp::resolver::results_type resolved_gateway = resolver_.resolve(gateway_url.substr(6), "443");
+    boost::asio::ip::tcp::resolver::results_type resolved_gateway =
+        resolver_.resolve((std::string) "gateway.discord.gg", "443");
     this->run(resolved_gateway);
 }
 }  // namespace ws_shard

@@ -116,7 +116,7 @@ def update_guild_commands(verbose=False):
     handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     botlogger.addHandler(handler)
 
-    application_id = rds().get("tornium:settings:skynet-applicationid")
+    application_id = Config.from_json().bot_application_id
     botlogger.debug(application_id)
 
     if verbose:

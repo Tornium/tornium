@@ -1,8 +1,3 @@
-.. Tornium documentation master file, created by
-   sphinx-quickstart on Wed Apr 19 12:13:19 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Tornium
 ===================================
 .. image:: https://img.shields.io/github/license/Tornium/tornium-core?style=for-the-badge
@@ -14,6 +9,8 @@ Tornium
 Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`_ built from scratch.
 
 This documentation is still under construction and thus is not yet complete. If you find a missing section and need some help, contact the developer via the links found in the sidebar.
+
+For information on how to keep your Tornium account secure, check out the :ref:`security section<security>`.
 
 API Usage
 ---------

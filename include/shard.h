@@ -11,7 +11,7 @@ enum class shard_status { not_started, connecting, ready, disconnected, reconnec
 
 class shard : public std::enable_shared_from_this<shard> {
     boost::asio::ip::tcp::resolver resolver_;
-    boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> ws_;
+    std::optional<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>> ws_;
     boost::beast::flat_buffer buffer_;
     boost::asio::io_context &ioc;
 
@@ -22,6 +22,7 @@ class shard : public std::enable_shared_from_this<shard> {
 
     std::string gateway_url;
     std::optional<std::string> session_id = std::nullopt;
+    boost::asio::ssl::context &ssl_ctx;
 
     size_t heartbeat_interval;
     std::optional<size_t> last_sequence = std::nullopt;
@@ -46,7 +47,6 @@ class shard : public std::enable_shared_from_this<shard> {
     void send_ident();
     void on_close(boost::beast::error_code error_code);
     void reconnect();
-    void force_reconnect();
 
    private:
 };

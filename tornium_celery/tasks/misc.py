@@ -44,25 +44,6 @@ def send_dm(discord_id: int, payload: dict):
     return discordpost.delay(endpoint=f"channels/{channel_id}/messages", payload=payload)
 
 
-@celery.shared_task(
-    name="tasks.misc.remove_key_error",
-    routing_key="quick.remove_key_error",
-    queue="quick",
-    time_limit=5,
-)
-def remove_key_error(key: str, error: int):
-    try:
-        key: TornKey = TornKey.select(TornKey.user).where(TornKey.api_key == key).get()
-    except DoesNotExist:
-        return
-
-    user_id = key.user_id
-    key.delete_instance()
-
-    if error == 7:
-        User.update(faction_aa=False, faction_position=None).where(User.tid == user_id).execute()
-
-
 # TODO: Rewrite this section to be more efficient
 # @celery.shared_task(name="tasks.misc.remove_unknown_channel", routing_key="quick.remove_unknown_channel", queue="quick")
 # def remove_unknown_channel(channel_id: int):

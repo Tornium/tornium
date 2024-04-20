@@ -32,8 +32,7 @@ from tornium_commons.errors import (
     RatelimitError,
     TornError,
 )
-
-from .misc import remove_key_error
+from tornium_commons.models import TornKey
 
 logger = get_task_logger("celery_app")
 config = Config.from_cache()
@@ -265,8 +264,14 @@ def tornget(
         request = request.json()
 
     if "error" in request:
-        if request["error"]["code"] in (2, 10, 13):
-            remove_key_error(key, request["error"]["code"])
+        if request["error"]["code"] in (
+            2,  # Incorrect key
+            10,  # Key owner is in federal jail
+            13,  # Key disabled due to owner inactivity
+        ):
+            # Delete the API key
+            # WIth these errors, it'll hurt more to keep the API key rather than removing it and letting the person sign in later
+            TornKey.delete().where(TornKey.api_key == key).execute()
 
         if not pass_error:
             raise TornError(code=request["error"]["code"], endpoint=url)

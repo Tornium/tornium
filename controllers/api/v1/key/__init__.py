@@ -80,15 +80,15 @@ def toggle_key(guid: str, *args, **kwargs):
     disabled = data.get("disabled")
 
     if disabled is None or not isinstance(disabled, bool):
-        return make_exception_response("", key)
+        return make_exception_response("0000", key, details={"message": "Invalid disabled state"})
 
     try:
         key_db = TornKey.select(TornKey.user).where(TornKey.guid == uuid.UUID(guid)).get()
     except DoesNotExist:
-        return make_exception_response("", key)
+        return make_exception_response("1200", key)
 
     if key_db.user_id != kwargs["user"].tid:
-        return make_exception_response("", key)
+        return make_exception_response("4004", key)
 
     TornKey.update(disabled=bool(disabled)).where(TornKey.guid == uuid.UUID(guid)).execute()
 
@@ -123,10 +123,10 @@ def delete_key(guid: str, *args, **kwargs):
     try:
         key_db = TornKey.select().where(TornKey.guid == uuid.UUID(guid)).get()
     except DoesNotExist:
-        return make_exception_response("", key)
+        return make_exception_response("1200", key)
 
     if key_db.user_id != kwargs["user"].tid:
-        return make_exception_response("", key)
+        return make_exception_response("4004", key)
 
     key_db.delete_instance()
 

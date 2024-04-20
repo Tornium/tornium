@@ -1723,7 +1723,7 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
                 continue
             elif withdrawal.amount != value:
                 continue
-            elif withdrawal.time_requested >= datetime.datetime.fromtimestamp(
+            elif withdrawal.time_requested.replace(tzinfo=datetime.timezone.utc) >= datetime.datetime.fromtimestamp(
                 fund_action["timestamp"], tz=datetime.timezone.utc
             ):
                 continue

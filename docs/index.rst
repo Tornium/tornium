@@ -41,6 +41,15 @@ Tutorials
 =========
 This section is currently under construction.
 
+Userscripts
+===========
+Tornium has official support for a few userscripts for which support can be found below.
+
+.. toctree::
+    :maxdepth: 1
+
+    userscripts/estimate
+
 References
 ==========
 This part of the documentation contains API documentation for Tornium functions, classes, and methods.

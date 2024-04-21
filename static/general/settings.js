@@ -76,12 +76,15 @@ $(document).ready(function () {
         xhttp.onload = function () {
             let response = xhttp.response;
 
-            if ("code" in response) {
-                generateToast("Security Mode Switch Failed", response["message"]);
-                window.location.reload();
-            } else {
+            if (response.code == 1) {
                 $("#disable-mfa").attr("disabled", false);
                 $("#enable-totp").attr("disabled", true);
+
+                if (response.details.otp_generated === true) {
+                    showTOTP();
+                }
+            } else if ("code" in response) {
+                generateToast("Security Mode Switch Failed", response["message"]);
                 window.location.reload();
             }
         };
@@ -97,7 +100,7 @@ $(document).ready(function () {
     });
 
     // TOTP QR code
-    $("#show-totp-qr").on("click", function () {
+    function showTOTP() {
         if (token === null) {
             generateToast("Permission Denied", "Invalid token", "Error");
             return;
@@ -143,7 +146,8 @@ $(document).ready(function () {
         xhttp.open("GET", `/totp/secret?token=${token}`);
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.send();
-    });
+    }
+    $("#show-totp-qr").on("click", showTOTP);
 
     // TOTP Regenerate Secret
     $("#regen-totp-secret").on("click", function () {

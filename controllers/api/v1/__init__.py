@@ -248,3 +248,4 @@ mod.add_url_rule(
     view_func=user.estimate_specific_user,
     methods=["GET"],
 )
+mod.add_url_rule("/api/v1/user/<int:tid>/stat", view_func=user.latest_user_stats, methods=["GET"])

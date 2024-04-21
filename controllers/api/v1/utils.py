@@ -124,7 +124,7 @@ API_EXCEPTIONS = {
         "code": 4001,
         "name": "NoAuthenticationInformation",
         "http": 401,
-        "message": "No authentication code was was provided.",
+        "message": "No authentication code was provided.",
     },
     "4002": {
         "code": 4002,

@@ -24,7 +24,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
-from tornium_commons.models import User
+from tornium_commons.models import Stat, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -125,8 +125,6 @@ def estimate_specific_user(tid: int, *args, **kwargs):
         except TypeError:
             redis_client.set(estimate_ratelimit, 10, ex=60 - datetime.datetime.utcnow().second)
 
-    logging.getLogger("server").error(f"{tid}: <{type(tid)}>")
-
     try:
         estimated_bs, expiration_ts = estimate_user(
             tid,
@@ -146,6 +144,42 @@ def estimate_specific_user(tid: int, *args, **kwargs):
             "min_bs": min_bs,
             "max_bs": max_bs,
             "expiration": expiration_ts,
+        },
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@require_oauth()
+@ratelimit
+def latest_user_stats(tid: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if kwargs["user"].faction is not None:
+        stat: typing.Optional[Stat] = (
+            Stat.select(Stat.battlescore, Stat.time_added)
+            .where((Stat.tid == tid) & ((Stat.added_group == 0) | (Stat.added_group == kwargs["user"].faction_id)))
+            .order_by(-Stat.time_added)
+            .first()
+        )
+    else:
+        stat: typing.Optional[Stat] = (
+            Stat.select(Stat.battlescore, Stat.time_added)
+            .where((Stat.tid == tid) & (Stat.added_group == 0))
+            .order_by(-Stat.time_added)
+            .first()
+        )
+
+    if stat is None:
+        return make_exception_response("1100", key)
+
+    min_bs, max_bs = bs_to_range(stat.battlescore)
+
+    return (
+        {
+            "min": min_bs,
+            "max": max_bs,
+            "timestamp": stat.time_added.timestamp(),
         },
         200,
         api_ratelimit_response(key),

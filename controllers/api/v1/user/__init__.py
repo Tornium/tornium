@@ -141,6 +141,7 @@ def estimate_specific_user(tid: int, *args, **kwargs):
 
     return (
         {
+            "stat_score": estimated_bs,
             "min_bs": min_bs,
             "max_bs": max_bs,
             "expiration": expiration_ts,
@@ -177,6 +178,7 @@ def latest_user_stats(tid: int, *args, **kwargs):
 
     return (
         {
+            "stat_score": stat.battlescore,
             "min": min_bs,
             "max": max_bs,
             "timestamp": stat.time_added.timestamp(),

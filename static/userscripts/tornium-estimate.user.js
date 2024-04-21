@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.2
+// @version      0.3.3
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
 // @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @match        https://www.torn.com/tornium/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @match        https://www.torn.com/gym.php*
+// @match        https://www.torn.com/loader.php?sid=attack*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -68,6 +69,10 @@ function relativeTime(timestamp) {
             return rtf.format(Math.round(elapsed / units[u]), u);
         }
     }
+}
+
+function shortNum(value) {
+    return Intl.NumberFormat("en-us", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
 function getOneEstimate(tid, onload) {
@@ -163,8 +168,6 @@ function getOneStat(tid, onload) {
                 : `${baseURL}/oauth/${clientID}/callback`
         );
 
-        console.log(data);
-
         GM_xmlhttpRequest({
             method: "POST",
             url: `${baseURL}/oauth/token`,
@@ -196,6 +199,8 @@ function getOneStat(tid, onload) {
         });
         return;
     }
+
+    console.log(window.location.href);
 
     if (window.location.href.startsWith("https://www.torn.com/profiles.php")) {
         $(".content-title").append($("<p id='tornium-estimation'>Loading estimate...</p>"));
@@ -292,5 +297,42 @@ function getOneStat(tid, onload) {
             }
         });
         observer.observe(document.getElementById("gymroot"), { attributes: false, childList: true, subtree: true });
+    } else if (window.location.href.startsWith("https://www.torn.com/loader.php?sid=attack")) {
+        const observer = new MutationObserver(function (mutationList, observer) {
+            for (const mutation of mutationList) {
+                if (
+                    mutation.addedNodes.length == 0 ||
+                    !mutation.addedNodes[0].className.toString().startsWith("playersModelWrap__")
+                ) {
+                    continue;
+                }
+
+                $("div[class^='colored__']").append("<span id='tornium-estimation'>Loading...</span>");
+
+                getOneEstimate(
+                    new URLSearchParams(new URL(window.location).search).get("user2ID"),
+                    function (userEstimate) {
+                        if (userEstimate.code !== undefined) {
+                            $("#tornium-estimation").text(
+                                `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
+                            );
+                            return;
+                        }
+
+                        let ffString = "";
+                        if (userStatScore !== null) {
+                            ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
+                        }
+
+                        $("#tornium-estimation").text(
+                            `${shortNum(userEstimate.min_bs)} to ${shortNum(userEstimate.max_bs)} (FF: ${ffString})`
+                        );
+                        observer.disconnect();
+                        return;
+                    }
+                );
+            }
+        });
+        observer.observe(document.getElementById("react-root"), { attributes: false, childList: true, subtree: true });
     }
 })();

@@ -5,7 +5,7 @@ Estimate Userscript
 The estimation userscript is a free alternative to other services (such as BSP) using data from Tornium.
 
 .. warning::
-   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.2.
+   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.3.
 
 Screenshots
 -----------
@@ -14,7 +14,7 @@ Screenshots
 
 Installation Instruction
 ------------------------
-This userscript is currently tested on Firefox and Chrome using ViolentMonkey and TamperMonkey. Additionally, TornPDA has limited support, but should work.
+This userscript is currently tested on Firefox and Chrome using ViolentMonkey and TamperMonkey. Additionally, TornPDA has limited support, but should work to at least a limited degree.
 
 #. If you don't have one already, install a userscript manager on your browser. This does not apply to TornDPA.
 #. Navigate to the `userscript <https://github.com/Tornium/tornium-core/blob/master/static/userscripts/tornium-estimate.user.js>`_ and press the raw button (or visit `this <https://github.com/Tornium/tornium-core/blob/master/static/userscripts/tornium-estimate.user.js>`_). If your userscript manager is installed properly, this will automatically install the userscript and show a confirmation page from the userscript manager.
@@ -26,6 +26,10 @@ This userscript is currently tested on Firefox and Chrome using ViolentMonkey an
 
 How It Works
 ------------
-To be added...
+Depending on the page, the userscript will make an API call to Tornium's servers to retrieve an estimate of the user's stats or to retrieve the users stats from its database. An uncapped fair fight score will also be generated from your stats the last time you've visited the gym page. Being uncapped, this allows you to quickly see the relative strength of the target with 3x FF being about 50-75% of your stats.
 
+Supported Pages
+---------------
+#. User profile: shows exact estimate and value from stat database with FFs
+#. Attack loader: shows shortened estimated stats with FF
 

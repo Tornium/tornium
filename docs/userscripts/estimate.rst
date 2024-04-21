@@ -7,14 +7,6 @@ The estimation userscript is a free alternative to other services (such as BSP) 
 .. warning::
    This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.3.
 
-Screenshots
------------
-.. image:: /_static/images/profile_estimate.png
-    :alt: Example user profile estimates
-
-.. image:: /_static/images/attack_loader_estimate.png
-    :alt: Example user attack loader estimates
-
 Installation Instruction
 ------------------------
 This userscript is currently tested on Firefox and Chrome using ViolentMonkey and TamperMonkey. Additionally, TornPDA has limited support, but should work to at least a limited degree.
@@ -35,4 +27,12 @@ Supported Pages
 ---------------
 #. User profile: shows exact estimate and value from stat database with FFs
 #. Attack loader: shows shortened estimated stats with FF
+
+Screenshots
+-----------
+.. image:: /_static/images/profile_estimate.png
+    :alt: Example user profile estimates
+
+.. image:: /_static/images/attack_loader_estimate.png
+    :alt: Example user attack loader estimates
 

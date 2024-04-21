@@ -117,7 +117,7 @@ $(document).ready(function () {
                                     }),
                                     $("<p>", {
                                         class: "card-subtitle mb-2",
-                                        text: `Last User Update: ${reltime(user.last_refresh)}`,
+                                        text: `Last User Update: ${reltime(user.user.last_refresh)}`,
                                     }),
                                 ]),
                                 $("<ul>", {
@@ -152,7 +152,7 @@ $(document).ready(function () {
                                     }),
                                     $("<li>", {
                                         class: "list-group-item",
-                                        text: `Last Action: ${reltime(user.last_action)}`,
+                                        text: `Last Action: ${reltime(user.user.last_action)}`,
                                     }),
                                 ]),
                                 $("<div>", {
@@ -185,6 +185,7 @@ $(document).ready(function () {
             })
             .catch((err) => {
                 $("#generate-list").attr("disabled", false);
+                throw err;
             });
 
         generateToast(

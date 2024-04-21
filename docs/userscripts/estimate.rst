@@ -12,6 +12,9 @@ Screenshots
 .. image:: /_static/images/profile_estimate.png
     :alt: Example user profile estimates
 
+.. image:: /_static/images/attack_loader_estimate.png
+    :alt: Example user attack loader estimates
+
 Installation Instruction
 ------------------------
 This userscript is currently tested on Firefox and Chrome using ViolentMonkey and TamperMonkey. Additionally, TornPDA has limited support, but should work to at least a limited degree.

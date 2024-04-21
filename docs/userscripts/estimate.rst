@@ -2,14 +2,14 @@
 
 Estimate Userscript
 ===================
-The estimation userscript is a free alternative to other services (such as BSP) using data from Tornium.
+The estimation userscript is a free alternative to other services (such as BSP) pulling data from Tornium to show user stats on Torn directly.
 
 .. warning::
    This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.3.
 
 Installation Instruction
 ------------------------
-This userscript is currently tested on Firefox and Chrome using ViolentMonkey and TamperMonkey. Additionally, TornPDA has limited support, but should work to at least a limited degree.
+This userscript is currently tested on Firefox and Chrome using `ViolentMonkey <https://violentmonkey.github.io/>`_ and `TamperMonkey <https://www.tampermonkey.net/>`_. Additionally, `TornPDA <https://github.com/Manuito83/torn-pda>`_ has limited support, but should work to at least a limited degree.
 
 #. If you don't have one already, install a userscript manager on your browser. This does not apply to TornDPA.
 #. Navigate to the `userscript <https://github.com/Tornium/tornium-core/blob/master/static/userscripts/tornium-estimate.user.js>`_ and press the raw button (or visit `this <https://github.com/Tornium/tornium-core/blob/master/static/userscripts/tornium-estimate.user.js>`_). If your userscript manager is installed properly, this will automatically install the userscript and show a confirmation page from the userscript manager.

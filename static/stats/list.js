@@ -113,7 +113,11 @@ $(document).ready(function () {
                                     }),
                                     $("<h6>", {
                                         class: "card-subtitle mb-2",
-                                        text: `Last Update: ${reltime(user.timeadded)}`,
+                                        text: `Last Stat Update: ${reltime(user.timeadded)}`,
+                                    }),
+                                    $("<p>", {
+                                        class: "card-subtitle mb-2",
+                                        text: `Last User Update: ${reltime(user.last_refresh)}`,
                                     }),
                                 ]),
                                 $("<ul>", {
@@ -140,21 +144,20 @@ $(document).ready(function () {
                                     class: "list-group list-group-flush mt-2",
                                 }).append([
                                     $("<li>", {
-                                        class: "list-gorup-item",
-                                        text: `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
+                                        class: "list-group-item",
+                                        text:
+                                            user.user.faction.tid === null
+                                                ? `Faction: None`
+                                                : `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
+                                    }),
+                                    $("<li>", {
+                                        class: "list-group-item",
+                                        text: `Last Action: ${reltime(user.last_action)}`,
                                     }),
                                 ]),
                                 $("<div>", {
                                     class: "card-footer my-1",
                                 }).append([
-                                    $("<button>", {
-                                        class: "btn btn-outline-primary refresh-target-data mx-1",
-                                        "data-tid": user.tid,
-                                    }).append(
-                                        $("<i>", {
-                                            class: "fa-solid fa-rotate-right",
-                                        })
-                                    ),
                                     $("<button>", {
                                         class: "btn btn-outline-primary mx-1",
                                         onclick: `window.open("https://www.torn.com/profiles.php?XID=${user.tid}", "_blank")`,
@@ -178,47 +181,6 @@ $(document).ready(function () {
                 });
 
                 $("#targets-container").append(fragment);
-
-                $(".refresh-target-data").on("click", function () {
-                    return; // TODO: rewrite this to show more data
-                    $(this).attr("disabled", true);
-                    const userID = this.getAttribute("data-tid");
-
-                    tfetch("GET", `user/${userID}?refresh=true`, { errorTitle: "User Update Failed" }).then(
-                        (response) => {
-                            const targetDataContainer = $(`div[data-tid="${userID}"] .target-user-data`);
-                            let factionName;
-
-                            if (response.faction === null) {
-                                factionName = "None";
-                            } else {
-                                factionName = `${response.faction.name} [${response.faction.tid}]`;
-                            }
-
-                            targetDataContainer.append(
-                                $("<ul>", {
-                                    class: "list-group list-group-flush",
-                                }).append([
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Level: ${response.level}`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Faction: ${factionName}`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Status: ${response.status} (${reltime(response.last_action)})`,
-                                    }),
-                                ])
-                            );
-
-                            targetDataContainer.removeClass("d-none");
-                        }
-                    );
-                });
-
                 $("#generate-list").attr("disabled", false);
             })
             .catch((err) => {

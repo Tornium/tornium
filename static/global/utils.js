@@ -35,26 +35,24 @@ function commas(number) {
     return number.toLocaleString("en-US");
 }
 
+// Derived from https://stackoverflow.com/a/53800501/12941872
+const rtfUnits = {
+    year: 24 * 60 * 60 * 1000 * 365,
+    month: (24 * 60 * 60 * 1000 * 365) / 12,
+    day: 24 * 60 * 60 * 1000,
+    hour: 60 * 60 * 1000,
+    minute: 60 * 1000,
+    second: 1000,
+};
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 function reltime(timestamp) {
-    let delta = Date.now() / 1000 - timestamp;
+    var elapsed = timestamp * 1000 - Date.now();
 
-    if (delta < 60) {
-        // One minute
-        return "Now";
-    } else if (delta < 3600) {
-        // Sixty minutes
-        return Math.round(delta / 60) + " minutes ago";
-    } else if (delta < 86400) {
-        // One day
-        return Math.round(delta / 3600) + " hours ago";
-    } else if (delta < 2592000) {
-        // Thirty days
-        return Math.round(delta / 86400) + " days ago";
-    } else if (delta < 31104000) {
-        // Twelve months
-        return Math.round(delta / 2592000) + " months ago";
-    } else {
-        return "A long time ago";
+    // "Math.abs" accounts for both "past" & "future" scenarios
+    for (var u in rtfUnits) {
+        if (Math.abs(elapsed) > rtfUnits[u] || u == "second") {
+            return rtf.format(Math.round(elapsed / rtfUnits[u]), u);
+        }
     }
 }
 

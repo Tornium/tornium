@@ -268,7 +268,10 @@ def tornget(
             2,  # Incorrect key
             10,  # Key owner is in federal jail
             13,  # Key disabled due to owner inactivity
+            18,  # API key paused by owner
         ):
+            # TODO: Add proper support for pausing API key with restoring when the key has been unpaused
+            #
             # Delete the API key
             # WIth these errors, it'll hurt more to keep the API key rather than removing it and letting the person sign in later
             TornKey.delete().where(TornKey.api_key == key).execute()

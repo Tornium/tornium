@@ -40,7 +40,7 @@ from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
-from controllers.api.v1.utils import json_api_exception
+from controllers.api.v1.utils import make_exception_response
 from controllers.decorators import token_required
 from models.user import AuthUser
 
@@ -419,13 +419,8 @@ def totp_secret(*args, **kwargs):
 @token_required(setnx=False)
 def totp_secret_regen(*args, **kwargs):
     current_user.generate_otp_secret()
-    response = json_api_exception("0001")
 
-    return {
-        "code": response["code"],
-        "name": response["name"],
-        "message": response["message"],
-    }, 200
+    return make_exception_response("0001")
 
 
 @mod.route("/totp/backup", methods=["POST"])
@@ -443,24 +438,15 @@ def totp_backup_regen(*args, **kwargs):
 def set_security_mode(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     mode = data.get("mode")
+    otp_generated = False
 
-    # TODO: Generate OTP secret if not created upon enable
+    if current_user.otp_secret is None or current_user.otp_secret == "":
+        current_user.generate_otp_secret()
+        otp_generated = True
 
     if mode not in (0, 1):
-        response = json_api_exception("1000", details={"message": "Invalid security mode"})
-
-        return {
-            "code": response["code"],
-            "name": response["name"],
-            "message": response["message"],
-            "details": response["details"],
-        }, 400
+        return make_exception_response("1000", details={"message": "Invalid security mode"})
 
     User.update(security=mode).where(User.tid == current_user.tid).execute()
-    response = json_api_exception("0001")
 
-    return {
-        "code": response["code"],
-        "name": response["name"],
-        "message": response["message"],
-    }, 200
+    return make_exception_response("0001", details={"otp_generated": otp_generated})

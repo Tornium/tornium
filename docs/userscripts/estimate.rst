@@ -9,7 +9,7 @@ The estimation userscript is a free alternative to other services (such as BSP) 
 
 Screenshots
 -----------
-.. image:: /_static/images/profile_estimate.png
+.. image:: ../_static/images/profile_estimate.png
     :alt: Example user profile estimates
 
 Installation Instruction

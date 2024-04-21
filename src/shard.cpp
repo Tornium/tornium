@@ -288,9 +288,9 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
         fail(error_code, "read");
         shard::reconnect();
         return;
-    } else if (status != shard_status::ready) {
-        std::cerr << "Shard ID " << shard_id << " is not ready. Blocking reads." << std::endl;
-        return;
+        // } else if (status != shard_status::ready) {
+        //     std::cerr << "Shard ID " << shard_id << " is not ready. Blocking reads." << std::endl;
+        //     return;
     } else if (!ws_.has_value()) {
         shard::reconnect();
         return;

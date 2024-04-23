@@ -22,9 +22,11 @@ from tornium_commons.formatters import bs_to_range, commas, discord_escaper, fin
 from tornium_commons.models import Stat, User
 from tornium_commons.skyutils import SKYNET_ERROR
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
+@invoker_required
 def stat(interaction, *args, **kwargs):
     user: User = kwargs["invoker"]
 

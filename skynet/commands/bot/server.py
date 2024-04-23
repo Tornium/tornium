@@ -17,7 +17,10 @@ from peewee import DoesNotExist, fn
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
+from skynet.decorators import invoker_required
 
+
+@invoker_required
 def link_server(interaction, subcommand_data, *args, **kwargs):
     user: User = kwargs["invoker"]
 
@@ -130,6 +133,7 @@ def link_server(interaction, subcommand_data, *args, **kwargs):
     }
 
 
+@invoker_required
 def unlink_server(interaction, subcommand_data, *args, **kwargs):
     user: User = kwargs["invoker"]
 

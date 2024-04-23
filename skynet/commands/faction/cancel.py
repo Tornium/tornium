@@ -22,9 +22,11 @@ from tornium_commons.formatters import commas, discord_escaper, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
+@invoker_required
 def cancel_command(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
@@ -316,6 +318,7 @@ def cancel_command(interaction, *args, **kwargs):
     }
 
 
+@invoker_required
 def cancel_button(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

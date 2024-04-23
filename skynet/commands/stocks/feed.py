@@ -20,7 +20,10 @@ from tornium_commons.formatters import discord_escaper
 from tornium_commons.models import Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
+from skynet.decorators import invoker_required
 
+
+@invoker_required
 def feed(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

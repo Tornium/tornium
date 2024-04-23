@@ -22,7 +22,10 @@ from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
+from skynet.decorators import invoker_required
 
+
+@invoker_required
 def notify(interaction, *args, **kwargs):
     def create():
         stock = find_list(subcommand_data, "name", "stock")

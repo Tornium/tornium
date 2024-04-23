@@ -24,6 +24,8 @@ from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Faction, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
+from skynet.decorators import invoker_required
+
 _STYPE_NID_MAP = {
     "user": 1,
     "faction": 2,
@@ -68,6 +70,7 @@ _REVERSE_SCATS = {
 }
 
 
+@invoker_required
 def stakeouts(interaction, *args, **kwargs):
     def category():
         if notifications.count() > 1:
@@ -697,6 +700,7 @@ def stakeouts(interaction, *args, **kwargs):
         }
 
 
+@invoker_required
 def stakeout_autocomplete(interaction, *args, **kwargs):
     def category_autocomplete():
         for option in subcommand_data:

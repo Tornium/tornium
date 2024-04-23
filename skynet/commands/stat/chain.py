@@ -19,9 +19,11 @@ from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Stat
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
+@invoker_required
 def chain(interaction, *args, **kwargs):
     if "options" in interaction["data"]:
         length = find_list(interaction["data"]["options"], "name", "length")

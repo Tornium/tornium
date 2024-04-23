@@ -24,6 +24,7 @@ from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
@@ -34,6 +35,7 @@ def faction_data_switchboard(interaction, *args, **kwargs):
     return {}
 
 
+@invoker_required
 def members_switchboard(interaction, *args, **kwargs):
     payload = [
         {

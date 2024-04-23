@@ -22,8 +22,10 @@ from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from estimate import estimate_user
+from skynet.decorators import invoker_required
 
 
+@invoker_required
 def estimate_command(interaction, *args, **kwargs):
     start_time = time.time()
 

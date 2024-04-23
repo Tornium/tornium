@@ -22,9 +22,11 @@ from tornium_commons.formatters import commas, discord_escaper, find_list
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_faction_keys
 
 
+@invoker_required
 def balance(interaction, *args, **kwargs):
     user: typing.Optional[User] = kwargs["invoker"]
     member = None

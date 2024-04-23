@@ -21,6 +21,8 @@ from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Item, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
+from skynet.decorators import invoker_required
+
 _NOTIF_TYPE_MAP = {
     "percent": "percent below market value",
     "price": "below specified price",
@@ -476,6 +478,7 @@ def item_notif_info(interaction, user: User, item: Item, *args, **kwargs):
     }
 
 
+@invoker_required
 def items_switchboard(interaction, *args, **kwargs):
     user: User = kwargs["invoker"]
 
@@ -591,6 +594,7 @@ def items_autocomplete(interaction, *args, **kwargs):
     }
 
 
+@invoker_required
 def items_button_switchboard(interaction, *args, **kwargs):
     user = kwargs["invoker"]
     button_data = interaction["data"]["custom_id"].split(":")

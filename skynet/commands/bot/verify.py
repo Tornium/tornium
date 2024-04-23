@@ -25,9 +25,11 @@ from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
+from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
+@invoker_required
 def verify(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {

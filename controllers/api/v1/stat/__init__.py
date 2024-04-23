@@ -94,6 +94,7 @@ def get_stat_user(tid: int, *args, **kwargs):
         Stat.select()
         .where(((Stat.added_group == 0) | (Stat.added_group == kwargs["user"].faction_id)) & (Stat.tid == tid))
         .order_by(-Stat.time_added)
+        .limit(10)
     )
 
     data: dict = {"user": {}, "stat_entries": {}}

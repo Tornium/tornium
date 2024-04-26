@@ -219,7 +219,6 @@ void shard::send_heartbeat() {
     // ws_ -> async_write(boost::asio::buffer(heartbeat_op.dump()), boost::beast::bind_front_handler(&shard::on_read,
     // shared_from_this()));
     ws_->async_write(boost::asio::buffer(heartbeat_op.dump()), [&](boost::beast::error_code, size_t) {});
-    std::cout << std::time(0) << " :: Heartbeat sent" << std::endl;
 }
 
 void shard::heartbeat() {
@@ -307,7 +306,12 @@ void shard::on_read(boost::beast::error_code error_code, size_t bytes_transferre
         std::cout << boost::beast::make_printable(buffer_.data()) << std::endl;
         buffer_.clear();
 
+        if (status == shard_status::ready) {
+            shard::reconnect();
+            return;
+        }
         ws_.value().async_read(buffer_, boost::beast::bind_front_handler(&shard::on_read, shared_from_this()));
+
         return;
     }
 

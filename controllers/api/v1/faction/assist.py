@@ -40,6 +40,8 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def forward_assist(target_tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     assist_lock_key = f"tornium:assists:{target_tid}:lock"
+    start_timestamp = time.time()
+
     user: User = kwargs["user"]
     data = json.loads(request.get_data().decode("utf-8"))
     client = rds()
@@ -395,7 +397,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
                 "name": "OK",
                 "message": "Server request was successful.",
                 "servers_forwarded": len(servers_forwarded),
-                "latency": round(time.time() - kwargs["start_time"], 2),
+                "latency": round(time.time() - start_timestamp, 2),
             }
         ),
         200,

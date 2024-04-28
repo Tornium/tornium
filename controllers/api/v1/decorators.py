@@ -31,8 +31,6 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        kwargs["start_time"] = int(time.time())
-
         try:
             # OAuth token
             kwargs["user"] = current_token.user
@@ -61,8 +59,6 @@ def ratelimit(func):
 def session_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        start_time = time.time()
-
         if not current_user.is_authenticated:
             return make_exception_response("4001")
 
@@ -73,7 +69,6 @@ def session_required(func):
 
         kwargs["user"] = current_user
         kwargs["key"] = current_user.key
-        kwargs["start_time"] = start_time
 
         return func(*args, **kwargs)
 

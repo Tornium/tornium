@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import DoesNotExist, fn
+from peewee import DoesNotExist, ProgrammingError, fn
 from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
@@ -116,7 +116,22 @@ def link_server(interaction, subcommand_data, *args, **kwargs):
             },
         }
 
-    Server.update(factions=fn.array_append(user.faction_id)).where(Server.sid == user.faction.guild_id).execute()
+    try:
+        Server.update(factions=fn.array_append(user.faction_id)).where(Server.sid == user.faction.guild_id).execute()
+    except ProgrammingError:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Faction Linked",
+                        "description": f"{user.faction.name} [{user.faction_id}] has been linked to this server. If a server admin has not already done so, they will need to add your faction to the server's list of factions.",
+                        "color": SKYNET_GOOD,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     return {
         "type": 4,

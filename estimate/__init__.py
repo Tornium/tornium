@@ -9,13 +9,15 @@ import typing
 
 import pandas as pd
 import xgboost
-from peewee import JOIN, DoesNotExist
+from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.models import PersonalStats, User
 
 _model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None
+
+ESTIMATE_TTL = 604_800  # One week
 
 
 def model() -> xgboost.XGBRegressor:
@@ -31,7 +33,8 @@ def model() -> xgboost.XGBRegressor:
     else:
         _model.load_model("estimate/models/base-model-0.0.1.json")
 
-    model_features = list(_model.feature_names_in_)
+    if model_features is None:
+        model_features = list(_model.feature_names_in_)
 
     return _model
 
@@ -42,9 +45,10 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
 
     redis_client = rds()
     allow_api_calls = False if api_key in (None, "") else allow_api_calls
+    now = int(time.time())
 
     try:
-        return int(redis_client.get(f"tornium:estimate:cache:{user_tid}")), int(time.time()) + redis_client.ttl(
+        return int(redis_client.get(f"tornium:estimate:cache:{user_tid}")), now + redis_client.ttl(
             f"tornium:estimate:cache:{user_tid}"
         )
     except (ValueError, TypeError):
@@ -57,8 +61,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         ps = None
 
     df: pd.DataFrame
-
-    if ps is not None and int(time.time()) - ps.timestamp.timestamp() <= 604_800:  # One week
+    if ps is not None and now - ps.timestamp.timestamp() <= ESTIMATE_TTL:
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
@@ -68,9 +71,9 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         df = df.astype("int64")
 
         estimate = int(model().predict(df))
-        redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
+        redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-        return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800
+        return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL
 
     if not allow_api_calls:
         raise PermissionError
@@ -86,7 +89,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
 
-    if not update_error and int(time.time()) - ps.timestamp.timestamp() > 604_800:  # One week
+    if not update_error and now - ps.timestamp.timestamp() > ESTIMATE_TTL:
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])
@@ -98,6 +101,6 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     df = df.astype("int64")
 
     estimate = int(model().predict(df))
-    redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=604_800)
+    redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-    return estimate, int(time.time()) - ps.timestamp.timestamp() + 604_800
+    return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL

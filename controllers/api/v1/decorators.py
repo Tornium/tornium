@@ -42,13 +42,12 @@ def ratelimit(func):
 
         client = rds()
         key = f"tornium:ratelimit:{kwargs['user'].tid}"
-        limit = 250
 
         current_count = int(client.incr(key))
 
         if current_count <= 1:
             client.expireat(key, int(time.time()) // 60 * 60 + 60)
-        elif current_count > limit:
+        elif current_count > 250:
             return make_exception_response("4000", key)
 
         return func(*args, **kwargs)

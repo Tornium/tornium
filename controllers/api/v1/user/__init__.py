@@ -15,6 +15,7 @@
 
 import datetime
 import logging
+import time
 import typing
 
 from authlib.integrations.flask_oauth2 import current_token
@@ -112,18 +113,15 @@ def get_specific_user(tid: int, *args, **kwargs):
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    estimate_ratelimit = f"tornium:estimate:ratelimit:{kwargs['user'].tid}"
+    estimate_ratelimit_key = f"tornium:estimate:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()
 
-    if not redis_client.set(estimate_ratelimit, 25, nx=True, ex=60 - datetime.datetime.utcnow().second):
-        # Ratelimit just created in redis
-        try:
-            if int(redis_client.get(estimate_ratelimit)) > 0:
-                redis_client.decrby(estimate_ratelimit, 1)
-            else:
-                return make_exception_response("4293", key)
-        except TypeError:
-            redis_client.set(estimate_ratelimit, 10, ex=60 - datetime.datetime.utcnow().second)
+    estimate_ratelimit_current = redis_client.incr(estimate_ratelimit_key)
+    if estimate_ratelimit_current == 0:
+        # Estimate ratelimit key just created
+        redis_client.expireat(estimate_ratelimit_key, int(time.time()) // 60 * 60 + 60, nx=True)
+    elif estimate_ratelimit_current > 250:
+        return make_exception_response("4293", key)
 
     try:
         estimated_bs, expiration_ts = estimate_user(

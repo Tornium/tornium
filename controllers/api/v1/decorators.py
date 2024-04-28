@@ -64,7 +64,7 @@ def session_required(func):
 
         csrf_token = request.headers.get("X-CSRF-Token") or request.headers.get("CSRF-Token")
 
-        if csrf_token != session.get("csrf_token"):
+        if csrf_token != session.get("csrf_token") and csrf_token is not None:
             return make_exception_response("4002")
 
         kwargs["user"] = current_user

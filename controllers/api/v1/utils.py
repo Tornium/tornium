@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
 import typing
 
 import redis
@@ -251,11 +252,22 @@ def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
     if client is None:
         client = rds()
 
-    return {
-        "X-RateLimit-Limit": 250,
-        "X-RateLimit-Remaining": 250 - int(client.get(ratelimit_key)),
-        "X-RateLimit-Reset": client.ttl(ratelimit_key),
-    }
+    try:
+        return {
+            "X-RateLimit-Limit": 250,
+            "X-RateLimit-Remaining": 250 - int(client.get(ratelimit_key)),
+            "X-RateLimit-Reset": client.ttl(ratelimit_key),
+        }
+    except TypeError:
+        # The API call was made just before the end of the minute, and this code rolls over to the following minute
+        expires_at = int(time.time()) // 60 * 60 + 60
+        client.expireat(ratelimit_key, expires_at)
+
+        return {
+            "X-RateLimit-Limit": 250,
+            "X-RateLimit-Remaining": 250,
+            "X-RateLimit-Reset": expires_at,
+        }
 
 
 def make_exception_response(

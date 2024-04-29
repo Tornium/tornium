@@ -13,21 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import random
 import typing
 
 import celery
 from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
-from tornium_commons import rds
-from tornium_commons.formatters import commas, torn_timestamp
-from tornium_commons.models import Item, Notification, Server, User
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+from tornium_commons.models import Server, User
+from tornium_commons.skyutils import SKYNET_ERROR
 
 from ..api import discordpost, tornget
 from ..guild import verify_member_sub
-from ..misc import send_dm
 
 logger = get_task_logger("celery_app")
 
@@ -100,7 +96,7 @@ def on_member_join(guild_id: int, discord_id: int, user_nick: str):
     name="tasks.gateway.on_member_join_error",
     routing_key="quick.gateway.on_member_join_error",
     queue="quick",
-    time_limit=15,
+    time_limit=5,
 )
 def on_member_join_error(request, exc, traceback, verify_jail_channel, user_id):
     discordpost(

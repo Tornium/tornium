@@ -1,8 +1,13 @@
+#include <algorithm>
+#include <boost/asio.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/placeholders.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/beast.hpp>
 #include <boost/beast/core/buffers_generator.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -11,10 +16,12 @@
 #include <boost/beast/http/dynamic_body.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/field.hpp>
+#include <boost/beast/http/message_generator.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/http/status.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/program_options.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -22,12 +29,12 @@
 #include <chrono>
 #include <exception>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <thread>
-
-#include "client.h"
+#include <vector>
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH "?"
@@ -35,13 +42,62 @@
 
 void temp_worker_task(int worker_id) { std::cout << "Worker #" << worker_id << " started" << std::endl; }
 
+void socket_timer_callback(const boost::system::error_code& ec,
+                           std::map<std::string, boost::asio::ip::tcp::socket>* client_connections,
+                           boost::asio::steady_timer* socket_check_timer) {
+    if (!ec) {
+        std::vector<std::string> clients_to_close;
+
+        for (auto iterator = client_connections->begin(); iterator != client_connections->end(); iterator++) {
+            // uuid = iterator -> first
+            // socket_ = iterator -> second
+            boost::system::error_code write_ec;
+
+            // TCP doesn't have a method to detect if a client has closed a connection without writing to the socket if
+            // the socket isn't watching for FIN So this is writing to the socket with a ping event to determine if the
+            // client and server are still connected
+            boost::asio::write(iterator->second, boost::asio::buffer((std::string) "event: ping" + "\n\n"), write_ec);
+
+            if (!write_ec) {
+                continue;
+            }
+
+            std::cout << "Socket to client " << iterator->first << " has been closed by the client: " << write_ec.what()
+                      << "\n";
+            iterator->second.close();
+            clients_to_close.emplace_back(iterator->first);
+        }
+
+        std::for_each(clients_to_close.begin(), clients_to_close.end(),
+                      [&client_connections](const std::string client_uuid) {
+            std::cout << "Removing client connection for " << client_uuid << "\n";
+            client_connections->erase(client_uuid);
+        });
+    } else {
+        std::cout << "Socket check timer failed: " << ec.what() << std::endl;
+    }
+
+    socket_check_timer->expires_after(std::chrono::minutes(1));
+    socket_check_timer->async_wait(
+        boost::bind(socket_timer_callback, boost::asio::placeholders::error, client_connections, socket_check_timer));
+}
+
+void start_unix_socket_worker(std::map<std::string, boost::asio::ip::tcp::socket>& client_connections,
+                              boost::asio::io_context& ioc) {
+    std::cout << "Unix socket worker started" << std::endl;
+    boost::asio::steady_timer socket_check_timer(ioc, std::chrono::minutes(1));
+    socket_check_timer.async_wait(
+        boost::bind(socket_timer_callback, boost::asio::placeholders::error, &client_connections, &socket_check_timer));
+    ioc.run();
+}
+
 // Return a response for the given request.
 template <class Body, class Allocator>
 std::optional<boost::beast::http::message_generator> handle_request(
     boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req,
     boost::asio::ip::tcp::socket& socket_) {
     // Returns a bad request response
-    auto const bad_request = [&req, &socket_](boost::beast::string_view why) {
+    auto const bad_request = [&req](boost::beast::string_view why) {
         boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::bad_request,
                                                                           req.version()};
         res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -109,7 +165,7 @@ int main(int argc, char* argv[]) {
     int worker_count = 1;
     int max_workers = 1;
     std::vector<std::thread> worker_threads;
-    std::vector<sse_client::client> client_connections;
+    std::map<std::string, boost::asio::ip::tcp::socket> client_connections;
 
     try {
         std::string config_file;
@@ -158,18 +214,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    boost::asio::io_context ioc{1};
+    boost::asio::ip::tcp::acceptor acceptor_{ioc, {boost::beast::net::ip::make_address("0.0.0.0"), 8081}};
+
     for (int i = 0; i < worker_count; i++) {
         worker_threads.emplace_back(temp_worker_task, i);
     }
 
-    // TODO: Create thread for socket reads
-
     for (std::thread& thread : worker_threads) {
-        thread.join();
+        thread.detach();
     }
 
-    boost::asio::io_context ioc{1};
-    boost::asio::ip::tcp::acceptor acceptor_{ioc, {boost::beast::net::ip::make_address("0.0.0.0"), 8081}};
+    std::thread socket_worker_thread(start_unix_socket_worker, std::ref(client_connections), std::ref(ioc));
+    socket_worker_thread.detach();
 
     for (;;) {
         boost::asio::ip::tcp::socket socket_{ioc};
@@ -202,19 +259,19 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        for (int i = 0; i < 100; i++) {
-            boost::asio::write(socket_, boost::asio::buffer("data: " + std::to_string(i) + "\n\n"), ec);
-            if (ec) {
-                std::cout << "Failed to write: " << ec.what() << std::endl;
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+        // It appears that adding the \n\n to the end of the data string results in corrupted data
+        // At least for Curl
+        boost::asio::write(socket_, boost::asio::buffer((std::string) "data: ping" + "\n\n"), ec);
+        if (ec) {
+            std::cout << "Failed to write: " << ec.what() << std::endl;
+            break;
         }
 
-        if (!ec) {
-            sse_client::client client_{boost::uuids::to_string(boost::uuids::random_generator()()), std::move(socket_)};
-            client_connections.push_back(std::move(client_));
-        }
+        std::string client_id = boost::uuids::to_string(boost::uuids::random_generator()());
+        client_connections.emplace(client_id, std::move(socket_));
+
+        boost::asio::write(client_connections.at(client_id), boost::asio::buffer((std::string) "data: pong" + "\n\n"),
+                           ec);
     }
 
     return 0;

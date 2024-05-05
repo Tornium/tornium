@@ -59,7 +59,13 @@ def settings(*args, **kwargs):
         .where(TornKey.user.tid == current_user.tid)
     )
 
-    tokens = list(t for t in OAuthToken.select().where(OAuthToken.user == current_user.tid))
+    tokens = list(
+        t
+        for t in OAuthToken.select().where(
+            (OAuthToken.user == current_user.tid)
+            & (OAuthToken.access_token_revoked_at.is_null(False) & (OAuthToken.refresh_token_revoked_at.is_null(False)))
+        )
+    )
 
     return render_template(
         "settings.html",

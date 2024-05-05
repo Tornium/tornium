@@ -1067,7 +1067,7 @@ def check_attacks(faction_data, last_attacks=None):
 
     try:
         # TODO: Limit selected fields
-        faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == faction_data["ID"]).get()
+        faction: Faction = Faction.select().join(Server).where(Faction.tid == faction_data["ID"]).get()
     except (KeyError, DoesNotExist):
         return
 
@@ -1161,7 +1161,7 @@ def check_attacks(faction_data, last_attacks=None):
                 possible_retals[attack["code"]] = {
                     "task": discordpost.delay(
                         f"channels/{attack_config.retal_channel}/messages",
-                        payload=generate_retaliation_embed(attack.faction),
+                        payload=generate_retaliation_embed(attack, faction, attack_config),
                     ),
                     **attack,
                 }
@@ -1170,7 +1170,7 @@ def check_attacks(faction_data, last_attacks=None):
                 pass
 
         # Check for bonuses dropped upon this faction
-        if ALERT_CHAIN_BONUS and validate_attack_bonus(attack, faction):
+        if ALERT_CHAIN_BONUS and validate_attack_bonus(attack, faction, attack_config):
             if attack["attacker_id"] in (0, ""):
                 attacker_str = "an unknown attacker and faction"
             else:

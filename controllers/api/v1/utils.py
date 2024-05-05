@@ -159,9 +159,9 @@ API_EXCEPTIONS = {
     },
     "4011": {
         "code": 4011,
-        "name": "InsufficientUserType",
-        "http": 401,
-        "message": "The provided authentication code was not sufficient for a pro-level request.",
+        "name": "InvalidMethod",
+        "http": 405,
+        "message": "The requested endpoint does not support this HTTP method.",
     },
     "4020": {
         "code": 4020,

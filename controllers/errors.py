@@ -67,6 +67,14 @@ def error404(e):
     return make_exception_response("4010")
 
 
+@mod.app_errorhandler(405)
+def error405(e):
+    if not is_api_route():
+        return render_template("errors/405.html"), 405
+
+    return make_exception_response("4011")
+
+
 @mod.app_errorhandler(500)
 def error500(e):
     if not is_api_route():

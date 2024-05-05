@@ -48,7 +48,11 @@ $(document).ready(function () {
             });
         });
 
-        $(".discord-channel-selector").selectpicker();
+        document.querySelectorAll(".discord-channel-selector").forEach((element) => {
+            new TomSelect(element, {
+                create: false,
+            });
+        });
     });
 
     $("#od-channel").on("change", function () {

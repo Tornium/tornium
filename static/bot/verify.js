@@ -61,7 +61,12 @@ $(document).ready(function () {
             });
         })
         .finally(function () {
-            $(".discord-role-selector").selectpicker();
+            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+                new TomSelect(element, {
+                    create: false,
+                    plugins: ["remove_button"],
+                });
+            });
         });
 
     Promise.all([configPromise, channelsPromise])
@@ -79,7 +84,11 @@ $(document).ready(function () {
             }
         })
         .finally(function () {
-            $(".discord-channel-selector").selectpicker();
+            document.querySelectorAll(".discord-channel-selector").forEach((element) => {
+                new TomSelect(element, {
+                    create: false,
+                });
+            });
         });
 
     $("#verification-config-enable").on("click", function () {
@@ -379,7 +388,12 @@ $(document).ready(function () {
                 });
             });
 
-            $(".discord-role-selector").selectpicker();
+            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+                new TomSelect(element, {
+                    create: false,
+                    plugins: ["remove_button"],
+                });
+            });
         });
 
         $("body").append(

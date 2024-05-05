@@ -26,6 +26,10 @@ function tfetch(method, endpoint, { body, errorTitle }) {
             ...(body !== undefined && { body: JSON.stringify(body) }),
         })
         .then(async (response) => {
+            if (response.status == 204) {
+                return 204;
+            }
+
             try {
                 return await response.json();
             } catch {
@@ -34,7 +38,9 @@ function tfetch(method, endpoint, { body, errorTitle }) {
             }
         })
         .then((jsonResponse) => {
-            if (jsonResponse.code !== undefined) {
+            if (jsonResponse == 204) {
+                return;
+            } else if (jsonResponse.code !== undefined) {
                 generateToast(
                     errorTitle === undefined ? "Tornium Error" : errorTitle,
                     `[${jsonResponse.code}] ${jsonResponse.message}`,

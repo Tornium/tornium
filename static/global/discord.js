@@ -98,7 +98,7 @@ function createChannels() {
 }
 
 const channelsRequest = (obj) => {
-    var localChannels = JSON.parse(localStorage.getItem(`channes:${guildid}`));
+    var localChannels = JSON.parse(localStorage.getItem(`channels:${guildid}`));
 
     if (localChannels && Math.floor(Date.now() / 1000) - localChannels.timestamp < 60) {
         return new Promise((resolve, reject) => {

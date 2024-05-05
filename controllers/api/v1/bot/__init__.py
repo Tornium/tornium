@@ -16,11 +16,11 @@
 from controllers.api.v1.bot import (
     armory,
     assists,
+    attacks,
     banking,
     config,
     faction,
     oc,
-    retal,
     stocks,
     utils,
     verify,

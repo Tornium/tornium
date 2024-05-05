@@ -148,7 +148,7 @@ $(document).ready(function () {
                                                 placeholder: "Quantity",
                                                 inputmode: "numeric",
                                                 min: "0",
-                                                style: "min-width: 100px",
+                                                style: "min-width: 18rem",
                                                 "aria-label": "Quantity notified when under",
                                             }),
                                             $("<button>", {
@@ -175,7 +175,11 @@ $(document).ready(function () {
             }
 
             itemsRequest().finally(() => {
-                $(".item-selector").selectpicker();
+                document.querySelectorAll(".item-selector").forEach((element) => {
+                    new TomSelect(element, {
+                        create: false,
+                    });
+                });
 
                 $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                     if (Object.keys(factionConfig.items).length > 0) {
@@ -230,7 +234,11 @@ $(document).ready(function () {
                     });
                 })
                 .finally(function () {
-                    $(".discord-channel-selector").selectpicker();
+                    document.querySelectorAll(".discord-channel-selector").forEach((element) => {
+                        new TomSelect(element, {
+                            create: false,
+                        });
+                    });
                 });
 
             rolesRequest()
@@ -246,7 +254,12 @@ $(document).ready(function () {
                     });
                 })
                 .finally(function () {
-                    $(".discord-role-selector").selectpicker();
+                    document.querySelectorAll(".discord-role-selector").forEach((element) => {
+                        new TomSelect(element, {
+                            create: false,
+                            plugins: ["remove_button"],
+                        });
+                    });
                 });
 
             $(".submit-new-item").on("click", function () {

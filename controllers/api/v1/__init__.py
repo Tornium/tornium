@@ -62,6 +62,41 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/retal/<int:faction_tid>/channel",
+    view_func=bot.attacks.faction_retal_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/retal/<int:faction_tid>/roles",
+    view_func=bot.attacks.faction_retal_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-bonus/<int:faction_tid>/channel",
+    view_func=bot.attacks.faction_chain_bonus_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-bonus/<int:faction_tid>/roles",
+    view_func=bot.attacks.faction_chain_bonus_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-bonus/<int:faction_tid>/length",
+    view_func=bot.attacks.faction_chain_bonus_length,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-alert/<int:faction_tid>/channel",
+    view_func=bot.attacks.faction_chain_alert_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-alert/<int:faction_tid>/roles",
+    view_func=bot.attacks.faction_chain_alert_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction",
     view_func=bot.faction.faction_setter,
     methods=["DELETE", "POST"],
@@ -93,16 +128,6 @@ mod.add_url_rule(
 )
 mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/verify/jail/channel", view_func=bot.verify.guild_jail_channel, methods=["POST"]
-)
-mod.add_url_rule(
-    "/api/v1/bot/retal/faction/channel",
-    view_func=bot.retal.faction_retal_channel,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/retal/faction/roles",
-    view_func=bot.retal.faction_retal_roles,
-    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>",

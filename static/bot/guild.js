@@ -18,6 +18,27 @@ $(document).ready(function () {
     let channelsPromise = channelsRequest();
     let rolesPromise = rolesRequest();
 
+    serverConfigPromise.then((config) => {
+        $.each(config.attacks, function (factionid, factionConfig) {
+            let option = $(
+                `.faction-bonus-length[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.length}"]`
+            );
+            if (option.length === 1) {
+                option.attr("selected", "");
+
+                if (factionConfig.chain_bonus.length != 100) {
+                    $(`.faction-bonus-length[data-faction="${factionid}"] option[value="100"]`).removeAttr("selected");
+                }
+            }
+        });
+
+        document.querySelectorAll(".automatic-tom-select").forEach((element) => {
+            new TomSelect(element, {
+                create: false,
+            });
+        });
+    });
+
     Promise.all([serverConfigPromise, channelsPromise])
         .then((configs) => {
             let serverConfig = configs[0];
@@ -53,16 +74,27 @@ $(document).ready(function () {
                 }
             });
 
-            $.each(serverConfig["retals"], function (factionid, factionConfig) {
+            $.each(serverConfig["attacks"], function (factionid, factionConfig) {
                 let option = $(
-                    `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                    `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.retal.channel}"]`
                 );
-
-                if (option.length !== 1) {
-                    return;
+                if (option.length === 1) {
+                    option.attr("selected", "");
                 }
 
-                option.attr("selected", "");
+                option = $(
+                    `.faction-bonus-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.channel}"]`
+                );
+                if (option.length === 1) {
+                    option.attr("selected", "");
+                }
+
+                option = $(
+                    `.faction-alert-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_alert.channel}"]`
+                );
+                if (option.length === 1) {
+                    option.attr("selected", "");
+                }
             });
 
             $.each(serverConfig["banking"], function (factionid, factionConfig) {
@@ -78,7 +110,11 @@ $(document).ready(function () {
             });
         })
         .finally(() => {
-            $(".discord-channel-selector").selectpicker();
+            document.querySelectorAll(".discord-channel-selector").forEach((element) => {
+                new TomSelect(element, {
+                    create: false,
+                });
+            });
         });
 
     Promise.all([serverConfigPromise, rolesPromise])
@@ -86,9 +122,29 @@ $(document).ready(function () {
             let serverConfig = configs[0];
             let roles = configs[1];
 
-            $.each(serverConfig["retals"], function (factionid, factionConfig) {
-                $.each(factionConfig["roles"], function (index, role) {
+            $.each(serverConfig.attacks, function (factionid, factionConfig) {
+                $.each(factionConfig.retal.roles, function (index, role) {
                     let option = $(`.faction-retal-roles[data-faction="${factionid}"] option[value="${role}"]`);
+
+                    if (option.length !== 1) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+
+                $.each(factionConfig.chain_bonus.roles, function (index, role) {
+                    let option = $(`.faction-bonus-roles[data-faction="${factionid}"] option[value="${role}"]`);
+
+                    if (option.length !== 1) {
+                        return;
+                    }
+
+                    option.attr("selected", "");
+                });
+
+                $.each(factionConfig.chain_alert.roles, function (index, role) {
+                    let option = $(`.faction-alert-roles[data-faction="${factionid}"] option[value="${role}"]`);
 
                     if (option.length !== 1) {
                         return;
@@ -123,7 +179,12 @@ $(document).ready(function () {
             });
         })
         .finally(() => {
-            $(".discord-role-selector").selectpicker();
+            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+                new TomSelect(element, {
+                    create: false,
+                    plugins: ["remove_button"],
+                });
+            });
         });
 
     $('[data-bs-toggle="tooltip"]').tooltip({
@@ -199,14 +260,12 @@ $(document).ready(function () {
     });
 
     $(".faction-retal-channel").on("change", function () {
-        tfetch("POST", "bot/retal/faction/channel", {
+        tfetch("POST", `bot/${guildid}/attacks/retal/${this.getAttribute("data-faction")}/channel`, {
             body: {
-                guildid: guildid,
-                factiontid: this.getAttribute("data-faction"),
                 channel: this.options[this.selectedIndex].value,
             },
             errorTitle: "Retal Channel Set Failed",
-        }).then((response) => {
+        }).then(() => {
             generateToast("Retal Channel Set Successful");
         });
     });
@@ -219,11 +278,82 @@ $(document).ready(function () {
             selectedRoles.push(item.getAttribute("value"));
         });
 
-        tfetch("POST", "bot/retal/faction/roles", {
-            body: { guildid: guildid, factiontid: this.getAttribute("data-faction"), roles: selectedRoles },
+        tfetch("POST", `bot/${guildid}/attacks/retal/${this.getAttribute("data-faction")}/roles`, {
+            body: {
+                roles: selectedRoles,
+            },
             errorTitle: "Retal Roles Add Failed",
         }).then((response) => {
             generateToast("Retal Role Add Successful");
+        });
+    });
+
+    $(".faction-bonus-channel").on("change", function () {
+        tfetch("POST", `bot/${guildid}/attacks/chain-bonus/${this.getAttribute("data-faction")}/channel`, {
+            body: {
+                channel: this.options[this.selectedIndex].value,
+            },
+            errorTitle: "Chain Bonus Channel Set Failed",
+        }).then((response) => {
+            generateToast("Chain Bonus Channel Set Successful");
+        });
+    });
+
+    $(".faction-bonus-roles").on("change", function () {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function (index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
+        tfetch("POST", `bot/${guildid}/attacks/chain-bonus/${this.getAttribute("data-faction")}/roles`, {
+            body: {
+                roles: selectedRoles,
+            },
+            errorTitle: "Chain Bonus Roles Add Failed",
+        }).then((response) => {
+            generateToast("Chain Bonus Role Add Successful");
+        });
+    });
+
+    $(".faction-bonus-length").on("change", function () {
+        tfetch("POST", `bot/${guildid}/attacks/chain-bonus/${this.getAttribute("data-faction")}/length`, {
+            body: {
+                length: this.options[this.selectedIndex].value,
+            },
+            errorTitle: "Chain Bonus Length Set Failed",
+        }).then((response) => {
+            generateToast("Chain Bonus Length Set Successful");
+        });
+    });
+
+    $(".faction-alert-channel").on("change", function () {
+        tfetch("POST", `bot/${guildid}/attacks/chain-alert/${this.getAttribute("data-faction")}/channel`, {
+            body: {
+                channel: this.options[this.selectedIndex].value,
+            },
+            errorTitle: "Chain Alert Channel Set Failed",
+        }).then((response) => {
+            generateToast("Chain Alert Channel Set Successful");
+        });
+    });
+
+    $(".faction-alert-roles").on("change", function () {
+        var selectedOptions = $(this).find(":selected");
+        var selectedRoles = [];
+
+        $.each(selectedOptions, function (index, item) {
+            selectedRoles.push(item.getAttribute("value"));
+        });
+
+        tfetch("POST", `bot/${guildid}/attacks/chain-alert/${this.getAttribute("data-faction")}/roles`, {
+            body: {
+                roles: selectedRoles,
+            },
+            errorTitle: "Chain Alert Roles Add Failed",
+        }).then((response) => {
+            generateToast("Chain Alert Role Add Successful");
         });
     });
 

@@ -55,7 +55,6 @@ def jsonified_server_config(guild: Server):
             "log_channel": str(guild.verify_log_channel),
             "jail_channel": str(guild.verify_jail_channel),
         },
-        "retals": dict(zip(guild.retal_config.keys(), map(dict, guild.retal_config.values()))),
         "banking": guild.banking_config,
         "armory": {"enabled": guild.armory_enabled, "config": {**guild.armory_config}},
         "assists": {
@@ -69,6 +68,24 @@ def jsonified_server_config(guild: Server):
                 "l2": list(map(str, guild.assist_l2_roles)),
                 "l3": list(map(str, guild.assist_l3_roles)),
             },
+        },
+        "attacks": {
+            config.faction_id: {
+                "retal": {
+                    "channel": "0" if config.retal_channel is None else str(config.retal_channel),
+                    "roles": list(map(str, config.retal_roles)),
+                },
+                "chain_bonus": {
+                    "channel": "0" if config.retal_channel is None else str(config.chain_bonus_channel),
+                    "roles": list(map(str, config.chain_bonus_roles)),
+                    "length": config.chain_bonus_length,
+                },
+                "chain_alert": {
+                    "channel": "0" if config.retal_channel is None else str(config.chain_alert_channel),
+                    "roles": list(map(str, config.chain_alert_roles)),
+                },
+            }
+            for config in guild.attacks_config
         },
         "oc": {
             faction_id: {

@@ -235,6 +235,7 @@ def before_request():
 
     if current_user.is_authenticated:
         flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
+        flask.session.setdefault("logout_token", secrets.token_urlsafe(nbytes=64))
 
     if globals().get("ddtrace:loaded") is None:
         try:

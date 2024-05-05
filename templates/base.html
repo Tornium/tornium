@@ -55,7 +55,7 @@
                         {% if not current_user.is_authenticated %}
                         <a href="/login" class="btn btn-outline-success" role="button">Login</a>
                         {% else %}
-                        <form class="d-flex" method="POST" action="/logout">
+                            <form class="d-flex" method="POST" action="/logout?state={{ session["logout_token"] }}">
                             <button class="btn btn-outline-danger" type="submit">
                                 <i class="fa-solid fa-right-from-bracket"></i>
                                 <span class="d-none d-sm-inline">Logout</span>

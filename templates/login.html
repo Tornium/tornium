@@ -31,7 +31,7 @@
                             Tornium keeps all your data protected and secured on its servers. No data or API keys will be accessed without permission beyond for security and maintenance.  It is recommended to use a separate API for each service you utilize.
                         </p>
 
-                        <form method="POST" action="/login">
+                            <form method="POST" action="/login?state={{ session["oauth_state"] }}">
                             <div class="form-floating">
                                 <div class="input-group">
                                     <input type="password" minlength="16" maxlength="16" required class="form-control" id="key" name="key" placeholder="Torn API key">

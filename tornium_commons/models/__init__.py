@@ -25,6 +25,7 @@ from .organized_crime import OrganizedCrime
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
+from .server_attack_config import ServerAttackConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -44,6 +45,7 @@ __all__ = [
     "PersonalStats",
     "Retaliation",
     "Server",
+    "ServerAttackConfig",
     "Stat",
     "StockTick",
     "TornKey",

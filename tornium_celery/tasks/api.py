@@ -129,13 +129,7 @@ def handle_discord_error(e: DiscordError):
         if int(guild.verify_log_channel) == channel_id:
             db_updates["verify_log_channel"] = 0
 
-        for retal_faction, retal_config in guild.retal_config.items():
-            if int(retal_config.get("channel", 0)) != channel_id:
-                continue
-            elif "retal_config" not in db_updates:
-                db_updates["retal_config"] = guild.retal_config
-
-            db_updates["retal_config"][retal_faction]["channel"] = 0
+        # TODO: Add handling of attack notif channels
 
         for banking_faction, banking_config in guild.banking_config.items():
             if int(banking_config.get("channel", 0)) != channel_id:

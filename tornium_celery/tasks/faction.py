@@ -37,6 +37,7 @@ from tornium_commons.models import (
     PersonalStats,
     Retaliation,
     Server,
+    ServerAttackConfig,
     Stat,
     TornKey,
     User,
@@ -562,7 +563,7 @@ def fetch_attacks_runner():
         ).apply_async(
             expires=300,
             link=celery.group(
-                retal_attacks.signature(
+                check_attacks.signature(
                     kwargs={"last_attacks": int(last_attacks)},
                     queue="quick",
                 ),
@@ -603,358 +604,6 @@ def fetch_attacks_runner():
     Retaliation.delete().where(
         Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=6))
     ).execute()
-
-
-@celery.shared_task(
-    name="tasks.faction.retal_attacks",
-    routing_key="quick.retal_attacks",
-    queue="quick",
-    time_limit=5,
-)
-def retal_attacks(faction_data, last_attacks=None):
-    if "attacks" not in faction_data:
-        return
-    elif len(faction_data["attacks"]) == 0:
-        return
-
-    try:
-        faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == faction_data["ID"]).get()
-    except (KeyError, DoesNotExist):
-        return
-
-    try:
-        if faction.guild is None:
-            return
-    except DoesNotExist:
-        return
-
-    if faction.tid not in faction.guild.factions:
-        return
-    elif str(faction.tid) not in faction.guild.retal_config:
-        return
-
-    try:
-        if faction.guild.retal_config[str(faction.tid)]["channel"] in (
-            "0",
-            0,
-            None,
-            "",
-        ):
-            return
-    except KeyError:
-        return
-
-    if last_attacks is None or last_attacks >= time.time():
-        last_attacks = timestamp(faction.last_attacks)
-
-    now = int(time.time())
-    possible_retals = {}
-
-    for attack in faction_data["attacks"].values():
-        if attack["result"] in [
-            "Assist",
-            "Lost",
-            "Stalemate",
-            "Escape",
-            "Looted",
-            "Interrupted",
-            "Timeout",
-        ]:
-            continue
-        elif attack["defender_id"] in [
-            4,
-            10,
-            15,
-            17,
-            19,
-            20,
-            21,
-        ]:  # Checks if NPC fight (and you defeated NPC)
-            continue
-        elif attack["timestamp_ended"] <= last_attacks:
-            continue
-        elif attack["defender_faction"] != faction.tid:  # Not a defend
-            if attack["modifiers"]["retaliation"] == 1:
-                continue
-
-            retal: Retaliation
-            for retal in (
-                Retaliation.select()
-                .where(
-                    (Retaliation.attacker == attack["defender_id"])
-                    & (Retaliation.defender.faction == attack["attacker_faction"])
-                )
-                .join(User, on=Retaliation.defender)
-                .join(Faction)
-            ):
-                discordpatch.delay(
-                    f"channels/{retal.channel_id}/messages/{retal.message_id}",
-                    {
-                        "embeds": [
-                            {
-                                "title": f"Retal Completed for {faction.name}",
-                                "description": (
-                                    f"{attack['attacker_name']} [{attack['attacker_id']} hospitalized {attack['defender_name']} [{attack['defender_id']}] (+{attack['respect_gain']})."
-                                ),
-                                "color": SKYNET_GOOD,
-                            }
-                        ],
-                        "components": [],
-                    },
-                ).forget()
-
-                retal.delete_instance()
-
-            continue
-        elif attack["attacker_id"] in ("", 0):  # Stealthed attacker
-            continue
-        elif attack["respect"] == 0:  # Attack by fac member or recruit
-            continue
-        elif (
-            attack["modifiers"]["overseas"] == 1.25 and attack["modifiers"]["war"] == 1
-        ):  # Overseas attack when not in war
-            continue
-        elif now - attack["timestamp_ended"] >= 300:
-            continue
-
-        user: typing.Optional[User] = (
-            User.select(User.tid, User.name, User.battlescore, User.battlescore_update, User.faction)
-            .where(User.tid == attack["defender_id"])
-            .first()
-        )
-        opponent: typing.Optional[User] = (
-            User.select(
-                User.tid,
-                User.name,
-                PersonalStats.xantaken,
-                PersonalStats.useractivity,
-                PersonalStats.elo,
-                PersonalStats.statenhancersused,
-                PersonalStats.energydrinkused,
-                PersonalStats.booksread,
-                PersonalStats.attackswon,
-                PersonalStats.respectforfaction,
-                PersonalStats.timestamp,
-            )
-            .join(PersonalStats, JOIN.LEFT_OUTER)
-            .where(User.tid == attack["attacker_id"])
-            .first()
-        )
-
-        if user is None:
-            user = User.create(
-                tid=attack["defender_id"],
-                name=attack["defender_name"],
-                faction=attack["defender_faction"],
-            )
-
-        if opponent is None:
-            opponent = User.create(
-                tid=attack["attacker_id"],
-                name=attack["attacker_name"],
-                faction=attack["attacker_faction"],
-            )
-
-        if attack["attacker_faction"] == 0:
-            title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
-        else:
-            title = (
-                f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from "
-                f"{attack['attacker_factionname']} [{attack['attacker_faction']}]"
-            )
-
-        fields = [
-            {
-                "name": "Timeout",
-                "value": f"<t:{attack['timestamp_ended'] + 300}:R>",  # Five minutes after attack ends
-            }
-        ]
-
-        if attack["modifiers"]["fair_fight"] != 3:
-            if (
-                user is not None
-                and user.battlescore != 0
-                and user.battlescore_update is not None
-                and int(time.time()) - timestamp(user.battlescore_update) <= 259200
-            ):  # Three days
-                try:
-                    opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
-                except DivisionByZero:
-                    opponent_score = 0
-
-                if opponent_score != 0:
-                    fields.extend(
-                        (
-                            {
-                                "name": "Estimated Stat Score",
-                                "value": commas(round(opponent_score)),
-                                "inline": True,
-                            },
-                            {
-                                "name": "Stat Score Update",
-                                "value": f"<t:{int(time.time())}:R>",
-                                "inline": True,
-                            },
-                        )
-                    )
-        else:
-            stat: typing.Optional[Stat]
-            try:
-                if user is not None and user.faction_id is not None:
-                    stat = (
-                        Stat.select()
-                        .where(
-                            (Stat.tid == opponent.tid)
-                            & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
-                        )
-                        .order_by(Stat.time_added)
-                        .first()
-                    )
-                else:
-                    stat = (
-                        Stat.select()
-                        .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
-                        .order_by(Stat.time_added)
-                        .first()
-                    )
-            except AttributeError as e:
-                logger.exception(e),
-                stat = None
-
-            if stat is not None:
-                fields.extend(
-                    (
-                        {
-                            "name": "Estimated Stat Score",
-                            "value": commas(stat.battlescore),
-                            "inline": True,
-                        },
-                        {
-                            "name": "Stat Score Update",
-                            "value": f"<t:{int(timestamp(stat.time_added))}:R>",
-                            "inline": True,
-                        },
-                    )
-                )
-
-        if attack["attacker_faction"] in (0, ""):
-            pass
-        elif attack["chain"] > 100:
-            fields.append(
-                {
-                    "name": "Opponent Faction Chaining",
-                    "value": f"True ({commas(attack['chain'])})",
-                    "inline": False,
-                }
-            )
-        else:
-            fields.append(
-                {"name": "Opponent Faction Chaining", "value": f"False ({commas(attack['chain'])})", "inline": False}
-            )
-
-        if (
-            opponent.personal_stats is not None
-            and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
-        ):  # One week
-            fields.append(
-                {
-                    "name": "Personal Stats",
-                    "value": inspect.cleandoc(
-                        f"""Xanax Used: {commas(opponent.personal_stats.xantaken)}
-                        SEs Used: {commas(opponent.personal_stats.statenhancersused)}
-                        E-Cans Used: {commas(opponent.personal_stats.energydrinkused)}
-                        Books Read: {commas(opponent.personal_stats.booksread)}
-
-                        ELO: {commas(opponent.personal_stats.elo)}
-                        Average Respect: {commas(opponent.personal_stats.respectforfaction / opponent.personal_stats.attackswon, stock_price=True)}
-                        """
-                    ),
-                }
-            )
-
-        payload = {
-            "embeds": [
-                {
-                    "title": title,
-                    "description": f"{opponent.name} [{opponent.tid}] {attack['result'].lower()} {user.name} "
-                    f"[{user.tid}] (-{attack['respect_loss']})",
-                    "fields": fields,
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "footer": {"text": torn_timestamp(attack["timestamp_ended"])},
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Attack Log",
-                            "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "RETAL!!",
-                            "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}",
-                        },
-                    ],
-                },
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": f"{opponent.name}",
-                            "url": f"https://www.torn.com/profiles.php?XID={opponent.tid}",
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": f"{attack['attacker_factionname']}",
-                            "url": f"https://www.torn.com/factions.php?step=profile&userID={opponent.tid}",
-                        },
-                    ],
-                },
-            ],
-        }
-
-        for role in faction.guild.retal_config[str(faction.tid)]["roles"]:
-            if "content" not in payload:
-                payload["content"] = ""
-
-            payload["content"] += f"<@&{role}>"
-
-        try:
-            possible_retals[attack["code"]] = {
-                "task": discordpost.delay(
-                    f"channels/{faction.guild.retal_config[str(faction.tid)]['channel']}/messages",
-                    payload=payload,
-                ),
-                **attack,
-            }
-        except Exception as e:
-            logger.exception(e)
-            continue
-
-    for retal in possible_retals.values():
-        retal["task"]: celery.result.AsyncResult
-        try:
-            message = retal["task"].get(disable_sync_subtasks=False)
-        except celery.exceptions.CeleryError as e:
-            logger.exception(e)
-            continue
-
-        Retaliation.insert(
-            attack_code=retal["code"],
-            attack_ended=datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
-            defender=retal["defender_id"],
-            attacker=retal["attacker_id"],
-            message_id=message["id"],
-            channel_id=message["channel_id"],
-        ).on_conflict_ignore().execute()
 
 
 @celery.shared_task(
@@ -1131,6 +780,487 @@ def stat_db_attacks(faction_data, last_attacks=None):
         except Exception as e:
             logger.exception(e)
             continue
+
+
+def validate_attack_retaliation(attack: dict, faction: Faction) -> bool:
+    if attack["result"] != "Hospitalized":
+        return False
+    elif attack["defender_faction"] == faction.tid:
+        # Attack was an incoming attack/defend
+        return False
+    elif attack["modifiers"]["retaliation"] != 1:
+        return False
+
+    return True
+
+
+def validate_attack_available_retaliation(attack: dict, faction: Faction) -> bool:
+    if attack["defender_faction"] != faction.tid:
+        # Attack was an outgoing attack
+        return False
+    elif attack["attacker_id"] in ("", 0):
+        # Attacker was stealthed
+        return False
+    elif attack["respect"] == 0:
+        # Attacker was a member of the defender's faction or was a recruit in any faction
+        return False
+    elif attack["modifiers"]["overseas"] == 1.25 and attack["modifiers"]["war"] == 1:
+        # Overseas attack when not in war
+        return False
+    elif int(time.time()) - attack["timestamp_ended"] >= 300:
+        return False
+
+    return True
+
+
+def generate_retaliation_embed(attack: dict, faction: Faction, attack_config: ServerAttackConfig) -> dict:
+    user: User
+    try:
+        user = (
+            User.select(User.tid, User.name, User.battlescore, User.battlescore_update, User.faction)
+            .where(User.tid == attack["defender_id"])
+            .get()
+        )
+    except DoesNotExist:
+        user = User.create(
+            tid=attack["defender_id"],
+            name=attack["defender_name"],
+            faction=attack["defender_faction"],
+        )
+
+    opponent: User
+    try:
+        opponent: typing.Optional[User] = (
+            User.select(
+                User.tid,
+                User.name,
+                PersonalStats.xantaken,
+                PersonalStats.useractivity,
+                PersonalStats.elo,
+                PersonalStats.statenhancersused,
+                PersonalStats.energydrinkused,
+                PersonalStats.booksread,
+                PersonalStats.attackswon,
+                PersonalStats.respectforfaction,
+                PersonalStats.timestamp,
+            )
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == attack["attacker_id"])
+            .first()
+        )
+    except DoesNotExist:
+        opponent = User.create(
+            tid=attack["attacker_id"],
+            name=attack["attacker_name"],
+            faction=attack["attacker_faction"],
+        )
+
+    if attack["attacker_faction"] == 0:
+        title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
+    else:
+        title = (
+            f"{faction.name} can retal on {opponent.name} [{opponent.tid}] from "
+            f"{attack['attacker_factionname']} [{attack['attacker_faction']}]"
+        )
+
+    fields = [
+        {
+            "name": "Timeout",
+            "value": f"<t:{attack['timestamp_ended'] + 300}:R>",  # Five minutes after attack ends
+        }
+    ]
+
+    if attack["modifiers"]["fair_fight"] != 3:
+        if (
+            user is not None
+            and user.battlescore != 0
+            and user.battlescore_update is not None
+            and int(time.time()) - timestamp(user.battlescore_update) <= 259200
+        ):  # Three days
+            try:
+                opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
+            except DivisionByZero:
+                opponent_score = 0
+
+            if opponent_score != 0:
+                fields.extend(
+                    (
+                        {
+                            "name": "Estimated Stat Score",
+                            "value": commas(round(opponent_score)),
+                            "inline": True,
+                        },
+                        {
+                            "name": "Stat Score Update",
+                            "value": f"<t:{int(time.time())}:R>",
+                            "inline": True,
+                        },
+                    )
+                )
+    else:
+        stat: typing.Optional[Stat]
+        try:
+            if user is not None and user.faction_id is not None:
+                stat = (
+                    Stat.select()
+                    .where(
+                        (Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
+                    )
+                    .order_by(Stat.time_added)
+                    .first()
+                )
+            else:
+                stat = (
+                    Stat.select()
+                    .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
+                    .order_by(Stat.time_added)
+                    .first()
+                )
+        except AttributeError as e:
+            logger.exception(e),
+            stat = None
+
+        if stat is not None:
+            fields.extend(
+                (
+                    {
+                        "name": "Estimated Stat Score",
+                        "value": commas(stat.battlescore),
+                        "inline": True,
+                    },
+                    {
+                        "name": "Stat Score Update",
+                        "value": f"<t:{int(timestamp(stat.time_added))}:R>",
+                        "inline": True,
+                    },
+                )
+            )
+
+    if attack["attacker_faction"] in (0, ""):
+        pass
+    elif attack["chain"] > 100:
+        fields.append(
+            {
+                "name": "Opponent Faction Chaining",
+                "value": f"True ({commas(attack['chain'])})",
+                "inline": False,
+            }
+        )
+    else:
+        fields.append(
+            {
+                "name": "Opponent Faction Chaining",
+                "value": f"False ({commas(attack['chain'])})",
+                "inline": False,
+            }
+        )
+
+    if (
+        opponent.personal_stats is not None
+        and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
+    ):  # One week
+        fields.append(
+            {
+                "name": "Personal Stats",
+                "value": inspect.cleandoc(
+                    f"""Xanax Used: {commas(opponent.personal_stats.xantaken)}
+                    SEs Used: {commas(opponent.personal_stats.statenhancersused)}
+                    E-Cans Used: {commas(opponent.personal_stats.energydrinkused)}
+                    Books Read: {commas(opponent.personal_stats.booksread)}
+
+                    ELO: {commas(opponent.personal_stats.elo)}
+                    Average Respect: {commas(opponent.personal_stats.respectforfaction / opponent.personal_stats.attackswon, stock_price=True)}
+                    """
+                ),
+            }
+        )
+
+    payload = {
+        "embeds": [
+            {
+                "title": title,
+                "description": f"{opponent.name} [{opponent.tid}] {attack['result'].lower()} {user.name} "
+                f"[{user.tid}] (-{attack['respect_loss']})",
+                "fields": fields,
+                "timestamp": datetime.datetime.utcnow().isoformat(),
+                "footer": {"text": torn_timestamp(attack["timestamp_ended"])},
+            }
+        ],
+        "components": [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Attack Log",
+                        "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                    },
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "RETAL!!",
+                        "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}",
+                    },
+                ],
+            },
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": f"{opponent.name}",
+                        "url": f"https://www.torn.com/profiles.php?XID={opponent.tid}",
+                    },
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": f"{attack['attacker_factionname']}",
+                        "url": f"https://www.torn.com/factions.php?step=profile&userID={opponent.tid}",
+                    },
+                ],
+            },
+        ],
+    }
+
+    for role in attack_config.retal_roles:
+        if "content" not in payload:
+            payload["content"] = ""
+
+        payload["content"] += f"<@&{role}>"
+
+    return payload
+
+
+def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerAttackConfig) -> bool:
+    if attack["attacker_faction"] == faction.tid:
+        return False
+    elif attack["chain"] not in (
+        100,
+        250,
+        500,
+        1_000,
+        2_500,
+        5_000,
+        10_000,
+        25_000,
+        50_000,
+        100_000,
+    ):
+        return False
+    elif attack["chain"] < attack_config.chain_bonus_length:
+        return False
+
+    return True
+
+
+@celery.shared_task(
+    name="tasks.faction.check_attacks",
+    routing_key="quick.check_attacks",
+    queue="quick",
+    time_limit=5,
+)
+def check_attacks(faction_data, last_attacks=None):
+    if len(faction_data.get("attacks", [])) == 0:
+        return
+
+    try:
+        # TODO: Limit selected fields
+        faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == faction_data["ID"]).get()
+    except (KeyError, DoesNotExist):
+        return
+
+    if faction.guild is None:
+        return
+    elif faction.tid not in faction.guild.factions:
+        return
+
+    try:
+        attack_config: ServerAttackConfig = (
+            ServerAttackConfig.select(
+                ServerAttackConfig.retal_roles,
+                ServerAttackConfig.retal_channel,
+                ServerAttackConfig.chain_bonus_channel,
+                ServerAttackConfig.chain_bonus_roles,
+                ServerAttackConfig.chain_alert_channel,
+                ServerAttackConfig.chain_alert_roles,
+            )
+            .where((ServerAttackConfig.server == faction.guild_id) & (ServerAttackConfig.faction == faction.tid))
+            .get()
+        )
+    except DoesNotExist:
+        ALERT_RETALS = False
+        ALERT_CHAIN_BONUS = False
+        ALERT_CHAIN_ALERT = False
+    else:
+        ALERT_RETALS = attack_config.retal_channel not in (None, 0)
+        ALERT_CHAIN_BONUS = attack_config.chain_bonus_channel not in (None, 0)
+        ALERT_CHAIN_ALERT = attack_config.chain_alert_channel not in (None, 0)
+
+    if last_attacks is None or last_attacks >= time.time():
+        last_attacks = timestamp(faction.last_attacks)
+
+    possible_retals = {}
+    latest_outgoing_attack: typing.Optional[typing.Tuple[int, int]] = None
+
+    for attack in faction_data["attacks"].values():
+        if attack["result"] in [
+            "Assist",
+            "Lost",
+            "Stalemate",
+            "Escape",
+            "Looted",
+            "Interrupted",
+            "Timeout",
+        ]:
+            continue
+        elif attack["defender_id"] in [
+            4,
+            10,
+            15,
+            17,
+            19,
+            20,
+            21,
+        ]:  # Checks if NPC fight (and you defeated NPC)
+            continue
+        elif attack["timestamp_ended"] <= last_attacks:
+            continue
+
+        if ALERT_RETALS and validate_attack_retaliation(attack, faction):
+            retal: Retaliation
+            for retal in (  # TODO: Limit select to necessary fields
+                Retaliation.select()
+                .where(
+                    (Retaliation.attacker == attack["defender_id"])
+                    & (Retaliation.defender.faction == attack["attacker_faction"])
+                )
+                .join(User, on=Retaliation.defender)
+                .join(Faction)
+            ):
+                discordpatch.delay(
+                    f"channels/{retal.channel_id}/messages/{retal.message_id}",
+                    {
+                        "embeds": [
+                            {
+                                "title": f"Retal Completed for {faction.name}",
+                                "description": (
+                                    f"{attack['attacker_name']} [{attack['attacker_id']} hospitalized {attack['defender_name']} [{attack['defender_id']}] (+{attack['respect_gain']})."
+                                ),
+                                "color": SKYNET_GOOD,
+                            }
+                        ],
+                        "components": [],
+                    },
+                ).forget()
+
+                retal.delete_instance()
+        elif ALERT_RETALS and validate_attack_available_retaliation(attack, faction):
+            try:
+                possible_retals[attack["code"]] = {
+                    "task": discordpost.delay(
+                        f"channels/{attack_config.retal_channel}/messages",
+                        payload=generate_retaliation_embed(attack.faction),
+                    ),
+                    **attack,
+                }
+            except Exception as e:
+                logger.exception(e)
+                pass
+
+        # Check for bonuses dropped upon this faction
+        if ALERT_CHAIN_BONUS and validate_attack_bonus(attack, faction):
+            if attack["attacker_id"] in (0, ""):
+                attacker_str = "an unknown attacker and faction"
+            else:
+                attacker_str = f"{attack['attacker_factionname']} [{attack['attacker_faction']}] (through {attack['attacker_name']} [{attack['attacker']}])"
+
+            payload = {
+                "embeds": [
+                    {
+                        "title": f"Bonus Dropped Upon {faction.name} [{faction.tid}]",
+                        "description": f"A {commas(attack['chain'])} bonus hit was dropped upon {faction.name} [{faction.tid}] by {attacker_str} causing a loss of {commas(attack['respect_loss'])} respect.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Attacking Faction",
+                                "url": f"https://www.torn.com/factions.php?step=profile&ID={attack['attacker_faction']}",
+                            },
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "Attack Log",
+                                "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                            },
+                        ],
+                    }
+                ],
+            }
+
+            if attack["attacker_id"] not in (0, ""):
+                payload["components"].append()
+
+            for role in attack_config.chain_bonus_roles:
+                if "content" not in payload:
+                    payload["content"] = ""
+
+                payload["content"] += f"<@&{role}>"
+
+            discordpost.delay(f"channels/{attack_config.chain_bonus_channel}/messages", payload=payload).forget()
+
+        if latest_outgoing_attack is None or latest_outgoing_attack < attack["timestamp_ended"]:
+            latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
+
+    if (
+        latest_outgoing_attack is not None
+        and ALERT_CHAIN_ALERT
+        and int(time.time()) - latest_outgoing_attack[0] <= 30
+        and latest_outgoing_attack[1] >= 100
+    ):
+        payload = {
+            "content": "Chain alert!! ",
+            "embeds": [
+                {
+                    "title": "Chain Timer Alert",
+                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below thirty seconds and will reach zero <t:{latest_outgoing_attack + 300}:R>.",
+                    "color": SKYNET_ERROR,
+                }
+            ],
+            "components": [],
+        }
+
+        for role in attack_config.chain_alert_roles:
+            if "content" not in payload:
+                payload["content"] = ""
+
+            payload["content"] += f"<@&{role}>"
+
+        discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
+
+    for retal in possible_retals.values():
+        retal["task"]: celery.result.AsyncResult
+        try:
+            message = retal["task"].get(disable_sync_subtasks=False)
+        except celery.exceptions.CeleryError as e:
+            logger.exception(e)
+            continue
+
+        Retaliation.insert(
+            attack_code=retal["code"],
+            attack_ended=datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
+            defender=retal["defender_id"],
+            attacker=retal["attacker_id"],
+            message_id=message["id"],
+            channel_id=message["channel_id"],
+        ).on_conflict_ignore().execute()
 
 
 @celery.shared_task(

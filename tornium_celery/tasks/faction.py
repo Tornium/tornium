@@ -1216,7 +1216,7 @@ def check_attacks(faction_data, last_attacks=None):
 
             discordpost.delay(f"channels/{attack_config.chain_bonus_channel}/messages", payload=payload).forget()
 
-        if latest_outgoing_attack is None or latest_outgoing_attack < attack["timestamp_ended"]:
+        if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
             latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
 
     if (

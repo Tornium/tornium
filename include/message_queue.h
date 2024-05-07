@@ -18,7 +18,7 @@ enum class message_type {
 struct message {
     std::string message_id;
     message_type message_type_;
-    std::string recipient;
+    std::optional<std::string> recipient;
     std::time_t timestamp;
     std::optional<std::string> event;
     std::optional<std::string> data;

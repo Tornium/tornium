@@ -71,7 +71,8 @@ void temp_worker_task(int worker_id, message_queue::queue& queue_,
 
         switch (message_.message_type_) {
             case message_queue::message_type::direct:
-                boost::asio::write(client_connections.at(message_.recipient), boost::asio::buffer(message_string), ec);
+                boost::asio::write(client_connections.at(message_.recipient.value()),
+                                   boost::asio::buffer(message_string), ec);
 
                 if (ec) {
                     std::cout << "Failed to write: " << ec.what() << std::endl;
@@ -79,7 +80,7 @@ void temp_worker_task(int worker_id, message_queue::queue& queue_,
                 }
                 break;
             case message_queue::message_type::user:
-                for (std::string client_id : user_client_map[std::stoi(message_.recipient)]) {
+                for (std::string client_id : user_client_map[std::stoi(message_.recipient.value())]) {
                     boost::asio::write(client_connections.at(client_id), boost::asio::buffer(message_string), ec);
 
                     if (ec) {

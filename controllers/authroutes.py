@@ -30,7 +30,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from peewee import DoesNotExist
+from peewee import DataError, DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
@@ -57,14 +57,18 @@ def _log_auth(
     login_key: typing.Optional[str] = None,
     details: typing.Optional[str] = None,
 ):
-    AuthLog.insert(
-        user=user,
-        timestamp=datetime.datetime.utcnow(),
-        ip=request.headers.get("CF-Connecting-IP") or request.remote_addr,
-        action=action.value,
-        login_key=login_key,
-        details=details,
-    ).execute()
+    try:
+        AuthLog.insert(
+            user=user,
+            timestamp=datetime.datetime.utcnow(),
+            ip=request.headers.get("CF-Connecting-IP") or request.remote_addr,
+            action=action.value,
+            login_key=login_key,
+            details=details,
+        ).execute()
+    except DataError:
+        # FIXME: Some IP addresses are larger than the data field
+        return
 
 
 @mod.route("/login", methods=["GET", "POST"])

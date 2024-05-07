@@ -15,7 +15,17 @@
 
 from flask import Blueprint
 
-from controllers.api.v1 import bot, faction, items, key, report, stat, stocks, user
+from controllers.api.v1 import (
+    bot,
+    faction,
+    gateway,
+    items,
+    key,
+    report,
+    stat,
+    stocks,
+    user,
+)
 
 mod = Blueprint("api_routes_v1", __name__)
 
@@ -24,6 +34,10 @@ mod = Blueprint("api_routes_v1", __name__)
 mod.add_url_rule("/api/v1/key", view_func=key.set_key, methods=["POST"])
 mod.add_url_rule("/api/v1/key/<guid>", view_func=key.toggle_key, methods=["PATCH"])
 mod.add_url_rule("/api/v1/key/<guid>", view_func=key.delete_key, methods=["DELETE"])
+
+# /api/v1/gateway
+mod.add_url_rule("/api/v1/gateway", view_func=gateway.create_gateway_client, methods=["POST"])
+mod.add_url_rule("/api/v1/gateway/<client_id>", view_func=gateway.get_gateway_client, methods=["GET"])
 
 # /api/v1/bot
 mod.add_url_rule(

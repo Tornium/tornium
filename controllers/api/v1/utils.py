@@ -115,6 +115,12 @@ API_EXCEPTIONS = {
         "http": 400,
         "message": "Server failed to locate a Torn faction AA API key.",
     },
+    "1300": {
+        "code": 1300,
+        "name": "UnknownGatewayClient",
+        "http": 400,
+        "message": "Server failed to locate the requested gateway client.",
+    },
     "4000": {
         "code": 4000,
         "name": "TooManyRequests",

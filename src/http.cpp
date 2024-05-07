@@ -1,13 +1,18 @@
 #include "http.h"
 
+#include <bits/types/time_t.h>
+
 #include <boost/beast.hpp>
+#include <boost/smart_ptr/make_shared_array.hpp>
+#include <ctime>
 #include <iostream>
 #include <optional>
+#include <pqxx/pqxx>
 
 template <class Body, class Allocator>
-std::optional<boost::beast::http::message_generator> http::handle_request(
+std::tuple<std::optional<boost::beast::http::message_generator>, std::optional<std::string>> http::handle_request(
     boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req,
-    boost::asio::ip::tcp::socket& socket_) {
+    boost::asio::ip::tcp::socket& socket_, pqxx::connection& connection_) {
     // Returns a bad request response
     auto const bad_request = [&req](boost::beast::string_view why) {
         boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::bad_request,
@@ -48,14 +53,38 @@ std::optional<boost::beast::http::message_generator> http::handle_request(
 
     // Make sure we can handle the method
     if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head) {
-        return bad_request("Unknown HTTP-method");
+        return {bad_request("Unknown HTTP-method"), std::nullopt};
     }
 
     // Request path must be absolute and not contain "..".
     if (req.target().empty() || req.target()[0] != '/' || req.target().find("..") != boost::beast::string_view::npos) {
-        return bad_request("Illegal request-target");
-    } else if (req.target() != "/") {
-        return bad_request("Illegal request-target");
+        return {bad_request("Illegal request-target"), std::nullopt};
+    } else if (req.target() == "/") {
+        return {bad_request("Client ID required"), std::nullopt};
+    }
+
+    std::string client_id = req.target().substr(1);
+
+    if (client_id.length() != 32) {
+        return {bad_request("Invalid client ID (length)"), std::nullopt};
+    }
+
+    pqxx::work transaction(connection_);
+    pqxx::row client_row;
+
+    try {
+        client_row = transaction.exec_params1(
+            "SELECT user_id, time_created, revoked_in FROM gatewayclient WHERE client_id = $1", client_id);
+    } catch (std::exception) {
+        return {bad_request("Invalid client ID"), std::nullopt};
+    }
+
+    std::tm time_created_tm;
+    strptime(client_row["time_created"].as<std::string>().c_str(), "%Y-%m-%d %H:%M:%S", &time_created_tm);
+    time_t time_created = mktime(&time_created_tm);
+
+    if (time_created + client_row["revoked_in"].as<int>() < std::time(nullptr)) {
+        return {bad_request("Client expired"), std::nullopt};
     }
 
     // Respond to GET request
@@ -72,5 +101,5 @@ std::optional<boost::beast::http::message_generator> http::handle_request(
     boost::beast::http::response_serializer<boost::beast::http::empty_body> sr{res};
     boost::beast::http::write_header(socket_, sr);
 
-    return std::nullopt;
+    return {std::nullopt, client_id};
 }

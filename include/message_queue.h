@@ -8,9 +8,17 @@
 #include <string>
 
 namespace message_queue {
+enum class message_type {
+    direct = 0,
+    user = 1,
+    group = 2,
+    broadcast = 3,
+};
+
 struct message {
     std::string message_id;
-    int recipient;
+    message_type message_type_;
+    std::string recipient;
     std::time_t timestamp;
     std::optional<std::string> event;
     std::optional<std::string> data;

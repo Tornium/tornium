@@ -44,8 +44,6 @@ void socket_watcher::socket_timer_callback(const boost::system::error_code& ec,
             // socket_ = iterator -> second
             boost::system::error_code write_ec;
 
-            std::cout << "Checking client " << iterator->first << "\n";
-
             // TCP doesn't have a method to detect if a client has closed a connection without writing to the socket if
             // the socket isn't watching for FIN So this is writing to the socket with a ping event to determine if the
             // client and server are still connected
@@ -57,17 +55,12 @@ void socket_watcher::socket_timer_callback(const boost::system::error_code& ec,
                 continue;
             }
 
-            std::cout << "Socket to client " << iterator->first << " has been closed by the client: " << write_ec.what()
-                      << "\n";
             iterator->second.close();
             clients_to_close.emplace_back(iterator->first);
         }
 
         std::for_each(clients_to_close.begin(), clients_to_close.end(),
-                      [&client_connections](const std::string client_uuid) {
-            std::cout << "Removing client connection for " << client_uuid << "\n";
-            client_connections->erase(client_uuid);
-        });
+                      [&client_connections](const std::string client_uuid) { client_connections->erase(client_uuid); });
     } else {
         std::cout << "Socket check timer failed: " << ec.what() << std::endl;
     }

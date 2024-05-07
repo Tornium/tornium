@@ -16,6 +16,7 @@ include(FetchContent)
 
 FetchContent_Declare(libpqxx GIT_REPOSITORY https://github.com/jtv/libpqxx.git GIT_TAG 2ffb711bc4e9b086bf0c549a9c22b19f61ab5476)
 FetchContent_MakeAvailable(libpqxx)
+set(SKIP_BUILD_TEST ON)
 
 target_link_libraries(sse-proxy PRIVATE pqxx ${Boost_LIBRARIES})
 

@@ -1,3 +1,6 @@
+#include <sys/resource.h>
+#include <unistd.h>
+
 #include <boost/asio.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -34,6 +37,7 @@
 #include <thread>
 #include <vector>
 
+#include "client.h"
 #include "http.cpp"
 #include "message_consumer.h"
 #include "message_queue.h"
@@ -44,31 +48,59 @@
 #endif
 
 void temp_worker_task(int worker_id, message_queue::queue& queue_,
-                      std::map<std::string, boost::asio::ip::tcp::socket>& client_connections) {
+                      std::map<std::string, boost::asio::ip::tcp::socket>& client_connections,
+                      std::map<int, std::vector<std::string>>& user_client_map) {
     std::cout << "Worker #" << worker_id << " started" << std::endl;
 
     for (;;) {
         const message_queue::message message_ = queue_.pop();
-        std::cout << "Processing message " << message_.message_id << " for " << message_.message_id << std::endl;
-
         boost::beast::error_code ec;
         std::string message_string;
 
         if (message_.event.has_value() and message_.data.has_value()) {
             message_string = "event: " + message_.event.value() + "\ndata: " + message_.data.value() + "\n\n";
         } else if (message_.event.has_value() and not message_.data.has_value()) {
+            message_string = "event: " + message_.event.value() + "\n\n";
         } else if (not message_.event.has_value() and message_.data.has_value()) {
+            std::cerr << "Message ID " << message_.message_id << " has an invalid message event\n";
+            continue;
         } else {
             std::cout << "Message ID " << message_.message_id << " has an invalid message body\n";
             continue;
         }
 
-        boost::asio::write(client_connections.at("05f867766ea446c0affe0af54713bcd7"),
-                           boost::asio::buffer(message_string), ec);
+        switch (message_.message_type_) {
+            case message_queue::message_type::direct:
+                boost::asio::write(client_connections.at(message_.recipient), boost::asio::buffer(message_string), ec);
 
-        if (ec) {
-            std::cout << "Failed to write: " << ec.what() << std::endl;
-            continue;
+                if (ec) {
+                    std::cout << "Failed to write: " << ec.what() << std::endl;
+                    continue;
+                }
+                break;
+            case message_queue::message_type::user:
+                for (std::string client_id : user_client_map[std::stoi(message_.recipient)]) {
+                    boost::asio::write(client_connections.at(client_id), boost::asio::buffer(message_string), ec);
+
+                    if (ec) {
+                        std::cout << "Failed to write: " << ec.what() << std::endl;
+                        continue;
+                    }
+                }
+                break;
+            case message_queue::message_type::group:
+                std::cerr << "This message type is not currently supported\n";
+                continue;
+            case message_queue::message_type::broadcast:
+                for (auto iterator = client_connections.begin(); iterator != client_connections.end(); iterator++) {
+                    boost::asio::write(client_connections.at(iterator->first), boost::asio::buffer(message_string), ec);
+
+                    if (ec) {
+                        std::cout << "Failed to write: " << ec.what() << std::endl;
+                        continue;
+                    }
+                }
+                break;
         }
     }
 }
@@ -76,6 +108,8 @@ void temp_worker_task(int worker_id, message_queue::queue& queue_,
 int main(int argc, char* argv[]) {
     int worker_count = 1;
     int max_workers = 1;
+
+    // Containers to store socket and client relatioships
     std::vector<std::thread> worker_threads;
     std::map<std::string, boost::asio::ip::tcp::socket> client_connections;
     std::map<int, std::vector<std::string>> user_client_map;
@@ -133,7 +167,8 @@ int main(int argc, char* argv[]) {
     message_queue::queue queue_;
 
     for (int i = 0; i < worker_count; i++) {
-        worker_threads.emplace_back(temp_worker_task, i, std::ref(queue_), std::ref(client_connections));
+        worker_threads.emplace_back(temp_worker_task, i, std::ref(queue_), std::ref(client_connections),
+                                    std::ref(user_client_map));
     }
 
     for (std::thread& thread : worker_threads) {
@@ -154,6 +189,17 @@ int main(int argc, char* argv[]) {
         boost::beast::error_code ec;
         boost::beast::flat_buffer buffer;
 
+        const long max_fd = sysconf(_SC_OPEN_MAX);
+
+        if (max_fd == -1) {
+            std::cerr << "Unable to determine max file desciptor limit\n";
+            continue;
+        } else if (client_connections.size() >= client_connections.max_size() or
+                   client_connections.size() >= sysconf(_SC_OPEN_MAX)) {
+            std::cerr << "Max connections reached\n";
+            continue;
+        }
+
         boost::beast::http::request<boost::beast::http::string_body> request_;
         boost::beast::http::read(socket_, buffer, request_, ec);
 
@@ -165,11 +211,11 @@ int main(int argc, char* argv[]) {
         }
 
         // Handle request
-        auto [msg, client_id] = http::handle_request(std::move(request_), socket_, postgres_connection);
+        client::client client_ = http::handle_request(std::move(request_), socket_, postgres_connection);
 
         // Send the response
-        if (msg.has_value()) {
-            boost::beast::write(socket_, msg.value(), ec);
+        if (client_.msg.has_value()) {
+            boost::beast::write(socket_, client_.msg.value(), ec);
             continue;
         }
 
@@ -178,32 +224,29 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // It appears that adding the \n\n to the end of the data string results in corrupted data
-        // At least for Curl
-        boost::asio::write(socket_, boost::asio::buffer((std::string) "data: ping" + "\n\n"), ec);
-        if (ec) {
-            std::cout << "Failed to write: " << ec.what() << std::endl;
-            continue;
-        }
-
-        if (client_connections.contains(client_id.value())) {
+        if (client_connections.contains(client_.client_id.value())) {
             // Close the pre-existing connection if one for the client already exists
             boost::asio::write(
-                client_connections.at(client_id.value()),
+                client_connections.at(client_.client_id.value()),
                 boost::asio::buffer((std::string) "event: close\ndata: new socket for same client" + "\n\n"), ec);
-            std::cout << "Closing pre-existing client socket for client " << client_id.value() << std::endl;
+            std::cout << "Closing pre-existing client socket for client " << client_.client_id.value() << std::endl;
 
             if (ec) {
                 std::cout << "Failed to write (continue): " << ec.what() << std::endl;
             }
 
-            client_connections.at(client_id.value()).close();
-            client_connections.erase(client_id.value());
+            client_connections.at(client_.client_id.value()).close();
+            client_connections.erase(client_.client_id.value());
+
+            // TODO: Make sure this works properly
+            user_client_map[client_.user_id.value()].erase(std::remove(user_client_map[client_.user_id.value()].begin(),
+                                                                       user_client_map[client_.user_id.value()].end(),
+                                                                       client_.client_id.value()));
         }
 
-        client_connections.emplace(client_id.value(), std::move(socket_));
-        boost::asio::write(client_connections.at(client_id.value()),
-                           boost::asio::buffer((std::string) "data: pong" + "\n\n"), ec);
+        user_client_map[client_.user_id.value()].emplace_back(client_.client_id.value());
+
+        client_connections.emplace(client_.client_id.value(), std::move(socket_));
     }
 
     return 0;

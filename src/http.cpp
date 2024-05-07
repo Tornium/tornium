@@ -4,13 +4,16 @@
 
 #include <boost/beast.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <ctime>
-#include <iostream>
 #include <optional>
 #include <pqxx/pqxx>
 
+#include "client.h"
+
 template <class Body, class Allocator>
-std::tuple<std::optional<boost::beast::http::message_generator>, std::optional<std::string>> http::handle_request(
+client::client http::handle_request(
     boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req,
     boost::asio::ip::tcp::socket& socket_, pqxx::connection& connection_) {
     // Returns a bad request response
@@ -49,24 +52,22 @@ std::tuple<std::optional<boost::beast::http::message_generator>, std::optional<s
         return res;
     };
 
-    std::cout << req.method_string() << " " << req.target() << std::endl;
-
     // Make sure we can handle the method
     if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head) {
-        return {bad_request("Unknown HTTP-method"), std::nullopt};
+        return {bad_request("Unknown HTTP-method"), std::nullopt, std::nullopt};
     }
 
     // Request path must be absolute and not contain "..".
     if (req.target().empty() || req.target()[0] != '/' || req.target().find("..") != boost::beast::string_view::npos) {
-        return {bad_request("Illegal request-target"), std::nullopt};
+        return {bad_request("Illegal request-target"), std::nullopt, std::nullopt};
     } else if (req.target() == "/") {
-        return {bad_request("Client ID required"), std::nullopt};
+        return {bad_request("Client ID required"), std::nullopt, std::nullopt};
     }
 
     std::string client_id = req.target().substr(1);
 
     if (client_id.length() != 32) {
-        return {bad_request("Invalid client ID (length)"), std::nullopt};
+        return {bad_request("Invalid client ID (length)"), std::nullopt, std::nullopt};
     }
 
     pqxx::work transaction(connection_);
@@ -84,7 +85,7 @@ std::tuple<std::optional<boost::beast::http::message_generator>, std::optional<s
     time_t time_created = mktime(&time_created_tm);
 
     if (time_created + client_row["revoked_in"].as<int>() < std::time(nullptr)) {
-        return {bad_request("Client expired"), std::nullopt};
+        return {bad_request("Client expired"), std::nullopt, std::nullopt};
     }
 
     // Respond to GET request
@@ -101,5 +102,5 @@ std::tuple<std::optional<boost::beast::http::message_generator>, std::optional<s
     boost::beast::http::response_serializer<boost::beast::http::empty_body> sr{res};
     boost::beast::http::write_header(socket_, sr);
 
-    return {std::nullopt, client_id};
+    return {std::nullopt, client_id, client_row["user_id"].as<int>()};
 }

@@ -1,7 +1,6 @@
 #include "message_consumer.h"
 
 #include <chrono>
-#include <iostream>
 #include <pqxx/pqxx>
 #include <thread>
 
@@ -16,14 +15,15 @@ void message_consumer::start_worker(message_queue::queue& queue) {
         pqxx::work transaction(connection_);
         int return_count = 0;
 
-        for (auto [message_id, recipient, timestamp_str, event_str, data_string] :
-             transaction.stream<std::string, int, std::string, std::optional<std::string>, std::optional<std::string>>(
-                 "DELETE FROM gatewaymessage USING (SELECT message_id, recipient_id, timestamp, event, data FROM "
+        for (auto [message_id, message_type_int, recipient, timestamp_str, event_str, data_string] :
+             transaction.stream<std::string, int, std::string, std::string, std::optional<std::string>,
+                                std::optional<std::string>>(
+                 "DELETE FROM gatewaymessage USING (SELECT message_id, message_type, recipient, timestamp, event, data "
+                 "FROM "
                  "gatewaymessage LIMIT " +
                  std::to_string(MESSAGE_LIMIT) +
                  " FOR UPDATE SKIP LOCKED) gm WHERE gm.message_id = gatewaymessage.message_id "
                  "RETURNING gatewaymessage.*")) {
-            std::cout << "Pending message " << message_id << " for recipient " << recipient << std::endl;
             return_count++;
 
             if (!event_str.has_value() and !data_string.has_value()) {
@@ -35,8 +35,27 @@ void message_consumer::start_worker(message_queue::queue& queue) {
             strptime(timestamp_str.c_str(), "%Y-%m-%d %H:%M:%S", &timestamp_tm);
             time_t timestamp = mktime(&timestamp_tm);
 
+            message_queue::message_type message_type_;
+            switch (message_type_int) {
+                case 0:
+                    message_type_ = message_queue::message_type::direct;
+                    break;
+                case 1:
+                    message_type_ = message_queue::message_type::user;
+                    break;
+                case 2:
+                    // Not currently supported
+                    return;
+
+                    // message_type_ = message_queue::message_type::group;
+                    // break;
+                case 3:
+                    message_type_ = message_queue::message_type::broadcast;
+                    break;
+            }
+
             const message_queue::message message_ = {
-                message_id, recipient, timestamp, event_str, data_string,
+                message_id, message_type_, recipient, timestamp, event_str, data_string,
             };
 
             queue.push(message_);

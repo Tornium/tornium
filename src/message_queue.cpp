@@ -1,7 +1,6 @@
 #include "message_queue.h"
 
 #include <mutex>
-#include <optional>
 
 void message_queue::queue::push(const message_queue::message& message_) {
     std::lock_guard<std::mutex> lock(mutex_);

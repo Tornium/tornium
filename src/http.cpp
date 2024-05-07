@@ -22,6 +22,8 @@ client::client http::handle_request(
                                                                           req.version()};
         res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(boost::beast::http::field::content_type, "text/html");
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set("Access-Control-Allow-Credentials", "true");
         res.keep_alive(req.keep_alive());
         res.body() = std::string(why);
         res.prepare_payload();
@@ -34,6 +36,8 @@ client::client http::handle_request(
                                                                           req.version()};
         res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(boost::beast::http::field::content_type, "text/html");
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set("Access-Control-Allow-Credentials", "true");
         res.keep_alive(req.keep_alive());
         res.body() = "The resource '" + std::string(target) + "' was not found.";
         res.prepare_payload();
@@ -46,6 +50,8 @@ client::client http::handle_request(
             boost::beast::http::status::internal_server_error, req.version()};
         res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(boost::beast::http::field::content_type, "text/html");
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set("Access-Control-Allow-Credentials", "true");
         res.keep_alive(req.keep_alive());
         res.body() = "An error occurred: '" + std::string(what) + "'";
         res.prepare_payload();

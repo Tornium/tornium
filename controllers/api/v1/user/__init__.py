@@ -117,7 +117,7 @@ def estimate_specific_user(tid: int, *args, **kwargs):
     redis_client = rds()
 
     estimate_ratelimit_current = redis_client.incr(estimate_ratelimit_key)
-    if estimate_ratelimit_current == 0:
+    if estimate_ratelimit_current == 1:
         # Estimate ratelimit key just created
         redis_client.expireat(estimate_ratelimit_key, int(time.time()) // 60 * 60 + 60, nx=True)
     elif estimate_ratelimit_current > 250:

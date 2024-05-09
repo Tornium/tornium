@@ -257,54 +257,55 @@ $(document).ready(function () {
                     });
                 });
             });
+        })
+        .then(() => {
+            $(".oc-ready-channel").on("change", function () {
+                tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/channel`, {
+                    body: { channel: this.options[this.selectedIndex].value },
+                    errorTitle: "OC Ready Channel Set Failed",
+                }).then(() => {});
+            });
+
+            $(".oc-ready-roles").on("change", function () {
+                var selectedOptions = $(this).find(":selected");
+                var selectedRoles = [];
+
+                $.each(selectedOptions, function (index, item) {
+                    selectedRoles.push(item.getAttribute("value"));
+                });
+
+                tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`, {
+                    body: { roles: selectedRoles },
+                    errorTitle: "OC Ready Roles Set Failed",
+                }).then(() => {});
+            });
+
+            $(".oc-delay-channel").on("change", function () {
+                tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/channel`, {
+                    body: { channel: this.options[this.selectedIndex].value },
+                    errorTitle: "OC Delay Channel Set Failed",
+                }).then(() => {});
+            });
+
+            $(".oc-delay-roles").on("change", function () {
+                var selectedOptions = $(this).find(":selected");
+                var selectedRoles = [];
+
+                $.each(selectedOptions, function (index, item) {
+                    selectedRoles.push(item.getAttribute("value"));
+                });
+
+                tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`, {
+                    body: { roles: selectedRoles },
+                    errorTitle: "OC Delay Roles Set Failed",
+                }).then(() => {});
+            });
+
+            $(".oc-initiated-channel").on("change", function () {
+                tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/initiated/channel`, {
+                    body: { channel: this.options[this.selectedIndex].value },
+                    errorTitle: "OC Initiated Channel Set Failed",
+                }).then(() => {});
+            });
         });
-
-    $(".oc-ready-channel").on("change", function () {
-        tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/channel`, {
-            body: { channel: this.options[this.selectedIndex].value },
-            errorTitle: "OC Ready Channel Set Failed",
-        }).then(() => {});
-    });
-
-    $(".oc-ready-roles").on("change", function () {
-        var selectedOptions = $(this).find(":selected");
-        var selectedRoles = [];
-
-        $.each(selectedOptions, function (index, item) {
-            selectedRoles.push(item.getAttribute("value"));
-        });
-
-        tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/ready/roles`, {
-            body: { roles: selectedRoles },
-            errorTitle: "OC Ready Roles Set Failed",
-        }).then(() => {});
-    });
-
-    $(".oc-delay-channel").on("change", function () {
-        tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/channel`, {
-            body: { channel: this.options[this.selectedIndex].value },
-            errorTitle: "OC Delay Channel Set Failed",
-        }).then(() => {});
-    });
-
-    $(".oc-delay-roles").on("change", function () {
-        var selectedOptions = $(this).find(":selected");
-        var selectedRoles = [];
-
-        $.each(selectedOptions, function (index, item) {
-            selectedRoles.push(item.getAttribute("value"));
-        });
-
-        tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/delay/roles`, {
-            body: { roles: selectedRoles },
-            errorTitle: "OC Delay Roles Set Failed",
-        }).then(() => {});
-    });
-
-    $(".oc-initiated-channel").on("change", function () {
-        tfetch("POST", `bot/${guildid}/faction/${this.getAttribute("data-factionid")}/oc/initiated/channel`, {
-            body: { channel: this.options[this.selectedIndex].value },
-            errorTitle: "OC Initiated Channel Set Failed",
-        }).then(() => {});
-    });
 });

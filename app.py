@@ -233,9 +233,8 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
-    flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
-
     if current_user.is_authenticated:
+        flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
         flask.session.setdefault("logout_token", secrets.token_urlsafe(nbytes=64))
 
     if globals().get("ddtrace:loaded") is None:

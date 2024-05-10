@@ -74,6 +74,8 @@ def _log_auth(
 @mod.route("/login", methods=["GET", "POST"])
 def login(*args, **kwargs):
     if request.method == "GET":
+        session["oauth_state"] = secrets.token_urlsafe()
+
         return render_template("login.html")
 
     session_oauth_state = session.pop("oauth_state", None)

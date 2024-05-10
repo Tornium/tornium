@@ -35,8 +35,6 @@
                             <b>NOTE:</b> Tornium logs all authentication attempts including IP addresses for security reasons.
                         </p>
 
-                        {{ session }}
-
                         <form method="POST" action="/login?state={{ session["oauth_state"] }}">
                             <div class="form-floating">
                                 <div class="input-group">

@@ -450,7 +450,7 @@ def discord_login():
         "client_secret": config.bot_client_secret,
         "grant_type": "authorization_code",
         "code": d_code,
-        "redirect_uri": "http://127.0.0.1:5000/login/discord",
+        "redirect_uri": "https://tornium.com/login/discord",
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 

@@ -542,11 +542,13 @@ def fetch_attacks_runner():
         elif len(faction.aa_keys) == 0:
             continue
         elif faction.last_attacks is None or timestamp(faction.last_attacks) == 0:
+            # TODO: Convert to an atomic update
             faction.last_attacks = datetime.datetime.utcnow()
             faction.save()
             continue
         elif time.time() - timestamp(faction.last_attacks) > 86401:  # One day
             # Prevents old data from being added (especially for retals)
+            # TODO: Convert to an atomic update
             faction.last_attacks = datetime.datetime.utcnow()
             faction.save()
             continue
@@ -556,7 +558,6 @@ def fetch_attacks_runner():
         tornget.signature(
             kwargs={
                 "endpoint": "faction/?selections=basic,attacks",
-                "fromts": last_attacks + 1,  # timestamp is inclusive
                 "key": random.choice(faction.aa_keys),
             },
             queue="api",
@@ -612,7 +613,7 @@ def fetch_attacks_runner():
     queue="quick",
     time_limit=5,
 )
-def stat_db_attacks(faction_data, last_attacks=None):
+def stat_db_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
 
@@ -621,18 +622,15 @@ def stat_db_attacks(faction_data, last_attacks=None):
     except (KeyError, DoesNotExist):
         return
 
-    if not faction.stats_db_enabled:
-        return
-
-    if last_attacks is None or last_attacks >= int(time.time()):
-        last_attacks = faction.last_attacks
-
     Faction.update(
         last_attacks=datetime.datetime.fromtimestamp(
             list(faction_data["attacks"].values())[-1]["timestamp_ended"],
             tz=datetime.timezone.utc,
         )
     ).where(Faction.tid == faction_data["ID"]).execute()
+
+    if not faction.stats_db_enabled:
+        return
 
     attack: dict
     for attack in faction_data["attacks"].values():
@@ -1063,7 +1061,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
     queue="quick",
     time_limit=5,
 )
-def check_attacks(faction_data, last_attacks=None):
+def check_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
 
@@ -1100,9 +1098,6 @@ def check_attacks(faction_data, last_attacks=None):
         ALERT_CHAIN_BONUS = attack_config.chain_bonus_channel not in (None, 0)
         ALERT_CHAIN_ALERT = attack_config.chain_alert_channel not in (None, 0)
 
-    if last_attacks is None or last_attacks >= time.time():
-        last_attacks = timestamp(faction.last_attacks)
-
     possible_retals = {}
     latest_outgoing_attack: typing.Optional[typing.Tuple[int, int]] = None
 
@@ -1128,6 +1123,9 @@ def check_attacks(faction_data, last_attacks=None):
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
         elif attack["timestamp_ended"] <= last_attacks:
+            if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
+                latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
+
             continue
 
         if ALERT_RETALS and validate_attack_retaliation(attack, faction):

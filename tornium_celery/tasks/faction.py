@@ -1049,6 +1049,8 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
         100_000,
     ):
         return False
+    elif attack.chain_bonus_length is None:
+        return False
     elif attack["chain"] < attack_config.chain_bonus_length:
         return False
 
@@ -1230,7 +1232,7 @@ def check_attacks(faction_data, last_attacks=None):
             "embeds": [
                 {
                     "title": "Chain Timer Alert",
-                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below thirty seconds and will reach zero <t:{latest_outgoing_attack + 300}:R>.",
+                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below thirty seconds and will reach zero <t:{latest_outgoing_attack[0] + 300}:R>.",
                     "color": SKYNET_ERROR,
                 }
             ],

@@ -1224,7 +1224,8 @@ def check_attacks(faction_data, last_attacks=None):
     if (
         latest_outgoing_attack is not None
         and ALERT_CHAIN_ALERT
-        and int(time.time()) - latest_outgoing_attack[0] <= 30
+        and int(time.time()) - latest_outgoing_attack[0] >= 270
+        and int(time.time()) - latest_outgoing_attack[0] < 300
         and latest_outgoing_attack[1] >= 100
     ):
         payload = {

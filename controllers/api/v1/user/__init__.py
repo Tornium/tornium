@@ -113,15 +113,6 @@ def get_specific_user(tid: int, *args, **kwargs):
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    estimate_ratelimit_key = f"tornium:estimate:ratelimit:{kwargs['user'].tid}"
-    redis_client = rds()
-
-    estimate_ratelimit_current = redis_client.incr(estimate_ratelimit_key)
-    if estimate_ratelimit_current == 1:
-        # Estimate ratelimit key just created
-        redis_client.expireat(estimate_ratelimit_key, int(time.time()) // 60 * 60 + 60, nx=True)
-    elif estimate_ratelimit_current > 250:
-        return make_exception_response("4293", key)
 
     try:
         estimated_bs, expiration_ts = estimate_user(

@@ -659,7 +659,7 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             3,
         ):  # 3x FF can be greater than the defender battlescore indicated
             continue
-        elif attack["timestamp_ended"] <= last_attacks:
+        elif attack["timestamp_ended"] <= last_attacks + 1:
             continue
 
         # User: faction member
@@ -1122,7 +1122,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
             21,
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
-        elif attack["timestamp_ended"] <= last_attacks:
+        elif attack["timestamp_ended"] <= last_attacks + 1:
             if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
                 latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
 

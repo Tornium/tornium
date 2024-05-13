@@ -404,6 +404,11 @@ def topt_verification():
 def discord_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
 
+    return (
+        "Discord-based login for Tornium is currently disabled due a security vulnerability originating from Torn regarding how Torn and Discord accounts are linked. For more information, see https://github.com/dssecret/torn-csrf-cvd. Please sign in with a Torn API key.",
+        503,
+    )
+
     session_oauth_state = session.pop("oauth_state", None)
 
     if request.args.get("error") is not None:
@@ -579,6 +584,10 @@ def discord_login():
 
 @mod.route("/login/discord/callback", methods=["POST"])
 def discord_login_callback():
+    return (
+        "Discord-based login for Tornium is currently disabled due a security vulnerability originating from Torn regarding how Torn and Discord accounts are linked. For more information, see https://github.com/dssecret/torn-csrf-cvd. Please sign in with a Torn API key.",
+        503,
+    )
     data = json.loads(request.get_data().decode("utf-8"))
 
     return data

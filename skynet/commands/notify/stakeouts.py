@@ -458,7 +458,7 @@ def stakeouts(interaction, *args, **kwargs):
                             },
                             {
                                 "name": "Target Channel",
-                                "value": f"<#{channel}>" if private else "Direct Message",
+                                "value": "Direct Message" if private else f"<#{channel}",
                                 "inline": True,
                             },
                         ],

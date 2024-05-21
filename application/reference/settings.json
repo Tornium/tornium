@@ -1,0 +1,11 @@
+{
+    "bot_token": "Lorem ipsum dolor sit amet",
+    "bot_application_id": "Lorem ipsum dolor sit amet",
+    "bot_application_public": "Lorem ipsum dolor sit amet",
+    "bot_client_secret": "Lorem ipsum dolor sit amet",
+    "flask_secret": "Lorem ipsum dolor sit amet",
+    "flask_domain": "tornium.com",
+    "flask_admin_passphrase": "sha-512 of password",
+    "db_dsn": "postgres://user:pass@ip:port/DB",
+    "redis_dsn": "redis://ip:port"
+}

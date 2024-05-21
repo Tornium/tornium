@@ -1,0 +1,27 @@
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+}
+
+body {
+    font-family: "JetBrains Mono", serif;
+    height: 100vh;
+    overflow: auto;
+}
+
+html {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.vertical-navbar {
+    min-height: 100vh;
+}
+
+html[data-bs-theme="custom-dark"] #tornium-icon {
+    filter: invert(100%);
+}
+
+html[data-bs-theme="neon-dark"] #tornium-icon {
+    filter: invert(100%);
+}

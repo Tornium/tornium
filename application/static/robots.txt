@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /index
+Allow: /faction
+Allow: /bot
+Allow: /stats
+Allow: /stats/db
+Disallow: *

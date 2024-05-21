@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Armory Tracking
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guild_id }}">Server Configuration</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/bot/dashboard/{{ guild_id }}/armory">Armory Tracker Configuration</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="px-3 py-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Armory Tracker Configuration</h5>
+            <p class="card-text">
+                Basic configurations for the armory stock tracker.
+            </p>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <div class="card">
+                        <div class="card-header">
+                            Enable or disable the armory tracker
+                        </div>
+                        <div class="card-body">
+                            <button type="button" class="btn btn-outline armory-toggle" id="tracker-config-enable" disabled>
+                                Enable
+                            </button>
+                            <button type="button" class="btn btn-outline armory-toggle" id="tracker-config-disable" disabled>
+                                Disable
+                            </button>
+
+                            <div class="form-text">
+                                <b>NOTE:</b> Does NOT delete settings upon disabling the tracker.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="armory-faction-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/discord.js" data-guildid="{{ guild_id }}"></script>
+<script src="/static/global/items.js"></script>
+<script src="/static/bot/armory.js"></script>
+{% endblock %}

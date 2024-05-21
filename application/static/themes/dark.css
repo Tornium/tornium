@@ -1,0 +1,203 @@
+[data-bs-theme=custom-dark] .pagination {
+  padding-top: 0.5rem !important;
+}
+[data-bs-theme=custom-dark] a {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:visited {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:hover {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] a:active {
+  color: rgb(229, 229, 229);
+  text-decoration: none;
+}
+[data-bs-theme=custom-dark] .breadcrumb-item::before {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .card {
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .card .card-header {
+  border-color: rgb(229, 229, 229);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .form-control {
+  height: 38px;
+}
+[data-bs-theme=custom-dark] .form-control .ts-control {
+  max-height: 100%;
+}
+@media (max-height: 992px) {
+  [data-bs-theme=custom-dark] .secondary {
+    height: fit-content;
+  }
+}
+@media (min-height: 992px) {
+  [data-bs-theme=custom-dark] #verticalNavContainer {
+    border-right-color: rgb(229, 229, 229);
+    border-right-style: solid;
+    border-right-width: 1px;
+  }
+}
+[data-bs-theme=custom-dark] .primary {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .card {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .card .card-text {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .card .card-subtitle {
+  color: rgb(175, 175, 175) !important;
+}
+[data-bs-theme=custom-dark] .primary .no-results {
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .primary .list-group-item {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-control {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-text {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary p {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .primary li .paginate-button {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary thead th {
+  color: rgb(229, 229, 229);
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .primary tbody th,
+[data-bs-theme=custom-dark] .primary tbody td {
+  color: rgb(229, 229, 229);
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .primary tbody th a,
+[data-bs-theme=custom-dark] .primary tbody td a {
+  color: inherit;
+}
+[data-bs-theme=custom-dark] .primary i [class^=fa-] {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .btn-outline {
+  color: rgb(229, 229, 229);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary input {
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary input::placeholder {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary select {
+  color: rgb(229, 229, 229);
+  background-color: rgb(35, 35, 35);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .form-text {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .form-floating label {
+  color: rgb(175, 175, 175);
+}
+[data-bs-theme=custom-dark] .primary .form-floating label:after {
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .primary .dataTables_wrapper {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .ts-control {
+  background-color: rgb(35, 35, 35) !important;
+  color: rgb(229, 229, 229);
+  border-radius: 0.375rem;
+  min-width: 18rem;
+}
+[data-bs-theme=custom-dark] .primary .ts-control .item {
+  background-color: inherit;
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .ts-control .item .remove {
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .primary .ts-control input {
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .ts-dropdown {
+  background-color: rgb(35, 35, 35);
+  border: 1px solid rgb(229, 229, 229);
+  border-radius: 0.25rem;
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .ts-dropdown .active {
+  background-color: rgb(25, 25, 25);
+  color: white;
+}
+[data-bs-theme=custom-dark] .primary .ts-dropdown .optgroup-header {
+  background-color: rgb(25, 25, 25);
+  color: white;
+  border-bottom: rgb(229, 229, 229) 1px solid;
+  border-top: rgb(229, 229, 229) 1px solid;
+}
+[data-bs-theme=custom-dark] .primary .accordion-button {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .primary .accordion-button:after {
+  -webkit-filter: grayscale(1) invert(1);
+  filter: grayscale(1) invert(1);
+}
+[data-bs-theme=custom-dark] .dropdown-menu {
+  background-color: rgb(35, 35, 35);
+}
+[data-bs-theme=custom-dark] .dropdown-toggle {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .secondary {
+  background-color: rgb(25, 25, 25);
+  height: inherit;
+  color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .secondary a {
+  color: rgb(229, 229, 229);
+  background-color: rgb(25, 25, 25);
+}
+[data-bs-theme=custom-dark] .modal-content {
+  background-color: rgb(35, 35, 35);
+  color: rgb(229, 229, 229);
+  border-color: rgb(229, 229, 229);
+}
+[data-bs-theme=custom-dark] .modal-content tr th {
+  color: rgb(229, 229, 229);
+  background-color: inherit;
+}
+[data-bs-theme=custom-dark] .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28229, 229, 229, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+[data-bs-theme=custom-dark] .navbar-toggler {
+  border-color: rgb(229, 229, 229);
+}
+
+/*# sourceMappingURL=dark.css.map */

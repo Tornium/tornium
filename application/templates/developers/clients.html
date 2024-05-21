@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - OAuth Clients
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/developers">Developers</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/developers/clients">OAuth Clients</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/developers/clients">
+                <i class="col-1 col-sm-2 fa-solid fa-file-invoice"></i> <span class="col">OAuth Clients</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title">OAuth Clients</h5>
+        <p class="card-text">
+            Lorem ipsum dolor sit amet.
+        </p>
+
+        <div class="row">
+            {% for client in clients %}
+            <div class="col-sm-12 col-md-6 col-xl-2">
+                <div class="card m-1 px-1 align-items-center">
+                    <div class="card-header border-bottom-0">
+                        {{ client.client_name }}
+                    </div>
+
+                    <img width="128" height="128" src="" class="rounded placeholder img-thumbnail" alt="placeholder">
+
+                    <a href="/developers/clients/{{ client.client_id }}">
+                        <button type="button" class="btn btn-outline my-2">Edit Client</button>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if clients|length == 0 %}
+            <p class="card-text">
+                No clients found...
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="card m-3 col-sm-12 col-xl-6">
+                <div class="card-header">Create New Client</div>
+                <div class="card-body row">
+                    <p class="card-text">
+                        Create a new OAuth client here. Lorem ipsum dolor sit amet.
+                    </p>
+
+                    <form class="form-floating my-1" method="POST">
+                        <div class="mb-2">
+                            <label for="client-name-input">Client Name</label>
+                            <input class="form-control" id="client-name-input" name="client-name">
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="client-grant-select">OAuth Grant Type</label>
+                            <select class="form-select" id="client-grant-select" name="client-grant">
+                                <option value="authorization_code">Code Authorization Grant<option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="mt-2 btn btn-outline-primary">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

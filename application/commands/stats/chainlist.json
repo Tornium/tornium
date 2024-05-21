@@ -1,0 +1,63 @@
+{
+    "name": "chainlist",
+    "type": 1,
+    "description": "Generates a chain list for a certain FF for the user.",
+    "options": [
+        {
+            "type": 4,
+            "name": "length",
+            "description": "Number of targets on the chain list",
+            "min_value": 1,
+            "max_value": 24,
+            "required": false
+        },
+        {
+            "type": 4,
+            "name": "difficulty",
+            "description": "The difficulty of targets provided",
+            "choices": [
+                {
+                    "name": "Very Easy (1.25 - 1.75 FF)",
+                    "value": 0
+                },
+                {
+                    "name": "Easy (1.75 - 2 FF)",
+                    "value": 1
+                },
+                {
+                    "name": "Medium (2 - 2.25 FF)",
+                    "value": 2
+                },
+                {
+                    "name": "Hard (2.25 - 2.5 FF)",
+                    "value": 3
+                },
+                {
+                    "name": "Very Hard (2.5 - 3 FF)",
+                    "value": 4
+                }
+            ],
+            "required": false
+        },
+        {
+            "type": 3,
+            "name": "sort",
+            "description": "The sort order of the targets",
+            "choices": [
+                {
+                    "name": "Recently Updated",
+                    "value": "timestamp"
+                },
+                {
+                    "name": "Highest Respect",
+                    "value": "respect"
+                },
+                {
+                    "name": "Random",
+                    "value": "random"
+                }
+            ],
+            "required": false
+        }
+    ]
+}

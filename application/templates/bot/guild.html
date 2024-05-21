@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Bot Dashboard
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/bot/dashboard/{{ guildid }}">Server Configuration</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="pb-3 px-3">
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Factions</h5>
+            <p class="card-text">
+                The factions located in the particular Discord guild.
+                Add the faction to the server to indicate the server administration accepts the faction in the server; however, for any features to be run by the faction in the server, the server ID will need to be added in the <a href="/faction/bot">faction bot dashboard</a>.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-xl-4">
+                <div class="mt-1 mb-3 form-floating input-group">
+                    <input class="form-control" id="faction-id-input" name="faction-id-input" inputmode="numeric">
+                    <label for="faction-id-input">Faction ID</label>
+                    <button type="button" id="faction-id-submit" class="btn btn-outline-success">Add</button>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-8 col-xl-4">
+                <ul class="list-group" id="faction-list">
+                    {% for faction in factions %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <p class="px-1 my-2">
+                            {{ faction.name }} [{{ faction.tid }}]
+
+                            {% if server.sid | int == faction.guild_id | int %}
+                            <i class="fa-regular fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
+                            {% else %}
+                            <i class="fa-regular fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
+                            {% endif %}
+                        </p>
+                        <div class="px-1">
+                            <button type="button" class="btn btn-outline-danger remove-faction" data-factiontid="{{ faction.tid }}">Remove</button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Assist Requests</h5>
+            <p class="card-text">
+                The attack assist requests that are sent to all servers.
+                The assists channel is the Discord channel in which assist requests will be sent to and from.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-xl-4 mb-3">
+                <div class="form-floating">
+                    <select class="discord-channel-selector" id="assist-channel" aria-label="Assist Channel" data-live-search="true">
+                        <option value="0">Disabled</option>
+                    </select>
+                </div>
+            </div>
+
+            <p class="card-text my-3">
+                Set where the assist requests are accepted from by whitelisting factions.
+            </p>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+                    <div class="card mb-3">
+                        <div class="card-header">Factions:</div>
+                        <ul class="list-group list-group-flush">
+                            {% for faction in assist_factions %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <p class="px-1 my-2">
+                                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}">{{ faction.name }} [{{ faction.tid }}]</a>
+                                </p>
+
+                                <div class="px-1">
+                                    <a href="/bot/assists/{{ guildid }}/update?action=faction&value={{ faction.tid }}" style="color: inherit">
+                                        <button type="submit" class="btn btn-outline-danger remove-assist" id="remove-assist-{{ faction.tid }}">
+                                            Remove
+                                        </button>
+                                    </a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="card-footer">
+                            <div class="my-3 form-floating input-group">
+                                <input class="form-control" id="assist-faction-id" name="assist-faction-id" inputmode="numeric">
+                                <label for="assist-faction-id">Faction ID</label>
+                                <button type="button" id="assist-faction-submit" class="btn btn-outline-success">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-8 col-xl-4 mt-3">
+                    <div class="card mb-3">
+                        <div class="card-header">Roles:</div>
+                        <ul class="list-group-item list-group-flush">
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">Smoker Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-smoker-roles" aria-label="Smoker Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">Tear Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-tear-roles" aria-label="Tear Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">500M+ Heavy Role (General Heavy Role)</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l0-roles" aria-label="500M+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">1B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l1-roles" aria-label="1B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">2B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l2-roles" aria-label="2B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+
+                            <li class="list-group-item">
+                                <div class="ms-2 mt-1 fw-bold">5B+ Heavy Role</div>
+                                <select class="discord-role-selector assist-role-selector w-100 px-3 pt-1 pb-3" id="assist-l3-roles" aria-label="5B+ Heavy Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Attack-Related Notifications</h5>
+            <p class="card-text">
+                Sends a message upon certain attack related events (such as pending retaliations and chain bonus drops) for specified factions in the server.
+            </p>
+
+            <div class="row">
+                {% for faction in factions %}
+                <div class="col-sm-12 col-xl-6 mt-3">
+                    <div class="card pb-2">
+                        <div class="card-header">{{ faction.name }} [{{ faction.tid}}]</div>
+                        <div class="p-2">
+                            <p class="card-text">
+                                Sends a message when a member of a faction configured in the server is attacked.
+                            </p>
+
+                            <div class="row w-100 ps-3">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Retaliation Channel</div>
+                                    <select class="discord-channel-selector faction-retal-channel w-100" data-faction="{{ faction.tid }}" aria-label="Retal Channel" data-live-search="true">
+                                        <option value="0">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Retaliation Roles - Optional</div>
+                                    <select class="discord-role-selector faction-retal-roles w-100" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <p class="card-text">
+                                Sends a message when a bonus of chains of the specified length is dropped upon a faction configured in the server.
+                            </p>
+
+                            <div class="row w-100 ps-3">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Bonus Channel</div>
+                                    <select class="discord-channel-selector faction-bonus-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Bonus Channel" data-live-search="true">
+                                        <option value="0">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Bonus Roles - Optional</div>
+                                    <select class="discord-role-selector faction-bonus-roles w-100" data-faction="{{ faction.tid }}" aria-label="Chain Bonus Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Bonus Length</div>
+                                    <select class="faction-bonus-length automatic-tom-select w-100" data-faction="{{ faction.tid }}" aria-label="Chain Bonus Length" autocomplete="off">
+                                        <option value="10">Hit #10 - 10 Respect</option>
+                                        <option value="25">Hit #25 - 20 Respect</option>
+                                        <option value="50">Hit #50 - 40 Respect</option>
+                                        <option value="100" selected>Hit #100 - 80 Respect</option>
+                                        <option value="250">Hit #250 - 160 Respect</option>
+                                        <option value="500">Hit #500 - 320 Respect</option>
+                                        <option value="1000">Hit #1,000 - 640 Respect</option>
+                                        <option value="2500">Hit #2,500 - 1,280 Respect</option>
+                                        <option value="5000">Hit #5,000 - 2,560 Respect</option>
+                                        <option value="10000">Hit #10,000 - 5,120 Respect</option>
+                                        <option value="25000">Hit #25,000 - 10,240 Respect</option>
+                                        <option value="50000">Hit #50,000 - 24,480 Respect</option>
+                                        <option value="100000">Hit #100,000 - 40,960 Respect</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <p class="card-text">
+                                Sends a message when a faction configured in the server has less than 30 seconds left on the chain timer while over 100 hits in the chain.
+                            </p>
+
+                            <div class="row w-100 ps-3">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Alert Channel</div>
+                                    <select class="discord-channel-selector faction-alert-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Channel" data-live-search="true">
+                                        <option value="0">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Alert Roles - Optional</div>
+                                    <select class="discord-role-selector faction-alert-roles w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Faction Banking</h5>
+            <p class="card-text">
+                Sends requests to faction bankers to withdraw money from the faction vault.
+            </p>
+
+            {% if server.factions|length != 0 %}
+            <div class="card mb-3">
+                <div class="card-header">Factions:</div>
+                <ul class="list-group list-group-flush">
+                    {% for faction in factions %}
+                    <li class="list-group-item d-flex">
+                        <div class="row w-100">
+                            <div class="col-sm-12 col-md-6 col-xl-4">
+                                <p>{{ faction.name }} [{{ faction.tid }}]</p>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-xl-4">
+                                <select class="discord-channel-selector faction-banking-channel w-100" data-faction="{{ faction.tid }}" aria-label="Faction Banking Channel" data-live-search="true">
+                                    <option value="0">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 col-md-6 col-xl-4">
+                                <select class="discord-role-selector faction-banking-roles w-100" data-faction="{{ faction.tid }}" aria-label="Faction Banking Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {#
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Stocks</h5>
+            <p class="card-text">
+                Miscellaneous stock related features. Currently under development; disabled for now.
+            </p>
+
+            {% if current_user.admin %}
+            <div class="row w-100">
+                <div class="col-sm-12 col-md-6 col-xl-4">
+                    <div class="card mb-3">
+                        <div class="card-header">Stock Feed Channel:</div>
+
+                        <select class="discord-channel-selector w-100 px-2 my-2" id="feed-channel" aria-label="Stock Feed Channel" data-live-search="true">
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-md-8 col-lg-6 col-xl-4">
+
+                    <div class="card mb-3">
+                        <div class="card-header">Stock Feed Options:</div>
+
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex">
+                                <div class="row w-100">
+                                    <div class="form-check form-switch mx-3">
+                                        <input class="form-check-input stock-switch" type="checkbox" role="switch" id="percent-change-switch" autocomplete="off">
+                                        <label class="form-check-label mx-3" for="percent-change-switch">Percent Change: <b><span id="percent-change-enabled">Disabled</span></b></label>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="list-group-item d-flex">
+                                <div class="row w-100">
+                                    <div class="form-check form-switch mx-3">
+                                        <input class="form-check-input stock-switch" type="checkbox" role="switch" id="cap-change-switch" autocomplete="off">
+                                        <label class="form-check-label mx-3" for="cap-change-switch">Market Cap Change: <b><span id="cap-change-enabled">Disabled</span></b></label>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="list-group-item d-flex">
+                                <div class="row w-100">
+                                    <div class="form-check form-switch mx-3">
+                                        <input class="form-check-input stock-switch" type="checkbox" role="switch" id="new-day-price-switch" autocomplete="off">
+                                        <label class="form-check-label mx-3" for="new-day-price-switch">New Day Price: <b><span id="new-day-price-enabled">Disabled</span></b></label>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="list-group-item d-flex">
+                                <div class="row w-100">
+                                    <div class="form-check form-switch mx-3">
+                                        <input class="form-check-input stock-switch" type="checkbox" role="switch" id="min-price-switch" autocomplete="off">
+                                        <label class="form-check-label mx-3" for="min-price-switch">Minimum Price: <b><span id="min-price-enabled">Disabled</span></b></label>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="list-group-item d-flex">
+                                <div class="row w-100">
+                                    <div class="form-check form-switch mx-3">
+                                        <input class="form-check-input stock-switch" type="checkbox" role="switch" id="max-price-switch" autocomplete="off">
+                                        <label class="form-check-label mx-3" for="max-price-switch">Maximum Price: <b><span id="max-price-enabled">Disabled</span></b></label>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div> #}
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Verification</h5>
+            <p class="card-text">
+                Verification of users in a Discord server using the Torn API.
+            </p>
+
+            <a href="/bot/dashboard/{{ guildid }}/verify">
+                <button type="button" class="btn btn-outline">
+                    Go To Verification Settings
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Organized Crimes</h5>
+            <p class="card-text">
+                Notifications of faction organized crime readiness and delayers of organized crimes via Discord.
+            </p>
+
+            <a href="/bot/dashboard/{{ guildid }}/oc">
+                <button type="button" class="btn btn-outline">
+                    Go to Organized Crime Settings
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Armory Stock Tracker</h5>
+            <p class="card-text">
+                Tracking the stock of the items in your armory.
+            </p>
+
+            <a href="/bot/dashboard/{{ guildid }}/armory">
+                <button type="button" class="btn btn-outline">
+                    Go to Armory Tracker Settings
+                </button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/discord.js" data-guildid="{{ guildid }}"></script>
+<script src="/static/bot/guild.js"></script>
+{% endblock %}

@@ -1,0 +1,267 @@
+[data-bs-theme="neon-dark"] {
+    $white: rgb(229, 229, 229);
+    $neon: rgb(57, 255, 20);
+    $primary-grey: rgb(35, 35, 35);
+    $secondary-grey: rgb(25, 25, 25);
+    $error: rgb(225, 10, 10);
+
+    border-color: $white;
+
+    // DataTables pagination button container
+    .pagination {
+        padding-top: 0.5rem !important;
+    }
+
+    a {
+        color: $neon;
+        text-decoration: none;
+
+        &:visited {
+            color: $neon;
+            text-decoration: none;
+        }
+        &:hover {
+            color: rgb(320, 320, 320);
+            text-decoration: none;
+        }
+        &:active {
+            color: $neon;
+            text-decoration: none;
+        }
+    }
+
+    .breadcrumb-item::before {
+        color: $neon;
+    }
+
+    .card {
+        border-color: $white;
+
+        .card-header {
+            border-color: $white;
+            color: $white;
+        }
+
+        .card-title {
+            color: $neon;
+        }
+    }
+
+    .form-control {
+        height: 38px;
+
+        .ts-control {
+            max-height: 100%;
+        }
+    }
+
+    @media (max-height: 992px) {
+        .secondary {
+            height: fit-content;
+        }
+    }
+    @media (min-height: 992px) {
+        #verticalNavContainer {
+            border-right-color: $white;
+            border-right-style: solid;
+            border-right-width: 1px;
+        }
+    }
+
+    .primary {
+        background-color: $primary-grey;
+        color: $neon;
+
+        & .card {
+            background-color: $primary-grey;
+
+            & .card-text {
+                color: $neon;
+            }
+
+            & .card-subtitle {
+                color: $neon !important;
+            }
+        }
+
+        // From bootstrap-select
+        & .no-results {
+            background-color: $primary-grey;
+        }
+
+        & .list-group-item {
+            background-color: $primary-grey;
+            color: $neon;
+        }
+
+        & .form-control {
+            background-color: $primary-grey;
+            color: $neon;
+        }
+
+        & .form-text {
+            color: $neon; // TODO: change to a slightly different color
+        }
+
+        & p {
+            color: $neon;
+        }
+
+        & a {
+            color: $neon;
+            background-color: $primary-grey;
+        }
+
+        & li .paginate-button {
+            color: $neon;
+            background-color: $primary-grey;
+            border-color: $white;
+        }
+
+        & thead th {
+            color: $neon;
+            background-color: inherit;
+        }
+
+        & tbody {
+            & th,
+            td {
+                color: $neon;
+                background-color: inherit;
+
+                & a {
+                    color: inherit;
+                }
+            }
+        }
+
+        & i [class^="fa-"] {
+            color: $neon;
+        }
+
+        & .btn-outline {
+            color: $neon;
+            border-color: $white;
+        }
+
+        & input {
+            border-color: $white;
+        }
+
+        & input::placeholder {
+            color: $neon;
+        }
+
+        & select {
+            color: $neon;
+            background-color: $primary-grey;
+            border-color: $white;
+        }
+
+        & .form-text {
+            color: $neon;
+        }
+
+        & .form-floating label {
+            color: $neon;
+
+            &:after {
+                background-color: inherit;
+            }
+        }
+
+        & .dataTables_wrapper {
+            color: $white;
+        }
+
+        & .ts-control {
+            background-color: $primary-grey !important;
+            color: $white;
+            border-radius: 0.375rem;
+            min-width: 18rem;
+
+            & .item {
+                background-color: inherit;
+                color: $neon;
+
+                & .remove {
+                    background-color: inherit;
+                }
+            }
+
+            & input {
+                color: $neon;
+            }
+        }
+
+        & .ts-dropdown {
+            background-color: $primary-grey;
+            border: 1px solid $neon;
+            border-radius: 0.25rem;
+            color: $neon;
+
+            & .active {
+                background-color: $secondary-grey;
+                color: $neon;
+            }
+
+            & .optgroup-header {
+                background-color: $secondary-grey;
+                color: $neon;
+                border-color: $neon 1px solid;
+                border-top: $neon 1px solid;
+            }
+        }
+
+        & .accordion-button {
+            background-color: $primary-grey;
+            color: $neon;
+
+            &:after {
+                -webkit-filter: grayscale(1) invert(1);
+                filter: grayscale(1) invert(1);
+            }
+        }
+    }
+
+    // .dropdown-menu and .dropdown-toggle can't be in .primary as it conflict with modals
+    & .dropdown-menu {
+        background-color: $primary-grey;
+    }
+
+    & .dropdown-toggle {
+        background-color: $primary-grey;
+        color: $neon;
+    }
+
+    .secondary {
+        background-color: $secondary-grey;
+        color: $neon;
+        height: inherit;
+
+        & a {
+            color: $neon;
+            background-color: $secondary-grey;
+        }
+    }
+
+    .modal-content {
+        background-color: $primary-grey;
+        color: $neon;
+        border-color: $white;
+
+        & tr th {
+            color: $neon;
+            background-color: inherit;
+        }
+    }
+
+    .navbar-toggler-icon {
+        // Change stroke when $white is changed\
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2857, 225, 20, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    .navbar-toggler {
+        border-color: $neon;
+    }
+}

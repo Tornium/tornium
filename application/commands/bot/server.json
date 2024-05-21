@@ -1,0 +1,18 @@
+{
+    "name": "server",
+    "description": "Server-related slash commands",
+    "options": [
+        {
+            "type": 1,
+            "name": "link",
+            "description": "Link this server with your faction",
+            "dm_permission": false
+        },
+        {
+            "type": 1,
+            "name": "unlink",
+            "description": "Unlink your faction from any server",
+            "dm_permission": false
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+# Copyright (C) 2021-2023 tiksan
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import inspect
+
+from peewee import DoesNotExist
+from tornium_commons.formatters import discord_escaper
+from tornium_commons.models import Server
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+
+from skynet.decorators import invoker_required
+
+
+@invoker_required
+def feed(interaction, *args, **kwargs):
+    if "guild_id" not in interaction:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Invalid Location",
+                        "description": "The verification command must be run in a server where verification is setup "
+                        "and enabled.",
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    if kwargs["invoker"].tid not in guild.admins:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "You must be an admin in this server to run this command. Run in a DM "
+                        "or in a server where you are an admin.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Stocks Feed Configuration",
+                    "description": inspect.cleandoc(
+                        f"""Stocks feed configuration for {discord_escaper(guild.name)}...
+
+                Feed Channel: {"Disabled" if guild.stocks_channel == 0 else f"<#{guild.stocks_channel}>"}
+
+                Percent Change: {"Enabled" if guild.stocks_config.get("percent_change", False) else "Disabled"}
+                Market Cap Change: {"Enabled" if guild.stocks_config.get("cap_change", False) else "Disabled"}
+                New Day Price: {"Enabled" if guild.stocks_config.get("new_day_price", False) else "Disabled"}
+                Minimum Price: {"Enabled" if guild.stocks_config.get("min_price", False) else "Disabled"}
+                Maximum Price: {"Enabled" if guild.stocks_config.get("max_price", False) else "Disabled"}
+                """
+                    ),
+                    "footer": {"text": "To modify the feed configuration, visit the guild dashboard."},
+                    "color": SKYNET_INFO,
+                }
+            ],
+            "flags": 64,
+        },
+    }

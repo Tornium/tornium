@@ -1,0 +1,38 @@
+[data-bs-theme="light"] {
+    $white: rgb(229, 229, 229);
+    $primary-grey: rgb(35, 35, 35);
+    $secondary-grey: rgb(25, 25, 25);
+
+    .form-control {
+        height: 38px;
+
+        .ts-control {
+            max-height: 100%;
+        }
+    }
+
+    @media (min-height: 992px) {
+        #verticalNavContainer {
+            border-right-color: rgb(226, 226, 230);
+            border-right-style: solid;
+            border-right-width: 1px;
+        }
+    }
+
+    .primary {
+        & .btn-outline {
+            color: $primary-grey;
+            border-color: $primary-grey;
+
+            &:hover {
+                background-color: $primary-grey;
+                color: $white;
+                border-color: $secondary-grey;
+            }
+        }
+
+        & .ts-control {
+            border: none;
+        }
+    }
+}

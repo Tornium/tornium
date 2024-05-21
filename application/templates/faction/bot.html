@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction Bot Dashboard
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/bot">Bot Configuration</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+ <div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/members">
+                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/banking">
+                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/chain">
+                <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
+            </a>
+        </div>
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes">
+                <i class="col-1 col-sm-2 fa-solid fa-bell"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bot">
+                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card min-w-25 max-w-50">
+        <div class="card-body">
+            <h5 class="card-title">Guild ID</h5>
+            <p class="card-text">
+                The ID of the Discord guild/server in which the faction and bot is located. For more information on how to
+                retrieve the guild ID (and other Discord IDs), check out Discord Support
+                <a href="https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-" target="_blank" rel="noopener noreferrer">here</a>.
+                In order to set other bot configurations, please set the faction's guild ID first.
+            </p>
+
+            <form class="form-floating" method="POST" action="/faction/bot">
+                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
+                <label for="guildid">Guild ID</label>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Assists</h5>
+            <p class="card-text">
+                Per faction configuration for assists can be performed here. Most configuration will occur in individual servers through server admins.
+            </p>
+
+            <p class="card-text">
+                The userscript for assists is compatible/tested with TamperMonkey and TornPDA (PDA support depends on beta version currently).
+            </p>
+
+            <div class="card">
+                <div class="card-header">Assist Servers</div>
+
+                <ul class="list-group list-group-flush">
+                    {% for server in assist_servers %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ server.name }} [{{ server.sid }}]
+
+                        <button class="btn btn-sm btn-outline-secondary remove-assists-server" type="button" data-server-id="{{ server.sid }}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="card-footer">
+                    <div class="my-3 form-floating input-group">
+                        <input class="form-control" id="assist-server-id" name="assist-server-id" inputmode="numeric">
+                        <label for="assist-server-id">Server ID</label>
+                        <button type="button" id="assist-server-submit" class="btn btn-outline-success">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/faction/guild.js"></script>
+{% endblock %}

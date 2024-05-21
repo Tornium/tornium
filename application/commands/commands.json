@@ -1,0 +1,22 @@
+{
+    "active": [
+        "ping",
+        "bot/server",
+        "bot/verify/verify",
+        "bot/verify/verifyall",
+        "faction/assist/assist",
+        "faction/banking/balance",
+        "faction/banking/cancel",
+        "faction/banking/fulfill",
+        "faction/banking/withdraw",
+        "faction/data/faction",
+        "notify/notify",
+        "stats/stat",
+        "stats/chainlist",
+        "stocks/stocks",
+        "user/estimate"
+    ],
+    "disabled": [
+        "user/user"
+    ]
+}

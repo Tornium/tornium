@@ -1,0 +1,68 @@
+<div class="modal fade" id="faction-modal" tabindex="-1" aria-labelledby="faction-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">{{ faction.name }} [{{ faction.tid }}]</h5>
+                <button class="btn">
+                    <a href="https://www.torn.com/factions.php?step=profile&ID={{ faction.tid }}" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-id-card"></i>
+                    </a>
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Faction Stats
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Name: {{ faction.name }}</li>
+                        <li class="list-group-item">ID: {{ faction.tid }}</li>
+                        <li class="list-group-item">Respect: {{ faction.respect|commas }}</li>
+                        <li class="list-group-item">Leader: <a href="/torn/users?tid={{ faction.leader.tid }}">{{ faction.leader.name }} [{{ faction.leader.tid }}]</a></li>
+                        {% if faction.coleader != 0 %}
+                            <li class="list-group-item">Co-Leader: <a href="/torn/users?tid={{ faction.coleader.tid }}">{{ faction.coleader.name }} [{{ faction.coleader.tid }}]</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Members
+                        <h6 class="card-subtitle mt-1 mb-2 text-muted">Last Updated: {{ faction.last_members|reltime }}</h6>
+                    </div>
+
+                    <table id="member-table" class="table table-striped table-bordered w-100 py-3 px-3">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Level</th>
+                                <th>Status</th>
+                                <th>Discord</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+div.dataTables_filter, div.dataTables_length {
+    padding-top: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+}
+
+div.dataTables_info, div.dataTables_paginate {
+    padding-bottom: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+}
+</style>
+

@@ -1,0 +1,87 @@
+{
+    "name": "stocks",
+    "description": "Stocks-related commands",
+    "options": [
+        {
+            "type": 2,
+            "name": "notify",
+            "description": "Stock notifications",
+            "options": [
+                {
+                    "type": 1,
+                    "name": "create",
+                    "description": "Create a notification for stock price",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "stock",
+                            "description": "Notification for this stock",
+                            "required": true
+                        },
+                        {
+                            "type": 10,
+                            "name": "price",
+                            "description": "Target price notification value",
+                            "min_value": 0,
+                            "required": true
+                        },
+                        {
+                            "type": 3,
+                            "name": "equality",
+                            "description": "Less than, equal, or greater than",
+                            "choices": [
+                                {
+                                    "name": "<",
+                                    "value": "<"
+                                },
+                                {
+                                    "name": "=",
+                                    "value": "="
+                                },
+                                {
+                                    "name": ">",
+                                    "value": ">"
+                                }
+                            ],
+                            "required": true
+                        },
+                        {
+                            "type": 7,
+                            "name": "channel",
+                            "description": "Notifications are sent to a specific channel"
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "delete",
+                    "description": "Delete a stock notification",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "notification",
+                            "description": "The ID of the notification in the database"
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "list",
+                    "description": "Lists stock notifications",
+                    "options": [
+                        {
+                            "type": 4,
+                            "name": "page",
+                            "description": "Page of stock notifications"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": 1,
+            "name": "feed",
+            "description": "Stock feed configuration"
+        }
+    ]
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="URF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tornium - OAuth Authorization</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" integrity="sha512-t4GWSVZO1eC8BM339Xd7Uphw5s17a86tIZIj8qRxhnKub6WoyhnrxeCIMeAqBPgdZGlCcG2PrZjMc+Wr78+5Xg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/static/fonts/JetBrainsMono-Light.woff2">
+    <link rel="shortcut icon" href="/static/favicon.svg">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js" integrity="sha512-3dZ9wIrMMij8rOH7X3kLfXAzwtcHpuYpEgQg1OA4QAob1e81H8ntUQmQm3pBudqIoySO5j0tHN4ENzA6+n2r4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <link rel="stylesheet" href="/static/themes/light.css" >
+    <link rel="stylesheet" href="/static/themes/dark.css" >
+    <link rel="stylesheet" href="/static/themes/neon-dark.css" >
+
+    <script src="/static/global/modeSelector.js"></script>
+</head>
+<body class="primary">
+    <div class="container">
+        <div class="row min-vh-100">
+            <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+                <div class="card m-3">
+                    <div class="card-body container-fluid">
+                        <h5 class="card-title">Authorize {{ grant.client.client_name }}</h5>
+
+                        {% if grant.client.official %}
+                        <div class="btn btn-sm btn-outline-success">Official</div>
+                        {% endif %}
+
+                        {% if grant.client.verified %}
+                        <div class="btn btn-sm btn-outline-success">Verified</div>
+                        {% else %}
+                        <div class="btn btn-sm btn-outline-warning">Unverified</div>
+                        {% endif %}
+
+                        <p class="card-text mt-2">
+                            {{ grant.client.client_name }} (owned by {{ grant.client.user.user_str_self() }}) wants access to your Tornium account.
+                        </p>
+
+                        {% if grant.client.token_endpoint_auth_method == "none" %}
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> WARNING</h5>
+                                <p class="card-text">
+                                    This application is most likely a userscript, and therefore it is not possible to verify that the originating userscript is the application registered in Tornium. Make sure that you're installing the original version of the userscript from the original developer.
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="card mt-3">
+                            <div class="card-header">Requested Permissions</div>
+                            <ul class="list-group list-group-flush">
+                                {% for scope in scopes %}
+                                {% if scope == "identity" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-address-card"></i> Identity</div>
+                                        This application will be able to know your Torn name and ID and your Discord ID.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-sitemap"></i> Faction - All</div>
+                                        This application will be able to read and write all applicable faction data.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:assists" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-circle-question"></i> Faction - Assists</div>
+                                        This application will be able to make a call for assists and to see the available assists.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:banking" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-vault"></i> Faction - Banking</div>
+                                        This application will be able to retrieve data about their faction vault balance and make a call to withdraw from their vault balance.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "faction:crimes" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-people-robbery"></i> Faction - Crimes</div>
+                                        This application will be able to retrieve data on current and historical organized crimes of the faction.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "torn_key" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-key"></i> Torn API Key - All</div>
+                                        Not Yet Implemented
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if scope == "torn_key:usage" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-unlock-keyhole"></i> Torn API Key - Usage</div>
+                                        This application will be able to make Torn API calls using your API key within Tornium. Your API key will NOT be shared with the application.
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+
+                                {% if scopes|length == 0 %}
+                                <li class="list-group-item" data-scope="">No permissions requestsed</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <form method="POST" class="mt-3">
+                            <button type="submit" class="btn btn-outline-danger w-100">Authorize</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

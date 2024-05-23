@@ -1052,7 +1052,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
         100_000,
     ):
         return False
-    elif attack.chain_bonus_length is None:
+    elif attack_config.chain_bonus_length is None:
         return False
     elif attack["chain"] < attack_config.chain_bonus_length:
         return False

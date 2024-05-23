@@ -53,7 +53,12 @@ def settings(*args, **kwargs):
     api_keys = list(
         k
         for k in TornKey.select(
-            TornKey.guid, TornKey.api_key, TornKey.access_level, TornKey.disabled, TornKey.paused, TornKey.default
+            TornKey.guid,
+            TornKey.api_key,
+            TornKey.access_level,
+            TornKey.disabled,
+            TornKey.paused,
+            TornKey.default,
         )
         .join(User)
         .where(TornKey.user.tid == current_user.tid)
@@ -73,7 +78,7 @@ def settings(*args, **kwargs):
         obfuscated_key=obfuscated_key,
         api_keys=api_keys,
         tokens=tokens,
-        discord_linked="Not Linked" if current_user.discord_id in ("", None, 0) else "Linked",
+        discord_linked=("Not Linked" if current_user.discord_id in ("", None, 0) else "Linked"),
     )
 
 

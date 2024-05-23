@@ -84,7 +84,9 @@ def banking_data():
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points",  # noqa: E712
+                (
+                    f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points"
+                ),  # noqa: E712
                 User.user_str(withdrawal.requester),
                 torn_timestamp(withdrawal.time_requested),
                 fulfiller_str,
@@ -129,7 +131,9 @@ def banking():
                 "name": banker_user.name,
                 "tid": banker_user.tid,
                 "last_action": int(current_user.last_action.timestamp()),
-                "money": banker_user.faction_position.give_money if banker_user.faction_position is not None else True,
+                "money": (
+                    banker_user.faction_position.give_money if banker_user.faction_position is not None else True
+                ),
                 "points": (
                     banker_user.faction_position.give_points if banker_user.faction_position is not None else True
                 ),
@@ -200,7 +204,7 @@ def user_banking_data():
         withdrawals.append(
             [
                 withdrawal.wid,
-                f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points",
+                (f"${withdrawal.amount:,}" if withdrawal.cash_request else f"{withdrawal.amount:,} points"),
                 torn_timestamp(withdrawal.time_requested),
                 fulfiller_str,
                 time_fulfilled,

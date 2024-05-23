@@ -113,7 +113,7 @@ class Stat(BaseModel):
                 continue
 
             try:
-                base_respect = round(stat_entry[5] / 198 + 197/198, 2)
+                base_respect = round(stat_entry[5] / 198 + 197 / 198, 2)
             except ValueError:
                 continue
 

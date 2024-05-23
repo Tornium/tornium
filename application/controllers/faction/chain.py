@@ -26,7 +26,7 @@ def chain(*args, **kwargs):
     try:
         return render_template(
             "faction/chain.html",
-            guild_id=0 if current_user.faction.guild_id is None else current_user.faction.guild_id,
+            guild_id=(0 if current_user.faction.guild_id is None else current_user.faction.guild_id),
         )
     except DoesNotExist:
         return render_template("faction/chain.html", guild_id=0)

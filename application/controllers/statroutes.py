@@ -83,7 +83,7 @@ def stats_data():
 
     stats = [
         [
-            stat_entry.tid_id if stat_entry.tid is None else f"{stat_entry.tid.name} [{stat_entry.tid_id}]",
+            (stat_entry.tid_id if stat_entry.tid is None else f"{stat_entry.tid.name} [{stat_entry.tid_id}]"),
             commas(int(sum(bs_to_range(stat_entry.battlescore)) / 2)),
             rel_time(stat_entry.time_added),
         ]

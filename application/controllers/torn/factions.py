@@ -125,7 +125,7 @@ def faction_members_data(tid: int):
             {
                 "username": f"{member.name} [{member.tid}]",
                 "level": member.level,
-                "last_action": member.last_action.timestamp() if member.last_action is not None else None,
+                "last_action": (member.last_action.timestamp() if member.last_action is not None else None),
                 "status": member.status,
                 "discord_id": member.discord_id,
             }

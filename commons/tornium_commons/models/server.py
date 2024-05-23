@@ -111,13 +111,13 @@ class Server(BaseModel):
                     channels["0"]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "position": (channel["position"] if "position" in channel else -1),
                     }
                 elif channel["parent_id"] in channels:
                     channels[channel["parent_id"]]["channels"][channel["id"]] = {
                         "id": parse(channel["id"]),
                         "name": channel["name"] if "name" in channel else "",
-                        "position": channel["position"] if "position" in channel else -1,
+                        "position": (channel["position"] if "position" in channel else -1),
                     }
                 else:
                     channels[channel["parent_id"]] = {
@@ -127,7 +127,7 @@ class Server(BaseModel):
                             channel["id"]: {
                                 "id": parse(channel["id"]),
                                 "name": channel["name"] if "name" in channel else "",
-                                "position": channel["position"] if "position" in channel else -1,
+                                "position": (channel["position"] if "position" in channel else -1),
                             }
                         },
                         "position": -2,

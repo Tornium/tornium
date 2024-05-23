@@ -94,7 +94,13 @@ def toggle_key(guid: str, *args, **kwargs):
 
     try:
         api_key: TornKey = (
-            TornKey.select(TornKey.api_key, TornKey.disabled, TornKey.paused, TornKey.default, TornKey.access_level)
+            TornKey.select(
+                TornKey.api_key,
+                TornKey.disabled,
+                TornKey.paused,
+                TornKey.default,
+                TornKey.access_level,
+            )
             .where(TornKey.guid == uuid.UUID(guid))
             .get()
         )

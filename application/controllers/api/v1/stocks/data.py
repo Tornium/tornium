@@ -72,7 +72,7 @@ def stocks_data(*args, **kwargs):
             "market_cap": tick.cap,
             "shares": tick.shares,
             "investors": tick.investors,
-            "acronym": None if stocks_map is None else stocks_map.get(str(tick.stock_id)),
+            "acronym": (None if stocks_map is None else stocks_map.get(str(tick.stock_id))),
         }
 
     return jsonify(stocks_tick_data), 200, api_ratelimit_response(key)

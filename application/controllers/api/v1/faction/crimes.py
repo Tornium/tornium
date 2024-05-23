@@ -97,16 +97,16 @@ def crimes_data(*args, **kwargs):
                         }
                         for participant in crime.participants
                     ],
-                    "time_started": None if crime.time_started is None else int(crime.time_started.timestamp()),
-                    "time_ready": None if crime.time_ready is None else int(crime.time_ready.timestamp()),
-                    "time_completed": None if crime.time_completed is None else int(crime.time_completed.timestamp()),
+                    "time_started": (None if crime.time_started is None else int(crime.time_started.timestamp())),
+                    "time_ready": (None if crime.time_ready is None else int(crime.time_ready.timestamp())),
+                    "time_completed": (None if crime.time_completed is None else int(crime.time_completed.timestamp())),
                     "planned_by": {
                         "id": crime.planned_by_id,
-                        "name": None if crime.planned_by is None else crime.planned_by.name,
+                        "name": (None if crime.planned_by is None else crime.planned_by.name),
                     },
                     "initiated_by": {
                         "id": crime.initiated_by_id,
-                        "name": None if crime.initiated_by is None else crime.initiated_by.name,
+                        "name": (None if crime.initiated_by is None else crime.initiated_by.name),
                     },
                     "money_gain": crime.money_gain,
                     "respect_gain": crime.respect_gain,

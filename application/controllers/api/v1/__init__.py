@@ -141,7 +141,9 @@ mod.add_url_rule(
     methods=["POST", "DELETE"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/verify/jail/channel", view_func=bot.verify.guild_jail_channel, methods=["POST"]
+    "/api/v1/bot/<int:guild_id>/verify/jail/channel",
+    view_func=bot.verify.guild_jail_channel,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>",
@@ -210,7 +212,11 @@ mod.add_url_rule(
 )
 
 # /api/v1/faction
-mod.add_url_rule("/api/v1/faction/assist/<int:target_tid>", view_func=faction.assist.forward_assist, methods=["POST"])
+mod.add_url_rule(
+    "/api/v1/faction/assist/<int:target_tid>",
+    view_func=faction.assist.forward_assist,
+    methods=["POST"],
+)
 mod.add_url_rule("/api/v1/faction/assists", view_func=faction.assist.valid_assists, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/faction/banking",
@@ -223,10 +229,14 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/v1/faction/assists/server/<int:guild_id>", view_func=faction.bot.add_assist_server, methods=["POST"]
+    "/api/v1/faction/assists/server/<int:guild_id>",
+    view_func=faction.bot.add_assist_server,
+    methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/faction/assists/server/<int:guild_id>", view_func=faction.bot.remove_assist_server, methods=["DELETE"]
+    "/api/v1/faction/assists/server/<int:guild_id>",
+    view_func=faction.bot.remove_assist_server,
+    methods=["DELETE"],
 )
 mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
 mod.add_url_rule(

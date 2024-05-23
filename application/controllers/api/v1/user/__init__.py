@@ -99,7 +99,7 @@ def get_specific_user(tid: int, *args, **kwargs):
                 "level": user.level,
                 "last_refresh": user.last_refresh.timestamp(),
                 "discord_id": user.discord_id,
-                "faction": {"tid": user.faction_id, "name": user.faction.name} if user.faction is not None else None,
+                "faction": ({"tid": user.faction_id, "name": user.faction.name} if user.faction is not None else None),
                 "status": user.status,
                 "last_action": user.last_action.timestamp(),
             }

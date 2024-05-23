@@ -117,7 +117,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         result_sig = tornget.signature(
             kwargs={
                 "endpoint": f"user/{user_id}?selections=profile,discord,personalstats",
-                "key": user.key if user is not None and user.key not in (None, "") else key,
+                "key": (user.key if user is not None and user.key not in (None, "") else key),
             },
             queue="api",
         )
@@ -267,7 +267,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         tid=user_data["player_id"],
         name=user_data["name"],
         level=user_data["level"],
-        discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        discord_id=(user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0),
         battlescore=(
             math.sqrt(user_data["strength"])
             + math.sqrt(user_data["defense"])
@@ -412,7 +412,7 @@ def update_user_other(user_data):
         tid=user_data["player_id"],
         name=user_data["name"],
         level=user_data["level"],
-        discord_id=user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0,
+        discord_id=(user_data["discord"]["discordID"] if user_data["discord"]["discordID"] != "" else 0),
         faction=faction,
         status=user_data["last_action"]["status"],
         last_action=datetime.datetime.fromtimestamp(user_data["last_action"]["timestamp"], tz=datetime.timezone.utc),
@@ -607,7 +607,7 @@ def stat_db_attacks_user(user_data):
             User.insert(
                 tid=attack["defender_id"],
                 name=attack["defender_name"],
-                faction=attack["defender_faction"] if attack["defender_faction"] != 0 else None,
+                faction=(attack["defender_faction"] if attack["defender_faction"] != 0 else None),
             ).on_conflict(
                 conflict_target=[User.tid],
                 preserve=[
@@ -628,7 +628,7 @@ def stat_db_attacks_user(user_data):
             User.insert(
                 tid=attack["attacker_id"],
                 name=attack["attacker_name"],
-                faction=attack["attacker_faction"] if attack["attacker_faction"] != 0 else None,
+                faction=(attack["attacker_faction"] if attack["attacker_faction"] != 0 else None),
             ).on_conflict(
                 conflict_target=[User.tid],
                 preserve=[
@@ -687,10 +687,20 @@ def check_api_keys():
         celery.chord(
             [
                 tornget.signature(
-                    kwargs={"endpoint": "key/?selections=info", "key": key.api_key, "pass_error": True}, queue="api"
+                    kwargs={
+                        "endpoint": "key/?selections=info",
+                        "key": key.api_key,
+                        "pass_error": True,
+                    },
+                    queue="api",
                 ),
                 tornget.signature(
-                    kwargs={"endpoint": "user/?selections=basic", "key": key.api_key, "pass_error": True}, queue="api"
+                    kwargs={
+                        "endpoint": "user/?selections=basic",
+                        "key": key.api_key,
+                        "pass_error": True,
+                    },
+                    queue="api",
                 ),
             ]
         )(check_api_key_sub.signature(kwargs={"guid": key.guid}))

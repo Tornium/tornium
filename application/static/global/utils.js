@@ -46,6 +46,10 @@ const rtfUnits = {
 };
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 function reltime(timestamp) {
+    if (typeof timestamp === "string" && new Date(timestamp) !== "Invalid Date") {
+        timestamp = Date.parse(timestamp) / 1000;
+    }
+
     var elapsed = timestamp * 1000 - Date.now();
 
     // "Math.abs" accounts for both "past" & "future" scenarios

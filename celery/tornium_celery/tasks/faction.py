@@ -622,9 +622,14 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
     except (KeyError, DoesNotExist):
         return
 
+    new_last_attacks = last_attacks
+    for attack in faction_data["attacks"].values():
+        if attack["timestamp_ended"] > new_last_attacks:
+            new_last_attacks = attack["timestamp_ended"]
+
     Faction.update(
         last_attacks=datetime.datetime.fromtimestamp(
-            list(faction_data["attacks"].values())[-1]["timestamp_ended"],
+            new_last_attacks,
             tz=datetime.timezone.utc,
         )
     ).where(Faction.tid == faction_data["ID"]).execute()

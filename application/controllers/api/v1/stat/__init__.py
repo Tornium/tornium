@@ -38,7 +38,7 @@ def generate_chain_list(*args, **kwargs):
             details={"message": "Illegal parameter type. Must be a float or integer."},
         )
 
-    if not (0 <= difficulty <= 4):
+    if not (0 <= difficulty <= 5):
         return make_exception_response(
             "1000",
             key,

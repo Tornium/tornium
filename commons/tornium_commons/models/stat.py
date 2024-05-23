@@ -28,6 +28,7 @@ _DIFFICULTY_MAP = {
     2: (2, 2.25),
     3: (2.25, 2.5),
     4: (2.5, 3),
+    5: (3, 3.4),
 }
 
 
@@ -44,11 +45,11 @@ class Stat(BaseModel):
     @staticmethod
     def generate_chain_list(
         sort: typing.Literal["timestamp", "random", "respect"],
-        difficulty: typing.Literal[0, 1, 2, 3, 4],
+        difficulty: typing.Literal[0, 1, 2, 3, 4, 5],
         limit: int,
         invoker: User,
     ) -> list:
-        if difficulty not in (0, 1, 2, 3, 4):
+        if difficulty not in (0, 1, 2, 3, 4, 5):
             raise ValueError("Illegal difficulty value") from None
         elif not (1 <= limit <= 100):
             raise ValueError("Illegal limit value") from None
@@ -74,9 +75,9 @@ class Stat(BaseModel):
         #     1      |  1.75  |   2    |    Easy     |
         #     2      |   2    |  2.25  |   Medium    |
         #     3      |  2.25  |  2.5   |    Hard     |
-        #     4      |  2.5   |  3.4   |  Very Hard  |
+        #     4      |  2.5   |   3    |  Very Hard  |
+        #     5      |   3    |  3.4   |  Formidable |
         #
-        # Max FF of difficulty 4 is indicated as 3.4 but is 3
         # In the equation, 3x FF is equivalent to times 2.4 which is 3.4 - 1
 
         min_ff, max_ff = _DIFFICULTY_MAP[difficulty]

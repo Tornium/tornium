@@ -25,6 +25,7 @@ dependencies = [
     "scikit-learn",
     "pandas",
     "peewee ~= 3.17.0",
+    "psycopg2",
     "pynacl ~= 1.5.0",
     "xgboost",
 ]

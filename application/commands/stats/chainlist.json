@@ -35,6 +35,10 @@
                 {
                     "name": "Very Hard (2.5 - 3 FF)",
                     "value": 4
+                },
+                {
+                    "name": "Formidable (3 - 3.4 FF)",
+                    "value": 5
                 }
             ],
             "required": false

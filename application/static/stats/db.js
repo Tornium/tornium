@@ -60,7 +60,7 @@ $(document).ready(function () {
                 if (ff > 3) {
                     ff = 3;
                 }
-                let respect = (((Math.log(response.user.level) + 1) / 4) * ff).toFixed(2);
+                let respect = ((response.user.level / 198) + 197/198).toFixed(2);
 
                 $("#stat-modal-body").append(
                     $("<div>", {

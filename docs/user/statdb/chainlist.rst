@@ -56,9 +56,6 @@ Highest respect sorting will only return targets who will provide the most respe
 
 Random sorting will randomly retrieve applicable stat records from the database.
 
-.. note::
-    Highest respect sorting has an increased latency of up to 10 seconds compared to other sorting options (which respond in less than 1 second typically_ due to the increased load upon the database. So if data is not quickly loaded, be patient and watch for an error notification to be shown.
-
 Target List Limit
 `````````````````
 The target list limit is the number of potential targets that will be shown. It is recommended that mobile users use a lower limit.

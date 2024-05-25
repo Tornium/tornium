@@ -1235,7 +1235,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
             "embeds": [
                 {
                     "title": "Chain Timer Alert",
-                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below one minute and will reach zero <t:{latest_outgoing_attack[0] + 300}:R> with a current chain length of {commas(latest_outgoing_attack[1]}.",
+                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below one minute and will reach zero <t:{latest_outgoing_attack[0] + 300}:R> with a current chain length of {commas(latest_outgoing_attack[1])}.",
                     "color": SKYNET_ERROR,
                 }
             ],

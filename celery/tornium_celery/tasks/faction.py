@@ -1128,10 +1128,8 @@ def check_attacks(faction_data: dict, last_attacks: int):
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
 
-        if (
-            attack["attacker_faction"] == faction.tid
-            and latest_outgoing_attack is None
-            or latest_outgoing_attack[0] < attack["timestamp_ended"]
+        if attack["attacker_faction"] == faction.tid and (
+            latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]
         ):
             # Used to determine the last successful outgoing attack by the faction
             latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])

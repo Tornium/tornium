@@ -443,7 +443,7 @@ def check_faction_ods(faction_od_data):
     except (KeyError, DoesNotExist):
         return
 
-    if len(faction.od_data) == 0 or faction.od_data is None:
+    if faction.od_data is None or len(faction.od_data) == 0:
         Faction.update(od_data=faction_od_data["contributors"]["drugoverdoses"]).where(
             Faction.tid == faction_od_data["ID"]
         ).execute()

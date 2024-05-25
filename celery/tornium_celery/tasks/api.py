@@ -67,8 +67,6 @@ def discord_ratelimit_pre(
     except RatelimitError:
         raise self.retry(countdown=backoff(self) if backoff_var else countdown_wo())
 
-    logger.debug(f"{method}|{endpoint.split('?')[0]} :: {bucket._id} :: {bucket.remaining} / {bucket.limit}")
-
     return bucket
 
 

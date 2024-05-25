@@ -253,12 +253,12 @@ def members_switchboard(interaction, *args, **kwargs):
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
         for tid, member in member_data["members"].items():
-            tid = int(tid)
-
-            if int(time.time()) - member["last_action"]["timestamp"] >= days * 24 * 60 * 60:
-                line_payload = f"{member['name']} [{tid}] - {member['last_action']['relative']}"
-            else:
+            if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
+            elif int(time.time()) - member["last_action"]["timestamp"] < days * 24 * 60 * 60:
+                continue
+
+            line_payload = f"{member['name']} [{tid}] - {member['last_action']['relative']}"
 
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(

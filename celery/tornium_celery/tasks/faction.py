@@ -1127,10 +1127,12 @@ def check_attacks(faction_data: dict, last_attacks: int):
             21,
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
-        elif attack["timestamp_ended"] <= last_attacks + 1:
-            if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
-                latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
 
+        if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
+            # Used to determine the last successful outgoing attack by the faction
+            latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
+
+        if attack["timestamp_ended"] <= last_attacks + 1:
             continue
 
         if ALERT_RETALS and validate_attack_retaliation(attack, faction):
@@ -1221,13 +1223,10 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
             discordpost.delay(f"channels/{attack_config.chain_bonus_channel}/messages", payload=payload).forget()
 
-        if latest_outgoing_attack is None or latest_outgoing_attack[0] < attack["timestamp_ended"]:
-            latest_outgoing_attack = (attack["timestamp_ended"], attack["chain"])
-
     if (
         latest_outgoing_attack is not None
         and ALERT_CHAIN_ALERT
-        and int(time.time()) - latest_outgoing_attack[0] >= 270
+        and int(time.time()) - latest_outgoing_attack[0] >= 240
         and int(time.time()) - latest_outgoing_attack[0] < 300
         and latest_outgoing_attack[1] >= 100
     ):
@@ -1236,18 +1235,18 @@ def check_attacks(faction_data: dict, last_attacks: int):
             "embeds": [
                 {
                     "title": "Chain Timer Alert",
-                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below thirty seconds and will reach zero <t:{latest_outgoing_attack[0] + 300}:R>.",
+                    "description": f"The chain timer for {faction.name} [{faction.tid}] has dropped below one minute and will reach zero <t:{latest_outgoing_attack[0] + 300}:R> with a current chain length of {commas(latest_outgoing_attack[1]}.",
                     "color": SKYNET_ERROR,
                 }
             ],
             "components": [],
         }
 
-        for role in attack_config.chain_alert_roles:
-            if "content" not in payload:
-                payload["content"] = ""
-
-            payload["content"] += f"<@&{role}>"
+        # for role in attack_config.chain_alert_roles:
+        #     if "content" not in payload:
+        #         payload["content"] = ""
+        # 
+        #     payload["content"] += f"<@&{role}>"
 
         discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
 

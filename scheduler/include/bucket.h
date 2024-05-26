@@ -24,13 +24,13 @@ namespace scheduler {
 enum class insertion_status { queued, immediate_insert };
 
 class RequestBucket {
-public:
-  RequestBucket();
-  insertion_status try_emplace(scheduler::Request &request_);
+   public:
+    RequestBucket();
+    insertion_status try_emplace(scheduler::Request &request_);
 
-private:
-  const std::time_t start_timestamp;
-  std::vector<scheduler::Request> bucket_requests;
+   private:
+    const std::time_t start_timestamp;
+    std::vector<scheduler::Request> bucket_requests;
 };
 
 /**
@@ -40,6 +40,6 @@ private:
  * @return Bucket the request is inserted into
  */
 scheduler::RequestBucket insert_request(scheduler::Request &request_);
-} // namespace scheduler
+}  // namespace scheduler
 
 #endif

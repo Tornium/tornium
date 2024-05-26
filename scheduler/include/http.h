@@ -20,6 +20,6 @@
 namespace scheduler {
 void emplace_http_requeset(scheduler::Request &request_);
 void check_request();
-} // namespace scheduler
+}  // namespace scheduler
 
 #endif

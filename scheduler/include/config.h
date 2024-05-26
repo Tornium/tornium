@@ -19,8 +19,8 @@
 
 namespace scheduler {
 struct config {
-  bool verbose = false;
-  std::string socket_path = "/tmp/scheduler.sock";
+    bool verbose = false;
+    std::string socket_path = "/tmp/scheduler.sock";
 };
 
 /**
@@ -29,5 +29,5 @@ struct config {
  * @param config_ Reference to the parsed configuration
  */
 void dump_config(config &config_);
-} // namespace scheduler
+}  // namespace scheduler
 #endif

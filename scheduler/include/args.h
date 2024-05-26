@@ -28,5 +28,5 @@ namespace scheduler {
  */
 void parse_args(int argc, char *argv[], scheduler::config &config_);
 
-} // namespace scheduler
+}  // namespace scheduler
 #endif

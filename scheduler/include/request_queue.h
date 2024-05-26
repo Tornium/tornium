@@ -24,6 +24,6 @@ namespace scheduler {
  * @param request_ Reference to the request
  */
 void queue_request(scheduler::Request &request_);
-} // namespace scheduler
+}  // namespace scheduler
 
 #endif

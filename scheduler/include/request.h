@@ -26,21 +26,20 @@ namespace scheduler {
 enum class nice_type { user_request, high_priority_request, generic_request };
 
 struct Request {
-  int8_t nice;
-  std::string endpoint;
-  std::string endpoint_id;
-  uint32_t user_id;
-  uint8_t remaining_retries;
+    int8_t nice;
+    std::string endpoint;
+    std::string endpoint_id;
+    uint32_t user_id;
+    uint8_t remaining_retries;
 
-  std::vector<Request> linked_requests;
+    std::vector<Request> linked_requests;
 
-  std::time_t time_received;
-  std::optional<std::time_t> time_scheduled;
-  nice_type request_type;
+    std::time_t time_received;
+    std::optional<std::time_t> time_scheduled;
+    nice_type request_type;
 };
 
-std::optional<Request> parse_request(char *data_, const size_t &bytes_received,
-                                     const size_t &buffer_max_length);
+std::optional<Request> parse_request(char *data_, const size_t &bytes_received, const size_t &buffer_max_length);
 std::optional<Request> request_by_path(std::string path);
 
 /**
@@ -57,6 +56,6 @@ bool retry_request(Request &request_);
 size_t requests_count();
 void remove_request(std::string request_key);
 void decrement_niceness();
-} // namespace scheduler
+}  // namespace scheduler
 
 #endif

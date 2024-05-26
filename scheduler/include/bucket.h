@@ -1,11 +1,11 @@
 // Copyright 2024 tiksan
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,12 +25,12 @@ enum class insertion_status { queued, immediate_insert };
 
 class RequestBucket {
 public:
-	RequestBucket();
-	insertion_status try_emplace(scheduler::Request& request_);
+  RequestBucket();
+  insertion_status try_emplace(scheduler::Request &request_);
 
 private:
-	const std::time_t start_timestamp;
-	std::vector<scheduler::Request> bucket_requests;
+  const std::time_t start_timestamp;
+  std::vector<scheduler::Request> bucket_requests;
 };
 
 /**
@@ -40,6 +40,6 @@ private:
  * @return Bucket the request is inserted into
  */
 scheduler::RequestBucket insert_request(scheduler::Request &request_);
-}
+} // namespace scheduler
 
 #endif

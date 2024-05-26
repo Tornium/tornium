@@ -12,21 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ARGS_H
-#define ARGS_H
+#ifndef HTTP_H
+#define HTTP_H
 
-#include "config.h"
+#include "request.h"
 
 namespace scheduler {
-
-/**
- * @brief Parse the arguments passed into the CLI into the config struct
- *
- * @param argc Count of characters in arguments
- * @param argv Character array of arguments
- * @param config_ Reference to struct of globally shared configuration
- */
-void parse_args(int argc, char *argv[], scheduler::config &config_);
-
+void emplace_http_requeset(scheduler::Request &request_);
+void check_request();
 } // namespace scheduler
+
 #endif

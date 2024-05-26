@@ -13,10 +13,15 @@ CPMAddPackage(
 	VERSION 3.0.0
 	OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
 )
+CPMAddPackage(
+	GITHUB_REPOSITORY libcpr/cpr
+	GIT_TAG 1.10.5
+	OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
+)
 
 find_package(Boost REQUIRED COMPONENTS url)
 
-target_link_libraries(scheduler PRIVATE cxxopts ${Boost_LIBRARIES})
+target_link_libraries(scheduler PRIVATE cxxopts cpr ${Boost_LIBRARIES})
 
 target_compile_options(scheduler PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wunused-parameter -Wno-long-long -pedantic)
 

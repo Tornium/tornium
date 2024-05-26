@@ -1,11 +1,11 @@
 // Copyright 2024 tiksan
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,11 +19,11 @@
 
 namespace scheduler {
 /**
- * @brief Insert a request into the user's sorted vector of enqueued requests
+ * @brief Insert a request into the user's sorted vector of queued requests
  *
  * @param request_ Reference to the request
  */
-void enqueue_request(scheduler::Request& request_);
-}
+void queue_request(scheduler::Request &request_);
+} // namespace scheduler
 
 #endif

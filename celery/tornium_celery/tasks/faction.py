@@ -1244,11 +1244,11 @@ def check_attacks(faction_data: dict, last_attacks: int):
             "components": [],
         }
 
-        # for role in attack_config.chain_alert_roles:
-        #     if "content" not in payload:
-        #         payload["content"] = ""
-        #
-        #     payload["content"] += f"<@&{role}>"
+        for role in attack_config.chain_alert_roles:
+            if "content" not in payload:
+                payload["content"] = ""
+
+            payload["content"] += f"<@&{role}>"
 
         discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
 

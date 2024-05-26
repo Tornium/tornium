@@ -16,8 +16,8 @@
 // @grant        GM_deleteValue
 // @connect      tornium.com
 // @run-at       document-idle
-// @downloadURL  https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-assist.user.js
-// @updateURL    https://raw.githubusercontent.com/Tornium/tornium-core/master/static/userscripts/tornium-assist.user.js
+// @downloadURL  https://raw.githubusercontent.com/Tornium/tornium/master/userscripts/tornium-assist.user.js
+// @updateURL    https://raw.githubusercontent.com/Tornium/tornium/master/userscripts/tornium-assist.user.js
 // @supportURL   https://discord.gg/pPcqTRTRyF
 // @require     https://github.com/Kwack-Kwack/GMforPDA/raw/main/GMforPDA.user.js
 // ==/UserScript==

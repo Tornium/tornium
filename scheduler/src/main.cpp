@@ -17,6 +17,7 @@
 #include <boost/asio/io_context.hpp>
 #include <cxxopts.hpp>
 #include <string>
+#include <thread>
 
 #include "args.h"
 #include "config.h"
@@ -27,14 +28,14 @@ int main(int argc, char *argv[]) {
     scheduler::config config_;
     scheduler::parse_args(argc, argv, config_);
 
-    // TODO: Start API call processing thread
-
     ::unlink(config_.socket_path.c_str());
     boost::asio::io_context io_context_;
     scheduler::DatagramServer s_(io_context_, config_);
     s_.do_receive();
 
-    std::thread http_check_thread(scheduler::check_request);
+    std::thread http_thread(scheduler::start_curl_uv_loop);
 
     io_context_.run();
+
+    return 0;
 }

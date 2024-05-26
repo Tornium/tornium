@@ -19,7 +19,11 @@
 
 namespace scheduler {
 void emplace_http_requeset(scheduler::Request &request_);
-void check_request();
+void start_curl_uv_loop();
+
+struct http_response {
+    char *response_body;
+};
 }  // namespace scheduler
 
 #endif

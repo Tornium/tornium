@@ -9,6 +9,8 @@ Tornium Scheduler requires the following to build the software:
 - A C++20 compatible compiler such as GCC and Clang
 - CMake
 - Boost 1.81.0 or greater
+- libcurl
+- libuv
 
 Additionally, Tornium Scheduler is only set up for a Linux/Unix or MacOS file system at this time.
 

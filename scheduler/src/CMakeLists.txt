@@ -13,15 +13,23 @@ CPMAddPackage(
 	VERSION 3.0.0
 	OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
 )
-CPMAddPackage(
-	GITHUB_REPOSITORY libcpr/cpr
-	GIT_TAG 1.10.5
-	OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
-)
 
 find_package(Boost REQUIRED COMPONENTS url)
+find_package(CURL REQUIRED)
 
-target_link_libraries(scheduler PRIVATE cxxopts cpr ${Boost_LIBRARIES})
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+	CPMAddPackage(
+		GITHUB_REPOSITORY libuv/libuv
+		GIT_TAG v1.48.0
+		OPTIONS "CXXOPTS_BUILD_EXAMPLES NO" "CXXOPTS_BUILD_TESTS NO" "CXXOPTS_ENABLE_INSTALL YES"
+	)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+	pkg_check_modules(scheduler libuv)
+else()
+	message(WARNING "Unknown build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+target_link_libraries(scheduler PRIVATE cxxopts uv curl ${Boost_LIBRARIES})
 
 target_compile_options(scheduler PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wunused-parameter -Wno-long-long -pedantic)
 

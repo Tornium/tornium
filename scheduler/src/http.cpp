@@ -14,81 +14,217 @@
 
 #include "http.h"
 
-#include <cpr/cpr.h>
+#include <curl/curl.h>
+#include <unistd.h>
+#include <uv.h>
 
-#include <boost/url/parse.hpp>
-#include <boost/url/urls.hpp>
-#include <chrono>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <memory>
-#include <vector>
+#include <ostream>
+#include <string>
 
-#include "cpr/api.h"
-#include "cpr/session.h"
 #include "request.h"
 
-std::vector<std::unique_ptr<cpr::AsyncResponse>> pending_requests = {};
+// Contains one or more handlers for the individual transfers
+static CURLM *curl_handler;
 
-// Pre-allocate the memory for these objects
-std::vector<std::unique_ptr<cpr::AsyncResponse>>::iterator request_iterator;
-boost::url_view request_url;
-const std::chrono::seconds request_wait_period = std::chrono::seconds{0};
+// Default loop provided by libuv
+//
+// https://docs.libuv.org/en/v1.x/guide/basics.html#default-loop
+static uv_loop_t *event_loop;
 
-void scheduler::emplace_http_requeset(scheduler::Request &request_) {
-    cpr::Url url = cpr::Url(request_.endpoint);
-    pending_requests.push_back(std::make_unique<cpr::AsyncResponse>(cpr::GetAsync(url)));
+// Timer used for socket timeouts
+//
+// https://docs.libuv.org/en/v1.x/guide/utilities.html#timers
+static uv_timer_t timeout_timer;
 
-    std::cout << "Pending request count: " << pending_requests.size() << std::endl;
+typedef struct curl_context_s {
+    uv_poll_t poll_handle;
+    curl_socket_t socket_fd;
+} curl_context_t;
+
+struct response {
+    char *memory;
+    size_t size;
+};
+
+void after_process_http_response(uv_work_t *work, int status) {
+    free(work -> data);
+    free(work);
     return;
 }
 
-void scheduler::check_request() {
-    std::cout << "Starting requests checks" << std::endl;
+void process_http_response(uv_work_t *work) {
+    std::string body_buffer(((scheduler::http_response*) work ->data)->response_body);
+    std::cout << body_buffer << std::endl;
+    return;
+}
 
-    do {
-        // FIXME: For some reason, without a usleep here, the while loop has issues
-        // checking values
-        // TODO: Re-use sessions and connections
-        usleep(5);
+size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, void *userp) {
+    scheduler::http_response *response_ = (scheduler::http_response *) malloc(sizeof(scheduler::http_response));
+    response_ -> response_body = contents;
 
-        request_iterator = pending_requests.begin();
+    uv_work_t *work = (uv_work_t *) malloc(sizeof(uv_work_t));
+    work -> data = response_;
+    uv_queue_work(event_loop, work, process_http_response, after_process_http_response);
 
-        while (request_iterator != pending_requests.end()) {
-            const auto pending_response = request_iterator->get();
-            if (!pending_response->valid() or
-                pending_response->wait_for(request_wait_period) == std::future_status::ready) {
-                request_iterator++;
-                continue;
+    return size * number_megabytes;
+}
+
+void scheduler::emplace_http_requeset(scheduler::Request &request_) {
+    // Handle to the transfer
+    CURL *handle = curl_easy_init();
+
+    // Black hole the data normally passed to stdout or a file pointer
+    struct response void_chunk = {.memory=(char*) malloc(0), .size=0};
+
+    // Add various options to the handle for the transfer
+    // https://everything.curl.dev/transfers/options/index.html
+    curl_easy_setopt(handle, CURLOPT_URL, request_.endpoint.c_str());
+    curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, 5000L);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, on_write_callback);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, void_chunk);
+
+    curl_multi_add_handle(curl_handler, handle);
+    return;
+}
+
+void check_multi_info() {
+    char* completed_request_url;
+    CURLMsg *message;
+    int pending;
+
+    while ((message = curl_multi_info_read(curl_handler, &pending))) {
+        switch (message->msg) {
+            case CURLMSG_DONE:
+                curl_easy_getinfo(message->easy_handle, CURLINFO_EFFECTIVE_URL, &completed_request_url);
+
+                curl_multi_remove_handle(curl_handler, message->easy_handle);
+                curl_easy_cleanup(message->easy_handle);
+                break;
+            default:
+                abort();
+        }
+    }
+}
+
+void curl_perform(uv_poll_t *req, int status, int events) {
+    uv_timer_stop(&timeout_timer);
+    int running_handles;
+    int flags = 0;
+    if (status < 0) flags = CURL_CSELECT_ERR;
+    if (!status && events & UV_READABLE) flags |= CURL_CSELECT_IN;
+    if (!status && events & UV_WRITABLE) flags |= CURL_CSELECT_OUT;
+
+    curl_context_t *context;
+    context = (curl_context_t *)req;
+
+    curl_multi_socket_action(curl_handler, context->socket_fd, flags, &running_handles);
+    check_multi_info();
+}
+
+void curl_close_callback(uv_handle_t *handle) {
+    free(handle->data);
+}
+
+curl_context_t *create_curl_context(curl_socket_t socket_fd) {
+    curl_context_t *context = (curl_context_t *)malloc(sizeof *context);
+    context->socket_fd = socket_fd;
+
+    uv_poll_init_socket(event_loop, &context->poll_handle, socket_fd);
+    context->poll_handle.data = context;
+
+    return context;
+}
+
+int curl_socket_callback_(CURL *handle, curl_socket_t socket_, int action,
+                          void *clientp,  // Private callback pointer
+                          void *socketp   // Private socket pointer
+) {
+    // https://curl.se/libcurl/c/CURLMOPT_SOCKETFUNCTION.html
+    // https://docs.libuv.org/en/v1.x/guide/utilities.html#external-i-o-with-polling
+    //
+    // uv_poll_start: https://docs.libuv.org/en/v1.x/poll.html#c.uv_poll_start
+
+    curl_context_t *curl_context;
+
+    if (action == CURL_POLL_IN || action == CURL_POLL_OUT) {
+        if (socketp) {
+            curl_context = (curl_context_t *)socketp;
+        } else {
+            curl_context = create_curl_context(socket_);
+            curl_multi_assign(curl_handler, socket_, (void *)curl_context);
+        }
+    }
+
+    switch (action) {
+        case CURL_POLL_IN:
+            uv_poll_start(&curl_context->poll_handle, UV_READABLE, curl_perform);
+            break;
+        case CURL_POLL_OUT:
+            uv_poll_start(&curl_context->poll_handle, UV_WRITABLE, curl_perform);
+            break;
+        case CURL_POLL_REMOVE:
+            if (socketp) {
+                uv_poll_stop(&((curl_context_t *)socketp)->poll_handle);
+                // uv_close((uv_handle_t *) &curl_context->poll_handle, curl_close_callback);
+                curl_multi_assign(curl_handler, socket_, NULL);
             }
 
-            const cpr::Response response = pending_response->get();
-            request_url = boost::url_view(
-                boost::system::result<boost::url_view>(boost::urls::parse_uri(response.url.str())).value());
+            break;
+        default:
+            abort();
+    }
 
-            if (not response.error.message.empty()) {
-                // TODO: Make sure that error checking is valid
-                // TODO: Handle errors properly
-                // TODO: Implement max retries into request class and retries into
-                // logic
-                std::cout << response.status_code << std::endl;
-                std::cout << response.error.message << std::endl;
+    return 0;
+}
 
-                std::optional<scheduler::Request> request_ = scheduler::request_by_path(request_url.path());
+void on_socket_timeout(uv_timer_t *req) {
+    int running_handles;
+    curl_multi_socket_action(curl_handler, CURL_SOCKET_TIMEOUT, 0, &running_handles);
+}
 
-                if (request_ and !scheduler::retry_request(request_.value())) {
-                    // Request was not able to be retried as the number of retries would
-                    // be greater than the maximum number of retries specified for this
-                    // request.
+void curl_socket_timer(CURLM *multi, long timeout_milliseconds, void *userp) {
+    if (timeout_milliseconds <= 0) {
+        timeout_milliseconds = 1; /* 0 means directly call socket_action, but we'll do it in a bit */
+    }
 
-                    // TODO: Push this error to the queue
-                }
-            }
+    uv_timer_start(&timeout_timer, on_socket_timeout, timeout_milliseconds, 0);
+}
 
-            std::cout << response.text << std::endl;
+void idle_handle_callback(uv_idle_t *handle) {
+    usleep(5);
+    return;
+}
 
-            request_iterator = pending_requests.erase(request_iterator);
-            scheduler::remove_request(request_url.path());
-            // TODO: Remove request in other places too
-        };
-    } while (true);
+void scheduler::start_curl_uv_loop() {
+    // Curl global initialization is required
+    // Especially to ensure that thread safety
+    //
+    // https://everything.curl.dev/libcurl/globalinit.html
+    if (curl_global_init(CURL_GLOBAL_ALL)) {
+        std::cerr << "Unable to init curl" << std::endl;
+        exit(1);
+    }
+
+    event_loop = uv_default_loop();
+    uv_timer_init(event_loop, &timeout_timer);
+
+    // Handle to prevent uvloop from finishing when no requests are present
+    uv_idle_t idler;
+    uv_idle_init(event_loop, &idler);
+    uv_idle_start(&idler, idle_handle_callback);
+
+    std::cout << "event loop started" << std::endl;
+
+    curl_handler = curl_multi_init();
+    curl_multi_setopt(curl_handler, CURLMOPT_SOCKETFUNCTION, curl_socket_callback_);
+    curl_multi_setopt(curl_handler, CURLMOPT_TIMERFUNCTION, curl_socket_timer);
+
+    uv_run(event_loop, UV_RUN_DEFAULT);
+
+    curl_multi_cleanup(curl_handler);
+    return;
 }

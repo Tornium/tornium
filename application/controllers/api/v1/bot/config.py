@@ -103,10 +103,6 @@ def jsonified_server_config(guild: Server):
             }
             for faction_id, faction_oc_config in guild.oc_config.items()
         },
-        "stocks": {
-            "channel": str(guild.stocks_channel),
-            **guild.stocks_config,
-        },
     }
 
     for faction in data["verify"]["faction_verify"]:

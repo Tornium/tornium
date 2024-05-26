@@ -76,11 +76,6 @@ class Server(BaseModel):
     # OC configuration
     oc_config = JSONField(default={})
 
-    # Stocks configuration
-    # TODO: rework this schema before this feature is released
-    stocks_channel = BigIntegerField(default=0)
-    stocks_config = JSONField(default={}, index=False)
-
     def get_text_channels(
         self,
         discord_get: typing.Callable,

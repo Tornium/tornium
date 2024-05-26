@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.3
+// @version      0.3.4
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Assist
 // @namespace    https://tornium.com
-// @version      1.0.2
+// @version      1.0.3
 // @description  Sent an assist request to applicable Discord servers
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/loader.php?sid=attack*

@@ -48,26 +48,30 @@ typedef struct curl_context_s {
 struct response {
     char *memory;
     size_t size;
+    scheduler::Request *request_;
 };
 
-void after_process_http_response(uv_work_t *work, int status) {
-    free(work -> data);
+void after_process_http_response(uv_work_t *work, int /*status*/) {
+    free(work->data);
     free(work);
     return;
 }
 
 void process_http_response(uv_work_t *work) {
-    std::string body_buffer(((scheduler::http_response*) work ->data)->response_body);
+    std::string body_buffer(((scheduler::http_response *)work->data)->response_body);
     std::cout << body_buffer << std::endl;
     return;
 }
 
 size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, void *userp) {
-    scheduler::http_response *response_ = (scheduler::http_response *) malloc(sizeof(scheduler::http_response));
-    response_ -> response_body = contents;
+    std::string endpoint = ((struct response *)userp)->request_->endpoint;
+    std::cout << "Received response from " << endpoint << std::endl;
 
-    uv_work_t *work = (uv_work_t *) malloc(sizeof(uv_work_t));
-    work -> data = response_;
+    scheduler::http_response *response_ = (scheduler::http_response *)malloc(sizeof(scheduler::http_response));
+    response_->response_body = contents;
+
+    uv_work_t *work = (uv_work_t *)malloc(sizeof(uv_work_t));
+    work->data = response_;
     uv_queue_work(event_loop, work, process_http_response, after_process_http_response);
 
     return size * number_megabytes;
@@ -78,21 +82,25 @@ void scheduler::emplace_http_requeset(scheduler::Request &request_) {
     CURL *handle = curl_easy_init();
 
     // Black hole the data normally passed to stdout or a file pointer
-    struct response void_chunk = {.memory=(char*) malloc(0), .size=0};
+    // struct response void_chunk = {.memory=(char*) malloc(0), .size=0};
+    struct response *response_chunk = (struct response *)malloc(sizeof(response));
+    response_chunk->memory = (char *)malloc(0);
+    response_chunk->size = 0;
+    response_chunk->request_ = &request_;
 
     // Add various options to the handle for the transfer
     // https://everything.curl.dev/transfers/options/index.html
     curl_easy_setopt(handle, CURLOPT_URL, request_.endpoint.c_str());
     curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, 5000L);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, on_write_callback);
-    curl_easy_setopt(handle, CURLOPT_WRITEDATA, void_chunk);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, response_chunk);
 
     curl_multi_add_handle(curl_handler, handle);
     return;
 }
 
 void check_multi_info() {
-    char* completed_request_url;
+    char *completed_request_url;
     CURLMsg *message;
     int pending;
 
@@ -125,9 +133,7 @@ void curl_perform(uv_poll_t *req, int status, int events) {
     check_multi_info();
 }
 
-void curl_close_callback(uv_handle_t *handle) {
-    free(handle->data);
-}
+void curl_close_callback(uv_handle_t *handle) { free(handle->data); }
 
 curl_context_t *create_curl_context(curl_socket_t socket_fd) {
     curl_context_t *context = (curl_context_t *)malloc(sizeof *context);

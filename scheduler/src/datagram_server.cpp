@@ -35,7 +35,7 @@ void scheduler::DatagramServer::do_receive() {
             return;
         }
 
-        std::optional<scheduler::Request> r = scheduler::parse_request(data_, bytes_received, SOCKET_BUFFER_MAX_LENGTH);
+        std::optional<scheduler::Request*> r = scheduler::parse_request(data_, bytes_received, SOCKET_BUFFER_MAX_LENGTH);
 
         if (!r.has_value()) {
             do_receive();
@@ -43,7 +43,7 @@ void scheduler::DatagramServer::do_receive() {
         }
 
         if (scheduler::enqueue_request(r.value())) {
-            std::cout << "Received request... " << r->endpoint_id << " :: " << (int)r->nice << " :: " << r->user_id
+            std::cout << "Received request... " << r.value()->endpoint_id << " :: " << (int)r.value()->nice << " :: " << r.value()->user_id
                       << std::endl;
             scheduler::insert_request(r.value());
         } else {

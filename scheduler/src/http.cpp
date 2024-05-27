@@ -54,6 +54,7 @@ struct response {
 void after_process_http_response(uv_work_t *work, int /*status*/) {
     free(work->data);
     free(work);
+    exit(0);
     return;
 }
 
@@ -64,7 +65,7 @@ void process_http_response(uv_work_t *work) {
 }
 
 size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, void *userp) {
-    std::string endpoint = ((struct response *)userp)->request_->endpoint;
+    std::string endpoint = std::string(((struct response *)userp)->request_->endpoint);
     std::cout << "Received response from " << endpoint << std::endl;
 
     scheduler::http_response *response_ = (scheduler::http_response *)malloc(sizeof(scheduler::http_response));
@@ -74,10 +75,13 @@ size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, v
     work->data = response_;
     uv_queue_work(event_loop, work, process_http_response, after_process_http_response);
 
+    delete ((struct response *) userp)->request_;
+    free(userp);
+
     return size * number_megabytes;
 }
 
-void scheduler::emplace_http_requeset(scheduler::Request &request_) {
+void scheduler::emplace_http_requeset(scheduler::Request *request_) {
     // Handle to the transfer
     CURL *handle = curl_easy_init();
 
@@ -86,11 +90,11 @@ void scheduler::emplace_http_requeset(scheduler::Request &request_) {
     struct response *response_chunk = (struct response *)malloc(sizeof(response));
     response_chunk->memory = (char *)malloc(0);
     response_chunk->size = 0;
-    response_chunk->request_ = &request_;
+    response_chunk->request_ = request_;
 
     // Add various options to the handle for the transfer
     // https://everything.curl.dev/transfers/options/index.html
-    curl_easy_setopt(handle, CURLOPT_URL, request_.endpoint.c_str());
+    curl_easy_setopt(handle, CURLOPT_URL, request_ -> endpoint.c_str());
     curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, 5000L);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, on_write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, response_chunk);
@@ -133,8 +137,6 @@ void curl_perform(uv_poll_t *req, int status, int events) {
     check_multi_info();
 }
 
-void curl_close_callback(uv_handle_t *handle) { free(handle->data); }
-
 curl_context_t *create_curl_context(curl_socket_t socket_fd) {
     curl_context_t *context = (curl_context_t *)malloc(sizeof *context);
     context->socket_fd = socket_fd;
@@ -145,9 +147,9 @@ curl_context_t *create_curl_context(curl_socket_t socket_fd) {
     return context;
 }
 
-int curl_socket_callback_(CURL *handle, curl_socket_t socket_, int action,
-                          void *clientp,  // Private callback pointer
-                          void *socketp   // Private socket pointer
+int curl_socket_callback_(CURL * /*handle*/, curl_socket_t socket_, int action,
+                          void * /*clientp*/,  // Private callback pointer
+                          void *socketp        // Private socket pointer
 ) {
     // https://curl.se/libcurl/c/CURLMOPT_SOCKETFUNCTION.html
     // https://docs.libuv.org/en/v1.x/guide/utilities.html#external-i-o-with-polling
@@ -175,7 +177,6 @@ int curl_socket_callback_(CURL *handle, curl_socket_t socket_, int action,
         case CURL_POLL_REMOVE:
             if (socketp) {
                 uv_poll_stop(&((curl_context_t *)socketp)->poll_handle);
-                // uv_close((uv_handle_t *) &curl_context->poll_handle, curl_close_callback);
                 curl_multi_assign(curl_handler, socket_, NULL);
             }
 
@@ -187,12 +188,12 @@ int curl_socket_callback_(CURL *handle, curl_socket_t socket_, int action,
     return 0;
 }
 
-void on_socket_timeout(uv_timer_t *req) {
+void on_socket_timeout(uv_timer_t * /*req*/) {
     int running_handles;
     curl_multi_socket_action(curl_handler, CURL_SOCKET_TIMEOUT, 0, &running_handles);
 }
 
-void curl_socket_timer(CURLM *multi, long timeout_milliseconds, void *userp) {
+void curl_socket_timer(CURLM * /*multi*/, size_t timeout_milliseconds, void * /*userp*/) {
     if (timeout_milliseconds <= 0) {
         timeout_milliseconds = 1; /* 0 means directly call socket_action, but we'll do it in a bit */
     }
@@ -200,7 +201,7 @@ void curl_socket_timer(CURLM *multi, long timeout_milliseconds, void *userp) {
     uv_timer_start(&timeout_timer, on_socket_timeout, timeout_milliseconds, 0);
 }
 
-void idle_handle_callback(uv_idle_t *handle) {
+void idle_handle_callback(uv_idle_t * /*handle*/) {
     usleep(5);
     return;
 }

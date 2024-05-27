@@ -18,7 +18,7 @@
 #include "request.h"
 
 namespace scheduler {
-void emplace_http_requeset(scheduler::Request &request_);
+void emplace_http_requeset(scheduler::Request *request_);
 void start_curl_uv_loop();
 
 struct http_response {

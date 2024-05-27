@@ -17,7 +17,6 @@
 
 #include <cstdint>
 #include <ctime>
-#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -32,26 +31,26 @@ struct Request {
     uint32_t user_id;
     uint8_t remaining_retries;
 
-    std::vector<Request> linked_requests;
+    std::vector<Request*> linked_requests;
 
     std::time_t time_received;
     std::optional<std::time_t> time_scheduled;
     nice_type request_type;
 };
 
-std::optional<Request> parse_request(char *data_, const size_t &bytes_received, const size_t &buffer_max_length);
-std::optional<Request> request_by_path(std::string path);
+std::optional<Request*> parse_request(char *data_, const size_t &bytes_received, const size_t &buffer_max_length);
+std::optional<Request*> request_by_path(std::string path);
 
 /**
  * @brief Try to insert the request into the list of all received requests that
  * haven't been completed
  *
  * @param request_ Reference to the request received
- * @return True if the request has been added to the multimap, False if the
- * request wasn't able to be added and needs to be linked to an existing request
+ * @return True if the request has been added to the map, False if the request wasn't able to be added and needs to be
+ * linked to an existing request
  */
-bool enqueue_request(Request &request_);
-bool retry_request(Request &request_);
+bool enqueue_request(Request *request_);
+bool retry_request(Request *request_);
 
 size_t requests_count();
 void remove_request(std::string request_key);

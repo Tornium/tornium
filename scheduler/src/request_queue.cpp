@@ -15,6 +15,7 @@
 #include "request_queue.h"
 
 #include <algorithm>
+#include <map>
 
 #include "request.h"
 
@@ -29,11 +30,11 @@ bool compare_request_priority(const scheduler::Request *r1, const scheduler::Req
     return r1->nice < r2->nice;
 }
 
-void scheduler::queue_request(scheduler::Request &request_) {
+void scheduler::queue_request(scheduler::Request *request_) {
     std::vector<scheduler::Request *> &user_request_queue =
-        request_queue.try_emplace(request_.user_id, std::vector<Request *>{}).first->second;
+        request_queue.try_emplace(request_->user_id, std::vector<Request *>{}).first->second;
 
     auto sorting_iterator =
-        std::lower_bound(user_request_queue.begin(), user_request_queue.end(), &request_, compare_request_priority);
-    user_request_queue.insert(sorting_iterator, &request_);
+        std::lower_bound(user_request_queue.begin(), user_request_queue.end(), request_, compare_request_priority);
+    user_request_queue.insert(sorting_iterator, request_);
 }

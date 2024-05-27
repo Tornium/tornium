@@ -25,9 +25,9 @@
 #include <ostream>
 #include <stdexcept>
 
-static std::multimap<std::string, scheduler::Request &> requests_map = {};
+static std::map<std::string, scheduler::Request*> requests_map = {};
 
-std::optional<scheduler::Request> scheduler::parse_request(char *data_, const size_t &bytes_received,
+std::optional<scheduler::Request*> scheduler::parse_request(char *data_, const size_t &bytes_received,
                                                            const size_t &buffer_max_length) {
     uint8_t parse_step = 0;
     std::string nice_string = "";
@@ -86,22 +86,21 @@ std::optional<scheduler::Request> scheduler::parse_request(char *data_, const si
         endpoint_id.append("?" + parsed_uri->query());
     }
 
-    scheduler::Request request_ = {
-        .nice = niceness,
-        .endpoint = endpoint,
-        .endpoint_id = endpoint_id,
-        .user_id = user,
-        .remaining_retries = max_retries,
-        .linked_requests = std::vector<Request>{},
-        .time_received = std::time(0),
-        .time_scheduled = std::nullopt,
-        .request_type = parsed_request_type,
-    };
+    scheduler::Request *request_ = new scheduler::Request();
+    request_->nice = niceness;
+    request_->endpoint = endpoint;
+    request_->endpoint_id = endpoint_id;
+    request_->user_id = user;
+    request_->remaining_retries = max_retries;
+    request_->linked_requests = std::vector<Request*>{};
+    request_->time_received = std::time(0);
+    request_->time_scheduled = std::nullopt;
+    request_->request_type = parsed_request_type;
 
     return request_;
 }
 
-std::optional<scheduler::Request> scheduler::request_by_path(std::string path) {
+std::optional<scheduler::Request*> scheduler::request_by_path(std::string path) {
     if (auto request_ = requests_map.find(path); request_ == requests_map.end()) {
         return std::nullopt;
     } else {
@@ -109,28 +108,23 @@ std::optional<scheduler::Request> scheduler::request_by_path(std::string path) {
     }
 }
 
-bool scheduler::enqueue_request(scheduler::Request &request_) {
-    // TODO: Rename function
-    if (requests_map.count(request_.endpoint_id) > 0) {
-        auto existing_keys_range = requests_map.equal_range(request_.endpoint_id);
+bool scheduler::enqueue_request(scheduler::Request *request_) {
+    const auto [iterator, success] = requests_map.insert({request_->endpoint_id, request_});
 
-        for (auto i = existing_keys_range.first; i != existing_keys_range.second; i++) {
-            // TODO: Implement this to check the endpoint used to determine if the
-            // request should be linked to the existing request
-            return false;
-        }
+    if (success) {
+        return true;
     }
 
-    requests_map.insert({request_.endpoint_id, request_});
-    return true;
+    iterator->second->linked_requests.push_back(request_);
+    return false;
 }
 
-bool scheduler::retry_request(scheduler::Request &request_) {
-    if (request_.remaining_retries == 0) {
+bool scheduler::retry_request(scheduler::Request *request_) {
+    if (request_->remaining_retries == 0) {
         return false;
     }
 
-    request_.remaining_retries--;
+    request_->remaining_retries--;
     // TODO: Re-push request to the scheduler
     return true;
 }
@@ -143,10 +137,10 @@ void scheduler::decrement_niceness() {
     // TODO: Rename function
 
     for (auto request_ : requests_map) {
-        if (request_.second.time_scheduled != std::nullopt) {
+        if (request_.second->time_scheduled != std::nullopt) {
             continue;
         }
 
-        request_.second.nice--;
+        request_.second->nice--;
     }
 }

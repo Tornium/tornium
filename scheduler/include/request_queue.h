@@ -21,9 +21,9 @@ namespace scheduler {
 /**
  * @brief Insert a request into the user's sorted vector of queued requests
  *
- * @param request_ Reference to the request
+ * @param request_ Pointer to the request
  */
-void queue_request(scheduler::Request &request_);
+void queue_request(scheduler::Request *request_);
 }  // namespace scheduler
 
 #endif

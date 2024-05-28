@@ -1169,9 +1169,14 @@ def check_attacks(faction_data: dict, last_attacks: int):
             # TODO: Check possible_retals if the retaliation attack data is in the same API response as the original attack
 
             retal: Retaliation
-            for retal in Retaliation.select(Retaliation.channel_id, Retaliation.message_id).where(
-                (Retaliation.attacker == attack["defender_id"])
-                & (Retaliation.defender.faction == attack["attacker_faction"])
+            for retal in (
+                Retaliation.select(Retaliation.channel_id, Retaliation.message_id)
+                .where(
+                    (Retaliation.attacker == attack["defender_id"])
+                    & (Retaliation.defender.faction == attack["attacker_faction"])
+                )
+                .join(User, on=Retaliation.defender)
+                .join(Faction)
             ):
                 discordpatch.delay(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",

@@ -786,18 +786,46 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
 
 
 def validate_attack_retaliation(attack: dict, faction: Faction) -> bool:
+    """
+    Validate that the attack is a valid attack that would have completed a retaliation
+
+    Args:
+        attack: dict
+            Torn attack data
+        faction: Faction
+            Faction model for the faction this job is running for
+
+    Returns:
+        retaliation: bool
+            Whether the attack was a valid retaliation
+    """
+
     if attack["result"] != "Hospitalized":
         return False
-    elif attack["defender_faction"] == faction.tid:
-        # Attack was an incoming attack/defend
+    elif attack["attacker_faction"] != faction.tid:
+        # Attack was not an outgoing attack/defend
         return False
-    elif attack["modifiers"]["retaliation"] != 1:
+    elif attack["modifiers"]["retaliation"] == 1:
         return False
 
     return True
 
 
 def validate_attack_available_retaliation(attack: dict, faction: Faction) -> bool:
+    """
+    Validate that the attack is a valid attack that can be retaliated for
+
+    Args:
+        attack: dict
+            Torn attack data
+        faction: Faction
+            Faction model for the faction this job is running for
+
+    Returns:
+        retaliation: bool
+            Whether this attack is a valid attack that can be retaliated
+    """
+
     if attack["defender_faction"] != faction.tid:
         # Attack was an outgoing attack
         return False
@@ -1138,15 +1166,12 @@ def check_attacks(faction_data: dict, last_attacks: int):
             continue
 
         if ALERT_RETALS and validate_attack_retaliation(attack, faction):
+            # TODO: Check possible_retals if the retaliation attack data is in the same API response as the original attack
+
             retal: Retaliation
-            for retal in (  # TODO: Limit select to necessary fields
-                Retaliation.select()
-                .where(
-                    (Retaliation.attacker == attack["defender_id"])
-                    & (Retaliation.defender.faction == attack["attacker_faction"])
-                )
-                .join(User, on=Retaliation.defender)
-                .join(Faction)
+            for retal in Retaliation.select(Retaliation.channel_id, Retaliation.message_id).where(
+                (Retaliation.attacker == attack["defender_id"])
+                & (Retaliation.defender.faction == attack["attacker_faction"])
             ):
                 discordpatch.delay(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",

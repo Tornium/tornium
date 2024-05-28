@@ -19,6 +19,7 @@
 #include <uv.h>
 
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -45,38 +46,48 @@ typedef struct curl_context_s {
     curl_socket_t socket_fd;
 } curl_context_t;
 
-struct response {
+struct shared_memory {
     char *memory;
     size_t size;
     scheduler::Request *request_;
+    char *response_body;
 };
 
 void after_process_http_response(uv_work_t *work, int /*status*/) {
-    free(work->data);
+    std::cout << "Freeing memory for " << work->data << std::endl;
+    for (scheduler::Request *linked_request : ((shared_memory *)work->data)->request_->linked_requests) {
+        delete linked_request;
+    }
+
+    free(((shared_memory *)work->data)->response_body);
+    delete ((shared_memory *)work->data)->request_;
+    delete (struct shared_memory *)work->data;
     free(work);
-    exit(0);
     return;
 }
 
 void process_http_response(uv_work_t *work) {
-    std::string body_buffer(((scheduler::http_response *)work->data)->response_body);
-    std::cout << body_buffer << std::endl;
+    struct shared_memory m = *((struct shared_memory *)work->data);
+
+    // FIXME: There's a heap overflow on the print somehow
+    // Can be seen with `cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address" ..`
+    // Valgrind show an "Invalid read of size 1 by strlen"
+    std::cout << m.response_body << std::endl;
+
     return;
 }
 
-size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, void *userp) {
-    std::string endpoint = std::string(((struct response *)userp)->request_->endpoint);
+size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, struct shared_memory *userp) {
+    std::string endpoint = std::string(userp->request_->endpoint);
     std::cout << "Received response from " << endpoint << std::endl;
 
-    scheduler::http_response *response_ = (scheduler::http_response *)malloc(sizeof(scheduler::http_response));
-    response_->response_body = contents;
+    userp->response_body = (char *)malloc(size * number_megabytes);
+    strncpy(userp->response_body, contents, size * number_megabytes);
+    // strcpy(userp->response_body, contents);
 
     uv_work_t *work = (uv_work_t *)malloc(sizeof(uv_work_t));
-    work->data = response_;
+    work->data = userp;
     uv_queue_work(event_loop, work, process_http_response, after_process_http_response);
-
-    delete ((struct response *) userp)->request_;
-    free(userp);
 
     return size * number_megabytes;
 }
@@ -85,21 +96,20 @@ void scheduler::emplace_http_requeset(scheduler::Request *request_) {
     // Handle to the transfer
     CURL *handle = curl_easy_init();
 
-    // Black hole the data normally passed to stdout or a file pointer
-    // struct response void_chunk = {.memory=(char*) malloc(0), .size=0};
-    struct response *response_chunk = (struct response *)malloc(sizeof(response));
-    response_chunk->memory = (char *)malloc(0);
-    response_chunk->size = 0;
-    response_chunk->request_ = request_;
+    struct shared_memory *shared_chunk = new struct shared_memory();
+    shared_chunk->request_ = request_;
 
     // Add various options to the handle for the transfer
     // https://everything.curl.dev/transfers/options/index.html
-    curl_easy_setopt(handle, CURLOPT_URL, request_ -> endpoint.c_str());
+    curl_easy_setopt(handle, CURLOPT_URL, request_->endpoint.c_str());
     curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS, 5000L);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, on_write_callback);
-    curl_easy_setopt(handle, CURLOPT_WRITEDATA, response_chunk);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, shared_chunk);
 
     curl_multi_add_handle(curl_handler, handle);
+
+    // Remove the request from the global request to prevent future requests from linking to this request
+    scheduler::remove_request(request_->endpoint_id);
     return;
 }
 
@@ -180,6 +190,7 @@ int curl_socket_callback_(CURL * /*handle*/, curl_socket_t socket_, int action,
                 curl_multi_assign(curl_handler, socket_, NULL);
             }
 
+            free((curl_context_t *)socketp);
             break;
         default:
             abort();
@@ -194,8 +205,8 @@ void on_socket_timeout(uv_timer_t * /*req*/) {
 }
 
 void curl_socket_timer(CURLM * /*multi*/, size_t timeout_milliseconds, void * /*userp*/) {
-    if (timeout_milliseconds <= 0) {
-        timeout_milliseconds = 1; /* 0 means directly call socket_action, but we'll do it in a bit */
+    if (timeout_milliseconds == 0) {
+        timeout_milliseconds = 1;
     }
 
     uv_timer_start(&timeout_timer, on_socket_timeout, timeout_milliseconds, 0);

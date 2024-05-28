@@ -25,10 +25,10 @@
 #include <ostream>
 #include <stdexcept>
 
-static std::map<std::string, scheduler::Request*> requests_map = {};
+static std::map<std::string, scheduler::Request *> requests_map = {};
 
-std::optional<scheduler::Request*> scheduler::parse_request(char *data_, const size_t &bytes_received,
-                                                           const size_t &buffer_max_length) {
+std::optional<scheduler::Request *> scheduler::parse_request(char *data_, const size_t &bytes_received,
+                                                             const size_t &buffer_max_length) {
     uint8_t parse_step = 0;
     std::string nice_string = "";
     std::string endpoint = "";
@@ -92,7 +92,7 @@ std::optional<scheduler::Request*> scheduler::parse_request(char *data_, const s
     request_->endpoint_id = endpoint_id;
     request_->user_id = user;
     request_->remaining_retries = max_retries;
-    request_->linked_requests = std::vector<Request*>{};
+    request_->linked_requests = std::vector<Request *>{};
     request_->time_received = std::time(0);
     request_->time_scheduled = std::nullopt;
     request_->request_type = parsed_request_type;
@@ -100,7 +100,7 @@ std::optional<scheduler::Request*> scheduler::parse_request(char *data_, const s
     return request_;
 }
 
-std::optional<scheduler::Request*> scheduler::request_by_path(std::string path) {
+std::optional<scheduler::Request *> scheduler::request_by_path(std::string path) {
     if (auto request_ = requests_map.find(path); request_ == requests_map.end()) {
         return std::nullopt;
     } else {

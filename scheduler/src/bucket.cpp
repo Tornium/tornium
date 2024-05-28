@@ -30,14 +30,15 @@ scheduler::RequestBucket::RequestBucket() : start_timestamp(std::time(0)) {}
 scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Request *request_) {
     const bool has_maxed_requests = bucket_requests.size() > REQUESTS_PER_BUCKET;
 
-    if (request_->request_type == nice_type::user_request or request_ -> request_type == nice_type::high_priority_request) {
+    if (request_->request_type == nice_type::user_request or
+        request_->request_type == nice_type::high_priority_request) {
         if (has_maxed_requests) {
             // If the bucket is full and the request is to be immediately inserted,
             // The lowest niceness request will be popped and added to the request
             // tree while this request is executed immediately
 
             std::sort(bucket_requests.begin(), bucket_requests.end(),
-                      [](const scheduler::Request* first, const scheduler::Request* second) {
+                      [](const scheduler::Request *first, const scheduler::Request *second) {
                 return first->nice < second->nice;
             });
 
@@ -58,15 +59,12 @@ scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Req
 }
 
 scheduler::RequestBucket scheduler::insert_request(scheduler::Request *request_) {
-    request_buckets.try_emplace(request_ -> user_id, scheduler::RequestBucket());
-    scheduler::RequestBucket bucket_ = request_buckets[request_ -> user_id];  // TODO: Use the iterator from
-                                                                           // try_emplace to get this
+    request_buckets.try_emplace(request_->user_id, scheduler::RequestBucket());
+    scheduler::RequestBucket bucket_ = request_buckets[request_->user_id];  // TODO: Use the iterator from
+                                                                            // try_emplace to get this
     switch (bucket_.try_emplace(request_)) {
         case scheduler::insertion_status::immediate_insert:
             scheduler::emplace_http_requeset(request_);
-
-            // TODO: Remove request from wherever it's stored
-
             break;
         case scheduler::insertion_status::queued:
             scheduler::queue_request(request_);

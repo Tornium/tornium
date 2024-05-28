@@ -30,7 +30,7 @@ class RequestBucket {
 
    private:
     const std::time_t start_timestamp;
-    std::vector<scheduler::Request*> bucket_requests;
+    std::vector<scheduler::Request *> bucket_requests;
 };
 
 /**

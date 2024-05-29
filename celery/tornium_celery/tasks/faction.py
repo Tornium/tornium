@@ -1185,7 +1185,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                             {
                                 "title": f"Retal Completed for {faction.name}",
                                 "description": (
-                                    f"{attack['attacker_name']} [{attack['attacker_id']} hospitalized {attack['defender_name']} [{attack['defender_id']}] (+{attack['respect_gain']})."
+                                    f"{attack['attacker_name']} [{attack['attacker_id']}] hospitalized {attack['defender_name']} [{attack['defender_id']}] (+{attack['respect_gain']})."
                                 ),
                                 "color": SKYNET_GOOD,
                             }

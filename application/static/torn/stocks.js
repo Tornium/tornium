@@ -13,13 +13,10 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-let STOCKS_DATA;
-let MOVERS_DATA;
-let BENEFITS_DATA;
-
 let benefitsSorted = [];
 let benefitsPage = 0;
 let benefitsLoaded = false;
+let stocksData;
 
 const stocksQuery = tfetch("GET", "stocks", { errorTitle: "Failed to Load Stocks" });
 const moversQuery = tfetch("GET", "stocks/movers", { errorTitle: "Failed to Load Stock Movers" });
@@ -34,7 +31,7 @@ function renderStocksBenefitsPage() {
     let benefitsListed = benefitsSorted.slice(6 * benefitsPage, 6 * benefitsPage + 6);
 
     for (let i = 0; i < benefitsListed.length; i++) {
-        let stock = STOCKS_DATA[benefitsListed[i]["stock_id"]];
+        let stock = stocksData[benefitsListed[i]["stock_id"]];
 
         $(`#passive-${i} .card-header`)
             .empty()
@@ -97,12 +94,12 @@ function renderStocksBenefitsPage() {
 $(document).ready(async function () {
     Promise.all([stocksQuery, benefitsQuery])
         .then((response) => {
-            let stocksData = response[0];
+            stocksData = response[0];
             let benefitsData = response[1];
 
             benefitsData.active.forEach(function (stockBenefit) {
                 for (let i = 1; i < 4; i++) {
-                    let cost = i * stockBenefit.benefit.requirement * STOCKS_DATA[stockBenefit.stock_id]["price"];
+                    let cost = i * stockBenefit.benefit.requirement * stocksData[stockBenefit.stock_id]["price"];
                     benefitsSorted.push({
                         stock_id: stockBenefit.stock_id,
                         value: stockBenefit.benefit.value,
@@ -140,7 +137,7 @@ $(document).ready(async function () {
 
     Promise.all([stocksQuery, moversQuery])
         .then((response) => {
-            let stocksData = response[0];
+            stocksData = response[0];
             let moversData = response[1];
 
             try {
@@ -150,13 +147,13 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${
-                                    STOCKS_DATA[MOVERS_DATA.gainers.d1[n].stock_id.toString()].acronym
-                                } → $${Number(MOVERS_DATA.gainers.d1[n].price).toFixed(2)}`,
+                                    stocksData[moversData.gainers.d1[n].stock_id.toString()].acronym
+                                } → $${Number(moversData.gainers.d1[n].price).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #32CD32 !important; color: white",
-                                text: `+${Number(MOVERS_DATA.gainers.d1[n].change * 100).toFixed(2)}%`,
+                                text: `+${Number(moversData.gainers.d1[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }
@@ -171,13 +168,13 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${
-                                    STOCKS_DATA[MOVERS_DATA.gainers.d7[n].stock_id.toString()].acronym
-                                } → $${Number(MOVERS_DATA.gainers.d7[n].price).toFixed(2)}`,
+                                    stocksData[moversData.gainers.d7[n].stock_id.toString()].acronym
+                                } → $${Number(moversData.gainers.d7[n].price).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #32CD32 !important; color: white",
-                                text: `+${Number(MOVERS_DATA.gainers.d7[n].change * 100).toFixed(2)}%`,
+                                text: `+${Number(moversData.gainers.d7[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }
@@ -192,13 +189,13 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${
-                                    STOCKS_DATA[MOVERS_DATA.gainers.m1[n].stock_id.toString()].acronym
-                                } → $${Number(MOVERS_DATA.gainers.m1[n].price).toFixed(2)}`,
+                                    stocksData[moversData.gainers.m1[n].stock_id.toString()].acronym
+                                } → $${Number(moversData.gainers.m1[n].price).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #32CD32 !important; color: white",
-                                text: `+${Number(MOVERS_DATA.gainers.m1[n].change * 100).toFixed(2)}%`,
+                                text: `+${Number(moversData.gainers.m1[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }
@@ -212,14 +209,14 @@ $(document).ready(async function () {
                         .empty()
                         .append([
                             $("<span>", {
-                                text: `${STOCKS_DATA[MOVERS_DATA.losers.d1[n].stock_id.toString()].acronym} → $${Number(
-                                    MOVERS_DATA.losers.d1[n].price
+                                text: `${stocksData[moversData.losers.d1[n].stock_id.toString()].acronym} → $${Number(
+                                    moversData.losers.d1[n].price
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #C83F49 !important; color: white",
-                                text: `${Number(MOVERS_DATA.losers.d1[n].change * 100).toFixed(2)}%`,
+                                text: `${Number(moversData.losers.d1[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }
@@ -233,14 +230,14 @@ $(document).ready(async function () {
                         .empty()
                         .append([
                             $("<span>", {
-                                text: `${STOCKS_DATA[MOVERS_DATA.losers.d7[n].stock_id.toString()].acronym} → $${Number(
-                                    MOVERS_DATA.losers.d7[n].price
+                                text: `${stocksData[moversData.losers.d7[n].stock_id.toString()].acronym} → $${Number(
+                                    moversData.losers.d7[n].price
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #C83F49 !important; color: white",
-                                text: `${Number(MOVERS_DATA.losers.d7[n].change * 100).toFixed(2)}%`,
+                                text: `${Number(moversData.losers.d7[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }
@@ -254,14 +251,14 @@ $(document).ready(async function () {
                         .empty()
                         .append([
                             $("<span>", {
-                                text: `${STOCKS_DATA[MOVERS_DATA.losers.m1[n].stock_id.toString()].acronym} → $${Number(
-                                    MOVERS_DATA.losers.m1[n].price
+                                text: `${stocksData[moversData.losers.m1[n].stock_id.toString()].acronym} → $${Number(
+                                    moversData.losers.m1[n].price
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
                                 class: "badge bg-primary rounded-pill",
                                 style: "background-color: #C83F49 !important; color: white",
-                                text: `${Number(MOVERS_DATA.losers.m1[n].change * 100).toFixed(2)}%`,
+                                text: `${Number(moversData.losers.m1[n].change * 100).toFixed(2)}%`,
                             }),
                         ]);
                 }

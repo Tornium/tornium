@@ -184,17 +184,30 @@ class User(BaseModel):
             "data": {
                 "embeds": [
                     {
-                        "title": f"[{self.user_str_self()}](https://torn.com/profiles.php?XID={self.tid})",
+                        "title": f"{self.user_str_self()}",
                         "fields": [
                             {
                                 "name": "Overview",
                                 "value": inspect.cleandoc(f"""
                                     Level: {self.level}
-                                    Last Action: <t:{self.last_action}:R>
-                                    Last Update: <t:{self.last_refresh}:R>
+                                    Last Action: <t:{self.last_action.timestamp()}:R>
+                                    Last Update: <t:{self.last_refresh.timestamp()}:R>
                                 """)
                             },
                         ]
+                    },
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "User Profile",
+                                "url": f"https://www.torn.com/profiles.php?XID={self.tid}",
+                            }
+                        ],
                     }
                 ],
                 "flags": 64,

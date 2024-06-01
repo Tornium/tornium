@@ -14,9 +14,8 @@
         "stats/stat",
         "stats/chainlist",
         "stocks/stocks",
-        "user/estimate"
-    ],
-    "disabled": [
+        "user/estimate",
         "user/user"
-    ]
+    ],
+    "disabled": []
 }

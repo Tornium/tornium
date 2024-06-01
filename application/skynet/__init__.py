@@ -51,6 +51,12 @@ _buttons = {
     "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
     "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
 }
+_startswith_buttons = {
+    "stakeout:flying:": skynet.commands.notify.stakeouts.stakeout_flying_button,
+    "stakeout:hospital:": skynet.commands.notify.stakeouts.stakeout_hospital_button,
+    "notify:items:": skynet.commands.notify.items.items_button_switchboard,
+    "oc:participants:": skynet.commands.faction.oc.oc_participants_button,
+}
 _commands = {
     "ping": skynet.commands.ping,
     # Faction Commands
@@ -205,28 +211,10 @@ def skynet_interactions():
             return jsonify(
                 _buttons[request.json["data"]["custom_id"]](request.json, invoker=invoker, admin_keys=admin_keys)
             )
-        elif request.json["data"]["custom_id"].startswith("stakeout:flying:"):
-            return jsonify(
-                skynet.commands.notify.stakeouts.stakeout_flying_button(
-                    request.json, invoker=invoker, admin_keys=admin_keys
-                )
-            )
-        elif request.json["data"]["custom_id"].startswith("stakeout:hospital"):
-            return jsonify(
-                skynet.commands.notify.stakeouts.stakeout_hospital_button(
-                    request.json, invoker=invoker, admin_keys=admin_keys
-                )
-            )
-        elif request.json["data"]["custom_id"].startswith("notify:items:"):
-            return jsonify(
-                skynet.commands.notify.items.items_button_switchboard(
-                    request.json, invoker=invoker, admin_keys=admin_keys
-                )
-            )
-        elif request.json["data"]["custom_id"].startswith("oc:participants:"):
-            return jsonify(
-                skynet.commands.faction.oc.oc_participants_button(request.json, invoker=invoker, admin_keys=admin_keys)
-            )
+
+        for button_str, cb in _startswith_buttons.values():
+            if request.json["data"]["custom_id"].startswith(button_str):
+                return jsonify(cb(request.json, invoker=invoker, admin_keys=admin_keys))
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
             return jsonify(

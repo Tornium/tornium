@@ -14,6 +14,12 @@
             "name": "tid",
             "description": "Torn ID or name of user whose summary is to be returned",
             "required": false
+        },
+        {
+            "type": 5,
+            "name": "force",
+            "description": "Force update the user's data",
+            "required": false
         }
     ]
 }

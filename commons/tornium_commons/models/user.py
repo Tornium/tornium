@@ -15,6 +15,7 @@
 
 import base64
 import hashlib
+import inspect
 import os
 import typing
 from functools import cached_property, lru_cache
@@ -162,5 +163,53 @@ class User(BaseModel):
         except DoesNotExist:
             return None
 
-    def get_user_id(self):
+    def get_user_id(self) -> int:
         return self.tid
+
+    def user_position_str(self) -> str:
+        if self.faction is None:
+            raise ValueError
+        elif self.faction.leader_id == self.tid:
+            return "Leader"
+        elif self.faction.coleader_id == self.tid:
+            return "Co-leader"
+        elif self.faction_position is None:
+            raise ValueError
+        
+        return self.faction_position.name
+
+    def user_embed(self) -> dict:
+        embed = {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": f"[{self.user_str_self()}](https://torn.com/profiles.php?XID={self.tid})",
+                        "fields": [
+                            {
+                                "name": "Overview",
+                                "value": inspect.cleandoc(f"""
+                                    Level: {self.level}
+                                    Last Action: <t:{self.last_action}:R>
+                                    Last Update: <t:{self.last_refresh}:R>
+                                """)
+                            },
+                        ]
+                    }
+                ],
+                "flags": 64,
+            }
+        }
+
+        if self.faction is not None:
+            embed["data"]["embeds"][0]["fields"].append(
+                {
+                    "name": "Faction",
+                    "value": inspect.cleandoc(f"""
+                        Faction: [{self.faction.name} [{self.faction_id}]](https://www.torn.com/factions.php?step=profile&ID={self.faction_id}&referredFrom={self.tid})
+                        Faction Position: {self.user_position_str()}
+                    """)
+                }
+            )
+
+        return embed

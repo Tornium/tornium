@@ -52,6 +52,7 @@ def user_who(interaction, *args, **kwargs):
 
     if user_mention is None and user_tid is None:
         user = kwargs["invoker"]
+        user_id = (kwargs["invoker"].tid, True)
     elif user_mention is not None and user_tid is None:
         user = User.select().where(User.discord_id == user_mention["value"]).first()
         user_id = (user_mention["value"], False)
@@ -84,9 +85,9 @@ def user_who(interaction, *args, **kwargs):
 
     try:
         if user_id[1]:
-            update_user(key=random.choice(kwargs["admin_keys"], tid=user_id[0]), refresh_existing=force)
+            update_user(key=random.choice(kwargs["admin_keys"]), tid=user_id[0], refresh_existing=force)
         else:
-            update_user(key=random.choice(kwargs["admin_keys"], discord_id=user_id[0]), refresh_existing=force)
+            update_user(key=random.choice(kwargs["admin_keys"]), discord_id=user_id[0], refresh_existing=force)
     except (IndexError, MissingKeyError):
         return {
             "type": 4,

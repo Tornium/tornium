@@ -190,8 +190,8 @@ class User(BaseModel):
                                 "name": "Overview",
                                 "value": inspect.cleandoc(f"""
                                     Level: {self.level}
-                                    Last Action: <t:{self.last_action.timestamp()}:R>
-                                    Last Update: <t:{self.last_refresh.timestamp()}:R>
+                                    Last Action: <t:{int(self.last_action.timestamp())}:R>
+                                    Last Update: <t:{int(self.last_refresh.timestamp())}:R>
                                 """)
                             },
                         ]

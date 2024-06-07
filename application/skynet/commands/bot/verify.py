@@ -259,7 +259,7 @@ def verify(interaction, *args, **kwargs):
     if patch_json["nick"] == current_nick:
         patch_json.pop("nick")
 
-    if patch_json["roles"] == set(member["roles"]):
+    if patch_json["roles"] == set(user_roles):
         patch_json.pop("roles")
     else:
         patch_json["roles"] = list(patch_json["roles"])

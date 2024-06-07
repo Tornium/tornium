@@ -986,6 +986,15 @@ def generate_retaliation_embed(attack: dict, faction: Faction, attack_config: Se
             }
         )
 
+    if attack["modifiers"]["retaliation"] != 1:
+        fields.append(
+            {
+                "name": "Is Retaliation",
+                "value": "True",
+                "inline": False,
+            }
+        )
+
     if (
         opponent.personal_stats is not None
         and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800

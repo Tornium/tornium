@@ -270,15 +270,16 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
         },
     }
 
-    deleted_position_name: str
-    for deleted_position_name in existing_position_names - latest_position_names:
+    deleted_position: FactionPosition
+    for deleted_position in existing_positions.where(FactionPosition.name << (existing_position_names - latest_position_names)):
         try:
-            existing_positions.where(FactionPosition.name == deleted_position_name).first().delete_instance()
+            User.update(faction_position=None).where(User.faction_position.pid == deleted_position.pid).execute()
+            existing_positions.where(FactionPosition.name == deleted_position.name).get().delete_instance()
         except Exception as e:
             logger.exception(e)
             continue
 
-        existing_position_names.remove(deleted_position_name)
+        existing_position_names.remove(deleted_position.name)
 
     add_position_name: str
     for add_position_name in latest_position_names - existing_position_names:

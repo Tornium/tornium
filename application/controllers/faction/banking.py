@@ -130,7 +130,7 @@ def banking():
             {
                 "name": banker_user.name,
                 "tid": banker_user.tid,
-                "last_action": int(current_user.last_action.timestamp()),
+                "last_action": int(banker_user.last_action.timestamp()),
                 "money": (
                     banker_user.faction_position.give_money if banker_user.faction_position is not None else True
                 ),

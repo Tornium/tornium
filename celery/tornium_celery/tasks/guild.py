@@ -28,7 +28,7 @@ from peewee import DoesNotExist, Expression
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
-from tornium_commons.models import FactionPosition, Server, User
+from tornium_commons.models import FactionPosition, Server, ServerAttackConfig, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from .api import discordget, discordpatch, discordpost
@@ -50,11 +50,14 @@ def refresh_guilds():
         logger.exception(e)
         return
 
+    # Set of guild IDs that no longer have the bot in the server
     guilds_not_updated = set(server.sid for server in Server.select(Server.sid))
 
     for guild in guilds:
-        if int(guild["id"]) in guilds_not_updated:
+        try:
             guilds_not_updated.remove(int(guild["id"]))
+        except KeyError:
+            pass
 
         Server.insert(
             sid=guild["id"],
@@ -64,14 +67,9 @@ def refresh_guilds():
             conflict_target=[Server.sid],
             preserve=[Server.name, Server.icon],
         ).execute()
+
         try:
             members = discordget(f'guilds/{guild["id"]}/members?limit=1000')
-        except DiscordError as e:
-            if e.code == 10007:
-                continue
-            else:
-                logger.exception(e)
-                continue
         except Exception as e:
             logger.exception(e)
             continue
@@ -90,6 +88,7 @@ def refresh_guilds():
             pass
 
         # TODO: Skip bots
+        # TODO: Iterate over users multiple times if there are more than 1k members in the server
         for member in members:
             user_exists = True
 
@@ -143,6 +142,12 @@ def refresh_guilds():
             logger.exception(e)
 
     for deleted_guild in guilds_not_updated:
+        # Delete certain rows that rely upon the server for the primary key
+        try:
+            ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
+        except (DoesNotExist, AttributeError):
+            pass
+
         try:
             guild: Server = Server.select().where(Server.sid == deleted_guild).get()
         except DoesNotExist:

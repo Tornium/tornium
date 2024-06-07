@@ -81,7 +81,19 @@ def user_who(interaction, *args, **kwargs):
                     },
                 }
     else:
-        return {}  # TODO: Add error message
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Invalid User Parameter",
+                        "description": "You need to select either a Torn user ID/name or a Discord user mention, but not both.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     try:
         if user_id[1]:

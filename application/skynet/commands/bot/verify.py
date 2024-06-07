@@ -16,13 +16,20 @@
 import inspect
 import random
 
-import jinja2
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_celery.tasks.guild import (
+    invalid_member_faction_roles,
+    invalid_member_position_roles,
+    member_faction_roles,
+    member_position_roles,
+    member_verification_name,
+    member_verified_roles,
+)
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import DiscordError, TornError
 from tornium_commons.formatters import discord_escaper, find_list
-from tornium_commons.models import Faction, Server, User
+from tornium_commons.models import Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from skynet.decorators import invoker_required
@@ -186,7 +193,8 @@ def verify(interaction, *args, **kwargs):
         raise e
 
     try:
-        user: User = User.get(User.discord_id == update_user_kwargs["discordid"])
+        # TODO: Limit selected fields
+        user: User = User.select().where(User.discord_id == update_user_kwargs["discordid"]).get()
     except DoesNotExist:
         return {
             "type": 4,
@@ -220,96 +228,41 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    patch_json = {}
-    faction: Faction = user.faction
+    patch_json = {
+        "nick": member_verification_name(
+            name=user.name,
+            tid=user.tid,
+            tag=user.faction.tag if user.faction is not None else "",
+            name_template=guild.verify_template,
+        ),
+        "roles": set(str(role) for role in user_roles),
+    }
 
-    if guild.verify_template != "":
-        nick = (
-            jinja2.Environment(autoescape=True)
-            .from_string(guild.verify_template)
-            .render(name=user.name, tid=user.tid, tag="" if faction is None else faction.tag)
+    patch_json["roles"] -= invalid_member_faction_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+    )
+    patch_json["roles"] -= invalid_member_position_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+        position=user.faction_position,
+    )
+
+    patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles))
+    patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
+    patch_json["roles"].update(
+        member_position_roles(
+            faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
         )
+    )
 
-        if nick != current_nick:
-            patch_json["nick"] = nick
+    if patch_json["nick"] == current_nick:
+        patch_json.pop("nick")
 
-    if len(guild.verified_roles) != 0 and user.discord_id != 0:
-        verified_role: int
-        for verified_role in guild.verified_roles:
-            if str(verified_role) in user_roles:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = user_roles
-
-            patch_json["roles"].append(str(verified_role))
-
-    if (
-        user.faction is not None
-        and guild.faction_verify.get(str(user.faction_id)) is not None
-        and guild.faction_verify[str(user.faction_id)].get("roles") is not None
-        and len(guild.faction_verify[str(user.faction_id)]["roles"]) != 0
-        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
-    ):
-        faction_role: int
-        for faction_role in guild.faction_verify[str(user.faction_id)]["roles"]:
-            if str(faction_role) in user_roles:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = user_roles
-
-            patch_json["roles"].append(str(faction_role))
-
-    for factiontid, faction_verify_data in guild.faction_verify.items():
-        for faction_role in faction_verify_data["roles"]:
-            if str(faction_role) in user_roles and int(factiontid) != user.faction_id:
-                if guild.faction_verify.get(str(user.faction_id)) is not None and faction_role in guild.faction_verify[
-                    str(user.faction_id)
-                ].get("roles", []):
-                    continue
-                elif patch_json.get("roles") is None:
-                    patch_json["roles"] = user_roles
-
-                patch_json["roles"].remove(str(faction_role))
-
-    if (
-        user.faction is not None
-        and user.faction_position is not None
-        and guild.faction_verify.get(str(user.faction_id)) is not None
-        and guild.faction_verify[str(user.faction_id)].get("positions") is not None
-        and len(guild.faction_verify[str(user.faction_id)]["positions"]) != 0
-        and str(user.faction_position) in guild.faction_verify[str(user.faction_id)]["positions"].keys()
-        and guild.faction_verify[str(user.faction_id)].get("enabled") not in (None, False)
-    ):
-        position_role: int
-        for position_role in guild.faction_verify[str(user.faction_id)]["positions"][str(user.faction_position)]:
-            if str(position_role) in user_roles:
-                continue
-            elif patch_json.get("roles") is None:
-                patch_json["roles"] = user_roles
-
-            patch_json["roles"].append(str(position_role))
-
-    valid_position_roles = []
-
-    for factiontid, faction_positions_data in guild.faction_verify.items():
-        if "positions" not in faction_positions_data:
-            continue
-
-        for position_uuid, position_data in faction_positions_data["positions"].items():
-            for position_role in position_data:
-                if position_role in valid_position_roles:
-                    continue
-                elif position_role in user_roles:
-                    if (
-                        str(user.faction_position) in faction_positions_data["positions"]
-                        and position_role in faction_positions_data["positions"][str(user.faction_position)]
-                    ):
-                        valid_position_roles.append(position_role)
-                        continue
-                    elif patch_json.get("roles") is None:
-                        patch_json["roles"] = user_roles
-
-                    patch_json["roles"].remove(str(position_role))
+    if patch_json["roles"] == set(member["roles"]):
+        patch_json.pop("roles")
+    else:
+        patch_json["roles"] = list(patch_json["roles"])
 
     if len(patch_json) == 0 and (force is None or (isinstance(force, list) and not force.get("value"))):
         return {
@@ -326,9 +279,6 @@ def verify(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-
-    if "roles" in patch_json:
-        patch_json["roles"] = list(set(patch_json["roles"]))
 
     try:
         discordpatch(
@@ -356,7 +306,7 @@ def verify(interaction, *args, **kwargs):
     if user.faction is None:
         faction_str = "None"
     else:
-        faction_str = f"{discord_escaper(faction.name)} [{faction.tid}]"
+        faction_str = f"{discord_escaper(user.faction.name)} [{user.faction.tid}]"
 
     return {
         "type": 4,
@@ -365,7 +315,7 @@ def verify(interaction, *args, **kwargs):
                 {
                     "title": "Verification Successful",
                     "description": inspect.cleandoc(
-                        f"""User: [{discord_escaper(user.name)} [{user.tid}]](https://www.torn.com/profiles.php?XID={user.tid})
+                        f"""User: [{user.user_str_self()}](https://www.torn.com/profiles.php?XID={user.tid})
                         Faction: {faction_str}
                         Discord: <@{user.discord_id}>"""
                     ),

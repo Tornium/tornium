@@ -136,4 +136,3 @@ def user_who(interaction, *args, **kwargs):
         }
 
     return user.user_embed()
-

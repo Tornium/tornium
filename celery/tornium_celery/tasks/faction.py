@@ -27,6 +27,7 @@ from decimal import DivisionByZero
 import celery
 from celery.utils.log import get_task_logger
 from peewee import JOIN, DoesNotExist
+from tornium_commons.db_connection import db
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
 from tornium_commons.models import (
@@ -1190,6 +1191,8 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 .join(User, on=Retaliation.defender)
                 .join(Faction)
             ):
+                # TODO: Modify this query to a DELETE RETURNING query
+
                 discordpatch.delay(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",
                     {
@@ -1206,7 +1209,8 @@ def check_attacks(faction_data: dict, last_attacks: int):
                     },
                 ).forget()
 
-                retal.delete_instance()
+                with db().atomic():
+                    retal.delete_instance()
         elif ALERT_RETALS and validate_attack_available_retaliation(attack, faction):
             try:
                 possible_retals[attack["code"]] = {

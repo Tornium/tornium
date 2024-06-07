@@ -535,6 +535,9 @@ def fetch_attacks_runner():
     for api_key in (
         TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
     ):
+        if api_key.user.faction is None:
+            continue
+
         faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction.tid).first()
 
         if faction is None:

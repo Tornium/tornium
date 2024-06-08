@@ -109,7 +109,6 @@ def handle_discord_error(e: DiscordError):
         guild: typing.Optional[Server] = (
             Server.select(
                 Server.verify_log_channel,
-                Server.retal_config,
                 Server.banking_config,
                 Server.armory_config,
                 Server.assist_channel,

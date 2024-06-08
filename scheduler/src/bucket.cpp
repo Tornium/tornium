@@ -35,20 +35,28 @@ scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Req
         if (has_maxed_requests) {
             // If the bucket is full and the request is to be immediately inserted,
             // The lowest niceness request will be popped and added to the request
-            // tree while this request is executed immediately
+            // queue while this request is executed immediately
 
             std::sort(bucket_requests.begin(), bucket_requests.end(),
                       [](const scheduler::Request *first, const scheduler::Request *second) {
+                // Sorts the bucket's requests in ascending nice order
+                // First request has the highest priority
                 return first->nice < second->nice;
             });
 
-            if (bucket_requests.back()->request_type == nice_type::user_request) {
-                // Don't need to check if vector is empty as it's already known that the
-                // size is `max_requests`
-                scheduler::Request *popped_request = bucket_requests.back();
-                bucket_requests.pop_back();
-                scheduler::queue_request(popped_request);
+            if (bucket_requests.back()->nice <= request_->nice) {
+                // The priority of the lowest priority request in the bucket is greater
+                // than that of the request that's to be inserted.
+                // Therefore, the request that's to be inserted should just be queued.
+
+                return insertion_status::queued;
             }
+
+            // The lowest priority request in the bucket has a lower priority than this
+            // request and can therefore be queued.
+            scheduler::Request *popped_request = bucket_requests.back();
+            bucket_requests.pop_back();
+            scheduler::queue_request(popped_request);
         }
 
         bucket_requests.push_back(request_);
@@ -59,10 +67,9 @@ scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Req
 }
 
 scheduler::RequestBucket scheduler::insert_request(scheduler::Request *request_) {
-    request_buckets.try_emplace(request_->user_id, scheduler::RequestBucket());
-    scheduler::RequestBucket bucket_ = request_buckets[request_->user_id];  // TODO: Use the iterator from
-                                                                            // try_emplace to get this
-    switch (bucket_.try_emplace(request_)) {
+    auto [bucket_, _] = request_buckets.try_emplace(request_->user_id, scheduler::RequestBucket());
+
+    switch (bucket_->second.try_emplace(request_)) {
         case scheduler::insertion_status::immediate_insert:
             scheduler::emplace_http_requeset(request_);
             break;
@@ -74,5 +81,5 @@ scheduler::RequestBucket scheduler::insert_request(scheduler::Request *request_)
             abort();
     }
 
-    return bucket_;
+    return bucket_->second;
 }

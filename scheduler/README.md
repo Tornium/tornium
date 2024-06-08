@@ -1,6 +1,6 @@
 # Tornium Scheduler
 Tornium Scheduler is a high-performance Torn API call scheduler. The goals of this project are:
-- Handle thousands of API calls per minute
+- Handle thousands (if not tens of thousands) of API calls per minute
 - Handle these API calls in a performant manner without many threads
 - Prioritize API calls given a provided API call priority
 

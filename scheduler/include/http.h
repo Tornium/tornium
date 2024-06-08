@@ -18,12 +18,13 @@
 #include "request.h"
 
 namespace scheduler {
+/**
+ * @brief Start the HTTP request and pass the curl handle to the libuv event loop
+ *
+ * @param request_ The request to be made
+ */
 void emplace_http_requeset(scheduler::Request *request_);
 void start_curl_uv_loop();
-
-struct http_response {
-    char *response_body;
-};
 }  // namespace scheduler
 
 #endif

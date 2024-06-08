@@ -44,11 +44,8 @@ void scheduler::DatagramServer::do_receive() {
         }
 
         if (scheduler::enqueue_request(r.value())) {
-            std::cout << "Received request... " << r.value()->endpoint_id << " :: " << (int)r.value()->nice
-                      << " :: " << r.value()->user_id << std::endl;
+            // Request is not a pre-existing request that is linked to an existing request
             scheduler::insert_request(r.value());
-        } else {
-            // TODO: Link request to pre-existing request
         }
 
         do_receive();

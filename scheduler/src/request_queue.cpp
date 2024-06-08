@@ -25,7 +25,7 @@ static std::map<uint32_t, std::vector<scheduler::Request *>> request_queue = {};
 
 bool compare_request_priority(const scheduler::Request *r1, const scheduler::Request *r2) {
     // TODO: Add secondary sort for time added if niceness are equal
-    //
+
     // Lower priority number is higher priority
     return r1->nice < r2->nice;
 }

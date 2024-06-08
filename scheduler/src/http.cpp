@@ -54,7 +54,6 @@ struct shared_memory {
 };
 
 void after_process_http_response(uv_work_t *work, int /*status*/) {
-    std::cout << "Freeing memory for " << work->data << std::endl;
     for (scheduler::Request *linked_request : ((shared_memory *)work->data)->request_->linked_requests) {
         delete linked_request;
     }
@@ -83,7 +82,6 @@ size_t on_write_callback(char *contents, size_t size, size_t number_megabytes, s
 
     userp->response_body = (char *)malloc(size * number_megabytes);
     strncpy(userp->response_body, contents, size * number_megabytes);
-    // strcpy(userp->response_body, contents);
 
     uv_work_t *work = (uv_work_t *)malloc(sizeof(uv_work_t));
     work->data = userp;
@@ -123,6 +121,7 @@ void check_multi_info() {
             case CURLMSG_DONE:
                 curl_easy_getinfo(message->easy_handle, CURLINFO_EFFECTIVE_URL, &completed_request_url);
 
+                // FIXME: There appears to be a memory leak with this cleanup when using an optimized build
                 curl_multi_remove_handle(curl_handler, message->easy_handle);
                 curl_easy_cleanup(message->easy_handle);
                 break;
@@ -244,5 +243,6 @@ void scheduler::start_curl_uv_loop() {
     uv_run(event_loop, UV_RUN_DEFAULT);
 
     curl_multi_cleanup(curl_handler);
+    curl_global_cleanup();
     return;
 }

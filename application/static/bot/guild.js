@@ -49,31 +49,6 @@ $(document).ready(function () {
                 assistsChannel.attr("selected", "");
             }
 
-            let stockFeedChannel = $(`#feed-channel option[value="${serverConfig["stocks"]["channel"]}"]`);
-
-            if (stockFeedChannel.length !== 0) {
-                stockFeedChannel.attr("selected", "");
-            }
-
-            $.each(serverConfig["stocks"], function (configKey, configValue) {
-                if (configKey === "percent_change" && configValue) {
-                    $("#percent-change-switch").attr("checked", "");
-                    $("#percent-change-enabled").text("Enabled");
-                } else if (configKey === "cap_change" && configValue) {
-                    $("#cap-change-switch").attr("checked", "");
-                    $("#cap-change-enabled").text("Enabled");
-                } else if (configKey === "new_day_price" && configValue) {
-                    $("#new-day-price-switch").attr("checked", "");
-                    $("#new-day-price-enabled").text("Enabled");
-                } else if (configKey === "min_price" && configValue) {
-                    $("#min-price-switch").attr("checked", "");
-                    $("#min-price-enabled").text("Enabled");
-                } else if (configKey === "max_price" && configValue) {
-                    $("#max-price-switch").attr("checked", "");
-                    $("#max-price-enabled").text("Enabled");
-                }
-            });
-
             $.each(serverConfig["attacks"], function (factionid, factionConfig) {
                 let option = $(
                     `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.retal.channel}"]`

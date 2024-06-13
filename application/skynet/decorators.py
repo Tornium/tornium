@@ -28,7 +28,7 @@ def invoker_required(f):
                     "embeds": [
                         {
                             "title": "Unknown User",
-                            "description": "Your Discord user could not be found in the database, so it is not know which Torn user you are which would cause issues for this slash command. To resolve this issue, please verify yourself (if this server has enabled this feature) or sign into [Tornium](https://tornium.com/login).",
+                            "description": "Your Discord user could not be found in the database, so it is not know which Torn user you are which would cause issues for this slash command. To resolve this issue, please verify yourself (if this server has enabled this feature), sign into [Tornium](https://tornium.com/login), or use the `/user` command to attempt to update the database with your user.",
                             "color": SKYNET_ERROR,
                         }
                     ]

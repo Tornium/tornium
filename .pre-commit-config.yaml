@@ -1,0 +1,15 @@
+repos:
+    # Shared hooks run on all sub-repositories
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.5.0
+      hooks:
+        - id: check-case-conflict
+        - id: check-json
+    
+    # Run these hooks against Python sub-repositories
+    - repo: https://github.com/pre-commit/pre-commit-hooks 
+      rev: v4.5.0
+      hooks:
+        - id: check-ast
+          name: 'Chest Python AST'
+          files: '.*/.*\.py'

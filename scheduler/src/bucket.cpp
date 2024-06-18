@@ -27,6 +27,15 @@
 std::map<uint32_t, scheduler::RequestBucket> request_buckets = {};
 
 scheduler::RequestBucket::RequestBucket() : start_timestamp(std::time(0)) {}
+
+size_t scheduler::RequestBucket::size() {
+    return bucket_requests.size();
+}
+
+void scheduler::RequestBucket::push_back(scheduler::Request *request_) {
+    bucket_requests.push_back(request_);
+}
+
 scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Request *request_) {
     const bool has_maxed_requests = bucket_requests.size() > REQUESTS_PER_BUCKET;
 
@@ -37,6 +46,7 @@ scheduler::insertion_status scheduler::RequestBucket::try_emplace(scheduler::Req
             // The lowest niceness request will be popped and added to the request
             // queue while this request is executed immediately
 
+            // TODO: Skip requests that have already been started
             std::sort(bucket_requests.begin(), bucket_requests.end(),
                       [](const scheduler::Request *first, const scheduler::Request *second) {
                 // Sorts the bucket's requests in ascending nice order
@@ -82,4 +92,23 @@ scheduler::RequestBucket scheduler::insert_request(scheduler::Request *request_)
     }
 
     return bucket_->second;
+}
+
+void scheduler::recreate_bucket(uint32_t user_id) {
+    request_buckets.emplace(user_id, RequestBucket());
+}
+
+size_t scheduler::try_immediate_insert_request(scheduler::Request *request_) {
+    auto [bucket_, _] = request_buckets.try_emplace(request_->user_id, scheduler::RequestBucket());
+
+    if (bucket_->second.size() >= REQUESTS_PER_BUCKET) {
+        // Don't attempt to remove requests when the bucket is already full
+        // as this is somewhat useless at the end of the lifetime of the bucket.
+        return 0;
+    }
+
+    bucket_->second.push_back(request_);
+    scheduler::emplace_http_requeset(request_);
+
+    return REQUESTS_PER_BUCKET - bucket_->second.size();
 }

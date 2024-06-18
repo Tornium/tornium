@@ -15,6 +15,9 @@
 #include <unistd.h>
 
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/placeholders.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/bind/bind.hpp>
 #include <cxxopts.hpp>
 #include <string>
 #include <thread>
@@ -23,6 +26,7 @@
 #include "config.h"
 #include "datagram_server.h"
 #include "http.h"
+#include "request_queue.h"
 
 int main(int argc, char *argv[]) {
     scheduler::config config_;
@@ -34,6 +38,10 @@ int main(int argc, char *argv[]) {
     s_.do_receive();
 
     std::thread http_thread(scheduler::start_curl_uv_loop);
+
+    boost::asio::steady_timer queue_timer(io_context_, boost::asio::chrono::seconds(10));
+    queue_timer.async_wait(
+        boost::bind(scheduler::queue_processing_work, boost::asio::placeholders::error, &queue_timer));
 
     io_context_.run();
 

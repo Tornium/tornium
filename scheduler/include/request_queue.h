@@ -15,6 +15,8 @@
 #ifndef REQUEST_QUEUE_H
 #define REQUEST_QUEUE_H
 
+#include <boost/asio/steady_timer.hpp>
+
 #include "request.h"
 
 namespace scheduler {
@@ -23,7 +25,9 @@ namespace scheduler {
  *
  * @param request_ Pointer to the request
  */
-void queue_request(scheduler::Request *request_);
+void queue_request(scheduler::Request* request_);
+
+void queue_processing_work(const boost::system::error_code& error, boost::asio::steady_timer* queue_timer);
 }  // namespace scheduler
 
 #endif

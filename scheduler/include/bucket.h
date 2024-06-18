@@ -27,6 +27,8 @@ class RequestBucket {
    public:
     RequestBucket();
     insertion_status try_emplace(scheduler::Request *request_);
+    size_t size();
+    void push_back(scheduler::Request *request_);
 
    private:
     const std::time_t start_timestamp;
@@ -40,6 +42,10 @@ class RequestBucket {
  * @return Bucket the request is inserted into
  */
 scheduler::RequestBucket insert_request(scheduler::Request *request_);
+
+void recreate_bucket(uint32_t user_id);
+
+size_t try_immediate_insert_request(scheduler::Request *request_);
 }  // namespace scheduler
 
 #endif

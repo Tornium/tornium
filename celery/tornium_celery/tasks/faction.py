@@ -2073,6 +2073,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
         return
 
     payload = {
+        "content": "".join([f"<@&{role}>" for role in faction_config.get("roles", [])]),
         "embeds": [],
         "components": [
             {
@@ -2094,9 +2095,6 @@ def armory_check_subtask(_armory_data, faction_id: int):
             },
         ],
     }
-
-    if len(faction_config.get("roles", [])) == 0:
-        payload["content"] = "".join([f"<@&{role}>" for role in faction_config.get("roles", [])])
 
     for armory_type in _armory_data:
         for armory_item in _armory_data[armory_type]:

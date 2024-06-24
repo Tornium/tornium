@@ -67,8 +67,15 @@ def _log_auth(
             details=details,
         ).execute()
     except DataError:
-        # FIXME: Some IP addresses are larger than the data field
-        return
+        # Some IP addresses are larger than the data field
+        AuthLog.insert(
+            user=user,
+            timestamp=datetime.datetime.utcnow(),
+            ip=None,
+            action=action.value,
+            login_key=login_key,
+            details=details,
+        ).execute()
 
 
 @mod.route("/login", methods=["GET", "POST"])
@@ -403,12 +410,6 @@ def topt_verification():
 @mod.route("/login/discord", methods=["GET"])
 def discord_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
-
-    return (
-        "Discord-based login for Tornium is currently disabled due a security vulnerability originating from Torn regarding how Torn and Discord accounts are linked. For more information, see https://github.com/dssecret/torn-csrf-cvd. Please sign in with a Torn API key.",
-        503,
-    )
-
     session_oauth_state = session.pop("oauth_state", None)
 
     if request.args.get("error") is not None:
@@ -580,17 +581,6 @@ def discord_login():
 
     next_route = session.pop("next")
     return redirect(next_route or url_for("baseroutes.index"))
-
-
-@mod.route("/login/discord/callback", methods=["POST"])
-def discord_login_callback():
-    return (
-        "Discord-based login for Tornium is currently disabled due a security vulnerability originating from Torn regarding how Torn and Discord accounts are linked. For more information, see https://github.com/dssecret/torn-csrf-cvd. Please sign in with a Torn API key.",
-        503,
-    )
-    data = json.loads(request.get_data().decode("utf-8"))
-
-    return data
 
 
 @mod.route("/logout", methods=["POST"])

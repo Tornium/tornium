@@ -144,7 +144,6 @@ class PersonalStats(BaseModel):
     territorytime = BigIntegerField(null=True)
     territoryjoins = BigIntegerField(null=True)
     arrestsmade = BigIntegerField(null=True)
-    tokenrefills = BigIntegerField(null=True)
     booksread = BigIntegerField(null=True)
     traveltime = BigIntegerField(null=True)
     boostersused = BigIntegerField(null=True)

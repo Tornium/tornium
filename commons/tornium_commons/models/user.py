@@ -175,7 +175,7 @@ class User(BaseModel):
             return "Co-leader"
         elif self.faction_position is None:
             raise ValueError
-        
+
         return self.faction_position.name
 
     def user_embed(self) -> dict:
@@ -188,13 +188,15 @@ class User(BaseModel):
                         "fields": [
                             {
                                 "name": "Overview",
-                                "value": inspect.cleandoc(f"""
+                                "value": inspect.cleandoc(
+                                    f"""
                                     Level: {self.level}
                                     Last Action: <t:{int(self.last_action.timestamp())}:R>
                                     Last Update: <t:{int(self.last_refresh.timestamp())}:R>
-                                """)
+                                """
+                                ),
                             },
-                        ]
+                        ],
                     },
                 ],
                 "components": [
@@ -211,17 +213,19 @@ class User(BaseModel):
                     }
                 ],
                 "flags": 64,
-            }
+            },
         }
 
         if self.faction is not None:
             embed["data"]["embeds"][0]["fields"].append(
                 {
                     "name": "Faction",
-                    "value": inspect.cleandoc(f"""
+                    "value": inspect.cleandoc(
+                        f"""
                         Faction: [{self.faction.name} [{self.faction_id}]](https://www.torn.com/factions.php?step=profile&ID={self.faction_id}&referredFrom={self.tid})
                         Faction Position: {self.user_position_str()}
-                    """)
+                    """
+                    ),
                 }
             )
 

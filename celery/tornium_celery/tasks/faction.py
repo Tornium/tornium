@@ -189,8 +189,10 @@ def update_faction(faction_data):
                 name=member["name"],
                 level=member["level"],
                 faction=faction_data["ID"],
-                faction_aa=positions_data[member["position"]]["aa"] if member["position"] is not None else False,
-                faction_position=positions_data[member["position"]]["uuid"] if member["position"] is not None else None,
+                faction_aa=(positions_data[member["position"]]["aa"] if member["position"] is not None else False),
+                faction_position=(
+                    positions_data[member["position"]]["uuid"] if member["position"] is not None else None
+                ),
                 status=member["last_action"]["status"],
                 last_action=datetime.datetime.fromtimestamp(
                     member["last_action"]["timestamp"], tz=datetime.timezone.utc
@@ -271,7 +273,9 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
     }
 
     deleted_position: FactionPosition
-    for deleted_position in existing_positions.where(FactionPosition.name << (existing_position_names - latest_position_names)):
+    for deleted_position in existing_positions.where(
+        FactionPosition.name << (existing_position_names - latest_position_names)
+    ):
         try:
             User.update(faction_position=None).where(User.faction_position.pid == deleted_position.pid).execute()
             existing_positions.where(FactionPosition.name == deleted_position.name).get().delete_instance()
@@ -708,7 +712,7 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             User.insert(
                 tid=attack["attacker_id"],
                 name=attack["attacker_name"],
-                faction=attack["attacker_faction"] if attack["attacker_faction"] != 0 else None,
+                faction=(attack["attacker_faction"] if attack["attacker_faction"] != 0 else None),
             ).on_conflict(
                 conflict_target=[User.tid],
                 preserve=[User.name, User.faction],
@@ -741,7 +745,7 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             User.insert(
                 tid=attack["defender_id"],
                 name=attack["defender_name"],
-                faction=attack["defender_faction"] if attack["defender_faction"] != 0 else None,
+                faction=(attack["defender_faction"] if attack["defender_faction"] != 0 else None),
             ).on_conflict(
                 conflict_target=[User.tid],
                 preserve=[User.name, User.faction],
@@ -849,11 +853,22 @@ def validate_attack_available_retaliation(attack: dict, faction: Faction) -> boo
     return True
 
 
-def generate_retaliation_embed(attack: dict, faction: Faction, attack_config: ServerAttackConfig) -> dict:
+def generate_retaliation_embed(
+    attack: dict,
+    faction: Faction,
+    attack_config: ServerAttackConfig,
+    faction_data: dict,
+) -> dict:
     user: User
     try:
         user = (
-            User.select(User.tid, User.name, User.battlescore, User.battlescore_update, User.faction)
+            User.select(
+                User.tid,
+                User.name,
+                User.battlescore,
+                User.battlescore_update,
+                User.faction,
+            )
             .where(User.tid == attack["defender_id"])
             .get()
         )
@@ -996,6 +1011,15 @@ def generate_retaliation_embed(attack: dict, faction: Faction, attack_config: Se
             {
                 "name": "Is Retaliation",
                 "value": "True",
+                "inline": False,
+            }
+        )
+
+    if attack["modifiers"]["overseas"] != 1:
+        fields.append(
+            {
+                "name": "Overseas Hit",
+                "value": f"True ({faction_data['members'][str(attack['defender_id'])]['status']['description'][3:]})",
                 "inline": False,
             }
         )
@@ -1217,7 +1241,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 possible_retals[attack["code"]] = {
                     "task": discordpost.delay(
                         f"channels/{attack_config.retal_channel}/messages",
-                        payload=generate_retaliation_embed(attack, faction, attack_config),
+                        payload=generate_retaliation_embed(attack, faction, attack_config, faction_data),
                     ),
                     **attack,
                 }
@@ -1270,7 +1294,10 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
                 payload["content"] += f"<@&{role}>"
 
-            discordpost.delay(f"channels/{attack_config.chain_bonus_channel}/messages", payload=payload).forget()
+            discordpost.delay(
+                f"channels/{attack_config.chain_bonus_channel}/messages",
+                payload=payload,
+            ).forget()
 
     if (
         latest_outgoing_attack is not None
@@ -1415,13 +1442,15 @@ def oc_refresh_subtask(oc_data):
                 & (
                     OrganizedCrime.time_started
                     >= datetime.datetime.fromtimestamp(
-                        oc_data["crimes"][oldest_oc_id]["time_started"], tz=datetime.timezone.utc
+                        oc_data["crimes"][oldest_oc_id]["time_started"],
+                        tz=datetime.timezone.utc,
                     )
                 )
                 & (
                     OrganizedCrime.time_started
                     <= datetime.datetime.fromtimestamp(
-                        oc_data["crimes"][newest_oc_id]["time_started"], tz=datetime.timezone.utc
+                        oc_data["crimes"][newest_oc_id]["time_started"],
+                        tz=datetime.timezone.utc,
                     )
                 )
             )
@@ -1464,9 +1493,9 @@ def oc_refresh_subtask(oc_data):
                 else datetime.datetime.fromtimestamp(oc_data["time_completed"], tz=datetime.timezone.utc)
             ),
             planned_by=oc_data["planned_by"],
-            initiated_by=oc_data["initiated_by"] if oc_data["initiated_by"] != 0 else None,
+            initiated_by=(oc_data["initiated_by"] if oc_data["initiated_by"] != 0 else None),
             money_gain=oc_data["money_gain"] if oc_data["money_gain"] != 0 else None,
-            respect_gain=oc_data["respect_gain"] if oc_data["respect_gain"] != 0 else None,
+            respect_gain=(oc_data["respect_gain"] if oc_data["respect_gain"] != 0 else None),
             delayers=[],
         ).on_conflict(
             conflict_target=[OrganizedCrime.oc_id],
@@ -1745,7 +1774,10 @@ def auto_cancel_requests():
                 "pass_error": True,
             },
             queue="api",
-        ).apply_async(expires=300, link=verify_faction_withdrawals.signature(kwargs={"withdrawals": withdrawals}))
+        ).apply_async(
+            expires=300,
+            link=verify_faction_withdrawals.signature(kwargs={"withdrawals": withdrawals}),
+        )
 
     withdrawal: Withdrawal
     for withdrawal in Withdrawal.select().where(
@@ -1889,7 +1921,8 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
             continue
 
         value = re.search(
-            r"</a> was given \$(.+?) by <a" if money_sent else r"</a> was given (.+?) points by <a", fund_action["news"]
+            (r"</a> was given \$(.+?) by <a" if money_sent else r"</a> was given (.+?) points by <a"),
+            fund_action["news"],
         ).groups()
 
         try:

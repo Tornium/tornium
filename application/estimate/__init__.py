@@ -98,7 +98,10 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     df = pd.DataFrame(columns=model_features, index=[0])
 
     for field_name in model_features:
-        df[field_name][0] = ps.__getattribute__(field_name)
+        try:
+            df[field_name][0] = ps.__getattribute__(field_name)
+        except AttributeError:
+            df[field_name][0] = 0
 
     df["tid"][0] = user_tid
     df = df.astype("int64")

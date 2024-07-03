@@ -579,7 +579,7 @@ def discord_login():
             500,
         )
 
-    next_route = session.pop("next")
+    next_route = session.pop("next", None)
     return redirect(next_route or url_for("baseroutes.index"))
 
 
@@ -617,7 +617,7 @@ def logout():
     logout_user()
 
     # Remove/invalidate security-related tokens for the session for additional security
-    session.pop("csrf_token")
+    session.pop("csrf_token", None)
 
     return redirect(url_for("baseroutes.index"))
 

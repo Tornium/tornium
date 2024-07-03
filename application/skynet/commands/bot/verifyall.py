@@ -115,7 +115,7 @@ def verify_all(interaction, *args, **kwargs):
     else:
         force = False
 
-    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction, all_keys=True))
+    admin_keys = get_admin_keys(interaction, all_keys=True)
     redis_client = rds()
 
     if len(admin_keys) == 0:

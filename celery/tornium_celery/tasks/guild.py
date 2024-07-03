@@ -21,9 +21,7 @@ import random
 import time
 import typing
 
-import celery
 import jinja2
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist, Expression
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -31,10 +29,83 @@ from tornium_commons.formatters import torn_timestamp
 from tornium_commons.models import FactionPosition, Server, ServerAttackConfig, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
+import celery
+from celery.utils.log import get_task_logger
+
 from .api import discordget, discordpatch, discordpost
 from .user import update_user
 
 logger: logging.Logger = get_task_logger("celery_app")
+
+
+def refresh_guild(guild: dict):
+    admins: typing.Set[int] = set()
+
+    try:
+        admins.add(User.select(User.tid).where(User.discord_id == guild["owner_id"]).get().tid)
+    except DoesNotExist:
+        pass
+
+    members = None
+    largest_member_id = 0
+    while members is None or len(members) >= 1000:
+        if members is None:
+            members = discordget(f'guilds/{guild["id"]}/members?limit=1000')
+        else:
+            members = discordget(f"guilds/{guild['id']}/members?limit=1000&after={largest_member_id}")
+
+        discord_admins: typing.Set[int] = set()
+
+        # TODO: Skip bots
+        for member in members:
+            largest_member_id = max(largest_member_id, int(member["user"]["id"]))
+
+            for guild_role in guild["roles"]:
+                # Checks if the user has the role and the role has the administrator permission
+                if (
+                    guild_role["id"] in member["roles"]
+                    and (int(guild_role["permissions"]) & 0x0000000008) == 0x0000000008
+                ):
+                    try:
+                        discord_admins.add(int(member["user"]["id"]))
+                    except DoesNotExist:
+                        pass
+
+                    break
+
+        admins.update(set(u.tid for u in User.select(User.tid).where(User.discord_id << discord_admins)))
+
+    Server.update(admins=list(set(admins))).where(Server.sid == guild["id"]).execute()
+
+    try:
+        guild_db: Server = Server.select().where(Server.sid == guild["id"]).get()
+
+        for faction_tid, faction_data in guild_db.faction_verify.items():
+            if "positions" not in faction_data:
+                continue
+
+            positions_to_delete = []
+
+            for position_uuid, position_data in faction_data["positions"].items():
+                try:
+                    position: FactionPosition = (
+                        FactionPosition.select(FactionPosition.faction_tid)
+                        .where(FactionPosition.pid == position_uuid)
+                        .get()
+                    )
+                except DoesNotExist:
+                    positions_to_delete.append(position_uuid)
+                    continue
+
+                if position.faction_tid != int(faction_tid):
+                    positions_to_delete.append(position_uuid)
+
+            for position_uuid in positions_to_delete:
+                guild_db.faction_verify[faction_tid]["positions"].pop(position_uuid)
+
+        guild_db.save()
+    except Exception as e:
+        logger.exception(e)
 
 
 @celery.shared_task(
@@ -44,117 +115,56 @@ logger: logging.Logger = get_task_logger("celery_app")
     time_limit=600,
 )
 def refresh_guilds():
-    try:
-        guilds = discordget("users/@me/guilds")
-    except Exception as e:
-        logger.exception(e)
-        return
+    # Largest guild ID and guild count used for pagination if the number of servers
+    # is greater than 200 where the API call limits the returned results
+    largest_guild_id = None
+    guild_count = None
 
     # Set of guild IDs that no longer have the bot in the server
     guilds_not_updated = set(server.sid for server in Server.select(Server.sid))
 
-    for guild in guilds:
-        try:
-            guilds_not_updated.remove(int(guild["id"]))
-        except KeyError:
-            pass
+    while guild_count is None or guild_count >= 200:
+        guild_count = 0
 
-        Server.insert(
-            sid=guild["id"],
-            name=guild["name"],
-            icon=guild["icon"],
-        ).on_conflict(
-            conflict_target=[Server.sid],
-            preserve=[Server.name, Server.icon],
-        ).execute()
+        if largest_guild_id is None:
+            guilds = discordget("users/@me/guilds")
+        else:
+            guilds = discordget(f"users/@me/guilds?after={largest_guild_id}")
 
-        try:
-            members = discordget(f'guilds/{guild["id"]}/members?limit=1000')
-        except Exception as e:
-            logger.exception(e)
-            continue
+        for guild in guilds:
+            guild_count += 1
 
-        try:
-            guild = discordget(f'guilds/{guild["id"]}')
-        except Exception as e:
-            logger.exception(e)
-            continue
+            if largest_guild_id is None or guild["id"] > largest_guild_id:
+                largest_guild_id = guild["id"]
 
-        admins = []
+            try:
+                guilds_not_updated.remove(int(guild["id"]))
+            except KeyError:
+                pass
 
-        try:
-            admins.append(User.select(User.discord_id, User.tid).where(User.discord_id == guild["owner_id"]).get().tid)
-        except DoesNotExist:
-            pass
+            Server.insert(
+                sid=guild["id"],
+                name=guild["name"],
+                icon=guild["icon"],
+            ).on_conflict(
+                conflict_target=[Server.sid],
+                preserve=[Server.name, Server.icon],
+            ).execute()
 
-        # TODO: Skip bots
-        # TODO: Iterate over users multiple times if there are more than 1k members in the server
-        for member in members:
-            user_exists = True
+            time.sleep(0.5)
 
-            for role in member["roles"]:
-                if not user_exists:
-                    break
+            try:
+                refresh_guild(discordget(f"guilds/{guild['id']}"))
+            except (DiscordError, NetworkingError, celery.exceptions.Retry):
+                continue
 
-                for guild_role in guild["roles"]:
-                    if not user_exists:
-                        break
-
-                    # Checks if the user has the role and the role has the administrator permission
-                    if guild_role["id"] == role and (int(guild_role["permissions"]) & 0x0000000008) == 0x0000000008:
-                        try:
-                            user: User = User.select(User.tid).where(User.discord_id == member["user"]["id"]).get()
-                        except DoesNotExist:
-                            user_exists = False
-                            break
-
-                        admins.append(user.tid)
-
-        guild_db: Server = Server.select().where(Server.sid == guild["id"]).get()
-        guild_db.admins = list(set(admins))
-        guild_db.save()
-
-        try:
-            for faction_tid, faction_data in guild_db.faction_verify.items():
-                faction_positions_data = faction_data
-
-                if "positions" not in faction_data:
-                    continue
-
-                for position_uuid, position_data in faction_data["positions"].items():
-                    try:
-                        position: FactionPosition = (
-                            FactionPosition.select(FactionPosition.faction_tid)
-                            .where(FactionPosition.pid == position_uuid)
-                            .get()
-                        )
-                    except DoesNotExist:
-                        faction_positions_data["positions"].pop(position_uuid)
-                        continue
-
-                    if position.faction_tid != int(faction_tid):
-                        faction_positions_data["positions"].pop(position_uuid)
-
-                guild_db.faction_verify[faction_tid] = faction_positions_data
-
-            guild_db.save()
-        except Exception as e:
-            logger.exception(e)
-
-    for deleted_guild in guilds_not_updated:
-        # Delete certain rows that rely upon the server for the primary key
-        try:
-            ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
-        except (DoesNotExist, AttributeError):
-            pass
-
-        try:
-            guild: Server = Server.select().where(Server.sid == deleted_guild).get()
-        except DoesNotExist:
-            continue
-
-        logger.info(f"Deleted {guild.name} [{guild.sid}] from database (Reason: not found by Discord API)")
-        guild.delete_instance()
+        for deleted_guild in guilds_not_updated:
+            # Delete certain rows that rely upon the server for the primary key
+            try:
+                ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
+                Server.delete().where(Server.sid == deleted_guild).execute()
+            except (DoesNotExist, AttributeError):
+                pass
 
 
 @celery.shared_task(

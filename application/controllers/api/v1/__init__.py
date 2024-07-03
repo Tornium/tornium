@@ -126,6 +126,16 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/verify/jail",
+    view_func=bot.verify.guild_gateway_verification,
+    methods=["POST", "DELETE"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/verify/jail/channel",
+    view_func=bot.verify.guild_jail_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>",
     view_func=bot.config.server_config,
     methods=["GET"],

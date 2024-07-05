@@ -158,13 +158,13 @@ def refresh_guilds():
             except (DiscordError, NetworkingError, celery.exceptions.Retry):
                 continue
 
-        for deleted_guild in guilds_not_updated:
-            # Delete certain rows that rely upon the server for the primary key
-            try:
-                ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
-                Server.delete().where(Server.sid == deleted_guild).execute()
-            except (DoesNotExist, AttributeError):
-                pass
+    for deleted_guild in guilds_not_updated:
+        # Delete certain rows that rely upon the server for the primary key
+        try:
+            ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
+            Server.delete().where(Server.sid == deleted_guild).execute()
+        except (DoesNotExist, AttributeError):
+            pass
 
 
 @celery.shared_task(

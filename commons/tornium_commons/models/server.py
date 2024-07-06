@@ -206,5 +206,5 @@ class Server(BaseModel):
 
     @staticmethod
     @lru_cache
-    def server_name(tid: int) -> str:
-        return Server.select(Server.name).where(Server.tid == tid).get().name
+    def server_name(sid: int) -> str:
+        return Server.select(Server.name).where(Server.sid == sid).get().name

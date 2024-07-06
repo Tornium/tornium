@@ -72,7 +72,7 @@ def remove_assist_server(guild_id: int, *args, **kwargs):
     if not Server.select(Server.name).where(Server.sid == guild_id).exists():
         return make_exception_response("1001", key)
 
-    Faction.update(assist_servers=fn.array_remove(Faction.assist_server, guild_id)).where(
+    Faction.update(assist_servers=fn.array_remove(Faction.assist_servers, guild_id)).where(
         Faction.tid == user.faction.tid
     ).execute()
     user.faction.assist_servers.remove(guild_id)

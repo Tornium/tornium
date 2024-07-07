@@ -26,11 +26,13 @@ from decimal import DivisionByZero
 
 import celery
 from celery.utils.log import get_task_logger
-from peewee import JOIN, DoesNotExist
+from peewee import JOIN, DoesNotExist, SQL
 from tornium_commons.db_connection import db
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
 from tornium_commons.models import (
+    Assist,
+    AssistMessage,
     Faction,
     FactionPosition,
     Item,
@@ -46,7 +48,7 @@ from tornium_commons.models import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .api import discorddelete, discordpatch, discordpost, torn_stats_get, tornget
 from .misc import send_dm
 from .user import update_user
 
@@ -2172,3 +2174,59 @@ def armory_check_subtask(_armory_data, faction_id: int):
             payload=payload,
             channel=faction_config["channel"],
         ).forget()
+
+
+@celery.shared_task(
+    name="tasks.faction.check_assists",
+    routing_key="quick.check_assists",
+    queue="quick",
+    time_limit=5,
+)
+def check_assists():
+    expired_assist: Assist
+    for expired_assist in Assist.delete().where(Assist.time_requested <= SQL("NOW() - INTERVAL '5 minutes'")).returning(Assist):
+        expired_message: AssistMessage
+        for expired_message in AssistMessage.delete().where(AssistMessage.message_id << expired_assist.sent_messages).returning(AssistMessage):
+            discorddelete.apply_async(
+                kwargs={"endpoint": f"channels/{expired_message.channel_id}/messages/{expired_message.message_id}"},
+            )
+
+    assist: Assist
+    for assist in Assist.distinct(Assist.target):
+        try:
+            aa_keys = assist.requester.faction.aa_keys
+        except DoesNotExist:
+            continue
+
+        if len(aa_keys) == 0:
+            continue
+
+        tornget.signature(
+            kwargs={
+                "endpoint": f"user/{assist.target.tid}?selections=basic",
+                "key": random.choice(aa_keys),
+            },
+            queue="default",
+        ).apply_async(
+            expires=25,
+            link=check_user_assist.s(),
+        )
+
+
+@celery.shared_task(
+    name="tasks.faction.check_user_assist",
+    routing_key="quick.check_user_assist",
+    queue="quick",
+    time_limit=5,
+)
+def check_user_assist(target_data):
+    if target_data is None or target_data["status"]["color"] == "green":
+        return
+
+    completed_assist: Assist
+    for completed_assist in Assist.delete().where(Assist.target == target_data["player_id"]).returning(Assist):
+        completed_message: AssistMessage
+        for completed_message in AssistMessage.delete().where(AssistMessage.message_id << completed_assist.sent_messages).returning(AssistMessage):
+            discorddelete.apply_async(
+                kwargs={"endpoint": f"channels/{completed_message.channel_id}/messages/{completed_message.message_id}"},
+            )

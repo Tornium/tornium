@@ -82,7 +82,9 @@ def assist_forward(guid: str):
     if assist.remaining_smokes + assist.remaining_tears + assist.remaining_heavies <= 0:
         if len(assist.sent_messages) > 0:
             message: AssistMessage
-            for message in AssistMessage.delete().where(AssistMessage.message_id << assist.sent_messages).returning(AssistMessage):
+            for message in (
+                AssistMessage.delete().where(AssistMessage.message_id << assist.sent_messages).returning(AssistMessage)
+            ):
                 discorddelete.delay(f"channels/{message.channel_id}/messages/{message.message_id}").forget()
 
         assist.delete_instance()

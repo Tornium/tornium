@@ -23,13 +23,12 @@ import uuid
 
 from celery.result import AsyncResult
 from flask import jsonify, request
-from peewee import DoesNotExist
-from redis.commands.json.path import Path
+from peewee import JOIN, DoesNotExist
 from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
+from tornium_commons import db, rds
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import Server, Stat, User
+from tornium_commons.models import Assist, AssistMessage, Faction, Server, Stat, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -82,23 +81,13 @@ def forward_assist(target_tid: int, *args, **kwargs):
     update_user(key=call_key, tid=target_tid, refresh_existing=False)
 
     try:
+        # TODO: Limit selected fields
         target: User = User.select().where(User.tid == target_tid).get()
     except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
-    if target.faction is None:
-        content_target_faction = ""
-    elif target.faction.tag in ("", None):
-        content_target_faction = target.faction.name
-    else:
-        content_target_faction = target.faction.tag
-
-    if user.faction is None:
-        user_faction_str = ""
-    elif user.faction.tag in ("", None):
-        user_faction_str = user.faction.name
-    else:
-        user_faction_str = user.faction.tag
+    content_target_faction = Faction.faction_str(target.faction_id)
+    user_faction_str = Faction.faction_str(user.faction_id)
 
     requested_types = []
     components_payload = []
@@ -170,22 +159,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
     else:
         requested_types_str = "some help"
 
-    timeout_str: str
-    if timeout is None:
-        timeout_str = ""
-    else:
-        timeout_str = f" The attack times out <t:{timeout}:R>."
-
-    client.zadd(f"tornium:assists:faction:{user.faction_id}", {guid: int(time.time()) + 300})
-    client.zremrangebyscore(f"tornium:assits:faction:{user.faction_id}", 0, int(time.time()))
-
-    # target_tid | user.tid | smokes | tears | heavies
-    client.set(
-        f"tornium:assists:{guid}",
-        f"{target_tid}|{user.tid}|{smokes}|{tears}|{heavies}",
-        nx=True,
-        ex=300,
-    )
+    timeout_str = "" if timeout is None else f" The attack times out <t:{timeout}:R>."
 
     payload = {
         "content": f"Assist on {target.name} [{content_target_faction}]",
@@ -199,7 +173,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
             {
                 "title": "Additional Target Information",
                 "fields": [],
-                "footer": {"text": f"Latency: {round(time.time() - kwargs['start_time'], 1)} second(s)"},
+                "footer": {"text": f"Latency: {round(time.time() - start_timestamp, 1)} second(s)"},
             },
         ],
         "components": [
@@ -281,9 +255,6 @@ def forward_assist(target_tid: int, *args, **kwargs):
     if not second_embed_modified:
         payload["embeds"].pop(1)
 
-    client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, nx=True)
-    client.expire(f"tornium:assists:{guid}:payload", 300)
-
     l0_roles_enabled = False  # 500m+
     l1_roles_enabled = False  # 1b+
     l2_roles_enabled = False  # 2b+
@@ -311,7 +282,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
         else:
             l3_roles_enabled = True
 
-    servers_forwarded = []
+    forwarded_server_count = 0
     messages = []
 
     server: Server
@@ -364,10 +335,20 @@ def forward_assist(target_tid: int, *args, **kwargs):
             )
         )
 
-        payload["content"] = payload["content"].split("\n")[0]
-        servers_forwarded.append(server)
+        forwarded_server_count += 1
 
-    packed_messages = set()
+    Assist.insert(
+        guid=guid,
+        time_requested=datetime.datetime.utcnow(),
+        target=target,
+        requester=kwargs["user"],
+        remaining_smokes=smokes,
+        remaining_tears=tears,
+        remaining_heavies=heavies,
+    ).execute()
+
+    assist_message_data = []
+    message_ids = []
 
     message: AsyncResult
     for message in messages:
@@ -376,19 +357,23 @@ def forward_assist(target_tid: int, *args, **kwargs):
         except Exception:
             continue
 
-        packed_messages.add(f"{message['channel_id']}|{message['id']}")
-        discorddelete.apply_async(
+        assist_delete: AsyncResult = discorddelete.apply_async(
             kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"},
             countdown=300,
         ).forget()
 
-    client.json().set(
-        f"tornium:assists:{guid}:messages",
-        Path.root_path(),
-        list(packed_messages),
-        nx=True,
-    )
-    client.expire(f"tornium:assists:{guid}:messages", 300)
+        assist_message_data.append(
+            {
+                "message_id": message["id"],
+                "channel_id": message["channel_id"],
+                "celery_delete_id": str(assist_delete.id),
+            }
+        )
+        message_ids.append(message["id"])
+
+    with db().atomic():
+        AssistMessage.insert_many(assist_message_data)
+        Assist.update(sent_messages=message_ids).where(Assist.guid == guid).execute()
 
     return (
         jsonify(
@@ -396,7 +381,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
                 "code": 1,
                 "name": "OK",
                 "message": "Server request was successful.",
-                "servers_forwarded": len(servers_forwarded),
+                "servers_forwarded": forwarded_server_count,
                 "latency": round(time.time() - start_timestamp, 2),
             }
         ),
@@ -409,58 +394,53 @@ def forward_assist(target_tid: int, *args, **kwargs):
 @ratelimit
 def valid_assists(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    client = rds()
 
     if kwargs["user"].faction_id in [None, 0]:
         return make_exception_response("1102", key)
 
-    client.zremrangebyscore(f"tornium:assits:faction:{kwargs['user'].faction_id}", 0, int(time.time()))
-    assist_guids = client.zrange(
-        f"tornium:assists:faction:{kwargs['user'].faction_id}",
-        int(time.time()),
-        int(time.time()) + 300,
-        byscore=True,
-    )
-
-    possible_assists_encoded = {guid: client.get(f"tornium:assists:{guid}") for guid in assist_guids}
     possible_assists = {}
 
-    # target_tid | user_tid | smokes | tears | heavies
-    for guid, encoded_assist in possible_assists_encoded.items():
-        decoded_assist = encoded_assist.split("|")
+    for assist in (
+        Assist.select(
+            Assist.guid,
+            Assist.remaining_tears,
+            Assist.remaining_smokes,
+            Assist.remaining_heavies,
+            Assist.requester,
+            Assist.target,
+        )
+        .join(User, JOIN.LEFT_OUTER, on=Assist.requester)
+        .join(User, JOIN.LEFT_OUTER, on=Assist.target)
+        .where(Assist.target.faction == kwargs["user"].faction_id)
+    ):
+        target_object = {
+            "tid": assist.target_id,
+        }
+        if assist.target is not None:
+            target_object["name"] = assist.target.name
+            target_object["level"] = assist.target.level
+            target_object["faction"] = (
+                Faction.faction_str(assist.target.faction_id) if assist.target.faction_id not in (None, 0) else None
+            )
 
-        target_db = User.select(User.name, User.level, User.faction).where(User.tid == int(decoded_assist[0])).first()
+        requester_object = {
+            "tid": assist.requester_id,
+        }
+        if assist.requester is not None:
+            requester_object["name"] = assist.requester.name
+            requester_object["level"] = assist.requester.level
+            requester_object["faction"] = (
+                Faction.faction_str(assist.requester.faction_id)
+                if assist.requester.faction_id not in (None, 0)
+                else None
+            )
 
-        if target_db is None:
-            target_object = {"tid": int(decoded_assist[0])}
-        else:
-            target_object = {
-                "tid": int(decoded_assist[0]),
-                "name": target_db.name,
-                "level": target_db.level,
-                "faction": (
-                    f"{target_db.faction.name} [{target_db.faction_id}]"
-                    if target_db.faction_id not in (None, 0)
-                    else None
-                ),
-            }
-
-        requester_db = User.select(User.name).where(User.tid == int(decoded_assist[1])).first()
-
-        if requester_db is None:
-            requester_object = {"tid": int(decoded_assist[1])}
-        else:
-            requester_object = {
-                "tid": int(decoded_assist[1]),
-                "name": requester_db.name,
-            }
-
-        possible_assists[guid] = {
+        possible_assists[assist.guid] = {
             "target": target_object,
             "requester": requester_object,
-            "smokes": int(decoded_assist[2]),
-            "tears": int(decoded_assist[3]),
-            "heavies": int(decoded_assist[4]),
+            "smokes": assist.remaining_smokes,
+            "tears": assist.remaining_tears,
+            "heavies": assist.remaining_heavies,
         }
 
     return possible_assists, 200, api_ratelimit_response(key)

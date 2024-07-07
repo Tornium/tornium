@@ -14,9 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import redirect, render_template, request
-from redis.commands.json.path import Path
-from tornium_celery.tasks.api import discorddelete, discordpatch
-from tornium_commons import rds
+from peewee import DoesNotExist
+from tornium_celery.tasks.api import discorddelete
+from tornium_commons.models import Assist, AssistMessage
 
 
 def assist_forward(guid: str):
@@ -42,10 +42,9 @@ def assist_forward(guid: str):
             400,
         )
 
-    redis_client = rds()
-    assist_data = redis_client.get(f"tornium:assists:{guid}")
-
-    if assist_data is None:
+    try:
+        assist: Assist = Assist.select().where(Assist.guid == guid).get()
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
@@ -55,89 +54,40 @@ def assist_forward(guid: str):
             400,
         )
 
-    target_tid, user_tid, smokes, tears, heavies = [int(n) for n in assist_data.split("|")]
-
     if mode == "smoke":
-        if smokes <= 0:
+        if assist.remaining_smokes <= 0:
             return r_0()
 
-        smokes -= 1
+        Assist.update(remaining_smokes=Assist.remaining_smokes - 1).where(Assist.guid == guid).execute()
     elif mode == "tear":
-        if tears <= 0:
+        if assist.remaining_tears <= 0:
             return r_0()
 
-        tears -= 1
+        Assist.update(remaining_tears=Assist.remaining_tears - 1).where(Assist.guid == guid).execute()
     elif mode == "heavy":
-        if heavies <= 0:
+        if assist.remaining_heavies <= 0:
             return r_0()
 
-        heavies -= 1
+        Assist.update(remaining_heavies=Assist.remaining_heavies - 1).where(Assist.guid == guid).execute()
     else:
         return (
             render_template(
                 "errors/error.html",
                 title="Unknown Assist Type",
-                error=f'"{mode}" is not recognized by Tornium as an acceptable assist type.',
+                error=f'"{mode}" is not recognized by Tornium as a valid assist type.',
             ),
             400,
         )
 
-    redis_client.set(
-        f"tornium:assists:{guid}",
-        f"{target_tid}|{user_tid}|{smokes}|{tears}|{heavies}",
-        xx=True,
-        keepttl=True,
-    )
+    if assist.remaining_smokes + assist.remaining_tears + assist.remaining_heavies <= 0:
+        if len(assist.sent_messages) > 0:
+            message: AssistMessage
+            for message in AssistMessage.select().where(AssistMessage.message_id << assist.sent_messages):
+                discorddelete.delay(f"channels/{message.channel_id}/messages/{message.message_id}").forget()
 
-    messages = redis_client.json().get(f"tornium:assists:{guid}:messages")
+            # TODO: Use a delete query upon AssistMessage with a returning instead of two queries
+            AssistMessage.delete().where(AssistMessage.message_id << assist.sent_messages).execute()
 
-    if messages is None:
-        return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
+        assist.delete_instance()
 
-    if smokes + tears + heavies <= 0:
-        for message in messages:
-            channel_id, message_id = [int(n) for n in message.split("|")]
-
-            discorddelete.delay(f"channels/{channel_id}/messages/{message_id}").forget()
-
-        redis_client.delete(f"tornium:assists:{guid}:messages", f"tornium:assists:{guid}:payload")
-        return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
-
-    payload = redis_client.json().get(f"tornium:assists:{guid}:payload")
-
-    if payload is None:
-        return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
-
-    i = 0
-
-    field: dict
-    for field in payload["embeds"][0]["fields"]:
-        if "Heavies" in field["name"]:
-            if heavies == 0:
-                payload["embeds"][0]["fields"].pop(i)
-                payload["components"][0]["components"].pop(i)
-            else:
-                field["value"] = heavies
-        elif "Tears" in field["name"]:
-            if tears == 0:
-                payload["embeds"][0]["fields"].pop(i)
-                payload["components"][0]["components"].pop(i)
-            else:
-                field["value"] = tears
-        elif "Smokes" in field["name"]:
-            if smokes == 0:
-                payload["embeds"][0]["fields"].pop(i)
-                payload["components"][0]["components"].pop(i)
-            else:
-                field["value"] = smokes
-
-        i += 1
-
-    redis_client.json().set(f"tornium:assists:{guid}:payload", Path.root_path(), payload, xx=True)
-
-    for message in messages:
-        channel_id, message_id = [int(n) for n in message.split("|")]
-
-        discordpatch.delay(f"channels/{channel_id}/messages/{message_id}", payload=payload).forget()
-
-    return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={target_tid}")
+    return redirect(f"https://www.torn.com/loader2.php?sid=getInAttack&user2ID={assist.target.tid}")

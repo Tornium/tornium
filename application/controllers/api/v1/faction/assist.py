@@ -94,8 +94,8 @@ def forward_assist(target_tid: int, *args, **kwargs):
                 PersonalStats.networth,
                 PersonalStats.timestamp,
             )
-            .join(Faction, JOIN.LEFT_OUTER)
-            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .join(Faction, JOIN.LEFT_OUTER, on=User.faction)
+            .join(PersonalStats, JOIN.LEFT_OUTER, on=User.personal_stats)
             .where(User.tid == target_tid)
             .get()
         )
@@ -423,7 +423,7 @@ def valid_assists(*args, **kwargs):
         Assist.remaining_heavies,
         Assist.requester,
         Assist.target,
-    ).where(Assist.target.faction == kwargs["user"].faction_id):
+    ).join(User, on=Assist.target).where(Assist.target.faction == kwargs["user"].faction_id):
         target_object = {
             "tid": assist.target_id,
         }

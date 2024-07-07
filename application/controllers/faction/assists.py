@@ -82,11 +82,8 @@ def assist_forward(guid: str):
     if assist.remaining_smokes + assist.remaining_tears + assist.remaining_heavies <= 0:
         if len(assist.sent_messages) > 0:
             message: AssistMessage
-            for message in AssistMessage.select().where(AssistMessage.message_id << assist.sent_messages):
+            for message in AssistMessage.delete().where(AssistMessage.message_id << assist.sent_messages).returning(AssistMessage):
                 discorddelete.delay(f"channels/{message.channel_id}/messages/{message.message_id}").forget()
-
-            # TODO: Use a delete query upon AssistMessage with a returning instead of two queries
-            AssistMessage.delete().where(AssistMessage.message_id << assist.sent_messages).execute()
 
         assist.delete_instance()
 

@@ -23,12 +23,12 @@ import uuid
 
 from celery.result import AsyncResult
 from flask import jsonify, request
-from peewee import JOIN, DoesNotExist
+from peewee import DoesNotExist, JOIN
 from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import db, rds
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import Assist, AssistMessage, Faction, Server, Stat, User
+from tornium_commons.models import Assist, AssistMessage, Faction, Server, Stat, User, PersonalStats
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -81,13 +81,29 @@ def forward_assist(target_tid: int, *args, **kwargs):
     update_user(key=call_key, tid=target_tid, refresh_existing=False)
 
     try:
-        # TODO: Limit selected fields
-        target: User = User.select().where(User.tid == target_tid).get()
+        target: User = (
+            User.select(
+                User.faction,
+                User.name,
+                PersonalStats.refills,
+                PersonalStats.energydrinkused,
+                PersonalStats.lsdtaken,
+                PersonalStats.statenhancersused,
+                PersonalStats.elo,
+                PersonalStats.bestdamage,
+                PersonalStats.networth,
+                PersonalStats.timestamp,
+            )
+            .join(Faction, JOIN.LEFT_OUTER)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == target_tid)
+            .get()
+        )
     except DoesNotExist:
         return make_exception_response("1100", key, redis_client=client)
 
-    content_target_faction = Faction.faction_str(target.faction_id)
-    user_faction_str = Faction.faction_str(user.faction_id)
+    content_target_faction = target.faction.tag if target.faction is not None and target.faction.tag is not None else ""
+    user_faction_str = user.faction.tag if user.faction is not None and user.faction.tag is not None else ""
 
     requested_types = []
     components_payload = []
@@ -341,7 +357,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
         guid=guid,
         time_requested=datetime.datetime.utcnow(),
         target=target,
-        requester=kwargs["user"],
+        requester=user,
         remaining_smokes=smokes,
         remaining_tears=tears,
         remaining_heavies=heavies,
@@ -360,7 +376,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
         assist_delete: AsyncResult = discorddelete.apply_async(
             kwargs={"endpoint": f"channels/{message['channel_id']}/messages/{message['id']}"},
             countdown=300,
-        ).forget()
+        )
 
         assist_message_data.append(
             {
@@ -369,7 +385,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
                 "celery_delete_id": str(assist_delete.id),
             }
         )
-        message_ids.append(message["id"])
+        message_ids.append(int(message["id"]))
 
     with db().atomic():
         AssistMessage.insert_many(assist_message_data)
@@ -400,19 +416,14 @@ def valid_assists(*args, **kwargs):
 
     possible_assists = {}
 
-    for assist in (
-        Assist.select(
-            Assist.guid,
-            Assist.remaining_tears,
-            Assist.remaining_smokes,
-            Assist.remaining_heavies,
-            Assist.requester,
-            Assist.target,
-        )
-        .join(User, JOIN.LEFT_OUTER, on=Assist.requester)
-        .join(User, JOIN.LEFT_OUTER, on=Assist.target)
-        .where(Assist.target.faction == kwargs["user"].faction_id)
-    ):
+    for assist in Assist.select(
+        Assist.guid,
+        Assist.remaining_tears,
+        Assist.remaining_smokes,
+        Assist.remaining_heavies,
+        Assist.requester,
+        Assist.target,
+    ).where(Assist.target.faction == kwargs["user"].faction_id):
         target_object = {
             "tid": assist.target_id,
         }

@@ -42,7 +42,6 @@ from .withdrawal import Withdrawal
 __all__ = [
     "Assist",
     "AssistMessage",
-    "AuthAction",
     "AuthLog",
     "Faction",
     "FactionPosition",

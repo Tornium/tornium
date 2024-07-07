@@ -26,7 +26,7 @@ from decimal import DivisionByZero
 
 import celery
 from celery.utils.log import get_task_logger
-from peewee import JOIN, DoesNotExist, SQL
+from peewee import JOIN, SQL, DoesNotExist
 from tornium_commons.db_connection import db
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
@@ -2184,9 +2184,15 @@ def armory_check_subtask(_armory_data, faction_id: int):
 )
 def check_assists():
     expired_assist: Assist
-    for expired_assist in Assist.delete().where(Assist.time_requested <= SQL("NOW() - INTERVAL '5 minutes'")).returning(Assist):
+    for expired_assist in (
+        Assist.delete().where(Assist.time_requested <= SQL("NOW() - INTERVAL '5 minutes'")).returning(Assist)
+    ):
         expired_message: AssistMessage
-        for expired_message in AssistMessage.delete().where(AssistMessage.message_id << expired_assist.sent_messages).returning(AssistMessage):
+        for expired_message in (
+            AssistMessage.delete()
+            .where(AssistMessage.message_id << expired_assist.sent_messages)
+            .returning(AssistMessage)
+        ):
             discorddelete.apply_async(
                 kwargs={"endpoint": f"channels/{expired_message.channel_id}/messages/{expired_message.message_id}"},
             )
@@ -2226,7 +2232,11 @@ def check_user_assist(target_data):
     completed_assist: Assist
     for completed_assist in Assist.delete().where(Assist.target == target_data["player_id"]).returning(Assist):
         completed_message: AssistMessage
-        for completed_message in AssistMessage.delete().where(AssistMessage.message_id << completed_assist.sent_messages).returning(AssistMessage):
+        for completed_message in (
+            AssistMessage.delete()
+            .where(AssistMessage.message_id << completed_assist.sent_messages)
+            .returning(AssistMessage)
+        ):
             discorddelete.apply_async(
                 kwargs={"endpoint": f"channels/{completed_message.channel_id}/messages/{completed_message.message_id}"},
             )

@@ -15,4 +15,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed
 - Fixed lack of pagination of server members and servers in `tasks.guilds.refresh_guilds`
+- Fixed session state being overwritten before usage
 

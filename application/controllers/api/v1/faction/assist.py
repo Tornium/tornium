@@ -85,6 +85,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
             User.select(
                 User.faction,
                 User.name,
+                PersonalStats.xantaken,
                 PersonalStats.refills,
                 PersonalStats.energydrinkused,
                 PersonalStats.lsdtaken,
@@ -95,6 +96,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
                 PersonalStats.timestamp,
             )
             .join(Faction, JOIN.LEFT_OUTER, on=User.faction)
+            .switch(User)
             .join(PersonalStats, JOIN.LEFT_OUTER, on=User.personal_stats)
             .where(User.tid == target_tid)
             .get()
@@ -356,7 +358,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
     Assist.insert(
         guid=guid,
         time_requested=datetime.datetime.utcnow(),
-        target=target,
+        target=target_tid,
         requester=user,
         remaining_smokes=smokes,
         remaining_tears=tears,

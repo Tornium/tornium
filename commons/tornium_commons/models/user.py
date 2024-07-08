@@ -174,7 +174,7 @@ class User(BaseModel):
         elif self.faction.coleader_id == self.tid:
             return "Co-leader"
         elif self.faction_position is None:
-            raise ValueError
+            return "Unknown"
 
         return self.faction_position.name
 

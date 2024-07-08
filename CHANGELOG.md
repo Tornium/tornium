@@ -17,3 +17,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed lack of pagination of server members and servers in `tasks.guilds.refresh_guilds`
 - Fixed session state being overwritten before usage
 
+### Removed
+- Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`

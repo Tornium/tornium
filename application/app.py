@@ -237,19 +237,6 @@ def before_request():
         flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
         flask.session.setdefault("logout_token", secrets.token_urlsafe(nbytes=64))
 
-    if globals().get("ddtrace:loaded") is None:
-        try:
-            import ddtrace
-
-            globals()["ddtrace:loaded"] = True
-        except (ImportError, ModuleNotFoundError):
-            globals()["ddtrace:loaded"] = False
-
-    if globals().get("ddtrace:loaded") and current_user.is_authenticated:
-        import ddtrace  # noqa
-
-        ddtrace.tracer.current_root_span().set_tag("user_id", current_user.tid)
-
 
 @app.after_request
 def after_request(response: flask.Response):

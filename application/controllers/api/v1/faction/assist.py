@@ -23,12 +23,20 @@ import uuid
 
 from celery.result import AsyncResult
 from flask import jsonify, request
-from peewee import DoesNotExist, JOIN
+from peewee import JOIN, DoesNotExist
 from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_celery.tasks.user import update_user
 from tornium_commons import db, rds
 from tornium_commons.formatters import bs_to_range, commas
-from tornium_commons.models import Assist, AssistMessage, Faction, Server, Stat, User, PersonalStats
+from tornium_commons.models import (
+    Assist,
+    AssistMessage,
+    Faction,
+    PersonalStats,
+    Server,
+    Stat,
+    User,
+)
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -418,14 +426,18 @@ def valid_assists(*args, **kwargs):
 
     possible_assists = {}
 
-    for assist in Assist.select(
-        Assist.guid,
-        Assist.remaining_tears,
-        Assist.remaining_smokes,
-        Assist.remaining_heavies,
-        Assist.requester,
-        Assist.target,
-    ).join(User, on=Assist.target).where(Assist.target.faction == kwargs["user"].faction_id):
+    for assist in (
+        Assist.select(
+            Assist.guid,
+            Assist.remaining_tears,
+            Assist.remaining_smokes,
+            Assist.remaining_heavies,
+            Assist.requester,
+            Assist.target,
+        )
+        .join(User, on=Assist.target)
+        .where(Assist.target.faction == kwargs["user"].faction_id)
+    ):
         target_object = {
             "tid": assist.target_id,
         }

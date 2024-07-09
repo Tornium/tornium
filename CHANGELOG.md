@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Re-enabled Discord-based authentication
+- Updated assists to utilize the DB instead of Redis as the datastore
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed

@@ -390,7 +390,7 @@ def forward_assist(target_tid: int, *args, **kwargs):
         message_ids.append(int(message["id"]))
 
     with db().atomic():
-        AssistMessage.insert_many(assist_message_data)
+        AssistMessage.insert_many(assist_message_data).execute()
         Assist.update(sent_messages=message_ids).where(Assist.guid == guid).execute()
 
     return (

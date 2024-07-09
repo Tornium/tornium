@@ -2198,7 +2198,7 @@ def check_assists():
             )
 
     assist: Assist
-    for assist in Assist.distinct(Assist.target):
+    for assist in Assist.select().distinct(Assist.target):
         try:
             aa_keys = assist.requester.faction.aa_keys
         except DoesNotExist:

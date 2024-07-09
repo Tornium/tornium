@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Assist
 // @namespace    https://tornium.com
-// @version      1.1.0
+// @version      1.1.1
 // @copyright    AGPL
 // @description  Sent an assist request to applicable Discord servers
 // @author       tiksan [2383326]
@@ -154,25 +154,20 @@ function forwardAssist(smokes, tears, heavies) {
             Authorization: `Bearer ${accessToken}`,
         },
         onload: (response) => {
-            if (response.responseType === undefined) {
-                response.response = JSON.parse(response.responseText);
-                response.responseType = "json";
-            }
+            response = JSON.parse(response.responseText);
 
-            if (response.response.error !== undefined) {
+            if (response.error !== undefined) {
                 GM_deleteValue("tornium-assists:access-token");
                 GM_deleteValue("tornium-assists:access-token-expires");
 
                 document.getElementById("tornium-assist-status").textContent =
-                    `[${response.response.error}] OAuth Error - ${response.response.error_description}`;
+                    `[${response.error}] OAuth Error - ${response.error_description}`;
                 return;
             }
 
-            console.log(response.response);
-
-            if (response.response.code !== undefined) {
+            if (response.code !== undefined) {
                 document.getElementById("tornium-assist-status").textContent =
-                    `[${response.response.code}] ${response.response.name}: - ${response.response.message}...`;
+                    `[${response.code}] ${response.name}: - ${response.message}...`;
                 return;
             } else {
                 document.getElementById("tornium-assist-status").textContent = "Unknown server error";
@@ -211,8 +206,6 @@ function checkAssists() {
                     response.finalUrl,
                 ].join("\n")
             );
-
-            // {"5b35b6c53ee34cdaad20efa5cdc8e327":{"heavies":0,"requester":{"name":"tiksan","tid":2383326},"smokes":0,"target":{"faction":"New Sith Order [15644]","level":100,"name":"Comrade_Joe","tid":1691447},"tears":0}}
 
             let jsonResponse = JSON.parse(response.responseText);
             let container = $("#tornium-assists-viewer");

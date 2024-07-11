@@ -48,9 +48,9 @@ class TorniumExt:
     @classmethod
     def __iter__(cls):
         for package in pkgutil.iter_modules():
-            if not package.name.startswith("tornium_"):
+            if not package.name.startswith("tornium_") and not package.name.startswith("__editable___tornium_"):
                 continue
-            elif package.name in ("tornium_commons", "tornium_celery"):
+            elif package.name in ("tornium_commons", "tornium_celery") or package.name.startswith(("__editable___tornium_celery", "__editable___tornium_commons")):
                 continue
 
             yield cls.from_package(package)

@@ -85,7 +85,7 @@ $(document).ready(function () {
         $("#generate-list").attr("disabled", true);
         $("#targets-container").empty();
 
-        tfetch("GET", `stat?difficulty=${difficulty}&sort=${sort}&limit=${limit}`, {
+        tfetch("GET", `chain-list?difficulty=${difficulty}&sort=${sort}&limit=${limit}`, {
             errorTitle: "Chain List Request Failed",
         })
             .then((response) => {

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Re-enabled Discord-based authentication
 - Updated assists to utilize the DB instead of Redis as the datastore
+- Changed chain alert minimum length from 100 to 250 hits
+- Changed chain list generation API route from `GET /api/v1/chain-list` to `GET /api/v1/chain-list` to avoid uBlock Origin privacy filter
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed

@@ -34,7 +34,9 @@ class TorniumExt:
         if self.loaded:
             try:
                 self.extension = self.package.Extension()
-            except AttributeError:
+            except AttributeError as e:
+                logging.getLogger("server").warning(f"Tornium extension {self.name} failed to import with {e} raised")
+
                 self.package = None
                 self.loaded = False
                 self.extension = None

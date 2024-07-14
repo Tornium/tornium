@@ -1306,7 +1306,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
         and ALERT_CHAIN_ALERT
         and int(time.time()) - latest_outgoing_attack[0] >= 240
         and int(time.time()) - latest_outgoing_attack[0] < 300
-        and latest_outgoing_attack[1] >= 100
+        and latest_outgoing_attack[1] >= 250
     ):
         payload = {
             "content": "Chain alert!! ",

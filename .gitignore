@@ -132,3 +132,4 @@ settings.json
 celery.json
 wsgi.py
 .tox
+config.*.json

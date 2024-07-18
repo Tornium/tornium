@@ -1207,14 +1207,12 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
         if ALERT_RETALS and validate_attack_retaliation(attack, faction):
             # TODO: Check possible_retals if the retaliation attack data is in the same API response as the original attack
+            defender = User.select().where(User.faction == attack["attacker_faction"])
 
             retal: Retaliation
             for retal in (
                 Retaliation.delete()
-                .where(
-                    (Retaliation.attacker == attack["defender_id"])
-                    & (Retaliation.defender.faction == attack["attacker_faction"])
-                )
+                .where((Retaliation.attacker == attack["defender_id"]) & (Retaliation.defender == defender))
                 .join(User, on=Retaliation.defender)
                 .join(Faction)
                 .returning(Retaliation.channel_id, Retaliation.message_id)

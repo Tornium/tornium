@@ -1210,16 +1210,15 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
             retal: Retaliation
             for retal in (
-                Retaliation.select(Retaliation.channel_id, Retaliation.message_id)
+                Retaliation.delete()
                 .where(
                     (Retaliation.attacker == attack["defender_id"])
                     & (Retaliation.defender.faction == attack["attacker_faction"])
                 )
                 .join(User, on=Retaliation.defender)
                 .join(Faction)
+                .returning(Retaliation.channel_id, Retaliation.message_id)
             ):
-                # TODO: Modify this query to a DELETE RETURNING query
-
                 discordpatch.delay(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",
                     {
@@ -1235,9 +1234,6 @@ def check_attacks(faction_data: dict, last_attacks: int):
                         "components": [],
                     },
                 ).forget()
-
-                with db().atomic():
-                    retal.delete_instance()
         elif ALERT_RETALS and validate_attack_available_retaliation(attack, faction):
             try:
                 possible_retals[attack["code"]] = {

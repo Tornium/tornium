@@ -1213,8 +1213,6 @@ def check_attacks(faction_data: dict, last_attacks: int):
             for retal in (
                 Retaliation.delete()
                 .where((Retaliation.attacker == attack["defender_id"]) & (Retaliation.defender == defender))
-                .join(User, on=Retaliation.defender)
-                .join(Faction)
                 .returning(Retaliation.channel_id, Retaliation.message_id)
             ):
                 discordpatch.delay(

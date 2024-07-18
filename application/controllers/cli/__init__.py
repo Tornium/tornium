@@ -132,6 +132,7 @@ def update_guild_commands(verbose=False):
             continue
         elif len(tornium_ext.extension.guilds) == 0:
             click.echo(f"Skipping Tornium extension {tornium_ext.name}: no guilds are stored")
+            continue
 
         commands_data = []
 

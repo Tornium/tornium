@@ -1,37 +1,29 @@
 defmodule Tornium.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
-
   def project do
     [
       app: :tornium,
-      version: @version,
+      version: "0.1.0",
       elixir: "~> 1.16",
-      package: package(),
+      start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
 
   def application do
     [
+      mod: {Tornium.Application, []},
       extra_applications: [:logger]
     ]
   end
 
   def deps do
     [
-      {:nostrum, "~> 0.10"}
-    ]
-  end
-
-  def package do
-    [
-      description: "Tornium's Elixir Oban and Nostrum worker",
-      files: ["lib", "mix.exs"],
-      maintainers: ["tiksan"],
-      licenses: ["AGPL"],
-      links: %{"Github" => "https://github.com/Tornium/tornium/tree/master/worker"}
+      {:ecto, "~> 3.0"},
+      {:ecto_sql, "~> 3.10"},
+      {:nostrum, "~> 0.10"},
+      {:postgrex, ">= 0.0.0"},
     ]
   end
 end

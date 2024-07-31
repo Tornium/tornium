@@ -1,5 +1,9 @@
 import Config
 
+config :tornium,
+  ecto_repos: [Tornium.Repo],
+  generators: [timestamp_type: :utc_datetime, binary_id: true]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

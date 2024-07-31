@@ -81,7 +81,6 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
             pass
         else:
             if user.last_refresh is not None and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE:
-                print("too old")
                 return
 
         user_id = 0

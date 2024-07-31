@@ -18,8 +18,6 @@ from urllib.parse import urlparse
 import peewee
 from flask import render_template
 
-import utils.tornium_ext
-
 
 def handle_torn_error(error):
     if error.code == 0:

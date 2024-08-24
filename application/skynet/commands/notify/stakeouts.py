@@ -418,7 +418,7 @@ def stakeouts(interaction, *args, **kwargs):
                     },
                 }
 
-        notification = Notification(
+        notification: Notification = Notification(
             invoker=user.tid,
             time_created=datetime.datetime.utcnow(),
             recipient=user.discord_id if private else channel,
@@ -430,7 +430,8 @@ def stakeouts(interaction, *args, **kwargs):
             options={
                 "value": [],
             },
-        ).save()
+        )
+        notification.save()
 
         return {
             "type": 4,
@@ -463,7 +464,7 @@ def stakeouts(interaction, *args, **kwargs):
                             },
                         ],
                         "footer": {
-                            "text": f"DB ID: {notification}",
+                            "text": f"DB ID: {notification.get_id()}",
                         },
                     }
                 ]

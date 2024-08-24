@@ -210,6 +210,7 @@ def verify_users(
 
     guild: Server = (
         Server.select(
+            Server.name,
             Server.sid,
             Server.verify_enabled,
             Server.verify_template,

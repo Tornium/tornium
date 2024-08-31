@@ -222,7 +222,8 @@ def withdraw(interaction, *args, **kwargs):
                                 f"valid amount. For proper formatting, take a look at the "
                                 f"[documentation](https://docs.tornium.com/en/latest/user/bot/banking.html#withdraw)",
                             }
-                        ]
+                        ],
+                        "flags": 64,
                     },
                 }
 

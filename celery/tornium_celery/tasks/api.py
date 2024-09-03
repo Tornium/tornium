@@ -203,16 +203,7 @@ def handle_discord_error(e: DiscordError):
 
 
 @celery.shared_task(name="tasks.api.tornget", time_limit=5, routing_key="api.tornget", queue="api")
-def tornget(
-    endpoint,
-    key,
-    tots=0,
-    fromts=0,
-    stat="",
-    session=None,
-    pass_error=False,
-    version=1
-):
+def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=False, version=1):
     url = (
         f'{config.torn_api_uri}v{version}/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
         f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'

@@ -211,9 +211,10 @@ def tornget(
     stat="",
     session=None,
     pass_error=False,
+    version=1
 ):
     url = (
-        f'{config.torn_api_uri}{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
+        f'{config.torn_api_uri}v{version}/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'
         f'{"" if tots == 0 else f"&to={tots}"}{stat if stat == "" else f"&stat={stat}"}'
     )
 

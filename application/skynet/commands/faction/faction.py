@@ -25,7 +25,7 @@ from tornium_commons.models import Faction, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.decorators import invoker_required
-from skynet.skyutils import get_admin_keys
+from skynet.skyutils import get_admin_keys, get_faction_keys
 
 
 def faction_data_switchboard(interaction, *args, **kwargs):
@@ -279,17 +279,50 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
     def revivable():
-        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", random.choice(admin_keys), version=2)
+        if not kwargs["user"].faction_aa or kwargs["user"].faction is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "Only AA members of your faction are able to use this command.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        aa_keys = get_faction_keys(interaction, kwargs["user"].faction)
+
+        if not isinstance(aa_keys, tuple) or len(aa_keys) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys of faction AA members could be located. Please sign "
+                            "into Tornium or ask a faction AA member to sign in.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", random.choice(aa_keys), version=2)
 
         payload[0]["title"] = f"Revivable Members of {member_data['name']}"
         indices = sorted(
             member_data["members"],
-            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+            key=lambda d: d["last_action"]["timestamp"],
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
         not_revivable_count = 0
 
-        for member in member_data["members"].values():
+        for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
             elif member["revive_setting"] == "Everyone":

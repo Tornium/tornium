@@ -75,7 +75,7 @@
                 {
                     "type": 1,
                     "name": "inactive",
-                    "description": "Lists players currently more than a specified days inactive the specified faction",
+                    "description": "Lists players currently more than a specified days inactive in the specified faction",
                     "options": [
                         {
                             "type": 4,
@@ -83,6 +83,19 @@
                             "description": "Days inactive to filter by",
                             "required": true
                         },
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "revivable",
+                    "description": "Lists players currently revivable in the specified faction",
+                    "options": [
                         {
                             "type": 3,
                             "name": "faction",

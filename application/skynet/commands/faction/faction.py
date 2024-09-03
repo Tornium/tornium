@@ -278,6 +278,46 @@ def members_switchboard(interaction, *args, **kwargs):
             "data": {"embeds": payload},
         }
 
+    def revivable():
+        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", random.choice(admin_keys), version=2)
+
+        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        indices = sorted(
+            member_data["members"],
+            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
+        )
+        member_data["members"] = {n: member_data["members"][n] for n in indices}
+        not_revivable_count = 0
+
+        for member in member_data["members"].values():
+            if member["status"]["state"] in ("Federal", "Fallen"):
+                continue
+            elif member["revive_setting"] == "Everyone":
+                not_revivable_count += 1
+                continue
+
+            line_payload = f"{member['name']} [{member['id']}] - {member['revive_setting']}"
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Revivable Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        payload["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
+
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
+
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
@@ -383,6 +423,10 @@ def members_switchboard(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+
+    if subcommand == "revivable":
+        # Skips tornget call as uses v2 of the API for this
+        return revivable()
 
     member_data = tornget(
         f"faction/{faction.tid}?selections=",

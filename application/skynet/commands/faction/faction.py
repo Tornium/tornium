@@ -279,7 +279,7 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
     def revivable():
-        if not kwargs["user"].faction_aa or kwargs["user"].faction is None:
+        if not user.faction_aa or user.faction is None:
             return {
                 "type": 4,
                 "data": {
@@ -294,7 +294,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        aa_keys = get_faction_keys(interaction, kwargs["user"].faction)
+        aa_keys = get_faction_keys(interaction, user.faction)
 
         if not isinstance(aa_keys, tuple) or len(aa_keys) == 0:
             return {

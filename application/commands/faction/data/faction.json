@@ -95,14 +95,7 @@
                     "type": 1,
                     "name": "revivable",
                     "description": "Lists players currently revivable in the specified faction",
-                    "options": [
-                        {
-                            "type": 3,
-                            "name": "faction",
-                            "description": "The faction's name or Torn ID",
-                            "required": false
-                        }
-                    ]
+                    "options": []
                 }
             ]
         }

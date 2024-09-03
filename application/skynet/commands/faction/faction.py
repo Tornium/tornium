@@ -319,13 +319,12 @@ def members_switchboard(interaction, *args, **kwargs):
             member_data["members"],
             key=lambda d: d["last_action"]["timestamp"],
         )
-        member_data["members"] = {n: member_data["members"][n] for n in indices}
         not_revivable_count = 0
 
         for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif member["revive_setting"] == "Everyone":
+            elif member["revive_setting"].lower() == "no one":
                 not_revivable_count += 1
                 continue
 
@@ -344,7 +343,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        payload["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
+        payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
 
         return {
             "type": 4,

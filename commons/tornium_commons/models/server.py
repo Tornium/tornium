@@ -44,8 +44,6 @@ class Server(BaseModel):
     verify_log_channel = BigIntegerField(default=0)
     verify_jail_channel = BigIntegerField(default=0)
 
-    # attack_config = ServerAttackConfig backref
-
     # Banking configuration
     banking_config = JSONField(default={})
 

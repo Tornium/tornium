@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `/user` slash command
 - Added field to retaliation embed for whether the original attack is a retaliation
+- Added `v2` API support to `tasks.api.tornget`
+- Added revivable members slash command `/faction members revivable`
 
 ### Changed
 - Re-enabled Discord-based authentication

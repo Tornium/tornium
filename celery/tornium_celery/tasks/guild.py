@@ -112,7 +112,7 @@ def refresh_guild(guild: dict):
     name="tasks.guild.refresh_guilds",
     routing_key="default.refresh_guilds",
     queue="default",
-    time_limit=600,
+    time_limit=1200,
 )
 def refresh_guilds():
     # Largest guild ID and guild count used for pagination if the number of servers

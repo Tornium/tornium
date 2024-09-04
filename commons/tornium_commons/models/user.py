@@ -51,7 +51,7 @@ class User(BaseModel):
     level = SmallIntegerField(null=True)
     discord_id = BigIntegerField(index=True, null=True)
     personal_stats = ForeignKeyField(PersonalStats, null=True)
-    # Must be the lstest personal stats entry containing all the data
+    # Must be the latest personal stats entry containing all the data
 
     # Battle stats
     battlescore = FloatField(null=True)

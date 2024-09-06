@@ -851,6 +851,8 @@ def validate_attack_available_retaliation(attack: dict, faction: Faction) -> boo
         return False
     elif int(time.time()) - attack["timestamp_ended"] >= 300:
         return False
+    elif Retaliation.select().where(Retaliation.attack_code == attack["code"]).exists():
+        return False
 
     return True
 

@@ -21,7 +21,7 @@ import typing
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_commons.formatters import find_list
-from tornium_commons.models import Faction, User
+from tornium_commons.models import Faction, PersonalStats, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.decorators import invoker_required
@@ -140,7 +140,9 @@ def members_switchboard(interaction, *args, **kwargs):
 
             if member["status"]["state"] in ("Traveling", "Abroad"):
                 line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
-            elif member["status"]["state"] == "Hospital" and abroad_hospital_regex.match(
+            elif member["status"][
+                "state"
+            ] == "Hospital" and abroad_hospital_regex.match(
                 member["status"]["description"]
             ):
                 line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
@@ -255,10 +257,15 @@ def members_switchboard(interaction, *args, **kwargs):
         for tid, member in member_data["members"].items():
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif int(time.time()) - member["last_action"]["timestamp"] < days * 24 * 60 * 60:
+            elif (
+                int(time.time()) - member["last_action"]["timestamp"]
+                < days * 24 * 60 * 60
+            ):
                 continue
 
-            line_payload = f"{member['name']} [{tid}] - {member['last_action']['relative']}"
+            line_payload = (
+                f"{member['name']} [{tid}] - {member['last_action']['relative']}"
+            )
 
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
@@ -312,13 +319,13 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", random.choice(aa_keys), version=2)
+        member_data = tornget(
+            f"faction/{faction.tid}?selections=basic,members",
+            random.choice(aa_keys),
+            version=2,
+        )
 
         payload[0]["title"] = f"Revivable Members of {member_data['name']}"
-        indices = sorted(
-            member_data["members"],
-            key=lambda d: d["last_action"]["timestamp"],
-        )
         not_revivable_count = 0
 
         for member in member_data["members"]:
@@ -328,7 +335,9 @@ def members_switchboard(interaction, *args, **kwargs):
                 not_revivable_count += 1
                 continue
 
-            line_payload = f"{member['name']} [{member['id']}] - {member['revive_setting']}"
+            line_payload = (
+                f"{member['name']} [{member['id']}] - {member['revive_setting']}"
+            )
 
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
@@ -344,6 +353,79 @@ def members_switchboard(interaction, *args, **kwargs):
             payload[-1]["description"] += line_payload
 
         payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
+
+        return {
+            "type": 4,
+            "data": {"embeds": payload},
+        }
+
+    def revivable_other_faction():
+        api_user: User
+        if user.personal_stats.revives >= 1 and user.key is not None:
+            api_user = user
+        else:
+            try:
+                api_user = random.choice(
+                    User.select(User.tid, User.name).where(
+                        (PersonalStats.revives >= 1)
+                        & (
+                            User.tid.in_(
+                                Server.select(Server.admins)
+                                .where(Server.sid == interaction["guild_id"])
+                                .get()
+                                .admins
+                            )
+                        )
+                    )
+                )
+            except IndexError:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "No API Keys",
+                                "description": "No API keys of admins could be located. Please sign into Tornium or ask a "
+                                "server admin to sign in.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
+        member_data = tornget(
+            f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2
+        )
+
+        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        not_revivable_count = 0
+
+        for member in member_data["members"]:
+            if member["status"]["state"] in ("Federal", "Fallen"):
+                continue
+            elif not member["is_revivable"]:
+                not_revivable_count += 1
+                continue
+
+            line_payload = f"{member['name']} [{member['id']}]"
+
+            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
+                payload.append(
+                    {
+                        "title": f"Revivable Members of {member_data['name']}",
+                        "description": "",
+                        "color": SKYNET_INFO,
+                    }
+                )
+            else:
+                line_payload = "\n" + line_payload
+
+            payload[-1]["description"] += line_payload
+
+        payload[0]["footer"] = {
+            "text": f"Not Revivable: {not_revivable_count}; Based on {api_user.tid}"
+        }
 
         return {
             "type": 4,
@@ -422,7 +504,9 @@ def members_switchboard(interaction, *args, **kwargs):
             }
     else:
         try:
-            faction: Faction = Faction.select().where(Faction.name ** faction["value"]).get()
+            faction: Faction = (
+                Faction.select().where(Faction.name ** faction["value"]).get()
+            )
         except DoesNotExist:
             return {
                 "type": 4,
@@ -458,7 +542,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
     if subcommand == "revivable":
         # Skips tornget call as uses v2 of the API for this
-        return revivable()
+        if faction.tid == user.faction.tid:
+            return revivable()
+        else:
+            return revivable_other_faction()
 
     member_data = tornget(
         f"faction/{faction.tid}?selections=",

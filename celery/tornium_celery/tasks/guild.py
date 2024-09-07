@@ -168,7 +168,10 @@ def refresh_guilds():
 
 
 @celery.shared_task(
-    name="tasks.guild.verify_guilds", routing_key="default.verify_guilds", queue="default", time_limit=600
+    name="tasks.guild.verify_guilds",
+    routing_key="default.verify_guilds",
+    queue="default",
+    time_limit=600,
 )
 def verify_guilds():
     def _modulo(lhs, rhs):
@@ -631,7 +634,9 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
     patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
     patch_json["roles"].update(
         member_position_roles(
-            faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
+            faction_verify=guild.faction_verify,
+            faction_id=user.faction_id,
+            position=user.faction_position,
         )
     )
 

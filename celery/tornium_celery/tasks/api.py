@@ -90,7 +90,10 @@ def handle_discord_error(e: DiscordError):
         try:
             webhook_data = requests.post(
                 f"https://discord.com/api/v10/channels/{channel_id}/webhooks",
-                headers={"Authorization": f'Bot {config["bot_token"]}', "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f'Bot {config["bot_token"]}',
+                    "Content-Type": "application/json",
+                },
                 data=json.dumps(
                     {
                         "name": "Tornium-Errors",
@@ -191,12 +194,18 @@ def handle_discord_error(e: DiscordError):
         try:
             requests.post(
                 f"https://discord.com/api/v10/webhooks/{webhook_data['id']}/{webhook_data['token']}",
-                headers={"Authorization": f'Bot {config["bot_token"]}', "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f'Bot {config["bot_token"]}',
+                    "Content-Type": "application/json",
+                },
                 data=json.dumps(payload),
             )
             requests.delete(
                 f"https://discord.com/api/v10/webhooks/{webhook_data['id']}",
-                headers={"Authorization": f'Bot {config["bot_token"]}', "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f'Bot {config["bot_token"]}',
+                    "Content-Type": "application/json",
+                },
             )
         except:  # noqa 722
             pass

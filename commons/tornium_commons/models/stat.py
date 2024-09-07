@@ -130,7 +130,7 @@ class Stat(BaseModel):
                         "name": stat_entry[4],
                         "username": f"{stat_entry[4]} [{stat_entry[1]}]",
                         "level": stat_entry[5],
-                        "last_refresh": stat_entry[6].timestamp() if stat_entry[6] is not None else None,
+                        "last_refresh": (stat_entry[6].timestamp() if stat_entry[6] is not None else None),
                         "faction": {
                             "tid": stat_entry[7],
                             "name": stat_entry[10],

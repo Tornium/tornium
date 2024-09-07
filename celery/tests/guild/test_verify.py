@@ -26,7 +26,10 @@ from tornium_celery.tasks.guild import (
 )
 
 
-@hypothesis.given(hypothesis.strategies.integers(min_value=1), hypothesis.strategies.text(alphabet=string.printable))
+@hypothesis.given(
+    hypothesis.strategies.integers(min_value=1),
+    hypothesis.strategies.text(alphabet=string.printable),
+)
 def test_default_verification_name(tid: int, name: str):
     assert member_verification_name(name=name, tid=tid, tag="")
 
@@ -41,24 +44,37 @@ def test_small_verified_roles():
 
 def test_empty_faction_roles():
     assert (
-        member_faction_roles(faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}}, faction_id=0)
-        == set()
-    )
-    assert (
-        member_faction_roles(faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}}, faction_id=3)
-        == set()
-    )
-    assert (
-        member_faction_roles(faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}}, faction_id=1)
-        == set()
-    )
-    assert (
-        member_faction_roles(faction_verify={"1": {"roles": [], "positions": {}, "enabled": False}}, faction_id=1)
+        member_faction_roles(
+            faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}},
+            faction_id=0,
+        )
         == set()
     )
     assert (
         member_faction_roles(
-            faction_verify={"1": {"roles": [1, 2, 3], "positions": {}, "enabled": False}}, faction_id=1
+            faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}},
+            faction_id=3,
+        )
+        == set()
+    )
+    assert (
+        member_faction_roles(
+            faction_verify={"1": {"roles": [], "positions": {}, "enabled": True}},
+            faction_id=1,
+        )
+        == set()
+    )
+    assert (
+        member_faction_roles(
+            faction_verify={"1": {"roles": [], "positions": {}, "enabled": False}},
+            faction_id=1,
+        )
+        == set()
+    )
+    assert (
+        member_faction_roles(
+            faction_verify={"1": {"roles": [1, 2, 3], "positions": {}, "enabled": False}},
+            faction_id=1,
         )
         == set()
     )
@@ -66,14 +82,21 @@ def test_empty_faction_roles():
 
 def test_valid_faction_roles():
     assert member_faction_roles(
-        faction_verify={"1": {"roles": [1, 2, 3], "positions": {}, "enabled": True}}, faction_id=1
+        faction_verify={"1": {"roles": [1, 2, 3], "positions": {}, "enabled": True}},
+        faction_id=1,
     ) == {"1", "2", "3"}
 
 
 def test_empty_position_roles():
     assert (
         member_position_roles(
-            faction_verify={"1": {"roles": [], "positions": {"abc": [1, 2, 3], "123": []}, "enabled": False}},
+            faction_verify={
+                "1": {
+                    "roles": [],
+                    "positions": {"abc": [1, 2, 3], "123": []},
+                    "enabled": False,
+                }
+            },
             faction_id=0,
             position=FactionPosition(pid="abc", name="abc"),
         )
@@ -81,7 +104,13 @@ def test_empty_position_roles():
     )
     assert (
         member_position_roles(
-            faction_verify={"1": {"roles": [], "positions": {"abc": [1, 2, 3], "123": []}, "enabled": True}},
+            faction_verify={
+                "1": {
+                    "roles": [],
+                    "positions": {"abc": [1, 2, 3], "123": []},
+                    "enabled": True,
+                }
+            },
             faction_id=0,
             position=FactionPosition(pid="abc", name="abc"),
         )
@@ -89,7 +118,13 @@ def test_empty_position_roles():
     )
     assert (
         member_position_roles(
-            faction_verify={"1": {"roles": [], "positions": {"abc": [1, 2, 3], "123": []}, "enabled": False}},
+            faction_verify={
+                "1": {
+                    "roles": [],
+                    "positions": {"abc": [1, 2, 3], "123": []},
+                    "enabled": False,
+                }
+            },
             faction_id=1,
             position=FactionPosition(pid="abc", name="abc"),
         )
@@ -97,7 +132,13 @@ def test_empty_position_roles():
     )
     assert (
         member_position_roles(
-            faction_verify={"1": {"roles": [], "positions": {"abc": [1, 2, 3], "123": []}, "enabled": True}},
+            faction_verify={
+                "1": {
+                    "roles": [],
+                    "positions": {"abc": [1, 2, 3], "123": []},
+                    "enabled": True,
+                }
+            },
             faction_id=1,
             position=FactionPosition(pid="123", name="abc"),
         )

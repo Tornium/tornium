@@ -13,14 +13,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
+defmodule Tornium.Schema.Faction do
+  use Ecto.Schema
 
-config :tornium, Tornium.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "tornium_test_#{:rand.uniform(1_000)}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  @primary_key {:tid, :integer, autogenerate: false}
+  schema "faction" do
+    field(:name, :string)
+    field(:tag, :string)
+    field(:respect, :integer)
+    field(:capacity, :integer)
+    has_one(:leader_id, Tornium.Schema.User)
+    has_one(:coleader_id, Tornium.Schema.User)
 
-config :logger, level: :warning
+    has_one(:guild_id, Tornium.Schema.Server)
+
+    field(:assist_servers, {:array, :integer})
+    
+    field(:stats_db_enabled, :boolean)
+    field(:stats_db_global, :boolean)
+
+    field(:od_channel, :integer)
+    field(:od_data, :map)
+
+    field(:last_members, :utc_datetime_usec)
+    field(:last_attacks, :utc_datetime_usec)
+  end
+end

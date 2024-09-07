@@ -13,14 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
+defmodule Tornium.Guild do
+  import Ecto.Query
+  alias Tornium.Repo
 
-config :tornium, Tornium.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "tornium_test_#{:rand.uniform(1_000)}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  @spec get_admin_keys(guild :: integer() | Tornium.Schema.Server) :: List
+  def get_admin_keys(guild) when is_integer(guild) do
+    guild = Repo.get(Tornium.Schema.Server, guild)
+    get_admin_keys(guild)
+  end
 
-config :logger, level: :warning
+  def get_admin_keys(guild) when is_nil(guild) or Kernel.length(guild.admins) == 0 do
+    []
+  end
+
+  def get_admin_keys(guild) do
+    Tornium.Schema.TornKey
+    |> where([key], key.user_id in ^guild.admins and key.paused == false and key.default == true)
+    |> Repo.all()
+    |> Enum.map(fn key -> key.api_key end)
+  end
+end

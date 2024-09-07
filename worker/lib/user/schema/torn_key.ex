@@ -13,14 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
+defmodule Tornium.Schema.TornKey do
+  use Ecto.Schema
 
-config :tornium, Tornium.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "tornium_test_#{:rand.uniform(1_000)}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
-
-config :logger, level: :warning
+  @primary_key {:guid, Ecto.UUID, autogenerate: true}
+  schema "tornkey" do
+    field(:api_key, :string)
+    belongs_to(:user, Tornium.Schema.User)
+    field(:default, :boolean)
+    field(:disabled, :boolean)
+    field(:paused, :boolean)
+    field(:access_level, :integer)
+  end
+end

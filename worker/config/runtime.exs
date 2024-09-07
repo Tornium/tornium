@@ -21,7 +21,7 @@ config :nostrum,
   gateway_intents: [
     :guild_members
   ],
-  token: System.get_env("DISCORD_TOKEN") || raise "environment variable DISCORD_TOKEN is missing."
+  token: System.get_env("DISCORD_TOKEN") || raise("environment variable DISCORD_TOKEN is missing.")
 
 if config_env() == :prod do
   database_url =

@@ -22,7 +22,9 @@ defmodule Tornium.MixProject do
       version: "0.1.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      aliases: aliases()
     ]
   end
 
@@ -39,7 +41,18 @@ defmodule Tornium.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "2d5674cc61a0dc22e5b54ffed607f00a51ee8621"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "dab058858a8e3d08b6bf19bfbc956a92f9f83479"}
     ]
   end
+
+  defp aliases do
+    [
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.drop", "ecto.create", "ecto.migrate", "test", "ecto.drop"]
+    ]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test"]
+  defp elixirc_paths(_), do: ["lib"]
 end

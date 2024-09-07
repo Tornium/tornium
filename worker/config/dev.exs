@@ -16,6 +16,10 @@
 import Config
 
 config :tornium, Tornium.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "Tornium",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

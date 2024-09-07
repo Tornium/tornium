@@ -16,21 +16,50 @@
 defmodule Tornium.Discord.Events.GuildMemberAdd do
   require Logger
 
-  @spec check_server_configuration(guild_id :: integer()) :: :ok | {:error, any()}
-  defp check_server_configuration(_guild_id) do
-    :ok
-  end
-
   @spec handle(guild_id :: integer(), new_member :: Nostrum.Struct.Guild.Member.t()) :: nil
   def handle(guild_id, new_member) do
     # Verify members on join if the server has that feature enabled
     case Nostrum.Cache.UserCache.get(new_member.user_id) do
       {:ok, user} ->
-        check_server_configuration(guild_id)
-        # |> tornget("user/{{ discord_id }}?selections=")
-        # |> perform_verification()
+        handle_verification(guild_id, user, new_member)
+
       {:error, reason} ->
-        Logger.debug(["Failed to get user ", new_member.user_id, " from the cache due to ", reason])
+        Logger.debug([
+          "Failed to get user ",
+          new_member.user_id,
+          " for verification on join from the cache due to ",
+          reason
+        ])
     end
+  end
+
+  @spec handle_verification(
+          guild_id :: integer(),
+          user :: Nostrum.Struct.User.t(),
+          member :: Nostrum.Struct.Guild.Member.t()
+        ) :: nil
+  defp handle_verification(guild_id, _user, member) do
+    guild_config = Tornium.Guild.Config.validate(guild_id)
+
+    case Tornium.Guild.Config.validate(guild_id) do
+      :ok ->
+        Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
+          resource: "user",
+          resource_id: member.user_id,
+          selections: "",
+          key: "",
+          key_owner: 2_383_326,
+          nice: 0
+        })
+        |> IO.inspect()
+        |> validate_api_response()
+
+      {:error, reason} ->
+        Logger.debug(["Failed to verify user ", member.user_id, " on join due to ", reason])
+    end
+  end
+
+  @spec validate_api_response(api_response :: map()) :: nil
+  defp validate_api_response(api_response) do
   end
 end

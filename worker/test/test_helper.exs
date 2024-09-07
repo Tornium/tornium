@@ -13,14 +13,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
-
-config :tornium, Tornium.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "tornium_test_#{:rand.uniform(1_000)}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
-
-config :logger, level: :warning
+# Ecto.Adapters.SQL.Sandbox.mode(Tornium.Repo, :manual)
+ExUnit.start()

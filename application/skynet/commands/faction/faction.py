@@ -140,9 +140,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             if member["status"]["state"] in ("Traveling", "Abroad"):
                 line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
-            elif member["status"][
-                "state"
-            ] == "Hospital" and abroad_hospital_regex.match(
+            elif member["status"]["state"] == "Hospital" and abroad_hospital_regex.match(
                 member["status"]["description"]
             ):
                 line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
@@ -257,15 +255,10 @@ def members_switchboard(interaction, *args, **kwargs):
         for tid, member in member_data["members"].items():
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif (
-                int(time.time()) - member["last_action"]["timestamp"]
-                < days * 24 * 60 * 60
-            ):
+            elif int(time.time()) - member["last_action"]["timestamp"] < days * 24 * 60 * 60:
                 continue
 
-            line_payload = (
-                f"{member['name']} [{tid}] - {member['last_action']['relative']}"
-            )
+            line_payload = f"{member['name']} [{tid}] - {member['last_action']['relative']}"
 
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
@@ -335,9 +328,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 not_revivable_count += 1
                 continue
 
-            line_payload = (
-                f"{member['name']} [{member['id']}] - {member['revive_setting']}"
-            )
+            line_payload = f"{member['name']} [{member['id']}] - {member['revive_setting']}"
 
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
@@ -370,10 +361,7 @@ def members_switchboard(interaction, *args, **kwargs):
                         (PersonalStats.revives >= 1)
                         & (
                             User.tid.in_(
-                                Server.select(Server.admins)
-                                .where(Server.sid == interaction["guild_id"])
-                                .get()
-                                .admins
+                                Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins
                             )
                         )
                     )
@@ -394,9 +382,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     },
                 }
 
-        member_data = tornget(
-            f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2
-        )
+        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
 
         payload[0]["title"] = f"Revivable Members of {member_data['name']}"
         not_revivable_count = 0
@@ -423,9 +409,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        payload[0]["footer"] = {
-            "text": f"Not Revivable: {not_revivable_count}; Based on {api_user.tid}"
-        }
+        payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}; Based on {api_user.tid}"}
 
         return {
             "type": 4,
@@ -504,9 +488,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
     else:
         try:
-            faction: Faction = (
-                Faction.select().where(Faction.name ** faction["value"]).get()
-            )
+            faction: Faction = Faction.select().where(Faction.name ** faction["value"]).get()
         except DoesNotExist:
             return {
                 "type": 4,

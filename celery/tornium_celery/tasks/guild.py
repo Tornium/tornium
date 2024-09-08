@@ -189,7 +189,7 @@ def verify_guilds():
     ):
         verify_users.delay(
             guild_id=guild.sid,
-            force=True,
+            force=False,
         ).forget()
 
 

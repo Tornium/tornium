@@ -111,4 +111,142 @@ defmodule Tornium.Test.Guild.Verify do
 
     assert MapSet.to_list(Map.get(state, :roles)) == []
   end
+
+  test "test_remove_invalid_roles" do
+    state =
+      Tornium.Guild.Verify.remove_invalid_faction_roles(
+        %{roles: MapSet.new([1, 2, 3])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          exclusion_roles: [1],
+          faction_verify: %{
+            "1" => %{"roles" => [1], "positions" => %{}, "enabled" => true},
+            "2" => %{"roles" => [2], "positions" => %{}, "enabled" => false},
+            "3" => %{"roles" => [3], "positions" => %{}, "enabled" => true}
+          },
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn",
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction"
+          }
+        }
+      )
+
+    assert MapSet.to_list(Map.get(state, :roles)) == [1, 2]
+  end
+
+  test "test_faction_roles" do
+    state =
+      Tornium.Guild.Verify.set_faction_roles(
+        %{roles: MapSet.new([2])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          exclusion_roles: [1],
+          faction_verify: %{
+            "1" => %{"roles" => [1], "positions" => %{}, "enabled" => true},
+            "2" => %{"roles" => [2], "positions" => %{}, "enabled" => false},
+            "3" => %{"roles" => [3], "positions" => %{}, "enabled" => true}
+          },
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn",
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction"
+          }
+        }
+      )
+
+    assert MapSet.to_list(Map.get(state, :roles)) == [1, 2]
+  end
+
+  test "test_faction_position_roles" do
+    state =
+      Tornium.Guild.Verify.set_faction_position_roles(
+        %{roles: MapSet.new([2])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          exclusion_roles: [1],
+          faction_verify: %{
+            "1" => %{"roles" => [1], "positions" => %{"cbaf7f5d-34c0-4e92-bc4b-cea429bbd496" => [1]}, "enabled" => true},
+            "2" => %{"roles" => [2], "positions" => %{}, "enabled" => false},
+            "3" => %{"roles" => [3], "positions" => %{}, "enabled" => true}
+          },
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn",
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction"
+          },
+          faction_position: %Tornium.Schema.FactionPosition{
+            pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
+            name: "Test Position 1",
+            faction_tid: 1
+          }
+        }
+      )
+
+    assert MapSet.to_list(Map.get(state, :roles)) == [1, 2]
+  end
+
+  test "test_remove_faction_position_roles" do
+    state =
+      Tornium.Guild.Verify.remove_invalid_faction_position_roles(
+        %{roles: MapSet.new([1, 2])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          exclusion_roles: [1],
+          faction_verify: %{
+            "1" => %{"roles" => [1], "positions" => %{"cbaf7f5d-34c0-4e92-bc4b-cea429bbd497" => [1]}, "enabled" => true},
+            "2" => %{"roles" => [2], "positions" => %{}, "enabled" => false},
+            "3" => %{"roles" => [3], "positions" => %{}, "enabled" => true}
+          },
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn",
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction"
+          },
+          faction_position: %Tornium.Schema.FactionPosition{
+            pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
+            name: "Test Position 1",
+            faction_tid: 1
+          }
+        }
+      )
+
+    assert MapSet.to_list(Map.get(state, :roles)) == [2]
+  end
 end

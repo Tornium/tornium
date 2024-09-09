@@ -19,7 +19,6 @@ defmodule Tornium.Guild.Verify do
     Map.update(state, :roles, MapSet.new(new_values), fn existing_roles ->
       MapSet.union(existing_roles, MapSet.new(new_values))
     end)
-    |> IO.inspect()
   end
 
   @spec set_verified_name(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: Tornium.Schema.User) ::
@@ -49,21 +48,118 @@ defmodule Tornium.Guild.Verify do
     insert_update_roles(state, roles)
   end
 
-  @spec remove_invalid_faction_roles(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: Tornium.Schema.User) :: map()
+  @spec remove_invalid_faction_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User
+        ) :: map()
   def remove_invalid_faction_roles(state, _server_config = %{faction_verify: faction_verify}, user) do
-    # {"37537": {"roles": [1097494763093098526], "positions": {}, "enabled": true}}
+    roles_to_remove =
+      faction_verify
+      |> Enum.map(fn {faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
+        if String.to_integer(faction_tid) != user.faction.tid and enabled do
+          faction_roles
+        else
+          []
+        end
+      end)
+      |> List.flatten()
+      |> MapSet.new()
 
-    Enum.each(
-      faction_verify,
-      fn {faction_tid, faction_verify_config} -> if Integer.parse(faction_tid) != user.faction.tid do Map.update!(state, :roles, MapSet.difference(Map.get(state, :roles), faction_verify_config["roles"])) end end
-    )
+    Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
   end
 
-  # faction_id: int
-  # verify_data: dict
-  # for verify_faction_id, verify_data in faction_verify.items():
-  #     if int(verify_faction_id) == faction_id:
-  #         continue
+  @spec can_set_faction_roles?(faction_verify :: map(), user :: Tornium.Schema.User) :: boolean()
+  defp can_set_faction_roles?(faction_verify, user) do
+    faction_config = Map.get(faction_verify, Integer.to_string(user.faction.tid || 0), %{})
+    Map.get(faction_config, "enabled", false)
+  end
 
-  #     roles.update(set(str(role) for role in verify_data.get("roles", tuple())))
+  @spec set_faction_roles(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: Tornium.Schema.User) ::
+          map()
+  def set_faction_roles(state, _server_config = %{faction_verify: faction_verify}, user) do
+    if can_set_faction_roles?(faction_verify, user) do
+      insert_update_roles(state, Map.get(Map.get(faction_verify, Integer.to_string(user.faction.tid)), "roles"))
+    else
+      state
+    end
+  end
+
+  @spec remove_invalid_faction_position_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User
+        ) :: map()
+  def remove_invalid_faction_position_roles(state, _server_config = %{faction_verify: faction_verify}, user) do
+    roles_to_remove =
+      faction_verify
+      |> Enum.map(fn {_faction_tid, _faction_verify_config = %{"positions" => position_config, "enabled" => enabled}} ->
+        Enum.map(position_config, fn {position_pid, position_roles} ->
+          if user.faction_position.pid == position_pid or not enabled do
+            []
+          else
+            position_roles
+          end
+        end)
+        |> List.flatten()
+      end)
+      |> List.flatten()
+      |> MapSet.new()
+
+    Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
+  end
+
+  @spec can_set_faction_position_roles?(faction_verify :: map(), user :: Tornium.Schema.User) :: boolean()
+  defp can_set_faction_position_roles?(faction_verify, user) do
+    cond do
+      user.faction.tid == 0 or is_nil(user.faction.tid) ->
+        false
+
+      is_nil(user.faction_position) ->
+        false
+
+      Map.get(faction_verify, Integer.to_string(user.faction.tid)) |> is_nil() ->
+        false
+
+      Map.get(faction_verify, Integer.to_string(user.faction.tid)) |> Map.get("enabled", false) == false ->
+        false
+
+      Map.get(faction_verify, Integer.to_string(user.faction.tid))
+      |> Map.get("positions", %{})
+      |> Map.get(user.faction_position.pid)
+      |> is_nil() ->
+        false
+
+      true ->
+        true
+    end
+  end
+
+  @spec set_faction_position_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User
+        ) :: map()
+  def set_faction_position_roles(state, _server_config = %{faction_verify: faction_verify}, user) do
+    if can_set_faction_position_roles?(faction_verify, user) do
+      insert_update_roles(
+        state,
+        Map.get(faction_verify, Integer.to_string(user.faction.tid))
+        |> Map.get("positions")
+        |> Map.get(user.faction_position.pid)
+      )
+    else
+      state
+    end
+  end
+
+  #     for verify_faction_id, faction_positions_data in faction_verify.items():
+  #         if int(verify_faction_id) == faction_id:
+  #             continue
+  # 
+  #         for position_uuid, position_roles in faction_positions_data.get("positions", {}).items():
+  #             if position is not None and position_uuid == str(position.pid):
+  #                 continue
+  # 
+  #             roles.update(set(str(role) for role in position_roles))
 end

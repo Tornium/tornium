@@ -28,7 +28,7 @@ defmodule Tornium.Schema.Faction do
     has_one(:guild_id, Tornium.Schema.Server)
 
     field(:assist_servers, {:array, :integer})
-    
+
     field(:stats_db_enabled, :boolean)
     field(:stats_db_global, :boolean)
 

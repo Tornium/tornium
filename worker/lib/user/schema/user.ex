@@ -29,9 +29,9 @@ defmodule Tornium.Schema.User do
     field(:speed, :integer)
     field(:dexterity, :integer)
 
-    # has_one(:faction, Tornium.Schema.Faction)
+    belongs_to(:faction, Tornium.Schema.Faction)
     field(:faction_aa, :boolean)
-    # has_one(:faction_position, Tornium.Schema.FactionPosition)
+    belongs_to(:faction_position, Tornium.Schema.FactionPosition)
 
     field(:status, :string)
     field(:last_action, :utc_datetime_usec)

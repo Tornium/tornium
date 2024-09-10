@@ -52,6 +52,22 @@ def user_who(interaction, *args, **kwargs):
 
     if user_mention is None and user_tid is None:
         user = kwargs["invoker"]
+
+        if user is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "User Not Found",
+                            "description": "Your user could not be found in this database to be retrieved. Please try again while mention your user for the user parameter.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
         user_id = (kwargs["invoker"].tid, True)
     elif user_mention is not None and user_tid is None:
         user = User.select().where(User.discord_id == user_mention["value"]).first()

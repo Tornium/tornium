@@ -134,8 +134,8 @@ def refresh_guilds():
         for guild in guilds:
             guild_count += 1
 
-            if largest_guild_id is None or guild["id"] > largest_guild_id:
-                largest_guild_id = guild["id"]
+            if largest_guild_id is None or int(guild["id"]) > largest_guild_id:
+                largest_guild_id = int(guild["id"])
 
             try:
                 guilds_not_updated.remove(int(guild["id"]))

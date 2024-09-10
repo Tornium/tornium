@@ -17,8 +17,8 @@ from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
-from tornium_commons.formatters import commas, rel_time
-from tornium_commons.models import Faction, PersonalStats, User
+from tornium_commons.formatters import rel_time
+from tornium_commons.models import User
 
 
 @login_required
@@ -40,24 +40,25 @@ def users_data():
     if search_value != "":
         users_db = users_db.where(User.name.startswith(search_value))
 
-    if ordering_direction == "asc":
-        ordering_direction = 1
-    else:
-        ordering_direction = -1
-
     if ordering == 0:
-        users_db = users_db.order_by(ordering_direction * User.tid)
+        sort_column = User.tid
     elif ordering == 1:
-        users_db = users_db.order_by(ordering_direction * User.name)
+        sort_column = User.name
     elif ordering == 2:
-        users_db = users_db.order_by(ordering_direction * User.level)
+        sort_column = User.level
     elif ordering == 3:
-        users_db = users_db.order_by(ordering_direction * User.faction_id)
+        sort_column = User.faction_id
     elif ordering == 4:
-        users_db = users_db.order_by(ordering_direction * User.last_action)
+        sort_column = User.last_action
     else:
-        users_db = users_db.order_by(ordering_direction * User.last_refresh)
+        sort_column = User.last_refresh
 
+    if ordering_direction == "asc":
+        sort_column = sort_column.asc()
+    else:
+        sort_column = sort_column.desc()
+
+    users_db = users_db.order_by(sort_column)
     count = users_db.count()
     users_db = users_db[start : start + length]
 

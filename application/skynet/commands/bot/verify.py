@@ -15,6 +15,7 @@
 
 import inspect
 import random
+import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch
@@ -32,11 +33,9 @@ from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
-from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys
 
 
-@invoker_required
 def verify(interaction, *args, **kwargs):
     if "guild_id" not in interaction:
         return {
@@ -100,7 +99,7 @@ def verify(interaction, *args, **kwargs):
             },
         }
 
-    user: User = kwargs["invoker"]
+    user: typing.Optional[User] = kwargs["invoker"]
 
     if "options" in interaction["data"]:
         member = find_list(interaction["data"]["options"], "name", "member")
@@ -134,6 +133,9 @@ def verify(interaction, *args, **kwargs):
 
     if member is not None:
         update_user_kwargs["discordid"] = int(member["value"])
+    elif user is None:
+        # This command can only be run in servers so this does not need to check for `interaction["user"]["id"]`
+        update_user_kwargs["discordid"] = interaction["member"]["user"]["id"]
     else:
         update_user_kwargs["discordid"] = user.discord_id
 

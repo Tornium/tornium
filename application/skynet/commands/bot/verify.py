@@ -170,7 +170,7 @@ def verify(interaction, *args, **kwargs):
         }
 
     try:
-        update_user(**update_user_kwargs)  # TODO: Handle Torn and Network errors
+        update_user(**update_user_kwargs)
     except TornError as e:
         if e.code == 6:
             return {
@@ -179,10 +179,11 @@ def verify(interaction, *args, **kwargs):
                     "embeds": [
                         {
                             "title": "Verification Failed",
-                            "description": "API call failed. Please verify that the user is officially verified by Torn. "
-                            "Otherwise, try forcing the verification. To verify on Torn, the user can link their Discord and "
-                            "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
-                            "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
+                            "description": "This user may not be verified on Torn. Please make sure that the user is officially verified by Torn. "
+                            "To verify on Torn, the user can link their Discord and Torn accounts through the "
+                            "[official Torn Discord server](https://www.torn.com/discord) or through a "
+                            "[direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify). "
+                            "Once the user is verified, user `/verify force:true` to verify the user.",
                             "color": SKYNET_ERROR,
                         }
                     ],

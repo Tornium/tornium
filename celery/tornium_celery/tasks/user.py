@@ -20,8 +20,6 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
@@ -34,6 +32,9 @@ from tornium_commons.models import (
     TornKey,
     User,
 )
+
+import celery
+from celery.utils.log import get_task_logger
 
 from .api import tornget
 

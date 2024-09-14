@@ -16,11 +16,12 @@
 import random
 import typing
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
 from tornium_commons.models import Server, User
 from tornium_commons.skyutils import SKYNET_ERROR
+
+import celery
+from celery.utils.log import get_task_logger
 
 from ..api import discordpost, tornget
 from ..guild import verify_member_sub

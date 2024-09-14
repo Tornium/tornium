@@ -18,11 +18,12 @@ import logging
 import time
 import typing
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.models import Faction, MemberReport, PersonalStats, User
+
+import celery
+from celery.utils.log import get_task_logger
 
 from ..api import tornget
 

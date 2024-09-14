@@ -20,14 +20,15 @@ import re
 import time
 import typing
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import remove_html, str_matches, torn_timestamp
 from tornium_commons.models import Faction, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+
+import celery
+from celery.utils.log import get_task_logger
 
 from .api import discordpost, tornget
 

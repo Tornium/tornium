@@ -17,13 +17,14 @@ import datetime
 import random
 import typing
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import Item, Notification, Server, User
 from tornium_commons.skyutils import SKYNET_INFO
+
+import celery
+from celery.utils.log import get_task_logger
 
 from .api import tornget
 from .stakeout_hooks import send_notification

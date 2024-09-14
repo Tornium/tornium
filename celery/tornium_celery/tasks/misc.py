@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import celery
 from peewee import DoesNotExist
 from tornium_commons import rds
 from tornium_commons.models import TornKey, User
+
+import celery
 
 
 @celery.shared_task(

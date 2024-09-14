@@ -17,13 +17,14 @@ import datetime
 import time
 import typing
 
-import celery
-from celery.utils.log import get_task_logger
 from redis.commands.json.path import Path
 from tornium_commons import rds
 from tornium_commons.formatters import commas, timestamp, torn_timestamp
 from tornium_commons.models import Notification, StockTick, TornKey
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
+import celery
+from celery.utils.log import get_task_logger
 
 from .api import discordpost, tornget
 from .misc import send_dm

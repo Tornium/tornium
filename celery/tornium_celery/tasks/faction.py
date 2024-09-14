@@ -24,8 +24,6 @@ import urllib.parse
 import uuid
 from decimal import DivisionByZero
 
-import celery
-from celery.utils.log import get_task_logger
 from peewee import JOIN, SQL, DoesNotExist
 from tornium_commons.db_connection import db
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -47,6 +45,9 @@ from tornium_commons.models import (
     Withdrawal,
 )
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
+
+import celery
+from celery.utils.log import get_task_logger
 
 from .api import discorddelete, discordpatch, discordpost, torn_stats_get, tornget
 from .misc import send_dm

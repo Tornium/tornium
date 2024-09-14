@@ -21,9 +21,7 @@ import typing
 if globals().get("orjson:loaded"):
     import orjson
 
-import celery
 import requests
-from celery.utils.log import get_task_logger
 from tornium_commons import Config, DBucket, rds
 from tornium_commons.errors import (
     DiscordError,
@@ -33,6 +31,9 @@ from tornium_commons.errors import (
     TornError,
 )
 from tornium_commons.models import TornKey
+
+import celery
+from celery.utils.log import get_task_logger
 
 logger = get_task_logger("celery_app")
 config = Config.from_cache()

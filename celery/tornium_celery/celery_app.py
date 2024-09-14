@@ -35,11 +35,12 @@ import json
 import typing
 
 import kombu
+from tornium_commons import Config
+
 from celery import Celery
 from celery.app import trace
 from celery.schedules import crontab
 from celery.signals import after_setup_logger
-from tornium_commons import Config
 
 config = Config.from_json()
 

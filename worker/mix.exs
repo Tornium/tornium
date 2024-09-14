@@ -41,7 +41,7 @@ defmodule Tornium.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "dab058858a8e3d08b6bf19bfbc956a92f9f83479"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "490d2bcb16b143f57ad020568671dace772039c2"}
     ]
   end
 

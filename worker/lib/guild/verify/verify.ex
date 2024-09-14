@@ -13,23 +13,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Discord.Events.GuildMemberAdd do
+defmodule Tornium.Guild.Verify do
   require Logger
 
-  @spec handle(guild_id :: integer(), new_member :: Nostrum.Struct.Guild.Member.t()) :: nil
-  def handle(guild_id, new_member) do
-    # Verify members on join if the server has that feature enabled
-    case Nostrum.Cache.UserCache.get(new_member.user_id) do
-      {:ok, user} ->
-        Tornium.Guild.Verify.handle(guild_id, user, new_member)
+  @spec handle(guild_id :: integer(), user :: Nostrum.Struct.User.t(), member :: Nostrum.Struct.Guild.Member.t()) :: nil
+  def handle(guild_id, _user, member) do
+    case Tornium.Guild.Verify.Config.validate(guild_id) do
+      _config ->
+        Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
+          resource: "user",
+          resource_id: member.user_id,
+          selections: "profile",
+          key: Enum.random(Tornium.Guild.get_admin_keys(guild_id)),
+          key_owner: 2_383_326,
+          nice: 0
+        })
+        |> IO.inspect()
+
+      # TODO: Add update user task
 
       {:error, reason} ->
-        Logger.debug([
-          "Failed to get user ",
-          new_member.user_id,
-          " for verification on join from the cache due to ",
-          reason
-        ])
+        Logger.debug(["Failed to verify user ", member.user_id, " on join due to ", reason])
     end
   end
 end

@@ -51,7 +51,7 @@ defmodule Tornium.Guild.Verify.Config do
     :verify_jail_channel
   ]
 
-  @spec validate(guild :: Tornium.Schema.Server | integer() | nil) :: Tornium.Guild.Verify.Config.t() | {:error, any()}
+  @spec validate(guild :: Tornium.Schema.Server | integer() | nil) :: Tornium.Guild.Verify.Config.t() | {:error, String}
   def validate(guild) when is_nil(guild) do
     {:error, "Invalid guild ID"}
   end

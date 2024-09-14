@@ -25,6 +25,7 @@ defmodule Tornium.Application do
     children = [
       Tornium.Repo,
       Tornium.Discord.Consumer,
+      Tornium.User.KeyStore,
       Tornex.Scheduler.Supervisor
     ]
 

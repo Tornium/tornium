@@ -34,7 +34,7 @@ defmodule Tornium.Schema.User do
     belongs_to(:faction_position, Tornium.Schema.FactionPosition)
 
     field(:status, :string)
-    field(:last_action, :utc_datetime_usec)
+    field(:last_action, :utc_datetime)
 
     field(:last_refresh, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)

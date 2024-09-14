@@ -6,7 +6,7 @@ defmodule Tornium.Repo.Migrations.AddUser do
       add :tid, :integer, primary_key: true
       add :name, :string, size: 15, default: "", null: false
       add :level, :integer, null: false
-      add :discord_id, :integer, default: nil, null: true
+      add :discord_id, :bigint, default: nil, null: true
       # Skip personal stats for later
 
       add :battlescore, :float, default: nil, null: true

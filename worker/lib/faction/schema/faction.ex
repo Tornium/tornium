@@ -22,10 +22,10 @@ defmodule Tornium.Schema.Faction do
     field(:tag, :string)
     field(:respect, :integer)
     field(:capacity, :integer)
-    has_one(:leader_id, Tornium.Schema.User)
-    has_one(:coleader_id, Tornium.Schema.User)
+    belongs_to(:leader, Tornium.Schema.User)
+    belongs_to(:coleader, Tornium.Schema.User)
 
-    has_one(:guild_id, Tornium.Schema.Server)
+    belongs_to(:guild, Tornium.Schema.Server)
 
     field(:assist_servers, {:array, :integer})
 

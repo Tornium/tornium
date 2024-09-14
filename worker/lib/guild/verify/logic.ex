@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Guild.Verify do
+defmodule Tornium.Guild.Verify.Logic do
   @spec insert_update_roles(state :: map(), new_values :: List) :: map()
   defp insert_update_roles(state, new_values) do
     Map.update(state, :roles, MapSet.new(new_values), fn existing_roles ->
@@ -33,8 +33,7 @@ defmodule Tornium.Guild.Verify do
       template
       |> String.replace("{{ name }}", user.name)
       |> String.replace("{{ tid }}", to_string(user.tid))
-
-    # TODO: Add support for faction tags
+      |> String.replace("{{ tag }}", user.faction.tag)
 
     Map.put(state, "nick", verified_string)
   end

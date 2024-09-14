@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Test.Guild.Verify do
+defmodule Tornium.Test.Guild.Verify.Logic do
   use Tornium.RepoCase
 
   test "test_empty_tempate_verified_name" do
     state =
-      Tornium.Guild.Verify.set_verified_name(
+      Tornium.Guild.Verify.Logic.set_verified_name(
         %{},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -42,7 +42,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_valid_template_verified_name" do
     state =
-      Tornium.Guild.Verify.set_verified_name(
+      Tornium.Guild.Verify.Logic.set_verified_name(
         %{},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -66,7 +66,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_verified_roles" do
     state =
-      Tornium.Guild.Verify.set_verified_roles(
+      Tornium.Guild.Verify.Logic.set_verified_roles(
         %{},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -90,7 +90,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_empty_verified_roles" do
     state =
-      Tornium.Guild.Verify.set_verified_roles(
+      Tornium.Guild.Verify.Logic.set_verified_roles(
         %{},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -114,7 +114,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_remove_invalid_roles" do
     state =
-      Tornium.Guild.Verify.remove_invalid_faction_roles(
+      Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(
         %{roles: MapSet.new([1, 2, 3])},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -146,7 +146,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_faction_roles" do
     state =
-      Tornium.Guild.Verify.set_faction_roles(
+      Tornium.Guild.Verify.Logic.set_faction_roles(
         %{roles: MapSet.new([2])},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -178,7 +178,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_faction_position_roles" do
     state =
-      Tornium.Guild.Verify.set_faction_position_roles(
+      Tornium.Guild.Verify.Logic.set_faction_position_roles(
         %{roles: MapSet.new([2])},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,
@@ -215,7 +215,7 @@ defmodule Tornium.Test.Guild.Verify do
 
   test "test_remove_faction_position_roles" do
     state =
-      Tornium.Guild.Verify.remove_invalid_faction_position_roles(
+      Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(
         %{roles: MapSet.new([1, 2])},
         %Tornium.Guild.Verify.Config{
           verify_enabled: true,

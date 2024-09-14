@@ -1,0 +1,45 @@
+pre-commit:
+    parallel: true
+    commands:
+        application-lint:
+            root: "application/"
+            run: "flake8 ."
+        application-autoformat:
+            root: "application/"
+            run: "black ."
+        application-isort:
+            root: "application/"
+            run: "isort ."
+        application-bandit:
+            root: "application/"
+            run: "bandit ."
+        celery-lint:
+            root: "celery/"
+            run: "flake8 ."
+        celery-autoformat:
+            root: "celery/"
+            run: "black ."
+        celery-isort:
+            root: "celery/"
+            run: "isort ."
+        commons-lint:
+            root: "commons/"
+            run: "flake8 ."
+        commons-autoformat:
+            root: "commons/"
+            run: "black ."
+        commons-isort:
+            root: "commons/"
+            run: "isort ."
+        sse-proxy-format:
+            root: "sse-proxy/"
+            run: "clang-format ."
+        worker-format:
+            root: "worker/"
+            run: "mix format"
+
+pre-push:
+    commands:
+        elixir-tests:
+            root: "worker/"
+            run: "mix test --trace"

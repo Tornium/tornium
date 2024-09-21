@@ -16,6 +16,24 @@
 defmodule Tornium.Schema.Faction do
   use Ecto.Schema
 
+  @type t :: %__MODULE__{
+    tid: integer(),
+    name: String.t(),
+    tag: String.t(),
+    respect: integer(),
+    capacity: integer(),
+    leader: Tornium.Schema.User.t(),
+    coleader: Tornium.Schema.User.t(),
+    guild: Tornium.Schema.Server.t(),
+    assist_servers: List,
+    stats_db_enabled: boolean(),
+    stats_db_global: boolean(),
+    od_channel: integer(),
+    od_data: Map,
+    last_members: DateTime.t(),
+    last_attacks: DateTime.t(),
+  }
+
   @primary_key {:tid, :integer, autogenerate: false}
   schema "faction" do
     field(:name, :string)

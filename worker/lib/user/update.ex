@@ -21,53 +21,68 @@ defmodule Tornium.User do
 
   @minimum_update_seconds 600
 
+  # TODO: Add documentation for this
+
+  # TODO: Convert update_user to perform pattern matching against the struct instead of the value
   @spec update_user(
-          api_user :: Tornium.Schema.User,
-          {id_type :: atom(), id :: integer()},
+          {:user | :key, key_or_user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t()},
+          {id_type :: :tid | :discord_id | :self, id :: integer()},
           refresh_existing :: boolean(),
           priority :: integer()
         ) :: {:ok, boolean()} | {:error, Tornium.API.Error.t()}
-  def update_user(api_user, {id_type, id}, refresh_existing \\ true, priority \\ 10) do
+  def update_user({type, key_or_user}, {id_type, id}, refresh_existing \\ true, priority \\ 10) do
     if should_update_user?({id_type, id}, refresh_existing) do
-      execute_update(api_user, {id_type, id}, priority)
+      execute_update({type, key_or_user}, {id_type, id}, priority)
     else
       false
     end
   end
 
-  @spec execute_update(api_user :: Tornium.Schema.User, {id_type :: atom(), id :: integer()}, priority :: integer()) ::
+  # TODO: Convert execute_update to perform pattern matching against the struct instead of the value
+  @spec execute_update(
+          {:user | :key, key_or_user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t()},
+          {id_type :: atom(), id :: integer()},
+          priority :: integer()
+        ) ::
           {:ok, boolean()} | {:error, Tornium.API.Error.t()}
-  def execute_update(api_user, {:self, 0}, priority) do
+  def execute_update({:user, key_or_user}, {id_type, id}, priority) do
+    case Tornium.User.Key.get_by_user(key_or_user) do
+      nil -> {:error, Tornium.API.Error.construct(2, "Incorrect Key")}
+      api_key -> execute_update({:key, api_key}, {id_type, id}, priority)
+    end
+  end
+
+  def execute_update({:key, key_or_user}, {:self, 0}, priority) do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: 0,
       selections: "profile,discord,battlestats",
-      key: Tornium.User.Key.get_by_user(api_user),
-      key_owner: api_user.tid,
+      key: key_or_user.api_key,
+      key_owner: key_or_user.user,
       nice: priority
     })
     |> update_user_data(:self)
   end
 
-  def execute_update(api_user, {:tid, id}, priority) do
+  def execute_update({:key, key_or_user}, {:tid, id}, priority) do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: id,
       selections: "profile,discord",
-      key: Tornium.User.Key.get_by_user(api_user),
-      key_owner: api_user.tid,
+      key: key_or_user.api_key,
+      key_owner: key_or_user.user_id,
       nice: priority
     })
     |> update_user_data(:tid)
   end
 
-  def execute_update(api_user, {:discord_id, id}, priority) do
+  def execute_update({:key, key_or_user}, {:discord_id, id}, priority) do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: id,
       selections: "profile,discord",
-      key: Tornium.User.Key.get_by_user(api_user),
-      key_owner: api_user.tid,
+      key: key_or_user.api_key,
+      key_owner: key_or_user.user_id,
       nice: priority
     })
     |> update_user_data(:discord_id)
@@ -93,13 +108,13 @@ defmodule Tornium.User do
 
     battlescore = :math.sqrt(strength) + :math.sqrt(defense) + :math.sqrt(speed) + :math.sqrt(dexterity)
 
-    {:ok, _} =
+    {1, _} =
       Tornium.Schema.User
       |> where(tid: ^tid)
       |> update(
         set: [strength: ^strength, defense: ^defense, speed: ^speed, dexterity: ^dexterity, battlescore: ^battlescore]
       )
-      |> Repo.update()
+      |> Repo.update_all([])
 
     {:ok, true}
   end
@@ -202,13 +217,13 @@ defmodule Tornium.User do
   defp update_user_faction_position(
          %{player_id: tid, faction: %{position: "Co-leader", faction_id: faction_tid}} = _user_data
        ) do
-    {:ok, _} =
+    {1, _} =
       Tornium.Schema.Faction
       |> where(tid: ^faction_tid)
       |> update(set: [coleader_id: ^tid])
       |> Repo.update_all([])
 
-    {:ok, _} =
+    {1, _} =
       Tornium.Schema.User
       |> where(tid: ^tid)
       |> update(set: [faction_position_id: nil, faction_aa: true])
@@ -219,11 +234,11 @@ defmodule Tornium.User do
 
   defp update_user_faction_position(%{player_id: tid, faction: %{position: position}} = _user_data)
        when position in ["None", "Recruit"] do
-    {:ok, _} =
+    {1, _} =
       Tornium.Schema.User
       |> where(tid: ^tid)
       |> update(set: [faction_position_id: nil, faction_aa: false])
-      |> Repo.update()
+      |> Repo.update_all([])
 
     true
   end
@@ -236,12 +251,12 @@ defmodule Tornium.User do
       |> select([:pid, :access_fac_api])
       |> where(name: ^position, faction_tid: ^faction_tid)
 
-    {:ok, _} =
+    {1, _} =
       Tornium.Schema.User
       |> join(:inner, [p], p in subquery(position_subquery), on: true)
       |> where(tid: ^tid)
       |> update([p], set: [faction_position_id: p.pid, faction_aa: p.access_fac_api])
-      |> Repo.update()
+      |> Repo.update_all([])
 
     true
   end

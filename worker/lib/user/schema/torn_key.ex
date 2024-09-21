@@ -16,6 +16,16 @@
 defmodule Tornium.Schema.TornKey do
   use Ecto.Schema
 
+  @type t :: %__MODULE__{
+    guid: Ecto.UUID.t(),
+    api_key: String.t(),
+    user: Tornium.Schema.User.t(),
+    default: boolean(),
+    disabled: boolean(),
+    paused: boolean(),
+    access_level: integer(),
+  }
+
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "tornkey" do
     field(:api_key, :string)

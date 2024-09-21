@@ -28,17 +28,6 @@ defmodule Tornium.Guild.Verify.Config do
           verify_jail_channel: integer()
         }
 
-  # Verification configuration
-  # verify_enabled = BooleanField(default=False)
-  # auto_verify_enabled = BooleanField(default=False)
-  # gateway_verify_enabled = BooleanField(default=False)
-  # verify_template = TextField(default="{{ name }} [{{ tid }}]")
-  # verified_roles = ArrayField(BigIntegerField, default=[], index=False)
-  # exclusion_roles = ArrayField(BigIntegerField, default=[], index=False)
-  # faction_verify = JSONField(default={})
-  # verify_log_channel = BigIntegerField(default=0)
-  # verify_jail_channel = BigIntegerField(default=0)
-
   defstruct [
     :verify_enabled,
     :auto_verify_enabled,
@@ -51,7 +40,18 @@ defmodule Tornium.Guild.Verify.Config do
     :verify_jail_channel
   ]
 
-  @spec validate(guild :: Tornium.Schema.Server | integer() | nil) :: Tornium.Guild.Verify.Config.t() | {:error, String}
+  @doc """
+  Validate a server's configuration for the purposes of user verification
+
+  ## Parameters
+    - guild: Ecto struct of the server or the server ID
+
+  ## Returns
+    - Server verification configuration struct if valid
+    - Error reason if not valid
+  """
+  @spec validate(guild :: Tornium.Schema.Server.t() | integer() | nil) ::
+          Tornium.Guild.Verify.Config.t() | {:error, String}
   def validate(guild) when is_nil(guild) do
     {:error, "Invalid guild ID"}
   end
@@ -61,21 +61,21 @@ defmodule Tornium.Guild.Verify.Config do
     validate(guild)
   end
 
-  def validate(guild) when not guild.verify_enabled do
+  def validate(%Tornium.Schema.Server{} = guild) when not guild.verify_enabled do
     {:error, "Verification is not enabled"}
   end
 
-  def validate(guild)
+  def validate(%Tornium.Schema.Server{} = guild)
       when guild.verify_template == "" and Kernel.length(guild.verified_roles) == 0 and
              Kernel.length(guild.faction_verify) == 0 do
     {:error, "Verification is not configured"}
   end
 
-  def validate(guild) when Kernel.length(guild.admins) == 0 do
+  def validate(%Tornium.Schema.Server{} = guild) when Kernel.length(guild.admins) == 0 do
     {:error, "No server admins are signed into Tornium"}
   end
 
-  def validate(guild) do
+  def validate(%Tornium.Schema.Server{} = guild) do
     %Tornium.Guild.Verify.Config{
       verify_enabled: guild.verify_enabled,
       auto_verify_enabled: guild.auto_verify_enabled,

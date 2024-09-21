@@ -16,6 +16,33 @@
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
 
+  @type t :: %__MODULE__{
+          name: String.t(),
+          admins: List,
+          icon: String.t(),
+          factions: List,
+          verify_enabled: boolean(),
+          auto_verify_enabled: boolean(),
+          gateway_verify_enabled: boolean(),
+          verify_template: String.t(),
+          verified_roles: List,
+          exclusion_roles: List,
+          faction_verify: Map,
+          verify_log_channel: integer(),
+          verify_jail_channel: integer(),
+          banking_config: Map,
+          armory_enabled: boolean(),
+          armory_config: Map,
+          assist_channel: integer(),
+          assist_factions: List,
+          assist_smoker_roles: List,
+          assist_tear_roles: List,
+          assist_l0_roles: List,
+          assist_l1_roles: List,
+          assist_l3_roles: List,
+          oc_config: Map
+        }
+
   @primary_key {:sid, :integer, autogenerate: false}
   schema "server" do
     field(:name, :string)

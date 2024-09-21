@@ -10,10 +10,10 @@ defmodule Tornium.Repo.Migrations.AddUser do
       # Skip personal stats for later
 
       add :battlescore, :float, default: nil, null: true
-      add :strength, :float, default: nil, null: true
-      add :defense, :float, default: nil, null: true
-      add :speed, :float, default: nil, null: true
-      add :dexterity, :float, default: nil, null: true
+      add :strength, :bigint, default: nil, null: true
+      add :defense, :bigint, default: nil, null: true
+      add :speed, :bigint, default: nil, null: true
+      add :dexterity, :bigint, default: nil, null: true
 
       # Skip faction for later
       add :faction_aa, :boolean, default: false, null: false

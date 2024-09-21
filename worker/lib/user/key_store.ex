@@ -23,16 +23,18 @@ defmodule Tornium.User.KeyStore do
     Agent.start_link(fn -> %{} end)
   end
 
-  @spec put(pid :: pid(), key :: integer(), value :: Tornium.Schema.TornKey | nil, ttl :: integer()) :: :ok | :error
-  def put(pid, key, value, ttl \\ @ttl) do
-    Agent.update(pid, &Map.put(&1, key, %{value: value, expire: DateTime.add(DateTime.utc_now(), ttl, :second)}))
-  end
+  @spec put(pid :: pid(), key :: integer(), value :: Tornium.Schema.TornKey.t() | nil, ttl :: integer()) :: :ok | :error
+  def put(pid, key, value, ttl \\ @ttl)
 
   def put(_pid, _key, value, _ttl) when is_nil(value) do
     :error
   end
 
-  @spec get(pid :: pid(), key :: integer()) :: Tornium.Schema.TornKey | nil
+  def put(pid, key, %Tornium.Schema.TornKey{} = value, ttl) do
+    Agent.update(pid, &Map.put(&1, key, %{value: value, expire: DateTime.add(DateTime.utc_now(), ttl, :second)}))
+  end
+
+  @spec get(pid :: pid(), key :: integer()) :: Tornium.Schema.TornKey.t() | nil
   def get(pid, key) do
     case Agent.get(pid, &Map.get(&1, key), :infinity) do
       %{value: value, expire: expire} ->

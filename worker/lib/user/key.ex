@@ -18,14 +18,14 @@ defmodule Tornium.User.Key do
 
   alias Tornium.Repo
 
-  @spec get_by_user(user :: Tornium.Schema.User) :: Tornium.Schema.TornKey | nil
-  def get_by_user(user) do
+  @spec get_by_user(user :: Tornium.Schema.User.t()) :: Tornium.Schema.TornKey.t() | nil
+  def get_by_user(%Tornium.Schema.User{} = user) do
     pid = Process.whereis(Tornium.User.KeyStore)
     get_by_user(user, pid)
   end
 
-  @spec get_by_user(user :: Tornium.Schema.User, pid :: pid()) :: Tornium.Schema.TornKey | nil
-  def get_by_user(user, pid) do
+  @spec get_by_user(user :: Tornium.Schema.User.t(), pid :: pid()) :: Tornium.Schema.TornKey.t() | nil
+  def get_by_user(%Tornium.Schema.User{} = user, pid) do
     case Tornium.User.KeyStore.get(pid, user.tid) do
       nil ->
         where = [user_id: user.tid, paused: false, disabled: false, default: true]

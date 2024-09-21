@@ -37,9 +37,3 @@ pre-commit:
         worker-format:
             root: "worker/"
             run: "mix format"
-
-pre-push:
-    commands:
-        elixir-tests:
-            root: "worker/"
-            run: "mix test --trace"

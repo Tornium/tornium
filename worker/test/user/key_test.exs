@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Test.User.KeyStore do
+defmodule Tornium.Test.User.Key do
   use Tornium.RepoCase
 
   test "test_get_user_no_key" do

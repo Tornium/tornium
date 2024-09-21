@@ -57,7 +57,12 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         },
         %Tornium.Schema.User{
           tid: 1,
-          name: "Chedburn"
+          name: "Chedburn",
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction",
+            tag: "Ched"
+          }
         }
       )
 

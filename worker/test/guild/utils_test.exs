@@ -60,7 +60,7 @@ defmodule Tornium.Test.Guild do
 
     admin_keys = Tornium.Guild.get_admin_keys(1)
     assert Kernel.length(admin_keys) == 1
-    assert Enum.at(admin_keys, 0) == "asdf1234asdf1234"
+    assert Enum.at(admin_keys, 0).api_key == "asdf1234asdf1234"
   end
 
   test "test_get_admin_keys_multiple" do
@@ -104,7 +104,7 @@ defmodule Tornium.Test.Guild do
 
     admin_keys = Tornium.Guild.get_admin_keys(2)
     assert Kernel.length(admin_keys) == 1
-    assert Enum.at(admin_keys, 0) == "1234567890123456"
+    assert Enum.at(admin_keys, 0).api_key == "1234567890123456"
   end
 
   test "test_get_admin_keys_multiple_users" do
@@ -156,7 +156,7 @@ defmodule Tornium.Test.Guild do
 
     admin_keys = Tornium.Guild.get_admin_keys(3)
     assert Kernel.length(admin_keys) == 2
-    assert Enum.at(admin_keys, 0) == "asdfqwerty123456"
-    assert Enum.at(admin_keys, 1) == "1234567890123456"
+    assert Enum.at(admin_keys, 0).api_key == "asdfqwerty123456"
+    assert Enum.at(admin_keys, 1).api_key == "1234567890123456"
   end
 end

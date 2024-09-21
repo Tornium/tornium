@@ -22,7 +22,7 @@ defmodule Tornium.Guild.Verify do
   Handle verification of a user in a server
 
   ## Parameters
-  
+
     - guild_id: ID of the guild the user should be verified for
     - member: Nostrum struct of the Discord member of the user
 

@@ -32,14 +32,26 @@ defmodule Tornium.Guild.Verify.Logic do
   ## Returns
     - State map
   """
-  @spec set_verified_name(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: Tornium.Schema.User.t()) ::
+  @spec set_verified_name(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User.t()
+        ) ::
           map()
-  def set_verified_name(state, %Tornium.Guild.Verify.Config{} = _server_config = %{verify_template: template}, %Tornium.Schema.User{} = _user)
+  def set_verified_name(
+        state,
+        %Tornium.Guild.Verify.Config{} = _server_config = %{verify_template: template},
+        %Tornium.Schema.User{} = _user
+      )
       when template == "" or is_nil(template) do
     state
   end
 
-  def set_verified_name(state, %Tornium.Guild.Verify.Config{verify_template: template} = _server_config, %Tornium.Schema.User{} = user) do
+  def set_verified_name(
+        state,
+        %Tornium.Guild.Verify.Config{verify_template: template} = _server_config,
+        %Tornium.Schema.User{} = user
+      ) do
     verified_string =
       template
       |> String.replace("{{ name }}", user.name)
@@ -65,7 +77,11 @@ defmodule Tornium.Guild.Verify.Logic do
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
         ) :: map()
-  def set_verified_roles(state, %Tornium.Guild.Verify.Config{verified_roles: roles} = _server_config, %Tornium.Schema.User{} = _user) do
+  def set_verified_roles(
+        state,
+        %Tornium.Guild.Verify.Config{verified_roles: roles} = _server_config,
+        %Tornium.Schema.User{} = _user
+      ) do
     insert_update_roles(state, roles)
   end
 
@@ -85,7 +101,11 @@ defmodule Tornium.Guild.Verify.Logic do
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
         ) :: map()
-  def remove_invalid_faction_roles(state, %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config, %Tornium.Schema.User{} = user) do
+  def remove_invalid_faction_roles(
+        state,
+        %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
+        %Tornium.Schema.User{} = user
+      ) do
     roles_to_remove =
       faction_verify
       |> Enum.map(fn {faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
@@ -118,9 +138,17 @@ defmodule Tornium.Guild.Verify.Logic do
   ## Returns
     - State map
   """
-  @spec set_faction_roles(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: Tornium.Schema.User.t()) ::
+  @spec set_faction_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User.t()
+        ) ::
           map()
-  def set_faction_roles(state, %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config, %Tornium.Schema.User{} = user) do
+  def set_faction_roles(
+        state,
+        %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
+        %Tornium.Schema.User{} = user
+      ) do
     if can_set_faction_roles?(faction_verify, user) do
       insert_update_roles(state, Map.get(Map.get(faction_verify, Integer.to_string(user.faction.tid)), "roles"))
     else
@@ -144,7 +172,11 @@ defmodule Tornium.Guild.Verify.Logic do
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
         ) :: map()
-  def remove_invalid_faction_position_roles(state, %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config, %Tornium.Schema.User{} = user) do
+  def remove_invalid_faction_position_roles(
+        state,
+        %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
+        %Tornium.Schema.User{} = user
+      ) do
     roles_to_remove =
       faction_verify
       |> Enum.map(fn {_faction_tid, _faction_verify_config = %{"positions" => position_config, "enabled" => enabled}} ->
@@ -205,7 +237,11 @@ defmodule Tornium.Guild.Verify.Logic do
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
         ) :: map()
-  def set_faction_position_roles(state, %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config, %Tornium.Schema.User{} = user) do
+  def set_faction_position_roles(
+        state,
+        %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
+        %Tornium.Schema.User{} = user
+      ) do
     if can_set_faction_position_roles?(faction_verify, user) do
       insert_update_roles(
         state,

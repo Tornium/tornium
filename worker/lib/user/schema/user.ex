@@ -17,27 +17,27 @@ defmodule Tornium.Schema.User do
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-    tid: integer(),
-    name: String.t(),
-    level: integer(),
-    discord_id: integer(),
-    battlescore: float(),
-    strength: integer(),
-    defense: integer(),
-    speed: integer(),
-    dexterity: integer(),
-    faction: Tornium.Schema.Faction.t(),
-    faction_aa: boolean(),
-    faction_position: Tornium.Schema.FactionPosition.t(),
-    status: String.t(),
-    last_action: DateTime.t(),
-    last_refresh: DateTime.t(),
-    last_attacks: DateTime.t(),
-    battlescore_update: DateTime.t(),
-    security: integer(),
-    otp_secret: String.t(),
-    otp_backups: List,
-  }
+          tid: integer(),
+          name: String.t(),
+          level: integer(),
+          discord_id: integer(),
+          battlescore: float(),
+          strength: integer(),
+          defense: integer(),
+          speed: integer(),
+          dexterity: integer(),
+          faction: Tornium.Schema.Faction.t(),
+          faction_aa: boolean(),
+          faction_position: Tornium.Schema.FactionPosition.t(),
+          status: String.t(),
+          last_action: DateTime.t(),
+          last_refresh: DateTime.t(),
+          last_attacks: DateTime.t(),
+          battlescore_update: DateTime.t(),
+          security: integer(),
+          otp_secret: String.t(),
+          otp_backups: List
+        }
 
   @primary_key {:tid, :integer, autogenerate: false}
   schema "user" do

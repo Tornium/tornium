@@ -56,7 +56,7 @@ defmodule Tornium.User do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: 0,
-      selections: "profile,discord,battlestats",
+      selections: ["profile", "discord", "battlestats"],
       key: key_or_user.api_key,
       key_owner: key_or_user.user,
       nice: priority
@@ -68,7 +68,7 @@ defmodule Tornium.User do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: id,
-      selections: "profile,discord",
+      selections: ["profile", "discord"],
       key: key_or_user.api_key,
       key_owner: key_or_user.user_id,
       nice: priority
@@ -80,7 +80,7 @@ defmodule Tornium.User do
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: id,
-      selections: "profile,discord",
+      selections: ["profile", "discord"],
       key: key_or_user.api_key,
       key_owner: key_or_user.user_id,
       nice: priority
@@ -90,7 +90,7 @@ defmodule Tornium.User do
 
   @spec update_user_data(user_data :: map(), id_type :: atom() | nil) ::
           {:ok, true} | {:error, Tornium.API.Error.t() | nil}
-  def update_user_data(%{error: %{code: code, error: error}}, _id_type) do
+  def update_user_data(%{"error" => %{"code" => code, "error" => error}}, _id_type) do
     {:error, Tornium.API.Error.construct(code, error)}
   end
 
@@ -165,10 +165,6 @@ defmodule Tornium.User do
     update_user_faction_position(user_data)
 
     {:ok, true}
-  end
-
-  def update_user_data(_user_data, _) do
-    {:error, nil}
   end
 
   @spec update_user_faction_data(user_data :: map()) :: boolean()

@@ -2,7 +2,7 @@ defmodule Tornium.Repo.Migrations.AddTornkey do
   use Ecto.Migration
 
   def up do
-    create_if_not_exists table("tornkey") do
+    create_if_not_exists table("tornkey", primary_key: false) do
       add :guid, :binary_id, primary_key: true
       add :api_key, :string, size: 16, null: false, unique: true
       add :user_id, references(:user, column: :tid, type: :integer)

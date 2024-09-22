@@ -2,7 +2,7 @@ defmodule Tornium.Repo.Migrations.AddFaction do
   use Ecto.Migration
 
   def up do
-    create_if_not_exists table("faction") do
+    create_if_not_exists table("faction", primary_key: false) do
       add :tid, :integer, primary_key: true
       add :name, :string, size: 50, null: true
       add :tag, :string, size: 8, null: true
@@ -11,9 +11,9 @@ defmodule Tornium.Repo.Migrations.AddFaction do
       add :leader_id, references(:user, column: :tid, type: :integer)
       add :coleader_id, references(:user, column: :tid, type: :integer)
 
-      add :guild_id, references(:server, column: :sid, type: :integer)
+      add :guild_id, references(:server, column: :sid, type: :bigint)
 
-      add :assist_servers, {:array, :integer}, default: [], null: false
+      add :assist_servers, {:array, :bigint}, default: [], null: false
       
       add :stats_db_enabled, :boolean, default: true, null: false
       add :stats_db_global, :boolean, default: true, null: false

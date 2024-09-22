@@ -37,11 +37,12 @@ defmodule Tornium.MixProject do
 
   def deps do
     [
+      {:certifi, "~> 2.13", override: true},  # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.18.2 requires certifi ~> 2.12
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "490d2bcb16b143f57ad020568671dace772039c2"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "6f68fe8e4c000851bf952e11848407b9ae885fb6"}
     ]
   end
 

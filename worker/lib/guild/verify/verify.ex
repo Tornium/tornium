@@ -40,7 +40,7 @@ defmodule Tornium.Guild.Verify do
 
       %Tornium.Schema.Server{} = guild ->
         api_key = Tornium.Guild.get_random_admin_key(guild)
-        handle_guild(guild, api_key, member)
+        handle_guild(guild, api_key, member) |> IO.inspect()
     end
   end
 
@@ -50,10 +50,13 @@ defmodule Tornium.Guild.Verify do
           member :: Nostrum.Struct.Guild.Member.t()
         ) ::
           {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error, Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges | :config}
-  defp handle_guild(guild, api_key, %Nostrum.Struct.Guild.Member{} = _member)
-       when is_nil(guild) or is_nil(api_key) do
+          | {:error, Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges | :config | :api_key}
+  defp handle_guild(guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(guild) do
     {:error, :config}
+  end
+
+  defp handle_guild(guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(api_key) do
+    {:error, :api_key}
   end
 
   defp handle_guild(
@@ -69,7 +72,9 @@ defmodule Tornium.Guild.Verify do
       %Tornium.Guild.Verify.Config{} = config ->
         Tornium.User.update_user({:key, api_key}, {:discord_id, member.user_id}, true, 0)
         |> build_changes(config, member)
+        |> IO.inspect()
         |> perform_changes(guild, member)
+        |> IO.inspect()
     end
   end
 

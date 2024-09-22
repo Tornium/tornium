@@ -2,7 +2,7 @@ defmodule Tornium.Repo.Migrations.AddUser do
   use Ecto.Migration
 
   def up do
-    create_if_not_exists table("user") do
+    create_if_not_exists table("user", primary_key: false) do
       add :tid, :integer, primary_key: true
       add :name, :string, size: 15, default: "", null: false
       add :level, :integer, null: false

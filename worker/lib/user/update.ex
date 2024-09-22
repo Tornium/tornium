@@ -96,11 +96,11 @@ defmodule Tornium.User do
 
   def update_user_data(
         %{
-          player_id: tid,
-          strength: strength,
-          defense: defense,
-          speed: speed,
-          dexterity: dexterity
+          "player_id" => tid,
+          "strength" => strength,
+          "defense" => defense,
+          "speed" => speed,
+          "dexterity" => dexterity
         } = user_data,
         :self
       ) do
@@ -121,13 +121,13 @@ defmodule Tornium.User do
 
   def update_user_data(
         %{
-          player_id: tid,
-          name: name,
-          level: level,
-          last_action: %{status: status, timestamp: last_action},
-          discord: %{discordID: discord_id},
-          faction: %{
-            faction_id: faction_tid
+          "player_id" => tid,
+          "name" => name,
+          "level" => level,
+          "last_action" => %{"status" => status, "timestamp" => last_action},
+          "discord" => %{"discordID" => discord_id},
+          "faction" => %{
+            "faction_id" => faction_tid
           }
         } = user_data,
         _id_type
@@ -142,7 +142,7 @@ defmodule Tornium.User do
           tid: tid,
           name: name,
           level: level,
-          discord_id: discord_id,
+          discord_id: Tornium.Utils.string_to_integer(discord_id),
           faction_id: faction_tid,
           status: status,
           last_action: last_action,
@@ -152,7 +152,7 @@ defmodule Tornium.User do
           set: [
             name: name,
             level: level,
-            discord_id: discord_id,
+            discord_id: Tornium.Utils.string_to_integer(discord_id),
             faction_id: faction_tid,
             status: status,
             last_action: last_action,
@@ -168,12 +168,12 @@ defmodule Tornium.User do
   end
 
   @spec update_user_faction_data(user_data :: map()) :: boolean()
-  defp update_user_faction_data(%{faction: %{faction_id: 0}} = _user_data) do
+  defp update_user_faction_data(%{"faction" => %{"faction_id" => 0}} = _user_data) do
     false
   end
 
   defp update_user_faction_data(
-         %{faction: %{faction_id: tid, faction_name: name, faction_tag: tag}} =
+         %{"faction" => %{"faction_id" => tid, "faction_name" => name, "faction_tag" => tag}} =
            _user_data
        ) do
     Repo.insert(
@@ -193,7 +193,7 @@ defmodule Tornium.User do
 
   @spec update_user_faction_position(user_data :: map()) :: boolean()
   defp update_user_faction_position(
-         %{player_id: tid, faction: %{position: "Leader", faction_id: faction_tid}} = _user_data
+         %{"player_id" => tid, "faction" => %{"position" => "Leader", "faction_id" => faction_tid}} = _user_data
        ) do
     {1, _} =
       Tornium.Schema.Faction
@@ -211,7 +211,7 @@ defmodule Tornium.User do
   end
 
   defp update_user_faction_position(
-         %{player_id: tid, faction: %{position: "Co-leader", faction_id: faction_tid}} = _user_data
+         %{"player_id" => tid, "faction" => %{"position" => "Co-leader", "faction_id" => faction_tid}} = _user_data
        ) do
     {1, _} =
       Tornium.Schema.Faction
@@ -228,7 +228,7 @@ defmodule Tornium.User do
     true
   end
 
-  defp update_user_faction_position(%{player_id: tid, faction: %{position: position}} = _user_data)
+  defp update_user_faction_position(%{"player_id" => tid, "faction" => %{"position" => position}} = _user_data)
        when position in ["None", "Recruit"] do
     {1, _} =
       Tornium.Schema.User
@@ -240,7 +240,7 @@ defmodule Tornium.User do
   end
 
   defp update_user_faction_position(
-         %{player_id: tid, faction: %{position: position, faction_id: faction_tid}} = _user_data
+         %{"player_id" => tid, "faction" => %{"position" => position, "faction_id" => faction_tid}} = _user_data
        ) do
     position_subquery =
       Tornium.Schema.FactionPosition

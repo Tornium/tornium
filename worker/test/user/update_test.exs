@@ -17,7 +17,7 @@ defmodule Tornium.Test.User.Update do
   use Tornium.RepoCase
 
   test "test_user_update_api_error" do
-    assert Tornium.User.update_user_data(%{error: %{code: 6, error: "Incorrect ID"}}, nil) ==
+    assert Tornium.User.update_user_data(%{"error" => %{"code" => 6, "error" => "Incorrect ID"}}, nil) ==
              {:error, %Tornium.API.Error{code: 6, error: "Incorrect ID", message: "Wrong ID value."}}
   end
 
@@ -25,12 +25,17 @@ defmodule Tornium.Test.User.Update do
     update_return =
       Tornium.User.update_user_data(
         %{
-          player_id: 1,
-          name: "Chedburn",
-          level: 15,
-          last_action: %{status: "Offline", timestamp: 1_704_088_800},
-          discord: %{discordID: 317_719_897_578_799_114},
-          faction: %{faction_id: 42113, faction_name: "TEs_t!.@&#039;", faction_tag: "ÃÃ©â„", position: "Leader"}
+          "player_id" => 1,
+          "name" => "Chedburn",
+          "level" => 15,
+          "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
+          "discord" => %{"discordID" => 317_719_897_578_799_114},
+          "faction" => %{
+            "faction_id" => 42113,
+            "faction_name" => "TEs_t!.@&#039;",
+            "faction_tag" => "ÃÃ©â„",
+            "position" => "Leader"
+          }
         },
         :tid
       )
@@ -58,16 +63,21 @@ defmodule Tornium.Test.User.Update do
     update_return =
       Tornium.User.update_user_data(
         %{
-          player_id: 2,
-          name: "Quack",
-          level: 15,
-          strength: 10,
-          defense: 10,
-          speed: 10,
-          dexterity: 10,
-          last_action: %{status: "Offline", timestamp: 1_704_088_800},
-          discord: %{discordID: nil},
-          faction: %{faction_id: 42113, faction_name: "TEs_t!.@&#039;", faction_tag: "ÃÃ©â„", position: "Co-leader"}
+          "player_id" => 2,
+          "name" => "Quack",
+          "level" => 15,
+          "strength" => 10,
+          "defense" => 10,
+          "speed" => 10,
+          "dexterity" => 10,
+          "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
+          "discord" => %{"discordID" => nil},
+          "faction" => %{
+            "faction_id" => 42113,
+            "faction_name" => "TEs_t!.@&#039;",
+            "faction_tag" => "ÃÃ©â„",
+            "position" => "Co-leader"
+          }
         },
         :self
       )

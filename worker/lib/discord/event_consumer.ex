@@ -22,9 +22,28 @@ defmodule Tornium.Discord.Consumer do
            Nostrum.Struct.WSState.t()}
         ) :: any()
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
-    Tornium.Guild.Verify.handle(guild_id, new_member) |> IO.inspect()
-    {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
+    verification_result = Tornium.Guild.Verify.handle(guild_id, new_member)
 
+    case verification_result do
+      {:error, :api_key, _} ->
+        nil
+
+      {:error, :exclusion_role, _} ->
+        nil
+
+      {:error, {:config, _}, _} ->
+        nil
+
+      {status_atom, result, %Tornium.Schema.Server{} = guild} ->
+        # TODO: Rename the message method
+        # TODO: Validate jail channel before sending message
+        # TODO: Clean up jail channel message sending
+        embed = Tornium.Guild.Verify.Message.message({status_atom, result}, new_member)
+        IO.inspect(embed)
+        Nostrum.Api.create_message(guild.verify_jail_channel, %{embeds: [embed]}) |> IO.inspect()
+    end
+
+    {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
     Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
     nil
   end

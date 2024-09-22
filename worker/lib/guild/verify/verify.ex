@@ -18,6 +18,8 @@ defmodule Tornium.Guild.Verify do
   import Ecto.Query
   require Logger
 
+  # TODO: Handle exclusion roles
+
   @doc """
   Handle verification of a user in a server
 
@@ -31,31 +33,45 @@ defmodule Tornium.Guild.Verify do
     - Error with the error reason
   """
   @spec handle(guild_id :: integer(), member :: Nostrum.Struct.Guild.Member.t()) ::
-          {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error, Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges | :config}
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
+          | {:error,
+             Nostrum.Error.ApiError
+             | Tornium.API.Error
+             | :unverified
+             | :nochanges
+             | :api_key
+             | :exclusion_role
+             | {:config, String.t()}, Tornium.Schema.Server.t()}
   def handle(guild_id, member) do
+    # TODO: Clean up this method
+
     case Repo.get(Tornium.Schema.Server, guild_id) do
       nil ->
-        {:error, :config}
+        {:error, {:config, "invalid guild ID"}, nil}
 
       %Tornium.Schema.Server{} = guild ->
-        api_key = Tornium.Guild.get_random_admin_key(guild)
-        handle_guild(guild, api_key, member) |> IO.inspect()
+        if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
+          {:error, :exclusion_role, guild}
+        else
+          api_key = Tornium.Guild.get_random_admin_key(guild)
+
+          case handle_guild(guild, api_key, member) do
+            {:ok, member} -> {:ok, member, guild}
+            {:error, error} -> {:error, error, guild}
+          end
+        end
     end
   end
 
   @spec handle_guild(
-          guild :: Tornium.Schema.Server.t() | nil,
+          guild :: Tornium.Schema.Server.t(),
           api_key :: Tornium.Schema.TornKey | nil,
           member :: Nostrum.Struct.Guild.Member.t()
         ) ::
           {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error, Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges | :config | :api_key}
-  defp handle_guild(guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(guild) do
-    {:error, :config}
-  end
-
-  defp handle_guild(guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(api_key) do
+          | {:error,
+             Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges | :api_key | {:config, String.t()}}
+  defp handle_guild(_guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(api_key) do
     {:error, :api_key}
   end
 
@@ -66,15 +82,12 @@ defmodule Tornium.Guild.Verify do
        ) do
     case Tornium.Guild.Verify.Config.validate(guild) do
       {:error, reason} ->
-        Logger.debug(["Failed to verify user ", member.user_id, " in guild ", guild.sid, " on join due to ", reason])
-        {:error, :config}
+        {:error, {:config, String.downcase(reason)}}
 
       %Tornium.Guild.Verify.Config{} = config ->
         Tornium.User.update_user({:key, api_key}, {:discord_id, member.user_id}, true, 0)
         |> build_changes(config, member)
-        |> IO.inspect()
         |> perform_changes(guild, member)
-        |> IO.inspect()
     end
   end
 
@@ -159,6 +172,6 @@ defmodule Tornium.Guild.Verify do
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
        ) do
-    Nostrum.Api.modify_guild_member(guild_id, member_id, %{nick: nick, roles: roles}, "Tornium on-join verification")
+    Nostrum.Api.modify_guild_member(guild_id, member_id, %{nick: nick, roles: roles})
   end
 end

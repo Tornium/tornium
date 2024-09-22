@@ -29,7 +29,7 @@ defmodule Tornium.Schema.TornKey do
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "tornkey" do
     field(:api_key, :string)
-    belongs_to(:user, Tornium.Schema.User)
+    belongs_to(:user, Tornium.Schema.User, references: :tid)
     field(:default, :boolean)
     field(:disabled, :boolean)
     field(:paused, :boolean)

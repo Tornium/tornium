@@ -22,29 +22,47 @@ defmodule Tornium.Discord.Consumer do
            Nostrum.Struct.WSState.t()}
         ) :: any()
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
-    verification_result = Tornium.Guild.Verify.handle(guild_id, new_member)
-
-    case verification_result do
-      {:error, :api_key, _} ->
-        nil
-
-      {:error, :exclusion_role, _} ->
-        nil
-
-      {:error, {:config, _}, _} ->
-        nil
-
-      {status_atom, result, %Tornium.Schema.Server{} = guild} ->
-        # TODO: Rename the message method
-        # TODO: Validate jail channel before sending message
-        # TODO: Clean up jail channel message sending
-        embed = Tornium.Guild.Verify.Message.message({status_atom, result}, new_member)
-        IO.inspect(embed)
-        Nostrum.Api.create_message(guild.verify_jail_channel, %{embeds: [embed]}) |> IO.inspect()
-    end
+    Tornium.Guild.Verify.handle(guild_id, new_member)
+    |> IO.inspect()
+    |> verification_jail_message(new_member)
 
     {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
     Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
     nil
+  end
+
+  @spec verification_jail_message(
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
+          | {:error,
+             Nostrum.Error.ApiError
+             | Tornium.API.Error
+             | :unverified
+             | :nochanges
+             | :api_key
+             | :exclusion_role
+             | {:config, String.t()}, Tornium.Schema.Server.t()},
+          Nostrum.Struct.Guild.Member.t()
+        ) :: nil
+  defp verification_jail_message({:error, :api_key, _}, _) do
+  end
+
+  defp verification_jail_message({:error, :exclusion_role, _}, _) do
+  end
+
+  defp verification_jail_message({:error, {:config, _}, _}, _) do
+  end
+
+  defp verification_jail_message(
+         {_, _, %Tornium.Schema.Server{verify_jail_channel: verify_jail_channel} = _server},
+         _new_member
+       )
+       when verify_jail_channel == 0 or is_nil(verify_jail_channel) do
+  end
+
+  defp verification_jail_message({status_atom, result, server}, new_member) do
+    # TODO: Rename the message method
+    # TODO: Provide reasons for skipping certain errors
+    embed = Tornium.Guild.Verify.Message.message({status_atom, result}, new_member)
+    Nostrum.Api.create_message(server.verify_jail_channel, %{embeds: [embed]})
   end
 end

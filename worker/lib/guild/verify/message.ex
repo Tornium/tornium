@@ -26,6 +26,28 @@ defmodule Tornium.Guild.Verify.Message do
              | {:config, error :: String.t()}},
           member :: Nostrum.Struct.Guild.Member
         ) :: Nostrum.Struct.Embed
+  def message({:error, %Nostrum.Error.ApiError{} = error}, %Nostrum.Struct.Guild.Member{} = member) do
+    # TODO: Improve this error message to make it more readable
+    %Nostrum.Struct.Embed{
+      title: "Verification Failed - Discord Error",
+      description:
+        "<@#{member.user_id}> was not able to be verified as there was an error from Discord. #{Nostrum.Error.ApiError.message(error)}",
+      color: 0xC83F49
+    }
+  end
+
+  def message(
+        {:error, %Tornium.API.Error{code: code, message: message} = _error},
+        %Nostrum.Struct.Guild.Member{} = member
+      ) do
+    %Nostrum.Struct.Embed{
+      title: "Verification Failed - Torn Error",
+      description:
+        "<@#{member.user_id}> was not able to be verified as there was an error from the Torn API. [#{code}] #{message}",
+      color: 0xC83F49
+    }
+  end
+
   def message({:error, :unverified}, %Nostrum.Struct.Guild.Member{} = member) do
     %Nostrum.Struct.Embed{
       title: "Verification Failed",

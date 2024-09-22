@@ -52,9 +52,9 @@ defmodule Tornium.Schema.User do
     field(:speed, :integer)
     field(:dexterity, :integer)
 
-    belongs_to(:faction, Tornium.Schema.Faction)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     field(:faction_aa, :boolean)
-    belongs_to(:faction_position, Tornium.Schema.FactionPosition)
+    belongs_to(:faction_position, Tornium.Schema.FactionPosition, references: :pid)
 
     field(:status, :string)
     field(:last_action, :utc_datetime)

@@ -245,16 +245,21 @@ defmodule Tornium.User do
     position_subquery =
       Tornium.Schema.FactionPosition
       |> select([:pid, :access_fac_api])
-      |> where(name: ^position, faction_tid: ^faction_tid)
+      |> where([p], p.name == ^position)
+      |> where([p], p.faction_tid == ^faction_tid)
+      |> limit(1)
 
-    {1, _} =
+    {count, _} =
       Tornium.Schema.User
-      |> join(:inner, [p], p in subquery(position_subquery), on: true)
-      |> where(tid: ^tid)
-      |> update([p], set: [faction_position_id: p.pid, faction_aa: p.access_fac_api])
+      |> join(:inner, [u], p in subquery(position_subquery), on: u.faction_position_id == p.pid)
+      |> where([u, p], u.tid == ^tid)
+      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.access_fac_api])
       |> Repo.update_all([])
 
-    true
+    case count do
+      0 -> false
+      _ -> true
+    end
   end
 
   @spec should_update_user?({id_type :: atom(), id :: integer()}, refresh_existing :: boolean()) :: boolean()

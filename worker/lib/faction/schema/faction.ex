@@ -40,10 +40,10 @@ defmodule Tornium.Schema.Faction do
     field(:tag, :string)
     field(:respect, :integer)
     field(:capacity, :integer)
-    belongs_to(:leader, Tornium.Schema.User)
-    belongs_to(:coleader, Tornium.Schema.User)
+    belongs_to(:leader, Tornium.Schema.User, references: :tid)
+    belongs_to(:coleader, Tornium.Schema.User, references: :tid)
 
-    belongs_to(:guild, Tornium.Schema.Server)
+    belongs_to(:guild, Tornium.Schema.Server, references: :sid)
 
     field(:assist_servers, {:array, :integer})
 

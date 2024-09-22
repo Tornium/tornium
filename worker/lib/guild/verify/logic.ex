@@ -58,7 +58,7 @@ defmodule Tornium.Guild.Verify.Logic do
       |> String.replace("{{ tid }}", to_string(user.tid))
       |> String.replace("{{ tag }}", user.faction.tag)
 
-    Map.put(state, "nick", verified_string)
+    Map.put(state, :nick, verified_string)
   end
 
   @doc """

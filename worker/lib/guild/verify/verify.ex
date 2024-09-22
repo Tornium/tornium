@@ -18,13 +18,12 @@ defmodule Tornium.Guild.Verify do
   import Ecto.Query
   require Logger
 
-  # TODO: Handle exclusion roles
+  # TODO: Comment the private methods
 
   @doc """
   Handle verification of a user in a server
 
   ## Parameters
-
     - guild_id: ID of the guild the user should be verified for
     - member: Nostrum struct of the Discord member of the user
 
@@ -44,6 +43,7 @@ defmodule Tornium.Guild.Verify do
              | {:config, String.t()}, Tornium.Schema.Server.t()}
   def handle(guild_id, member) do
     # TODO: Clean up this method
+    # TODO: Check if verification on join is enabled for this server
 
     case Repo.get(Tornium.Schema.Server, guild_id) do
       nil ->
@@ -63,6 +63,7 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
+  # TODO: Rename handle_guild to be more descriptive
   @spec handle_guild(
           guild :: Tornium.Schema.Server.t(),
           api_key :: Tornium.Schema.TornKey | nil,
@@ -93,19 +94,21 @@ defmodule Tornium.Guild.Verify do
 
   @spec validate_changes_made(new_roles_nick :: map(), original_roles :: List, original_nick :: String) ::
           map() | :nochanges
-  defp validate_changes_made(%{roles: roles, nick: nick} = new_roles_nick, original_roles, original_nick) do
+  defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick) do
+    patched_map = %{roles: MapSet.to_list(roles), nick: nick}
+
     if roles == original_roles do
-      ^new_roles_nick = Map.delete(new_roles_nick, :roles)
+      ^patched_map = Map.delete(patched_map, :roles)
     end
 
     if nick == original_nick do
-      ^new_roles_nick = Map.delete(new_roles_nick, :nick)
+      ^patched_map = Map.delete(patched_map, :nick)
     end
 
-    if Kernel.map_size(new_roles_nick) == 0 do
+    if Kernel.map_size(patched_map) == 0 do
       :nochanges
     else
-      new_roles_nick
+      patched_map
     end
   end
 
@@ -121,7 +124,9 @@ defmodule Tornium.Guild.Verify do
        }) do
     user =
       Tornium.Schema.User
-      |> where([u], u.discord_id == ^discord_id)
+      |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
+      |> where([u, f], u.discord_id == ^discord_id)
+      |> preload([u, f], faction: f)
       |> Repo.one()
 
     case user do
@@ -129,13 +134,13 @@ defmodule Tornium.Guild.Verify do
         :unverified
 
       user ->
-        %{roles: roles, nick: nick}
-        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(user, config)
-        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(user, config)
-        |> Tornium.Guild.Verify.Logic.set_verified_name(user, config)
-        |> Tornium.Guild.Verify.Logic.set_verified_roles(user, config)
-        |> Tornium.Guild.Verify.Logic.set_faction_roles(user, config)
-        |> Tornium.Guild.Verify.Logic.set_faction_position_roles(user, config)
+        %{roles: MapSet.new(roles), nick: nick}
+        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
+        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+        |> Tornium.Guild.Verify.Logic.set_verified_name(config, user)
+        |> Tornium.Guild.Verify.Logic.set_verified_roles(config, user)
+        |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
+        |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
         |> validate_changes_made(roles, nick)
     end
   end

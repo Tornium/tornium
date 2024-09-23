@@ -81,8 +81,7 @@ def _log_auth(
 @mod.route("/login", methods=["GET", "POST"])
 def login(*args, **kwargs):
     if request.method == "GET":
-        session.setdefault("oauth_state", default=secrets.token_urlsafe())
-
+        session["oauth_state"] = secrets.token_urlsafe()
         return render_template("login.html")
 
     session_oauth_state = session.pop("oauth_state", None)
@@ -95,7 +94,18 @@ def login(*args, **kwargs):
             render_template(
                 "errors/error.html",
                 title="Unauthorized",
-                error="Security error. No state code was included in the Discord callback. Please try again and make sure that you're on the correct website.",
+                error="Security error. No state code was included in the request. Please try again and make sure that you're on the correct website.",
+            ),
+            401,
+        )
+    elif session_oauth_state is None:
+        _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, details="OAuth session state mismatch")
+
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the session. Please try again and make sure that you're on the correct website.",
             ),
             401,
         )
@@ -106,13 +116,13 @@ def login(*args, **kwargs):
             render_template(
                 "errors/error.html",
                 title="Unauthorized",
-                error="Security error. An invalid state code was included in the Discord callback or in the session. Please "
+                error="Security error. An invalid state code was included in the request. Please "
                 "try again and make sure that you're on the correct website.",
             ),
             401,
         )
 
-    if request.form.get("key") is None or len(request.form["key"]) < 16:
+    if request.form.get("key") is None or len(request.form["key"]) != 16:
         _log_auth(
             user=None,
             action=AuthAction.LOGIN_TORN_API_FAILED,
@@ -438,6 +448,17 @@ def discord_login():
             ),
             401,
         )
+    elif session_oauth_state is None:
+        _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details="OAuth session state mismatch")
+
+        return (
+            render_template(
+                "errors/error.html",
+                title="Unauthorized",
+                error="Security error. No state code was included in the session. Please try again and make sure that you're on the correct website.",
+            ),
+            401,
+        )
     elif oauth_state != session_oauth_state:
         _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details="OAuth state mismatch")
 
@@ -445,7 +466,7 @@ def discord_login():
             render_template(
                 "errors/error.html",
                 title="Unauthorized",
-                error="Security error. An invalid state code was included in the Discord callback or in the session. Please "
+                error="Security error. An invalid state code was included in the request. Please "
                 "try again and make sure that you're on the correct website.",
             ),
             401,

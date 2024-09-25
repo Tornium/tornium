@@ -23,7 +23,6 @@ defmodule Tornium.Discord.Consumer do
         ) :: any()
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
     Tornium.Guild.Verify.handle_on_join(guild_id, new_member)
-    |> IO.inspect()
     |> verification_jail_message(new_member)
 
     {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)

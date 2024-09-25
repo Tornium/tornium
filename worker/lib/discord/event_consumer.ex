@@ -22,7 +22,7 @@ defmodule Tornium.Discord.Consumer do
            Nostrum.Struct.WSState.t()}
         ) :: any()
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
-    Tornium.Guild.Verify.handle(guild_id, new_member)
+    Tornium.Guild.Verify.handle_on_join(guild_id, new_member)
     |> IO.inspect()
     |> verification_jail_message(new_member)
 
@@ -43,13 +43,16 @@ defmodule Tornium.Discord.Consumer do
              | {:config, String.t()}, Tornium.Schema.Server.t()},
           Nostrum.Struct.Guild.Member.t()
         ) :: nil
-  defp verification_jail_message({:error, :api_key, _}, _) do
+  defp verification_jail_message({:error, :api_key}, _) do
+    nil
   end
 
-  defp verification_jail_message({:error, :exclusion_role, _}, _) do
+  defp verification_jail_message({:error, :exclusion_role}, _) do
+    nil
   end
 
-  defp verification_jail_message({:error, {:config, _}, _}, _) do
+  defp verification_jail_message({:error, {:config, _}}, _) do
+    nil
   end
 
   defp verification_jail_message(

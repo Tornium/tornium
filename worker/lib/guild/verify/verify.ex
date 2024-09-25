@@ -19,19 +19,20 @@ defmodule Tornium.Guild.Verify do
   require Logger
 
   # TODO: Comment the private methods
+  # TODO: Combine some of the types with pre-defined types
 
   @doc """
   Handle verification of a user in a server
 
   ## Parameters
-    - guild_id: ID of the guild the user should be verified for
+    - guild: ID of the guild the user should be verified for
     - member: Nostrum struct of the Discord member of the user
 
   ## Returns
     - OK with the updated member struct
     - Error with the error reason
   """
-  @spec handle(guild_id :: integer(), member :: Nostrum.Struct.Guild.Member.t()) ::
+  @spec handle(guild :: integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
           {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
           | {:error,
              Nostrum.Error.ApiError
@@ -41,26 +42,69 @@ defmodule Tornium.Guild.Verify do
              | :api_key
              | :exclusion_role
              | {:config, String.t()}, Tornium.Schema.Server.t()}
-  def handle(guild_id, member) do
-    # TODO: Clean up this method
-    # TODO: Check if verification on join is enabled for this server
+  def handle(guild, %Nostrum.Struct.Guild.Member{} = member) when is_integer(guild) do
+    Repo.get(Tornium.Schema.Server, guild)
+    |> handle(member)
+  end
 
-    case Repo.get(Tornium.Schema.Server, guild_id) do
-      nil ->
-        {:error, {:config, "invalid guild ID"}, nil}
+  def handle({:error, error}, _member) do
+    # Error passthrough from possible validation of server configuration
+    {:error, error}
+  end
 
-      %Tornium.Schema.Server{} = guild ->
-        if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
-          {:error, :exclusion_role, guild}
-        else
-          api_key = Tornium.Guild.get_random_admin_key(guild)
+  def handle(guild, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(guild) do
+    {:error, {:config, "invalid guild ID"}, nil}
+  end
 
-          case handle_guild(guild, api_key, member) do
-            {:ok, member} -> {:ok, member, guild}
-            {:error, error} -> {:error, error, guild}
-          end
-        end
+  def handle(%Tornium.Schema.Server{} = guild, %Nostrum.Struct.Guild.Member{} = member) do
+    if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
+      {:error, :exclusion_role, guild}
+    else
+      api_key = Tornium.Guild.get_random_admin_key(guild)
+
+      case handle_guild(guild, api_key, member) do
+        {:ok, member} -> {:ok, member, guild}
+        {:error, error} -> {:error, error, guild}
+      end
     end
+  end
+
+  defp validate_on_join(%Tornium.Schema.Server{} = guild) do
+    case guild do
+      %Tornium.Schema.Server{gateway_verify_enabled: false} -> {:error, {:config, "gateway verification disabled"}}
+      %Tornium.Schema.Server{gateway_verify_enabled: true} -> guild
+    end
+  end
+
+  defp validate_on_join(guild) when is_nil(guild) do
+    guild
+  end
+
+  @doc """
+  Handle verification of a user in a server when the user joins the server
+
+  ## Parameters
+    - guild_id: ID of the guild the user should be verified for
+    - member: Nostrum struct of the Discord member of the user
+
+  ## Returns
+    - OK with the updated member struct
+    - Error with the error reason
+  """
+  @spec handle_on_join(guild_id :: integer(), member :: Nostrum.Struct.Guild.Member.t()) ::
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
+          | {:error,
+             Nostrum.Error.ApiError
+             | Tornium.API.Error
+             | :unverified
+             | :nochanges
+             | :api_key
+             | :exclusion_role
+             | {:config, String.t()}, Tornium.Schema.Server.t()}
+  def handle_on_join(guild_id, member) when is_integer(guild_id) do
+    Repo.get(Tornium.Schema.Server, guild_id)
+    |> validate_on_join()
+    |> handle(member)
   end
 
   # TODO: Rename handle_guild to be more descriptive

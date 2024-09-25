@@ -16,20 +16,12 @@
 import importlib.util
 import sys
 
-for module in ("ddtrace", "orjson"):
+for module in ("orjson",):
     try:
         globals()[f"{module}:loaded"] = bool(importlib.util.find_spec(module))
     except (ValueError, ModuleNotFoundError):
         globals()[f"{module}:loaded"] = False
 
-
-if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
-    try:
-        from ddtrace import patch_all
-
-        patch_all(logging=True)
-    except ImportError:
-        globals()["ddtrace:loaded"] = False
 
 import json
 import typing
@@ -44,18 +36,10 @@ from celery.signals import after_setup_logger
 
 config = Config.from_json()
 
-_FORMAT = (
-    "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-    "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%"
-    "(dd.span_id)s] - %(message)s"
-)
 _LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
     "formatters": {
-        "datadog": {
-            "format": _FORMAT,
-        },
         "simple": {
             "format": "%(asctime)s %(levelname)s [%(name)s] - %(message)s",
         },
@@ -68,7 +52,7 @@ _LOGGING = {
             "level": "DEBUG",
             "class": "logging.FileHandler",
             "filename": "celery.log",
-            "formatter": "datadog" if globals()["ddtrace:loaded"] else "expanded",
+            "formatter": "expanded",
         },
         "console_handler": {
             "level": "WARNING",

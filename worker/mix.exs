@@ -31,7 +31,7 @@ defmodule Tornium.MixProject do
   def application do
     [
       mod: {Tornium.Application, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger, :plug_cowboy]
     ]
   end
 
@@ -43,7 +43,8 @@ defmodule Tornium.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "fb3ed0706ee35a7e56bb27d7a1b07c50446c9c6c"}
+      {:prom_ex, "~> 1.10"},
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "dcda18139d7f3b9574738bbd4a2c0eb4f17aa9a9"}
     ]
   end
 

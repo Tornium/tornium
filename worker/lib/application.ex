@@ -22,7 +22,10 @@ defmodule Tornium.Application do
     {:ok, pid(), Application.state()} | {:error, term()}
   )
   def start(_type, _args) do
+    Tornex.Telemetry.attach_default_logger()
+
     children = [
+      Tornium.PromEx,
       Tornium.Repo,
       Tornium.Discord.Consumer,
       Tornium.User.KeyStore,

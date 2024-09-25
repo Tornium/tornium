@@ -27,6 +27,19 @@ config :logger, :console,
 config :tesla,
   adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
 
+config :tornium, Tornium.PromEx,
+  # See https://hexdocs.pm/prom_ex/PromEx.Config.html for configuration details
+  disabled: false,
+  manual_metrics_start_delay: :no_delay,
+  drop_metrics_groups: [],
+  grafana: :disabled,
+  metrics_server: [
+    port: 4021,
+    path: "/metrics",
+    protocol: :http,
+    auth_strategy: :none
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import importlib.util
-import sys
 
 for module in ("orjson",):
     try:
@@ -144,26 +143,11 @@ if celery_app is None:
                 "task": "tasks.stocks.stocks_prefetch",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },  # Stakeout hooks/tasks
-            "run-user-stakeouts": {
-                "task": "tasks.stakeout_hooks.run_user_stakeouts",
-                "enabled": False,
-                "schedule": {"type": "periodic", "second": "30"},
-            },
-            "run-faction-stakeouts": {
-                "task": "tasks.stakeout_hooks.run_faction_stakeouts",
-                "enabled": False,
-                "schedule": {"type": "periodic", "second": "30"},
             },  # Item tasks
             "update-items": {
                 "task": "tasks.items.update_items",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
-            },
-            "fetch-market": {
-                "task": "tasks.items.fetch_market",
-                "enabled": True,
-                "schedule": {"type": "periodic", "second": "30"},
             },
         }
 
@@ -184,7 +168,6 @@ if celery_app is None:
             "tasks.items",
             "tasks.misc",
             "tasks.reports",
-            "tasks.stakeout_hooks",
             "tasks.stocks",
             "tasks.user",
         ],

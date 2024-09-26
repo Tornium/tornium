@@ -42,7 +42,6 @@ Almost all of the bot's configuration will be done through the bot dashboard fou
  * :ref:`Assists<assists>`
  * :ref:`Retaliations<retals>`
  * :ref:`Organized Crime Notifications<ocnotifs>`
- * :ref:`Stakeouts<stakeouts>`
  * :ref:`Item Notifications<item_notifs>`
 
 Argument Format

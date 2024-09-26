@@ -46,15 +46,12 @@ botlogger.addHandler(handler)
 mod = Blueprint("botinteractions", __name__)
 
 
-_autocomplete = {"notify": skynet.commands.notify.notify_autocomplete_switchboard}
+_autocomplete = {}
 _buttons = {
     "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
     "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
 }
 _startswith_buttons = {
-    "stakeout:flying:": skynet.commands.notify.stakeouts.stakeout_flying_button,
-    "stakeout:hospital:": skynet.commands.notify.stakeouts.stakeout_hospital_button,
-    "notify:items:": skynet.commands.notify.items.items_button_switchboard,
     "oc:participants:": skynet.commands.faction.oc.oc_participants_button,
 }
 _commands = {
@@ -70,8 +67,6 @@ _commands = {
     "server": skynet.commands.bot.server_config_switchboard,
     "verify": skynet.commands.bot.verify.verify,
     "verifyall": skynet.commands.bot.verifyall.verify_all,
-    # Notification Commands
-    "notify": skynet.commands.notify.notify_switchboard,
     # Stat DB Commands
     "chainlist": skynet.commands.stat.chain.chain,
     "stat": skynet.commands.stat.stat.stat,

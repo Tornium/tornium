@@ -1,8 +1,5 @@
 Tornium
 ===================================
-.. image:: https://img.shields.io/github/license/Tornium/tornium-core?style=for-the-badge
-   :alt: License Badge
-
 .. image:: https://img.shields.io/github/last-commit/Tornium/tornium-core?style=for-the-badge
    :alt: GitHub last commit
 

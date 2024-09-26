@@ -11,5 +11,5 @@ If the server the user is in has verification set up with Tornium, the user can 
 
 If the server does not have verification set up or uses some other bot (such as YATA) for verification, the user can do one of the following:
 - Sign into Tornium with their Torn API key or through the Discord log in
-- Use the ``/user`` slash command against their user (e.g.  `/user member: @tiksan``) to link their Torn and Discord accounts.
+- Use the ``/user`` slash command against their user (e.g.  ``/user member: @tiksan``) to link their Torn and Discord accounts.
 

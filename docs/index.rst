@@ -37,7 +37,12 @@ This part of the documentation contains details useful for end users who merely 
 
 Tutorials
 =========
-This section is currently under construction.
+Tornium has some tutorials describing how to perform certain actions:
+
+.. toctree::
+    :maxdepth: 1
+
+    tutorial/user_discord_id.rst
 
 Userscripts
 ===========

@@ -18,7 +18,7 @@ Custom Dark
 -----------
 Custom Dark is a highly modified implementation of Boostrap's style classes that is similar to the dark mode themes of several commercial software suites.
 
-.. _Raz-Mode:
-Raz-Mode
+.. _High Contrast:
+High Contrast
 --------
-Raz-Mode is a community requested modification to :ref:`Custom Dark` for higher contrast similar to older CRT displays.
+High Contrast is for higher contrast similar to older CRT displays.

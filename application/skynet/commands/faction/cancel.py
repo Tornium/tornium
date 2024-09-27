@@ -108,21 +108,6 @@ def cancel_command(interaction, *args, **kwargs):
                 ]
             },
         }
-    elif user.tid not in user.faction.get_bankers():
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Permission Denied",
-                        "description": "Only faction members with banking permissions are allowed to cancel banking "
-                        "requests.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
     elif (
         str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
@@ -147,17 +132,15 @@ def cancel_command(interaction, *args, **kwargs):
 
     if withdrawal_id is not None:
         withdrawal_id = withdrawal_id["value"]
-
-    try:
-        withdrawal_id = int(withdrawal_id)
-    except (TypeError, ValueError):
+    if withdrawal_id is not None and user.tid not in user.faction.get_bankers():
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "Illegal Parameter Value",
-                        "description": "An illegal withdrawal ID type was passed. The withdrawal ID must be an integer.",
+                        "title": "Permission Denied",
+                        "description": "Only faction members with banking permissions are allowed to cancel banking "
+                        "requests.",
                         "color": SKYNET_ERROR,
                     }
                 ],

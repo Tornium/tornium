@@ -100,19 +100,21 @@ defmodule Tornium.Guild.Verify.Message do
     added_roles = MapSet.difference(updated_roles, original_roles)
 
     if updated_member.nick != original_member.nick do
-      Nostrum.Struct.Embed.put_field(embed, "Nickname", "#{original_member.nick} -> #{updated_member.nick}")
+      embed = Nostrum.Struct.Embed.put_field(embed, "Nickname", "#{original_member.nick} -> #{updated_member.nick}")
     end
 
     if MapSet.size(removed_roles) > 0 do
-      Nostrum.Struct.Embed.put_field(
-        embed,
-        "Removed Roles",
-        Tornium.Utils.roles_to_string(MapSet.to_list(removed_roles))
-      )
+      embed =
+        Nostrum.Struct.Embed.put_field(
+          embed,
+          "Removed Roles",
+          Tornium.Utils.roles_to_string(MapSet.to_list(removed_roles))
+        )
     end
 
     if MapSet.size(added_roles) > 0 do
-      Nostrum.Struct.Embed.put_field(embed, "Added Roles", Tornium.Utils.roles_to_string(MapSet.to_list(added_roles)))
+      embed =
+        Nostrum.Struct.Embed.put_field(embed, "Added Roles", Tornium.Utils.roles_to_string(MapSet.to_list(added_roles)))
     end
 
     embed

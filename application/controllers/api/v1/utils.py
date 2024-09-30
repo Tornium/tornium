@@ -219,7 +219,7 @@ API_EXCEPTIONS = {
         "code": 4291,
         "name": "AssistRatelimit",
         "http": 429,
-        "message": "User has reached a ratelimit on assists.",
+        "message": "[DEPRECATED] User has reached a ratelimit on assists.",
     },
     "4292": {
         "code": 4292,

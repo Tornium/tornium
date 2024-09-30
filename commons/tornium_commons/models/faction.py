@@ -45,9 +45,6 @@ class Faction(BaseModel):
     # Guild data
     guild = DeferredForeignKey("Server", null=True)  # noqa: F712
 
-    # Assists configuration
-    assist_servers = ArrayField(IntegerField, default=[], index=False)
-
     # Configuration data
     stats_db_enabled = BooleanField(default=True)  # noqa: F712
     stats_db_global = BooleanField(default=True)  # noqa: F712

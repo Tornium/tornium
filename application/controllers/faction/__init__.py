@@ -15,12 +15,9 @@
 
 from flask import Blueprint, render_template
 
-from controllers.faction import assists, banking, bot, chain, crimes, members
+from controllers.faction import banking, bot, chain, crimes, members
 
 mod = Blueprint("factionroutes", __name__)
-
-# Assist Routes
-mod.add_url_rule("/faction/assists/<string:guid>", view_func=assists.assist_forward, methods=["GET"])
 
 # Banking Routes
 mod.add_url_rule("/faction/bankingaa", view_func=banking.banking_aa, methods=["GET"])

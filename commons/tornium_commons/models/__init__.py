@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .assist import Assist, AssistMessage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition
@@ -40,8 +39,6 @@ from .withdrawal import Withdrawal
 # Otherwise the table won't be able to be generated
 
 __all__ = [
-    "Assist",
-    "AssistMessage",
     "AuthLog",
     "Faction",
     "FactionPosition",

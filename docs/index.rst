@@ -69,4 +69,3 @@ Tornium extensions allow users to extend Tornium in a limited fashion without co
 Deprecation Notices
 ===================
  * Pre-existing stakeouts will be removed (without migration) in the v0.4.x release cycle. Please use stakeouts via Discord slash commands in the future.
- * Assist request forwarding options will be removed in the v0.5.x release cycle in favor of a permanent whitelist.

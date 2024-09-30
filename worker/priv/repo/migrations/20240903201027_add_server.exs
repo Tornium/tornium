@@ -25,15 +25,6 @@ defmodule Tornium.Repo.Migrations.AddServer do
       add :armory_enabled, :boolean, default: false, null: false
       add :armory_config, :map, default: %{}, null: false
 
-      add :assist_channel, :bigint, default: 0, null: false
-      add :assist_factions, {:array, :integer}, default: [], null: false
-      add :assist_smoker_roles, {:array, :bigint}, default: [], null: false
-      add :assist_tear_roles, {:array, :bigint}, default: [], null: false
-      add :assist_l0_roles, {:array, :bigint}, default: [], null: false
-      add :assist_l1_roles, {:array, :bigint}, default: [], null: false
-      add :assist_l2_roles, {:array, :bigint}, default: [], null: false
-      add :assist_l3_roles, {:array, :bigint}, default: [], null: false
-
       add :oc_config, :map, default: %{}, null: false
     end
 

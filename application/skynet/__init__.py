@@ -60,7 +60,6 @@ _startswith_buttons = {
 _commands = {
     "ping": skynet.commands.ping,
     # Faction Commands
-    "assist": skynet.commands.faction.assist.assist,
     "balance": skynet.commands.faction.balance.balance,
     "cancel": skynet.commands.faction.cancel.cancel_command,
     "faction": skynet.commands.faction.faction.faction_data_switchboard,

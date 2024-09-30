@@ -39,7 +39,6 @@ Almost all of the bot's configuration will be done through the bot dashboard fou
 
  * :ref:`Verification<verification>`
  * :ref:`Faction Banking<banking>`
- * :ref:`Assists<assists>`
  * :ref:`Retaliations<retals>`
  * :ref:`Organized Crime Notifications<ocnotifs>`
  * :ref:`Stakeouts<stakeouts>`

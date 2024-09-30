@@ -13,8 +13,6 @@ defmodule Tornium.Repo.Migrations.AddFaction do
 
       add :guild_id, references(:server, column: :sid, type: :bigint)
 
-      add :assist_servers, {:array, :bigint}, default: [], null: false
-      
       add :stats_db_enabled, :boolean, default: true, null: false
       add :stats_db_global, :boolean, default: true, null: false
 

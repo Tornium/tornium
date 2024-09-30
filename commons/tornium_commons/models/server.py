@@ -61,16 +61,6 @@ class Server(BaseModel):
     armory_enabled = BooleanField(default=False)
     armory_config = JSONField(default={})
 
-    # Assist configuration
-    assist_channel = BigIntegerField(default=0)
-    assist_factions = ArrayField(IntegerField, default=[])  # List of factions that can send assists to the server
-    assist_smoker_roles = ArrayField(BigIntegerField, default=[], index=False)
-    assist_tear_roles = ArrayField(BigIntegerField, default=[], index=False)
-    assist_l0_roles = ArrayField(BigIntegerField, default=[], index=False)  # 500m+
-    assist_l1_roles = ArrayField(BigIntegerField, default=[], index=False)  # 1b+
-    assist_l2_roles = ArrayField(BigIntegerField, default=[], index=False)  # 2b+
-    assist_l3_roles = ArrayField(BigIntegerField, default=[], index=False)  # 5b+
-
     # OC configuration
     oc_config = JSONField(default={})
 

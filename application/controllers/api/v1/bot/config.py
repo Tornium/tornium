@@ -57,18 +57,6 @@ def jsonified_server_config(guild: Server):
         },
         "banking": guild.banking_config,
         "armory": {"enabled": guild.armory_enabled, "config": {**guild.armory_config}},
-        "assists": {
-            "channel": str(guild.assist_channel),
-            "factions": guild.assist_factions,
-            "roles": {
-                "smoker": list(map(str, guild.assist_smoker_roles)),
-                "tear": list(map(str, guild.assist_tear_roles)),
-                "l0": list(map(str, guild.assist_l0_roles)),
-                "l1": list(map(str, guild.assist_l1_roles)),
-                "l2": list(map(str, guild.assist_l2_roles)),
-                "l3": list(map(str, guild.assist_l3_roles)),
-            },
-        },
         "attacks": {
             config.faction_id: {
                 "retal": {

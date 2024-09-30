@@ -33,13 +33,6 @@ defmodule Tornium.Schema.Server do
           banking_config: Map,
           armory_enabled: boolean(),
           armory_config: Map,
-          assist_channel: integer(),
-          assist_factions: List,
-          assist_smoker_roles: List,
-          assist_tear_roles: List,
-          assist_l0_roles: List,
-          assist_l1_roles: List,
-          assist_l3_roles: List,
           oc_config: Map
         }
 
@@ -66,15 +59,6 @@ defmodule Tornium.Schema.Server do
 
     field(:armory_enabled, :boolean)
     field(:armory_config, :map)
-
-    field(:assist_channel, :integer)
-    field(:assist_factions, {:array, :integer})
-    field(:assist_smoker_roles, {:array, :integer})
-    field(:assist_tear_roles, {:array, :integer})
-    field(:assist_l0_roles, {:array, :integer})
-    field(:assist_l1_roles, {:array, :integer})
-    field(:assist_l2_roles, {:array, :integer})
-    field(:assist_l3_roles, {:array, :integer})
 
     field(:oc_config, :map)
   end

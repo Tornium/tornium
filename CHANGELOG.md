@@ -29,3 +29,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`
 - Removed `discord-gateway` from monorepo
 - Removed verification on join from Celery worker
+- Removed assists from Celery, application, etc.

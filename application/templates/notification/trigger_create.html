@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notification Triggers
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/notification">Notifications</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification/triggers">Triggers</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification/triggers/create">Create Trigger</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/notification/trigger">
+                <i class="col-1 col-sm-2 fa-brands fa-searchengin"></i> <span class="col">Notification Triggers</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Alert Details</h5>
+
+        <div class="mb-3">
+            <label for="trigger-name" class="form-label">Trigger Name</label>
+            <input type="text" class="form-control" id="trigger-name" value="trigger-{{ current_user.tid }}-{{ range(0, 100) | random }}" autocomplete="off">
+        </div>
+
+        <div class="mb-3">
+            <label for="trigger-description" class="form-label">Trigger Description</label>
+            <textarea class="form-control" id="trigger-description" style="height: 100px;"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="trigger-type" class="form-label">Trigger Type</label>
+
+            <!-- TODO: the style of these needs to be fixed -->
+            <input type="radio" class="btn-check" name="trigger-type" id="trigger-one-shot" autocomplete="off" checked>
+            <label class="btn" for="trigger-one-shot">One Shot</label>
+
+            <input type="radio" class="btn-check" name="trigger-type" id="trigger-repeating" autocomplete="off">
+            <label class="btn" for="trigger-repeating">Repeating</label>
+        </div>
+
+        <div class="mb-3">
+            <!-- TODO: Limit the width of this element -->
+            <label for="trigger-cron" class="form-label">Cron (<a href="https://crontab.guru/">Guide)</label>
+            <input type="text" class="form-control" id="trigger-cron" value="* * * * *" autocomplete="off">
+        </div>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Trigger Conditions</h5>
+
+        <p class="card-text">
+            Tornium uses the <a href="https://lua.org">Lua</a> programming language to configure its notification triggers. Examples of such notification triggers are found <a href="#">here</a>. For more information on configuring notification triggers, check out the <a href="#">documentation</a>.
+        </p>
+
+        <p class="card-text">
+            <b>NOTE:</b> Tornium parses and validates this Lua code on the backend, but this validation is not complete. It is recommended to check the code on a Lua interpreter on your computer.
+        </p>
+
+        <div class="mb-3">
+            <label for="trigger-code" class="form-label">Trigger Code</label>
+            <textarea class="form-control" id="trigger-code" style="height: 400px;"></textarea>
+        </div>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Notification Trigger Creation</h5>
+
+        <p class="card-text">
+            <b>REMINDER:</b> You agree not to engage in any activity that interferes with or disrupts the service. Any activity that interferes with or disrupts the service may result in a permanent ban of you, your faction, and/or your Discord server.
+        </p>
+
+        <div class="float-end">
+            <a class="btn btn-outline-danger" href="/notification/trigger">Cancel</a>
+            <button class="btn btn-outline-success">Create</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/notification/trigger-create.js"></script>
+{% endblock %}

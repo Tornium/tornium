@@ -102,6 +102,8 @@ def settings(*args, **kwargs):
 @mod.route("/static/global/items.js")
 @mod.route("/static/global/modeSelector.js")
 @mod.route("/static/global/utils.js")
+@mod.route("/static/notification/trigger-create.js")
+@mod.route("/static/notification/trigger-viewer.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

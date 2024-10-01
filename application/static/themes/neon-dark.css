@@ -106,6 +106,9 @@
 [data-bs-theme=neon-dark] .primary i [class^=fa-] {
   color: rgb(57, 255, 20);
 }
+[data-bs-theme=neon-dark] .primary .btn {
+  color: rgb(57, 255, 20);
+}
 [data-bs-theme=neon-dark] .primary .btn-outline {
   color: rgb(57, 255, 20);
   border-color: rgb(229, 229, 229);

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notification Triggers
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/notification">Notifications</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification/triggers">Triggers</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/notification/trigger">
+                <i class="col-1 col-sm-2 fa-brands fa-searchengin"></i> <span class="col">Notification Triggers</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Create New Notification Trigger</h5>
+
+        <p class="card-text">
+            Lorem ipsum dolor sit amen.
+        </p>
+
+        <p class="card-text">
+            For more information, take a look at the documentation for <a href="#">notifications</a>. <!-- TODO: Insert docs link -->
+        </p>
+
+        <a class="btn btn-outline-success" href="/notification/trigger/create">Create</a>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Current Notification Triggers</h5>
+
+        <div id="existing-trigger-container">
+            No results found...
+        </div>
+
+        <div class="mt-2 me-3 text-end">
+            <span id="trigger-count">No</span> trigger(s) located
+        </div>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Public Notification Triggers</h5>
+
+        <p class="card-text">
+            View and copy public notification triggers.
+        </p>
+        
+        <p class="card-text">
+            Lorem ipsum dolor sit amen.
+        </p>
+    </div>
+</div>
+
+<script src="/static/notification/trigger-viewer.js"></script>
+{% endblock %}

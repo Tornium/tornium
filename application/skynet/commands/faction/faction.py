@@ -318,7 +318,7 @@ def members_switchboard(interaction, *args, **kwargs):
             version=2,
         )
 
-        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
         not_revivable_count = 0
 
         for member in member_data["members"]:
@@ -333,7 +333,7 @@ def members_switchboard(interaction, *args, **kwargs):
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
                     {
-                        "title": f"Revivable Members of {member_data['name']}",
+                        "title": f"Revivable Members of {member_data['basic']['name']}",
                         "description": "",
                         "color": SKYNET_INFO,
                     }
@@ -384,7 +384,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
         member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
 
-        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
         not_revivable_count = 0
 
         for member in member_data["members"]:
@@ -399,7 +399,7 @@ def members_switchboard(interaction, *args, **kwargs):
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
                     {
-                        "title": f"Revivable Members of {member_data['name']}",
+                        "title": f"Revivable Members of {member_data['basic']['name']}",
                         "description": "",
                         "color": SKYNET_INFO,
                     }

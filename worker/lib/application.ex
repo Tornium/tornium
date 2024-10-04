@@ -29,6 +29,7 @@ defmodule Tornium.Application do
       Tornium.Repo,
       Tornium.Discord.Consumer,
       Tornium.User.KeyStore,
+      {Task.Supervisor, name: Tornium.LuaSupervisor},
       Tornex.Scheduler.Supervisor
     ]
 

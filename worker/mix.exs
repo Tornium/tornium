@@ -44,6 +44,7 @@ defmodule Tornium.MixProject do
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.10"},
+      {:luerl, github: "rvirding/luerl", tag: "1.2.1"},
       {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "dcda18139d7f3b9574738bbd4a2c0eb4f17aa9a9"}
     ]
   end

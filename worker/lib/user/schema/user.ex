@@ -54,7 +54,7 @@ defmodule Tornium.Schema.User do
 
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     field(:faction_aa, :boolean)
-    belongs_to(:faction_position, Tornium.Schema.FactionPosition, references: :pid)
+    belongs_to(:faction_position, Tornium.Schema.FactionPosition, references: :pid, type: :binary_id)
 
     field(:status, :string)
     field(:last_action, :utc_datetime)

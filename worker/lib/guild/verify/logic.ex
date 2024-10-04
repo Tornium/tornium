@@ -181,7 +181,7 @@ defmodule Tornium.Guild.Verify.Logic do
       faction_verify
       |> Enum.map(fn {_faction_tid, _faction_verify_config = %{"positions" => position_config, "enabled" => enabled}} ->
         Enum.map(position_config, fn {position_pid, position_roles} ->
-          if user.faction_position.pid == position_pid or not enabled do
+          if user.faction_position_id == position_pid or not enabled do
             []
           else
             position_roles
@@ -201,7 +201,7 @@ defmodule Tornium.Guild.Verify.Logic do
       user.faction.tid == 0 or is_nil(user.faction.tid) ->
         false
 
-      is_nil(user.faction_position) ->
+      is_nil(user.faction_position_id) ->
         false
 
       Map.get(faction_verify, Integer.to_string(user.faction.tid)) |> is_nil() ->
@@ -212,7 +212,7 @@ defmodule Tornium.Guild.Verify.Logic do
 
       Map.get(faction_verify, Integer.to_string(user.faction.tid))
       |> Map.get("positions", %{})
-      |> Map.get(user.faction_position.pid)
+      |> Map.get(user.faction_position_id)
       |> is_nil() ->
         false
 
@@ -247,7 +247,7 @@ defmodule Tornium.Guild.Verify.Logic do
         state,
         Map.get(faction_verify, Integer.to_string(user.faction.tid))
         |> Map.get("positions")
-        |> Map.get(user.faction_position.pid)
+        |> Map.get(user.faction_position_id)
       )
     else
       state

@@ -4,9 +4,6 @@ First of all, thank you for taking the time to contribute to Tornium!
 
 All forms of contribution are encouraged and valued. The following is a set of guidelines for the different ways to contribute to Tornium.
 
-#### Table of Contents
-Lorem ipsum dolor sit amen.
-
 ## I just have a question!
 We have a Discord support server where you can ask your questions. But first, please take a look at the documentation to make sure the answer to your question is not already answered there. If you still need help, when asking your question, please provide as much context as possible (such as steps you've taken, error messages, etc.) which will help answer your question faster.
 

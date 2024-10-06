@@ -15,43 +15,44 @@ Tornium uses [Read The Docs](https://about.readthedocs.com/) for its documentati
     - [Emacs](https://www.gnu.org/software/emacs/)
     - [Jetbrains PyCharm](https://www.jetbrains.com/pycharm/)
     - [Zed](https://zed.dev/)
-4. Clone [Tornium](https://github.com/Tornium/tornium):
+4. Fork Tornium on GitHub.
+5. Clone [Tornium](https://github.com/Tornium/tornium):
     ```bash
     git clone https://github.com/Tornium/tornium.git
     ```
-5. Create Python virtual environment:
+6. Create Python virtual environment:
     ```bash
     cd tornium
     python3 -m venv venv
     source venv/bin/activate
     ```
-6. Install documentation dependencies
+7. Install documentation dependencies
     ```bash
     cd docs
     pip3 install -r requirements.txt
     ```
-7. Create a branch for your changes:
+8. Create a branch for your changes:
     ```bash
     git checkout -b docs/update-docs-foo-bar
     ```
-8. Make changes to documentation
-9. "Build" documentation to HTML page:
+9. Make changes to documentation
+10. "Build" documentation to HTML page:
     ```bash
     make html
     ```
-10. Open generated documentation in a browser:
+11. Open generated documentation in a browser:
     ```bash
     Windows: start build/html/index.html
     Linux: xdg-open build/html/index.html
     MacOS: open build/html/index.html
     ```
-11. Push your changes upstream:
+12. Push your changes upstream:
     ```bash
     git add [[ changed-files ]]
     git commit -m "[docs] Improved foo bar"
     git push origin docs/update-docs-foo-bar
     ```
-12. On Tornium's GitHub page, [create a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) for the change to be merged with the project.
+13. On Tornium's GitHub page, [create a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) for the change to be merged with the project.
 
 ## Contributing documentation
 The [Sphinx](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html) is a great resource for learning how to use reStructuredText in the documenation.

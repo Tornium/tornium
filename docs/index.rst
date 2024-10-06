@@ -59,13 +59,3 @@ This part of the documentation contains API documentation for Tornium functions,
 
 This section is currently under construction.
 
-Tornium Extensions
-------------------
-Tornium extensions allow users to extend Tornium in a limited fashion without contributing to the main repositories. Tornium extensions currently only supports creating new Discord commands and new Flask endpoints. A template for creating new Tornium extensions can be found at `Tornium/tornium-extension-template <https://github.com/Tornium/tornium-extension-template>`_. Any extensions must start with `tornium_` and should be packaged as a Python package.
-
-.. warning::
-   Due to Tornium's usage of the Affero General Public License (AGPLv3), extensions are required to released under AGPL or a GPL-compliant license and the source code must be distributed in a GPL-compliant method.
-
-Deprecation Notices
-===================
- * Pre-existing stakeouts will be removed (without migration) in the v0.4.x release cycle. Please use stakeouts via Discord slash commands in the future.

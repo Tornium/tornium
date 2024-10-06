@@ -78,4 +78,4 @@ Adapted from Adam Scott's guide [^1]...
 [Write the Docs](https://www.writethedocs.org/guide/writing/docs-principles/) provides a great, in-depth guide on writing high quality documentation if you're interested.
 
 
-[^1]: [https://www.oreilly.com/content/the-eight-rules-of-good-documentation/](The eight rules of good documentation)
+[^1]: [The eight rules of good documentation](https://www.oreilly.com/content/the-eight-rules-of-good-documentation/)

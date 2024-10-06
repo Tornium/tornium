@@ -356,8 +356,11 @@ def members_switchboard(interaction, *args, **kwargs):
             api_user = user
         else:
             try:
+                # TODO: Convert to subquery
                 api_user = random.choice(
-                    User.select(User.tid, User.name).where(
+                    User.select(User.tid, User.name)
+                    .join(PersonalStats)
+                    .where(
                         (PersonalStats.revives >= 1)
                         & (
                             User.tid.in_(

@@ -536,9 +536,6 @@ def invalid_member_position_roles(
     roles = set()
 
     for verify_faction_id, faction_positions_data in faction_verify.items():
-        if int(verify_faction_id) == faction_id:
-            continue
-
         for position_uuid, position_roles in faction_positions_data.get("positions", {}).items():
             if position is not None and position_uuid == str(position.pid):
                 continue

@@ -25,8 +25,9 @@ defmodule Tornium.Schema.Trigger do
           selections: List,
           resource_id: integer(),
           one_shot: boolean(),
-          cron: String.t(),
           code: String.t(),
+          cron: String.t(),
+          next_execution: DateTime.t(),
           error: String.t() | nil,
           previous_state: Map
         }
@@ -41,8 +42,10 @@ defmodule Tornium.Schema.Trigger do
     field(:selections, {:array, :string})
     field(:resource_id, :integer)
     field(:one_shot, :boolean)
-    field(:cron, :string)
     field(:code, :string)
+
+    field(:cron, :string)
+    field(:next_execution, :utc_datetime)
 
     field(:error, :string)
 

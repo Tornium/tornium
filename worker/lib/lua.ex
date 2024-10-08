@@ -33,6 +33,7 @@ defmodule Tornium.Lua do
           {:error, atom()} | {:ok, List} | {:lua_error, any()}
   def execute_lua(code, input_state \\ []) when is_binary(code) do
     # TODO: Add tests for this
+    # TODO: Update typespec for `execute_lua` based on https://github.com/elixir-lang/elixir/pull/12482/commits/bf78c78a9ef77c4d679bbda0e03db17152321fc5
     state = :luerl_sandbox.init()
 
     state =

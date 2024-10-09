@@ -22,7 +22,9 @@ defmodule Tornium.Application do
     {:ok, pid(), Application.state()} | {:error, term()}
   )
   def start(_type, _args) do
+    # Attach the default loggers from :telemetry before the start of the children
     Tornex.Telemetry.attach_default_logger()
+    Oban.Telemetry.attach_default_logger()
 
     children = [
       Tornium.PromEx,
@@ -30,7 +32,8 @@ defmodule Tornium.Application do
       Tornium.Discord.Consumer,
       Tornium.User.KeyStore,
       {Task.Supervisor, name: Tornium.LuaSupervisor},
-      Tornex.Scheduler.Supervisor
+      Tornex.Scheduler.Supervisor,
+      {Oban, Application.fetch_env!(:tornium, Oban)}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)

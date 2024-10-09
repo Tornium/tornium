@@ -25,7 +25,7 @@ defmodule Tornium.Schema.Trigger do
           selections: List,
           code: String.t(),
           public: boolean(),
-          official: boolean(),
+          official: boolean()
         }
 
   @primary_key {:tid, Ecto.UUID, autogenerate: true}

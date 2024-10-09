@@ -23,13 +23,9 @@ defmodule Tornium.Schema.Trigger do
           owner: Tornium.Schema.User.t(),
           resource: :user | :faction | :company | :torn | :faction_v2,
           selections: List,
-          resource_id: integer(),
-          one_shot: boolean(),
           code: String.t(),
-          cron: String.t(),
-          next_execution: DateTime.t(),
-          error: String.t() | nil,
-          previous_state: Map
+          public: boolean(),
+          official: boolean(),
         }
 
   @primary_key {:tid, Ecto.UUID, autogenerate: true}
@@ -40,15 +36,9 @@ defmodule Tornium.Schema.Trigger do
 
     field(:resource, Ecto.Enum, values: [:user, :faction, :company, :torn, :faction_v2])
     field(:selections, {:array, :string})
-    field(:resource_id, :integer)
-    field(:one_shot, :boolean)
     field(:code, :string)
 
-    field(:cron, :string)
-    field(:next_execution, :utc_datetime)
-
-    field(:error, :string)
-
-    field(:previous_state, :map)
+    field(:public, :boolean)
+    field(:official, :boolean)
   end
 end

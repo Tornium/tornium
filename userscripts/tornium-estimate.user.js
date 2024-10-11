@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.5
+// @version      0.3.6
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -14,8 +14,8 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @connect      tornium.com
-// @downloadURL  https://raw.githubusercontent.com/Tornium/tornium/master/userscripts/tornium-estimate.user.js
-// @updateURL    https://raw.githubusercontent.com/Tornium/tornium/master/userscripts/tornium-estimate.user.js
+// @downloadURL  https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-estimate.user.js
+// @updateURL    https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-estimate.user.js
 // @supportURL   https://discord.gg/pPcqTRTRyF
 // ==/UserScript==
 

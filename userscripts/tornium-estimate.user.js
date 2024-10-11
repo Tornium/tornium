@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.4
+// @version      0.3.5
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -36,15 +36,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const baseURL = "https://tornium.com";
 const clientID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
+const DEBUG = false;
 
 // Tampermonkey will store data from GM_setValue separately, but TPDA and violentmonkey will store this in localstorage
-GM_setValue("tornium:test", "1");
-const clientLocalGM = localStorage.getItem("tornium:test") !== null;
+GM_setValue("tornium-estimate:test", "1");
+const clientLocalGM = localStorage.getItem("tornium-estimate:test") !== null;
 
-const accessToken = GM_getValue("tornium:access-token", null);
-const accessTokenExpiration = GM_getValue("tornium:access-token-expires", 0);
+const accessToken = GM_getValue("tornium-estimate:access-token", null);
+const accessTokenExpiration = GM_getValue("tornium-estimate:access-token-expires", 0);
 
-const userStatScore = GM_getValue("tornium:user:bs", null);
+const userStatScore = GM_getValue("tornium-estimate:user:bs", null);
+
+const CACHE_ENABLED = "caches" in window;
+const CACHE_NAME = "tornium-estimate-cache";
+const CACHE_EXPIRATION = 1000 * 60 * 60 * 24 * 7;  // 7 days
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -75,68 +80,101 @@ function shortNum(value) {
     return Intl.NumberFormat("en-us", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
-function getOneEstimate(tid, onload) {
-    GM_xmlhttpRequest({
-        method: "GET",
-        url: `${baseURL}/api/v1/user/estimate/${tid}`,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-        },
-        responseType: "json",
-        onload: (response) => {
-            let responseJSON = response.response;
+function parseHeaders(headerString) {
+    let headers = {};
 
-            if (response.responseType === undefined) {
-                responseJSON = JSON.parse(response.responseText);
-                response.responseType = "json";
+    headerString.split('\r\n').forEach(line => {
+        const [key, value] = line.split(': ').map(item => item.trim());
+
+        if (key && value) {
+            headers[key] = value;
+        }
+    });
+
+    return headers;
+}
+
+function LOG(string) {
+    if (DEBUG) {
+        console.log(string);
+    }
+}
+
+function tornium_fetch(url, options = {method: "GET"}) {
+    return new Promise(async (resolve, reject) => {
+        let cache;
+        if (CACHE_ENABLED) {
+            cache = await caches.open(CACHE_NAME);
+            // await cache.delete(url);
+            const cachedResponse = await cache.match(url);
+
+            if (cachedResponse) {
+                const cachedTime = new Date(cachedResponse.headers.get("date")).getTime();
+                const now = Date.now();
+
+                if (now - cachedTime < CACHE_EXPIRATION) {
+                    LOG("Using cached value");
+                    resolve(cachedResponse.json());
+                    return;
+                }
+
+                LOG("Deleting expired cached value");
+                await cache.delete(url);
             }
+        }
 
-            if (responseJSON.error !== undefined) {
-                GM_deleteValue("tornium:access-token");
-                GM_deleteValue("tornium:access-token-expires");
+        return GM_xmlhttpRequest({
+            method: options.method,
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+            },
+            responseType: "json",
+            onload: (response) => {
+                let responseJSON = response.response;
 
-                $("#tornium-estimation").text(
-                    `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
-                );
+                if (response.responseType === undefined) {
+                    responseJSON = JSON.parse(response.responseText);
+                    response.responseType = "json";
+                }
+
+                if (responseJSON.error !== undefined) {
+                    GM_deleteValue("tornium-estimate:access-token");
+                    GM_deleteValue("tornium-estimate:access-token-expires");
+
+                    $("#tornium-estimation").text(
+                        `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
+                    );
+                    reject();
+                    return;
+                }
+
+                if (CACHE_ENABLED) {
+                    const headers = parseHeaders(response.responseHeaders);
+                    cache.put(url, new Response(response.responseText, {headers: headers}));
+                }
+
+                LOG(responseJSON);
+                resolve(responseJSON);
+                return;
+            },
+            onerror: (error) => {
+                reject(error);
                 return;
             }
-
-            onload(responseJSON);
-        },
+        });
     });
 }
 
-function getOneStat(tid, onload) {
-    GM_xmlhttpRequest({
-        method: "GET",
-        url: `${baseURL}/api/v1/user/${tid}/stat`,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-        },
-        responseType: "json",
-        onload: (response) => {
-            let responseJSON = response.response;
+async function getOneEstimate(tid) {
+    const url = `${baseURL}/api/v1/user/estimate/${tid}`;
+    return await tornium_fetch(url);
+}
 
-            if (response.responseType === undefined) {
-                responseJSON = JSON.parse(response.responseText);
-                response.responseType = "json";
-            }
-
-            if (responseJSON.error !== undefined) {
-                GM_deleteValue("tornium:access-token");
-                GM_deleteValue("tornium:access-token-expires");
-
-                $("#tornium-estimation").text(
-                    `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
-                );
-                return;
-            }
-
-            onload(responseJSON);
-        },
-    });
+async function getOneStat(tid) {
+    const url = `${baseURL}/api/v1/user/${tid}/stat`;
+    return await tornium_fetch(url);
 }
 
 (async function () {
@@ -148,8 +186,8 @@ function getOneStat(tid, onload) {
     ) {
         let params = new URLSearchParams(window.location.search);
 
-        if (params.get("state") !== GM_getValue("tornium:state")) {
-            console.log("invalid state");
+        if (params.get("state") !== GM_getValue("tornium-estimate:state")) {
+            LOG("invalid state");
             unsafeWindow.alert("Invalid State");
             window.location.href = "https://torn.com";
             return;
@@ -160,7 +198,7 @@ function getOneStat(tid, onload) {
         data.set("grant_type", "authorization_code");
         data.set("scope", "identity");
         data.set("client_id", clientID);
-        data.set("code_verifier", GM_getValue("tornium:codeVerifier"));
+        data.set("code_verifier", GM_getValue("tornium-estimate:codeVerifier"));
         data.set(
             "redirect_uri",
             clientLocalGM
@@ -184,13 +222,13 @@ function getOneStat(tid, onload) {
                     response.responseType = "json";
                 }
 
-                console.log(responseJSON);
+                LOG(responseJSON);
 
                 let accessToken = responseJSON.access_token;
                 let expiresAt = Math.floor(Date.now() / 1000) + responseJSON.expires_in;
 
-                GM_setValue("tornium:access-token", accessToken);
-                GM_setValue("tornium:access-token-expires", expiresAt);
+                GM_setValue("tornium-estimate:access-token", accessToken);
+                GM_setValue("tornium-estimate:access-token-expires", expiresAt);
 
                 if (clientLocalGM) {
                     window.location.href = "https://torn.com";
@@ -200,7 +238,7 @@ function getOneStat(tid, onload) {
         return;
     }
 
-    console.log(window.location.href);
+    LOG(window.location.href);
 
     if (window.location.href.startsWith("https://www.torn.com/profiles.php")) {
         $(".content-title").append($("<p id='tornium-estimation'>Loading estimate...</p>"));
@@ -209,8 +247,8 @@ function getOneStat(tid, onload) {
         if (accessToken === null || accessTokenExpiration <= Math.floor(Date.now() / 1000)) {
             const state = arrayToString(window.crypto.getRandomValues(new Uint8Array(24)));
             const codeVerifier = arrayToString(window.crypto.getRandomValues(new Uint8Array(48)));
-            GM_setValue("tornium:state", state);
-            GM_setValue("tornium:codeVerifier", codeVerifier);
+            GM_setValue("tornium-estimate:state", state);
+            GM_setValue("tornium-estimate:codeVerifier", codeVerifier);
 
             let codeChallenge = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
             codeChallenge = arrayToString(new Uint8Array(codeChallenge));
@@ -229,7 +267,7 @@ function getOneStat(tid, onload) {
 
         const search = new URLSearchParams(new URL(window.location).search);
 
-        getOneEstimate(search.get("XID"), function (userEstimate) {
+        getOneEstimate(search.get("XID")).then(userEstimate => {
             if (userEstimate.code !== undefined) {
                 $("#tornium-estimation").text(
                     `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
@@ -247,7 +285,7 @@ function getOneStat(tid, onload) {
             );
         });
 
-        getOneStat(search.get("XID"), function (userStats) {
+        getOneStat(search.get("XID")).then(userStats => {
             if (userStats.code !== undefined && userStats.code != 1100) {
                 $("#tornium-stats").text(`[${userStats.code}] Failed to load stats - ${userStats.message}...`);
                 return;
@@ -290,7 +328,7 @@ function getOneStat(tid, onload) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
                 } else if (mutation.addedNodes[0].innerText.startsWith("Dexterity")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
-                    GM_setValue("tornium:user:bs", statScore);
+                    GM_setValue("tornium-estimate:user:bs", statScore);
                     observer.disconnect();
                     return;
                 }
@@ -309,28 +347,25 @@ function getOneStat(tid, onload) {
 
                 $("div[class^='colored__']").append("<span id='tornium-estimation'>Loading...</span>");
 
-                getOneEstimate(
-                    new URLSearchParams(new URL(window.location).search).get("user2ID"),
-                    function (userEstimate) {
-                        if (userEstimate.code !== undefined) {
-                            $("#tornium-estimation").text(
-                                `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
-                            );
-                            return;
-                        }
-
-                        let ffString = "";
-                        if (userStatScore !== null) {
-                            ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
-                        }
-
+                getOneEstimate(new URLSearchParams(new URL(window.location).search).get("user2ID")).then(userEstimate => {
+                    if (userEstimate.code !== undefined) {
                         $("#tornium-estimation").text(
-                            `${shortNum(userEstimate.min_bs)} to ${shortNum(userEstimate.max_bs)} (FF: ${ffString})`
+                            `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
                         );
-                        observer.disconnect();
                         return;
                     }
-                );
+
+                    let ffString = "";
+                    if (userStatScore !== null) {
+                        ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
+                    }
+
+                    $("#tornium-estimation").text(
+                        `${shortNum(userEstimate.min_bs)} to ${shortNum(userEstimate.max_bs)} (FF: ${ffString})`
+                    );
+                    observer.disconnect();
+                    return;
+                });
             }
         });
         observer.observe(document.getElementById("react-root"), { attributes: false, childList: true, subtree: true });

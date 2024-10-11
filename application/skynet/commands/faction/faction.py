@@ -207,7 +207,7 @@ def members_switchboard(interaction, *args, **kwargs):
         indices = sorted(
             member_data["members"],
             key=lambda d: member_data["members"][d]["status"]["until"],
-            reverse=True,
+            reverse=False,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 

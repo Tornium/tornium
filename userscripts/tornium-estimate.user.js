@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.6
+// @version      0.3.6-1
 // @copyright    AGPL
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -49,7 +49,7 @@ const userStatScore = GM_getValue("tornium-estimate:user:bs", null);
 
 const CACHE_ENABLED = "caches" in window;
 const CACHE_NAME = "tornium-estimate-cache";
-const CACHE_EXPIRATION = 1000 * 60 * 60 * 24 * 7;  // 7 days
+const CACHE_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -83,8 +83,8 @@ function shortNum(value) {
 function parseHeaders(headerString) {
     let headers = {};
 
-    headerString.split('\r\n').forEach(line => {
-        const [key, value] = line.split(': ').map(item => item.trim());
+    headerString.split("\r\n").forEach((line) => {
+        const [key, value] = line.split(": ").map((item) => item.trim());
 
         if (key && value) {
             headers[key] = value;
@@ -100,7 +100,7 @@ function LOG(string) {
     }
 }
 
-function tornium_fetch(url, options = {method: "GET"}) {
+function tornium_fetch(url, options = { method: "GET" }) {
     return new Promise(async (resolve, reject) => {
         let cache;
         if (CACHE_ENABLED) {
@@ -144,7 +144,7 @@ function tornium_fetch(url, options = {method: "GET"}) {
                     GM_deleteValue("tornium-estimate:access-token-expires");
 
                     $("#tornium-estimation").text(
-                        `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
+                        `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`,
                     );
                     reject();
                     return;
@@ -152,7 +152,7 @@ function tornium_fetch(url, options = {method: "GET"}) {
 
                 if (CACHE_ENABLED) {
                     const headers = parseHeaders(response.responseHeaders);
-                    cache.put(url, new Response(response.responseText, {headers: headers}));
+                    cache.put(url, new Response(response.responseText, { headers: headers }));
                 }
 
                 LOG(responseJSON);
@@ -162,7 +162,7 @@ function tornium_fetch(url, options = {method: "GET"}) {
             onerror: (error) => {
                 reject(error);
                 return;
-            }
+            },
         });
     });
 }
@@ -203,7 +203,7 @@ async function getOneStat(tid) {
             "redirect_uri",
             clientLocalGM
                 ? `https://www.torn.com/tornium/oauth/${clientID}/callback`
-                : `${baseURL}/oauth/${clientID}/callback`
+                : `${baseURL}/oauth/${clientID}/callback`,
         );
 
         GM_xmlhttpRequest({
@@ -260,17 +260,17 @@ async function getOneStat(tid) {
 
             $("#tornium-estimation").text("Signed out");
             $(".content-title").append(
-                $(`<a class='torn-btn' id='tornium-authenticate' href='${authorizeURL}'>Authenticate</a>`)
+                $(`<a class='torn-btn' id='tornium-authenticate' href='${authorizeURL}'>Authenticate</a>`),
             );
             return;
         }
 
         const search = new URLSearchParams(new URL(window.location).search);
 
-        getOneEstimate(search.get("XID")).then(userEstimate => {
+        getOneEstimate(search.get("XID")).then((userEstimate) => {
             if (userEstimate.code !== undefined) {
                 $("#tornium-estimation").text(
-                    `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
+                    `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`,
                 );
                 return;
             }
@@ -281,11 +281,11 @@ async function getOneStat(tid) {
             }
 
             $("#tornium-estimation").text(
-                `Estimate: ${userEstimate.min_bs.toLocaleString()} to ${userEstimate.max_bs.toLocaleString()} (FF: ${ffString})`
+                `Estimate: ${userEstimate.min_bs.toLocaleString()} to ${userEstimate.max_bs.toLocaleString()} (FF: ${ffString})`,
             );
         });
 
-        getOneStat(search.get("XID")).then(userStats => {
+        getOneStat(search.get("XID")).then((userStats) => {
             if (userStats.code !== undefined && userStats.code != 1100) {
                 $("#tornium-stats").text(`[${userStats.code}] Failed to load stats - ${userStats.message}...`);
                 return;
@@ -301,8 +301,8 @@ async function getOneStat(tid) {
 
             $("#tornium-stats").text(
                 `Stat DB: ${userStats.min.toLocaleString()} to ${userStats.max.toLocaleString()} [${relativeTime(
-                    userStats.timestamp
-                )}] (FF: ${ffString})`
+                    userStats.timestamp,
+                )}] (FF: ${ffString})`,
             );
         });
     } else if (window.location.href.startsWith("https://www.torn.com/gym.php")) {
@@ -347,25 +347,27 @@ async function getOneStat(tid) {
 
                 $("div[class^='colored__']").append("<span id='tornium-estimation'>Loading...</span>");
 
-                getOneEstimate(new URLSearchParams(new URL(window.location).search).get("user2ID")).then(userEstimate => {
-                    if (userEstimate.code !== undefined) {
+                getOneEstimate(new URLSearchParams(new URL(window.location).search).get("user2ID")).then(
+                    (userEstimate) => {
+                        if (userEstimate.code !== undefined) {
+                            $("#tornium-estimation").text(
+                                `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`,
+                            );
+                            return;
+                        }
+
+                        let ffString = "";
+                        if (userStatScore !== null) {
+                            ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
+                        }
+
                         $("#tornium-estimation").text(
-                            `[${userEstimate.code}] Failed to load estimate - ${userEstimate.message}...`
+                            `${shortNum(userEstimate.min_bs)} to ${shortNum(userEstimate.max_bs)} (FF: ${ffString})`,
                         );
+                        observer.disconnect();
                         return;
-                    }
-
-                    let ffString = "";
-                    if (userStatScore !== null) {
-                        ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
-                    }
-
-                    $("#tornium-estimation").text(
-                        `${shortNum(userEstimate.min_bs)} to ${shortNum(userEstimate.max_bs)} (FF: ${ffString})`
-                    );
-                    observer.disconnect();
-                    return;
-                });
+                    },
+                );
             }
         });
         observer.observe(document.getElementById("react-root"), { attributes: false, childList: true, subtree: true });

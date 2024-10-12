@@ -42,8 +42,14 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [default: 10],
-  repo: Tornium.Repo
+  queues: [default: 10, scheduler: 10],
+  repo: Tornium.Repo,
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"* * * * *", Tornium.Workers.NotificationScheduler}
+     ]}
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

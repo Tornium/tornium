@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Schema.TriggerConfig do
+defmodule Tornium.Schema.Notification do
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          tc_id: Ecto.UUID.t(),
+          nid: Ecto.UUID.t(),
           trigger: Tornium.Schema.Trigger.t(),
           user: Tornium.Schema.User.t(),
           resource_id: integer(),
@@ -28,8 +28,8 @@ defmodule Tornium.Schema.TriggerConfig do
           previous_state: Map
         }
 
-  @primary_key {:tc_id, Ecto.UUID, autogenerate: true}
-  schema "notification_trigger_config" do
+  @primary_key {:nid, Ecto.UUID, autogenerate: true}
+  schema "notification" do
     belongs_to(:trigger, Tornium.Schema.Trigger, references: :tid)
     belongs_to(:user, Tornium.Schema.User, references: :tid)
 

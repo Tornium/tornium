@@ -13,19 +13,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Workers.Notification do
+defmodule Tornium.Workers.NotificationScheduler do
   require Logger
   alias Tornium.Repo
+  import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 2,
-    priority: 5,
-    queue: :notifications,
-    tags: ["notification"]
+    max_attempts: 5,
+    priority: 0,
+    queue: :scheduler,
+    tags: ["scheduler", "notification"],
+    unique: [period: 45]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{} = job) do
-    IO.inspect(job)
+  def perform(%Oban.Job{} = _job) do
+    Logger.debug("Scheduling notifications")
+
+    Tornium.Schema.Notification
+    |> join(:inner, [n], t in assoc(n, :trigger), on: t.tid == n.trigger_id)
+    |> preload([n, t], trigger: t)
+    |> Repo.all()
+    |> Enum.group_by(&{&1.trigger.resource, &1.resource_id})
+    |> Enum.map(fn {resource_id, notifications} ->
+      %{resource_id: resource_id, resource: Enum.at(notifications, 0), notifications: notifications}
+      |> Tornium.Workers.Notification.new()
+    end)
+    |> Oban.insert_all()
+
     :ok
   end
 end

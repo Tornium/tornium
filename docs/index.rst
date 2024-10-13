@@ -1,6 +1,6 @@
 Tornium
 ===================================
-.. image:: https://img.shields.io/github/last-commit/Tornium/tornium-core?style=for-the-badge
+.. image:: https://img.shields.io/github/last-commit/Tornium/tornium?style=for-the-badge
    :alt: GitHub last commit
 
 Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`_ built from scratch.

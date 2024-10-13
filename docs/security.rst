@@ -5,7 +5,7 @@ Security
 This page is for Torn and Tornium related security features that you are recommended to use.
 
 .. note::
-   If you have a security vulnerablity related to Tornium, please report this to tiksan [2383326] on Torn or Discord via a private/direct message. For more information, take a look at `Tornium's security policy <https://github.com/Tornium/tornium-core/blob/master/SECURITY.md>`_.
+   If you have a security vulnerablity related to Tornium, please report this to tiksan [2383326] on Torn or Discord via a private/direct message. For more information, take a look at `Tornium's security policy <https://github.com/Tornium/tornium/blob/master/SECURITY.md>`_.
 
 Torn Security
 -------------

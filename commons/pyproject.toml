@@ -45,8 +45,7 @@ test = [
 
 [project.urls]
 homepage = "https://tornium.com"
-repository = "https://github.com/Tornium/tornium-commons"
-changelog = "https://github.com/Tornium/tornium-commons/blob/master/CHANGELOG.adoc"
+repository = "https://github.com/Tornium/tornium"
 
 [tool.black]
 line-length = 120

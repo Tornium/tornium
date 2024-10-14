@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added revivable members slash command `/faction members revivable`
 - Added Elixir-based Discord gateway through Nostrum
 - Added new verification on-join
+- Added client-side caching to `tornium-estimate.user.js`
+- Added support for advanced search to `tornium-estimate.user.js`
 
 ### Changed
 - Re-enabled Discord-based authentication
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed session state being overwritten before usage
 - Fixed race condition in `/faction/banking/fulfill/<guid>`
 - Fixed sort order and direction of `/faction members hospital`
+- Fixed stat score calculation on gym page in `tornium-estimate.user.js`
 
 ### Removed
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`

@@ -337,6 +337,10 @@ async function getOneStat(tid) {
                 // Example inner text
                 // Strength\n111,111,111\n\nDamage you make on impact\n\nUnavailable\n\nTRAIN
 
+                console.log(mutation.addedNodes[0].innerText);
+                console.log(mutation.addedNodes[0].innerText.startsWith("STR"));
+                console.log(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", ""));
+
                 if (mutation.addedNodes[0].innerText.startsWith("Strength") || mutation.addedNodes[0].innerText.startsWith("STR")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
                 } else if (mutation.addedNodes[0].innerText.startsWith("Defense") || mutation.addedNodes[0].innerText.startsWith("DEF")) {

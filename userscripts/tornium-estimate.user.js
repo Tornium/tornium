@@ -16,8 +16,8 @@
 // @grant        GM_deleteValue
 // @grant        GM_addStyle
 // @connect      tornium.com
-// @downloadURL  https://github.com/Tornium/tornium/blob/dev/estimate-userscript/userscripts/tornium-estimate.user.js
-// @updateURL    https://github.com/Tornium/tornium/blob/dev/estimate-userscript/userscripts/tornium-estimate.user.js
+// @downloadURL  https://github.com/Tornium/tornium/raw/refs/heads/dev/estimate-userscript/userscripts/tornium-estimate.user.js
+// @updateURL    https://github.com/Tornium/tornium/raw/refs/heads/dev/estimate-userscript/userscripts/tornium-estimate.user.js
 // @supportURL   https://discord.gg/pPcqTRTRyF
 // ==/UserScript==
 

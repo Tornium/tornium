@@ -5,7 +5,7 @@ Estimate Userscript
 The estimation userscript is a free alternative to other services (such as BSP) pulling data from Tornium to show user stats on Torn directly.
 
 .. warning::
-   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.3.
+   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.8-1.
 
 Installation Instruction
 ------------------------

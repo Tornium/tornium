@@ -337,18 +337,33 @@ async function getOneStat(tid) {
                 // Example inner text
                 // Strength\n111,111,111\n\nDamage you make on impact\n\nUnavailable\n\nTRAIN
 
-                console.log(mutation.addedNodes[0].innerText);
-                console.log(mutation.addedNodes[0].innerText.startsWith("STR"));
-                console.log(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", ""));
-
-                if (mutation.addedNodes[0].innerText.startsWith("Strength") || mutation.addedNodes[0].innerText.startsWith("STR")) {
+                if (mutation.addedNodes[0].innerText.startsWith("Strength")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
-                } else if (mutation.addedNodes[0].innerText.startsWith("Defense") || mutation.addedNodes[0].innerText.startsWith("DEF")) {
+                } else if (mutation.addedNodes[0].innerText.startsWith("STR")) {
+                    statScore += Math.sqrt(
+                        Number(mutation.addedNodes[0].innerText.split("\n")[0].substring(3).replaceAll(",", "")),
+                    );
+                } else if (mutation.addedNodes[0].innerText.startsWith("Defense")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
-                } else if (mutation.addedNodes[0].innerText.startsWith("Speed") || mutation.addedNodes[0].innerText.startsWith("SPD")) {
+                } else if (mutation.addedNodes[0].innerText.startsWith("DEF")) {
+                    statScore += Math.sqrt(
+                        Number(mutation.addedNodes[0].innerText.split("\n")[0].substring(3).replaceAll(",", "")),
+                    );
+                } else if (mutation.addedNodes[0].innerText.startsWith("Speed")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
-                } else if (mutation.addedNodes[0].innerText.startsWith("Dexterity") || mutation.addedNodes[0].innerText.startsWith("DEX")) {
+                } else if (mutation.addedNodes[0].innerText.startsWith("SPD")) {
+                    statScore += Math.sqrt(
+                        Number(mutation.addedNodes[0].innerText.split("\n")[0].substring(3).replaceAll(",", "")),
+                    );
+                } else if (mutation.addedNodes[0].innerText.startsWith("Dexterity")) {
                     statScore += Math.sqrt(Number(mutation.addedNodes[0].innerText.split("\n")[1].replaceAll(",", "")));
+                    GM_setValue("tornium-estimate:user:bs", statScore);
+                    observer.disconnect();
+                    return;
+                } else if (mutation.addedNodes[0].innerText.startsWith("DEX")) {
+                    statScore += Math.sqrt(
+                        Number(mutation.addedNodes[0].innerText.split("\n")[0].substring(3).replaceAll(",", "")),
+                    );
                     GM_setValue("tornium-estimate:user:bs", statScore);
                     observer.disconnect();
                     return;

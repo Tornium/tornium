@@ -117,4 +117,3 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
     rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits)
 
     return stocks_data
-

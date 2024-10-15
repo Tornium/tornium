@@ -41,4 +41,3 @@ def send_dm(discord_id: int, payload: dict):
         rds().set(f"tornium:discord:dm:{discord_id}", channel_id, nx=True, ex=86400)
 
     return discordpost.delay(endpoint=f"channels/{channel_id}/messages", payload=payload)
-

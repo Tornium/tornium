@@ -16,6 +16,8 @@
 defmodule Tornium.Schema.Trigger do
   use Ecto.Schema
 
+  # TODO: Add time_created and last_updated fields
+
   @type t :: %__MODULE__{
           tid: Ecto.UUID.t(),
           name: String.t(),

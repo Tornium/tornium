@@ -13,31 +13,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import (
-    BooleanField,
-    CharField,
-    DateTimeField,
-    ForeignKeyField,
-    IntegerField,
-    UUIDField,
-)
-from playhouse.postgres_ext import JSONField
+from peewee import BooleanField, CharField, ForeignKeyField, UUIDField
+from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
-from .notification_trigger import NotificationTrigger
 from .user import User
 
 
-class Notification(BaseModel):
-    nid = UUIDField(primary_key=True)
-    trigger = ForeignKeyField(NotificationTrigger, null=False)
-    user = ForeignKeyField(User, null=False)
+class NotificationTrigger(BaseModel):
+    tid = UUIDField(primary_key=True)
+    name = CharField(null=False)
+    description = CharField(null=False, default="")
+    owner = ForeignKeyField(User, null=False)
 
-    resource_id = IntegerField(default=None, null=True)
-    one_shot = BooleanField(default=True, null=False)
+    resource = CharField(null=False, choices=["user", "faction", "company", "torn", "faction_v2"])
+    selections = ArrayField(CharField, default=[], index=False)
+    code = CharField(null=False)
 
-    cron = CharField(default="* * * * *", null=False)
-    next_execution = DateTimeField(default=None, null=True)
-
-    error = CharField(default=None, null=True)
-    previous_state = JSONField(default={}, null=False)
+    public = BooleanField(default=False, null=False)
+    official = BooleanField(default=False, null=False)

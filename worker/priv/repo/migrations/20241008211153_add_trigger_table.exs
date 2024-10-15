@@ -4,7 +4,7 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
   def up do
     create_if_not_exists table("notification_trigger", primary_key: false) do
       add :tid, :binary_id, primary_key: true
-      add :name, :string, default: "", null: false
+      add :name, :string, null: false
       add :description, :string, default: "", null: false
       add :owner_id, references(:user, column: :tid, type: :integer)
 

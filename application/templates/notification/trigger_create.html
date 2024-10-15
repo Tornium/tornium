@@ -50,6 +50,20 @@ Tornium - Notification Triggers
             <textarea class="form-control" id="trigger-description" style="height: 100px;"></textarea>
         </div>
 
+        <div class="mb-3 row">
+            <label for="trigger-resouce">Trigger Resource</label>
+            <div class="col-sm-12 col-md-4 col-xl-4">
+                <select class="form-select" id="trigger-resource" autocomplete="off">
+                    <option disabled selected value>Select One</option>
+                    <option value="user">User</option>
+                    <option value="faction">Faction</option>
+                    <option value="company">Company</option>
+                    <option value="factionv2">Faction (API v2)</option>
+                </select>
+            </div>
+        </div>
+
+        {# 
         <div class="mb-3">
             <label for="trigger-type" class="form-label">Trigger Type</label>
 
@@ -60,12 +74,15 @@ Tornium - Notification Triggers
             <input type="radio" class="btn-check" name="trigger-type" id="trigger-repeating" autocomplete="off">
             <label class="btn" for="trigger-repeating">Repeating</label>
         </div>
+        #}
 
+        {#
         <div class="mb-3">
             <!-- TODO: Limit the width of this element -->
             <label for="trigger-cron" class="form-label">Cron (<a href="https://crontab.guru/">Guide)</label>
             <input type="text" class="form-control" id="trigger-cron" value="* * * * *" autocomplete="off">
         </div>
+        #}
     </div>
 </div>
 
@@ -85,6 +102,13 @@ Tornium - Notification Triggers
             <label for="trigger-code" class="form-label">Trigger Code</label>
             <textarea class="form-control" id="trigger-code" style="height: 400px;"></textarea>
         </div>
+
+        <div class="card mt-3" id="lua-error-container" hidden>
+            <div class="card-body">
+                <h5 class="card-title mb-2">Lua Error</h5>
+                <p class="card-text" id="lua-error-text">No error loaded...</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -98,7 +122,7 @@ Tornium - Notification Triggers
 
         <div class="float-end">
             <a class="btn btn-outline-danger" href="/notification/trigger">Cancel</a>
-            <button class="btn btn-outline-success">Create</button>
+            <button class="btn btn-outline-success" id="trigger-create">Create</button>
         </div>
     </div>
 </div>

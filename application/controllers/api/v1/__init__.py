@@ -21,6 +21,7 @@ from controllers.api.v1 import (
     gateway,
     items,
     key,
+    notification,
     report,
     stat,
     stocks,
@@ -288,3 +289,6 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule("/api/v1/user/<int:tid>/stat", view_func=user.latest_user_stats, methods=["GET"])
+
+# /api/v1/notification
+mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.create_trigger, methods=["POST"])

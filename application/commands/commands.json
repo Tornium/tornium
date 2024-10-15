@@ -12,7 +12,6 @@
         "faction/data/faction",
         "stats/stat",
         "stats/chainlist",
-        "stocks/stocks",
         "user/estimate",
         "user/user"
     ],

@@ -20,7 +20,7 @@ import typing
 from redis.commands.json.path import Path
 from tornium_commons import rds
 from tornium_commons.formatters import commas, timestamp, torn_timestamp
-from tornium_commons.models import Notification, StockTick, TornKey
+from tornium_commons.models import StockTick, TornKey
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 import celery
@@ -78,10 +78,7 @@ def stocks_prefetch():
         queue="api",
     ).apply_async(
         expires=50,
-        link=celery.chain(
-            update_stock_prices.signature(kwargs={"stocks_timestamp": stocks_timestamp}),
-            stock_price_notifications.s(),
-        ),
+        link=update_stock_prices.signature(kwargs={"stocks_timestamp": stocks_timestamp}),
         **kwargs,
     )
 
@@ -121,86 +118,3 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
 
     return stocks_data
 
-
-@celery.shared_task(
-    name="tasks.stocks.stock_price_notifications",
-    routing_key="default.stock_price_notifications",
-    queue="default",
-    time_limit=5,
-)
-def stock_price_notifications(stocks_data: dict):
-    notification: Notification
-    for notification in Notification.select().where(Notification.n_type == 0):
-        target_stock = stocks_data["stocks"][str(notification.target)]
-
-        stock_timestamp = int(timestamp(notification.time_created) // 60 * 60)
-        stock_tick: typing.Optional[StockTick] = (
-            StockTick.select(StockTick.price)
-            .where(StockTick.tick_id == int(bin(target_stock["stock_id"]), 2) + int(bin(stock_timestamp << 8), 2))
-            .first()
-        )
-
-        payload = {
-            "embeds": [
-                {
-                    "author": {
-                        "name": target_stock["name"],
-                    },
-                    "image": {
-                        "url": _map_stock_image(target_stock["acronym"]),
-                    },
-                    "fields": [
-                        {
-                            "name": "Original Price",
-                            "value": (
-                                f"${commas(stock_tick.price, stock_price=True)}"
-                                if stock_tick is not None
-                                else "Unknown"
-                            ),
-                            "inline": True,
-                        },
-                        {
-                            "name": "Target Price",
-                            "value": f"${commas(notification.options['value'], stock_price=True)}",
-                            "inline": True,
-                        },
-                        {
-                            "name": "Current Price",
-                            "value": f"${commas(target_stock['current_price'], stock_price=True)}",
-                            "inline": True,
-                        },
-                    ],
-                    "footer": {"text": torn_timestamp()},
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                }
-            ]
-        }
-
-        if (
-            notification.options.get("equality") == ">"
-            and target_stock["current_price"] > notification.options["value"]
-        ):
-            payload["embeds"][0]["title"] = "Above Target Price"
-            payload["embeds"][0]["color"] = SKYNET_GOOD
-        elif (
-            notification.options.get("equality") == "<"
-            and target_stock["current_price"] < notification.options["value"]
-        ):
-            payload["embeds"][0]["title"] = "Below Target Price"
-            payload["embeds"][0]["color"] = SKYNET_ERROR
-        elif (
-            notification.options.get("equality") == "="
-            and target_stock["current_price"] == notification.options["value"]
-        ):
-            payload["embeds"][0]["title"] = "Reached Target Price"
-            payload["embeds"][0]["color"] = SKYNET_GOOD
-        else:
-            continue
-
-        if notification.recipient_guild == 0:
-            send_dm.delay(notification.recipient, payload=payload).forget()
-        else:
-            discordpost.delay(f"channels/{notification.recipient}/messages", payload=payload).forget()
-
-        if not notification.persistent:
-            notification.delete_instance()

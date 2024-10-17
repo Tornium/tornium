@@ -17,6 +17,7 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
     end
 
     create unique_index(:notification_trigger, [:tid])
+    create unique_index(:notification_trigger, [:owner_id, :name])
 
     create_if_not_exists table("notification", primary_key: false) do
       add :nid, :binary_id, primary_key: true

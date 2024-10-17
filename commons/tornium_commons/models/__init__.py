@@ -22,6 +22,7 @@ from .gateway_message import GatewayMessage
 from .item import Item
 from .member_report import MemberReport
 from .notification import Notification
+from .notification_trigger import NotificationTrigger
 from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
@@ -50,6 +51,7 @@ __all__ = [
     "Item",
     "MemberReport",
     "Notification",
+    "NotificationTrigger",
     "OAuthAuthorizationCode",
     "OAuthClient",
     "OAuthToken",

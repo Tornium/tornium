@@ -18,7 +18,7 @@ ready(() => {
         let triggerName = document.getElementById("trigger-name").value;
         let triggerDescription = document.getElementById("trigger-description").value;
         let triggerResource = document.getElementById("trigger-resource").value;
-        let triggerOneShot = document.querySelector("input[name=trigger-type]:checked").id == "trigger-one-shot";
+        // let triggerOneShot = document.querySelector("input[name=trigger-type]:checked").id == "trigger-one-shot";
         let triggerCron = document.getElementById("trigger-cron").value;
         let triggerCode = document.getElementById("trigger-code").value;
 
@@ -27,7 +27,7 @@ ready(() => {
                 name: triggerName,
                 description: triggerDescription,
                 resource: triggerResource,
-                one_shot: triggerOneShot,
+                // one_shot: triggerOneShot,
                 cron: triggerCron,
                 code: triggerCode,
             },

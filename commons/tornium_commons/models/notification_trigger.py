@@ -21,6 +21,9 @@ from .user import User
 
 
 class NotificationTrigger(BaseModel):
+    class Meta:
+        table_name = "notification_trigger"
+
     tid = UUIDField(primary_key=True)
     name = CharField(null=False)
     description = CharField(null=False, default="")
@@ -32,3 +35,16 @@ class NotificationTrigger(BaseModel):
 
     public = BooleanField(default=False, null=False)
     official = BooleanField(default=False, null=False)
+
+    def as_dict(self):
+        return {
+            "tid": self.tid,
+            "name": self.name,
+            "description": self.description,
+            "owner": self.owner_id,
+            "resource": self.resource,
+            "selections": self.selections,
+            "code": self.code,
+            "public": self.public,
+            "official": self.official,
+        }

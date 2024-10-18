@@ -68,9 +68,9 @@ Tornium - Faction Chain Dashboard
     {% if guildid != 0 and current_user.faction_aa %}
     <div class="card min-w-25 max-w-50 my-3">
         <div class="card-body">
-            <h5 class="card-title">Chain OD Watcher</h5>
+            <h5 class="card-title">OD Watcher</h5>
             <p class="card-text">
-                The chain OD watcher reports overdoses of faction members in the specified channel when enabled.
+                The OD watcher reports overdoses of faction members in the specified channel when enabled.
             </p>
 
             <select class="discord-channel-selector" id="od-channel" aria-label="OD Log Channel" data-live-search="true">
@@ -81,7 +81,7 @@ Tornium - Faction Chain Dashboard
     {% elif guildid == 0 and current_user.faction_aa %}
     <div class="card min-2-25 max-w-50 my-3">
         <div class="card-body">
-            <h5 class="card-title">Chain OD Watcher</h5>
+            <h5 class="card-title">OD Watcher</h5>
             <p class="card-text text-danger">
                 <b>
                     The faction's guild ID is required to be set up in the faction's
@@ -90,7 +90,7 @@ Tornium - Faction Chain Dashboard
             </p>
 
             <p class="card-text">
-                The chain OD watcher reports overdoses of faction members in the specified channel when enabled.
+                The OD watcher reports overdoses of faction members in the specified channel when enabled.
             </p>
         </div>
     </div>

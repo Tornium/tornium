@@ -34,9 +34,18 @@ function addTriggerToViewer(triggerContainer, trigger) {
     triggerNode.append(triggerRow);
 
     const triggerNameElement = document.createElement("div");
-    triggerNameElement.classList.add("col-sm-12", "col-md-10", "col-xl-10");
+    triggerNameElement.classList.add("col-sm-12", "col-md-2", "col-xl-2");
     triggerNameElement.textContent = trigger.name;
     triggerRow.append(triggerNameElement);
+
+    const triggerDescriptionElement = document.createElement("div");
+    triggerDescriptionElement.classList.add("col-sm-12", "col-md-4", "col-xl-2", "text-truncate");
+    triggerDescriptionElement.textContent = trigger.description;
+    triggerRow.append(triggerDescriptionElement);
+
+    const triggerPaddingElement = document.createElement("div");
+    triggerPaddingElement.classList.add("col-sm-0", "col-md-4", "col-xl-6");
+    triggerRow.append(triggerPaddingElement);
 
     const triggerActionsContainer = document.createElement("div");
     triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2");

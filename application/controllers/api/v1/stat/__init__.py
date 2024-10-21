@@ -129,3 +129,51 @@ def get_stat_user(tid: int, *args, **kwargs):
         }
 
     return jsonify(data), 200, api_ratelimit_response(key)
+
+
+@require_oauth()
+@ratelimit
+def get_targets(*args, **kwargs):
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+
+    try:
+        limit = int(request.args.get("limit", 10))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        offset = int(request.args.get("offset", 10))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        level_minimum = int(request.args.get("level_minimum", 1))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        level_maximum = int(request.args.get("level_maximum", 100))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        status = request.args.get("status", "all")
+    except (ValueError, TypeError):
+        return
+
+    try:
+        last_action = int(request.args.get("last_action", 0))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        ff_minimum = int(request.args.get("ff_minimum", 1))
+    except (ValueError, TypeError):
+        return
+
+    try:
+        ff_maximum = int(request.args.get("ff_maximum", 3))
+    except (ValueError, TypeError):
+        return
+
+    return {"targets": [], "count": 0}, 200, api_ratelimit_response(key)

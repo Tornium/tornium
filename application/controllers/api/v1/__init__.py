@@ -247,6 +247,7 @@ mod.add_url_rule(
 # /api/v1/stat
 mod.add_url_rule("/api/v1/chain-list", view_func=stat.generate_chain_list, methods=["GET"])
 mod.add_url_rule("/api/v1/stat/<int:tid>", view_func=stat.get_stat_user, methods=["GET"])
+mod.add_url_rule("/api/v1/stat/target", view_func=stat.get_targets, methods=["GET"])
 
 # /api/v1/stocks
 mod.add_url_rule("/api/v1/stocks", view_func=stocks.data.stocks_data, methods=["GET"])

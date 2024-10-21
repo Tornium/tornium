@@ -120,3 +120,9 @@ def config():
             Faction.update(stats_db_global=stats_global).where(Faction.tid == current_user.faction_id).execute()
 
     return render_template("stats/config.html", stats_global=stats_global)
+
+
+@mod.route("/stats/targets", methods=["GET"])
+@login_required
+def targets():
+    return render_template("stats/targets.html")

@@ -16,7 +16,7 @@ Tornium - Stat DB
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/stats/db">
@@ -29,6 +29,14 @@ Tornium - Stat DB
                 <i class="col-1 col-sm-2 fa-solid fa-bars"></i> <span class="col">Chain List Generator</span>
             </a>
         </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/targets">
+                <i class="col-1 col-sm-2 fa-solid fa-bullseye"></i> <span class="col">Targets</span>
+            </a>
+        </div>
+        {% endif %}
 
         {% if current_user.is_authenticated and current_user.faction_aa %}
         <div class="row mb-3">
@@ -59,6 +67,10 @@ Tornium - Stat DB
                         <li class="list-group-item">
                             <i class="fa-solid fa-bars"></i>
                             Chain List - a utility to generate a chain list at or close to a Fair Fight of 3x from the users in the Stat DB
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-bullseye"></i>
+                            Targets - a utility to store and update a list of targets to chain upon
                         </li>
                     </ul>
                 </p>

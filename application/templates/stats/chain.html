@@ -19,7 +19,7 @@ Tornium - Chain Generator
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/stats/db">
@@ -32,6 +32,14 @@ Tornium - Chain Generator
                 <i class="col-1 col-sm-2 fa-solid fa-bars"></i> <span class="col">Chain List Generator</span>
             </a>
         </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/targets">
+                <i class="col-1 col-sm-2 fa-solid fa-bullseye"></i> <span class="col">Targets</span>
+            </a>
+        </div>
+        {% endif %}
 
         {% if current_user.is_authenticated and current_user.faction_aa %}
         <div class="row mb-3">

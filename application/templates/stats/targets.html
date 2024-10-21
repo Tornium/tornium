@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Targets
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/stats">Stat DB</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/stats/targets">Targets</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/db">
+                <i class="col-1 col-sm-2 fa-solid fa-database"></i> <span class="col">Database</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/chain">
+                <i class="col-1 col-sm-2 fa-solid fa-bars"></i> <span class="col">Chain List Generator</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/targets">
+                <i class="col-1 col-sm-2 fa-solid fa-bullseye"></i> <span class="col">Targets</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/stats/config">
+                <i class="col-1 col-sm-2 fa-solid fa-hand-fist"></i> <span class="col">Faction Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="px-3 py-3">
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Targets</h5>
+            <div class="row pe-3">
+                <p class="card-text col-sm-12 col-md-6">
+                    foo bar
+                </p>
+
+                <div class="col-sm-12 col-md-6 card">
+                    <div class="card-header">Targets Filters</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="input-group">
+                                <span class="input-group-text">Minimum and Maximum Level</span>
+                                <input type="number" class="form-control" id="target-filter-minimum-level"></input>
+                                <input type="number" class="form-control" id="target-filter-maximum-level"></input>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-floating">
+                                <select class="form-select" id="trigger-filter-select">
+                                    <option value="all" selected>All</option>
+                                    <option value="okay">Okay</option>
+                                    <option value="flying">Flying</option>
+                                    <option value="abroad">Abroad</option>
+                                    <option value="hospital">Hospital</option>
+                                </select>
+                                <label for="trigger-filter-select" class="form-label">Status</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-floating">
+                                <select class="form-select" id="trigger-filter-last-action">
+                                    <option value="0" selected>All</option>
+                                    <option value="1">Less than 15 minutes ago</option>
+                                    <option value="2">15 minutes to 1 hour ago</option>
+                                    <option value="3">1 hour to 6 hours ago</option>
+                                    <option value="4">6 hours to 24 hours ago</option>
+                                    <option value="5">1 day to 7 days ago</option>
+                                    <option value="6">More than 7 days ago</option>
+                                </select>
+                                <label for="trigger-filter-last-action" class="form-label">Last Action</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="input-group">
+                                <span class="input-group-text">Minimum and Maximum Fair Fight</span>
+                                <input type="number" class="form-control" id="target-filter-minimum-fair-fight"></input>
+                                <input type="number" class="form-control" id="target-filter-maximum-fair-fight"></input>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">List of Targets</h5>
+            <table-viewer data-endpoint="stat/target" data-error="Targets Load Failed" data-key="targets"></table-viewer>
+        </div>
+    </div>
+</div>
+
+<script src="/static/stats/targets.js"></script>
+<script src="/static/components/table-viewer.js"></script>
+{% endblock %}

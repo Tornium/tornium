@@ -535,9 +535,9 @@ def check_faction_ods(faction_od_data):
 
 @celery.shared_task(
     name="tasks.faction.fetch_attacks_runner",
-    routing_key="quick.fetch_attacks_runner",
-    queue="quick",
-    time_limit=5,
+    routing_key="default.fetch_attacks_runner",
+    queue="default",
+    time_limit=15,
 )
 def fetch_attacks_runner():
     for api_key in (
@@ -591,6 +591,7 @@ def fetch_attacks_runner():
         Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
     ):
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
+        # TODO: Convert to a delete returning query
         try:
             discordpatch.delay(
                 f"channels/{retal.channel_id}/messages/{retal.message_id}",

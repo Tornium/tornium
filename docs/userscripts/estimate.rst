@@ -2,10 +2,10 @@
 
 Estimate Userscript
 ===================
-The estimation userscript is a free alternative to other services (such as BSP) pulling data from Tornium to show user stats on Torn directly.
+The estimation userscript is a free alternative to other services (such as BSP and TSC) pulling data from Tornium to show user stats on Torn directly.
 
 .. warning::
-   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.8-1.
+   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.8-2.
 
 Installation Instruction
 ------------------------
@@ -21,7 +21,10 @@ This userscript is currently tested on Firefox and Chrome using `ViolentMonkey <
 
 How It Works
 ------------
-Depending on the page, the userscript will make an API call to Tornium's servers to retrieve an estimate of the user's stats or to retrieve the users stats from its database. An uncapped fair fight score will also be generated from your stats the last time you've visited the gym page. Being uncapped, this allows you to quickly see the relative strength of the target with 3x FF being about 50-75% of your stats.
+Depending on the page, the userscript will make an API call to Tornium's servers to retrieve an estimate of the user's stats or to retrieve the users stats from its database. An uncapped fair fight score will also be generated from your stats the last time you've visited the gym page (otherwise the fair fight score will not load in any location). Being uncapped, this allows you to quickly see the relative strength of the target with 3x FF being about 50-75% of your stats.
+
+.. note ::
+   Tornium's estimation userscript does not require you to sign into Tornium with an API key, but some user data (and therefore estimates) may not be up-to-date without using an API key to update the user's data.
 
 Supported Pages
 ---------------

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.8-1
+// @version      0.3.8-2
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -199,8 +199,9 @@ async function getOneStat(tid) {
     "use strict";
 
     if (
-        (window.location.host == "tornium.com" && window.location.pathname == `/oauth/${CLIENT_ID}/callback`) ||
-        (window.location.host == "torn.com" && window.location.pathname == `/tornium/oauth/${CLIENT_ID}/callback`)
+        (window.location.host.endsWith("tornium.com") && window.location.pathname == `/oauth/${CLIENT_ID}/callback`) ||
+        (window.location.host.endsWith("torn.com") &&
+            window.location.pathname == `/tornium/oauth/${CLIENT_ID}/callback`)
     ) {
         let params = new URLSearchParams(window.location.search);
 

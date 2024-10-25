@@ -5,7 +5,7 @@ Estimate Userscript
 The estimation userscript is a free alternative to other services (such as BSP and TSC) pulling data from Tornium to show user stats on Torn directly.
 
 .. warning::
-   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.8-2.
+   This userscript is in active development, so the userscript's features listed here may change in the near future. This documentation was last updated for v0.3.8-3.
 
 Installation Instruction
 ------------------------
@@ -25,6 +25,9 @@ Depending on the page, the userscript will make an API call to Tornium's servers
 
 .. note ::
    Tornium's estimation userscript does not require you to sign into Tornium with an API key, but some user data (and therefore estimates) may not be up-to-date without using an API key to update the user's data.
+
+.. note ::
+   If you have a fair fight value of "GYM", you'll need to visit the Gym page in-game for the userscript to update its local-only copy of your stats to calculate the fair fight.
 
 Supported Pages
 ---------------

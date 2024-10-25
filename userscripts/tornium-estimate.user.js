@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.3.8-2
+// @version      0.3.8-3
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -293,7 +293,7 @@ async function getOneStat(tid) {
                 return;
             }
 
-            let ffString = "";
+            let ffString = "GYM";
             if (userStatScore !== null) {
                 ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
             }
@@ -312,7 +312,7 @@ async function getOneStat(tid) {
                 return;
             }
 
-            let ffString = "";
+            let ffString = "GYM";
             if (userStatScore !== null) {
                 ffString = (1 + ((8 / 3) * userStats.stat_score) / userStatScore).toFixed(2);
             }
@@ -393,7 +393,7 @@ async function getOneStat(tid) {
                             return;
                         }
 
-                        let ffString = "";
+                        let ffString = "GYM";
                         if (userStatScore !== null) {
                             ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
                         }
@@ -443,7 +443,7 @@ async function getOneStat(tid) {
                             let ffString = (1 + ((8 / 3) * userEstimate.stat_score) / userStatScore).toFixed(2);
                             $(`#tornium-estimate-${userID}`).text(`${ffString}x`);
                         } else {
-                            $(`#tornium-estimate-${userID}`).text("ERR");
+                            $(`#tornium-estimate-${userID}`).text("GYM");
                         }
                     });
                 }

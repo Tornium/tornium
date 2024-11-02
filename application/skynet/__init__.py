@@ -28,7 +28,6 @@ from tornium_commons.skyutils import SKYNET_ERROR
 
 import skynet.commands
 import skynet.skyutils
-import utils.tornium_ext
 
 try:
     import ddtrace
@@ -80,30 +79,6 @@ _commands = {
     "user": skynet.commands.user.user.user_who,
     "estimate": skynet.commands.user.estimate.estimate_command,
 }
-
-tornium_ext: utils.tornium_ext.TorniumExt
-for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
-    if tornium_ext.extension is None:
-        continue
-
-    for command in tornium_ext.extension.discord_commands:
-        _commands[command["name"]] = command["function"]
-
-    for button in tornium_ext.extension.discord_buttons:
-        _buttons[button["custom_id"]] = button["function"]
-
-    for autocomplete in tornium_ext.extension.discord_autocompletes:
-        _autocomplete[autocomplete["command"]] = autocomplete["function"]
-
-    if hasattr(tornium_ext.extension, "guilds"):
-        for command in tornium_ext.extension.guild_commands:
-            _commands[command["name"]] = command["function"]
-
-        for button in tornium_ext.extension.guild_buttons:
-            _buttons[button["custom_id"]] = button["function"]
-
-        for autocomplete in tornium_ext.extension.guild_autocompletes:
-            _autocomplete[autocomplete["command"]] = autocomplete["function"]
 
 
 def _handle_interaction_errors(f):

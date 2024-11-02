@@ -79,23 +79,4 @@ Tornium
         <a class="btn btn-outline-danger" href="/privacy">Privacy Policy</a>
     </div>
 </div>
-
-{% if extensions|length > 0 %}
-<div class="card m-3">
-    <div class="card-body container-fluid">
-        <h5 class="card-title">Loaded Tornium Extensions</h5>
-        <p class="card-text">The following Tornium extensions have been loaded on this instance of Tornium.</p>
-
-        <div class="row">
-            <div class="col-sm-12 col-md-8 col-xl-4">
-                <ul class="list-group list-group-flush">
-                    {% for extension in extensions %}
-                    <li class="list-group-item">{{ extension }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

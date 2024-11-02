@@ -127,12 +127,6 @@ def init__app():
     oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
     oauth_server.register_grant(RefreshTokenGrant)
 
-    tornium_ext: utils.tornium_ext.TorniumExt
-    for tornium_ext in utils.tornium_ext.TorniumExt.__iter__():
-        logger.info(f"Initializing Tornium extension {tornium_ext.name}")
-        if tornium_ext.extension is not None:
-            tornium_ext.extension.init_app(app)
-
     with app.app_context():
         app.register_blueprint(base_mod)
         app.register_blueprint(auth_mod)

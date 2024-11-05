@@ -1,0 +1,20 @@
+@import "../themes";
+
+a {
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+    text-decoration: none !important;
+
+    &:visited {
+        color: var(--text-color);
+        text-decoration: none;
+    }
+    &:hover {
+        color: var(--text-alternate-color);
+        text-decoration: none;
+    }
+    &:active {
+        color: var(--text-color);
+        text-decoration: none;
+    }
+}

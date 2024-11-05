@@ -1,0 +1,38 @@
+.ts-control {
+    background-color: var(--primary-bg-color) !important;
+    color: var(--text-color);
+    border-radius: 0.375rem;
+    min-width: 18rem;
+
+    & .item {
+        background-color: inherit !important;
+        color: var(--text-color) !important;
+
+        & .remove {
+            background-color: inherit !important;
+        }
+    }
+
+    & input {
+        color: var(--text-color);
+    }
+}
+
+.ts-dropdown {
+    background-color: var(--primary-bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 0.25rem;
+    color: var(--text-color);
+
+    & .active {
+        background-color: var(--secondary-bg-color);
+        color: white;
+    }
+
+    & .optgroup-header {
+        background-color: var(--secondary-bg-color);
+        color: white;
+        border-bottom: var(--text-color) 1px solid;
+        border-top: var(--text-color) 1px solid;
+    }
+}

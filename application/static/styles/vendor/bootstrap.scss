@@ -1,0 +1,98 @@
+.card {
+    border-color: var(--text-color);
+    color: var(--text-color);
+    background-color: inherit;
+
+    & .card-header {
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    & .card-title {
+        color: var(--text-color);
+    }
+
+    & .card-text {
+        color: var(--text-alternate-color);
+    }
+
+    & .card-subtitle {
+        color: var(--text-alternate-color);
+    }
+}
+
+.form-control {
+    height: 38px;
+    background-color: inherit !important;
+    color: inherit;
+
+    // .ts-control refers to Tom-Select
+    & .ts-control {
+        max-height: 100%;
+    }
+}
+
+.list-group-item {
+    background-color: inherit;
+    color: inherit;
+}
+
+.form-text {
+    color: var(--text-alternate-color);
+}
+
+.form-text {
+    color: var(--text-alternate-color);
+}
+
+.form-floating label {
+    color: var(--text-alternate-color) !important;
+
+    &::after {
+        background-color: inherit !important;
+    }
+}
+
+.btn-outline {
+    color: var(--text-color);
+    border-color: var(--text-color);
+
+    &:hover {
+        border-color: var(--text-color) !important;
+    }
+}
+
+.modal-content {
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    border-color: var(--text-color);
+
+    & tr th {
+        color: var(--text-color);
+        background-color: inherit;
+    }
+}
+
+.dropdown-menu {
+    background-color: var(--primary-bg-color);
+}
+
+.dropdown-toggle {
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+}
+
+// Separator between breadcrumbs in side-nav
+.breadcrumb-item::before {
+    color: var(--text-color) !important;
+}
+
+.accordion-button {
+    background-color: inherit;
+    color: inherit;
+
+    &:after {
+        -webkit-filter: grayscale(1) invert(1);
+        filter: grayscale(1) invert(1);
+    }
+}

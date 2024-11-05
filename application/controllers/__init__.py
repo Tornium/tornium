@@ -84,6 +84,7 @@ def settings(*args, **kwargs):
 
 @mod.route("/static/favicon.svg")
 @mod.route("/static/logo.svg")
+@mod.route("/static/styles.css")
 @mod.route("/static/utils.js")
 @mod.route("/static/bot/armory.js")
 @mod.route("/static/bot/oc.js")

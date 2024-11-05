@@ -1,0 +1,18 @@
+input {
+    color: var(--text-color) !important;
+    border-color: var(--text-color);
+
+    &::focus {
+        color: var(--text-color) !important;
+    }
+
+    &::placeholder {
+        color: var(--text-color) !important;
+    }
+}
+
+select {
+    color: var(--text-color) !important;
+    background-color: var(--primary-bg-color) !important;
+    border-color: var(--text-color) !important;
+}

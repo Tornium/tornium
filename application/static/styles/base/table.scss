@@ -1,0 +1,16 @@
+thead th {
+    color: var(--white) !important;
+    background-color: inherit !important;
+}
+
+tbody {
+    & th,
+    td {
+        color: var(--white) !important;
+        background-color: inherit !important;
+
+        & a {
+            color: inherit;
+        }
+    }
+}

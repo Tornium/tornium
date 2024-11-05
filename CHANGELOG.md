@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed chain list generation API route from `GET /api/v1/set` to `GET /api/v1/chain-list` to avoid uBlock Origin privacy filter
 - Changed Git hook tooling to Lefthook from pre-commit
 - Changed `tornium-estimate.user.js` to cache `GET /api/v1/user/estimate/<tid>`
+- Changed existing theme SCSS system to be better structured
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed

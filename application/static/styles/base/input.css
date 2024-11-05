@@ -1,0 +1,18 @@
+input {
+  color: var(--text-color) !important;
+  border-color: var(--text-color);
+}
+input::focus {
+  color: var(--text-color) !important;
+}
+input::placeholder {
+  color: var(--text-color) !important;
+}
+
+select {
+  color: var(--text-color) !important;
+  background-color: var(--primary-bg-color) !important;
+  border-color: var(--text-color) !important;
+}
+
+/*# sourceMappingURL=input.css.map */

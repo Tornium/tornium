@@ -1,0 +1,54 @@
+:root {
+  --white: rgb(229, 229, 229);
+  --primary-grey: inherit;
+  --secondary-grey: inherit;
+  --off-white: rgb(320, 320, 320);
+  --error: inherit;
+  --text-color: black;
+  --text-alternate-color: black;
+  --border-color: var(--white);
+  --primary-bg-color: inherit;
+  --secondary-bg-color: inherit;
+}
+
+:root[data-bs-theme=custom-dark] {
+  --white: rgb(229, 229, 229);
+  --primary-grey: rgb(35, 35, 35);
+  --secondary-grey: rgb(25, 25, 25);
+  --off-white: rgb(175, 175, 175);
+  --error: rgb(225, 10, 10);
+  --text-color: var(--white);
+  --text-alternate-color: var(--off-white);
+  --primary-bg-color: var(--primary-grey);
+  --secondary-bg-color: var(--secondary-grey);
+}
+
+:root[data-bs-theme=light] {
+  --white: rgb(229, 229, 229);
+  --primary-grey: inherit;
+  --secondary-grey: inherit;
+  --off-white: inherit;
+  --error: inherit;
+}
+
+:root[data-bs-theme=neon-dark] {
+  --white: rgb(229, 229, 229);
+  --neon: rgb(57, 255, 20);
+  --primary-grey: rgb(35, 35, 35);
+  --secondary-grey: rgb(25, 25, 25);
+  --error: rgb(225, 10, 10);
+  --text-color: var(--neon);
+  --text-alternate-color: var(--neon);
+  --primary-bg-color: var(--primary-grey);
+  --secondary-bg-color: var(--secondary-grey);
+}
+
+.pagination {
+  padding-top: 0.5rem !important;
+}
+
+.dataTables_wrapper {
+  color: var(--text-color) !important;
+}
+
+/*# sourceMappingURL=datatables.css.map */

@@ -38,3 +38,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed verification on join from Celery worker
 - Removed assists from Celery, application, etc.
 - Removed `TorniumExt` plugin system
+- Removed private user data from `GET /api/v1/user`

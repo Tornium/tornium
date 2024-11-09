@@ -13,9 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import logging
-import time
 import typing
 
 from authlib.integrations.flask_oauth2 import current_token
@@ -23,7 +21,6 @@ from authlib.oauth2.rfc6749 import InvalidScopeError, OAuth2Error
 from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
 from tornium_commons.models import Stat, User
 
@@ -42,11 +39,8 @@ def get_user(*args, **kwargs):
                 "name": kwargs["user"].name,
                 "username": f'{kwargs["user"].name} [{kwargs["user"].tid}]',
                 "last_refresh": kwargs["user"].last_refresh.timestamp(),
-                "battlescore": kwargs["user"].battlescore,
-                "battlescore_update": kwargs["user"].battlescore_update.timestamp(),
                 "discord_id": kwargs["user"].discord_id,
                 "factiontid": kwargs["user"].faction_id,
-                "aa": kwargs["user"].faction_aa,
                 "status": kwargs["user"].status,
                 "last_action": kwargs["user"].last_action.timestamp(),
             }

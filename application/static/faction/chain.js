@@ -40,7 +40,7 @@ $(document).ready(function () {
             $("#od-channel").append(optgroup);
 
             $.each(category["channels"], function (channel_id, channel) {
-                if (chainConfig["od"]["channel"] === parseInt(channel.id)) {
+                if (chainConfig["od"]["channel"] === channel.id) {
                     optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`));
                 } else {
                     optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));

@@ -30,23 +30,12 @@ $(document).ready(function () {
 
     Promise.all([chainPromise, channelsPromise]).then((response) => {
         chainConfig = response[0];
-        channels = response[1];
 
-        $.each(channels, function (category_id, category) {
-            let optgroup = $("<optgroup>", {
-                label: category["name"],
-            });
+        let odChannel = $(`#od-channel option[value="${chainConfig.od.channel}"]`);
 
-            $("#od-channel").append(optgroup);
-
-            $.each(category["channels"], function (channel_id, channel) {
-                if (chainConfig["od"]["channel"] === channel.id) {
-                    optgroup.append($(`<option value="${channel.id}" selected>#${channel.name}</option>`));
-                } else {
-                    optgroup.append($(`<option value="${channel.id}">#${channel.name}</option>`));
-                }
-            });
-        });
+        if (odChannel.length !== 0) {
+            odChannel.attr("selected", "");
+        }
 
         document.querySelectorAll(".discord-channel-selector").forEach((element) => {
             new TomSelect(element, {

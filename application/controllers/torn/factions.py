@@ -168,7 +168,7 @@ def faction_members_report():
 
 @login_required
 def view_member_report(rid: str):
-    if current_user.factiontid not in [15644, 12894]:
+    if current_user.faction_id not in [15644, 12894]:
         return (
             "Permission Denied... This page is currently being tested by NSO factions. Please check back later.",
             403,

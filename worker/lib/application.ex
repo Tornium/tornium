@@ -28,7 +28,7 @@ defmodule Tornium.Application do
       Tornium.PromEx,
       Tornium.Repo,
       Tornium.Discord.Consumer,
-      Tornium.User.KeyStore,
+      {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       Tornex.Scheduler.Supervisor
     ]
 

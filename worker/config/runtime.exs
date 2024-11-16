@@ -16,6 +16,7 @@
 import Config
 
 config :nostrum,
+  ffmpeg: nil,
   youtubedl: nil,
   streamlink: nil,
   gateway_intents: [

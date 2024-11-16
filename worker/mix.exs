@@ -44,7 +44,7 @@ defmodule Tornium.MixProject do
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.10"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "b79f18a1a7977a8fcdbcb48727f944e0ea462f99"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "2fff37cba84c4dfaafa47f979e8e3eddcf107f1f"}
     ]
   end
 

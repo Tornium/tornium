@@ -13,17 +13,19 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-let viewerPage = 0;
-const viewerLimit = 10;
+window.triggerErrorCallback = function(jsonError, container) {
+    const errorNode = document.createElement("span");
+    errorNode.textContent = " Data failed to load...";
 
-const triggerNextPage = document.getElementById("trigger-next-page");
-const triggerPreviousPage = document.getElementById("trigger-previous-page");
+    const errorIcon = document.createElement("i");
+    errorIcon.classList.add("fa-solid", "fa-skull-crossbones");
 
-function addTriggerToViewer(triggerContainer, trigger) {
-    if (triggerContainer.textContent.includes("No results found...")) {
-        triggerContainer.replaceChildren();
-    }
+    container.innerHTML = "";
+    container.appendChild(errorIcon);
+    container.appendChild(errorNode);
+}
 
+window.addTriggerToViewer = function(trigger, triggerContainer) {
     const triggerNode = document.createElement("div");
     triggerNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
     triggerNode.setAttribute("data-trigger-id", trigger.tid);
@@ -65,21 +67,20 @@ function addTriggerToViewer(triggerContainer, trigger) {
     viewAction.append(viewActionIcon);
 }
 
+let viewerPage = 0;
+const viewerLimit = 10;
+
+const triggerNextPage = document.getElementById("trigger-next-page");
+const triggerPreviousPage = document.getElementById("trigger-previous-page");
+
+
 function loadTriggers(triggerContainer, triggerCountContainer) {
+    return;
     const offset = Math.max(viewerPage * viewerLimit - 1, 0);
 
     tfetch("GET", `notification/trigger?offset=${offset}&limit=${viewerLimit}`, {
         errorTitle: "Notification Trigger Fetch Failed",
         errorHandler: (jsonError) => {
-            const errorNode = document.createElement("span");
-            errorNode.textContent = " Data failed to load...";
-
-            const errorIcon = document.createElement("i");
-            errorIcon.classList.add("fa-solid", "fa-skull-crossbones");
-
-            triggerContainer.replaceChildren();
-            triggerContainer.append(errorIcon);
-            triggerContainer.append(errorNode);
         }
     }).then((data) => {
         const triggerCount = data.count;

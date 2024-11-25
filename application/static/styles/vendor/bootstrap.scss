@@ -24,7 +24,7 @@
 .form-control {
     height: 38px;
     background-color: inherit !important;
-    color: inherit;
+    color: inherit !important;
 
     // .ts-control refers to Tom-Select
     & .ts-control {
@@ -50,6 +50,15 @@
 
     &::after {
         background-color: inherit !important;
+    }
+}
+
+label.btn {
+    // Radio button labels
+    color: var(--text-color);
+
+    &:hover {
+        color: inherit !important;
     }
 }
 

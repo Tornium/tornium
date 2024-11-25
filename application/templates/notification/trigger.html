@@ -38,7 +38,7 @@ Tornium - Notification Triggers
         <h5 class="card-title mb-2">Create New Notification Trigger</h5>
 
         <p class="card-text">
-            For more information, take a look at the documentation for <a href="#">notifications</a>. <!-- TODO: Insert docs link -->
+            For more information, take a look at the documentation for <a href="https://docs.tornium.com/user/notifications/index.html">notifications</a>.
         </p>
 
         <a class="btn btn-outline-success" href="/notification/trigger/create">Create</a>
@@ -49,18 +49,7 @@ Tornium - Notification Triggers
     <div class="card-body">
         <h5 class="card-title mb-2">Your Notification Triggers</h5>
 
-        <div class="d-flex justify-content-end">
-            <button class="btn btn-outline-secondary btn-sm me-2" id="trigger-previous-page" disabled>Previous Page</button>
-            <button class="btn btn-outline-secondary btn-sm" id="trigger-next-page">Next Page</button>
-        </div>
-
-        <div id="existing-trigger-container">
-            No results found...
-        </div>
-
-        <div class="mt-2 me-3 text-end">
-            <span id="trigger-count">No</span> trigger(s) located
-        </div>
+        <table-viewer id="viewer" data-endpoint="notification/trigger" data-error="Notification Trigger Fetch Failed" data-error-callback="triggerErrorCallback" data-key="triggers" data-render-callback="addTriggerToViewer"></table-viewer>
     </div>
 </div>
 
@@ -73,10 +62,11 @@ Tornium - Notification Triggers
         </p>
         
         <p class="card-text">
-            Lorem ipsum dolor sit amen.
+            Not Yet Implemented
         </p>
     </div>
 </div>
 
+<script src="/static/components/table-viewer.js"></script>
 <script src="/static/notification/trigger.js"></script>
 {% endblock %}

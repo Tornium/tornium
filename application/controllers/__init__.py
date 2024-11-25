@@ -90,6 +90,8 @@ def settings(*args, **kwargs):
 @mod.route("/static/bot/oc.js")
 @mod.route("/static/bot/guild.js")
 @mod.route("/static/bot/verify.js")
+@mod.route("/static/components/dynamic-list.js")
+@mod.route("/static/components/table-viewer.js")
 @mod.route("/static/faction/armory.js")
 @mod.route("/static/faction/banking.js")
 @mod.route("/static/faction/bankingaa.js")

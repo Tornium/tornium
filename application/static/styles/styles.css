@@ -260,7 +260,7 @@ html[data-bs-theme=neon-dark] #tornium-icon {
 .form-control {
   height: 38px;
   background-color: inherit !important;
-  color: inherit;
+  color: inherit !important;
 }
 .form-control .ts-control {
   max-height: 100%;
@@ -284,6 +284,13 @@ html[data-bs-theme=neon-dark] #tornium-icon {
 }
 .form-floating label::after {
   background-color: inherit !important;
+}
+
+label.btn {
+  color: var(--text-color);
+}
+label.btn:hover {
+  color: inherit !important;
 }
 
 .btn-outline {

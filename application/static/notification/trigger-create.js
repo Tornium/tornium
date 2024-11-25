@@ -13,23 +13,86 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+let liquidEngine = null;
+const templateInput = document.getElementById("trigger-message");
+const templateErrorContainer = document.getElementById("liquid-error-container");
+const templateErrorText = document.getElementById("liquid-error-text");
+
+function debounce(func, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function validateTemplate() {
+    if (liquidEngine == null) {
+        console.error("Liquid engine is not initialized");
+        return;
+    }
+
+    try {
+        liquidEngine.parse(templateInput.value);
+    } catch (error) {
+        templateErrorContainer.removeAttribute("hidden");
+        templateErrorText.textContent = error.message;
+        return false;
+    }
+
+    // TODO: Validate the variables used in the template
+
+    templateErrorContainer.setAttribute("hidden", "");
+    templateErrorText.textContent = "No error loaded...";
+    
+    return true;
+}
+
+function triggerMessageTypeConvert(typeString) {
+    switch (typeString) {
+        case "trigger-message-update":
+            return 0;
+        case "trigger-message-send":
+            return 1;
+        default:
+            throw new Exception(`Illegal message type string: ${typeString}`);
+    }
+}
+
 ready(() => {
+    liquidEngine = new liquidjs.Liquid();
+
     document.getElementById("trigger-create").addEventListener("click", function (e) {
+        // TODO: Move this function body to a separate function
+        // TODO: Make these query selectors constants
         let triggerName = document.getElementById("trigger-name").value;
         let triggerDescription = document.getElementById("trigger-description").value;
         let triggerResource = document.getElementById("trigger-resource").value;
-        // let triggerOneShot = document.querySelector("input[name=trigger-type]:checked").id == "trigger-one-shot";
         let triggerCron = document.getElementById("trigger-cron").value;
         let triggerCode = document.getElementById("trigger-code").value;
+        let triggerParameters = document.getElementById("trigger-parameters").getData();
+        let triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+        let triggerMessageTemplate = templateInput.value;
+        
+        if (!validateTemplate()) {
+            generateToast(
+                "Invalid Message Template",
+                "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
+                "error"
+            );
+            return;
+        }
 
         tfetch("POST", "notification/trigger", {
             body: {
                 name: triggerName,
                 description: triggerDescription,
                 resource: triggerResource,
-                // one_shot: triggerOneShot,
                 cron: triggerCron,
                 code: triggerCode,
+                parameters: triggerParameters,
+                message_type: triggerMessageType,
+                message_template: triggerMessageTemplate,
             },
             errorHandler: (jsonError) => {
                 if(jsonError.code === 0) {
@@ -53,4 +116,6 @@ ready(() => {
             window.location.replace("/notification/trigger");
         });
     });
+
+    templateInput.addEventListener("input", debounce(validateTemplate, 1000));
 });

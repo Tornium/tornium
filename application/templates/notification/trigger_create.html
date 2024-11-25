@@ -63,22 +63,10 @@ Tornium - Notification Triggers
             </div>
         </div>
 
-        {# 
-        <div class="mb-3">
-            <label for="trigger-type" class="form-label">Trigger Type</label>
-
-            <!-- TODO: the style of these needs to be fixed -->
-            <input type="radio" class="btn-check" name="trigger-type" id="trigger-one-shot" autocomplete="off" checked>
-            <label class="btn" for="trigger-one-shot">One Shot</label>
-
-            <input type="radio" class="btn-check" name="trigger-type" id="trigger-repeating" autocomplete="off">
-            <label class="btn" for="trigger-repeating">Repeating</label>
-        </div>
-        #}
 
         <div class="mb-3 row">
             <div class="col-sm-12 col-md-4 col-xl-4">
-                <label for="trigger-cron" class="form-label">Cron (<a href="https://crontab.guru/">Guide)</label>
+                <label for="trigger-cron" class="form-label">Cron (<a href="https://crontab.guru/">Guide</a>)</label>
                 <input type="text" class="form-control" id="trigger-cron" value="* * * * *" autocomplete="off">
             </div>
         </div>
@@ -108,6 +96,38 @@ Tornium - Notification Triggers
                 <p class="card-text" id="lua-error-text">No error loaded...</p>
             </div>
         </div>
+
+        <dynamic-list data-header="Parameters" data-button-text="Add New Parameter" id="trigger-parameters"></dynamic-list>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Trigger Message</h5>
+
+        <p class="card-text">
+            Tornium can send a message to a Discord channel when this notification trigger is activated. This allows the creator of the trigger to create a custom message in the <a href="https://shopify.github.io/liquid/">Liquid</a> templating language. The message is required to be in the form of a <a href="https://discord.com/developers/docs/resources/message#create-message">Discord message object</a>.
+        </p>
+
+        <div class="mb-3 border rounded p-3" style="width: fit-content">
+            <label for="trigger-message-type" class="form-label">Message Type:</label>
+
+            <input type="radio" class="btn-check" name="trigger-message-type" id="trigger-message-update" autocomplete="off" checked>
+            <label class="btn" for="trigger-message-update">Update Message</label>
+
+            <input type="radio" class="btn-check" name="trigger-message-type" id="trigger-message-send" autocomplete="off">
+            <label class="btn" for="trigger-message-send">Send Message</label>
+        </div>
+
+        <label for="trigger-message" class="form-label">Message Template</label>
+        <textarea class="form-control" id="trigger-message" style="height: 400px"></textarea>
+
+        <div class="card mt-3" id="liquid-error-container" hidden>
+            <div class="card-body">
+                <h5 class="card-title mb-2">Liquid Template Error</h5>
+                <p class="card-text" id="liquid-error-text">No error loaded...</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -126,5 +146,7 @@ Tornium - Notification Triggers
     </div>
 </div>
 
+<script src="/static/components/dynamic-list.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/liquidjs/10.19.0/liquid.browser.min.js" integrity="sha512-i0aMmT5V0lfCgTFLbCA9V92SYCigtLUlfetc9PgHpk2efoB9NW27zRcGd1zyCm6qW9hDT6c15pzhMeyLUcBTMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/static/notification/trigger-create.js"></script>
 {% endblock %}

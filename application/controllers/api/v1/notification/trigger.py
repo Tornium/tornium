@@ -189,6 +189,9 @@ def create_trigger(*args, **kwargs):
     trigger_resource: typing.Optional[str] = data.get("resource")
     trigger_cron: str = data.get("cron", "* * * * *")
     trigger_code: typing.Optional[str] = data.get("code", None)
+    trigger_parameters: typing.Dict[str, str] = data.get("parameters", {})
+    trigger_message_type = data.get("message_type", 0)  # TODO: Create an enum for this and type the variable
+    trigger_message_template = data.get("message_template", "")
 
     if not isinstance(trigger_name, str):
         return make_exception_response("1000", key, details={"message": "Invalid trigger name"})
@@ -250,6 +253,36 @@ def create_trigger(*args, **kwargs):
             },
         )
 
+    if not isinstance(trigger_parameters, dict):
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "message": "Invalid trigger parameters type",
+            },
+        )
+
+    if not isinstance(trigger_message_type, int):
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "message": "Invlaid trigger message type",
+            },
+        )
+    # TODO: Parse and validate message type
+
+    if not isinstance(trigger_message_template, str) or len(trigger_message_template) == 0:
+        return make_exception_response(
+            "1000",
+            key,
+            detail={
+                "message": "Missing trigger message template",
+            },
+        )
+
+    # We want to make sure that the provided Lua code is syntactically valid before providing it to Elixir worker
+    # to avoid excess load on the worker and the IP ratelimit
     with tempfile.NamedTemporaryFile() as fp:
         fp.write(trigger_code.encode("utf-8"))
         fp.seek(0)
@@ -279,6 +312,8 @@ def create_trigger(*args, **kwargs):
         resource=trigger_resource,
         selections=selections,
         code=trigger_code,
+        message_type=trigger_message_type,
+        message_template=trigger_message_template,
         public=False,
         official=False,
     )
@@ -296,11 +331,11 @@ def list_triggers(*args, **kwargs):
     limit = request.args.get("limit", 10)
     offset = request.args.get("offset", 0)
 
-    if not isinstance(limit, str) or not limit.isdigit():
+    if (not isinstance(limit, str) or not limit.isdigit()) and not isinstance(limit, int):
         return make_exception_response("1000", key, details={"error": "Invalid limit value"})
     elif int(limit) <= 0:
         return make_exception_response("1000", key, details={"error": "Invalid limit value"})
-    elif not isinstance(offset, str or not limit.isdigit()):
+    elif (not isinstance(offset, str or not limit.isdigit())) and not isinstance(offset, int):
         return make_exception_response("1000", key, details={"error": "Invalid offset value"})
     elif int(offset) < 0:
         return make_exception_response("1000", key, details={"error": "Invalid offset value"})

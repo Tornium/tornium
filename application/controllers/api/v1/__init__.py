@@ -293,4 +293,6 @@ mod.add_url_rule("/api/v1/user/<int:tid>/stat", view_func=user.latest_user_stats
 # /api/v1/notification
 mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.list_triggers, methods=["GET"])
 mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.create_trigger, methods=["POST"])
-mod.add_url_rule("/api/v1/notification/trigger/<trigger_id>", view_func=notification.trigger.create_trigger, methods=["PUT"])
+mod.add_url_rule(
+    "/api/v1/notification/trigger/<trigger_id>", view_func=notification.trigger.create_trigger, methods=["PUT"]
+)

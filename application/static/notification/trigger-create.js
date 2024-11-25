@@ -14,17 +14,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 let liquidEngine = null;
+const triggerID = document.currentScript.getAttribute("data-trigger-id");
+
+const triggerNameInput = document.getElementById("trigger-name");
+const triggerDescriptionInput = document.getElementById("trigger-description");
+const triggerResourceInput = document.getElementById("trigger-resource");
+const triggerCronInput = document.getElementById("trigger-cron");
+const triggerCodeInput = document.getElementById("trigger-code");
+const triggerParametersElement = document.getElementById("trigger-parameters");
+
 const templateInput = document.getElementById("trigger-message");
 const templateErrorContainer = document.getElementById("liquid-error-container");
 const templateErrorText = document.getElementById("liquid-error-text");
-
-function debounce(func, delay) {
-    let timer;
-    return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(this, args), delay);
-    };
-}
 
 function validateTemplate() {
     if (liquidEngine == null) {
@@ -55,20 +56,19 @@ function triggerMessageTypeConvert(typeString) {
         case "trigger-message-send":
             return 1;
         default:
-            throw new Exception(`Illegal message type string: ${typeString}`);
+            throw new Error(`Illegal message type string: ${typeString}`);
     }
 }
 
 function createTrigger() {
-    // TODO: Make these query selectors constants
-    let triggerName = document.getElementById("trigger-name").value;
-    let triggerDescription = document.getElementById("trigger-description").value;
-    let triggerResource = document.getElementById("trigger-resource").value;
-    let triggerCron = document.getElementById("trigger-cron").value;
-    let triggerCode = document.getElementById("trigger-code").value;
-    let triggerParameters = document.getElementById("trigger-parameters").getData();
-    let triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
-    let triggerMessageTemplate = templateInput.value;
+    const triggerName = triggerNameInput.value;
+    const triggerDescription = triggerDescriptionInput.value;
+    const triggerResource = triggerResourceInput.value;
+    const triggerCron = triggerCronInput.value;
+    const triggerCode = triggerCodeInput.value;
+    const triggerParameters = triggerParametersElement.getData();
+    const triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+    const triggerMessageTemplate = templateInput.value;
 
     if (!validateTemplate()) {
         generateToast(
@@ -113,6 +113,59 @@ function createTrigger() {
     });
 }
 
+function updateTrigger() {
+    const triggerName = triggerNameInput.value;
+    const triggerDescription = triggerDescriptionInput.value;
+    const triggerResource = triggerResourceInput.value;
+    const triggerCron = triggerCronInput.value;
+    const triggerCode = triggerCodeInput.value;
+    const triggerParameters = triggerParametersElement.getData();
+    const triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+    const triggerMessageTemplate = templateInput.value;
+
+    if (!validateTemplate()) {
+        generateToast(
+            "Invalid Message Template",
+            "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
+            "error"
+        );
+        return;
+    }
+
+    tfetch("PUT", `notification/trigger/${triggerID}`, {
+        body: {
+            name: triggerName,
+            description: triggerDescription,
+            resource: triggerResource,
+            cron: triggerCron,
+            code: triggerCode,
+            parameters: triggerParameters,
+            message_type: triggerMessageType,
+            message_template: triggerMessageTemplate,
+        },
+        errorHandler: (jsonError) => {
+            if(jsonError.code === 0) {
+                generateToast(
+                    "Lua Trigger Error",
+                    "luac failed to parse this trigger's Lua code",
+                    "error"
+                );
+
+                document.getElementById("lua-error-container").removeAttribute("hidden");
+                document.getElementById("lua-error-text").textContent = jsonError.details.error;
+            } else {
+                generateToast(
+                    "Trigger Creation Failure",
+                    `[${jsonError.code}] ${jsonError.message}`,
+                    "error"
+                );
+            }
+        }
+    }).then((response) => {
+        window.location.replace("/notification/trigger");
+    });
+}
+
 ready(() => {
     liquidEngine = new liquidjs.Liquid();
 
@@ -123,7 +176,7 @@ ready(() => {
     }
 
     try {
-        document.getElementById("trigger-update").addEventListener("click", null);
+        document.getElementById("trigger-update").addEventListener("click", updateTrigger);
     } catch (error) {
         // Handle when template does not include trigger-update button as the page is loaded to create a new trigger
     }

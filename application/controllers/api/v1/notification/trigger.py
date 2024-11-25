@@ -180,9 +180,16 @@ def extract_selections(code: str, resource: str, resource_self: bool = False) ->
 
 @session_required
 @ratelimit
-def create_trigger(*args, **kwargs):
+def create_trigger(trigger_id=None, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if trigger_id is not None and request.method == "PUT":
+        update = True
+    elif trigger_id is None and request.method == "POST":
+        update = False
+    else:
+        return make_exception_response("0000", key)
 
     trigger_name: str = data.get("name", f"trigger-{kwargs['user'].tid}-{random.randint(0, 100)}")
     trigger_description: str = data.get("description", "")
@@ -270,13 +277,20 @@ def create_trigger(*args, **kwargs):
                 "message": "Invlaid trigger message type",
             },
         )
-    # TODO: Parse and validate message type
+    elif trigger_message_type not in range(0, 1):
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "message": "Invlaid trigger message type",
+            },
+        )
 
     if not isinstance(trigger_message_template, str) or len(trigger_message_template) == 0:
         return make_exception_response(
             "1000",
             key,
-            detail={
+            details={
                 "message": "Missing trigger message template",
             },
         )
@@ -304,21 +318,34 @@ def create_trigger(*args, **kwargs):
 
         return make_exception_response("0000", key, details={"error": f"Invalid data attribute: {attribute}"})
 
-    NotificationTrigger.create(
-        tid=uuid.uuid4(),
-        name=trigger_name,
-        description=trigger_description,
-        owner=kwargs["user"],
-        cron=trigger_cron,
-        resource=trigger_resource,
-        selections=selections,
-        code=trigger_code,
-        parameters=trigger_parameters,
-        message_type=trigger_message_type,
-        message_template=trigger_message_template,
-        public=False,
-        official=False,
-    )
+    if update:
+        NotificationTrigger.update(
+            name=trigger_name,
+            description=trigger_description,
+            cron=trigger_cron,
+            resource=trigger_resource,
+            selections=selections,
+            code=trigger_code,
+            parameters=trigger_parameters,
+            message_type=trigger_message_type,
+            message_template=trigger_message_template,
+        ).where(NotificationTrigger.tid == uuid.UUID(trigger_id)).execute()
+    else:
+        NotificationTrigger.create(
+            tid=uuid.uuid4(),
+            name=trigger_name,
+            description=trigger_description,
+            owner=kwargs["user"],
+            cron=trigger_cron,
+            resource=trigger_resource,
+            selections=selections,
+            code=trigger_code,
+            parameters=trigger_parameters,
+            message_type=trigger_message_type,
+            message_template=trigger_message_template,
+            public=False,
+            official=False,
+        )
 
     # TODO: Return trigger data
 

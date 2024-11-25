@@ -19,7 +19,6 @@ import uuid
 from flask import render_template
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
-
 from tornium_commons.models import NotificationTrigger
 
 
@@ -46,11 +45,27 @@ def trigger_create():
 @login_required
 def trigger_get(trigger_uuid: str):
     try:
-        trigger: NotificationTrigger = NotificationTrigger.select().where(NotificationTrigger.tid == uuid.UUID(trigger_uuid)).get()
+        trigger: NotificationTrigger = (
+            NotificationTrigger.select().where(NotificationTrigger.tid == uuid.UUID(trigger_uuid)).get()
+        )
     except ValueError:
-        return render_template("errors/error.html", title="Invalid Trigger UUID", error=f"The provided trigger UUID \"{trigger_uuid}\" is not formatted correctly."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger UUID",
+                error=f'The provided trigger UUID "{trigger_uuid}" is not formatted correctly.',
+            ),
+            400,
+        )
     except DoesNotExist:
-        return render_template("errors/error.html", title="Invalid Trigger ID", error=f"There does not exist a trigger of ID \"{trigger_uuid}\"."), 400
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger ID",
+                error=f'There does not exist a trigger of ID "{trigger_uuid}".',
+            ),
+            400,
+        )
 
     return render_template(
         "notification/trigger_create.html",

@@ -20,8 +20,9 @@ from controllers.notification import trigger
 mod = Blueprint("notification_routes", __name__)
 
 # Trigger Routes
-mod.add_url_rule("/notification/trigger", view_func=trigger.triggers)
-mod.add_url_rule("/notification/trigger/create", view_func=trigger.trigger_create_get)
+mod.add_url_rule("/notification/trigger", view_func=trigger.triggers, methods=["GET"])
+mod.add_url_rule("/notification/trigger/create", view_func=trigger.trigger_create, methods=["GET"])
+mod.add_url_rule("/notification/trigger/view/<trigger_uuid>", view_func=trigger.trigger_get, methods=["GET"])
 
 
 @mod.route("/notification")

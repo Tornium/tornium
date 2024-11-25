@@ -13,6 +13,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+// TODO: Generalize some of the names of variables
+
 class DynamicList extends HTMLElement {
     constructor() {
         super();
@@ -48,9 +50,27 @@ class DynamicList extends HTMLElement {
         newButton.textContent = this.getAttribute("data-button-text");
         newButton.addEventListener("click", (event) => this.addNewRow(event));
         footer.append(newButton);
+
+        const predefinedData = this.getAttribute("data");
+
+        if (!predefinedData) {
+            return;
+        }
+
+        let data;
+        try {
+            data = JSON.parse(predefinedData);
+        } catch (error) {
+            generateToast("Parameter Parse Failed", "The parameters failed to be parsed by the client.");
+            throw error;
+        }
+
+        for (let [key, value] of Object.entries(data)) {
+            this.addNewRow(null, key, value);
+        }
     }
 
-    addNewRow(event) {
+    addNewRow(_event, default_key = "", default_value = "") {
         this.rowCount++;
         const rowID = this.rowCount;
 
@@ -71,6 +91,7 @@ class DynamicList extends HTMLElement {
         nameInput.setAttribute("placeholder", "");
         nameInput.classList.add("form-control", "dynamic-list-key");
         nameInput.id = `dynamic-list-key-${rowID}`;
+        nameInput.value = default_key;
         nameContainer.append(nameInput);
 
         const nameLabel = document.createElement("label");
@@ -87,6 +108,7 @@ class DynamicList extends HTMLElement {
         descriptionInput.setAttribute("placeholder", "");
         descriptionInput.classList.add("form-control", "dynamic-list-value");
         descriptionInput.id = `dynamic-list-value-${rowID}`;
+        descriptionInput.value = default_value;
         descriptionContainer.append(descriptionInput);
 
         const descriptionLabel = document.createElement("label");

@@ -59,63 +59,74 @@ function triggerMessageTypeConvert(typeString) {
     }
 }
 
+function createTrigger() {
+    // TODO: Make these query selectors constants
+    let triggerName = document.getElementById("trigger-name").value;
+    let triggerDescription = document.getElementById("trigger-description").value;
+    let triggerResource = document.getElementById("trigger-resource").value;
+    let triggerCron = document.getElementById("trigger-cron").value;
+    let triggerCode = document.getElementById("trigger-code").value;
+    let triggerParameters = document.getElementById("trigger-parameters").getData();
+    let triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+    let triggerMessageTemplate = templateInput.value;
+
+    if (!validateTemplate()) {
+        generateToast(
+            "Invalid Message Template",
+            "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
+            "error"
+        );
+        return;
+    }
+
+    tfetch("POST", "notification/trigger", {
+        body: {
+            name: triggerName,
+            description: triggerDescription,
+            resource: triggerResource,
+            cron: triggerCron,
+            code: triggerCode,
+            parameters: triggerParameters,
+            message_type: triggerMessageType,
+            message_template: triggerMessageTemplate,
+        },
+        errorHandler: (jsonError) => {
+            if(jsonError.code === 0) {
+                generateToast(
+                    "Lua Trigger Error",
+                    "luac failed to parse this trigger's Lua code",
+                    "error"
+                );
+
+                document.getElementById("lua-error-container").removeAttribute("hidden");
+                document.getElementById("lua-error-text").textContent = jsonError.details.error;
+            } else {
+                generateToast(
+                    "Trigger Creation Failure",
+                    `[${jsonError.code}] ${jsonError.message}`,
+                    "error"
+                );
+            }
+        }
+    }).then((response) => {
+        window.location.replace("/notification/trigger");
+    });
+}
+
 ready(() => {
     liquidEngine = new liquidjs.Liquid();
 
-    document.getElementById("trigger-create").addEventListener("click", function (e) {
-        // TODO: Move this function body to a separate function
-        // TODO: Make these query selectors constants
-        let triggerName = document.getElementById("trigger-name").value;
-        let triggerDescription = document.getElementById("trigger-description").value;
-        let triggerResource = document.getElementById("trigger-resource").value;
-        let triggerCron = document.getElementById("trigger-cron").value;
-        let triggerCode = document.getElementById("trigger-code").value;
-        let triggerParameters = document.getElementById("trigger-parameters").getData();
-        let triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
-        let triggerMessageTemplate = templateInput.value;
-        
-        if (!validateTemplate()) {
-            generateToast(
-                "Invalid Message Template",
-                "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
-                "error"
-            );
-            return;
-        }
+    try {
+        document.getElementById("trigger-create").addEventListener("click", createTrigger);
+    } catch (error) {
+        // Handle when template does not include trigger-create button as the page is loaded to update the trigger
+    }
 
-        tfetch("POST", "notification/trigger", {
-            body: {
-                name: triggerName,
-                description: triggerDescription,
-                resource: triggerResource,
-                cron: triggerCron,
-                code: triggerCode,
-                parameters: triggerParameters,
-                message_type: triggerMessageType,
-                message_template: triggerMessageTemplate,
-            },
-            errorHandler: (jsonError) => {
-                if(jsonError.code === 0) {
-                    generateToast(
-                        "Lua Trigger Error",
-                        "luac failed to parse this trigger's Lua code",
-                        "error"
-                    );
-
-                    document.getElementById("lua-error-container").removeAttribute("hidden");
-                    document.getElementById("lua-error-text").textContent = jsonError.details.error;
-                } else {
-                    generateToast(
-                        "Trigger Creation Failure",
-                        `[${jsonError.code}] ${jsonError.message}`,
-                        "error"
-                    );
-                }
-            }
-        }).then((response) => {
-            window.location.replace("/notification/trigger");
-        });
-    });
+    try {
+        document.getElementById("trigger-update").addEventListener("click", null);
+    } catch (error) {
+        // Handle when template does not include trigger-update button as the page is loaded to create a new trigger
+    }
 
     templateInput.addEventListener("input", debounce(validateTemplate, 1000));
 });

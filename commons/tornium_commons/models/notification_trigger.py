@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, CharField, ForeignKeyField, UUIDField, IntegerField
-from playhouse.postgres_ext import ArrayField
+from peewee import BooleanField, CharField, ForeignKeyField, IntegerField, UUIDField
+from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel
 from .user import User
@@ -29,9 +29,11 @@ class NotificationTrigger(BaseModel):
     description = CharField(null=False, default="")
     owner = ForeignKeyField(User, null=False)
 
+    cron = CharField(default="* * * * *", null=False)
     resource = CharField(null=False, choices=["user", "faction", "company", "torn", "faction_v2"])
     selections = ArrayField(CharField, default=[], index=False)
     code = CharField(null=False)
+    parameters = JSONField(default={}, null=False)
 
     message_type = IntegerField(null=False, choices=[0, 1])
     message_template = CharField(null=False)

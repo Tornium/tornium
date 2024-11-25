@@ -59,7 +59,7 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
 
     const viewAction = document.createElement("a")
     viewAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
-    viewAction.href = `/notification/trigger/${trigger.tid}`;
+    viewAction.href = `/notification/trigger/view/${trigger.tid}`;
     triggerActions.append(viewAction);
 
     const viewActionIcon = document.createElement("i");

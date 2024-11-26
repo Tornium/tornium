@@ -8,3 +8,7 @@ charset = utf-8
 [*.{js,py,json,html,scss,css,rst,cpp,h,yaml}]
 indent_style = space
 indent_size = 4
+
+[*.lua]
+indent_style = space
+indent_size = 2

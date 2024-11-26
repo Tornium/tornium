@@ -1,0 +1,11 @@
+{
+	"embeds": [
+		{
+			"title": "Hospitalized Members of {{ faction_name }}"
+			"description": "{% for member in hospitalized_members limit member_limit %} [https://torn.com/profiles.php?XID={{ member.id }}](member.username) - <t:{{ member.timestamp }}:R>{% unless forloop.last %}\n{% endunless %}{% endfor %}"
+			"footer": {
+				"text": "Last Updated: {{ _timestamp }}"
+			}
+		}
+	]
+}

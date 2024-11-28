@@ -277,9 +277,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
         FactionPosition.name << (existing_position_names - latest_position_names)
     ):
         try:
-            User.update(faction_position=None).join(FactionPosition).where(
-                User.faction_position.pid == deleted_position.pid
-            ).execute()
+            User.update(faction_position=None).where(User.faction_position_id == deleted_position.pid).execute()
             existing_positions.where(FactionPosition.name == deleted_position.name).get().delete_instance()
         except Exception as e:
             logger.exception(e)

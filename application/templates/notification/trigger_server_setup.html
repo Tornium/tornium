@@ -1,0 +1,72 @@
+{% extends 'base-center.html' %}
+
+{% block title %}
+Tornium - Setup Trigger
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Setup "{{ trigger.name }}" in "{{ guild.name }}"</h5>
+
+                <p class="card-text mt-2">
+                    This page allows you to setup the trigger {{ trigger.name }} in the Discord server {{ guild.name }}. Make sure you read the description for this trigger and set up the required areas.
+                </p>
+
+                <p class="card-text mt-2">
+                    For information on how to set up this feature, see the <a href="#">documentation</a>.
+                </p>
+
+                <p class="mt-3 border rounded p-3">
+                    <b>Trigger Description:</b><br /> {{ trigger.description }}
+                </p>
+
+                <div class="mt-3 border rounded p-2">
+                    <p class="form-text">Channel to which notification messages are sent:</p>
+                    <select class="discord-channel-selector w-100" aria-label="Notification Channel" data-live-search="true"></select>
+                </div>
+
+                <div class="mt-3 border rounded p-2">
+                    <p class="form-text">Enter the ID of the resource here:</p>
+                    <input type="text" class="form-control" id="notification-resource-id"></input>
+                </div>
+
+                <div class="mt-3 border rounded p-2">
+                    <p class="form-text">Select whether the notification should be one-shot or repeating</p>
+
+                    <input type="radio" class="btn-check" name="notification-type" id="notification-type-oneshot" autocomplete="off" required>
+                    <label class="btn" for="trigger-message-update">One Shot</label>
+
+                    <input type="radio" class="btn-check" name="notification-type" id="notification-type-repeating" autocomplete="off" required>
+                    <label class="btn" for="trigger-message-send">Repeating</label>
+                </div>
+
+                <div class="card w-100 mt-3">
+                    <div class="card-header">Parameters:</div>
+                    <ul class="list-group list-group-flush">
+                        {% for parameter, parameter_description in trigger.parameters.items() %}
+                        <li class="list-group-item">
+                            <div class="row justify-content-between">
+                                <div class="col-sm-12 col-md-6 align-middle">{{ parameter }}: {{ parameter_description }}</div>
+                                <div class="col-sm-12 col-md-6">
+                                    <input type="text" class="form-control parameter-value" data-parameter="{{ parameter }}"></input>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <button type="button" id="setup-trigger" class="btn btn-outline-danger w-100 mt-3">Setup Trigger</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
+<script src="/static/notification/trigger-server-setup.js"></script>
+{% endblock %}

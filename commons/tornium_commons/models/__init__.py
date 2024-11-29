@@ -31,6 +31,7 @@ from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
 from .server_attack_config import ServerAttackConfig
+from .server_notifications_config import ServerNotificationsConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -60,6 +61,7 @@ __all__ = [
     "Retaliation",
     "Server",
     "ServerAttackConfig",
+    "ServerNotificationsConfig",
     "Stat",
     "StockTick",
     "TornKey",

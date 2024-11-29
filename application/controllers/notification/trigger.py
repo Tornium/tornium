@@ -17,9 +17,9 @@ import random
 import uuid
 
 from flask import render_template
-from flask_login import current_user, login_required
+from flask_login import current_user, fresh_login_required, login_required
 from peewee import DoesNotExist
-from tornium_commons.models import NotificationTrigger
+from tornium_commons.models import Notification, NotificationTrigger, Server
 
 
 @login_required
@@ -80,3 +80,81 @@ def trigger_get(trigger_uuid: str):
         trigger_message_type=trigger.message_type,
         trigger_message_template=trigger.message_template,
     )
+
+
+@fresh_login_required
+def trigger_add_server(trigger_uuid: str):
+    try:
+        trigger: NotificationTrigger = (
+            NotificationTrigger.select().where(NotificationTrigger.tid == uuid.UUID(trigger_uuid)).get()
+        )
+    except ValueError:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger UUID",
+                error=f'The provided trigger UUID "{trigger_uuid}" is not formatted correctly.',
+            ),
+            400,
+        )
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger ID",
+                error=f'There does not exist a trigger of ID "{trigger_uuid}".',
+            ),
+            400,
+        )
+
+    return render_template("notification/trigger_server_add.html", trigger=trigger)
+
+
+@fresh_login_required
+def trigger_setup_server(trigger_uuid: str, guild_id: int):
+    try:
+        trigger: NotificationTrigger = (
+            NotificationTrigger.select().where(NotificationTrigger.tid == uuid.UUID(trigger_uuid)).get()
+        )
+    except ValueError:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger UUID",
+                error=f'The provided trigger UUID "{trigger_uuid}" is not formatted correctly.',
+            ),
+            400,
+        )
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Trigger ID",
+                error=f'There does not exist a trigger of ID "{trigger_uuid}".',
+            ),
+            400,
+        )
+
+    try:
+        guild: Server = Server.select().where(Server.sid == int(guild_id)).get()  # TODO: Determine required selections
+    except (ValueError, TypeError, DoesNotExist):
+        return (
+            render_template(
+                "errors/error.html",
+                title="Server Not Found",
+                error="The server ID could not be located in the database.",
+            ),
+            400,
+        )
+
+    if current_user.tid not in guild.admins:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
+        )
+
+    return render_template("notification/trigger_server_setup.html", trigger=trigger, guild=guild)

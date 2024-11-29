@@ -1,0 +1,37 @@
+{% extends 'base-center.html' %}
+
+{% block title %}
+Tornium - Add Trigger
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Add "{{ trigger.name }}" to a Discord Server</h5>
+
+                <p class="card-text mt-2">
+                    This page allows you to select which server you're an admin in to add the notification trigger "{{ trigger.name }}" to. After this step, you will be able to configure this notification trigger.
+                </p>
+
+                <p class="mt-2 border rounded p-3">
+                    <b>Trigger Description:</b><br /> {{ trigger.description }}
+                </p>
+
+                <div class="form-text pt-1">
+                    Select the Discord server to add the notification trigger to:
+                </div>
+                <select class="guild-selector w-100" id="trigger-guild" aria-label="Trigger Guild" data-live-search="true"></select>
+
+                <button type="button" id="add-trigger" class="btn btn-outline-danger w-100 mt-3">Add Trigger</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/guilds.js"></script>
+<script src="/static/notification/trigger-server-add.js"></script>
+{% endblock %}

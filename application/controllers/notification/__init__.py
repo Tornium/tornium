@@ -23,6 +23,12 @@ mod = Blueprint("notification_routes", __name__)
 mod.add_url_rule("/notification/trigger", view_func=trigger.triggers, methods=["GET"])
 mod.add_url_rule("/notification/trigger/create", view_func=trigger.trigger_create, methods=["GET"])
 mod.add_url_rule("/notification/trigger/view/<trigger_uuid>", view_func=trigger.trigger_get, methods=["GET"])
+mod.add_url_rule("/notification/trigger/add/<trigger_uuid>", view_func=trigger.trigger_add_server, methods=["GET"])
+mod.add_url_rule(
+    "/notification/trigger/add/<trigger_uuid>/guild/<int:guild_id>",
+    view_func=trigger.trigger_setup_server,
+    methods=["GET"],
+)
 
 
 @mod.route("/notification")

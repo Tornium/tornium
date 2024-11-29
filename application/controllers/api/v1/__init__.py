@@ -127,6 +127,21 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification",
+    view_func=bot.notification.get_notification_config,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification",
+    view_func=bot.notification.toggle_notifications,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification/log-channel",
+    view_func=bot.notification.set_notifications_log_channel,
+    methods=["PUT"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/verify/jail",
     view_func=bot.verify.guild_gateway_verification,
     methods=["POST", "DELETE"],
@@ -282,6 +297,7 @@ mod.add_url_rule("/api/v1/stocks/movers", view_func=stocks.movers.stock_movers, 
 
 # /api/v1/user
 mod.add_url_rule("/api/v1/user", view_func=user.get_user, methods=["GET"])
+mod.add_url_rule("/api/v1/user/guilds", view_func=user.get_admin_guilds, methods=["GET"])
 mod.add_url_rule("/api/v1/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/user/estimate/<int:tid>",

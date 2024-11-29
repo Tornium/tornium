@@ -13,28 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.bot import (
-    armory,
-    assists,
-    attacks,
-    banking,
-    config,
-    faction,
-    notification,
-    oc,
-    utils,
-    verify,
+from peewee import (
+    BigIntegerField,
+    BooleanField,
+    CompositeKey,
+    ForeignKeyField,
+    IntegerField,
 )
 
-__all__ = [
-    "armory",
-    "assists",
-    "attacks",
-    "banking",
-    "config",
-    "faction",
-    "notification",
-    "oc",
-    "utils",
-    "verify",
-]
+from .base_model import BaseModel
+
+
+class ServerNotificationsConfig(BaseModel):
+    enabled = BooleanField(default=False, null=False)
+    log_channel = BigIntegerField(null=True)

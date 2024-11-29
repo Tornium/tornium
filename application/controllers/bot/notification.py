@@ -16,7 +16,7 @@
 from flask import render_template
 from flask_login import current_user, fresh_login_required
 from peewee import DoesNotExist
-from tornium_commons.models import Server
+from tornium_commons.models import Server, ServerNotificationsConfig
 
 
 @fresh_login_required
@@ -41,6 +41,15 @@ def notification_dashboard(guild_id: int):
                 error="Only server admins are able to access this page, and you do not have this permission.",
             ),
             403,
+        )
+
+    if guild.notifications_config is None:
+        notifications_config: ServerNotificationsConfig = ServerNotificationsConfig.create()
+        guild = (
+            Server.update(notifications_config=notifications_config._pk)
+            .where(Server.sid == guild_id)
+            .returning(Server)
+            .execute()[0]
         )
 
     return render_template("bot/notification.html", guild=guild)

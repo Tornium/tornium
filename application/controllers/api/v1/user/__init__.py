@@ -13,9 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import logging
-import time
 import typing
 
 from authlib.integrations.flask_oauth2 import current_token
@@ -23,11 +21,10 @@ from authlib.oauth2.rfc6749 import InvalidScopeError, OAuth2Error
 from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
 from tornium_commons.formatters import bs_to_range
-from tornium_commons.models import Stat, User
+from tornium_commons.models import Server, Stat, User
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import ratelimit, require_oauth, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 from estimate import estimate_user
 
@@ -175,3 +172,12 @@ def latest_user_stats(tid: int, *args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@session_required
+@ratelimit
+def get_admin_guilds(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    guilds = Server.select(Server.name, Server.sid).where(Server.admins.contains(kwargs["user"].tid))
+
+    return {"guilds": {guild.sid: guild.name} for guild in guilds}, 200, api_ratelimit_response(key)

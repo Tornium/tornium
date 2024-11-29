@@ -27,6 +27,7 @@ defmodule Tornium.Notification do
           notifications :: list(Tornium.Schema.Notification.t())
         ) :: list(trigger_return())
   def execute_resource(_resource = :user, resource_id, notifications) when is_list(notifications) do
+    # TODO: What does this do?
     {selections, users} =
       Enum.reduce(notifications, {MapSet.new([]), []}, fn notification, {s, u} ->
         {

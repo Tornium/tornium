@@ -18,7 +18,7 @@ import uuid
 from flask import render_template
 from flask_login import current_user, fresh_login_required
 from peewee import DoesNotExist
-from tornium_commons.models import Server, ServerNotificationsConfig, Notification
+from tornium_commons.models import Notification, Server, ServerNotificationsConfig
 
 
 @fresh_login_required
@@ -82,9 +82,7 @@ def view_notification(guild_id: int, notification_uuid: str):
         )
 
     try:
-        notification: Notification = (
-            Notification.select().where(Notification.nid == uuid.UUID(notification_uuid)).get()
-        )
+        notification: Notification = Notification.select().where(Notification.nid == uuid.UUID(notification_uuid)).get()
     except ValueError:
         return (
             render_template(
@@ -104,4 +102,10 @@ def view_notification(guild_id: int, notification_uuid: str):
             400,
         )
 
-    return render_template("notification/trigger_server_setup.html", trigger=notification.trigger, guild=guild, update=True, notification=notification)
+    return render_template(
+        "notification/trigger_server_setup.html",
+        trigger=notification.trigger,
+        guild=guild,
+        update=True,
+        notification=notification,
+    )

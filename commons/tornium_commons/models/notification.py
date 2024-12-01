@@ -14,20 +14,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from peewee import (
+    BigIntegerField,
     BooleanField,
     CharField,
     DateTimeField,
     ForeignKeyField,
     IntegerField,
     UUIDField,
-    BigIntegerField
 )
 from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
 from .notification_trigger import NotificationTrigger
-from .user import User
 from .server import Server
+from .user import User
 
 
 class Notification(BaseModel):
@@ -54,5 +54,5 @@ class Notification(BaseModel):
             "server": self.server_id,
             "channel_id": self.channel_id,
             "resource_id": self.resource_id,
-            "one_shot": self.one_shot
+            "one_shot": self.one_shot,
         }

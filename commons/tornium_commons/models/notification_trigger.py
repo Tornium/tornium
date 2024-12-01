@@ -13,7 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, CharField, ForeignKeyField, IntegerField, UUIDField, TextField
+from peewee import (
+    BooleanField,
+    CharField,
+    ForeignKeyField,
+    IntegerField,
+    TextField,
+    UUIDField,
+)
 from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel

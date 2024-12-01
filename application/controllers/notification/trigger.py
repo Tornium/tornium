@@ -157,4 +157,6 @@ def trigger_setup_server(trigger_uuid: str, guild_id: int):
             403,
         )
 
-    return render_template("notification/trigger_server_setup.html", trigger=trigger, guild=guild, notification=None, update=False)
+    return render_template(
+        "notification/trigger_server_setup.html", trigger=trigger, guild=guild, notification=None, update=False
+    )

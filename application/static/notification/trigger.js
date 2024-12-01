@@ -41,12 +41,12 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     triggerRow.append(triggerNameElement);
 
     const triggerDescriptionElement = document.createElement("div");
-    triggerDescriptionElement.classList.add("col-sm-12", "col-md-4", "col-xl-2", "text-truncate");
+    triggerDescriptionElement.classList.add("col-sm-12", "col-md-8", "col-xl-6", "text-truncate");
     triggerDescriptionElement.textContent = trigger.description;
     triggerRow.append(triggerDescriptionElement);
 
     const triggerPaddingElement = document.createElement("div");
-    triggerPaddingElement.classList.add("col-sm-0", "col-md-4", "col-xl-6");
+    triggerPaddingElement.classList.add("col-sm-0", "col-md-0", "col-xl-2");
     triggerRow.append(triggerPaddingElement);
 
     const triggerActionsContainer = document.createElement("div");
@@ -66,64 +66,3 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     viewActionIcon.classList.add("fa-regular", "fa-eye");
     viewAction.append(viewActionIcon);
 }
-
-let viewerPage = 0;
-const viewerLimit = 10;
-
-const triggerNextPage = document.getElementById("trigger-next-page");
-const triggerPreviousPage = document.getElementById("trigger-previous-page");
-
-
-function loadTriggers(triggerContainer, triggerCountContainer) {
-    return;
-    const offset = Math.max(viewerPage * viewerLimit - 1, 0);
-
-    tfetch("GET", `notification/trigger?offset=${offset}&limit=${viewerLimit}`, {
-        errorTitle: "Notification Trigger Fetch Failed",
-        errorHandler: (jsonError) => {
-        }
-    }).then((data) => {
-        const triggerCount = data.count;
-        triggerContainer.replaceChildren();
-
-        if (triggerCount == 0) {
-            triggerContainer.textContent = "No results found...";
-            triggerCountContainer.textContent = "No";
-            return;
-        }
-
-        triggerCountContainer.textContent = commas(triggerCount);
-
-        for (const trigger of data.triggers) {
-            addTriggerToViewer(triggerContainer, trigger);
-        }
-
-        if (viewerPage == 0) {
-            triggerPreviousPage.setAttribute("disabled", "disabled");
-        }
-
-        if (data.triggers.length != viewerLimit) {
-            triggerNextPage.setAttribute("disabled", "disabled");
-        }
-
-        if (viewerPage != 0 && data.triggers.length == viewerLimit) {
-            triggerPreviousPage.setAttribute("disabled", "");
-            triggerNextPage.setAttribute("disabled", "");
-        }
-    });
-}
-
-ready(() => {
-    const triggerContainer = document.getElementById("existing-trigger-container");
-    const triggerCountContainer = document.getElementById("trigger-count");
-
-    function changeViewerPage(direction) {
-        viewerPage = viewerPage + direction;
-        loadTriggers(triggerContainer, triggerCountContainer);
-    }
-
-    loadTriggers(triggerContainer, triggerCountContainer);
-
-    triggerNextPage.addEventListener("click", () => {changeViewerPage(1)});
-    triggerPreviousPage.addEventListener("click", () => {changeViewerPage(-1)});
-});

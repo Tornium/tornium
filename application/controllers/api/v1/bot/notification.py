@@ -18,7 +18,7 @@ import typing
 
 from flask import request
 from peewee import DoesNotExist
-from tornium_commons.models import Server, ServerNotificationsConfig
+from tornium_commons.models import Server, ServerNotificationsConfig, Notification
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -26,11 +26,16 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 
 @session_required
 @ratelimit
-def get_notification_config(guild_id, *args, **kwargs):
+def get_notification_config(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     try:
-        guild: Server = Server.get_by_id(guild_id)  # TODO: Limit selections
+        guild: Server = (
+            Server.select(Server.admins, Server.notifications_config)
+            .join(ServerNotificationsConfig)
+            .where(Server.sid == guild_id)
+            .get()
+        )
     except DoesNotExist:
         return make_exception_response("1001", key)
 
@@ -40,7 +45,7 @@ def get_notification_config(guild_id, *args, **kwargs):
     return (
         {
             "enabled": guild.notifications_config.enabled,
-            "log_channel": guild.notifications_config.log_channel,
+            "log_channel": str(guild.notifications_config.log_channel),
         },
         200,
         api_ratelimit_response(key),
@@ -49,7 +54,7 @@ def get_notification_config(guild_id, *args, **kwargs):
 
 @session_required
 @ratelimit
-def toggle_notifications(guild_id, *args, **kwargs):
+def toggle_notifications(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     data = json.loads(request.get_data().decode("utf-8"))
 
@@ -59,7 +64,7 @@ def toggle_notifications(guild_id, *args, **kwargs):
         return make_exception_response("1000", key, details={"message": "Invalid enabled value"})
 
     try:
-        guild: Server = Server.get_by_id(guild_id)  # TODO: Limit selections
+        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
     except DoesNotExist:
         return make_exception_response("1001", key)
 
@@ -75,7 +80,7 @@ def toggle_notifications(guild_id, *args, **kwargs):
 
 @session_required
 @ratelimit
-def set_notifications_log_channel(guild_id, *args, **kwargs):
+def set_notifications_log_channel(guild_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     data = json.loads(request.get_data().decode("utf-8"))
 
@@ -85,7 +90,7 @@ def set_notifications_log_channel(guild_id, *args, **kwargs):
         return make_exception_response("1001", key)
 
     try:
-        guild: Server = Server.get_by_id(guild_id)  # TODO: Limit selections
+        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
     except DoesNotExist:
         return make_exception_response("1001", key)
 
@@ -97,3 +102,36 @@ def set_notifications_log_channel(guild_id, *args, **kwargs):
     ).execute()
 
     return {}, 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def get_server_notifications(guild_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    limit = request.args.get("limit", 10)
+    offset = request.args.get("offset", 0)
+
+    if (not isinstance(limit, str) or not limit.isdigit()) and not isinstance(limit, int):
+        return make_exception_response("1000", key, details={"error": "Invalid limit value"})
+    elif int(limit) <= 0:
+        return make_exception_response("1000", key, details={"error": "Invalid limit value"})
+    elif (not isinstance(offset, str or not limit.isdigit())) and not isinstance(offset, int):
+        return make_exception_response("1000", key, details={"error": "Invalid offset value"})
+    elif int(offset) < 0:
+        return make_exception_response("1000", key, details={"error": "Invalid offset value"})
+
+    limit = int(limit)
+    offset = int(offset)
+
+    server_notifications = Notification.select().where(Notification.server_id == guild_id)
+    filtered_server_notifications = server_notifications.offset(offset).limit(limit)
+
+    return (
+        {
+            "count": server_notifications.count(),
+            "notifications": [notification.as_dict() for notification in filtered_server_notifications],
+        },
+        200,
+        api_ratelimit_response(key),
+    )

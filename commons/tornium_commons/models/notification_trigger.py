@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, CharField, ForeignKeyField, IntegerField, UUIDField
+from peewee import BooleanField, CharField, ForeignKeyField, IntegerField, UUIDField, TextField
 from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel
@@ -26,19 +26,18 @@ class NotificationTrigger(BaseModel):
 
     tid = UUIDField(primary_key=True)
     name = CharField(null=False)
-    description = CharField(null=False, default="")
+    description = TextField(null=False, default="")
     owner = ForeignKeyField(User, null=False)
 
     cron = CharField(default="* * * * *", null=False)
     resource = CharField(null=False, choices=["user", "faction", "company", "torn", "faction_v2"])
     selections = ArrayField(CharField, default=[], index=False)
-    code = CharField(null=False)
+    code = TextField(null=False)
     parameters = JSONField(default={}, null=False)
 
     message_type = IntegerField(null=False, choices=[0, 1])
-    message_template = CharField(null=False)
+    message_template = TextField(null=False)
 
-    public = BooleanField(default=False, null=False)
     official = BooleanField(default=False, null=False)
 
     def as_dict(self):
@@ -50,6 +49,5 @@ class NotificationTrigger(BaseModel):
             "resource": self.resource,
             "selections": self.selections,
             "code": self.code,
-            "public": self.public,
             "official": self.official,
         }

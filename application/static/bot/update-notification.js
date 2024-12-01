@@ -13,7 +13,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+const channel_id = document.currentScript.getAttribute("data-channel-id");
 const trigger_id = document.currentScript.getAttribute("data-trigger-id");
+const notification_id = document.currentScript.getAttribute("data-notification-id");
 
 let channelInput;
 let resourceIDInput;
@@ -52,20 +54,20 @@ function setupTrigger(event) {
         return;
     }
 
-    tfetch("POST", `notification/trigger/${trigger_id}/guild/${guildid}`, {
+    tfetch("PUT", `notification/${notification_id}`, {
         body: {
             channel_id: channel_id,
             resource_id: resource_id,
             one_shot: triggerMessageType,
             parameters: parameters,
         },
-        errorTitle: "Notification Creation Failed",
+        errorTitle: "Notification Update Failed",
         errorHandler: (jsonError) => {
+            // TODO: Update error handler
             console.log(jsonError);
         }
     }).then((data) => {
-        console.log(data);
-        window.location.href = `/bot/dashboard/${guildid}/notification/${data.nid}`;
+        window.location.href = `/bot/dashboard/${guildid}/notification`;
     });
 }
 
@@ -79,6 +81,11 @@ ready(() => {
         new TomSelect(".discord-channel-selector", {
             create: false,
         });
+
+        const channelOption = $(`#notification-channel option[value="${channel_id}"]`);
+        if (channelOption.length !== 0) {
+            channelOption.attr("selected", "");
+        }
     })
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);

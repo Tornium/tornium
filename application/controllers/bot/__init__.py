@@ -55,10 +55,15 @@ mod.add_url_rule(
     methods=["GET"],
 )
 
-# Stakeout Routes
+# Notification Routes
 mod.add_url_rule(
     "/bot/dashboard/<string:guild_id>/notification",
     view_func=notification.notification_dashboard,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/bot/dashboard/<int:guild_id>/notification/<notification_uuid>",
+    view_func=notification.view_notification,
     methods=["GET"],
 )
 

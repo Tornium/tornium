@@ -180,4 +180,4 @@ def get_admin_guilds(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     guilds = Server.select(Server.name, Server.sid).where(Server.admins.contains(kwargs["user"].tid))
 
-    return {"guilds": {guild.sid: guild.name} for guild in guilds}, 200, api_ratelimit_response(key)
+    return {"guilds": {guild.sid: guild.name for guild in guilds}}, 200, api_ratelimit_response(key)

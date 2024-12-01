@@ -13,6 +13,60 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+window.notificationErrorCallback = function(jsonError, container) {
+    const errorNode = document.createElement("span");
+    errorNode.textContent = " Data failed to load...";
+
+    const errorIcon = document.createElement("i");
+    errorIcon.classList.add("fa-solid", "fa-skull-crossbones");
+
+    container.innerHTML = "";
+    container.appendChild(errorIcon);
+    container.appendChild(errorNode);
+}
+
+window.addNotificationToViewer = function(notification, notificationContainer) {
+    const notificationNode = document.createElement("div");
+    notificationNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
+    notificationNode.setAttribute("data-notification-id", notification.nid);
+    notificationContainer.append(notificationNode);
+
+    const notificationRow = document.createElement("div");
+    notificationRow.classList.add("row", "p-2", "align-middle");
+    notificationNode.append(notificationRow);
+
+    const notificationNameElement = document.createElement("div");
+    notificationNameElement.classList.add("col-sm-12", "col-md-6", "col-xl-4");
+    notificationNameElement.textContent = notification.trigger.name;
+    notificationRow.append(notificationNameElement);
+
+    const notificationResourceElement = document.createElement("div");
+    notificationResourceElement.classList.add("col-sm-12", "col-md-4", "cl-xl-2");
+    notificationResourceElement.textContent = `${notification.trigger.resource}: ${notification.resource_id}`;
+    notificationRow.append(notificationResourceElement);
+
+    const notificationPaddingElement = document.createElement("div");
+    notificationPaddingElement.classList.add("col-sm-0", "col-md-0", "col-xl-2");
+    notificationRow.append(notificationPaddingElement);
+
+    const notificationActionsContainer = document.createElement("div");
+    notificationActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2");
+    notificationRow.append(notificationActionsContainer);
+    
+    const notificationActions = document.createElement("div");
+    notificationActions.classList.add("w-100", "justify-content-end", "d-flex");
+    notificationActionsContainer.append(notificationActions);
+
+    const viewAction = document.createElement("a")
+    viewAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
+    viewAction.href = `/bot/dashboard/${guildid}/notification/${notification.nid}`;
+    notificationActions.append(viewAction);
+
+    const viewActionIcon = document.createElement("i");
+    viewActionIcon.classList.add("fa-regular", "fa-eye");
+    viewAction.append(viewActionIcon);
+}
+
 function load_channels([notificationConfig, channels]) {
     let notificationsLogChannel = $(`#notifications-log-channel option[value="${notificationConfig["log_channel"]}"]`);
 

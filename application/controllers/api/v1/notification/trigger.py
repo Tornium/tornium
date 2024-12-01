@@ -22,7 +22,8 @@ import typing
 import uuid
 
 from flask import request
-from tornium_commons.models import NotificationTrigger
+from peewee import DoesNotExist
+from tornium_commons.models import Notification, NotificationTrigger, Server
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -379,6 +380,84 @@ def list_triggers(*args, **kwargs):
         {
             "count": user_triggers.count(),
             "triggers": [trigger.as_dict() for trigger in filtered_user_triggers],
+        },
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@session_required
+@ratelimit
+def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        trigger_uuid = uuid.UUID(trigger_id)
+    except ValueError:
+        return make_exception_response("1000", key, details={"message": "Invalid trigger UUID"})
+
+    try:
+        trigger: NotificationTrigger = (
+            NotificationTrigger.select().where(NotificationTrigger.tid == trigger_uuid).get()
+        )  # TODO: Limit selections
+    except DoesNotExist:
+        return make_exception_response("1400", key)
+
+    if trigger.owner.tid != kwargs["user"].tid and not trigger.official:
+        return make_exception_response("4022", key)
+
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+        # TODO: Limit selections
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    try:
+        channel_id = int(data["channel_id"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1001", key)
+
+    try:
+        resource_id = int(data["resource_id"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1000", key, details={"message": "Invalid resource ID"})
+
+    try:
+        one_shot = data["one_shot"]
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1000", key, details={"message": "Invalid one-shot value"})
+
+    if not isinstance(one_shot, bool):
+        return make_exception_response("1000", key, details={"message": "Invalid one-shot value"})
+
+    try:
+        parameters = data["parameters"]
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1402", key)
+
+    print(parameters)
+
+    if not isinstance(parameters, dict):
+        return make_exception_response("1402", key)
+    elif not all(isinstance(key, str) for key in parameters.keys()):
+        return make_exception_response("1402", key)
+    elif parameters.keys() != trigger.parameters.keys():
+        return make_exception_response("1402", key, details={"message": "Invalid parameter key"})
+
+    notification: Notification = Notification.create(
+        nid=uuid.uuid4(),
+        trigger=trigger_uuid,
+        user=kwargs["user"].tid,
+        server=guild.sid,
+        channel_id=channel_id,
+        resource_id=resource_id,
+        one_shot=one_shot,
+    )
+
+    return (
+        {
+            "nid": notification.nid,
         },
         200,
         api_ratelimit_response(key),

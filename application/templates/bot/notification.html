@@ -77,12 +77,22 @@ Tornium - Notification
             </div>
         </div>
     </div>
-</div>
 
-<div id="modal"></div>
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Server Notifications</h5>
+            <p class="card-text">
+                Find and modify notifications on your server here.
+            </p>
+
+            <table-viewer id="viewer" data-endpoint="bot/{{ guild.sid }}/notifications" data-error="Server Notifications Fetch Failed" data-error-callback="notificationErrorCallback" data-key="notifications" data-render-callback="addNotificationToViewer"></table-viewer>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/table-viewer.js"></script>
 <script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
 <script src="/static/bot/notification.js"></script>
 {% endblock %}

@@ -20,18 +20,23 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     UUIDField,
+    BigIntegerField
 )
 from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
 from .notification_trigger import NotificationTrigger
 from .user import User
+from .server import Server
 
 
 class Notification(BaseModel):
     nid = UUIDField(primary_key=True)
     trigger = ForeignKeyField(NotificationTrigger, null=False)
     user = ForeignKeyField(User, null=False)
+
+    server = ForeignKeyField(Server, null=True)
+    channel_id = BigIntegerField(null=True)
 
     resource_id = IntegerField(default=None, null=True)
     one_shot = BooleanField(default=True, null=False)
@@ -40,3 +45,14 @@ class Notification(BaseModel):
 
     error = CharField(default=None, null=True)
     previous_state = JSONField(default={}, null=False)
+
+    def as_dict(self):
+        return {
+            "nid": self.nid,
+            "trigger": self.trigger.as_dict(),
+            "user": self.user_id,
+            "server": self.server_id,
+            "channel_id": self.channel_id,
+            "resource_id": self.resource_id,
+            "one_shot": self.one_shot
+        }

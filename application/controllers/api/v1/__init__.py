@@ -142,6 +142,11 @@ mod.add_url_rule(
     methods=["PUT"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notifications",
+    view_func=bot.notification.get_server_notifications,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/verify/jail",
     view_func=bot.verify.guild_gateway_verification,
     methods=["POST", "DELETE"],
@@ -311,4 +316,9 @@ mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.
 mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.create_trigger, methods=["POST"])
 mod.add_url_rule(
     "/api/v1/notification/trigger/<trigger_id>", view_func=notification.trigger.create_trigger, methods=["PUT"]
+)
+mod.add_url_rule(
+    "/api/v1/notification/trigger/<trigger_id>/guild/<int:guild_id>",
+    view_func=notification.trigger.setup_trigger_guild,
+    methods=["POST"],
 )

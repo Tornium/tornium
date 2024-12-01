@@ -13,10 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import uuid
+
 from flask import render_template
 from flask_login import current_user, fresh_login_required
 from peewee import DoesNotExist
-from tornium_commons.models import Server, ServerNotificationsConfig
+from tornium_commons.models import Server, ServerNotificationsConfig, Notification
 
 
 @fresh_login_required
@@ -53,3 +55,53 @@ def notification_dashboard(guild_id: int):
         )
 
     return render_template("bot/notification.html", guild=guild)
+
+
+@fresh_login_required
+def view_notification(guild_id: int, notification_uuid: str):
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Guild Not Found",
+                error="No Discord server could be located with the passed guild ID",
+            ),
+            400,
+        )
+
+    if current_user.tid not in guild.admins:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
+        )
+
+    try:
+        notification: Notification = (
+            Notification.select().where(Notification.nid == uuid.UUID(notification_uuid)).get()
+        )
+    except ValueError:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Notification UUID",
+                error=f'The provided notification UUID "{notification_uuid}" is not formatted correctly.',
+            ),
+            400,
+        )
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Notification ID",
+                error=f'There does not exist a notification of ID "{notification_uuid}".',
+            ),
+            400,
+        )
+
+    return render_template("notification/trigger_server_setup.html", trigger=notification.trigger, guild=guild, update=True, notification=notification)

@@ -71,6 +71,18 @@ function setupTrigger(event) {
     });
 }
 
+function deleteNotification(event) {
+    tfetch("DELETE", `notification/${notification_id}`, {
+        errorTitle: "Notification Delete Failed",
+        errorHandler: (jsonError) => {
+            // TODO: Update error handler
+            console.log(jsonError);
+        }
+    }).then((data) => {
+        window.location.href = `/bot/dashboard/${guildid}/notification`;
+    });
+}
+
 ready(() => {
     let channelsPromise = channelsRequest();
 
@@ -89,4 +101,5 @@ ready(() => {
     })
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);
+    document.getElementById("delete-notification").addEventListener("click", deleteNotification);
 });

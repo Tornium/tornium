@@ -65,7 +65,7 @@ function setupTrigger(event) {
         }
     }).then((data) => {
         console.log(data);
-        window.location.href = `/bot/dashboard/${guildid}/notification/${data.nid}`;
+        window.location.href = `/bot/dashboard/${guildid}/notification`;
     });
 }
 

@@ -40,6 +40,7 @@ class Notification(BaseModel):
 
     resource_id = IntegerField(default=None, null=True)
     one_shot = BooleanField(default=True, null=False)
+    parameters = JSONField(default={}, null=False)
 
     next_execution = DateTimeField(default=None, null=True)
 

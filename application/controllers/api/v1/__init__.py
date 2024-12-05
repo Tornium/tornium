@@ -322,3 +322,13 @@ mod.add_url_rule(
     view_func=notification.trigger.setup_trigger_guild,
     methods=["POST"],
 )
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>",
+    view_func=notification.notification.update_guild_notification,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>",
+    view_func=notification.notification.delete_guild_notification,
+    methods=["DElETE"],
+)

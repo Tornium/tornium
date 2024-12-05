@@ -453,6 +453,7 @@ def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
         channel_id=channel_id,
         resource_id=resource_id,
         one_shot=one_shot,
+        parameters=parameters,
     )
 
     return (

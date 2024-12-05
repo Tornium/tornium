@@ -21,7 +21,6 @@ from controllers.api.v1 import (
     gateway,
     items,
     key,
-    report,
     stat,
     stocks,
     user,
@@ -221,28 +220,6 @@ mod.add_url_rule(
 
 # /api/v1/items
 mod.add_url_rule("/api/v1/items", view_func=items.item_name_map, methods=["GET"])
-
-# /api/v1/report
-mod.add_url_rule(
-    "/api/v1/report/faction/members",
-    view_func=report.faction_member.get_reports,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members",
-    view_func=report.faction_member.create_report,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members/<string:rid>",
-    view_func=report.faction_member.delete_report,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members/<string:rid>",
-    view_func=report.faction_member.get_report,
-    methods=["GET"],
-)
 
 # /api/v1/stat
 mod.add_url_rule("/api/v1/chain-list", view_func=stat.generate_chain_list, methods=["GET"])

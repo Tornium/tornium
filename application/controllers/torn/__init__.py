@@ -27,16 +27,6 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule("/torn/factions", view_func=factions.factions, methods=["GET"])
-mod.add_url_rule(
-    "/torn/factions/member-report",
-    view_func=factions.faction_members_report,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/torn/factions/member-report/<string:rid>",
-    view_func=factions.view_member_report,
-    methods=["GET"],
-)
 mod.add_url_rule("/torn/factionsdata", view_func=factions.factions_data, methods=["GET"])
 
 # Stock Routes

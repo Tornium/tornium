@@ -19,7 +19,6 @@ from .faction_position import FactionPosition
 from .gateway_client import GatewayClient
 from .gateway_message import GatewayMessage
 from .item import Item
-from .member_report import MemberReport
 from .notification import Notification
 from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
@@ -45,7 +44,6 @@ __all__ = [
     "GatewayClient",
     "GatewayMessage",
     "Item",
-    "MemberReport",
     "Notification",
     "OAuthAuthorizationCode",
     "OAuthClient",

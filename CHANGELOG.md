@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed Git hook tooling to Lefthook from pre-commit
 - Changed `tornium-estimate.user.js` to cache `GET /api/v1/user/estimate/<tid>`
 - Changed existing theme SCSS system to be better structured
+- Changed `tasks.user.update_user` to update the user only if there is not data for the day
+- Changed `PersonalStats` model to store per-day data instead of per-hour data
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed
@@ -40,3 +42,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed assists from Celery, application, etc.
 - Removed `TorniumExt` plugin system
 - Removed private user data from `GET /api/v1/user`
+- Removed member personal stat report

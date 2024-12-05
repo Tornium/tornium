@@ -20,7 +20,7 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import DoesNotExist
+from peewee import JOIN, DoesNotExist
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
@@ -60,11 +60,17 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         raise Exception("No valid user ID passed")
 
     update_self = False
+    update_personal_stats = False
     user_exists = None
     user: typing.Optional[User] = None
 
     if tid != 0:
-        user = User.select(User.last_refresh).where(User.tid == tid).first()
+        user = (
+            User.select(User.last_refresh, User.personal_stats)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == tid)
+            .first()
+        )
         user_exists = user is not None
 
         if (
@@ -87,7 +93,12 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         user_id = 0
         update_self = True
     else:
-        user = User.select(User.last_refresh).where(User.tid == tid).first()
+        user = (
+            User.select(User.last_refresh, User.personal_stats)
+            .join(PersonalStats, JOIN.LEFT_OUTER)
+            .where(User.tid == tid)
+            .first()
+        )
         user_exists = user is not None
 
         if (
@@ -104,11 +115,22 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif user is not None and not refresh_existing:
         return
 
+    if user is not None and update_self and user.personal_stats.timestamp != datetime.date.today():
+        update_personal_stats = True
+    elif (
+        user is not None
+        and not update_self
+        and user.personal_stats.timestamp != datetime.date.today() - datetime.timedelta(days=1)
+    ):
+        update_personal_stats = True
+    else:
+        update_personal_stats = True
+
     result_sig: celery.canvas.Signature
     if update_self:
         result_sig = tornget.signature(
             kwargs={
-                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats",
+                "endpoint": f"user/{user_id}?selections=profile,discord,battlestats{',personalstats' if update_personal_stats else ''}",
                 "key": key,
             },
             queue="api",
@@ -116,7 +138,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     else:
         result_sig = tornget.signature(
             kwargs={
-                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats",
+                "endpoint": f"user/{user_id}?selections=profile,discord{',personalstats' if update_personal_stats else ''}",
                 "key": (user.key if user is not None and user.key not in (None, "") else key),
             },
             queue="api",
@@ -229,28 +251,10 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-        pstat_id = int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2)
-
-        PersonalStats.insert(
-            pstat_id=pstat_id,
+        stored_ps: PersonalStats = PersonalStats.create(
             tid=user_data["player_id"],
-            timestamp=now,
+            timestamp=datetime.date.today(),
             **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
-
-        stored_ps: typing.Optional[PersonalStats] = (
-            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
         )
 
         if (
@@ -261,7 +265,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
             )
             == 0
         ):
-            user_data_kwargs["personal_stats"] = pstat_id
+            user_data_kwargs["personal_stats"] = stored_ps
 
     User.insert(
         tid=user_data["player_id"],
@@ -374,28 +378,11 @@ def update_user_other(user_data):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-        pstat_id = int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2)
-
-        PersonalStats.insert(
-            pstat_id=pstat_id,
+        # /user/personalstats upon other users uses data from the end of the previous day
+        stored_ps: PersonalStats = PersonalStats.create(
             tid=user_data["player_id"],
-            timestamp=now,
+            timestamp=datetime.date.today() - datetime.timedelta(days=1),
             **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
-
-        stored_ps: typing.Optional[PersonalStats] = (
-            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
         )
 
         if (
@@ -406,7 +393,7 @@ def update_user_other(user_data):
             )
             == 0
         ):
-            user_data_kwargs["personal_stats"] = pstat_id
+            user_data_kwargs["personal_stats"] = stored_ps
 
     User.insert(
         tid=user_data["player_id"],
@@ -431,15 +418,6 @@ def update_user_other(user_data):
             *(getattr(User, k) for k in user_data_kwargs.keys()),
         ],
     ).execute()
-
-    # Caches valid public personal stat keys
-    try:
-        n = rds().sadd("tornium:personal-stats", *(user_data["personal_stats"].keys()))
-
-        if n > 0:
-            rds().expire("tornium:personal-stats", 3600, nx=True)
-    except KeyError:
-        pass
 
     if user_data["discord"]["discordID"] not in ("", 0):
         # Remove users' Discord IDs if another user has the same Discord ID

@@ -13,21 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BigIntegerField, DateTimeField, IntegerField
+from peewee import BigIntegerField, CompositeKey, DateField, DeferredForeignKey
 
 from .base_model import BaseModel
 
 
 class PersonalStats(BaseModel):
-    #### pstat_id ####
-    # tid = bin(tid << 8)
-    # timestamp = bin(timestamp)
-    # pstat_id = int(tid, 2) + int(timestamp, 2)
-    ##################
-
-    pstat_id = BigIntegerField(primary_key=True)
-    tid = IntegerField()
-    timestamp = DateTimeField()
+    tid = DeferredForeignKey("user", null=False)
+    timestamp = DateField(null=False)
 
     # Uses jsonb as size of values is not known beyond "int"
     useractivity = BigIntegerField(null=True)
@@ -173,3 +166,6 @@ class PersonalStats(BaseModel):
     raidhits = BigIntegerField(null=True)
     territoryclears = BigIntegerField(null=True)
     refills = BigIntegerField(null=True)
+
+    class Meta:
+        primary_key = CompositeKey("tid", "timestamp")

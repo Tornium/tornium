@@ -131,4 +131,3 @@ def faction_members_data(tid: int):
         )
 
     return jsonify(members)
-

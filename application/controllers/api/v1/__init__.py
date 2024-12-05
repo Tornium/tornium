@@ -15,16 +15,7 @@
 
 from flask import Blueprint
 
-from controllers.api.v1 import (
-    bot,
-    faction,
-    gateway,
-    items,
-    key,
-    stat,
-    stocks,
-    user,
-)
+from controllers.api.v1 import bot, faction, gateway, items, key, stat, stocks, user
 
 mod = Blueprint("api_routes_v1", __name__)
 

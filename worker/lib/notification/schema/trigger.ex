@@ -23,10 +23,13 @@ defmodule Tornium.Schema.Trigger do
           name: String.t(),
           description: String.t(),
           owner: Tornium.Schema.User.t(),
+          cron: String.t(),
           resource: :user | :faction | :company | :torn | :faction_v2,
-          selections: List,
+          selections: [String.t()],
           code: String.t(),
-          public: boolean(),
+          parameters: map(),
+          message_type: :update | :send,
+          message_template: :string,
           official: boolean()
         }
 
@@ -36,11 +39,15 @@ defmodule Tornium.Schema.Trigger do
     field(:description, :string)
     belongs_to(:owner, Tornium.Schema.User, references: :tid)
 
+    field(:cron, :string)
     field(:resource, Ecto.Enum, values: [:user, :faction, :company, :torn, :faction_v2])
     field(:selections, {:array, :string})
     field(:code, :string)
+    field(:parameters, :map)
 
-    field(:public, :boolean)
+    field(:message_type, Ecto.Enum, values: [:update, :send])
+    field(:message_template, :string)
+
     field(:official, :boolean)
   end
 end

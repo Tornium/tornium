@@ -23,7 +23,9 @@ import uuid
 
 from flask import request
 from peewee import DoesNotExist
+from tornium_celery.tasks.api import discordpost
 from tornium_commons.models import Notification, NotificationTrigger, Server
+from tornium_commons.skyutils import SKYNET_GOOD
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -78,7 +80,7 @@ SELECTION_MAP = {
         "honors_time": (PermissionError, "honors"),
         "icons": ("icons", "icons"),
         "jobpoints": (PermissionError, "jobpoints"),
-        "log": (PermissionError, "log"),
+        "log": (PermissionError, PermissionError),
         "selections": ("lookup", "lookup"),
         "medals_awarded": ("medals", "medals"),
         "medals_time": ("medals", "medals"),
@@ -151,7 +153,60 @@ SELECTION_MAP = {
         "weaponxp": (PermissionError, "weaponxp"),
         "workstats": (PermissionError, "workstats"),
     },
-    "faction": {},
+    "faction": {  # TODO: Require faction AA for all self faction fields
+        "applications": (PermissionError, "applications"),
+        "armor": (PermissionError, "armor"),
+        "armorynews": (PermissionError, "armorynews"),
+        "attacknews": (PermissionError, "attacknews"),
+        "attacks": (PermissionError, "attacks"),
+        "age": ("basic", "basic"),
+        "best_chain": ("basic", "basic"),
+        "capacity": ("basic", "basic"),
+        "co-leader": ("basic", "basic"),
+        "ID": ("basic", "basic"),
+        "leader": ("basic", "basic"),
+        "members": ("basic", "basic"),
+        "name": ("basic", "basic"),
+        "peace": ("basic", "basic"),
+        "raid_wars": ("basic", "basic"),
+        "rank": ("basic", "basic"),
+        "ranked_wars": ("basic", "basic"),
+        "respect": ("basic", "basic"),
+        "tag": ("basic", "basic"),
+        "tag_image": ("basic", "basic"),
+        "territory_wars": ("basic", "basic"),
+        "boosters": (PermissionError, "boosters"),
+        "caches": (PermissionError, "caches"),
+        "cesium": (PermissionError, "cesium"),
+        "chain": ("chain", "chain"),
+        "chain_report": (PermissionError, "chain_report"),
+        "chains": (PermissionError, "chains"),
+        "contributors": (
+            PermissionError,
+            PermissionError,
+        ),  # TODO: Not yet support... need to determine which stat is required
+        "crimeexp": (PermissionError, "crimeexp"),
+        "crimenews": (PermissionError, "crimenews"),
+        "crimes": (PermissionError, "crimes"),
+        "money": (PermissionError, "currency"),
+        "points": (PermissionError, "currency"),
+        "donations": (PermissionError, "donations"),
+        "drugs": (PermissionError, "drugs"),
+        "fundsnews": (PermissionError, "fundsnews"),
+        "mainnews": (PermissionError, "mainnews"),
+        "medical": (PermissionError, "medical"),
+        "membershipnews": (PermissionError, "membershipnews"),
+        "positions": (PermissionError, "positions"),
+        "rankedwars": ("rankedwars", "rankedwars"),
+        "reports": (PermissionError, "reports"),
+        "revives": (PermissionError, "revives"),
+        "stats": (PermissionError, "stats"),
+        "temporary": (PermissionError, "temporary"),
+        "territory": ("territory", "territory"),
+        "territorynews": (PermissionError, "territorynews"),
+        "upgrades": (PermissionError, "upgrades"),
+        "weapons": (PermissionError, "weapons"),
+    },
     "company": {},
     "torn": {},
     "factionv2": {},
@@ -199,7 +254,7 @@ def create_trigger(trigger_id=None, *args, **kwargs):
     trigger_cron: str = data.get("cron", "* * * * *")
     trigger_code: typing.Optional[str] = data.get("code", None)
     trigger_parameters: typing.Dict[str, str] = data.get("parameters", {})
-    trigger_message_type = data.get("message_type", 0)  # TODO: Create an enum for this and type the variable
+    trigger_message_type = data.get("message_type", 0)
     trigger_message_template = data.get("message_template", "")
 
     if not isinstance(trigger_name, str):
@@ -279,7 +334,12 @@ def create_trigger(trigger_id=None, *args, **kwargs):
                 "message": "Invlaid trigger message type",
             },
         )
-    elif trigger_message_type not in range(0, 1):
+    # TODO: Improve the contract for `trigger_message_type` in the API
+    if trigger_message_type == 0:
+        trigger_message_type = "update"
+    elif trigger_message_type == 1:
+        trigger_message_type = "send"
+    else:
         return make_exception_response(
             "1000",
             key,
@@ -302,6 +362,9 @@ def create_trigger(trigger_id=None, *args, **kwargs):
     with tempfile.NamedTemporaryFile() as fp:
         fp.write(trigger_code.encode("utf-8"))
         fp.seek(0)
+
+        print(fp.read())
+        print(fp.name)
 
         ret = subprocess.run(["luac", "-p", fp.name], capture_output=True, timeout=1)
 
@@ -376,7 +439,9 @@ def list_triggers(*args, **kwargs):
     offset = int(offset)
     official = bool(official)
 
-    user_triggers = NotificationTrigger.select().where((NotificationTrigger.owner == kwargs["user"]) & (NotificationTrigger.official == official))
+    user_triggers = NotificationTrigger.select().where(
+        (NotificationTrigger.owner == kwargs["user"]) & (NotificationTrigger.official == official)
+    )
     filtered_user_triggers = user_triggers.offset(offset).limit(limit)
 
     return (
@@ -439,8 +504,6 @@ def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
     except (KeyError, ValueError, TypeError):
         return make_exception_response("1402", key)
 
-    print(parameters)
-
     if not isinstance(parameters, dict):
         return make_exception_response("1402", key)
     elif not all(isinstance(key, str) for key in parameters.keys()):
@@ -448,16 +511,35 @@ def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
     elif parameters.keys() != trigger.parameters.keys():
         return make_exception_response("1402", key, details={"message": "Invalid parameter key"})
 
+    nid = uuid.uuid4()
     notification: Notification = Notification.create(
-        nid=uuid.uuid4(),
+        nid=nid,
         trigger=trigger_uuid,
         user=kwargs["user"].tid,
+        enabled=True,
         server=guild.sid,
         channel_id=channel_id,
         resource_id=resource_id,
         one_shot=one_shot,
         parameters=parameters,
     )
+
+    if guild.notifications_config is not None and guild.notifications_config.log_channel not in (0, None):
+        discordpost.delay(
+            f"channels/{guild.notifications_config.log_channel}",
+            {
+                "embeds": [
+                    {
+                        "title": "Notification Created",
+                        "description": f"{kwargs['user'].user_str_self()} has created a notification against {trigger.name}.",
+                        "footer": {
+                            "text": f"ID: {nid}",
+                        },
+                        "color": SKYNET_GOOD,
+                    }
+                ]
+            },
+        )
 
     return (
         {

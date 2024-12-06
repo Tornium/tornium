@@ -42,7 +42,7 @@ class NotificationTrigger(BaseModel):
     code = TextField(null=False)
     parameters = JSONField(default={}, null=False)
 
-    message_type = IntegerField(null=False, choices=[0, 1])
+    message_type = CharField(null=False, choices=["update", "send"])
     message_template = TextField(null=False)
 
     official = BooleanField(default=False, null=False)

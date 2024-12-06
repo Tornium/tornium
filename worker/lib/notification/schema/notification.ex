@@ -20,24 +20,33 @@ defmodule Tornium.Schema.Notification do
           nid: Ecto.UUID.t(),
           trigger: Tornium.Schema.Trigger.t(),
           user: Tornium.Schema.User.t(),
+          enabled: boolean(),
+          server: Tornium.Schema.Server.t(),
+          channel_id: integer(),
           resource_id: integer(),
           one_shot: boolean(),
-          cron: String.t(),
+          parameters: map(),
           next_execution: DateTime.t(),
+          message_id: integer(),
           error: String.t() | nil,
-          previous_state: Map
+          previous_state: map()
         }
 
   @primary_key {:nid, Ecto.UUID, autogenerate: true}
   schema "notification" do
     belongs_to(:trigger, Tornium.Schema.Trigger, references: :tid)
     belongs_to(:user, Tornium.Schema.User, references: :tid)
+    field(:enabled, :boolean)
+
+    belongs_to(:server, Tornium.Schema.Server, references: :sid)
+    field(:channel_id, :integer)
 
     field(:resource_id, :integer)
     field(:one_shot, :boolean)
+    field(:parameters, :map)
 
-    field(:cron, :string)
     field(:next_execution, :utc_datetime)
+    field(:message_id, :integer)
 
     field(:error, :string)
     field(:previous_state, :map)

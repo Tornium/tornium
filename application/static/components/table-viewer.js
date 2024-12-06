@@ -69,12 +69,15 @@ class TableViewer extends HTMLElement {
     reload() {
         this.showLoading();
 
-        const apiEndpoint = this.getAttribute("data-endpoint");
+        const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
         const error = this.getAttribute("data-error");
         const dataKey = this.getAttribute("data-key");
 
+        apiEndpoint.searchParams.append("offset", this.offset);
+        apiEndpoint.searchParams.append("limit", this.limit);
+        
         try {
-            tfetch("GET", `${apiEndpoint}?offset=${this.offset}&limit=${this.limit}`, {errorTitle: error, errorHandler: (jsonError) => {
+            tfetch("GET", apiEndpoint.pathname.toString().substring(1) + apiEndpoint.search.toString(), {errorTitle: error, errorHandler: (jsonError) => {
                 const callback = this.getErrorCallback()
                 callback(jsonError, this.container);
             }}).then((response) => {

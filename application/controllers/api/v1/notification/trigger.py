@@ -162,6 +162,7 @@ def extract_selections(code: str, resource: str, resource_self: bool = False) ->
     selections = set()
     attributes = set()
 
+    resource = re.escape(resource)
     for match in re.finditer(rf"{resource}\[\s*[\"']([^\"']+)[\"']\s*\]|{resource}\.([a-zA-Z_]\w*)", code):
         attributes.add(match.groups()[1])
 
@@ -360,6 +361,7 @@ def list_triggers(*args, **kwargs):
 
     limit = request.args.get("limit", 10)
     offset = request.args.get("offset", 0)
+    official = request.args.get("official", "0") == "1"
 
     if (not isinstance(limit, str) or not limit.isdigit()) and not isinstance(limit, int):
         return make_exception_response("1000", key, details={"error": "Invalid limit value"})
@@ -372,8 +374,9 @@ def list_triggers(*args, **kwargs):
 
     limit = int(limit)
     offset = int(offset)
+    official = bool(official)
 
-    user_triggers = NotificationTrigger.select().where(NotificationTrigger.owner == kwargs["user"])
+    user_triggers = NotificationTrigger.select().where((NotificationTrigger.owner == kwargs["user"]) & (NotificationTrigger.official == official))
     filtered_user_triggers = user_triggers.offset(offset).limit(limit)
 
     return (

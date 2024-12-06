@@ -50,7 +50,7 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     triggerRow.append(triggerPaddingElement);
 
     const triggerActionsContainer = document.createElement("div");
-    triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2");
+    triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2", "mt-2", "mt-md-0");
     triggerRow.append(triggerActionsContainer);
     
     const triggerActions = document.createElement("div");
@@ -65,4 +65,55 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     const viewActionIcon = document.createElement("i");
     viewActionIcon.classList.add("fa-regular", "fa-eye");
     viewAction.append(viewActionIcon);
+
+    const addAction = document.createElement("a")
+    addAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
+    addAction.href = `/notification/trigger/add/${trigger.tid}`;
+    triggerActions.append(addAction);
+
+    const addActionIcon = document.createElement("i");
+    addActionIcon.classList.add("fa-solid", "fa-plus");
+    addAction.append(addActionIcon);
+}
+
+window.addOfficialTriggerToViewer = function(trigger, triggerContainer) {
+    const triggerNode = document.createElement("div");
+    triggerNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
+    triggerNode.setAttribute("data-trigger-id", trigger.tid);
+    triggerContainer.append(triggerNode);
+
+    const triggerRow = document.createElement("div");
+    triggerRow.classList.add("row", "p-2", "align-middle");
+    triggerNode.append(triggerRow);
+
+    const triggerNameElement = document.createElement("div");
+    triggerNameElement.classList.add("col-sm-12", "col-md-2", "col-xl-2");
+    triggerNameElement.textContent = trigger.name;
+    triggerRow.append(triggerNameElement);
+
+    const triggerDescriptionElement = document.createElement("div");
+    triggerDescriptionElement.classList.add("col-sm-12", "col-md-8", "col-xl-6", "text-truncate");
+    triggerDescriptionElement.textContent = trigger.description;
+    triggerRow.append(triggerDescriptionElement);
+
+    const triggerPaddingElement = document.createElement("div");
+    triggerPaddingElement.classList.add("col-sm-0", "col-md-0", "col-xl-2");
+    triggerRow.append(triggerPaddingElement);
+
+    const triggerActionsContainer = document.createElement("div");
+    triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2");
+    triggerRow.append(triggerActionsContainer);
+    
+    const triggerActions = document.createElement("div");
+    triggerActions.classList.add("w-100", "justify-content-end", "d-flex");
+    triggerActionsContainer.append(triggerActions);
+
+    const addAction = document.createElement("a")
+    addAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
+    addAction.href = `/notification/trigger/add/${trigger.tid}`;
+    triggerActions.append(addAction);
+
+    const addActionIcon = document.createElement("i");
+    addActionIcon.classList.add("fa-solid", "fa-plus");
+    addAction.append(addActionIcon);
 }

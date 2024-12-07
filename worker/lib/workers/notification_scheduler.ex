@@ -34,11 +34,16 @@ defmodule Tornium.Workers.NotificationScheduler do
     |> preload([n, t], trigger: t)
     |> Repo.all()
     |> Enum.group_by(&{&1.trigger.resource, &1.resource_id})
-    |> Enum.map(fn {resource_id, notifications} ->
-      %{resource_id: resource_id, resource: Enum.at(notifications, 0), notifications: notifications}
+    |> Enum.map(fn {{resource, resource_id}, notifications} ->
+      %{
+        resource_id: resource_id,
+        resource: resource,
+        notifications: Enum.map(notifications, fn notification -> notification.nid end)
+      }
       |> Tornium.Workers.Notification.new()
+      |> Oban.insert()
     end)
-    |> Oban.insert_all()
+    |> IO.inspect()
 
     :ok
   end

@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Notification do
+  require Logger
   alias Tornium.Repo
   import Ecto.Query
 
@@ -54,7 +55,7 @@ defmodule Tornium.Notification do
 
     api_key =
       Tornium.Schema.TornKey
-      |> where([k], k.user_id in ^users)
+      |> where([k], k.user_id in ^MapSet.to_list(users))
       |> select([:api_key, :user_id])
       |> order_by(fragment("RANDOM()"))
       |> Repo.one()
@@ -62,9 +63,11 @@ defmodule Tornium.Notification do
     case api_key do
       nil ->
         # TODO: Disable the notifications and push updates to audit log channels
+        Logger.info("no API key")
         nil
 
       %Tornium.Schema.TornKey{} ->
+        IO.inspect(resource)
         response = resource_data(resource, resource_id, selections, api_key)
 
         notifications
@@ -72,7 +75,7 @@ defmodule Tornium.Notification do
         |> Enum.map(fn {%Tornium.Schema.Trigger{} = trigger, trigger_notifications} ->
           response
           |> filter_response(trigger.resource, trigger.selections)
-          |> handle_response(trigger_notifications)
+          |> handle_response(trigger, trigger_notifications)
         end)
     end
   end
@@ -84,25 +87,25 @@ defmodule Tornium.Notification do
           api_key :: Tornium.Schema.TornKey.t()
         ) :: map()
   defp resource_data(:user, resource_id, selections, api_key) do
-    Tornex.Scheduler.Bucket.enqueue(
+    Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: resource_id,
       selections: selections,
       key: api_key.api_key,
       key_owner: api_key.user_id,
       nice: @api_call_priority
-    )
+    })
   end
 
   defp resource_data(:faction, resource_id, selections, api_key) do
-    Tornex.Scheduler.Bucket.enqueue(
+    Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "faction",
       resource_id: resource_id,
       selections: selections,
       key: api_key.api_key,
       key_owner: api_key.user_id,
       nice: @api_call_priority
-    )
+    })
   end
 
   @doc """
@@ -110,7 +113,7 @@ defmodule Tornium.Notification do
   """
   @spec filter_response(
           response :: map(),
-          resource :: Tornium.Notification.trigger_resource(),
+          resource :: trigger_resource(),
           selections :: [String.t()]
         ) :: map()
   def filter_response(response, resource, selections) when is_list(selections) do
@@ -122,20 +125,23 @@ defmodule Tornium.Notification do
     Map.filter(response, fn {key, _value} -> Enum.member?(valid_keys, key) end)
   end
 
-  # TODO: Handle spec response type
-  @spec handle_response(response :: map(), notifications :: [Tornium.Schema.Notification.t()]) :: trigger_return()
+  @spec handle_response(
+          response :: map(),
+          trigger :: Tornium.Schema.Trigger.t(),
+          notifications :: [Tornium.Schema.Notification.t()]
+        ) :: trigger_return()
   defp handle_response(
          %{"error" => %{"code" => code, "error" => error}} = _response,
+         _trigger,
          notifications
        )
        when is_list(notifications) do
     {:error, Tornium.API.Error.construct(code, error)}
   end
 
-  defp handle_response(%{} = response, notifications) when is_list(notifications) do
+  defp handle_response(%{} = response, _trigger, notifications) when is_list(notifications) do
     # TODO: Handle errors from `Tornium.Lua.execute_lua`
-    Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, user: response)
-    |> IO.inspect()
+    Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, faction: response)
   end
 
   @spec parse_next_execution(notification :: Tornium.Schema.Notification.t()) :: DateTime.t()

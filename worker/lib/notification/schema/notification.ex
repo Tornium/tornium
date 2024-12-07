@@ -34,7 +34,7 @@ defmodule Tornium.Schema.Notification do
 
   @primary_key {:nid, Ecto.UUID, autogenerate: true}
   schema "notification" do
-    belongs_to(:trigger, Tornium.Schema.Trigger, references: :tid)
+    belongs_to(:trigger, Tornium.Schema.Trigger, references: :tid, type: Ecto.UUID)
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     field(:enabled, :boolean)
 

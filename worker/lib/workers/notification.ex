@@ -16,6 +16,7 @@
 defmodule Tornium.Workers.Notification do
   require Logger
   alias Tornium.Repo
+  import Ecto.Query
 
   use Oban.Worker,
     max_attempts: 2,
@@ -24,8 +25,22 @@ defmodule Tornium.Workers.Notification do
     tags: ["notification"]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{} = job) do
+  def perform(
+        %Oban.Job{args: %{"notifications" => notifications_ids, "resource" => resource, "resource_id" => resource_id}} =
+          job
+      ) do
     IO.inspect(job)
+
+    notifications =
+      Tornium.Schema.Notification
+      |> where([n], n.nid in ^notifications_ids)
+      |> join(:inner, [n], t in assoc(n, :trigger), on: t.tid == n.trigger_id)
+      |> join(:inner, [n, t], s in assoc(n, :server), on: s.sid == n.server_id)
+      |> preload([n, t, s], trigger: t, server: s)
+      |> Repo.all()
+
+    Tornium.Notification.execute_resource(String.to_atom(resource), resource_id, notifications)
+
     :ok
   end
 end

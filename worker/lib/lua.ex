@@ -48,26 +48,30 @@ defmodule Tornium.Lua do
         :luerl_sandbox.run(code, state)
       end)
 
-    ret =
-      case Task.yield(task, @lua_supervisor_timeout) || Task.shutdown(task) do
-        {:ok, {:lua_error, error, _state}} ->
-          # TODO: Determine type of error for typespec
-          {:lua_error, error}
+    case Task.yield(task, @lua_supervisor_timeout) || Task.shutdown(task) do
+      {:ok, {[triggered?, render_table, passthrough_state] = _ret, state}} ->
+        render_state =
+          render_table
+          |> :luerl.decode(state)
+          |> Map.new()
+          |> IO.inspect()
 
-        {:ok, {:error, :timeout}} ->
-          {:error, :timeout}
+        # TODO: Generate Liquid-templated embed from render_state
+        {:ok, nil}
 
-        {:ok, {result, _state}} ->
-          {:ok, result}
+      {:ok, {:error, :timeout}} ->
+        {:error, :timeout}
 
-        {:exit, reason} ->
-          # TODO: Determine type of error for typespec
-          {:error, reason}
+      {:ok, {:error, {:lau_error, error, _state}}} ->
+        # TODO: Determine type of error for typespec
+        {:lua_error, error}
 
-        nil ->
-          {:error, :timeout}
-      end
+      {:exit, reason} ->
+        # TODO: Determine type of error for typespec
+        {:error, reason}
 
-    ret
+      nil ->
+        {:error, :timeout}
+    end
   end
 end

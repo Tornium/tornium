@@ -43,7 +43,6 @@ defmodule Tornium.Workers.NotificationScheduler do
       |> Tornium.Workers.Notification.new()
       |> Oban.insert()
     end)
-    |> IO.inspect()
 
     :ok
   end

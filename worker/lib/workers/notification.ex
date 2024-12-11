@@ -29,8 +29,6 @@ defmodule Tornium.Workers.Notification do
         %Oban.Job{args: %{"notifications" => notifications_ids, "resource" => resource, "resource_id" => resource_id}} =
           job
       ) do
-    IO.inspect(job)
-
     notifications =
       Tornium.Schema.Notification
       |> where([n], n.nid in ^notifications_ids)

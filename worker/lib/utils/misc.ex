@@ -30,4 +30,15 @@ defmodule Tornium.Utils do
     |> Enum.map(&"<@&#{&1}>")
     |> Enum.join(" ")
   end
+
+  @spec tuples_to_map(data :: tuple()) :: map()
+  def tuples_to_map(data) when is_list(data) do
+    Enum.map(data, fn
+      {key, value} when is_list(value) ->
+        {key, tuples_to_map(value)}
+      {key, value} ->
+        {key, value}
+    end)
+    |> Map.new()
+  end
 end

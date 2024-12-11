@@ -53,11 +53,11 @@ defmodule Tornium.Lua do
         render_state =
           render_table
           |> :luerl.decode(state)
-          |> Map.new()
+          |> Tornium.Utils.tuples_to_map()
           |> IO.inspect()
 
         # TODO: Generate Liquid-templated embed from render_state
-        {:ok, nil}
+        {:ok, {triggered?, render_state, passthrough_state}}
 
       {:ok, {:error, :timeout}} ->
         {:error, :timeout}

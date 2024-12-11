@@ -17,6 +17,7 @@ defmodule Tornium.Notification do
   require Logger
   alias Tornium.Repo
   import Ecto.Query
+  import Solid
 
   @api_call_priority 10
 
@@ -139,9 +140,24 @@ defmodule Tornium.Notification do
     {:error, Tornium.API.Error.construct(code, error)}
   end
 
-  defp handle_response(%{} = response, _trigger, notifications) when is_list(notifications) do
-    # TODO: Handle errors from `Tornium.Lua.execute_lua`
-    Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, faction: response)
+  defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
+    # TODO: Iterate over all notifications and add parameters
+    case Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, [faction: response, MEMBER_LIMIT: 10]) do
+      {:ok, {triggered?, render_state, passthrough_state}} ->
+        trigger.message_template
+        |> Solid.parse!()
+        |> Solid.render!(render_state)
+        |> Kernel.to_string()
+        |> String.replace(["\n", "\t"], "")
+        |> IO.inspect()
+
+        # TODO: Update passthrough state
+        # TODO: Send message if triggered
+
+        {:ok, triggered?}
+
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @spec parse_next_execution(notification :: Tornium.Schema.Notification.t()) :: DateTime.t()

@@ -39,7 +39,6 @@ defmodule Tornium.MixProject do
     [
       # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.18.2 requires certifi ~> 2.12
       {:certifi, "~> 2.13", override: true},
-
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
@@ -53,7 +52,6 @@ defmodule Tornium.MixProject do
       # https://github.com/edgurgel/solid/pull/143 and https://github.com/edgurgel/solid/issues/142
       # {:solid, "~> 0.16"},
       {:solid, git: "https://github.com/edgurgel/solid.git", ref: "ab6f13b398b78f5525abcff8c3a227a73db94cc6"},
-
       {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "f0e9cc0511d12ab5299288fcce1dc181e1be1ecb"}
     ]
   end

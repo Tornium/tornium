@@ -36,6 +36,7 @@ defmodule Tornium.Utils do
     Enum.map(data, fn
       {key, value} when is_list(value) ->
         {key, tuples_to_map(value)}
+
       {key, value} ->
         {key, value}
     end)

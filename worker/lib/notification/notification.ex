@@ -142,7 +142,7 @@ defmodule Tornium.Notification do
 
   defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
     # TODO: Iterate over all notifications and add parameters
-    case Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, [faction: response, MEMBER_LIMIT: 10]) do
+    case Tornium.Lua.execute_lua(Enum.at(notifications, 0).trigger.code, faction: response, MEMBER_LIMIT: 10) do
       {:ok, {triggered?, render_state, passthrough_state}} ->
         trigger.message_template
         |> Solid.parse!()
@@ -156,7 +156,8 @@ defmodule Tornium.Notification do
 
         {:ok, triggered?}
 
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

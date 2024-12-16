@@ -17,21 +17,27 @@ defmodule Tornium.Lua do
   # This timeout is double that of the default Lua VM timeout to allow for delays with the supervisor
   @lua_supervisor_timeout 200
 
+  # TODO: Update naming to make this code more generic
+
+  @type trigger_return() ::
+          {:ok, [triggered?: boolean(), render_state: map(), passthrough_state: map()]}
+          | {:error, any()}
+          | {:lua_error, any()}
+
   @doc """
   Execute Lua code inside of a sandbox using Luerl through the Tornium.LuaSupervisor supervisor
 
   ## Parameters
     - code: A string of Lua code to be executed
-    - input_state: A keyword list of values to be added to the Lua VM's state
+    - input_state: A map of values to be added to the Lua VM's state
 
   ## Returns
     - OK with executed code's return value
     - LuaError when there's an error within the Lua VM
     - Error with the error reason (e.g. timeout)
   """
-  @spec execute_lua(code :: String.t(), input_state :: Keyword) ::
-          {:error, atom()} | {:ok, List} | {:lua_error, any()}
-  def execute_lua(code, input_state \\ []) when is_binary(code) do
+  @spec execute_lua(code :: String.t(), input_state :: map()) :: trigger_return()
+  def execute_lua(code, input_state \\ %{}) when is_binary(code) do
     # TODO: Add tests for this
     # TODO: Update typespec for `execute_lua` based on https://github.com/elixir-lang/elixir/pull/12482/commits/bf78c78a9ef77c4d679bbda0e03db17152321fc5
     state = :luerl_sandbox.init()
@@ -57,7 +63,7 @@ defmodule Tornium.Lua do
           |> IO.inspect()
 
         # TODO: Generate Liquid-templated embed from render_state
-        {:ok, {triggered?, render_state, passthrough_state}}
+        {:ok, [triggered?: triggered?, render_state: render_state || %{}, passthrough_state: passthrough_state || %{}]}
 
       {:ok, {:error, :timeout}} ->
         {:error, :timeout}

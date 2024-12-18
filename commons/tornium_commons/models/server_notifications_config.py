@@ -16,14 +16,13 @@
 from peewee import (
     BigIntegerField,
     BooleanField,
-    CompositeKey,
-    ForeignKeyField,
-    IntegerField,
+    DeferredForeignKey,
 )
 
 from .base_model import BaseModel
 
 
 class ServerNotificationsConfig(BaseModel):
+    server = DeferredForeignKey("server", null=False)
     enabled = BooleanField(default=False, null=False)
     log_channel = BigIntegerField(null=True)

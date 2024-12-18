@@ -62,12 +62,19 @@ defmodule Tornium.Notification do
 
     case api_key do
       nil ->
-        # TODO: Disable the notifications and push updates to audit log channels
-        Logger.info("no API key")
+        # All notifications need to be disabled at this stage instead of specific notifications
+        # given the overall lack of API keys
+
+        Enum.map(notifications, fn notification ->
+          Tornium.Notification.Audit.log(:no_api_key, notification)
+        end)
+
+        notifications
+        |> Repo.update_all(set: [enabled: false, error: ":no_api_key"])
+
         nil
 
       %Tornium.Schema.TornKey{} ->
-        IO.inspect(resource)
         response = resource_data(resource, resource_id, selections, api_key)
 
         notifications
@@ -116,7 +123,7 @@ defmodule Tornium.Notification do
           resource :: trigger_resource(),
           selections :: [String.t()]
         ) :: map()
-  def filter_response(response, resource, selections) when is_list(selections) do
+  defp filter_response(response, resource, selections) when is_list(selections) do
     valid_keys =
       Enum.reduce(selections, MapSet.new([]), fn selection, acc ->
         MapSet.union(acc, MapSet.new(Tornium.Notification.Selections.get_selection_keys(resource, selection)))
@@ -142,6 +149,7 @@ defmodule Tornium.Notification do
   defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
+      |> update_passthrough_state(notification)
       |> handle_lua_execution(notification)
     end)
   end
@@ -161,9 +169,6 @@ defmodule Tornium.Notification do
     |> validate_message()
     |> IO.inspect()
     |> try_message(:update, notification)
-    |> IO.inspect()
-
-    # TODO: Update passthrough state
   end
 
   defp handle_lua_execution(
@@ -175,21 +180,24 @@ defmodule Tornium.Notification do
     render_message(trigger_message_template, render_state)
     |> validate_message()
     |> try_message(:send, notification)
-    |> IO.inspect()
-
-    # TODO: Update passthrough state
   end
 
   defp handle_lua_execution(
          {:ok, [triggered?: false, render_state: %{} = _render_state, passthrough_state: %{} = passthrough_state]},
          %Tornium.Schema.Notification{} = _notification
        ) do
-    # TODO: Update passthrough state
+    nil
   end
 
   defp handle_lua_execution({:lua_error, error}, %Tornium.Schema.Notification{} = notification) do
-    # TODO: Update database with error and to disable notification
-    # TODO: Send message to audit log channel if applicable
+    IO.inspect(error, label: ":lua_error [#{notification.nid}]")
+    Tornium.Notification.Audit.log(:lua_error, notification)
+
+    # TODO: Determine if this be disabled after a Lua error?
+    Tornium.Schema.Notification
+    |> where([n], n.nid == ^notification.nid)
+    |> update([n], set: [enabled: false, error: ":lua_error"])
+    |> Repo.update_all([])
   end
 
   defp handle_lua_execution({:error, %Tornium.API.Error{} = torn_error}, %Tornium.Schema.Notification{} = notification) do
@@ -227,6 +235,8 @@ defmodule Tornium.Notification do
         # TODO: Handle error
         nil
     end
+
+    nil
   end
 
   @spec validate_message(message :: String.t()) :: map() | nil
@@ -295,7 +305,7 @@ defmodule Tornium.Notification do
   defp try_message(
          %{} = message,
          :update,
-         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = _notification
+         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = notification
        )
        when is_nil(message_id) do
     # This should only occur the first time the notification is triggered
@@ -313,6 +323,22 @@ defmodule Tornium.Notification do
           |> Repo.update_all([])
 
         {:ok, resp_message}
+
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = _error} ->
+        # Discord Opcode 10003: Unknown channel
+        # The message could be updated as the channel does not exist, so
+        #   - Disable the notification
+        #   - Send a message to the audit channel if possible
+
+        {1, _} =
+          Tornium.Schema.Notification
+          |> where([n], n.nid == ^nid)
+          |> update([n], set: [channel_id: nil, enabled: false])
+          |> Repo.update_all([])
+
+        Tornium.Notification.Audit.log(:invalid_channel, notification)
+
+        nil
 
       {:error, %Nostrum.Error.ApiError{} = error} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
@@ -336,7 +362,7 @@ defmodule Tornium.Notification do
   defp try_message(
          %{} = message,
          :update,
-         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = _notification
+         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = notification
        ) do
     # Once the notification is created, the notification's pre-existing message will be updated
     # with the new message. If the message is deleted or can't be updated, a new message will be created.
@@ -358,7 +384,8 @@ defmodule Tornium.Notification do
           |> update([n], set: [message_id: nil, channel_id: nil, enabled: false])
           |> Repo.update_all([])
 
-        # TODO: Send audit message
+        Tornium.Notification.Audit.log(:invalid_channel, notification)
+
         nil
 
       {:error, %Nostrum.Error.ApiError{response: %{code: 10008}} = _error} ->
@@ -439,11 +466,30 @@ defmodule Tornium.Notification do
   defp generate_lua_state_map(
          %Tornium.Schema.Notification{
            parameters: parameters,
-           trigger: %Tornium.Schema.Trigger{resource: resource} = _trigger
+           trigger: %Tornium.Schema.Trigger{resource: _resource} = _trigger
          } = _notification,
-         response
+         _response
        ) do
     # TODO: Add the remaining resources for `generate_lua_state_map/2`
     parameters
+  end
+
+  @spec update_passthrough_state(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) ::
+          Tornium.Lua.trigger_return()
+  defp update_passthrough_state(
+         {:ok, [triggered?: true, render_state: %{} = _render_state, passthrough_state: %{} = passthrough_state]} =
+           trigger_return,
+         %Tornium.Schema.Notification{nid: nid} = _notification
+       ) do
+    Tornium.Schema.Notification
+    |> where([n], n.nid == ^nid)
+    |> update([n], set: [previous_state: ^passthrough_state])
+    |> Repo.update_all([])
+
+    trigger_return
+  end
+
+  defp update_passthrough_state(trigger_return, _notification) do
+    trigger_return
   end
 end

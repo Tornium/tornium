@@ -66,11 +66,11 @@ defmodule Tornium.Notification do
         # given the overall lack of API keys
 
         Enum.map(notifications, fn notification ->
-          Tornium.Notification.Audit.log(:no_api_key, notification)
+          Tornium.Notification.Audit.log(:no_api_keys, notification)
         end)
 
         notifications
-        |> Repo.update_all(set: [enabled: false, error: ":no_api_key"])
+        |> Repo.update_all(set: [enabled: false, error: ":no_api_keys"])
 
         nil
 
@@ -160,7 +160,7 @@ defmodule Tornium.Notification do
   """
   @spec handle_lua_execution(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) :: nil
   defp handle_lua_execution(
-         {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = passthrough_state]},
+         {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{
            trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :update}
          } = notification
@@ -172,7 +172,7 @@ defmodule Tornium.Notification do
   end
 
   defp handle_lua_execution(
-         {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = passthrough_state]},
+         {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{
            trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :send}
          } = notification
@@ -183,7 +183,7 @@ defmodule Tornium.Notification do
   end
 
   defp handle_lua_execution(
-         {:ok, [triggered?: false, render_state: %{} = _render_state, passthrough_state: %{} = passthrough_state]},
+         {:ok, [triggered?: false, render_state: %{} = _render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{} = _notification
        ) do
     nil
@@ -235,8 +235,6 @@ defmodule Tornium.Notification do
         # TODO: Handle error
         nil
     end
-
-    nil
   end
 
   @spec validate_message(message :: String.t()) :: map() | nil
@@ -290,6 +288,7 @@ defmodule Tornium.Notification do
         {:ok, resp_message}
 
       {:error, %Nostrum.Error.ApiError{} = error} ->
+      # {:error, %{response: %{code: error_code, message: _error_message}}} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
         # TODO: Handle this case
@@ -420,17 +419,22 @@ defmodule Tornium.Notification do
     end
   end
 
+  @doc """
+  Parse the cron tab string of a notification trigger to determine when the next execution will occur.
+  """
   @spec parse_next_execution(notification :: Tornium.Schema.Notification.t()) :: DateTime.t()
-  defp parse_next_execution(%Tornium.Schema.Notification{} = notification) do
-    # TODO: Document this function
+  def parse_next_execution(%Tornium.Schema.Notification{} = notification) do
     Crontab.CronExpression.Parser.parse!(notification.trigger.cron)
     |> Crontab.Scheduler.get_next_run_date!()
     |> DateTime.from_naive!("Etc/UTC")
   end
 
+  @doc """
+  Update the next execution timestamp of the notification.
+  """
   @spec update_next_execution(notification :: Tornium.Schema.Notification.t()) :: nil
-  defp update_next_execution(%Tornium.Schema.Notification{} = notification) do
-    # TODO: Document this function
+  def update_next_execution(%Tornium.Schema.Notification{} = notification) do
+    # TODO: Update the trigger instead of the notification
     {1, _} =
       Tornium.Schema.Notification
       |> where([n], n.nid == ^notification.nid)

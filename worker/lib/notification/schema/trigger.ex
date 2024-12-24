@@ -27,7 +27,7 @@ defmodule Tornium.Schema.Trigger do
           code: String.t(),
           parameters: map(),
           message_type: :update | :send,
-          message_template: :string,
+          message_template: String.t(),
           official: boolean()
         }
 

@@ -27,7 +27,7 @@ defmodule Tornium.Schema.Notification do
           one_shot: boolean(),
           parameters: map(),
           next_execution: DateTime.t(),
-          message_id: integer(),
+          message_id: integer() | nil,
           error: String.t() | nil,
           previous_state: map()
         }

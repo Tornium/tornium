@@ -288,7 +288,7 @@ defmodule Tornium.Notification do
         {:ok, resp_message}
 
       {:error, %Nostrum.Error.ApiError{} = error} ->
-      # {:error, %{response: %{code: error_code, message: _error_message}}} ->
+        # {:error, %{response: %{code: error_code, message: _error_message}}} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
         # TODO: Handle this case

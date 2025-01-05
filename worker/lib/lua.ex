@@ -66,7 +66,7 @@ defmodule Tornium.Lua do
       {:ok, {:error, :timeout}} ->
         {:error, :timeout}
 
-      {:ok, {:error, {:lau_error, error, _state}}} ->
+      {:ok, {:error, {:lua_error, error, _state}}} ->
         # TODO: Determine type of error for typespec
         {:lua_error, error}
 

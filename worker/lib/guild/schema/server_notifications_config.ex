@@ -24,8 +24,7 @@ defmodule Tornium.Schema.ServerNotificationsConfig do
         }
 
   @primary_key {:id, :id, autogenerate: true}
-  # schema "server_notifications_config" do
-  schema "servernotificationsconfig" do
+  schema "server_notifications_config" do
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
 
     field(:enabled, :boolean)

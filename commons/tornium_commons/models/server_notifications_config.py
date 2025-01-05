@@ -19,6 +19,9 @@ from .base_model import BaseModel
 
 
 class ServerNotificationsConfig(BaseModel):
+    class Meta:
+        table_name = "server_notifications_config"
+
     server = DeferredForeignKey("server", null=False)
     enabled = BooleanField(default=False, null=False)
     log_channel = BigIntegerField(null=True)

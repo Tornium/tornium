@@ -46,7 +46,7 @@ def notification_dashboard(guild_id: int):
         )
 
     if guild.notifications_config is None:
-        notifications_config: ServerNotificationsConfig = ServerNotificationsConfig.create()
+        notifications_config: ServerNotificationsConfig = ServerNotificationsConfig.create(server=guild.sid)
         guild = (
             Server.update(notifications_config=notifications_config._pk)
             .where(Server.sid == guild_id)

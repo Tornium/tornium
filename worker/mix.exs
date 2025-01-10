@@ -47,11 +47,7 @@ defmodule Tornium.MixProject do
       {:crontab, "~> 1.1"},
       {:oban, "~> 2.17"},
       {:luerl, github: "rvirding/luerl", tag: "1.2.1"},
-
-      # Need to use specific commit of solid pending new release due to 
-      # https://github.com/edgurgel/solid/pull/143 and https://github.com/edgurgel/solid/issues/142
-      # {:solid, "~> 0.16"},
-      {:solid, git: "https://github.com/edgurgel/solid.git", ref: "ab6f13b398b78f5525abcff8c3a227a73db94cc6"},
+      {:solid, "~> 0.17"},
       {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "f0e9cc0511d12ab5299288fcce1dc181e1be1ecb"}
     ]
   end

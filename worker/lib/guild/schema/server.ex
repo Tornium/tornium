@@ -77,5 +77,7 @@ defmodule Tornium.Schema.Server do
     field(:assist_l3_roles, {:array, :integer})
 
     field(:oc_config, :map)
+
+    has_one(:notifications_config, Tornium.Schema.ServerNotificationsConfig, foreign_key: :server_id, references: :sid)
   end
 end

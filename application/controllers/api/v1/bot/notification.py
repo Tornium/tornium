@@ -64,7 +64,11 @@ def toggle_notifications(guild_id: int, *args, **kwargs):
         return make_exception_response("1000", key, details={"message": "Invalid enabled value"})
 
     try:
-        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
+        guild: Server = (
+            Server.select(Server.admins, Server.notifications_config)
+            .where(Server.sid == guild_id)
+            .get()
+        )
     except DoesNotExist:
         return make_exception_response("1001", key)
 
@@ -90,7 +94,11 @@ def set_notifications_log_channel(guild_id: int, *args, **kwargs):
         return make_exception_response("1001", key)
 
     try:
-        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
+        guild: Server = (
+            Server.select(Server.admins, Server.notifications_config)
+            .where(Server.sid == guild_id)
+            .get()
+        )
     except DoesNotExist:
         return make_exception_response("1001", key)
 

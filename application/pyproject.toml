@@ -23,6 +23,7 @@ dependencies = [
     "flask-login ~= 0.6.2",
     "msgpack ~= 1.0.0",
     "scikit-learn",
+    "toml",
     "pandas",
     "peewee ~= 3.17.0",
     "psycopg2",

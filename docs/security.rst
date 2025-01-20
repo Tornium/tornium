@@ -15,6 +15,8 @@ API Key Security
 ^^^^^^^^^^^^^^^^
 As most Torn-related websites use API keys for authentication, keeping your API keys secure and separate is recommended. Torn allows users to have up to 10 API keys with varying permissions, so typically it's best to use a separate API key per service and to give the service as little permissions as it needs (e.g. don't give a service that only needs public data a full access API key). Often, you can contact the developer of the service to determine what type of API key you'll need to use.
 
+For information on your API key is used by Tornium, take a look at :ref:`this docs page<api_key_usage>`.
+
 Faction API Security
 ^^^^^^^^^^^^^^^^^^^^
 Faction-related API data is restricted to members with the API Access permission in-game. Additionally, many API tools (including Tornium) use faction AA as a permissions check to determine who has access to modify faction-related configs and view potentially sensitive information. As such, it is recommended to not have all roles have API Access.

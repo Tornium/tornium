@@ -7,7 +7,7 @@ Tornium is a Discord bot and website made for `Torn City <https://www.torn.com>`
 
 This documentation is still under construction and thus is not yet complete. If you find a missing section and need some help, contact the developer via the links found in the sidebar.
 
-For information on how to keep your Tornium account secure, check out the :ref:`security section<security>`.
+For information on how to keep your Tornium account secure, check out the :ref:`security section<security>` and :ref:`how your API key is used<api_key_usage>`.
 
 API Usage
 ---------

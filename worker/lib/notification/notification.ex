@@ -200,11 +200,14 @@ defmodule Tornium.Notification do
     |> Repo.update_all([])
   end
 
-  defp handle_lua_execution({:error, %Tornium.API.Error{} = torn_error}, %Tornium.Schema.Notification{} = notification) do
+  defp handle_lua_execution(
+         {:error, %Tornium.API.Error{} = _torn_error},
+         %Tornium.Schema.Notification{} = _notification
+       ) do
     # TODO: Handle this error
   end
 
-  defp handle_lua_execution({:error, reason}, %Tornium.Schema.Notification{} = notification) do
+  defp handle_lua_execution({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
     IO.inspect(reason)
     # TODO: Handle this error
     {:error, reason}

@@ -27,7 +27,7 @@ defmodule Tornium.Workers.Notification do
   @impl Oban.Worker
   def perform(
         %Oban.Job{args: %{"notifications" => notifications_ids, "resource" => resource, "resource_id" => resource_id}} =
-          job
+          _job
       ) do
     notifications =
       Tornium.Schema.Notification

@@ -4,11 +4,8 @@ Tornium Notifications
 =====================
 Tornium supports more complicated notifications of in-game actions and events. You can build your own notification triggers or you can use pre-built notification triggers.
 
-.. note::
-   Public notification triggers are not yet currently available.
-
 .. warning::
-   As stated in Tornium's `Terms of Service <https://tornium.com/terms>`_, you are not allowed to use this feature to disrupt Tornium. Even if the sandboxing of this feature is not perfect, intentionally malicious use of this feature is not permitted and may result in a banning of the user, the user's faction, and/or the user's Discord server.
+   As stated in Tornium's `Terms of Service <https://tornium.com/terms>`_, you are not allowed to use this feature to disrupt Tornium. Even if the sandboxing of this feature is not perfect, intentionally malicious use of this feature is not permitted and may result in a banning of the user, the user's faction, and/or the user's Discord server from Tornium.
 
 Terminology
 -----------
@@ -51,4 +48,7 @@ The message template uses the `Liquid templating language <https://shopify.githu
 
 Setting Up a Notification
 -------------------------
+.. note::
+    Currently, notifications can only be created for a channel in a Discord server, but are designed such that they can be sent to the browser in the future.
+
 This part of the feature has not yet been implemented.

@@ -149,6 +149,7 @@ defmodule Tornium.Notification do
   defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
+      |> IO.inspect()
       |> update_passthrough_state(notification)
       |> handle_lua_execution(notification)
     end)
@@ -396,7 +397,7 @@ defmodule Tornium.Notification do
         #   - The message ID should be set to nil
         #   - The message should be recreated
 
-        {1, notification} =
+        {1, [notification]} =
           Tornium.Schema.Notification
           |> select([n], n)
           |> where([n], n.nid == ^nid)
@@ -451,34 +452,42 @@ defmodule Tornium.Notification do
   defp generate_lua_state_map(
          %Tornium.Schema.Notification{
            parameters: parameters,
-           trigger: %Tornium.Schema.Trigger{resource: :user} = _trigger
+           trigger: %Tornium.Schema.Trigger{resource: :user} = _trigger,
+           previous_state: state
          } = _notification,
          response
        ) do
-    Map.put(parameters, :user, response)
+    parameters
+    |> Map.put(:user, response)
+    |> Map.put(:state, state)
   end
 
   @spec generate_lua_state_map(notification :: Tornium.Schema.Notification.t(), response :: map()) :: map()
   defp generate_lua_state_map(
          %Tornium.Schema.Notification{
            parameters: parameters,
-           trigger: %Tornium.Schema.Trigger{resource: :faction} = _trigger
+           trigger: %Tornium.Schema.Trigger{resource: :faction} = _trigger,
+           previous_state: state
          } = _notification,
          response
        ) do
-    Map.put(parameters, :faction, response)
+    parameters
+    |> Map.put(:faction, response)
+    |> Map.put(:state, state)
   end
 
   @spec generate_lua_state_map(notification :: Tornium.Schema.Notification.t(), response :: map()) :: map()
   defp generate_lua_state_map(
          %Tornium.Schema.Notification{
            parameters: parameters,
-           trigger: %Tornium.Schema.Trigger{resource: _resource} = _trigger
+           trigger: %Tornium.Schema.Trigger{resource: _resource} = _trigger,
+           previous_state: state
          } = _notification,
          _response
        ) do
     # TODO: Add the remaining resources for `generate_lua_state_map/2`
     parameters
+    |> Map.put(:state, state)
   end
 
   @spec update_passthrough_state(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) ::

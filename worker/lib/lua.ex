@@ -54,12 +54,16 @@ defmodule Tornium.Lua do
       end)
 
     case Task.yield(task, @lua_supervisor_timeout) || Task.shutdown(task) do
-      {:ok, {[triggered?, render_table, passthrough_state] = _ret, state}} ->
+      {:ok, {[triggered?, render_table, passthrough_table] = _ret, state}} ->
         render_state =
           render_table
           |> :luerl.decode(state)
           |> Tornium.Utils.tuples_to_map()
-          |> IO.inspect()
+
+        passthrough_state =
+          passthrough_table
+          |> :luerl.decode(state)
+          |> Tornium.Utils.tuples_to_map()
 
         {:ok, [triggered?: triggered?, render_state: render_state || %{}, passthrough_state: passthrough_state || %{}]}
 
@@ -75,7 +79,7 @@ defmodule Tornium.Lua do
         {:error, reason}
 
       nil ->
-        {:error, :timeout}
+        {:error, :supervisor_timeout}
     end
   end
 end

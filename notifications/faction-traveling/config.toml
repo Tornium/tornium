@@ -1,0 +1,13 @@
+[trigger]
+uuid = "989ad601-12a7-4ca9-8d61-52c932b7707d"
+name = "Faction Members Traveling"
+description = "This notification will show who in a faction is traveling and when they will land."
+owner = 2383326
+
+[implementation]
+cron = "* * * * *"
+resource = "faction"
+selections = ["basic"]
+message_type = "update"
+
+[implementation.parameters]

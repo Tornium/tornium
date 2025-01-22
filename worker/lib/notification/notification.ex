@@ -39,8 +39,8 @@ defmodule Tornium.Notification do
         case notification.server do
           nil ->
             # Use this when the notification is not for a server and is intended to be sent through the SSE gateway
+            # NOTE: This chunk of the codebase is not implemented yet
             {
-              # NOTE: This chunk of the codebase is not implemented yet
               MapSet.union(s, MapSet.new(notification.trigger.selections)),
               MapSet.put(u, notification.user_id)
             }
@@ -115,9 +115,7 @@ defmodule Tornium.Notification do
     })
   end
 
-  @doc """
-  Filter the API response to only the keys required for the trigger's selection(s).
-  """
+  # Filter the API response to only the keys required for the trigger's selection(s).
   @spec filter_response(
           response :: map(),
           resource :: trigger_resource(),
@@ -155,10 +153,8 @@ defmodule Tornium.Notification do
     end)
   end
 
-  @doc """
-  Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the states will be used
-  to create the message to be sent/updated. If there's an error from the Lua code, the notification will be disabled.
-  """
+  # Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the states will be used
+  # to create the message to be sent/updated. If there's an error from the Lua code, the notification will be disabled.
   @spec handle_lua_execution(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) :: nil
   defp handle_lua_execution(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
@@ -259,9 +255,7 @@ defmodule Tornium.Notification do
     end
   end
 
-  @doc """
-  Attempt to send or update a message for a notification depending on the notification's configuration
-  """
+  # Attempt to send or update a message for a notification depending on the notification's configuration
   @spec try_message(
           message :: map() | nil,
           action_type :: :send | :update,

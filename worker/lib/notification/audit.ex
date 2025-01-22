@@ -133,11 +133,13 @@ defmodule Tornium.Notification.Audit do
       DateTime.utc_now()
       |> DateTime.to_iso8601()
 
-    %Nostrum.Struct.Embed{}
-    |> put_title("Notification Audit Log - :#{Atom.to_string(action)}")
-    |> put_description(description)
-    |> put_timestamp(now)
-    |> put_color(color || Tornium.Discord.Constants.colors()[:good])
-    |> Nostrum.Api.create_message(audit_channel)
+    embed =
+      %Nostrum.Struct.Embed{}
+      |> put_title("Notification Audit Log - :#{Atom.to_string(action)}")
+      |> put_description(description)
+      |> put_timestamp(now)
+      |> put_color(color || Tornium.Discord.Constants.colors()[:good])
+
+    Nostrum.Api.create_message(audit_channel, embeds: [embed])
   end
 end

@@ -40,6 +40,9 @@ defmodule Tornium.Application do
   end
 
   defimpl Solid.Matcher, for: Tuple do
+    # This is temporary and will be part of Solid in
+    # https://github.com/edgurgel/solid/pull/149
+
     def match(data, []), do: {:ok, data}
 
     def match(data, ["size"]) do

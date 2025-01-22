@@ -24,7 +24,7 @@ defmodule Tornium.Utils do
     end
   end
 
-  @spec roles_to_string(roles :: List) :: String.t()
+  @spec roles_to_string(roles :: list(String.t() | integer())) :: binary()
   def roles_to_string(roles) when is_list(roles) do
     roles
     |> Enum.map(&"<@&#{&1}>")

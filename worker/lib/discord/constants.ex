@@ -21,7 +21,7 @@ defmodule Tornium.Discord.Constants do
 
     iex> Tornium.Discord.Constants.colors()[:good]
   """
-  @spec colors() :: map()
+  @spec colors() :: %{any() => integer()}
   def colors() do
     %{
       good: 0xC83F49,

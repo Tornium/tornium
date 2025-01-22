@@ -26,7 +26,7 @@ defmodule Tornium.API.Error do
     :message
   ]
 
-  @spec construct(code :: integer(), error :: String) :: Tornium.API.Error.t()
+  @spec construct(code :: integer(), error :: String.t()) :: t()
   def construct(code, error) do
     case {code, error} do
       {0, _} ->

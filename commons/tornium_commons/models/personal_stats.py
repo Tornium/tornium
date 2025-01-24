@@ -168,4 +168,4 @@ class PersonalStats(BaseModel):
     refills = BigIntegerField(null=True)
 
     class Meta:
-        primary_key = CompositeKey("tid", "timestamp")
+        primary_key = CompositeKey("user", "timestamp")

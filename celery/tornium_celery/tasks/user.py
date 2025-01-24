@@ -20,7 +20,7 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import JOIN, DoesNotExist
+from peewee import JOIN, DoesNotExist, IntegrityError
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
@@ -250,21 +250,14 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        stored_ps: PersonalStats = PersonalStats.create(
-            user=user_data["player_id"],
-            timestamp=datetime.date.today(),
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        )
-
-        if (
-            stored_ps is not None
-            and len(
-                set(PersonalStats._meta.sorted_field_names)
-                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+        try:
+            PersonalStats.create(
+                user=user_data["player_id"],
+                timestamp=datetime.date.today(),
+                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
             )
-            == 0
-        ):
-            user_data_kwargs["personal_stats"] = stored_ps
+        except IntegrityError:
+            pass
 
     User.insert(
         tid=user_data["player_id"],
@@ -378,21 +371,14 @@ def update_user_other(user_data):
 
     if "personalstats" in user_data:
         # /user/personalstats upon other users uses data from the end of the previous day
-        stored_ps: PersonalStats = PersonalStats.create(
-            user=user_data["player_id"],
-            timestamp=datetime.date.today() - datetime.timedelta(days=1),
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        )
-
-        if (
-            stored_ps is not None
-            and len(
-                set(PersonalStats._meta.sorted_field_names)
-                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+        try:
+            PersonalStats.create(
+                user=user_data["player_id"],
+                timestamp=datetime.date.today() - datetime.timedelta(days=1),
+                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
             )
-            == 0
-        ):
-            user_data_kwargs["personal_stats"] = stored_ps
+        except IntegrityError:
+            pass
 
     User.insert(
         tid=user_data["player_id"],

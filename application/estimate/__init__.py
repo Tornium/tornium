@@ -54,11 +54,9 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     except (ValueError, TypeError):
         pass
 
-    ps: typing.Optional[PersonalStats]
-    try:
-        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
-    except DoesNotExist:
-        ps = None
+    ps: typing.Optional[PersonalStats] = (
+        PersonalStats.select().where(PersonalStats.user == user_tid).order_by(-PersonalStats.timestamp).first()
+    )
 
     df: pd.DataFrame
     if ps is not None and now - ps.timestamp.timestamp() <= ESTIMATE_TTL:
@@ -88,7 +86,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         update_error = True
 
     try:
-        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
+        ps = PersonalStats.select().where(PersonalStats.user == user_tid).order_by(-PersonalStats.timestamp).get()
     except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
 

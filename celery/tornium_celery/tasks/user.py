@@ -65,12 +65,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     user: typing.Optional[User] = None
 
     if tid != 0:
-        user = (
-            User.select(User.last_refresh, User.personal_stats)
-            .join(PersonalStats, JOIN.LEFT_OUTER)
-            .where(User.tid == tid)
-            .first()
-        )
+        user = User.select(User.last_refresh).where(User.tid == tid).first()
         user_exists = user is not None
 
         if (
@@ -93,12 +88,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         user_id = 0
         update_self = True
     else:
-        user = (
-            User.select(User.last_refresh, User.personal_stats)
-            .join(PersonalStats, JOIN.LEFT_OUTER)
-            .where(User.tid == tid)
-            .first()
-        )
+        user = User.select(User.last_refresh).where(User.tid == tid).first()
         user_exists = user is not None
 
         if (
@@ -115,7 +105,16 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif user is not None and not refresh_existing:
         return
 
-    if user is not None and update_self and user.personal_stats.timestamp != datetime.date.today():
+    personal_stats: typing.Optional[PersonalStats] = (
+        PersonalStats.select(PersonalStats.timestamp).order_by(-PersonalStats.timestamp).first()
+    )
+
+    if (
+        user is not None
+        and update_self
+        and personal_stats is not None
+        and personal_stats.timestamp != datetime.date.today()
+    ):
         update_personal_stats = True
     elif (
         user is not None

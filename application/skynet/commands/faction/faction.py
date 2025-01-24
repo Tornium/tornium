@@ -357,18 +357,17 @@ def members_switchboard(interaction, *args, **kwargs):
         else:
             try:
                 # TODO: Convert to subquery
-                api_user = random.choice(
-                    User.select(User.tid, User.name)
-                    .join(PersonalStats)
-                    .where(
-                        (PersonalStats.revives >= 1)
-                        & (
-                            User.tid.in_(
-                                Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins
-                            )
-                        )
-                    )
+                api_users = User.select(User.tid, User.name).where(
+                    User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
                 )
+                api_users = {u.tid: u for u in api_users}
+                api_user = api_users[
+                    random.choice(
+                        PersonalStats.select(PersonalStats.user).where(
+                            (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
+                        )
+                    ).tid
+                ]
             except IndexError:
                 return {
                     "type": 4,

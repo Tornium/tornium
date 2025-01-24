@@ -37,7 +37,6 @@ from playhouse.postgres_ext import ArrayField
 from .base_model import BaseModel
 from .faction import Faction
 from .faction_position import FactionPosition
-from .personal_stats import PersonalStats
 from .torn_key import TornKey
 
 
@@ -50,8 +49,6 @@ class User(BaseModel):
     name = CharField(max_length=15, null=True)
     level = SmallIntegerField(null=True)
     discord_id = BigIntegerField(index=True, null=True)
-    personal_stats = ForeignKeyField(PersonalStats, null=True)
-    # Must be the latest personal stats entry containing all the data
 
     # Battle stats
     battlescore = FloatField(null=True)

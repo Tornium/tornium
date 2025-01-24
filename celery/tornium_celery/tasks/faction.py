@@ -888,19 +888,9 @@ def generate_retaliation_embed(
             User.select(
                 User.tid,
                 User.name,
-                PersonalStats.xantaken,
-                PersonalStats.useractivity,
-                PersonalStats.elo,
-                PersonalStats.statenhancersused,
-                PersonalStats.energydrinkused,
-                PersonalStats.booksread,
-                PersonalStats.attackswon,
-                PersonalStats.respectforfaction,
-                PersonalStats.timestamp,
             )
-            .join(PersonalStats, JOIN.LEFT_OUTER)
             .where(User.tid == attack["attacker_id"])
-            .first()
+            .get()
         )
     except DoesNotExist:
         opponent = User.create(
@@ -908,6 +898,22 @@ def generate_retaliation_embed(
             name=attack["attacker_name"],
             faction=attack["attacker_faction"],
         )
+
+    opponents_personal_stats: typing.Optional[PersonalStats] = (
+        PersonalStats.select(
+            PersonalStats.xantaken,
+            PersonalStats.useractivity,
+            PersonalStats.elo,
+            PersonalStats.statenhancersused,
+            PersonalStats.energydrinkused,
+            PersonalStats.booksread,
+            PersonalStats.attackswon,
+            PersonalStats.respectforfaction,
+            PersonalStats.timestamp,
+        )
+        .where(PersonalStats.user == attack["attacker_id"])
+        .first()
+    )
 
     if attack["attacker_faction"] == 0:
         title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
@@ -1028,20 +1034,20 @@ def generate_retaliation_embed(
         )
 
     if (
-        opponent.personal_stats is not None
-        and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
+        opponents_personal_stats is not None
+        and (opponents_personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
     ):  # One week
         fields.append(
             {
                 "name": "Personal Stats",
                 "value": inspect.cleandoc(
-                    f"""Xanax Used: {commas(opponent.personal_stats.xantaken)}
-                    SEs Used: {commas(opponent.personal_stats.statenhancersused)}
-                    E-Cans Used: {commas(opponent.personal_stats.energydrinkused)}
-                    Books Read: {commas(opponent.personal_stats.booksread)}
+                    f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
+                    SEs Used: {commas(opponents_personal_stats.statenhancersused)}
+                    E-Cans Used: {commas(opponents_personal_stats.energydrinkused)}
+                    Books Read: {commas(opponents_personal_stats.booksread)}
 
-                    ELO: {commas(opponent.personal_stats.elo)}
-                    Average Respect: {commas(opponent.personal_stats.respectforfaction / opponent.personal_stats.attackswon, stock_price=True)}
+                    ELO: {commas(opponents_personal_stats.elo)}
+                    Average Respect: {commas(opponents_personal_stats.respectforfaction / opponents_personal_stats.attackswon, stock_price=True)}
                     """
                 ),
             }

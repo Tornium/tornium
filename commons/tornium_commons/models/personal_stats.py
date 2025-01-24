@@ -19,7 +19,7 @@ from .base_model import BaseModel
 
 
 class PersonalStats(BaseModel):
-    tid = DeferredForeignKey("user", null=False)
+    user = DeferredForeignKey("user", null=False)
     timestamp = DateField(null=False)
 
     # Uses jsonb as size of values is not known beyond "int"

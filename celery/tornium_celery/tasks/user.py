@@ -252,7 +252,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
 
     if "personalstats" in user_data:
         stored_ps: PersonalStats = PersonalStats.create(
-            tid=user_data["player_id"],
+            user=user_data["player_id"],
             timestamp=datetime.date.today(),
             **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
         )
@@ -380,7 +380,7 @@ def update_user_other(user_data):
     if "personalstats" in user_data:
         # /user/personalstats upon other users uses data from the end of the previous day
         stored_ps: PersonalStats = PersonalStats.create(
-            tid=user_data["player_id"],
+            user=user_data["player_id"],
             timestamp=datetime.date.today() - datetime.timedelta(days=1),
             **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
         )

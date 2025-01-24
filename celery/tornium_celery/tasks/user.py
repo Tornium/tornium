@@ -415,7 +415,7 @@ def update_user_other(user_data):
     name="tasks.user.refresh_users",
     routing_key="default.refresh_users",
     queue="default",
-    time_limit=5,
+    time_limit=60,
 )
 def refresh_users():
     for api_key in TornKey.select(TornKey.user).join(User).distinct(TornKey.user).where(TornKey.default == True):
@@ -441,7 +441,7 @@ def refresh_users():
     name="tasks.user.fetch_attacks_user_runner",
     routing_key="quick.fetch_user_attacks",
     queue="quick",
-    time_limit=5,
+    time_limit=60,
 )
 def fetch_attacks_user_runner():
     redis = rds()

@@ -3,6 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import pathlib
 import time
 import typing
@@ -39,6 +40,10 @@ def model() -> xgboost.XGBRegressor:
     return _model
 
 
+def date_to_timestamp(date: datetime.date) -> int:
+    return int(datetime.datetime.combine(date, datetime.datetime.min.time()).timestamp())
+
+
 def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:
     if model() is None:
         raise ValueError("No model was loaded")
@@ -59,7 +64,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     )
 
     df: pd.DataFrame
-    if ps is not None and now - ps.timestamp.timestamp() <= ESTIMATE_TTL:
+    if ps is not None and now - date_to_timestamp(ps.timestamp) <= ESTIMATE_TTL:
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
@@ -74,7 +79,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         estimate = int(model().predict(df))
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-        return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL
+        return estimate, now - date_to_timestamp(ps.timestamp) + ESTIMATE_TTL
 
     if not allow_api_calls:
         raise PermissionError

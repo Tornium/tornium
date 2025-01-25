@@ -37,6 +37,7 @@ from playhouse.postgres_ext import ArrayField
 from .base_model import BaseModel
 from .faction import Faction
 from .faction_position import FactionPosition
+from .personal_stats import PersonalStats
 from .torn_key import TornKey
 
 
@@ -159,6 +160,10 @@ class User(BaseModel):
             return _v(api_keys.where(TornKey.access_level << [3, 4]).get().api_key)
         except DoesNotExist:
             return None
+
+    @cached_property
+    def personal_stats(self) -> typing.Optional[PersonalStats]:
+        return PersonalStats.select().where(PersonalStats.user == self.tid).order_by(-PersonalStats.timestamp).first()
 
     def get_user_id(self) -> int:
         return self.tid

@@ -357,6 +357,7 @@ def members_switchboard(interaction, *args, **kwargs):
         else:
             try:
                 # TODO: Convert to subquery
+                # TODO: Optimize these queries
                 api_users = User.select(User.tid, User.name).where(
                     User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
                 )

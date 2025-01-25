@@ -13,14 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BigIntegerField, CompositeKey, DateField, ForeignKeyField
+from peewee import BigIntegerField, CompositeKey, DateField, DeferredForeignKey
 
 from .base_model import BaseModel
-from .user import User
 
 
 class PersonalStats(BaseModel):
-    user = ForeignKeyField(User, null=False)
+    user = DeferredForeignKey("User", null=False)
     timestamp = DateField(null=False)
 
     # Uses jsonb as size of values is not known beyond "int"

@@ -1139,7 +1139,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
     name="tasks.faction.check_attacks",
     routing_key="quick.check_attacks",
     queue="quick",
-    time_limit=5,
+    time_limit=10,
 )
 def check_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:

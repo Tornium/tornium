@@ -95,7 +95,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
 
-    if not update_error and now - ps.timestamp.timestamp() > ESTIMATE_TTL:
+    if not update_error and now - date_to_timestamp(ps.timestamp) > ESTIMATE_TTL:
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])
@@ -112,4 +112,4 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     estimate = int(model().predict(df))
     redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-    return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL
+    return estimate, now - date_to_timestamp(ps.timestamp) + ESTIMATE_TTL

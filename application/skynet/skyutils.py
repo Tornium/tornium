@@ -72,7 +72,7 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
 
         for admin in server.admins:
             try:
-                admin_key: typing.Optinal[str] = User.select(User.tid).where(User.tid == admin).get().key
+                admin_key: typing.Optional[str] = User.select(User.tid).where(User.tid == admin).get().key
             except DoesNotExist:
                 continue
 

@@ -1,6 +1,6 @@
 -- `faction` is the API response for the series of selections used
 ---@class Faction
----@field members table
+---@field members table<string, table>
 ---@field name string
 faction = faction
 
@@ -25,11 +25,8 @@ if state.members == nil then
   state.members = {}
 end
 
-if state.initialized == nil then
-  state.initialized = false
-elseif state.initialized == false then
-  state.initialized = true
-end
+-- TODO: Reset notification states when the code is updated
+-- TODO: Set earliest_departure_time to nil if the state is not initialized
 
 function string.split(match_string)
   local ret_table = {}
@@ -95,16 +92,16 @@ function table.find(tbl, expected_value)
   return nil
 end
 
---- Try to insert data into a table of arrays
+--- Try to insert data into a table of table
 ---@param tbl table<string, table>
 ---@param key string
 ---@param value any
-local function try_insert_array(tbl, key, value)
+function try_insert_table(tbl, key, value)
   if not tbl[key] then
     tbl[key] = {}
   end
 
-  table.insert(tbl[key], value)
+  tbl[key][value.tid] = value
 end
 
 --- Extract the destination string from a user's status
@@ -166,7 +163,7 @@ for member_id, member_data in pairs(faction.members) do
   end
 
   if destination ~= nil then
-    try_insert_array(state.members, destination, member_table)
+    try_insert_table(state.members, destination, member_table)
   end
 end
 
@@ -180,20 +177,30 @@ local render_state = {
 for destination, destination_members in pairs(state.members) do
   for _, member in pairs(destination_members) do
     if member.landed and member.hospital_until_time ~= nil then
-      try_insert_array(render_state.hospital_members, destination, {
+      try_insert_table(render_state.hospital_members, destination, {
+        tid = member.tid,
         username = format_username(member),
+        hospital_end_time = member.hospital_until_time,
       })
     elseif member.landed then
-      try_insert_array(render_state.abroad_members, destination, {
+      try_insert_table(render_state.abroad_members, destination, {
+        tid = member.tid,
         username = format_username(member),
       })
     else
-      try_insert_array(render_state.flying_members, destination, {
+      try_insert_table(render_state.flying_members, destination, {
+        tid = member.tid,
         username = format_username(member),
         regular_landing_time = 0,
       })
     end
   end
+end
+
+if state.initialized == nil then
+  state.initialized = false
+elseif state.initialized == false then
+  state.initialized = true
 end
 
 -- For simplicity, the message will always be updated to avoid issues with data changing between API calls

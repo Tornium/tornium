@@ -147,7 +147,6 @@ defmodule Tornium.Notification do
   defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
-      |> IO.inspect()
       |> update_passthrough_state(notification)
       |> handle_lua_execution(notification)
     end)
@@ -164,7 +163,6 @@ defmodule Tornium.Notification do
        ) do
     render_message(trigger_message_template, render_state)
     |> validate_message()
-    |> IO.inspect()
     |> try_message(:update, notification)
   end
 
@@ -228,7 +226,6 @@ defmodule Tornium.Notification do
       |> Solid.render!(state)
       |> Kernel.to_string()
       |> String.replace(["\n", "\t"], "")
-      |> IO.inspect()
     rescue
       e ->
         IO.inspect(e)

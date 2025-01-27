@@ -136,7 +136,7 @@ def check_invoker_exists(interaction: dict):
     if invoker is None:
         return invoker, tuple()
 
-    admin_keys = get_admin_keys(interaction)
+    admin_keys = get_admin_keys(interaction, all_keys=True)
 
     if len(admin_keys) == 0:
         return {

@@ -34,7 +34,7 @@ class DynamicList extends HTMLElement {
 
         const header = document.createElement("div");
         header.classList.add("card-header");
-        header.innerHTML = this.getAttribute("data-header");
+        header.textContent = this.getAttribute("data-header");
         card.append(header);
 
         this.listContainer = document.createElement("ul");

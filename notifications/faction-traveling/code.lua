@@ -5,28 +5,38 @@
 faction = faction
 
 ---@class FlyingMember
----@field tid integer
+---@field tid integer|string
 ---@field name string
----@field destination string?
 ---@field earliest_departure_time integer?
 ---@field landed boolean?
----@field hospital_until_time integer?
+---@field status table?
+---@field origin string?
 
 ---@class State
----@field members table<string, FlyingMember[]>
+---@field members table<string, table<string, FlyingMember>>
 ---@field last_update_time integer
 ---@field initialized boolean
 state = state
--- If `state.initialized` is nil or false, the data required for this is not initialized in the database
--- and people already flying will have inaccurate flight landing times calculated
--- TODO: Add time started injected by underlying Elixir code
+-- TODO: Reset notification states when the code is updated
 
 if state.members == nil then
   state.members = {}
 end
 
--- TODO: Reset notification states when the code is updated
--- TODO: Set earliest_departure_time to nil if the state is not initialized
+local destination_travel_durations = {
+  -- Destination: [Standard, Airstrip, WLT, BCT]
+  ["Mexico"] = { 1560, 1080, 780, 480 },
+  ["Cayman Islands"] = { 2100, 1500, 1080, 660 },
+  ["Canada"] = { 2460, 1740, 1200, 720 },
+  ["Hawaii"] = { 8040, 5460, 4020, 2400 },
+  ["United Kingdom"] = { 9540, 6660, 4800, 2880 },
+  ["Argentina"] = { 10020, 7020, 4980, 3000 },
+  ["Switzerland"] = { 10500, 7380, 5280, 3180 },
+  ["Japan"] = { 13500, 9480, 6780, 4080 },
+  ["China"] = { 14520, 10140, 7260, 4320 },
+  ["UAE"] = { 16260, 11400, 8100, 4860 },
+  ["South Africa"] = { 17820, 12480, 8940, 5340 },
+}
 
 function string.split(match_string)
   local ret_table = {}
@@ -56,7 +66,7 @@ function string.gmatch(str, pattern)
   function mt.__call(table)
     local match_start, match_end = string.find(table.str, table.pattern, table.nextPos)
 
-    if(match_start == nil) then
+    if (match_start == nil) then
       return nil;
     else
       table.nextPos = match_end + 1;
@@ -96,7 +106,7 @@ end
 ---@param tbl table<string, table>
 ---@param key string
 ---@param value any
-function try_insert_table(tbl, key, value)
+local function try_insert_table(tbl, key, value)
   if not tbl[key] then
     tbl[key] = {}
   end
@@ -106,19 +116,31 @@ end
 
 --- Extract the destination string from a user's status
 ---@param status_string string user.status.description
----@return string? Destination of the user (or current location if abroad)
+---@return string? "Destination of the user (or current location if abroad)"
 local function get_destination(status_string)
   local destination_words = string.split(status_string)
 
   if string.starts_with(status_string, "Traveling") then
     return table.join({ table.unpack(destination_words, 3, #destination_words) }, " ")
-  elseif string.starts_with(status_string, "Returning") then
-    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
+  elseif string.starts_with(status_string, "Returning to Torn") then
+    return "Torn"
   elseif string.starts_with(status_string, "In") and string.find(status_string, "hospital") ~= nil then
     local hospital_index = table.find(destination_words, "hospital")
     return table.join({ table.unpack(destination_words, 3, hospital_index) }, " ")
   elseif string.starts_with(status_string, "In") then
     return table.join({ table.unpack(destination_words, 2, #destination_words) }, " ")
+  end
+
+  return nil
+end
+
+--- Extract the origin string from a user's status when the user is returning to Torn from that origin
+---@param status_string string user.status.description
+---@return string? "Destination of the user (or current location if abroad)"
+function get_origin(status_string)
+  if string.starts_with(status_string, "Returning to Torn") then
+    local destination_words = string.split(status_string)
+    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
   end
 
   return nil
@@ -131,35 +153,70 @@ local function format_username(member)
   return string.format("%s [%d]", member.name, member.tid)
 end
 
+--- Remove a member from all destinations other than where they are
+---@param member_id string
+---@param destination string
+local function remove_member_other_destinations(member_id, destination)
+  for iter_destination, destination_members in pairs(state.members) do
+    if destination_members[member_id] and iter_destination ~= destination then
+      state.members[iter_destination][member_id] = nil
+    end
+  end
+end
+
 -- Iterate over the faction members
 for member_id, member_data in pairs(faction.members) do
   local destination = get_destination(member_data.status.description)
+  remove_member_other_destinations(member_id, destination)
 
   ---@type FlyingMember
   local member_table = {
     tid = member_id,
     name = member_data.name,
-    destination = destination,
   }
 
   if string.starts_with(member_data.status.description, "In hospital") or string.starts_with(member_data.status.description, "In jail") then
-    -- TODO: Better handle this case
     -- e.g. "In hospital for 4 mins "
     destination = nil
   elseif string.starts_with(member_data.status.description, "Traveling") then
     -- The faction member is flying
     member_table.landed = false
+    member_table.status = nil
+
+    if state.initialized and state.members[destination] and state.members[destination][member_id] and state.members[destination][member_id].earliest_departure_time then
+      -- A departure time already exists and shouldn't be updated
+      member_table.earliest_departure_time = state.members[destination][member_id].earliest_departure_time
+    elseif state.initialized and not state.members[destination] or not state.members[destination][member_id] then
+      -- A departure time doesn't exist and the current time should be used instead
+      member_table.earliest_departure_time = math.floor(os.time(os.date("!*t")))
+    else
+      member_table.earliest_departure_time = nil
+    end
   elseif string.starts_with(member_data.status.description, "Returning") then
     -- The faction member is flying back to Torn
     member_table.landed = false
+    member_table.status = nil
+    member_table.origin = get_origin(member_data.status.description)
+
+    if state.initialized and state.members[destination] and state.members[destination][member_id] and state.members[destination][member_id].earliest_departure_time then
+      -- A departure time already exists and shouldn't be updated
+      member_table.earliest_departure_time = state.members[destination][member_id].earliest_departure_time
+    elseif state.initialized and not state.members[destination] or not state.members[destination][member_id] then
+      -- A departure time doesn't exist and the current time should be used instead
+      member_table.earliest_departure_time = math.floor(os.time(os.date("!*t")))
+    else
+      member_table.earliest_departure_time = nil
+    end
   elseif member_data.status.state == "Abroad" then
     -- The faction member is abroad in a certain country
-    member_table.hospital_until_time = nil
+    member_table.status = nil
     member_table.landed = true
+    member_table.earliest_departure_time = nil
   elseif member_data.status.state == "Hospital" and string.starts_with(member_data.status.description, "In a ") and string.find(member_data.status.description, "hospital") then
     -- The faction member is in the hospital abroad
-    member_table.hospital_until_time = member_data.status
+    member_table.status = member_data.status
     member_table.landed = true
+    member_table.earliest_departure_time = nil
   end
 
   if destination ~= nil then
@@ -176,11 +233,11 @@ local render_state = {
 
 for destination, destination_members in pairs(state.members) do
   for _, member in pairs(destination_members) do
-    if member.landed and member.hospital_until_time ~= nil then
+    if member.landed and member.status ~= nil then
       try_insert_table(render_state.hospital_members, destination, {
         tid = member.tid,
         username = format_username(member),
-        hospital_end_time = member.hospital_until_time,
+        status = member.status,
       })
     elseif member.landed then
       try_insert_table(render_state.abroad_members, destination, {
@@ -188,18 +245,23 @@ for destination, destination_members in pairs(state.members) do
         username = format_username(member),
       })
     else
+      local regular_landing = nil
+      if member.earliest_departure_time and destination_travel_durations[member.origin or destination] then
+        regular_landing = member.earliest_departure_time + destination_travel_durations[member.origin or destination][1]
+      end
+
       try_insert_table(render_state.flying_members, destination, {
         tid = member.tid,
         username = format_username(member),
-        regular_landing_time = 0,
+        regular_landing = regular_landing,
       })
     end
   end
 end
 
-if state.initialized == nil then
-  state.initialized = false
-elseif state.initialized == false then
+if not state.initialized then
+  -- If `state.initialized` is nil or false, the data required for this is not initialized in the database
+  -- and people already flying will have inaccurate flight landing times calculated
   state.initialized = true
 end
 

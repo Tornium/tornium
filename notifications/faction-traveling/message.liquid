@@ -9,7 +9,7 @@
 				{% for destination in flying_members %}
 				{
 					"name": "{{ destination[0] }}",
-				"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://torn.com/profiles.php?XID={{ member[1].tid }}) - {% if member[1].timestamp %}<t:{{ member[1].timestamp }}:R>{% else %}Unknown{% endif %}\n{% endfor %}"
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }}) - {% if member[1].regular_landing %}<t:{{ member[1].regular_landing }}:R>{% else %}Unknown{% endif %}\n{% endfor %}"
 				}{% unless forloop.last %},{% endunless %}
 				{% endfor %}
 			]
@@ -24,7 +24,7 @@
 				{% for destination in hospital_members %}
 				{
 					"name": "{{ destination[0] }}",
-					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://torn.com/profiles.php?XID={{ member[1].tid }}) - <t:{{ member[1].hospital_end_time }}:R>\n{% endfor %}"
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }}) - <t:{{ member[1].status.until }}:R>\n{% endfor %}"
 				}{% unless forloop.last %},{% endunless %}
 				{% endfor %}
 			]
@@ -39,7 +39,7 @@
 				{% for destination in abroad_members %}
 				{
 					"name": "{{ destination[0] }}",
-					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://torn.com/profiles.php?XID={{ member[1].tid }})\n{% endfor %}"
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }})\n{% endfor %}"
 				}{% unless forloop.last %},{% endunless %}
 				{% endfor %}
 			]

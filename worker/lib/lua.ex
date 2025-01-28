@@ -14,8 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Lua do
+  # TODO: Redo this comment
   # This timeout is double that of the default Lua VM timeout to allow for delays with the supervisor
-  @lua_supervisor_timeout 200
+  @lua_supervisor_timeout 1000
 
   # TODO: Update naming to make this code more generic
 
@@ -68,7 +69,7 @@ defmodule Tornium.Lua do
         {:ok, [triggered?: triggered?, render_state: render_state || %{}, passthrough_state: passthrough_state || %{}]}
 
       {:ok, {:error, :timeout}} ->
-        {:error, :timeout}
+        {:error, :timeout_a}
 
       {:ok, {:error, {:lua_error, error, _state}}} ->
         # TODO: Determine type of error for typespec

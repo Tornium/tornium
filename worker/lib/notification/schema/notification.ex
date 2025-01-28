@@ -40,14 +40,13 @@ defmodule Tornium.Schema.Notification do
 
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
     field(:channel_id, :integer)
+    field(:message_id, :integer)
 
     field(:resource_id, :integer)
     field(:one_shot, :boolean)
     field(:parameters, :map)
 
     field(:next_execution, :utc_datetime)
-    field(:message_id, :integer)
-
     field(:error, :string)
     field(:previous_state, :map)
   end

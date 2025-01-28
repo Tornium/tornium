@@ -186,7 +186,7 @@ for member_id, member_data in pairs(faction.members) do
     if state.initialized and state.members[destination] and state.members[destination][member_id] and state.members[destination][member_id].earliest_departure_time then
       -- A departure time already exists and shouldn't be updated
       member_table.earliest_departure_time = state.members[destination][member_id].earliest_departure_time
-    elseif state.initialized and not state.members[destination] or not state.members[destination][member_id] then
+    elseif state.initialized and (not state.members[destination] or not state.members[destination][member_id]) then
       -- A departure time doesn't exist and the current time should be used instead
       member_table.earliest_departure_time = math.floor(os.time(os.date("!*t")))
     else
@@ -201,7 +201,7 @@ for member_id, member_data in pairs(faction.members) do
     if state.initialized and state.members[destination] and state.members[destination][member_id] and state.members[destination][member_id].earliest_departure_time then
       -- A departure time already exists and shouldn't be updated
       member_table.earliest_departure_time = state.members[destination][member_id].earliest_departure_time
-    elseif state.initialized and not state.members[destination] or not state.members[destination][member_id] then
+    elseif state.initialized and (not state.members[destination] or not state.members[destination][member_id]) then
       -- A departure time doesn't exist and the current time should be used instead
       member_table.earliest_departure_time = math.floor(os.time(os.date("!*t")))
     else

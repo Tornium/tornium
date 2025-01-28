@@ -38,14 +38,13 @@ class Notification(BaseModel):
 
     server = ForeignKeyField(Server, null=True)
     channel_id = BigIntegerField(null=True)
+    message_id = BigIntegerField(default=None, null=True)  # Message for auto-updating message
 
     resource_id = IntegerField(default=None, null=True)
     one_shot = BooleanField(default=True, null=False)
     parameters = JSONField(default={}, null=False)
 
     next_execution = DateTimeField(default=None, null=True)
-    message_id = BigIntegerField(default=None, null=True)  # Message for auto-updating message
-
     error = CharField(default=None, null=True)
     previous_state = JSONField(default={}, null=False)
 

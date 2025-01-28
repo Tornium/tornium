@@ -12,7 +12,10 @@
 					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }}) - {% if member[1].regular_landing %}<t:{{ member[1].regular_landing }}:R>{% else %}Unknown{% endif %}\n{% endfor %}"
 				}{% unless forloop.last %},{% endunless %}
 				{% endfor %}
-			]
+			],
+			"footer": {
+				"text": "Shows earliest regular landing time"
+			}
 			{% endif %}
 		},
 		{

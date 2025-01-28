@@ -51,7 +51,7 @@ defmodule Tornium.Lua do
       Task.Supervisor.async(Tornium.LuaSupervisor, fn ->
         # Default timeout of 100ms in Lua VM
         # See https://github.com/rvirding/luerl/blob/37991d1692ad543eb0cb67faf515e6105c6ae79f/src/luerl_sandbox.erl#L79 for list of options
-        :luerl_sandbox.run(code, state)
+        :luerl_sandbox.run(code, %{max_time: @lua_supervisor_timeout}, state)
       end)
 
     case Task.yield(task, @lua_supervisor_timeout) || Task.shutdown(task) do
@@ -69,7 +69,7 @@ defmodule Tornium.Lua do
         {:ok, [triggered?: triggered?, render_state: render_state || %{}, passthrough_state: passthrough_state || %{}]}
 
       {:ok, {:error, :timeout}} ->
-        {:error, :timeout_a}
+        {:error, :timeout}
 
       {:ok, {:error, {:lua_error, error, _state}}} ->
         # TODO: Determine type of error for typespec

@@ -134,9 +134,8 @@ defmodule Tornium.Notification do
           response :: map(),
           trigger :: Tornium.Schema.Trigger.t(),
           notifications :: [Tornium.Schema.Notification.t()]
-        ) :: any()
+        ) :: {:error, Tornium.API.Error.t()} | list(nil)
   defp handle_response(
-         # TODO: Update typespec for this
          %{"error" => %{"code" => code, "error" => error}} = _response,
          _trigger,
          _notifications
@@ -188,7 +187,6 @@ defmodule Tornium.Notification do
     IO.inspect(error, label: ":lua_error [#{notification.nid}]")
     Tornium.Notification.Audit.log(:lua_error, notification)
 
-    # TODO: Determine if this be disabled after a Lua error?
     Tornium.Schema.Notification
     |> where([n], n.nid == ^notification.nid)
     |> update([n], set: [enabled: false, error: ":lua_error"])
@@ -261,8 +259,6 @@ defmodule Tornium.Notification do
           {:ok, Nostrum.Struct.Message.t()} | {:error, Nostrum.Error.ApiError.t()} | {:error, :unknown} | nil
   defp try_message(message, _action_type, _notification) when is_nil(message) do
     # There is no message to act upon. This should just act as a passthrough
-
-    # TODO: Better handle this case
     nil
   end
 

@@ -52,6 +52,7 @@ Tornium - Setup Trigger
                     <label class="btn" for="notification-type-repeating">Repeating</label>
                 </div>
 
+                {% if trigger.parameters | length != 0 %}
                 <div class="card w-100 mt-3">
                     <div class="card-header">Parameters:</div>
                     <ul class="list-group list-group-flush">
@@ -67,6 +68,7 @@ Tornium - Setup Trigger
                         {% endfor %}
                     </ul>
                 </div>
+                {% endif %}
 
                 <button type="button" id="setup-trigger" class="btn btn-outline-success w-100 mt-3">{%if update %}Update Notification{% else %}Setup Trigger{% endif %}</button>
 

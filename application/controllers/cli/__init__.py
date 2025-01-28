@@ -222,4 +222,4 @@ def load_triggers(verbose=False):
         if verbose:
             click.echo(f"Checking trigger directory {trigger_directory}")
 
-        load_trigger(pathlib.Path(os.getcwd() + "/../notifications/" + trigger_directory))
+        load_trigger(pathlib.Path(os.getcwd() + "/../notifications/" + trigger_directory), official=True)

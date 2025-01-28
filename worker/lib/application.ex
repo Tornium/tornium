@@ -38,24 +38,4 @@ defmodule Tornium.Application do
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)
   end
-
-  defimpl Solid.Matcher, for: Tuple do
-    # This is temporary and will be part of Solid in
-    # https://github.com/edgurgel/solid/pull/149
-
-    def match(data, []), do: {:ok, data}
-
-    def match(data, ["size"]) do
-      {:ok, tuple_size(data)}
-    end
-
-    def match(data, [key | keys]) when is_integer(key) do
-      try do
-        elem(data, key)
-        |> @protocol.match(keys)
-      rescue
-        ArgumentError -> {:error, :not_found}
-      end
-    end
-  end
 end

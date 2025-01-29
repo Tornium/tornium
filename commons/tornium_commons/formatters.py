@@ -452,3 +452,21 @@ class LinkHTMLParser(html.parser.HTMLParser):
 
     def handle_data(self, data):
         self.value = data
+
+
+def date_to_timestamp(date: datetime.date) -> int:
+    """
+    Convert the date to a unix timestamp
+
+    Parameters
+    ----------
+    date : datetime.date
+        Date object
+
+    Returns
+    -------
+    int
+        Unix timestamp
+    """
+
+    return int(datetime.datetime.combine(date, datetime.datetime.min.time()).timestamp())

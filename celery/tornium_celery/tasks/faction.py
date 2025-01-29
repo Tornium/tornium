@@ -26,7 +26,13 @@ from decimal import DivisionByZero
 
 from peewee import JOIN, SQL, DoesNotExist
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
+from tornium_commons.formatters import (
+    LinkHTMLParser,
+    commas,
+    date_to_timestamp,
+    timestamp,
+    torn_timestamp,
+)
 from tornium_commons.models import (
     Faction,
     FactionPosition,
@@ -1035,7 +1041,7 @@ def generate_retaliation_embed(
 
     if (
         opponents_personal_stats is not None
-        and (opponents_personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
+        and int(time.time()) - date_to_timestamp(opponents_personal_stats.timestamp) <= 604800
     ):  # One week
         fields.append(
             {

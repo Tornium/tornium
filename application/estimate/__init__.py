@@ -13,6 +13,7 @@ import xgboost
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
+from tornium_commons.formatters import date_to_timestamp
 from tornium_commons.models import PersonalStats, User
 
 _model: typing.Optional[xgboost.XGBRegressor] = None
@@ -38,10 +39,6 @@ def model() -> xgboost.XGBRegressor:
         model_features = list(_model.feature_names_in_)
 
     return _model
-
-
-def date_to_timestamp(date: datetime.date) -> int:
-    return int(datetime.datetime.combine(date, datetime.datetime.min.time()).timestamp())
 
 
 def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:

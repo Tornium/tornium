@@ -34,7 +34,7 @@ defmodule Tornium.Application do
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
-      Tornium.Web.Endpoint,
+      Tornium.Web.Endpoint
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)

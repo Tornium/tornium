@@ -23,6 +23,7 @@ defmodule Tornium.Workers.Notification do
     priority: 5,
     queue: :notifications,
     tags: ["notification"]
+    # TODO: Make each resource + resource_id unique for the same 45 seconds as the secheduler
 
   @impl Oban.Worker
   def perform(

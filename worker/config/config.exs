@@ -51,8 +51,15 @@ config :tornium, Oban,
      ]}
   ]
 
+config :tornium, Tornium.Web.Endpoint,
+  url: [ip: {127, 0, 0, 1}, port: 4000],
+  adapter: Bandit.PhoenixAdapter,
+  pubsub_server: Tornium.Web.PubSub,
+  live_view: [signing_salt: "z8I4+/aT"]
+
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
-
-IO.puts("Config environment: #{config_env()}")

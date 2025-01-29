@@ -28,12 +28,15 @@ defmodule Tornium.Workers.NotificationScheduler do
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
     Logger.debug("Scheduling notifications")
+    now = DateTime.utc_now()
 
     # Schedule notifications for Discord servers where notifications are enabled
     # TODO: Determine how this can be modified into query to include notifications outside of Discord servers
     Tornium.Schema.Notification
     |> where([n], not is_nil(n.server_id))
+    |> where([n], n.enabled == true)
     |> join(:inner, [n], t in assoc(n, :trigger))
+    |> where([n, t, s, c], t.next_execution <= ^now or is_nil(t.next_execution))
     |> join(:inner, [n, t], s in assoc(n, :server))
     |> join(:inner, [n, t, s], c in assoc(s, :notifications_config))
     |> where([n, t, s, c], c.enabled == true)

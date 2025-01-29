@@ -9,6 +9,8 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
       add :owner_id, references(:user, column: :tid, type: :integer), null: false
 
       add :cron, :string, default: "* * * * *", null: false
+      add :next_execution, :utc_datetime, default: nil, null: true
+
       add :resource, :string, null: false  # Enum is represented as a string in the database
       add :selections, {:array, :string}, default: [], null: false
       add :code, :text, default: "", null: false
@@ -37,7 +39,6 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
       add :one_shot, :boolean, default: true, null: false
       add :parameters, :map, default: %{}, null: false
 
-      add :next_execution, :utc_datetime, default: nil, null: true
       add :error, :text, default: nil, null: true
       add :previous_state, :map, default: %{}, null: false
     end

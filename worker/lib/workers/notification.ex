@@ -37,6 +37,12 @@ defmodule Tornium.Workers.Notification do
       |> preload([n, t, s], trigger: t, server: s)
       |> Repo.all()
 
+    notifications
+    |> Enum.uniq_by(fn %Tornium.Schema.Notification{} = notification -> notification.trigger end)
+    |> Enum.map(fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{} = trigger} = _notification ->
+      Tornium.Notification.update_next_execution(trigger)
+    end)
+
     Tornium.Notification.execute_resource(String.to_atom(resource), resource_id, notifications)
 
     :ok

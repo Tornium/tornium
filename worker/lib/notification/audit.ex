@@ -129,7 +129,7 @@ defmodule Tornium.Notification.Audit do
     nil
   end
 
-  defp get_audit_channel(%Tornium.Schema.Notification{server: server_id}) do
+  defp get_audit_channel(%Tornium.Schema.Notification{server_id: server_id}) do
     # TODO: Add caching to this
     # Probably use LRU caching with TTL
     # https://github.com/whitfin/cachex
@@ -146,16 +146,25 @@ defmodule Tornium.Notification.Audit do
 
       %Tornium.Schema.ServerNotificationsConfig{log_channel: log_channel} = _ ->
         log_channel
+
+      log_channel when is_integer(log_channel) ->
+        log_channel
     end
   end
 
   @spec create_audit_message(
-          audit_channel :: integer(),
+          audit_channel :: integer() | nil,
           action :: atom(),
           description :: String.t(),
           color :: integer() | nil
-        ) :: {:ok, Nostrum.Struct.Message.t()} | Nostrum.Api.error()
-  defp create_audit_message(audit_channel, action, description, color \\ nil) do
+        ) :: {:ok, Nostrum.Struct.Message.t()} | Nostrum.Api.error() | nil
+  defp create_audit_message(audit_channel, action, description, color \\ nil)
+
+  defp create_audit_message(audit_channel, _action, _description, _color) when is_nil(audit_channel) do
+    nil
+  end
+
+  defp create_audit_message(audit_channel, action, description, color) when is_integer(audit_channel) do
     now =
       DateTime.utc_now()
       |> DateTime.to_iso8601()

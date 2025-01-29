@@ -16,6 +16,7 @@
 from peewee import (
     BooleanField,
     CharField,
+    DateTimeField,
     ForeignKeyField,
     IntegerField,
     TextField,
@@ -37,6 +38,7 @@ class NotificationTrigger(BaseModel):
     owner = ForeignKeyField(User, null=False)
 
     cron = CharField(default="* * * * *", null=False)
+    next_execution = DateTimeField(default=None, null=True)
     resource = CharField(null=False, choices=["user", "faction", "company", "torn", "faction_v2"])
     selections = ArrayField(CharField, default=[], index=False)
     code = TextField(null=False)

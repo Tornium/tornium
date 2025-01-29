@@ -17,7 +17,6 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     CharField,
-    DateTimeField,
     ForeignKeyField,
     IntegerField,
     UUIDField,
@@ -44,7 +43,6 @@ class Notification(BaseModel):
     one_shot = BooleanField(default=True, null=False)
     parameters = JSONField(default={}, null=False)
 
-    next_execution = DateTimeField(default=None, null=True)
     error = CharField(default=None, null=True)
     previous_state = JSONField(default={}, null=False)
 

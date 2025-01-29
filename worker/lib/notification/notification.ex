@@ -314,6 +314,8 @@ defmodule Tornium.Notification do
     end
   end
 
+  # TODO: Handle when the channel_id is nil
+
   defp try_message(
          %{} = message,
          :update,
@@ -427,8 +429,8 @@ defmodule Tornium.Notification do
   @doc """
   Update the next execution timestamp of the notification.
   """
-  @spec update_next_execution(notification :: Tornium.Schema.Notification.t()) :: nil
-  def update_next_execution(%Tornium.Schema.Notification{trigger: trigger, trigger_id: trigger_id} = _notification) do
+  @spec update_next_execution(notification :: Tornium.Schema.Trigger.t()) :: nil
+  def update_next_execution(%Tornium.Schema.Trigger{tid: trigger_id} = trigger) do
     Tornium.Schema.Trigger
     |> where([t], t.tid == ^trigger_id)
     |> update([t], set: [next_execution: ^parse_next_execution(trigger)])

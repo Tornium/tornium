@@ -90,7 +90,8 @@ defmodule Tornium.Notification.Audit do
     )
   end
 
-  def log(:discord_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts) when channel_id == false do
+  def log(:discord_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
+      when channel_id == false do
     %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
 
     "A Discord error (#{error_code}) occurred while making an API call"
@@ -103,7 +104,8 @@ defmodule Tornium.Notification.Audit do
     nil
   end
 
-  def log(:discord_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, opts) when is_integer(channel_id) do
+  def log(:discord_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, opts)
+      when is_integer(channel_id) do
     %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
 
     create_audit_message(

@@ -27,7 +27,7 @@ defmodule Tornium.API.Error do
   ]
 
   @spec construct(code :: integer(), error :: String.t()) :: t()
-  def construct(code, error) do
+  def construct(code, error) when is_integer(code) do
     case {code, error} do
       {0, _} ->
         %Tornium.API.Error{code: code, error: error, message: "Unhandled error, should not occur."}

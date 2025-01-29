@@ -22,6 +22,7 @@ defmodule Tornium.Schema.Trigger do
           description: String.t(),
           owner: Tornium.Schema.User.t(),
           cron: String.t(),
+          next_execution: DateTime.t(),
           resource: :user | :faction | :company | :torn | :faction_v2,
           selections: [String.t()],
           code: String.t(),
@@ -38,6 +39,8 @@ defmodule Tornium.Schema.Trigger do
     belongs_to(:owner, Tornium.Schema.User, references: :tid)
 
     field(:cron, :string)
+    field(:next_execution, :utc_datetime)
+
     field(:resource, Ecto.Enum, values: [:user, :faction, :company, :torn, :faction_v2])
     field(:selections, {:array, :string})
     field(:code, :string)

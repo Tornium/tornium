@@ -26,7 +26,6 @@ defmodule Tornium.Schema.Notification do
           resource_id: integer(),
           one_shot: boolean(),
           parameters: map(),
-          next_execution: DateTime.t(),
           message_id: integer() | nil,
           error: String.t() | nil,
           previous_state: map()
@@ -46,7 +45,6 @@ defmodule Tornium.Schema.Notification do
     field(:one_shot, :boolean)
     field(:parameters, :map)
 
-    field(:next_execution, :utc_datetime)
     field(:error, :string)
     field(:previous_state, :map)
   end

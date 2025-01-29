@@ -4,7 +4,7 @@ defmodule Tornium.Notification.Audit do
   import Nostrum.Struct.Embed
   alias Tornium.Repo
 
-  @type actions :: :no_api_keys | :lua_error | :invalid_channel
+  @type actions :: :no_api_keys | :lua_error | :invalid_channel | :discord_error
 
   @doc """
   Log a notification action in the audit log. If there is an audit channel for the notification's server, a message will also be sent there.
@@ -17,28 +17,29 @@ defmodule Tornium.Notification.Audit do
   @spec log(
           action :: actions(),
           notification :: Tornium.Schema.Notification.t(),
-          channel_id :: integer() | nil | false
+          channel_id :: integer() | nil | false,
+          opts: Keyword
         ) :: nil
-  def log(action, notification, channel_id \\ false)
+  def log(action, notification, channel_id \\ false, opts \\ [])
 
-  def log(_action, %Tornium.Schema.Notification{} = _notification, channel_id) when is_nil(channel_id) do
+  def log(_action, %Tornium.Schema.Notification{} = _notification, channel_id, _opts) when is_nil(channel_id) do
     # General default case for when there is no audit log channel or any server associated with the notification
     nil
   end
 
-  def log(:no_api_keys = action, %Tornium.Schema.Notification{} = notification, channel_id)
+  def log(:no_api_keys = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
       when channel_id == false do
     "No API keys were available for the notification"
     |> format_log(notification, action)
     |> Logger.info()
 
     audit_channel = get_audit_channel(notification)
-    log(action, notification, audit_channel)
+    log(action, notification, audit_channel, opts)
 
     nil
   end
 
-  def log(:no_api_keys = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id)
+  def log(:no_api_keys = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, _opts)
       when is_integer(channel_id) do
     create_audit_message(
       channel_id,
@@ -47,19 +48,19 @@ defmodule Tornium.Notification.Audit do
     )
   end
 
-  def log(:lua_error = action, %Tornium.Schema.Notification{} = notification, channel_id)
+  def log(:lua_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
       when channel_id == false do
     "An error occurred in the Trigger's Lua code"
     |> format_log(notification, action)
     |> Logger.info()
 
     audit_channel = get_audit_channel(notification)
-    log(action, notification, audit_channel)
+    log(action, notification, audit_channel, opts)
 
     nil
   end
 
-  def log(:lua_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id)
+  def log(:lua_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, _opts)
       when is_integer(channel_id) do
     create_audit_message(
       channel_id,
@@ -68,19 +69,19 @@ defmodule Tornium.Notification.Audit do
     )
   end
 
-  def log(:invalid_channel = action, %Tornium.Schema.Notification{} = notification, channel_id)
+  def log(:invalid_channel = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
       when channel_id == false do
     "The channel for the notification could not be found"
     |> format_log(notification, action)
     |> Logger.info()
 
     audit_channel = get_audit_channel(notification)
-    log(action, notification, audit_channel)
+    log(action, notification, audit_channel, opts)
 
     nil
   end
 
-  def log(:invalid_channel = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id)
+  def log(:invalid_channel = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, _opts)
       when is_integer(channel_id) do
     create_audit_message(
       channel_id,
@@ -89,8 +90,31 @@ defmodule Tornium.Notification.Audit do
     )
   end
 
-  # TODO: Document this function
+  def log(:discord_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts) when channel_id == false do
+    %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
+
+    "A Discord error (#{error_code}) occurred while making an API call"
+    |> format_log(notification, action)
+    |> Logger.info()
+
+    audit_channel = get_audit_channel(notification)
+    log(action, notification, audit_channel, opts)
+
+    nil
+  end
+
+  def log(:discord_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, opts) when is_integer(channel_id) do
+    %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
+
+    create_audit_message(
+      channel_id,
+      action,
+      "[#{nid}] An unhandled Discord error (#{error_code}) occured during the handling of this notification. You will need to re-enable this notification."
+    )
+  end
+
   @doc """
+  Format the notification-related log message
   """
   @spec format_log(message :: String.t(), notification :: Tornium.Schema.Notification.t(), action :: atom()) ::
           String.t()
@@ -106,6 +130,7 @@ defmodule Tornium.Notification.Audit do
   defp get_audit_channel(%Tornium.Schema.Notification{server: server_id}) do
     # TODO: Add caching to this
     # Probably use LRU caching with TTL
+    # https://github.com/whitfin/cachex
 
     config =
       Tornium.Schema.ServerNotificationsConfig

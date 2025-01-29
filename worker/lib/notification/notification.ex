@@ -21,6 +21,8 @@ defmodule Tornium.Notification do
   @api_call_priority 10
 
   @type trigger_resource() :: :user | :faction
+  @type render_errors() :: {:error, :template_parse_error | :template_render_error, String.t()}
+  @type render_validation_errors :: {:error, :template_decode_error, Jason.DecodeError.t()}
 
   @doc """
   Execute all notifications against a specific resource (e.g. a certain user ID) with a single API call to retrieve the union.
@@ -70,19 +72,20 @@ defmodule Tornium.Notification do
         end)
 
         notifications
-        |> Repo.update_all(set: [enabled: false, error: ":no_api_keys"])
+        |> Repo.update_all(set: [enabled: false, error: "No API keys to use"])
 
         nil
 
       %Tornium.Schema.TornKey{} ->
-        response = resource_data(resource, resource_id, selections, api_key)
+        api_response = resource_data(resource, resource_id, MapSet.to_list(selections), api_key)
+        # TODO: Better handle Torn error messages before entering each notification
 
         notifications
         |> Enum.group_by(& &1.trigger)
         |> Enum.map(fn {%Tornium.Schema.Trigger{} = trigger, trigger_notifications} ->
-          response
+          api_response
           |> filter_response(trigger.resource, trigger.selections)
-          |> handle_response(trigger, trigger_notifications)
+          |> handle_api_response(trigger, trigger_notifications)
         end)
     end
   end
@@ -92,8 +95,9 @@ defmodule Tornium.Notification do
           resource_id :: integer(),
           selections :: [String.t()],
           api_key :: Tornium.Schema.TornKey.t()
-        ) :: map()
+        ) :: map() | {:error, any()}
   defp resource_data(:user, resource_id, selections, api_key) do
+    # TODO: Create and use types in Tornex for return types
     Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
       resource: "user",
       resource_id: resource_id,
@@ -130,12 +134,13 @@ defmodule Tornium.Notification do
     Map.filter(response, fn {key, _value} -> Enum.member?(valid_keys, key) end)
   end
 
-  @spec handle_response(
+  # Handle the API response by running the notification's Lua code and generate the message
+  @spec handle_api_response(
           response :: map(),
           trigger :: Tornium.Schema.Trigger.t(),
           notifications :: [Tornium.Schema.Notification.t()]
         ) :: {:error, Tornium.API.Error.t()} | list(nil)
-  defp handle_response(
+  defp handle_api_response(
          %{"error" => %{"code" => code, "error" => error}} = _response,
          _trigger,
          _notifications
@@ -143,18 +148,18 @@ defmodule Tornium.Notification do
     {:error, Tornium.API.Error.construct(code, error)}
   end
 
-  defp handle_response(%{} = response, trigger, notifications) when is_list(notifications) do
+  defp handle_api_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
       |> update_passthrough_state(notification)
-      |> handle_lua_execution(notification)
+      |> handle_lua_states(notification)
     end)
   end
 
   # Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the states will be used
   # to create the message to be sent/updated. If there's an error from the Lua code, the notification will be disabled.
-  @spec handle_lua_execution(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) :: nil
-  defp handle_lua_execution(
+  @spec handle_lua_states(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) :: nil
+  defp handle_lua_states(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{
            trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :update}
@@ -165,7 +170,7 @@ defmodule Tornium.Notification do
     |> try_message(:update, notification)
   end
 
-  defp handle_lua_execution(
+  defp handle_lua_states(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{
            trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :send}
@@ -176,14 +181,14 @@ defmodule Tornium.Notification do
     |> try_message(:send, notification)
   end
 
-  defp handle_lua_execution(
+  defp handle_lua_states(
          {:ok, [triggered?: false, render_state: %{} = _render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{} = _notification
        ) do
     nil
   end
 
-  defp handle_lua_execution({:lua_error, error}, %Tornium.Schema.Notification{} = notification) do
+  defp handle_lua_states({:lua_error, error}, %Tornium.Schema.Notification{} = notification) do
     IO.inspect(error, label: ":lua_error [#{notification.nid}]")
     Tornium.Notification.Audit.log(:lua_error, notification)
 
@@ -193,30 +198,32 @@ defmodule Tornium.Notification do
     |> Repo.update_all([])
   end
 
-  defp handle_lua_execution(
+  defp handle_lua_states(
          {:error, %Tornium.API.Error{} = _torn_error},
          %Tornium.Schema.Notification{} = _notification
        ) do
     # TODO: Handle this error
   end
 
-  defp handle_lua_execution({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
+  defp handle_lua_states({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
     IO.inspect(reason)
     # TODO: Handle this error
     {:error, reason}
   end
 
-  defp handle_lua_execution(trigger_return, notification) do
+  defp handle_lua_states(trigger_return, notification) do
     # Invalid response
     IO.inspect(trigger_return)
     IO.inspect(notification)
     throw(Exception)
   end
 
-  @spec render_message(template :: String.t(), state :: map()) :: String.t() | nil
-  defp render_message(template, %{} = state) do
+  @spec render_message(template :: String.t(), state :: map()) :: String.t() | render_errors()
+  def render_message(template, %{} = state) do
     # Attempt to render the JSON message for a notification provided the render state and the Solid template.
     # TODO: Improve the error handling upon errors from Solid
+    # TODO: Test this
+    # TODO: Document this
 
     try do
       template
@@ -225,19 +232,23 @@ defmodule Tornium.Notification do
       |> Kernel.to_string()
       |> String.replace(["\n", "\t"], "")
     rescue
-      e ->
+      e in Solid.TemplateError ->
         IO.inspect(e)
-        # TODO: Handle error
-        nil
+        {:error, :template_parse_error, e.message}
+
+      e in Solid.RenderError ->
+        IO.inspect(e)
+        {:error, :template_render_error, e.message}
     end
   end
 
-  @spec validate_message(message :: String.t()) :: map() | nil
-  defp validate_message(message) when is_nil(message) do
-    nil
+  @spec validate_message(message :: String.t() | render_errors()) ::
+          map() | render_validation_errors() | render_errors()
+  defp validate_message({:error, _, _} = error) do
+    error
   end
 
-  defp validate_message(message) do
+  defp validate_message(message) when is_binary(message) do
     # Validate the rendered JSON Discord message to avoid unnecessary Discord API calls.
 
     case Jason.decode(message) do
@@ -245,27 +256,25 @@ defmodule Tornium.Notification do
         parsed_message
 
       {:error, reason} ->
-        IO.inspect(reason)
-        nil
+        {:error, :template_decode_error, reason}
     end
   end
 
   # Attempt to send or update a message for a notification depending on the notification's configuration
   @spec try_message(
-          message :: map() | nil,
+          message :: map() | render_errors() | render_validation_errors(),
           action_type :: :send | :update,
           notification :: Tornium.Schema.Notification.t()
         ) ::
-          {:ok, Nostrum.Struct.Message.t()} | {:error, Nostrum.Error.ApiError.t()} | {:error, :unknown} | nil
-  defp try_message(message, _action_type, _notification) when is_nil(message) do
-    # There is no message to act upon. This should just act as a passthrough
-    nil
+          {:ok, Nostrum.Struct.Message.t()}
+          | {:error, :discord_error, Nostrum.Error.ApiError.t()}
+          | render_errors()
+          | render_validation_errors()
+  defp try_message({:error, _, _} = error, _action_type, _notification) do
+    error
   end
 
-  defp try_message(%{} = message, :send, %Tornium.Schema.Notification{nid: nid, channel_id: channel_id} = _notification) do
-    # NOTE: Could use `Nostrum.Api.request/4` for this function
-    # Nostrum.Api.request(:post, Nostrum.Constants.channel_messages(channel_id)
-
+  defp try_message(%{} = message, :send, %Tornium.Schema.Notification{nid: nid, channel_id: channel_id} = notification) do
     # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
     case Nostrum.Api.create_message(channel_id, message) do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
@@ -278,17 +287,30 @@ defmodule Tornium.Notification do
 
         {:ok, resp_message}
 
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
+        # Discord Opcode 10003: Unknown channel
+        # The message could be updated as the channel does not exist, so
+        #   - Disable the notification
+        #   - Send a message to the audit channel if possible
+
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [channel_id: nil, enabled: false])
+        |> Repo.update_all([])
+
+        Tornium.Notification.Audit.log(:invalid_channel, notification)
+        {:error, :discord_error, error}
+
       {:error, %Nostrum.Error.ApiError{} = error} ->
-        # {:error, %{response: %{code: error_code, message: _error_message}}} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
-        # TODO: Handle this case
-        {:error, error}
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [enabled: false])
+        |> Repo.update_all([])
 
-      unhandled_value ->
-        IO.inspect(unhandled_value)
-        # TODO: Handle this case
-        {:error, :unknown}
+        Tornium.Notification.Audit.log(:discord_error, notification, error: error)
+        {:error, :discord_error, error}
     end
   end
 
@@ -306,46 +328,37 @@ defmodule Tornium.Notification do
         # The message was successfully sent...
         # The notification should be updated to include the message ID
 
-        {1, _} =
-          Tornium.Schema.Notification
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [message_id: ^resp_message.id, channel_id: ^resp_message.channel_id, enabled: true])
-          |> Repo.update_all([])
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [message_id: ^resp_message.id, channel_id: ^resp_message.channel_id, enabled: true])
+        |> Repo.update_all([])
 
         {:ok, resp_message}
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = _error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
         # Discord Opcode 10003: Unknown channel
         # The message could be updated as the channel does not exist, so
         #   - Disable the notification
         #   - Send a message to the audit channel if possible
 
-        {1, _} =
-          Tornium.Schema.Notification
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [channel_id: nil, enabled: false])
-          |> Repo.update_all([])
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [channel_id: nil, enabled: false])
+        |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:invalid_channel, notification)
-
-        nil
+        {:error, :discord_error, error}
 
       {:error, %Nostrum.Error.ApiError{} = error} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
-        {1, _} =
-          Tornium.Schema.Notification
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [enabled: false])
-          |> Repo.update_all([])
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [enabled: false])
+        |> Repo.update_all([])
 
-        # TODO: Send audit message
-        {:error, error}
-
-      unhandled_value ->
-        IO.inspect(unhandled_value)
-        # TODO: Disable the notification and send audit message
-        {:error, :unknown}
+        Tornium.Notification.Audit.log(:discord_error, notification, error: error)
+        {:error, :discord_error, error}
     end
   end
 
@@ -362,21 +375,19 @@ defmodule Tornium.Notification do
         # The message was successfully updated and no further action is required
         resp_message
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = _error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
         # Discord Opcode 10003: Unknown channel
         # The message could be updated as the channel does not exist, so
         #   - Disable the notification
         #   - Send a message to the audit channel if possible
 
-        {1, _} =
-          Tornium.Schema.Notification
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [message_id: nil, channel_id: nil, enabled: false])
-          |> Repo.update_all([])
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [message_id: nil, channel_id: nil, enabled: false])
+        |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:invalid_channel, notification)
-
-        nil
+        {:error, :discord_error, error}
 
       {:error, %Nostrum.Error.ApiError{response: %{code: 10008}} = _error} ->
         # Discord Opcode 10008: Unknown message
@@ -394,28 +405,21 @@ defmodule Tornium.Notification do
         try_message(message, :update, notification)
 
       {:error, %Nostrum.Error.ApiError{} = error} ->
-        # TODO: handle this case
-        {1, _} =
-          Tornium.Schema.Notification
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [enabled: false])
-          |> Repo.update_all([])
+        Tornium.Schema.Notification
+        |> where([n], n.nid == ^nid)
+        |> update([n], set: [enabled: false])
+        |> Repo.update_all([])
 
-        {:error, error}
-
-      unhandled_value ->
-        IO.inspect(unhandled_value)
-        # TODO: Handle this case
-        {:error, :unknown}
+        {:error, :discord_error, error}
     end
   end
 
   @doc """
   Parse the cron tab string of a notification trigger to determine when the next execution will occur.
   """
-  @spec parse_next_execution(notification :: Tornium.Schema.Notification.t()) :: DateTime.t()
-  def parse_next_execution(%Tornium.Schema.Notification{} = notification) do
-    Crontab.CronExpression.Parser.parse!(notification.trigger.cron)
+  @spec parse_next_execution(trigger :: Tornium.Schema.Trigger.t()) :: DateTime.t()
+  def parse_next_execution(%Tornium.Schema.Trigger{cron: cron} = _trigger) do
+    Crontab.CronExpression.Parser.parse!(cron)
     |> Crontab.Scheduler.get_next_run_date!()
     |> DateTime.from_naive!("Etc/UTC")
   end
@@ -424,13 +428,11 @@ defmodule Tornium.Notification do
   Update the next execution timestamp of the notification.
   """
   @spec update_next_execution(notification :: Tornium.Schema.Notification.t()) :: nil
-  def update_next_execution(%Tornium.Schema.Notification{} = notification) do
-    # TODO: Update the trigger instead of the notification
-    {1, _} =
-      Tornium.Schema.Notification
-      |> where([n], n.nid == ^notification.nid)
-      |> update([n], set: [next_execution: ^parse_next_execution(notification)])
-      |> Repo.update_all([])
+  def update_next_execution(%Tornium.Schema.Notification{trigger: trigger, trigger_id: trigger_id} = _notification) do
+    Tornium.Schema.Trigger
+    |> where([t], t.tid == ^trigger_id)
+    |> update([t], set: [next_execution: ^parse_next_execution(trigger)])
+    |> Repo.update_all([])
 
     nil
   end

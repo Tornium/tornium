@@ -66,7 +66,5 @@ defmodule Tornium.Schema.User do
     field(:security, :integer)
     field(:otp_secret, :string)
     field(:otp_backups, {:array, :string})
-
-    has_many(:api_keys, Tornium.Schema.TornKey)
   end
 end

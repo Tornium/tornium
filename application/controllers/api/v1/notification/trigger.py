@@ -188,18 +188,23 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         return make_exception_response("0000", key, details={"error": f"Invalid data attribute: {attribute}"})
 
     if update:
-        notification = NotificationTrigger.update(
-            name=trigger_name,
-            description=trigger_description,
-            cron=trigger_cron,
-            resource=trigger_resource,
-            selections=selections,
-            code=trigger_code,
-            parameters=trigger_parameters,
-            message_type=trigger_message_type,
-            message_template=trigger_message_template,
-            restricted_data=restricted,
-        ).where(NotificationTrigger.tid == uuid.UUID(trigger_id)).returning(NotificationTrigger).execute()
+        notification = (
+            NotificationTrigger.update(
+                name=trigger_name,
+                description=trigger_description,
+                cron=trigger_cron,
+                resource=trigger_resource,
+                selections=selections,
+                code=trigger_code,
+                parameters=trigger_parameters,
+                message_type=trigger_message_type,
+                message_template=trigger_message_template,
+                restricted_data=restricted,
+            )
+            .where(NotificationTrigger.tid == uuid.UUID(trigger_id))
+            .returning(NotificationTrigger)
+            .execute()
+        )
     else:
         notification = NotificationTrigger.create(
             tid=uuid.uuid4(),

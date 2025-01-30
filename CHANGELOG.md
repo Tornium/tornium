@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed sort order and direction of `/faction members hospital`
 - Fixed stat score calculation on gym page in `tornium-estimate.user.js`
 - Fixed OD channel loader on website
+- Fixed point withdrawals in `/withdraw`
 
 ### Removed
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`

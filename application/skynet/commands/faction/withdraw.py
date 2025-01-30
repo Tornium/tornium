@@ -426,6 +426,7 @@ def withdraw(interaction, *args, **kwargs):
                 if withdrawal_amount != "all"
                 else faction_balances[str(user.tid)][withdrawal_option_str]
             ),
+            cash_request=not bool(withdrawal_option),
             requester=user.tid,
             time_requested=datetime.datetime.utcnow(),
             status=0,

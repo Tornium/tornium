@@ -44,11 +44,14 @@ config :tornium, Oban,
   engine: Oban.Engines.Basic,
   queues: [notifications: 10, scheduler: 10],
   repo: Tornium.Repo,
+  shutdown_grace_period: :timer.seconds(30),
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
        {"* * * * *", Tornium.Workers.NotificationScheduler}
-     ]}
+     ]},
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)}
   ]
 
 config :tornium, Tornium.Web.Endpoint,

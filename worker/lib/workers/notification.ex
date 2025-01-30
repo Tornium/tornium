@@ -19,12 +19,16 @@ defmodule Tornium.Workers.Notification do
   import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 2,
+    max_attempts: 1,
     priority: 5,
     queue: :notifications,
-    tags: ["notification"]
-
-  # TODO: Make each resource + resource_id unique for the same 45 seconds as the secheduler
+    tags: ["notification"],
+    unique: [
+      period: 45,
+      fields: [:worker, :args],
+      keys: [:resource, :resource_id],
+      states: [:available, :executing, :scheduled]
+    ]
 
   @impl Oban.Worker
   def perform(

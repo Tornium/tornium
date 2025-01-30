@@ -29,7 +29,7 @@ from tornium_commons.skyutils import SKYNET_GOOD
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
-from utils.notification_trigger import has_restricted_selection, extract_selections
+from utils.notification_trigger import extract_selections, has_restricted_selection
 
 # regex modified based on https://stackoverflow.com/a/57639657/12941872
 # Crontab in Elixir should only accept up to minutes

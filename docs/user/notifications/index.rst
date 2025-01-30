@@ -18,7 +18,7 @@ Example
 ~~~~~~~
 | For a notification to send a message when a certain stock is less than a certain price, it would look like the following...
 
-| The parameters in this notification would the stock you want to check (e.g. FHG) and the target stock price (e.g. $770).
+| The parameters in this notification would be the stock you want to check (e.g. FHG) and the target stock price (e.g. $770).
 | The trigger would be some Lua code that checks when the price of the stock in the parameters is less than the price defined in the parameter. The trigger would also define some message about how that stock has reached some target that would be sent in Discord.
 | The notification would define what the stock and target stock price would be. Then the notification would say which server and channel the messages should be sent to.
 

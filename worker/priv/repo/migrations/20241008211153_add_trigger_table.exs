@@ -19,6 +19,7 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
       add :message_type, :string, null: false  # Enum is represented as a string in the database
       add :message_template, :text, null: false
 
+      add :restricted_data, :boolean, default: false, null: false
       add :official, :boolean, default: false, null: false
     end
 

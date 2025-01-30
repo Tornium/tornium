@@ -47,6 +47,7 @@ class NotificationTrigger(BaseModel):
     message_type = CharField(null=False, choices=["update", "send"])
     message_template = TextField(null=False)
 
+    restricted_data = BooleanField(default=False, null=False)
     official = BooleanField(default=False, null=False)
 
     def as_dict(self):
@@ -58,5 +59,6 @@ class NotificationTrigger(BaseModel):
             "resource": self.resource,
             "selections": self.selections,
             "code": self.code,
+            "restricted_data": self.restricted_data,
             "official": self.official,
         }

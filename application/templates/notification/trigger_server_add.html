@@ -19,6 +19,13 @@ Tornium - Add Trigger
                     <b>Trigger Description:</b><br /> {{ trigger.description }}
                 </p>
 
+                {% if trigger.restricted_data %}
+                <p class="mt-2 border border-warning text-warning rounded p-3">
+                    <b>RESTRICTED:</b> This trigger uses restricted data that is not publicly accessible. See <u><a href="#" class="text-warning">this</a></u> for more details.
+                </p>
+                {# TODO: Add link to this #}
+                {% endif %}
+
                 <div class="form-text pt-1">
                     Select the Discord server to add the notification trigger to:
                 </div>

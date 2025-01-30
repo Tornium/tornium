@@ -50,6 +50,9 @@ function setupTrigger(event) {
     if (typeof resource_id != "number") {
         generateToast("Invalid resource ID", "The resource ID must be an integer.", "warning");
         return;
+    } else if (resource_id == 0) {
+        generateToast("Invalid resource ID", "The resource ID must not be 0.", "warning");
+        return;
     }
 
     tfetch("POST", `notification/trigger/${trigger_id}/guild/${guildid}`, {

@@ -29,6 +29,7 @@ defmodule Tornium.Schema.Trigger do
           parameters: map(),
           message_type: :update | :send,
           message_template: String.t(),
+          restricted_data: boolean(),
           official: boolean()
         }
 
@@ -49,6 +50,7 @@ defmodule Tornium.Schema.Trigger do
     field(:message_type, Ecto.Enum, values: [:update, :send])
     field(:message_template, :string)
 
+    field(:restricted_data, :boolean)
     field(:official, :boolean)
   end
 end

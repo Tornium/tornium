@@ -4,7 +4,7 @@ defmodule Tornium.Notification.Audit do
   import Nostrum.Struct.Embed
   alias Tornium.Repo
 
-  @type actions :: :no_api_keys | :lua_error | :invalid_channel | :discord_error
+  @type actions :: :no_api_keys | :lua_error | :invalid_channel | :discord_error | :restricted
 
   @doc """
   Log a notification action in the audit log. If there is an audit channel for the notification's server, a message will also be sent there.
@@ -112,6 +112,54 @@ defmodule Tornium.Notification.Audit do
       channel_id,
       action,
       "[#{nid}] An unhandled Discord error (#{error_code}) occured during the handling of this notification. You will need to re-enable this notification."
+    )
+  end
+
+  def log(:restricted = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
+      when channel_id == false do
+    "Restricted data unavailable"
+    |> format_log(notification, action)
+    |> Logger.info()
+
+    audit_channel = get_audit_channel(notification)
+    log(action, notification, audit_channel, opts)
+
+    nil
+  end
+
+  def log(
+        :restricted = action,
+        %Tornium.Schema.Notification{
+          nid: nid,
+          resource_id: resource_id,
+          trigger: %Tornium.Schema.Trigger{resource: :faction}
+        } = _notification,
+        channel_id,
+        _opts
+      )
+      when is_integer(channel_id) do
+    create_audit_message(
+      channel_id,
+      action,
+      "[#{nid}] The resource required for this notification is restricted. The faction (#{resource_id}) must be linked to this server and there must be an AA member of that faction signed into Tornium for this notification to work."
+    )
+  end
+
+  def log(
+        :restricted = action,
+        %Tornium.Schema.Notification{
+          nid: nid,
+          resource_id: resource_id,
+          trigger: %Tornium.Schema.Trigger{resource: :user}
+        } = _notification,
+        channel_id,
+        _opts
+      )
+      when is_integer(channel_id) do
+    create_audit_message(
+      channel_id,
+      action,
+      "[#{nid}] The resource required for this notification is restricted. The user (#{resource_id}) must be an admin in this server for this notification to work."
     )
   end
 

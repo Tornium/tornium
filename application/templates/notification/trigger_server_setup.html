@@ -27,6 +27,13 @@ Tornium - Setup Trigger
                     <b>Trigger Description:</b><br /> {{ trigger.description }}
                 </p>
 
+                {% if trigger.restricted_data %}
+                <p class="mt-2 border border-warning text-warning rounded p-3">
+                    <b>RESTRICTED:</b> This trigger uses restricted data that is not publicly accessible. See <u><a href="#" class="text-warning">this</a></u> for more details.
+                </p>
+                {# TODO: Add link to this #}
+                {% endif %}
+
                 <div class="mt-3 border rounded p-2">
                     <p class="form-text">Channel to which notification messages are sent:</p>
                     <select class="discord-channel-selector w-100" id="notification-channel" aria-label="Notification Channel" data-live-search="true"></select>
@@ -85,8 +92,8 @@ Tornium - Setup Trigger
 <script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
 
 {% if update %}
-<script src="/static/bot/update-notification.js" data-channel-id="{{ notification.channel_id }}" data-trigger-id="{{ trigger.tid }}" data-notification-id="{{ notification.nid }}"></script>
+<script src="/static/bot/update-notification.js" data-channel-id="{{ notification.channel_id }}" data-trigger-id="{{ trigger.tid }}" data-notification-id="{{ notification.nid }}" data-restricted-trigger="{{ trigger.restricted_data }}"></script>
 {% else %}
-<script src="/static/notification/trigger-server-setup.js" data-trigger-id="{{ trigger.tid }}"></script>
+<script src="/static/notification/trigger-server-setup.js" data-trigger-id="{{ trigger.tid }}" data-restricted-trigger="{{ trigger.restricted_data }}"></script>
 {% endif %}
 {% endblock %}

@@ -31,7 +31,7 @@ defmodule Tornium.Notification do
           resource :: trigger_resource(),
           resource_id :: integer(),
           notifications :: [Tornium.Schema.Notification.t()]
-        ) :: [Tornium.Lua.trigger_return()]
+        ) :: [Tornium.Lua.trigger_return()] | nil
   def execute_resource(resource, resource_id, notifications) when is_list(notifications) do
     # Determine the union of selections and users for all notifications against a specific resource and resource ID
     {selections, users} =
@@ -55,23 +55,23 @@ defmodule Tornium.Notification do
         end
       end)
 
-    api_key =
-      Tornium.Schema.TornKey
-      |> where([k], k.user_id in ^MapSet.to_list(users))
-      |> select([:api_key, :user_id])
-      |> order_by(fragment("RANDOM()"))
-      |> Repo.one()
+    restricted = restricted_notification?(notifications)
+    api_key = get_api_key(users, resource, resource_id, restricted, notifications)
 
     case api_key do
       nil ->
         # All notifications need to be disabled at this stage instead of specific notifications
         # given the overall lack of API keys
 
-        Enum.map(notifications, fn notification ->
-          Tornium.Notification.Audit.log(:no_api_keys, notification)
-        end)
+        nids =
+          Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
+            Tornium.Notification.Audit.log(:no_api_keys, notification)
 
-        notifications
+            notification.nid
+          end)
+
+        Tornium.Schema.Notification
+        |> where([n], n.nid in ^nids)
         |> Repo.update_all(set: [enabled: false, error: "No API keys to use"])
 
         nil
@@ -87,7 +87,89 @@ defmodule Tornium.Notification do
           |> filter_response(trigger.resource, trigger.selections)
           |> handle_api_response(trigger, trigger_notifications)
         end)
+
+      {:error, :restricted} ->
+        notifications_to_disable =
+          Enum.filter(notifications, fn %Tornium.Schema.Notification{} = notification ->
+            notification.trigger.restricted_data
+          end)
+
+        notification_nids =
+          Enum.map(notifications_to_disable, fn %Tornium.Schema.Notification{} = notification ->
+            Tornium.Notification.Audit.log(:restricted, notification)
+
+            notification.nid
+          end)
+
+        Tornium.Schema.Notification
+        |> where([n], n.nid in ^notification_nids)
+        |> Repo.update_all(set: [enabled: false, error: ":restricted"])
     end
+  end
+
+  @spec get_api_key(
+          admins :: [integer()],
+          resource :: trigger_resource(),
+          resource_id :: integer(),
+          restricted :: boolean(),
+          notifications :: [Tornium.Schema.Notification.t()]
+        ) :: Tornium.Schema.TornKey.t() | nil | {:error, :restricted}
+  defp get_api_key(_admins, :faction, resource_id, true, [
+         %Tornium.Schema.Notification{server: %Tornium.Schema.Server{} = server} = _notification | _notifications
+       ]) do
+    faction =
+      Tornium.Schema.Faction
+      |> where([f], f.tid == ^resource_id)
+      |> select([:guild_id])
+      |> Repo.one()
+
+    if Enum.member?(server.factions, resource_id) and not is_nil(faction) and faction.guild_id == server.sid do
+      Tornium.Schema.TornKey
+      |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+      |> where([k, u], u.faction_id == ^resource_id)
+      |> where([k, u], u.faction_aa == true)
+      |> select([:api_key, :user_id])
+      |> Repo.one()
+    else
+      {:error, :restricted}
+    end
+  end
+
+  defp get_api_key(admins, :user, resource_id, true, _notifications) do
+    if Enum.member?(admins, resource_id) do
+      Tornium.Schema.TornKey
+      |> where([k], k.user_id == ^resource_id)
+      |> select([:api_key, :user_id])
+      |> Repo.one()
+    else
+      {:error, :restricted}
+    end
+  end
+
+  defp get_api_key(admins, _resource, _resource_id, false, _notifications) when Kernel.length(admins) == 1 do
+    Tornium.Schema.TornKey
+    |> where([k], k.user_id == ^Enum.at(admins, 0))
+    |> select([:api_key, :user_id])
+    |> order_by(fragment("RANDOM()"))
+    |> Repo.one()
+  end
+
+  defp get_api_key(admins, _resource, _resource_id, false, _notifications) do
+    Tornium.Schema.TornKey
+    |> where([k], k.user_id in ^MapSet.to_list(admins))
+    |> select([:api_key, :user_id])
+    |> order_by(fragment("RANDOM()"))
+    |> Repo.one()
+  end
+
+  # Determine if any of the notifications for this resource + resource ID requires restricted data
+  @spec restricted_notification?(notifications :: [Tornium.Schema.Notification.t()]) :: boolean()
+  defp restricted_notification?(notifications) do
+    Enum.any?(notifications, fn %Tornium.Schema.Notification{
+                                  trigger: %Tornium.Schema.Trigger{restricted_data: restricted}
+                                } ->
+      restricted
+    end)
   end
 
   @spec resource_data(

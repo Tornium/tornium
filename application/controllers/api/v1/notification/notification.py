@@ -55,6 +55,9 @@ def update_guild_notification(notification_id, *args, **kwargs):
     except (KeyError, ValueError, TypeError):
         return make_exception_response("1000", key, details={"message": "Invalid resource ID"})
 
+    if resource_id == 0:
+        return make_exception_response("1000", key, details={"message": "Invalid resource ID: must not be zero"})
+
     try:
         one_shot = data["one_shot"]
     except (KeyError, ValueError, TypeError):
@@ -67,8 +70,6 @@ def update_guild_notification(notification_id, *args, **kwargs):
         parameters = data["parameters"]
     except (KeyError, ValueError, TypeError):
         return make_exception_response("1402", key)
-
-    print(parameters)
 
     if not isinstance(parameters, dict):
         return make_exception_response("1402", key)

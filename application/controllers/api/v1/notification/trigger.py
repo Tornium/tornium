@@ -29,6 +29,7 @@ from tornium_commons.skyutils import SKYNET_GOOD
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
+from utils.notification_trigger import has_restricted_selection, extract_selections
 
 # regex modified based on https://stackoverflow.com/a/57639657/12941872
 # Crontab in Elixir should only accept up to minutes
@@ -36,203 +37,6 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 CRON_REGEX = (
     r"(@(annually|yearly|monthly|weekly|daily|hourly))|(@every (\d+(m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5})"
 )
-
-SELECTION_MAP = {
-    # key: (public selection, user selection)
-    "user": {
-        "ammo": (PermissionError, "ammo"),
-        "attacks": (PermissionError, "attacks"),
-        "chain": (PermissionError, "bars"),
-        "energy": (PermissionError, "bars"),
-        "happy": (PermissionError, "bars"),
-        "nerve": (PermissionError, "bars"),
-        "gender": ("basic", "basic"),
-        "level": ("basic", "basic"),
-        "name": ("basic", "basic"),
-        "player_id": ("basic", "basic"),
-        "status": ("basic", "basic"),
-        "defense": (PermissionError, "battlestats"),
-        "defense_info": (PermissionError, "battlestats"),
-        "defense_modifier": (PermissionError, "battlestats"),
-        "dexterity": (PermissionError, "battlestats"),
-        "dexterity_info": (PermissionError, "battlestats"),
-        "dexterity_modifier": (PermissionError, "battlestats"),
-        "speed": (PermissionError, "battlestats"),
-        "speed_info": (PermissionError, "battlestats"),
-        "speed_modifier": (PermissionError, "battlestats"),
-        "strength": (PermissionError, "battlestats"),
-        "strength_info": (PermissionError, "battlestats"),
-        "strength_modifier": (PermissionError, "battlestats"),
-        "total": (PermissionError, "battlestats"),
-        "bazaar": ("bazaar", "bazaar"),
-        "cooldowns": (PermissionError, "cooldowns"),
-        "criminalrecord": ("criminalrecord", "criminalrecord"),
-        "discord": ("discord", "discord"),
-        "display": ("display", "display"),
-        "education_completed": (PermissionError, "education"),
-        "education_current": (PermissionError, "education"),
-        "education_timeleft": (PermissionError, "education"),
-        "equipment": (PermissionError, "equipment"),
-        "events": (PermissionError, "events"),
-        "activegym": (PermissionError, "gym"),
-        "halloffame": (PermissionError, "hof"),
-        "honors_awarded": (PermissionError, "honors"),
-        "honors_time": (PermissionError, "honors"),
-        "icons": ("icons", "icons"),
-        "jobpoints": (PermissionError, "jobpoints"),
-        "log": (PermissionError, PermissionError),
-        "selections": ("lookup", "lookup"),
-        "medals_awarded": ("medals", "medals"),
-        "medals_time": ("medals", "medals"),
-        "merits": (PermissionError, "merits"),
-        "messages": (PermissionError, "messages"),
-        "missions": (PermissionError, "missions"),
-        "cayman_bank": (PermissionError, "money"),
-        "city_bank": (PermissionError, "money"),
-        "company_funds": (PermissionError, "money"),
-        "daily_networth": (PermissionError, "money"),
-        "money_onhand": (PermissionError, "money"),
-        "points": (PermissionError, "money"),
-        "vault_amount": (PermissionError, "money"),
-        "networth": (PermissionError, "networth"),
-        "notifications": (PermissionError, "notifications"),
-        "book_perks": (PermissionError, "perks"),
-        "education_perks": (PermissionError, "perks"),
-        "enhancer_perks": (PermissionError, "perks"),
-        "faction_perks": (PermissionError, "perks"),
-        "job_perks": (PermissionError, "perks"),
-        "merit_perks": (PermissionError, "perks"),
-        "property_perks": (PermissionError, "perks"),
-        "stock_perks": (PermissionError, "perks"),
-        "personalstats": ("personalstats", "personalstats"),
-        "age": ("profile", "profile"),
-        "awards": ("profile", "profile"),
-        "basicicons": ("profile", "profile"),
-        "competition": ("profile", "profile"),
-        "donator": ("profile", "profile"),
-        "enemies": ("profile", "profile"),
-        "faction": ("profile", "profile"),
-        "forum_posts": ("profile", "profile"),
-        "friends": ("profile", "profile"),
-        "honor": ("profile", "profile"),
-        "job": ("profile", "profile"),
-        "karma": ("profile", "profile"),
-        "last_action": ("profile", "profile"),
-        "life": ("profile", "profile"),
-        "married": ("profile", "profile"),
-        "profile_image": ("profile", "profile"),
-        "property": ("profile", "profile"),
-        "property_id": ("profile", "profile"),
-        "rank": ("profile", "profile"),
-        "signup": ("profile", "profile"),
-        "states": ("profile", "profile"),
-        "properties": ("properties", "properties"),
-        "baned": ("publicstatus", "publicstatus"),
-        "playername": ("publicstatus", "publicstatus"),
-        "userID": ("publicstatus", "publicstatus"),
-        "refills": (PermissionError, "refills"),
-        "reports": (PermissionError, "reports"),
-        "revives": (PermissionError, "revives"),
-        "bootlegging": (PermissionError, "skills"),
-        "burglary": (PermissionError, "skills"),
-        "card_skimming": (PermissionError, "skills"),
-        "cracking": (PermissionError, "skills"),
-        "disposal": (PermissionError, "skills"),
-        "forgery": (PermissionError, "skills"),
-        "graffiti": (PermissionError, "skills"),
-        "hunting": (PermissionError, "skills"),
-        "hustling": (PermissionError, "skills"),
-        "pickpocketing": (PermissionError, "skills"),
-        "racing": (PermissionError, "skills"),
-        "reviving": (PermissionError, "skills"),
-        "search_for_cash": (PermissionError, "skills"),
-        "shoplifting": (PermissionError, "skills"),
-        "stocks": (PermissionError, "stocks"),
-        "timestamp": (PermissionError, "timestamp"),
-        "travel": (PermissionError, "travel"),
-        "weaponxp": (PermissionError, "weaponxp"),
-        "workstats": (PermissionError, "workstats"),
-    },
-    "faction": {  # TODO: Require faction AA for all self faction fields
-        "applications": (PermissionError, "applications"),
-        "armor": (PermissionError, "armor"),
-        "armorynews": (PermissionError, "armorynews"),
-        "attacknews": (PermissionError, "attacknews"),
-        "attacks": (PermissionError, "attacks"),
-        "age": ("basic", "basic"),
-        "best_chain": ("basic", "basic"),
-        "capacity": ("basic", "basic"),
-        "co-leader": ("basic", "basic"),
-        "ID": ("basic", "basic"),
-        "leader": ("basic", "basic"),
-        "members": ("basic", "basic"),
-        "name": ("basic", "basic"),
-        "peace": ("basic", "basic"),
-        "raid_wars": ("basic", "basic"),
-        "rank": ("basic", "basic"),
-        "ranked_wars": ("basic", "basic"),
-        "respect": ("basic", "basic"),
-        "tag": ("basic", "basic"),
-        "tag_image": ("basic", "basic"),
-        "territory_wars": ("basic", "basic"),
-        "boosters": (PermissionError, "boosters"),
-        "caches": (PermissionError, "caches"),
-        "cesium": (PermissionError, "cesium"),
-        "chain": ("chain", "chain"),
-        "chain_report": (PermissionError, "chain_report"),
-        "chains": (PermissionError, "chains"),
-        "contributors": (
-            PermissionError,
-            PermissionError,
-        ),  # TODO: Not yet support... need to determine which stat is required
-        "crimeexp": (PermissionError, "crimeexp"),
-        "crimenews": (PermissionError, "crimenews"),
-        "crimes": (PermissionError, "crimes"),
-        "money": (PermissionError, "currency"),
-        "points": (PermissionError, "currency"),
-        "donations": (PermissionError, "donations"),
-        "drugs": (PermissionError, "drugs"),
-        "fundsnews": (PermissionError, "fundsnews"),
-        "mainnews": (PermissionError, "mainnews"),
-        "medical": (PermissionError, "medical"),
-        "membershipnews": (PermissionError, "membershipnews"),
-        "positions": (PermissionError, "positions"),
-        "rankedwars": ("rankedwars", "rankedwars"),
-        "reports": (PermissionError, "reports"),
-        "revives": (PermissionError, "revives"),
-        "stats": (PermissionError, "stats"),
-        "temporary": (PermissionError, "temporary"),
-        "territory": ("territory", "territory"),
-        "territorynews": (PermissionError, "territorynews"),
-        "upgrades": (PermissionError, "upgrades"),
-        "weapons": (PermissionError, "weapons"),
-    },
-    "company": {},
-    "torn": {},
-    "factionv2": {},
-}
-
-
-def extract_selections(code: str, resource: str, resource_self: bool = False) -> typing.Set[str]:
-    selections = set()
-    attributes = set()
-
-    resource = re.escape(resource)
-    for match in re.finditer(rf"{resource}\[\s*[\"']([^\"']+)[\"']\s*\]|{resource}\.([a-zA-Z_]\w*)", code):
-        attributes.add(match.groups()[1])
-
-    for attribute in attributes:
-        try:
-            selection = SELECTION_MAP[resource][attribute][int(resource_self)]
-        except KeyError:
-            raise ValueError(attribute)
-
-        if selection is PermissionError:
-            raise PermissionError(attribute)
-
-        selections.add(selection)
-
-    return selections
 
 
 @session_required
@@ -263,7 +67,6 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         return make_exception_response("1000", key, details={"message" "Invalid trigger name (length)"})
 
     # TODO: Validate the user does not have a trigger named the same thing
-    # TODO: Create unique index on (user, trigger_name)
 
     if not isinstance(trigger_description, str):
         return make_exception_response(
@@ -374,6 +177,7 @@ def create_trigger(trigger_id=None, *args, **kwargs):
     try:
         # Allow private selections for creating the trigger as resource ID is not known
         selections = extract_selections(trigger_code, trigger_resource, resource_self=True)
+        restricted = has_restricted_selection(trigger_code, trigger_resource)
     except PermissionError as e:
         attribute = e.args[0]
 
@@ -384,7 +188,7 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         return make_exception_response("0000", key, details={"error": f"Invalid data attribute: {attribute}"})
 
     if update:
-        NotificationTrigger.update(
+        notification = NotificationTrigger.update(
             name=trigger_name,
             description=trigger_description,
             cron=trigger_cron,
@@ -394,9 +198,10 @@ def create_trigger(trigger_id=None, *args, **kwargs):
             parameters=trigger_parameters,
             message_type=trigger_message_type,
             message_template=trigger_message_template,
-        ).where(NotificationTrigger.tid == uuid.UUID(trigger_id)).execute()
+            restricted_data=restricted,
+        ).where(NotificationTrigger.tid == uuid.UUID(trigger_id)).returning(NotificationTrigger).execute()
     else:
-        NotificationTrigger.create(
+        notification = NotificationTrigger.create(
             tid=uuid.uuid4(),
             name=trigger_name,
             description=trigger_description,
@@ -408,13 +213,11 @@ def create_trigger(trigger_id=None, *args, **kwargs):
             parameters=trigger_parameters,
             message_type=trigger_message_type,
             message_template=trigger_message_template,
-            public=False,
             official=False,
+            restricted_data=restricted,
         )
 
-    # TODO: Return trigger data
-
-    return {}, 200, api_ratelimit_response(key)
+    return notification.as_dict(), 200, api_ratelimit_response(key)
 
 
 @session_required
@@ -490,6 +293,9 @@ def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
         resource_id = int(data["resource_id"])
     except (KeyError, ValueError, TypeError):
         return make_exception_response("1000", key, details={"message": "Invalid resource ID"})
+
+    if resource_id == 0:
+        return make_exception_response("1000", key, details={"message": "Invalid resource ID: must not be zero"})
 
     try:
         one_shot = data["one_shot"]

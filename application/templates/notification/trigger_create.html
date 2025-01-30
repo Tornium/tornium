@@ -63,8 +63,8 @@ Tornium - Notification Triggers
                     <option disabled value {% if trigger_resource is none %} selected {% endif %}>Select One</option>
                     <option value="user" {% if trigger_resource == "user" %} selected {% endif %}>User</option>
                     <option value="faction" {% if trigger_resource == "faction" %} selected {% endif %}>Faction</option>
-                    <option value="company" {% if trigger_resource == "company" %} selected {% endif %}>Company</option>
-                    <option value="factionv2" {% if trigger_resource == "factionv2" %} selected {% endif %}>Faction (API v2)</option>
+                    <option value="company" disabled {% if trigger_resource == "company" %} selected {% endif %}>Company</option>
+                    <option value="factionv2" disabled {% if trigger_resource == "factionv2" %} selected {% endif %}>Faction (API v2)</option>
                 </select>
             </div>
         </div>

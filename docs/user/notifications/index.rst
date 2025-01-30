@@ -2,7 +2,7 @@
 
 Tornium Notifications
 =====================
-Tornium supports more complicated notifications of in-game actions and events. You can build your own notification triggers or you can use pre-built notification triggers.
+Tornium supports more complicated notifications of in-game actions and events. You can build your own notification triggers or you can use pre-built notification triggers (see the :ref:`docs<creating_triggers>` page for more information on creating your own triggers).
 
 .. warning::
    As stated in Tornium's `Terms of Service <https://tornium.com/terms>`_, you are not allowed to use this feature to disrupt Tornium. Even if the sandboxing of this feature is not perfect, intentionally malicious use of this feature is not permitted and may result in a banning of the user, the user's faction, and/or the user's Discord server from Tornium.
@@ -10,6 +10,7 @@ Tornium supports more complicated notifications of in-game actions and events. Y
 Terminology
 -----------
 | Triggers: generic user-provided code to determine when to send a message and what message to send for the notification
+| Official Trigger: a trigger provided by the developers of Tornium for all to use
 | Notifications: installed triggers that are set for certain parameters
 | Parameters: values in triggers that end-users can define
 
@@ -21,34 +22,14 @@ Example
 | The trigger would be some Lua code that checks when the price of the stock in the parameters is less than the price defined in the parameter. The trigger would also define some message about how that stock has reached some target that would be sent in Discord.
 | The notification would define what the stock and target stock price would be. Then the notification would say which server and channel the messages should be sent to.
 
-Setting Up a Trigger
---------------------
-Create new triggers on `Tornium <https://tornium.com/notification/trigger/create>`_. For more information regarding setting up notifications, take a look at the :ref:`feature's full documentation<creating_triggers>`.
-
-Alert Conditions
-~~~~~~~~~~~~~~~~
-The *name* and *description* of the trigger are mostly self-explanatory. The *trigger resource* is the "resource" in the API to be used to retrieve data against. The cron determines how when the notifications for this trigger will be executed (for more information, see `this guide <https://crontab.guru/>`_ and the `man pages <https://www.man7.org/linux/man-pages/man5/crontab.5.html>`_).
-
-Trigger Conditions
-~~~~~~~~~~~~~~~~~~
-This section is for the code to insert the code for the trigger to run. The code will be run using the `Lua <https://lua.org/>`_ programming language and `Luerl <https://luerl.org/>`_ (a Lua runtime). It is suggested to write this trigger in a separate text editor as Tornium does not provide any syntax highlighting, squiggly lines, etc. other than basic validation (through `luac <https://www.lua.org/manual/5.4/luac.html>`_).
-
-The Lua code in this is not required to be inside of a function, but values do need to be returned. Specifically, the code must return in the form `boolean, table, table`. The first value will represent whether the trigger has been tripped (i.e. whether a message will be sent for this). The second value will represent the values to be passed to the Liquid template for the message. The third value will represent the values to be added to the state to be provided for future executions of the trigger.
-
-The parameters represent values that will be injected into Lua code before runtime (acting essentially as a pre-processor). It is recommended to use capitalized names for these variables (e.g. ``USER_ID``) for readability.
-
-Trigger Message
-~~~~~~~~~~~~~~~
-This section is to specify how the Discord message will be updated (if the Lua code indicated that a message should be sent). The toggle for message type allows for the existing message to be updated or for a new message to be sent every time.
-
-The message template uses the `Liquid templating language <https://shopify.github.io/liquid/>`_. You can use the state provided from the code in this template. This template must be in the form of a `Discord message object <https://discord.com/developers/docs/resources/message#create-message>`_ and be valid JSON.
-
-.. note::
-   The Liquid templates are validated on the client with `LiquidJS <https://liquidjs.com/>`_ but rendered with `Solid <https://hexdocs.pm/solid/readme.html>`_ (the Elixir implementation of Liquid), so there may be differences in the implementations.
-
-Setting Up a Notification
--------------------------
+Creating a Notification for a Server
+------------------------------------
 .. note::
     Currently, notifications can only be created for a channel in a Discord server, but are designed such that they can be sent to the browser in the future.
 
-This part of the feature has not yet been implemented.
+You can create a notification from a notification trigger. Official triggers can be used by anyone while only the creator of a trigger can use their trigger. A list of official and the user's triggers can be found under `Notification -> Notification Triggers <https://tornium.com/notification/trigger>`_. By pressing the plus button next to the trigger, you can add the trigger to a Discord server Tornium is in and where you're an admin. Follow the prompts to select which server to add the trigger to. Then you can select the channel messages will be sent to, the ID of the faction/user/etc., and any other necessary data. Additionally, you'll need to select if the notification should be one-shot or repeating; one-shot notifications will only trigger once and repeating notifications will continue to send messages until the notification is deleted.
+
+.. note::
+    Currently, only official triggers can be used to create notifications while this feature is being tested.
+
+Once the notification is created, you can access your server's list of notifications on your server's dashboard. There server admins can modify the configuration of their notifications and delete notifications.

@@ -34,7 +34,6 @@ This part of the documentation contains details useful for end users who merely 
    user/quickstart
    user/navigation
    user/notifications/index
-   user/notifications/creating
    report
 
 Tutorials

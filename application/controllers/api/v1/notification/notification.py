@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import typing
 import uuid
 
 from flask import request
@@ -112,5 +113,36 @@ def delete_guild_notification(notification_id, *args, **kwargs):
         return make_exception_response("4020", key)
 
     notification.delete_instance()
+
+    return {}, 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def toggle_guild_notification(notification_id, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    data = json.loads(request.get_data().decode("utf-8"))
+
+    try:
+        notification_uuid = uuid.UUID(notification_id)
+    except ValueError:
+        return make_exception_response("1000", key, details={"message": "Invalid notification UUID"})
+
+    enabled: typing.Optional[bool] = data.get("enabled")
+
+    if enabled is None or not isinstance(enabled, bool):
+        return make_exception_response("1000", key, details={"message": "Invalid enabled value"})
+
+    try:
+        notification: Notification = (
+            Notification.select().where(Notification.nid == notification_uuid).get()
+        )  # TODO: Limit selections
+    except DoesNotExist:
+        return make_exception_response("1401", key)
+
+    if kwargs["user"].tid not in notification.server.admins:
+        return make_exception_response("4020", key)
+
+    Notification.update(enabled=enabled).where(Notification.nid == notification_uuid).execute()
 
     return {}, 200, api_ratelimit_response(key)

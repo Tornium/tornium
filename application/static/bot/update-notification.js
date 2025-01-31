@@ -86,6 +86,32 @@ function deleteNotification(event) {
     });
 }
 
+function toggleNotification(event) {
+    console.log(event.target.id);
+    let enable = null;
+
+    if (event.target.id == "notification-toggle-enable") {
+        enable = true;
+    } else if (event.target.id == "notification-toggle-disable") {
+        enable = false;
+    } else {
+        return;
+    }
+
+    tfetch("POST", `notification/${notification_id}/toggle`, {
+        body: {
+            enabled: enable
+        },
+        errorTitle: "Notification Toggle Failed",
+        errorHandler: (jsonError) => {
+            // TODO: Update error handler
+            console.log(jsonError);
+        }
+    }).then((data) => {
+        generateToast("Notification Toggled", "The notification has been successfully toggled.");
+    });
+}
+
 ready(() => {
     let channelsPromise = channelsRequest();
 
@@ -105,4 +131,6 @@ ready(() => {
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);
     document.getElementById("delete-notification").addEventListener("click", deleteNotification);
+    document.getElementById("notification-toggle-enable").addEventListener("click", toggleNotification);
+    document.getElementById("notification-toggle-disable").addEventListener("click", toggleNotification);
 });

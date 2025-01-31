@@ -332,3 +332,8 @@ mod.add_url_rule(
     view_func=notification.notification.delete_guild_notification,
     methods=["DElETE"],
 )
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>/toggle",
+    view_func=notification.notification.toggle_guild_notification,
+    methods=["POST"],
+)

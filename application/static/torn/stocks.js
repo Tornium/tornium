@@ -38,7 +38,7 @@ function renderStocksBenefitsPage() {
             .append(
                 $("<span>", {
                     text: `${stock.acronym} → Block #${benefitsListed[i].bb_n}`,
-                })
+                }),
             )
             .removeClass("placeholder");
 
@@ -61,7 +61,7 @@ function renderStocksBenefitsPage() {
                 $("<li>", {
                     class: "list-group-item",
                     text: `Average Daily Return: $${commas(
-                        parseInt(benefitsListed[i].value / benefitsListed[i].frequency)
+                        parseInt(benefitsListed[i].value / benefitsListed[i].frequency),
                     )}`,
                 }),
                 $("<li>", {
@@ -210,7 +210,7 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${stocksData[moversData.losers.d1[n].stock_id.toString()].acronym} → $${Number(
-                                    moversData.losers.d1[n].price
+                                    moversData.losers.d1[n].price,
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
@@ -231,7 +231,7 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${stocksData[moversData.losers.d7[n].stock_id.toString()].acronym} → $${Number(
-                                    moversData.losers.d7[n].price
+                                    moversData.losers.d7[n].price,
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
@@ -252,7 +252,7 @@ $(document).ready(async function () {
                         .append([
                             $("<span>", {
                                 text: `${stocksData[moversData.losers.m1[n].stock_id.toString()].acronym} → $${Number(
-                                    moversData.losers.m1[n].price
+                                    moversData.losers.m1[n].price,
                                 ).toFixed(2)}`,
                             }),
                             $("<span>", {
@@ -281,7 +281,7 @@ $(document).ready(async function () {
                             class: "ps-2",
                             text: "Data failed to load.",
                         }),
-                    ])
+                    ]),
                 );
         });
 

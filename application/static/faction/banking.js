@@ -73,7 +73,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Banking Request Successfully Sent",
-                `Banking Request ${response.id} for ${response.amount} has been successfully submitted to the server.`
+                `Banking Request ${response.id} for ${response.amount} has been successfully submitted to the server.`,
             );
         });
     });

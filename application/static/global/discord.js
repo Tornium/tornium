@@ -24,7 +24,7 @@ function createRoles() {
             $("<option>", {
                 value: role.id,
                 text: role.name,
-            })
+            }),
         );
     });
 }
@@ -55,10 +55,10 @@ const rolesRequest = (obj) => {
                     JSON.stringify({
                         timestamp: Math.floor(Date.now() / 1000),
                         roles: discordRoles,
-                    })
+                    }),
                 );
                 resolve();
-            }
+            },
         );
     });
 };
@@ -69,7 +69,7 @@ function createChannels() {
             $("<optgroup>", {
                 label: category.name == "?" ? "No category" : category.name,
                 "data-category-id": category_id,
-            })
+            }),
         );
 
         $.each(category["channels"], function (channel_id, channel) {
@@ -78,7 +78,7 @@ function createChannels() {
                 $("<option>", {
                     value: channel.id,
                     text: `#${channel.name}`,
-                })
+                }),
             );
 
             if ("threads" in channel) {
@@ -87,8 +87,8 @@ function createChannels() {
                         $("<option>", {
                             value: thread.id,
                             text: `#${channel.name} -> ${thread.name}`,
-                        })
-                    )
+                        }),
+                    );
                 });
             }
         });
@@ -122,7 +122,7 @@ const channelsRequest = (obj) => {
                 JSON.stringify({
                     timestamp: Math.floor(Date.now() / 1000),
                     channels: discordChannels,
-                })
+                }),
             );
             resolve();
         });

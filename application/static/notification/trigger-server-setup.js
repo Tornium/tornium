@@ -35,13 +35,15 @@ function setupTrigger(event) {
     let triggerMessageType;
 
     try {
-        triggerMessageType = notificationTypeConvert(document.querySelector("input[name=notification-type]:checked").id);
+        triggerMessageType = notificationTypeConvert(
+            document.querySelector("input[name=notification-type]:checked").id,
+        );
     } catch (TypeError) {
         generateToast("Invalid message type", "A message type must be selected.", "warning");
         return;
     }
 
-    let parameters = {}
+    let parameters = {};
 
     for (let parameterInput of document.querySelectorAll(".parameter-value")) {
         parameters[parameterInput.getAttribute("data-parameter")] = parameterInput.value;
@@ -65,7 +67,7 @@ function setupTrigger(event) {
         errorTitle: "Notification Creation Failed",
         errorHandler: (jsonError) => {
             console.log(jsonError);
-        }
+        },
     }).then((data) => {
         console.log(data);
         window.location.href = `/bot/dashboard/${guildid}/notification`;
@@ -82,7 +84,7 @@ ready(() => {
         new TomSelect(".discord-channel-selector", {
             create: false,
         });
-    })
+    });
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);
 });

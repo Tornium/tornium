@@ -164,7 +164,7 @@ $(document).ready(function () {
                                     }).append(
                                         $("<i>", {
                                             class: "fa-regular fa-address-card",
-                                        })
+                                        }),
                                     ),
                                     $("<button>", {
                                         class: "btn btn-outline-primary mx-1",
@@ -172,11 +172,11 @@ $(document).ready(function () {
                                     }).append(
                                         $("<i>", {
                                             class: "fa-solid fa-crosshairs",
-                                        })
+                                        }),
                                     ),
                                 ]),
-                            ])
-                        )
+                            ]),
+                        ),
                     );
                 });
 
@@ -190,7 +190,7 @@ $(document).ready(function () {
 
         generateToast(
             "Chain List Request Sent",
-            "The request for the chain list has been sent to the Tornium API server."
+            "The request for the chain list has been sent to the Tornium API server.",
         );
     });
 });

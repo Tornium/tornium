@@ -13,7 +13,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-window.triggerErrorCallback = function(jsonError, container) {
+window.triggerErrorCallback = function (jsonError, container) {
     const errorNode = document.createElement("span");
     errorNode.textContent = " Data failed to load...";
 
@@ -23,9 +23,9 @@ window.triggerErrorCallback = function(jsonError, container) {
     container.innerHTML = "";
     container.appendChild(errorIcon);
     container.appendChild(errorNode);
-}
+};
 
-window.addTriggerToViewer = function(trigger, triggerContainer) {
+window.addTriggerToViewer = function (trigger, triggerContainer) {
     const triggerNode = document.createElement("div");
     triggerNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
     triggerNode.setAttribute("data-trigger-id", trigger.tid);
@@ -52,12 +52,12 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     const triggerActionsContainer = document.createElement("div");
     triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2", "mt-2", "mt-md-0");
     triggerRow.append(triggerActionsContainer);
-    
+
     const triggerActions = document.createElement("div");
     triggerActions.classList.add("w-100", "justify-content-end", "d-flex");
     triggerActionsContainer.append(triggerActions);
 
-    const viewAction = document.createElement("a")
+    const viewAction = document.createElement("a");
     viewAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
     viewAction.href = `/notification/trigger/view/${trigger.tid}`;
     triggerActions.append(viewAction);
@@ -66,7 +66,7 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     viewActionIcon.classList.add("fa-regular", "fa-eye");
     viewAction.append(viewActionIcon);
 
-    const addAction = document.createElement("a")
+    const addAction = document.createElement("a");
     addAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
     addAction.href = `/notification/trigger/add/${trigger.tid}`;
     triggerActions.append(addAction);
@@ -74,9 +74,9 @@ window.addTriggerToViewer = function(trigger, triggerContainer) {
     const addActionIcon = document.createElement("i");
     addActionIcon.classList.add("fa-solid", "fa-plus");
     addAction.append(addActionIcon);
-}
+};
 
-window.addOfficialTriggerToViewer = function(trigger, triggerContainer) {
+window.addOfficialTriggerToViewer = function (trigger, triggerContainer) {
     const triggerNode = document.createElement("div");
     triggerNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
     triggerNode.setAttribute("data-trigger-id", trigger.tid);
@@ -103,12 +103,12 @@ window.addOfficialTriggerToViewer = function(trigger, triggerContainer) {
     const triggerActionsContainer = document.createElement("div");
     triggerActionsContainer.classList.add("col-sm-12", "col-md-2", "col-xl-2");
     triggerRow.append(triggerActionsContainer);
-    
+
     const triggerActions = document.createElement("div");
     triggerActions.classList.add("w-100", "justify-content-end", "d-flex");
     triggerActionsContainer.append(triggerActions);
 
-    const addAction = document.createElement("a")
+    const addAction = document.createElement("a");
     addAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
     addAction.href = `/notification/trigger/add/${trigger.tid}`;
     triggerActions.append(addAction);
@@ -116,4 +116,4 @@ window.addOfficialTriggerToViewer = function(trigger, triggerContainer) {
     const addActionIcon = document.createElement("i");
     addActionIcon.classList.add("fa-solid", "fa-plus");
     addAction.append(addActionIcon);
-}
+};

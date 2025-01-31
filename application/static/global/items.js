@@ -21,7 +21,7 @@ function _writeItems() {
             $("<option>", {
                 value: itemID,
                 text: itemName,
-            })
+            }),
         );
     });
 }
@@ -45,7 +45,7 @@ let itemsRequest = (obj) => {
                     JSON.stringify({
                         timestamp: Math.floor(Date.now() / 1000),
                         items: items,
-                    })
+                    }),
                 );
                 resolve();
             });

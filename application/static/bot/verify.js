@@ -96,11 +96,11 @@ $(document).ready(function () {
             (response) => {
                 generateToast(
                     "Verification Enable Successful",
-                    "The Tornium API server has been successfully enabled."
+                    "The Tornium API server has been successfully enabled.",
                 );
                 $("#verification-config-enable").prop("disabled", true);
                 $("#verification-config-disable").prop("disabled", false);
-            }
+            },
         );
     });
 
@@ -109,11 +109,11 @@ $(document).ready(function () {
             (response) => {
                 generateToast(
                     "Verification Disable Successful",
-                    "The Tornium API server has been successfully enabled."
+                    "The Tornium API server has been successfully enabled.",
                 );
                 $("#verification-config-enable").prop("disabled", false);
                 $("#verification-config-disable").prop("disabled", true);
-            }
+            },
         );
     });
 
@@ -124,7 +124,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Auto Verification Enable Successful",
-                "The Tornium API server has been successfully enabled."
+                "The Tornium API server has been successfully enabled.",
             );
             $("#auto-verification-config-enable").prop("disabled", true);
             $("#auto-verification-config-disable").prop("disabled", false);
@@ -138,7 +138,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Auto Verification Diable Successful",
-                "The Tornium API server has been successfully enabled."
+                "The Tornium API server has been successfully enabled.",
             );
             $("#auto-verification-config-enable").prop("disabled", false);
             $("#auto-verification-config-disable").prop("disabled", true);
@@ -151,7 +151,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Gateway Verification Enable Successful",
-                "The Tornium API server has successfully enabled gateway verification."
+                "The Tornium API server has successfully enabled gateway verification.",
             );
             $("#gateway-verification-config-enable").prop("disabled", true);
             $("#gateway-verification-config-disable").prop("disabled", false);
@@ -164,7 +164,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Gateway Verification Disable Successful",
-                "The Tornium API server has successfully disabled gateway verification."
+                "The Tornium API server has successfully disabled gateway verification.",
             );
             $("#gateway-verification-config-enable").prop("disabled", false);
             $("#gateway-verification-config-disable").prop("disabled", true);
@@ -315,7 +315,7 @@ $(document).ready(function () {
                         $("<div>", {
                             class: "row",
                             "data-row-index": Math.floor(index / 2),
-                        })
+                        }),
                     );
                 }
 
@@ -323,20 +323,20 @@ $(document).ready(function () {
                     $("<div>", {
                         class: "column col-sm-12 col-md-6",
                         "data-position": position._id,
-                    })
+                    }),
                 );
                 $(`.column[data-position="${position._id}"]`).append(
                     $("<div>", {
                         class: "card mr-3 mb-3",
                         "data-position": position._id,
                         style: "background-color: inherit;",
-                    })
+                    }),
                 );
                 $(`.card[data-position="${position._id}"]`).append(
                     $("<h5>", {
                         class: "card-header",
                         text: position.name,
-                    })
+                    }),
                 );
                 $(`.card[data-position="${position._id}"]`).append(
                     $("<select>", {
@@ -348,7 +348,7 @@ $(document).ready(function () {
                         "data-selected-text-format": "count > 2",
                         multiple: "",
                         style: "background-color: inherit; border: transparent;",
-                    })
+                    }),
                 );
             });
 
@@ -356,7 +356,7 @@ $(document).ready(function () {
                 $.each($(".faction-position-roles-selector"), function (index, item) {
                     if (
                         !Object.keys(serverConfig["verify"]["faction_verify"][factionID]["positions"]).includes(
-                            item.getAttribute("data-position")
+                            item.getAttribute("data-position"),
                         )
                     ) {
                         item.innerHTML += `<option value="${role.id}">${role.name}</option>`;
@@ -403,31 +403,31 @@ $(document).ready(function () {
                 tabindex: "-1",
                 "aria-labelledby": "verify-settings-modal",
                 "aria-hidden": "true",
-            })
+            }),
         );
         $("#verify-settings-modal").append(
             $("<div>", {
                 class: "modal-dialog modal-xl",
                 id: "verify-settings-modal-dialog",
-            })
+            }),
         );
         $("#verify-settings-modal-dialog").append(
             $("<div>", {
                 class: "modal-content",
                 id: "verify-settings-modal-content",
-            })
+            }),
         );
         $("#verify-settings-modal-content").append(
             $("<div>", {
                 class: "modal-header",
                 id: "verify-settings-modal-header",
-            })
+            }),
         );
         $("#verify-settings-modal-header").append(
             $("<h5>", {
                 class: "modal-title",
                 text: `Advanced Verification Dashboard: NYI [${this.getAttribute("data-faction")}]`,
-            })
+            }),
         );
         $("#verify-settings-modal-header").append(
             $("<button>", {
@@ -435,13 +435,13 @@ $(document).ready(function () {
                 class: "btn-close",
                 "data-bs-dismiss": "modal",
                 "aria-label": "Close",
-            })
+            }),
         );
         $("#verify-settings-modal-content").append(
             $("<div>", {
                 class: "modal-body container",
                 id: "verify-settings-modal-body",
-            })
+            }),
         );
 
         let modal = new bootstrap.Modal($("#verify-settings-modal"));

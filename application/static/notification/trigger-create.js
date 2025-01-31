@@ -45,7 +45,7 @@ function validateTemplate() {
 
     templateErrorContainer.setAttribute("hidden", "");
     templateErrorText.textContent = "No error loaded...";
-    
+
     return true;
 }
 
@@ -67,14 +67,16 @@ function createTrigger() {
     const triggerCron = triggerCronInput.value;
     const triggerCode = triggerCodeInput.value;
     const triggerParameters = triggerParametersElement.getData();
-    const triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+    const triggerMessageType = triggerMessageTypeConvert(
+        document.querySelector("input[name=trigger-message-type]:checked").id,
+    );
     const triggerMessageTemplate = templateInput.value;
 
     if (!validateTemplate()) {
         generateToast(
             "Invalid Message Template",
             "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
-            "error"
+            "error",
         );
         return;
     }
@@ -91,23 +93,15 @@ function createTrigger() {
             message_template: triggerMessageTemplate,
         },
         errorHandler: (jsonError) => {
-            if(jsonError.code === 0) {
-                generateToast(
-                    "Lua Trigger Error",
-                    "luac failed to parse this trigger's Lua code",
-                    "error"
-                );
+            if (jsonError.code === 0) {
+                generateToast("Lua Trigger Error", "luac failed to parse this trigger's Lua code", "error");
 
                 document.getElementById("lua-error-container").removeAttribute("hidden");
                 document.getElementById("lua-error-text").textContent = jsonError.details.error;
             } else {
-                generateToast(
-                    "Trigger Creation Failure",
-                    `[${jsonError.code}] ${jsonError.message}`,
-                    "error"
-                );
+                generateToast("Trigger Creation Failure", `[${jsonError.code}] ${jsonError.message}`, "error");
             }
-        }
+        },
     }).then((response) => {
         window.location.replace("/notification/trigger");
     });
@@ -120,14 +114,16 @@ function updateTrigger() {
     const triggerCron = triggerCronInput.value;
     const triggerCode = triggerCodeInput.value;
     const triggerParameters = triggerParametersElement.getData();
-    const triggerMessageType = triggerMessageTypeConvert(document.querySelector("input[name=trigger-message-type]:checked").id);
+    const triggerMessageType = triggerMessageTypeConvert(
+        document.querySelector("input[name=trigger-message-type]:checked").id,
+    );
     const triggerMessageTemplate = templateInput.value;
 
     if (!validateTemplate()) {
         generateToast(
             "Invalid Message Template",
             "LiquidJS failed to parse the provided message template. Please see the error message below the inputted template.",
-            "error"
+            "error",
         );
         return;
     }
@@ -144,23 +140,15 @@ function updateTrigger() {
             message_template: triggerMessageTemplate,
         },
         errorHandler: (jsonError) => {
-            if(jsonError.code === 0) {
-                generateToast(
-                    "Lua Trigger Error",
-                    "luac failed to parse this trigger's Lua code",
-                    "error"
-                );
+            if (jsonError.code === 0) {
+                generateToast("Lua Trigger Error", "luac failed to parse this trigger's Lua code", "error");
 
                 document.getElementById("lua-error-container").removeAttribute("hidden");
                 document.getElementById("lua-error-text").textContent = jsonError.details.error;
             } else {
-                generateToast(
-                    "Trigger Creation Failure",
-                    `[${jsonError.code}] ${jsonError.message}`,
-                    "error"
-                );
+                generateToast("Trigger Creation Failure", `[${jsonError.code}] ${jsonError.message}`, "error");
             }
-        }
+        },
     }).then((response) => {
         window.location.replace("/notification/trigger");
     });

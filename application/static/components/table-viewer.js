@@ -44,7 +44,7 @@ class TableViewer extends HTMLElement {
 
         const countContainer = document.createElement("div");
         countContainer.classList.add("col-sm-12", "col-md-6", "align-middle", "ps-3");
-        countContainer.innerHTML = "<span id=\"trigger-count\">No</span> trigger(s) located";
+        countContainer.innerHTML = '<span id="trigger-count">No</span> trigger(s) located';
         footer.appendChild(countContainer);
 
         const buttonContainer = document.createElement("div");
@@ -75,29 +75,34 @@ class TableViewer extends HTMLElement {
 
         apiEndpoint.searchParams.append("offset", this.offset);
         apiEndpoint.searchParams.append("limit", this.limit);
-        
+
         try {
-            tfetch("GET", apiEndpoint.pathname.toString().substring(1) + apiEndpoint.search.toString(), {errorTitle: error, errorHandler: (jsonError) => {
-                const callback = this.getErrorCallback()
-                callback(jsonError, this.container);
-            }}).then((response) => {
-                if (!(dataKey in response) || response[dataKey].length == 0) {
-                    this.showError(`No data found in response for key ${dataKey}`, "No data found");
-                    return;
-                }
+            tfetch("GET", apiEndpoint.pathname.toString().substring(1) + apiEndpoint.search.toString(), {
+                errorTitle: error,
+                errorHandler: (jsonError) => {
+                    const callback = this.getErrorCallback();
+                    callback(jsonError, this.container);
+                },
+            })
+                .then((response) => {
+                    if (!(dataKey in response) || response[dataKey].length == 0) {
+                        this.showError(`No data found in response for key ${dataKey}`, "No data found");
+                        return;
+                    }
 
-                this.updateCount(response.count);
-                this.updateButtons(response.count);
+                    this.updateCount(response.count);
+                    this.updateButtons(response.count);
 
-                const callback = this.getRenderCallback();
-                this.container.innerHTML = "";
+                    const callback = this.getRenderCallback();
+                    this.container.innerHTML = "";
 
-                for (const rowData of response[dataKey]) {
-                    callback(rowData, this.container);
-                }
-            }).catch((error) => {
-                this.showError(error, "Failed to load");
-            });
+                    for (const rowData of response[dataKey]) {
+                        callback(rowData, this.container);
+                    }
+                })
+                .catch((error) => {
+                    this.showError(error, "Failed to load");
+                });
         } catch (error) {
             this.showError(error, "Failed to load");
         }
@@ -105,7 +110,7 @@ class TableViewer extends HTMLElement {
 
     getErrorCallback() {
         const callbackName = this.getAttribute("data-error-callback");
-        
+
         if (callbackName && window[callbackName]) {
             return window[callbackName];
         }
@@ -115,7 +120,7 @@ class TableViewer extends HTMLElement {
 
     getRenderCallback() {
         const callbackName = this.getAttribute("data-render-callback");
-        
+
         if (callbackName && window[callbackName]) {
             return window[callbackName];
         }
@@ -153,7 +158,8 @@ class TableViewer extends HTMLElement {
 
         if (this.offset <= 0) {
             previous = false;
-        } if (this.offset + this.limit >= count) {
+        }
+        if (this.offset + this.limit >= count) {
             next = false;
         }
 

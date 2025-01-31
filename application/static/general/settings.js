@@ -62,7 +62,7 @@ $(document).ready(function () {
         xhttp.send(
             JSON.stringify({
                 mode: 0,
-            })
+            }),
         );
     });
 
@@ -95,7 +95,7 @@ $(document).ready(function () {
         xhttp.send(
             JSON.stringify({
                 mode: 1,
-            })
+            }),
         );
     });
 
@@ -121,13 +121,13 @@ $(document).ready(function () {
             $("#settings-modal-body").append(
                 $("<p>", {
                     text: "You can set up Tornium to use any TOTP provider such as Google Authenticator and Duo Mobile. To set up TOTP, scan the below QR code in an authenticator and follow the provided instructions.",
-                })
+                }),
             );
             $("#settings-modal-body").append(
                 $("<div>", {
                     id: "qr-code-container",
                     class: "d-flex flex-column justify-content-center mx-2",
-                })
+                }),
             );
 
             new QRCode(document.getElementById("qr-code-container"), response["url"]);
@@ -135,7 +135,7 @@ $(document).ready(function () {
             $("#settings-modal-body").append(
                 $("<p>", {
                     text: `You can also set up TOTP by manually entering the code into the authenticator app: ${response["secret"]}.`,
-                })
+                }),
             );
 
             let modal = new bootstrap.Modal($("#settings-modal"));
@@ -166,7 +166,7 @@ $(document).ready(function () {
                 generateToast(
                     "TOTP Secret Generation Successful",
                     "The TOTP secret was successfully generated. To add the secret to your authenticator app, " +
-                        'press the "Show TOTP QR Code" button.'
+                        'press the "Show TOTP QR Code" button.',
                 );
             }
         };
@@ -201,13 +201,13 @@ $(document).ready(function () {
                         "TOTP backup codes are to be used in case your primary authenticator is missing or damaged. " +
                         "Once generated, backup codes are hashed and can never be viewed again so be sure to save them. " +
                         "Once a backup code is used, it is permanently deleted.",
-                })
+                }),
             );
             $("#settings-modal-body").append(
                 $("<ul>", {
                     class: "list-group mb-2",
                     id: "totp-backup-container",
-                })
+                }),
             );
 
             $.each(response["codes"], function (index, code) {
@@ -215,7 +215,7 @@ $(document).ready(function () {
                     $("<li>", {
                         class: "list-group-item",
                         text: code,
-                    })
+                    }),
                 );
             });
 
@@ -225,7 +225,7 @@ $(document).ready(function () {
                     id: "copy-totp-backup",
                     type: "button",
                     text: "Copy",
-                })
+                }),
             );
 
             $("#settings-modal-body").append(
@@ -234,7 +234,7 @@ $(document).ready(function () {
                     id: "save-totp-backup",
                     type: "button",
                     text: "Save as File",
-                })
+                }),
             );
             $("#save-totp-backup").attr("disabled", true);
 
@@ -263,7 +263,7 @@ $(document).ready(function () {
             () => {
                 generateToast("API Key Input Successful", "The Tornium API server has successfully set your API key.");
                 window.location.reload();
-            }
+            },
         );
     }
 

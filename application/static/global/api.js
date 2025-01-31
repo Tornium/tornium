@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const csrfToken = document.currentScript.getAttribute("data-csrf-token");
 
-function tfetch(method, endpoint, { body, errorTitle, errorHandler}) {
+function tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
     return window
         .fetch(`/api/v1/${endpoint}`, {
             method: method,
@@ -45,7 +45,7 @@ function tfetch(method, endpoint, { body, errorTitle, errorHandler}) {
                     generateToast(
                         errorTitle === undefined ? "Tornium Error" : errorTitle,
                         `[${jsonResponse.code}] ${jsonResponse.message}`,
-                        "error"
+                        "error",
                     );
                 } else {
                     errorHandler(jsonResponse);

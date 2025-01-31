@@ -11,7 +11,7 @@
     },
     "javascript": {
         "formatter": {
-            "arrowParentheses":"always",
+            "arrowParentheses": "always",
             "bracketSameLine": false,
             "bracketSpacing": true,
             "jsxQuoteStyle": "double",

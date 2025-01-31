@@ -21,7 +21,7 @@ function _writeGuilds() {
             $("<option>", {
                 value: guildID,
                 text: guildName,
-            })
+            }),
         );
     });
 }

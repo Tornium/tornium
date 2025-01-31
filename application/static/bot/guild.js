@@ -21,7 +21,7 @@ $(document).ready(function () {
     serverConfigPromise.then((config) => {
         $.each(config.attacks, function (factionid, factionConfig) {
             let option = $(
-                `.faction-bonus-length[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.length}"]`
+                `.faction-bonus-length[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.length}"]`,
             );
             if (option.length === 1) {
                 option.attr("selected", "");
@@ -46,21 +46,21 @@ $(document).ready(function () {
 
             $.each(serverConfig["attacks"], function (factionid, factionConfig) {
                 let option = $(
-                    `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.retal.channel}"]`
+                    `.faction-retal-channel[data-faction="${factionid}"] option[value="${factionConfig.retal.channel}"]`,
                 );
                 if (option.length === 1) {
                     option.attr("selected", "");
                 }
 
                 option = $(
-                    `.faction-bonus-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.channel}"]`
+                    `.faction-bonus-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_bonus.channel}"]`,
                 );
                 if (option.length === 1) {
                     option.attr("selected", "");
                 }
 
                 option = $(
-                    `.faction-alert-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_alert.channel}"]`
+                    `.faction-alert-channel[data-faction="${factionid}"] option[value="${factionConfig.chain_alert.channel}"]`,
                 );
                 if (option.length === 1) {
                     option.attr("selected", "");
@@ -69,7 +69,7 @@ $(document).ready(function () {
 
             $.each(serverConfig["banking"], function (factionid, factionConfig) {
                 let option = $(
-                    `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`
+                    `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`,
                 );
 
                 if (option.length !== 1) {

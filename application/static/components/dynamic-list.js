@@ -117,12 +117,20 @@ class DynamicList extends HTMLElement {
         descriptionContainer.append(descriptionLabel);
 
         const buttonContainer = document.createElement("div");
-        buttonContainer.classList.add("col-sm-12", "col-md-2", "mb-3", "mb-md-0", "d-flex", "align-items-center", "justify-content-end");
+        buttonContainer.classList.add(
+            "col-sm-12",
+            "col-md-2",
+            "mb-3",
+            "mb-md-0",
+            "d-flex",
+            "align-items-center",
+            "justify-content-end",
+        );
         rowContainer.append(buttonContainer);
 
         const deleteButton = document.createElement("button");
         deleteButton.classList.add("btn", "btn-outline-danger");
-        deleteButton.innerHTML = "<i class=\"fa-solid fa-trash\"></i>";
+        deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
         deleteButton.addEventListener("click", (event) => this.deleteRow(event));
         buttonContainer.append(deleteButton);
     }
@@ -133,7 +141,7 @@ class DynamicList extends HTMLElement {
         rowContainer.remove();
     }
 
-    getData({toastError = false} = {}) {
+    getData({ toastError = false } = {}) {
         let data = {};
 
         for (const row of this.listContainer.getElementsByClassName("dynamic-list-row")) {
@@ -142,7 +150,11 @@ class DynamicList extends HTMLElement {
 
             if (key == null || key.length == 0) {
                 if (toastError) {
-                    generateToast(toastError, `"${key}" is not a valid value in the dynamic list and will be skipped.`, "warning");
+                    generateToast(
+                        toastError,
+                        `"${key}" is not a valid value in the dynamic list and will be skipped.`,
+                        "warning",
+                    );
                 }
 
                 console.log(`Invalid dynamic list key value: ${key}`);

@@ -20,7 +20,7 @@ $(document).ready(function () {
     if (guildid === "0") {
         generateToast(
             "Faction Guild Not Set",
-            "No Discord server was set for this faction. Please set this before moving on."
+            "No Discord server was set for this faction. Please set this before moving on.",
         );
         throw new Error("Faction guild error");
     }

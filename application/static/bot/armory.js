@@ -83,7 +83,7 @@ $(document).ready(function () {
                                             $("<option>", {
                                                 value: "0",
                                                 text: "Disabled",
-                                            })
+                                            }),
                                         ),
                                     ]),
                                 ]),
@@ -157,12 +157,12 @@ $(document).ready(function () {
                                                 text: "Track",
                                                 "data-faction": factionID,
                                             }),
-                                        ])
+                                        ]),
                                     ),
                                 ]),
                             ]),
-                        ])
-                    )
+                        ]),
+                    ),
                 );
             });
 
@@ -201,16 +201,16 @@ $(document).ready(function () {
                                 }).append(
                                     $("<i>", {
                                         class: "fa-solid fa-minus",
-                                    })
-                                )
-                            )
+                                    }),
+                                ),
+                            ),
                         );
                     });
 
                     if (factionConfig.enabled) {
                         $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="0"]`).attr(
                             "disabled",
-                            false
+                            false,
                         );
                         $(`.armory-faction-toggle[data-faction="${factionID}"][data-state="1"]`).attr("disabled", true);
                     }
@@ -223,7 +223,7 @@ $(document).ready(function () {
                 .then(function () {
                     $.each(serverConfig.armory.config, function (factionID, factionConfig) {
                         let option = $(
-                            `.tracker-channel[data-faction="${factionID}"] option[value=${factionConfig.channel}]`
+                            `.tracker-channel[data-faction="${factionID}"] option[value=${factionConfig.channel}]`,
                         );
 
                         if (option.length !== 1) {
@@ -285,14 +285,14 @@ $(document).ready(function () {
                             }).append(
                                 $("<i>", {
                                     class: "fa-solid fa-minus",
-                                })
-                            )
-                        )
+                                }),
+                            ),
+                        ),
                     );
                     $(`.no-items-container[data-faction="${factionID}"]`).remove();
                     $(`.remove-item[data-faction="${factionID}"][data-item="${itemID}"]`).on(
                         "click",
-                        removeTrackedItem
+                        removeTrackedItem,
                     );
                 });
             });
@@ -359,7 +359,7 @@ $(document).ready(function () {
             $("#armory-faction-container").append(
                 $("<p>", {
                     text: "Discord configuration failed to load...",
-                })
+                }),
             );
         });
 });

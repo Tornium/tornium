@@ -20,12 +20,12 @@ ready(() => {
         new TomSelect(".guild-selector", {
             create: false,
         });
-    })
+    });
 
     document.getElementById("add-trigger").addEventListener("click", () => {
         const url = new URL(document.location);
         const guild = document.getElementById("trigger-guild");
-        url.pathname += `/guild/${guild.options[guild.selectedIndex].value}`
+        url.pathname += `/guild/${guild.options[guild.selectedIndex].value}`;
         document.location.href = url.href;
     });
 });

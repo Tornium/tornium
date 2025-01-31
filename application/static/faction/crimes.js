@@ -91,7 +91,7 @@ function generateViewer() {
                         $("<li>", {
                             class: "list-group-item",
                             text: participantText,
-                        })
+                        }),
                     );
                 });
 
@@ -164,7 +164,7 @@ function generateViewer() {
                             text: "Outcome",
                         }),
                         outcomeElement,
-                    ])
+                    ]),
                 );
 
                 let crimeHeader = crime.crime_type;
@@ -198,14 +198,14 @@ function generateViewer() {
                                 "data-bs-target": `#oc-data-${crime.id}`,
                                 "aria-expanded": false,
                                 "aria-controls": `oc-data-${crime.id}`,
-                            })
+                            }),
                         ),
                         $("<div>", {
                             id: `oc-data-${crime.id}`,
                             class: "accordion-collapse collapse",
                             "data-bs-parent": "#oc-viewer-data",
                         }).append(bodyElement),
-                    ])
+                    ]),
                 );
             });
 

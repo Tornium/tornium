@@ -60,44 +60,44 @@ $(document).ready(function () {
                 if (ff > 3) {
                     ff = 3;
                 }
-                let respect = ((response.user.level / 198) + 197/198).toFixed(2);
+                let respect = (response.user.level / 198 + 197 / 198).toFixed(2);
 
                 $("#stat-modal-body").append(
                     $("<div>", {
                         class: "container",
-                    })
+                    }),
                 );
 
                 $("#stat-modal-body .container").append(
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-level",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-level").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Current Level:",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-level").append(
                     $("<div>", {
                         class: "col-sm-6",
                         text: `${response.user.level}`,
-                    })
+                    }),
                 );
 
                 $("#stat-modal-body .container").append(
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-faction",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-faction").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Faction:",
-                    })
+                    }),
                 );
 
                 if (response.user.faction === null) {
@@ -105,14 +105,14 @@ $(document).ready(function () {
                         $("<div>", {
                             class: "col-sm-6",
                             text: `None`,
-                        })
+                        }),
                     );
                 } else {
                     $("#stat-modal-row-faction").append(
                         $("<div>", {
                             class: "col-sm-6",
                             text: `${response.user.faction.name} [${response.user.faction.tid}]`,
-                        })
+                        }),
                     );
                 }
 
@@ -120,19 +120,19 @@ $(document).ready(function () {
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-last-action",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-last-action").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Last Action:",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-last-action").append(
                     $("<div>", {
                         class: "col-sm-6",
                         id: "stat-modal-last-action",
-                    })
+                    }),
                 );
                 $("#stat-modal-last-action").append(
                     $("<span>", {
@@ -140,64 +140,64 @@ $(document).ready(function () {
                         "data-bs-placement": "right",
                         title: tcttime(response.user.last_action),
                         text: reltime(response.user.last_action),
-                    })
+                    }),
                 );
 
                 $("#stat-modal-body .container").append(
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-ff",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-ff").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Estimated Fair Fight:",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-ff").append(
                     $("<div>", {
                         class: "col-sm-6",
                         text: ff,
-                    })
+                    }),
                 );
 
                 $("#stat-modal-body .container").append(
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-respect",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-respect").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Estimated Respect:",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-respect").append(
                     $("<div>", {
                         class: "col-sm-6",
                         text: respect,
-                    })
+                    }),
                 );
 
                 $("#stat-modal-body .container").append(
                     $("<div>", {
                         class: "row",
                         id: "stat-modal-row-last-refresh",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-last-refresh").append(
                     $("<div>", {
                         class: "col-sm-4",
                         text: "Last Refresh:",
-                    })
+                    }),
                 );
                 $("#stat-modal-row-last-refresh").append(
                     $("<div>", {
                         class: "col-sm-6",
                         id: "stat-modal-last-refresh",
-                    })
+                    }),
                 );
                 $("#stat-modal-last-refresh").append(
                     $("<span>", {
@@ -205,53 +205,53 @@ $(document).ready(function () {
                         "data-bs-placement": "right",
                         title: tcttime(response.user.last_refresh),
                         text: reltime(response.user.last_refresh),
-                    })
+                    }),
                 );
 
                 $("#stat-modal-label").text(`${response.user.name} [${response.user.tid}]`);
                 $("#stat-modal-attack-link").attr(
                     "href",
-                    `https://www.torn.com/loader.php?sid=attack&user2ID=${response.user.tid}`
+                    `https://www.torn.com/loader.php?sid=attack&user2ID=${response.user.tid}`,
                 );
                 $("#stat-modal-profile-link").attr(
                     "href",
-                    `https://www.torn.com/profiles.php?XID=${response.user.tid}`
+                    `https://www.torn.com/profiles.php?XID=${response.user.tid}`,
                 );
 
                 $("#stat-modal-body").append(
                     $("<table>", {
                         id: "stats-modal-user-table",
                         class: "table table-striped table-bordered mt-3",
-                    })
+                    }),
                 );
                 $("#stats-modal-user-table").append($("<thead>"));
                 $("#stats-modal-user-table thead").append($("<tr>"));
                 $("#stats-modal-user-table thead tr").append(
                     $("<th>", {
                         text: "Minimum Stats",
-                    })
+                    }),
                 );
                 $("#stats-modal-user-table thead tr").append(
                     $("<th>", {
                         text: "Maximum Stats",
-                    })
+                    }),
                 );
                 $("#stats-modal-user-table thead tr").append(
                     $("<th>", {
                         text: "Time Added",
-                    })
+                    }),
                 );
                 $("#stats-modal-user-table").append(
                     $("<tbody>", {
                         id: "stats-modal-user-table-body",
-                    })
+                    }),
                 );
 
                 $.each(response.stat_entries, function (stat_id, stat) {
                     $("#stats-modal-user-table-body").append(
                         $("<tr>", {
                             "data-statid": stat_id,
-                        })
+                        }),
                     );
 
                     let statRow = $(`tr[data-statid="${stat_id}"]`);
@@ -259,12 +259,12 @@ $(document).ready(function () {
                     statRow.append(
                         $("<th>", {
                             text: commas(bsRange(stat.stat_score)[0]),
-                        })
+                        }),
                     );
                     statRow.append(
                         $("<th>", {
                             text: commas(bsRange(stat.stat_score)[1]),
-                        })
+                        }),
                     );
                     statRow.append(
                         $("<th>", {
@@ -273,7 +273,7 @@ $(document).ready(function () {
                             "data-bs-toggle": "tooltip",
                             "data-bs-placement": "right",
                             title: tcttime(stat.timeadded),
-                        })
+                        }),
                     );
                 });
 
@@ -295,7 +295,7 @@ $(document).ready(function () {
                     statsTable.columns.adjust();
                     statsTable.responsive.recalc();
                 }, 200);
-            }
+            },
         );
     });
 

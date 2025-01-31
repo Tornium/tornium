@@ -28,13 +28,13 @@ $(document).ready(function () {
                     $("<div>", {
                         class: "card mt-3",
                         "data-factionid": faction,
-                    })
+                    }),
                 );
                 $(`div .card[data-factionid="${faction}"]`).append(
                     $("<div>", {
                         class: "card-body",
                         "data-factionid": faction,
-                    })
+                    }),
                 );
                 $(`div .card-body[data-factionid="${faction}"]`).append([
                     $("<h5>", {
@@ -70,10 +70,10 @@ $(document).ready(function () {
                                         $("<option>", {
                                             value: "0",
                                             text: "Disabled",
-                                        })
-                                    )
+                                        }),
+                                    ),
                                 ),
-                            ])
+                            ]),
                         ),
                         $("<div>", {
                             class: "col-sm-12 col-md-8 col-xl-4 mt-2",
@@ -95,9 +95,9 @@ $(document).ready(function () {
                                         "data-live-search": "true",
                                         "data-selected-text-format": "count > 2",
                                         multiple: "",
-                                    })
+                                    }),
                                 ),
-                            ])
+                            ]),
                         ),
                     ]),
                     $("<div>", {
@@ -125,10 +125,10 @@ $(document).ready(function () {
                                         $("<option>", {
                                             value: "0",
                                             text: "Disabled",
-                                        })
-                                    )
+                                        }),
+                                    ),
                                 ),
-                            ])
+                            ]),
                         ),
                         $("<div>", {
                             class: "col-sm-12 col-md-8 col-xl-4 mt-2",
@@ -150,9 +150,9 @@ $(document).ready(function () {
                                         "data-live-search": "true",
                                         "data-selected-text-format": "count > 2",
                                         multiple: "",
-                                    })
+                                    }),
                                 ),
-                            ])
+                            ]),
                         ),
                     ]),
                     $("<div>", {
@@ -180,10 +180,10 @@ $(document).ready(function () {
                                         $("<option>", {
                                             value: "0",
                                             text: "Disabled",
-                                        })
-                                    )
+                                        }),
+                                    ),
                                 ),
-                            ])
+                            ]),
                         ),
                     ]),
                 ]);
@@ -231,13 +231,13 @@ $(document).ready(function () {
 
                 $.each(serverConfig.oc, function (factionid, oc_config) {
                     let delayChannel = $(
-                        `.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config.delay.channel}"]`
+                        `.oc-delay-channel[data-factionid="${factionid}"] option[value="${oc_config.delay.channel}"]`,
                     );
                     let readyChannel = $(
-                        `.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config.ready.channel}"]`
+                        `.oc-ready-channel[data-factionid="${factionid}"] option[value="${oc_config.ready.channel}"]`,
                     );
                     let initiatedChannel = $(
-                        `.oc-initiated-channel[data-factionid="${factionid}"] option[value="${oc_config.initiated.channel}"]`
+                        `.oc-initiated-channel[data-factionid="${factionid}"] option[value="${oc_config.initiated.channel}"]`,
                     );
 
                     if (delayChannel.length !== 0) {

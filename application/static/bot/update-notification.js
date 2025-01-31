@@ -37,13 +37,15 @@ function setupTrigger(event) {
     let triggerMessageType;
 
     try {
-        triggerMessageType = notificationTypeConvert(document.querySelector("input[name=notification-type]:checked").id);
+        triggerMessageType = notificationTypeConvert(
+            document.querySelector("input[name=notification-type]:checked").id,
+        );
     } catch (TypeError) {
         generateToast("Invalid message type", "A message type must be selected.", "warning");
         return;
     }
 
-    let parameters = {}
+    let parameters = {};
 
     for (let parameterInput of document.querySelectorAll(".parameter-value")) {
         parameters[parameterInput.getAttribute("data-parameter")] = parameterInput.value;
@@ -68,7 +70,7 @@ function setupTrigger(event) {
         errorHandler: (jsonError) => {
             // TODO: Update error handler
             console.log(jsonError);
-        }
+        },
     }).then((data) => {
         window.location.href = `/bot/dashboard/${guildid}/notification`;
     });
@@ -80,7 +82,7 @@ function deleteNotification(event) {
         errorHandler: (jsonError) => {
             // TODO: Update error handler
             console.log(jsonError);
-        }
+        },
     }).then((data) => {
         window.location.href = `/bot/dashboard/${guildid}/notification`;
     });
@@ -100,13 +102,13 @@ function toggleNotification(event) {
 
     tfetch("POST", `notification/${notification_id}/toggle`, {
         body: {
-            enabled: enable
+            enabled: enable,
         },
         errorTitle: "Notification Toggle Failed",
         errorHandler: (jsonError) => {
             // TODO: Update error handler
             console.log(jsonError);
-        }
+        },
     }).then((data) => {
         generateToast("Notification Toggled", "The notification has been successfully toggled.");
     });
@@ -127,7 +129,7 @@ ready(() => {
         if (channelOption.length !== 0) {
             channelOption.attr("selected", "");
         }
-    })
+    });
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);
     document.getElementById("delete-notification").addEventListener("click", deleteNotification);

@@ -251,9 +251,11 @@ def list_triggers(*args, **kwargs):
     offset = int(offset)
     official = bool(official)
 
-    user_triggers = NotificationTrigger.select().where(
-        (NotificationTrigger.owner == kwargs["user"]) & (NotificationTrigger.official == official)
-    )
+    if official:
+        user_triggers = NotificationTrigger.select().where(NotificationTrigger.official == official)
+    else:
+        user_triggers = NotificationTrigger.select().where(NotificationTrigger.owner == kwargs["user"])
+
     filtered_user_triggers = user_triggers.offset(offset).limit(limit)
 
     return (

@@ -184,7 +184,11 @@ def create_trigger(trigger_id=None, *args, **kwargs):
 
         return make_exception_response("0000", key, details={"error": f"Invalid data attribute: {attribute}"})
 
-    if NotificationTrigger.select().where((NotificationTrigger.name == trigger_name) & (NotificationTrigger.owner == kwargs["user"].tid)).exists():
+    if (
+        NotificationTrigger.select()
+        .where((NotificationTrigger.name == trigger_name) & (NotificationTrigger.owner == kwargs["user"].tid))
+        .exists()
+    ):
         return make_exception_response("0000", key, details={"error": "Trigger name already exists for user"})
 
     if update:

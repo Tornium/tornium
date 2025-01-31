@@ -1,0 +1,52 @@
+{
+	"embeds": [
+		{
+			"title": "Flying Members of {{ faction_name }}",
+			{% if flying_members.size == 0 %}
+			"description": "No members are flying."
+			{% else %}
+			"fields": [
+				{% for destination in flying_members %}
+				{
+					"name": "{{ destination[0] }}",
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }}) - {% if member[1].regular_landing %}<t:{{ member[1].regular_landing }}:R>{% else %}Unknown{% endif %}\n{% endfor %}"
+				}{% unless forloop.last %},{% endunless %}
+				{% endfor %}
+			],
+			"footer": {
+				"text": "Shows earliest regular landing time"
+			}
+			{% endif %}
+		},
+		{
+			"title": "Hospitalized Members of {{ faction_name }}",
+			{% if hospital_members.size == 0 %}
+			"description": "No members are hospitalized overseas."
+			{% else %}
+			"fields": [
+				{% for destination in hospital_members %}
+				{
+					"name": "{{ destination[0] }}",
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }}) - <t:{{ member[1].status.until }}:R>\n{% endfor %}"
+				}{% unless forloop.last %},{% endunless %}
+				{% endfor %}
+			]
+			{% endif %}
+		},
+		{
+			"title": "Abroad Members of {{ faction_name }}",
+			{% if abroad_members.size == 0 %}
+			"description": "No members are abroad."
+			{% else %}
+			"fields": [
+				{% for destination in abroad_members %}
+				{
+					"name": "{{ destination[0] }}",
+					"value": "{% for member in destination[1] %}[{{ member[1].username }}](https://tcy.sh/p/{{ member[1].tid }})\n{% endfor %}"
+				}{% unless forloop.last %},{% endunless %}
+				{% endfor %}
+			]
+			{% endif %}
+		}
+	]
+}

@@ -58,7 +58,7 @@ defmodule Tornium.User do
       resource_id: 0,
       selections: ["profile", "discord", "battlestats"],
       key: key_or_user.api_key,
-      key_owner: key_or_user.user,
+      key_owner: key_or_user.user_id,
       nice: priority
     })
     |> update_user_data(:self)

@@ -23,9 +23,6 @@ defmodule Tornium.Repo.Migrations.AddFaction do
       add :last_attacks, :utc_datetime_usec, null: true
     end
     create unique_index(:faction, [:tid])
-    create unique_index(:faction, [:leader_id])
-    create unique_index(:faction, [:coleader_id])
-    create unique_index(:faction, [:guild_id])
   end
 
   def down do

@@ -15,7 +15,17 @@
 
 from flask import Blueprint
 
-from controllers.api.v1 import bot, faction, gateway, items, key, stat, stocks, user
+from controllers.api.v1 import (
+    bot,
+    faction,
+    gateway,
+    items,
+    key,
+    notification,
+    stat,
+    stocks,
+    user,
+)
 
 mod = Blueprint("api_routes_v1", __name__)
 
@@ -104,6 +114,26 @@ mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction/<int:faction_tid>/oc/<string:notif>/<string:element>",
     view_func=bot.oc.oc_config_setter,
     methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification",
+    view_func=bot.notification.get_notification_config,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification",
+    view_func=bot.notification.toggle_notifications,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notification/log-channel",
+    view_func=bot.notification.set_notifications_log_channel,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/notifications",
+    view_func=bot.notification.get_server_notifications,
+    methods=["GET"],
 )
 mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/verify/jail",
@@ -223,6 +253,7 @@ mod.add_url_rule("/api/v1/stocks/movers", view_func=stocks.movers.stock_movers, 
 
 # /api/v1/user
 mod.add_url_rule("/api/v1/user", view_func=user.get_user, methods=["GET"])
+mod.add_url_rule("/api/v1/user/guilds", view_func=user.get_admin_guilds, methods=["GET"])
 mod.add_url_rule("/api/v1/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/user/estimate/<int:tid>",
@@ -230,3 +261,30 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule("/api/v1/user/<int:tid>/stat", view_func=user.latest_user_stats, methods=["GET"])
+
+# /api/v1/notification
+mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.list_triggers, methods=["GET"])
+mod.add_url_rule("/api/v1/notification/trigger", view_func=notification.trigger.create_trigger, methods=["POST"])
+mod.add_url_rule(
+    "/api/v1/notification/trigger/<trigger_id>", view_func=notification.trigger.create_trigger, methods=["PUT"]
+)
+mod.add_url_rule(
+    "/api/v1/notification/trigger/<trigger_id>/guild/<int:guild_id>",
+    view_func=notification.trigger.setup_trigger_guild,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>",
+    view_func=notification.notification.update_guild_notification,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>",
+    view_func=notification.notification.delete_guild_notification,
+    methods=["DElETE"],
+)
+mod.add_url_rule(
+    "/api/v1/notification/<notification_id>/toggle",
+    view_func=notification.notification.toggle_guild_notification,
+    methods=["POST"],
+)

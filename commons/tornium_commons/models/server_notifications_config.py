@@ -13,15 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from skynet.commands.stocks import notify
+from peewee import BigIntegerField, BooleanField, DeferredForeignKey
 
-_stocks_commands = {
-    "notify": notify.notify,
-}
+from .base_model import BaseModel
 
 
-def stocks_switchboard(interaction, *args, **kwargs):
-    if interaction["data"]["options"][0]["name"] in _stocks_commands:
-        return _stocks_commands[interaction["data"]["options"][0]["name"]](interaction, *args, **kwargs)
+class ServerNotificationsConfig(BaseModel):
+    class Meta:
+        table_name = "server_notifications_config"
 
-    return {}
+    server = DeferredForeignKey("server", null=False)
+    enabled = BooleanField(default=False, null=False)
+    log_channel = BigIntegerField(null=True)

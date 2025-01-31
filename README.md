@@ -8,7 +8,8 @@ More information about how to use the site, set up a Discord bot, etc. can be fo
 - User stat estimation
 - Chain list generation
 - Faction banking (via Discord)
-- Discord stakeout notifications
+- Lua-based custom notifications
+- Retaliation notifications
 - And more!!
 
 ## Installation

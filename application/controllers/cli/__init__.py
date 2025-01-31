@@ -17,8 +17,10 @@ import importlib
 import importlib.resources
 import json
 import logging
+import os
 import pathlib
 import traceback
+import typing
 
 import click
 from flask import Blueprint
@@ -131,3 +133,22 @@ def load_scripts(verbose=False):
 
     for script_name, script_hash in script_map.items():
         click.echo(f"{script_name}: {script_hash}")
+
+
+@mod.cli.command("load-triggers")
+@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
+def load_triggers(verbose=False):
+    path = pathlib.Path(os.getcwd() + "/../notifications")
+
+    if verbose:
+        click.echo(f"Walking dir {path}")
+
+    trigger_directories: typing.List[str] = next(os.walk(path))[1]
+
+    click.echo(f"Found {len(trigger_directories)} trigger directories")
+
+    for trigger_directory in trigger_directories:
+        if verbose:
+            click.echo(f"Checking trigger directory {trigger_directory}")
+
+        load_trigger(pathlib.Path(os.getcwd() + "/../notifications/" + trigger_directory), official=True)

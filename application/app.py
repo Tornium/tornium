@@ -82,6 +82,7 @@ def init__app():
     from controllers.developers import mod as developers_mod
     from controllers.errors import mod as error_mod
     from controllers.faction import mod as faction_mod
+    from controllers.notification import mod as notification_mod
     from controllers.oauth import mod as oauth_mod
     from controllers.oauth import oauth_server
     from controllers.statroutes import mod as stat_mod
@@ -141,6 +142,7 @@ def init__app():
         app.register_blueprint(admin_mod)
         app.register_blueprint(oauth_mod)
         app.register_blueprint(developers_mod)
+        app.register_blueprint(notification_mod)
 
     return app
 

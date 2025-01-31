@@ -16,34 +16,43 @@
 from peewee import (
     BigIntegerField,
     BooleanField,
-    DateTimeField,
+    CharField,
     ForeignKeyField,
-    SmallIntegerField,
+    IntegerField,
+    UUIDField,
 )
 from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
+from .notification_trigger import NotificationTrigger
+from .server import Server
 from .user import User
 
 
 class Notification(BaseModel):
-    ###############
-    # Notification types
-    #
-    # 0: stocks price reach
-    # 1: user stakeout
-    # 2: faction stakeout
-    # 3: item notif
-    ###############
+    nid = UUIDField(primary_key=True)
+    trigger = ForeignKeyField(NotificationTrigger, null=False)
+    user = ForeignKeyField(User, null=False)  # User that created the notification
+    enabled = BooleanField(default=True, null=False)
 
-    invoker = ForeignKeyField(User)
-    time_created = DateTimeField()
+    server = ForeignKeyField(Server, null=True)
+    channel_id = BigIntegerField(null=True)
+    message_id = BigIntegerField(default=None, null=True)  # Message for auto-updating message
 
-    recipient = BigIntegerField()
-    recipient_guild = BigIntegerField()  # 0: DM
+    resource_id = IntegerField(default=None, null=True)
+    one_shot = BooleanField(default=True, null=False)
+    parameters = JSONField(default={}, null=False)
 
-    n_type = SmallIntegerField()
-    target = BigIntegerField()
-    persistent = BooleanField()
-    enabled = BooleanField(default=False)
-    options = JSONField(index=False)
+    error = CharField(default=None, null=True)
+    previous_state = JSONField(default={}, null=False)
+
+    def as_dict(self):
+        return {
+            "nid": self.nid,
+            "trigger": self.trigger.as_dict(),
+            "user": self.user_id,
+            "server": self.server_id,
+            "channel_id": self.channel_id,
+            "resource_id": self.resource_id,
+            "one_shot": self.one_shot,
+        }

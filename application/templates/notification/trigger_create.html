@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notification Triggers
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/notification">Notifications</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification/triggers">Triggers</a>
+    </li>
+    {% if create %}
+    <li class="breadcrumb-item active">
+        <a href="/notification/trigger/create">Create Trigger</a>
+    </li>
+    {% else %}
+    <li class="breadcrumb-item active">
+        <a href="/notification/trigger/{{ trigger_uuid }}">View Trigger</a>
+    </li>
+    {% endif %}
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/notification/trigger">
+                <i class="col-1 col-sm-2 fa-brands fa-searchengin"></i> <span class="col">Notification Triggers</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Alert Details</h5>
+
+        <div class="mb-3">
+            <label for="trigger-name" class="form-label">Trigger Name</label>
+            <input type="text" class="form-control" id="trigger-name" value="{{ trigger_name }}" autocomplete="off">
+        </div>
+
+        <div class="mb-3">
+            <label for="trigger-description" class="form-label">Trigger Description</label>
+            <textarea class="form-control" id="trigger-description" style="height: 100px;">{{ trigger_description }}</textarea>
+        </div>
+
+        <div class="mb-3 row">
+            <label for="trigger-resouce">Trigger Resource</label>
+            <div class="col-sm-12 col-md-4 col-xl-4">
+                <select class="form-select" id="trigger-resource" autocomplete="off">
+                    <option disabled value {% if trigger_resource is none %} selected {% endif %}>Select One</option>
+                    <option value="user" {% if trigger_resource == "user" %} selected {% endif %}>User</option>
+                    <option value="faction" {% if trigger_resource == "faction" %} selected {% endif %}>Faction</option>
+                    <option value="company" disabled {% if trigger_resource == "company" %} selected {% endif %}>Company</option>
+                    <option value="factionv2" disabled {% if trigger_resource == "factionv2" %} selected {% endif %}>Faction (API v2)</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div class="mb-3 row">
+            <div class="col-sm-12 col-md-4 col-xl-4">
+                <label for="trigger-cron" class="form-label">Cron (<a href="https://crontab.guru/">Guide</a>)</label>
+                <input type="text" class="form-control" id="trigger-cron" value="{{ trigger_cron }}" autocomplete="off">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Trigger Conditions</h5>
+
+        <p class="card-text">
+            Tornium uses the <a href="https://lua.org">Lua</a> programming language to configure its notification triggers. Examples of such notification triggers are found <a href="#">here</a>. For more information on configuring notification triggers, check out the <a href="#">documentation</a>.
+        </p>
+
+        <p class="card-text">
+            <b>NOTE:</b> Tornium parses and validates this Lua code on the backend, but this validation is not complete. It is recommended to check the code on a Lua interpreter on your computer.
+        </p>
+
+        <div class="mb-3">
+            <label for="trigger-code" class="form-label">Trigger Code</label>
+            <textarea class="form-control" id="trigger-code" style="height: 400px;">{{ trigger_code }}</textarea>
+        </div>
+
+        <div class="card mt-3" id="lua-error-container" hidden>
+            <div class="card-body">
+                <h5 class="card-title mb-2">Lua Error</h5>
+                <p class="card-text" id="lua-error-text">No error loaded...</p>
+            </div>
+        </div>
+
+        <dynamic-list data-header="Parameters" data-button-text="Add New Parameter" id="trigger-parameters" {% if trigger_parameters | length != 0 %} data='{{ trigger_parameters | tojson }}' {% endif %}></dynamic-list>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Trigger Message</h5>
+
+        <p class="card-text">
+            Tornium can send a message to a Discord channel when this notification trigger is activated. This allows the creator of the trigger to create a custom message in the <a href="https://shopify.github.io/liquid/">Liquid</a> templating language. The message is required to be in the form of a <a href="https://discord.com/developers/docs/resources/message#create-message">Discord message object</a>.
+        </p>
+
+        <div class="mb-3 border rounded p-3" style="width: fit-content">
+            <label for="trigger-message-type" class="form-label">Message Type:</label>
+
+            <input type="radio" class="btn-check" name="trigger-message-type" id="trigger-message-update" autocomplete="off" {% if trigger_message_type == 0 %} checked {% endif %}>
+            <label class="btn" for="trigger-message-update">Update Message</label>
+
+            <input type="radio" class="btn-check" name="trigger-message-type" id="trigger-message-send" autocomplete="off" {% if trigger_message_type == 1 %} checked {% endif %}>
+            <label class="btn" for="trigger-message-send">Send Message</label>
+        </div>
+
+        <label for="trigger-message" class="form-label">Message Template</label>
+        <textarea class="form-control" id="trigger-message" style="height: 400px">{{ trigger_message_template }}</textarea>
+
+        <div class="card mt-3" id="liquid-error-container" hidden>
+            <div class="card-body">
+                <h5 class="card-title mb-2">Liquid Template Error</h5>
+                <p class="card-text" id="liquid-error-text">No error loaded...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Notification Trigger Creation</h5>
+
+        <p class="card-text">
+            <b>REMINDER:</b> As stated in the <a href="/terms">Terms of Service</a>, you agree not to engage in any activity that interferes with or disrupts the service. Any activity that interferes with or disrupts the service may result in a permanent ban of you, your faction, and/or your Discord server.
+        </p>
+
+        <div class="float-end">
+            <a class="btn btn-outline-danger" href="/notification/trigger">Cancel</a>
+
+            {% if create %}
+            <button class="btn btn-outline-success" id="trigger-create">Create</button>
+            {% else %}
+            <button class="btn btn-outline-success" id="trigger-update">Update</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="/static/components/dynamic-list.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/liquidjs/10.19.0/liquid.browser.min.js" integrity="sha512-i0aMmT5V0lfCgTFLbCA9V92SYCigtLUlfetc9PgHpk2efoB9NW27zRcGd1zyCm6qW9hDT6c15pzhMeyLUcBTMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/static/notification/trigger-create.js" data-trigger-id="{{ trigger_uuid }}"></script>
+{% endblock %}

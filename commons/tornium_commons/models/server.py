@@ -17,10 +17,17 @@ import operator
 import typing
 from functools import lru_cache
 
-from peewee import BigIntegerField, BooleanField, IntegerField, TextField
+from peewee import (
+    BigIntegerField,
+    BooleanField,
+    ForeignKeyField,
+    IntegerField,
+    TextField,
+)
 from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel
+from .server_notifications_config import ServerNotificationsConfig
 
 
 class Server(BaseModel):
@@ -63,6 +70,9 @@ class Server(BaseModel):
 
     # OC configuration
     oc_config = JSONField(default={})
+
+    # Notification config
+    notifications_config = ForeignKeyField(ServerNotificationsConfig, null=True)
 
     def get_text_channels(
         self,

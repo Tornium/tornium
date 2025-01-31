@@ -19,7 +19,21 @@ from controllers.api.v1.bot import (
     banking,
     config,
     faction,
+    notification,
     oc,
     utils,
     verify,
 )
+
+__all__ = [
+    "armory",
+    "assists",
+    "attacks",
+    "banking",
+    "config",
+    "faction",
+    "notification",
+    "oc",
+    "utils",
+    "verify",
+]

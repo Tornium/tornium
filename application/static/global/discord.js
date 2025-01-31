@@ -83,14 +83,12 @@ function createChannels() {
 
             if ("threads" in channel) {
                 $.each(channel.threads, function (thread_id, thread) {
-                    console.log(
-                        parent.append(
-                            $("<option>", {
-                                value: thread.id,
-                                text: `#${channel.name} -> ${thread.name}`,
-                            })
-                        )
-                    );
+                    parent.append(
+                        $("<option>", {
+                            value: thread.id,
+                            text: `#${channel.name} -> ${thread.name}`,
+                        })
+                    )
                 });
             }
         });

@@ -19,7 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.min.js" integrity="sha512-WW8/jxkELe2CAiE4LvQfwm1rajOS8PHasCCx+knHG0gBHt8EXxS6T6tJRTGuDQVnluuAvMxWF4j8SNFDKceLFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/v/bs5/dt-1.13.8/r-2.5.0/datatables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.3.1/js/tom-select.complete.js" integrity="sha512-96+GeOCMUo6K6W5zoFwGYN9dfyvJNorkKL4cv+hFVmLYx/JZS5vIxOk77GqiK0qYxnzBB+4LbWRVgu5XcIihAQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+  
     <script src="/static/toast.js"></script>
     <script src="/static/global/api.js" data-csrf-token="{{ session["csrf_token"] }}"></script>
     <script src="/static/global/modeSelector.js"></script>
@@ -94,9 +94,15 @@
                                         </a>
                                     </div>
 
-                                    <div class="row mb-1">
+                                    <div class="row mb-3">
                                         <a class="nav-link" href="/torn">
                                             <i class="col-1 col-sm-2 fa-solid fa-t"></i> <span class="col">Torn Data</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <a class="nav-link" href="/notification">
+                                            <i class="col-1 col-sm-2 fa-solid fa-bell"></i> <span class="col">Notification</span>
                                         </a>
                                     </div>
                                 </div>

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notification
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guild.sid }}">Server Configuration</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/bot/dashboard/{{ guild.sid }}/notification">Notification Configuration</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="px-3 py-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Import Notification Configuration</h5>
+            <p class="card-text">
+                Basic configurations for server notifications regardless of notification type, trigger, etc.
+            </p>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <div class="form-text">
+                        Enable or disable notifications.
+                        <b>NOTE:</b> Does NOT delete settings upon disabling of notifications.
+                    </div>
+
+                    <div class="my-3 border rounded p-3" style="width: fit-content">
+                        <label for="notification-toggle" class="form-label">Notifications Enabled:</label>
+
+                        <input type="radio" class="btn-check" name="notification-toggle" id="notification-toggle-enable" autocomplete="off" {% if guild.notifications_config.enabled %} checked {% endif %}>
+                        <label class="btn" for="notification-toggle-enable">Enable</label>
+
+                        <input type="radio" class="btn-check" name="notification-toggle" id="notification-toggle-disable" autocomplete="off" {% if not guild.notifications_config.enabled %} checked {% endif %}>
+                        <label class="btn" for="notification-toggle-disable">Disable</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <p class="form-text">
+                        Channel to which notification-related log messages are sent.
+                    </p>
+
+                    <select class="discord-channel-selector" id="notifications-log-channel" aria-label="Notifications Log Channel" data-live-search="true">
+                        <option value="0">Disabled</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Server Notifications</h5>
+            <p class="card-text">
+                Find and modify notifications on your server here.
+            </p>
+
+            <table-viewer id="viewer" data-endpoint="bot/{{ guild.sid }}/notifications" data-error="Server Notifications Fetch Failed" data-error-callback="notificationErrorCallback" data-key="notifications" data-render-callback="addNotificationToViewer"></table-viewer>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/components/table-viewer.js"></script>
+<script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
+<script src="/static/bot/notification.js"></script>
+{% endblock %}

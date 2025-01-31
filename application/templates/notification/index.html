@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notifications
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification">Notifications</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/notification/trigger">
+                <i class="col-1 col-sm-2 fa-brands fa-searchengin"></i> <span class="col">Notification Triggers</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container h-100">
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-bell"></i>
+                Tornium Notifications
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Tornium notifications is a customizable notification engine built with Lua to provide users with custom notifications in Torn (in-development) and in Discord servers. For information on setting up notifications in your Discord servers, see the <a href="https://docs.tornium.com">documentation</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-list"></i>
+                Features
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-code"></i>
+                            Lua Bindings - Notification triggers are written in Lua
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                            Liquid Message Templates - Message templates for Discord messages built with <a href="https://shopify.github.io/liquid/">Liquid</a>
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-list-check"></i>
+                            Pre-built Notifications - There are several pre-built notification triggers that you can quickly use in your servers
+                        </li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

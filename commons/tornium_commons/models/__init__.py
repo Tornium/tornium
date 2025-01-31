@@ -20,6 +20,7 @@ from .gateway_client import GatewayClient
 from .gateway_message import GatewayMessage
 from .item import Item
 from .notification import Notification
+from .notification_trigger import NotificationTrigger
 from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
@@ -28,6 +29,7 @@ from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
 from .server_attack_config import ServerAttackConfig
+from .server_notifications_config import ServerNotificationsConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -45,6 +47,7 @@ __all__ = [
     "GatewayMessage",
     "Item",
     "Notification",
+    "NotificationTrigger",
     "OAuthAuthorizationCode",
     "OAuthClient",
     "OAuthToken",
@@ -53,6 +56,7 @@ __all__ = [
     "Retaliation",
     "Server",
     "ServerAttackConfig",
+    "ServerNotificationsConfig",
     "Stat",
     "StockTick",
     "TornKey",

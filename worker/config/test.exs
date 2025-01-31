@@ -24,3 +24,5 @@ config :tornium, Tornium.Repo,
   pool_size: System.schedulers_online() * 2
 
 config :logger, level: :warning
+
+config :tornium, Oban, testing: :inline

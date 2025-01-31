@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Notification Triggers
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/notification">Notifications</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/notification/trigger">Triggers</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% if current_user.is_authenticated %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/notification/trigger">
+                <i class="col-1 col-sm-2 fa-brands fa-searchengin"></i> <span class="col">Notification Triggers</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Create New Notification Trigger</h5>
+
+        <p class="card-text">
+            For more information, take a look at the documentation for <a href="https://docs.tornium.com/user/notifications/index.html">notifications</a>.
+        </p>
+
+        {# TODO: Re-enable this when ready #}
+        {# <a class="btn btn-outline-success" href="/notification/trigger/create" disabled>Create</a> #}
+        <a class="btn btn-outline-success disabled" href="#" disabled>Create</a>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Your Notification Triggers</h5>
+
+        <table-viewer id="viewer" data-endpoint="notification/trigger" data-error="Notification Trigger Fetch Failed" data-error-callback="triggerErrorCallback" data-key="triggers" data-render-callback="addTriggerToViewer"></table-viewer>
+    </div>
+</div>
+
+<div class="card m-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Official Notification Triggers</h5>
+
+        <p class="card-text">
+            View and setup official notification triggers for your Discord servers.
+        </p>
+        
+        <p class="card-text">
+            <table-viewer id="viewer" data-endpoint="notification/trigger?official=1" data-error="Notification Trigger Fetch Failed" data-error-callback="triggerErrorCallback" data-key="triggers" data-render-callback="addOfficialTriggerToViewer"></table-viewer>
+        </p>
+    </div>
+</div>
+
+<script src="/static/components/table-viewer.js"></script>
+<script src="/static/notification/trigger.js"></script>
+{% endblock %}

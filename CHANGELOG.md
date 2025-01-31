@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new verification on-join
 - Added client-side caching to `tornium-estimate.user.js`
 - Added support for advanced search to `tornium-estimate.user.js`
+- Added new Lua+Solid based notification infrasture
+- Added Oban and ObanWeb to Elixir worker
 
 ### Changed
 - Re-enabled Discord-based authentication
@@ -40,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`
 - Removed `discord-gateway` from monorepo
 - Removed verification on join from Celery worker
+- Removed stakeouts
 - Removed assists from Celery, application, etc.
 - Removed `TorniumExt` plugin system
 - Removed private user data from `GET /api/v1/user`

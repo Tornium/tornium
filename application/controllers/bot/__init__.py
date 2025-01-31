@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.bot import armory, guild, oc, verify
+from controllers.bot import armory, guild, notification, oc, verify
 
 mod = Blueprint("botroutes", __name__)
 
@@ -45,6 +45,18 @@ mod.add_url_rule(
 mod.add_url_rule(
     "/bot/dashboard/<string:guild_id>/oc",
     view_func=oc.oc_dashboard,
+    methods=["GET"],
+)
+
+# Notification Routes
+mod.add_url_rule(
+    "/bot/dashboard/<string:guild_id>/notification",
+    view_func=notification.notification_dashboard,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/bot/dashboard/<int:guild_id>/notification/<notification_uuid>",
+    view_func=notification.view_notification,
     methods=["GET"],
 )
 

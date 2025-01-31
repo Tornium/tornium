@@ -31,7 +31,7 @@ defmodule Tornium.MixProject do
   def application do
     [
       mod: {Tornium.Application, []},
-      extra_applications: [:logger, :plug_cowboy]
+      extra_applications: [:logger, :plug_cowboy, :runtime_tools]
     ]
   end
 
@@ -44,7 +44,13 @@ defmodule Tornium.MixProject do
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.10"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "2fff37cba84c4dfaafa47f979e8e3eddcf107f1f"}
+      {:crontab, "~> 1.1"},
+      {:oban, "~> 2.19"},
+      {:oban_web, "~> 2.11"},
+      {:bandit, "~> 1.2"},
+      {:luerl, github: "rvirding/luerl", tag: "1.2.3"},
+      {:solid, "~> 0.17.2"},
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "de296649a7bb0888e209abd8ea3f695286ae61d2"}
     ]
   end
 

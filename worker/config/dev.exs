@@ -28,3 +28,22 @@ config :tornium, Tornium.Repo,
 config :logger, :console,
   format: "[$level] $message\n",
   metadata: [:shard, :guild, :channel]
+
+config :tornium, Tornium.Web.Endpoint,
+  http: [ip: {127, 0, 0, 1}, port: 4000],
+  check_origin: false,
+  debug_errors: true,
+  secret_key_base: "XxDP9g/UoipgQSvTqSqFus7TvlSn40KYFVlshlKM7Ey3YsUHjBweDP1r43tsS4Fa"
+
+# Set a higher stacktrace during development. Avoid configuring such
+# in production as building large stacktraces may be expensive.
+config :phoenix, :stacktrace_depth, 20
+
+# Initialize plugs at runtime for faster development compilation
+config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include HEEx debug annotations as HTML comments in rendered markup
+  debug_heex_annotations: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true

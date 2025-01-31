@@ -69,3 +69,19 @@ function tcttime(timestamp) {
 function bsRange(battlescore) {
     return [Math.floor(Math.pow(battlescore, 2) / 4), Math.floor(Math.pow(battlescore, 2) / 2.75)];
 }
+
+function ready(callback) {
+    if (document.readyState != "loading") {
+        callback();
+    } else {
+        document.addEventListener("DOMContentLoaded", callback);
+    }
+}
+
+function debounce(func, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}

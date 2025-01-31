@@ -32,7 +32,9 @@ import Config
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
-  config :tornium, Tornium.Web.Endpoint, server: true
+  config :tornium, Tornium.Web.Endpoint,
+    http: [ip: {127, 0, 0, 1}, port: 4000],
+    check_origin: true
 end
 
 config :nostrum,

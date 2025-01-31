@@ -32,7 +32,7 @@ defmodule Tornium.Repo.Migrations.AddFactionPosition do
       add :change_announcement, :boolean, null: false
       add :change_description, :boolean, null: false
     end
-    create unique_index(:faction_position, [:pid])
+    create unique_index(:factionposition, [:pid])
   end
 
   def down do

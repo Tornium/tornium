@@ -7,7 +7,7 @@ defmodule Tornium.Repo.Migrations.AddUserFactionPositionReference do
     drop_if_exists constraint("user", "user_faction_position_id_fkey")
 
     alter table("user") do
-      add_if_not_exists :faction_position_id, references(:faction_position, column: :pid, type: :binary_id)
+      add_if_not_exists :faction_position_id, references(:factionposition, column: :pid, type: :binary_id)
     end
   end
 
@@ -15,7 +15,7 @@ defmodule Tornium.Repo.Migrations.AddUserFactionPositionReference do
     drop_if_exists constraint("user", "user_faction_position_id_fkey")
 
     alter table("user") do
-      Ecto.Migration.remove_if_exists(:faction_position_id, references(:faction_position, column: :pid, type: :binary_id))
+      Ecto.Migration.remove_if_exists(:faction_position_id, references(:factionposition, column: :pid, type: :binary_id))
     end
   end
 end

@@ -50,8 +50,6 @@ class User(BaseModel):
     name = CharField(max_length=15, null=True)
     level = SmallIntegerField(null=True)
     discord_id = BigIntegerField(index=True, null=True)
-    personal_stats = ForeignKeyField(PersonalStats, null=True)
-    # Must be the latest personal stats entry containing all the data
 
     # Battle stats
     battlescore = FloatField(null=True)
@@ -162,6 +160,10 @@ class User(BaseModel):
             return _v(api_keys.where(TornKey.access_level << [3, 4]).get().api_key)
         except DoesNotExist:
             return None
+
+    @cached_property
+    def personal_stats(self) -> typing.Optional[PersonalStats]:
+        return PersonalStats.select().where(PersonalStats.user == self.tid).order_by(-PersonalStats.timestamp).first()
 
     def get_user_id(self) -> int:
         return self.tid

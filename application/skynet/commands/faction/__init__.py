@@ -13,12 +13,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from skynet.commands.faction import (
-    assist,
-    balance,
-    cancel,
-    faction,
-    fulfill,
-    oc,
-    withdraw,
-)
+from skynet.commands.faction import balance, cancel, faction, fulfill, oc, withdraw

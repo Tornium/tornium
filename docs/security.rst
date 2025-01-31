@@ -5,7 +5,7 @@ Security
 This page is for Torn and Tornium related security features that you are recommended to use.
 
 .. note::
-   If you have a security vulnerablity related to Tornium, please report this to tiksan [2383326] on Torn or Discord via a private/direct message. For more information, take a look at `Tornium's security policy <https://github.com/Tornium/tornium-core/blob/master/SECURITY.md>`_.
+   If you have a security vulnerablity related to Tornium, please report this to tiksan [2383326] on Torn or Discord via a private/direct message. For more information, take a look at `Tornium's security policy <https://github.com/Tornium/tornium/blob/master/SECURITY.md>`_.
 
 Torn Security
 -------------
@@ -14,6 +14,8 @@ Since Tornium relies upon some of Torn's security procedures to keep it secure, 
 API Key Security
 ^^^^^^^^^^^^^^^^
 As most Torn-related websites use API keys for authentication, keeping your API keys secure and separate is recommended. Torn allows users to have up to 10 API keys with varying permissions, so typically it's best to use a separate API key per service and to give the service as little permissions as it needs (e.g. don't give a service that only needs public data a full access API key). Often, you can contact the developer of the service to determine what type of API key you'll need to use.
+
+For information on your API key is used by Tornium, take a look at :ref:`this docs page<api_key_usage>`.
 
 Faction API Security
 ^^^^^^^^^^^^^^^^^^^^

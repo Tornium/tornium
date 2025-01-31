@@ -19,9 +19,8 @@ import typing
 from flask import redirect, render_template, request
 from flask_login import current_user, login_required
 from peewee import JOIN, DataError, DoesNotExist
-from tornium_celery.tasks.api import discordget, discordpatch
+from tornium_celery.tasks.api import discordpatch
 from tornium_celery.tasks.misc import send_dm
-from tornium_commons.errors import DiscordError
 from tornium_commons.formatters import commas, torn_timestamp
 from tornium_commons.models import Faction, FactionPosition, Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_GOOD
@@ -222,7 +221,8 @@ def user_banking_data():
 
 def fulfill(guid: str):
     try:
-        withdrawal: Withdrawal = Withdrawal.get(Withdrawal.guid == guid)
+        # TODO: Select necessary fields
+        withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.guid == guid).get()
     except DoesNotExist:
         return (
             render_template(
@@ -242,16 +242,10 @@ def fulfill(guid: str):
             400,
         )
 
-    if withdrawal.cash_request:
-        send_link = (
-            f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo="
-            f"{withdrawal.requester}&money={withdrawal.amount}"
-        )
-    else:
-        send_link = (
-            f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo="
-            f"{withdrawal.requester}&points={withdrawal.amount}"
-        )
+    send_link = (
+        f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&give{'Money' if withdrawal.cash_request else 'Points'}To="
+        f"{withdrawal.requester}&money={withdrawal.amount}"
+    )
 
     if withdrawal.status == 1:
         return render_template(
@@ -273,6 +267,7 @@ def fulfill(guid: str):
         )
 
     try:
+        # TODO: Select necessary fields
         faction: Faction = Faction.select().where(Faction.tid == withdrawal.faction_tid).get()
     except DoesNotExist:
         return (
@@ -314,76 +309,44 @@ def fulfill(guid: str):
             400,
         )
 
-    channels = discordget(f"guilds/{faction.guild_id}/channels")
-    banking_channel = None
+    requester: typing.Optional[User] = (
+        User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).first()
+    )
+    fulfiller_str = f"{current_user.name} [{current_user.tid}]" if current_user.is_authenticated else "someone"
 
-    for channel in channels:
-        if channel["id"] == faction.guild.banking_config[str(faction.tid)]["channel"]:
-            banking_channel = channel
-            break
+    discordpatch.delay(
+        f"channels/{faction.guild.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        payload={
+            "content": "",
+            "embeds": [
+                {
+                    "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
+                    "description": f"This request has been fulfilled by {fulfiller_str}",
+                    "fields": [
+                        {
+                            "name": "Original Request Amount",
+                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
+                        },
+                        {
+                            "name": "Original Requester",
+                            "value": (
+                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
+                            ),
+                        },
+                    ],
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                    "color": SKYNET_GOOD,
+                }
+            ],
+            "components": [],
+        },
+    )
 
-    if banking_channel is None:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Unknown Channel",
-                error="The banking channel withdrawal requests are sent to could not be found.",
-            ),
-            400,
-        )
-
-    requester: typing.Optional[User]
-    try:
-        requester = User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).get()
-    except DoesNotExist:
-        requester = None
-
-    try:
-        if current_user.is_authenticated:
-            fulfiller_str = f"{current_user.name} [{current_user.tid}]"
-        else:
-            fulfiller_str = "someone"
-
-        discordpatch.delay(
-            f"channels/{banking_channel['id']}/messages/{withdrawal.withdrawal_message}",
-            payload={
-                "content": "",
-                "embeds": [
-                    {
-                        "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been fulfilled by {fulfiller_str}",
-                        "fields": [
-                            {
-                                "name": "Original Request Amount",
-                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                            },
-                            {
-                                "name": "Original Requester",
-                                "value": (
-                                    f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                                ),
-                            },
-                        ],
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ],
-                "components": [],
-            },
-        )
-    except DiscordError as e:
-        return utils.handle_discord_error(e)
-
-    if current_user.is_authenticated:
-        Withdrawal.update(
-            fulfiller=current_user.tid,
-            time_fulfilled=datetime.datetime.utcnow(),
-            status=1,
-        ).where(Withdrawal.wid == withdrawal.wid).execute()
-    else:
-        Withdrawal.update(fulfiller=-1, time_fulfilled=datetime.datetime.utcnow(), status=1).where(
-            Withdrawal.wid == withdrawal.wid
-        ).execute()
+    Withdrawal.update(
+        fulfiller=current_user.tid if current_user.is_authenticated else -1,
+        time_fulfilled=datetime.datetime.utcnow(),
+        status=1,
+    ).where(Withdrawal.wid == withdrawal.wid).execute()
 
     if requester.discord_id not in (None, "", 0):
         send_dm.delay(

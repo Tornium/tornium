@@ -108,11 +108,6 @@ if celery_app is None:
                 "task": "tasks.faction.auto_cancel_requests",
                 "enabled": True,
                 "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
-            },
-            "check-assists": {
-                "task": "tasks.faction.check_assists",
-                "enabled": True,
-                "schedule": {"type": "periodic", "second": "30"},
             },  # Guild tasks
             "refresh-guilds": {
                 "task": "tasks.guild.refresh_guilds",
@@ -167,7 +162,6 @@ if celery_app is None:
             "tasks.guild",
             "tasks.items",
             "tasks.misc",
-            "tasks.reports",
             "tasks.stocks",
             "tasks.user",
         ],

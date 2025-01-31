@@ -20,7 +20,7 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import DoesNotExist
+from peewee import JOIN, DoesNotExist, IntegrityError
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
@@ -60,6 +60,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         raise Exception("No valid user ID passed")
 
     update_self = False
+    update_personal_stats = False
     user_exists = None
     user: typing.Optional[User] = None
 
@@ -104,11 +105,31 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif user is not None and not refresh_existing:
         return
 
+    personal_stats: typing.Optional[PersonalStats] = (
+        PersonalStats.select(PersonalStats.timestamp).order_by(-PersonalStats.timestamp).first()
+    )
+
+    if (
+        user is not None
+        and update_self
+        and personal_stats is not None
+        and personal_stats.timestamp != datetime.date.today()
+    ):
+        update_personal_stats = True
+    elif (
+        user is not None
+        and not update_self
+        and personal_stats.timestamp != datetime.date.today() - datetime.timedelta(days=1)
+    ):
+        update_personal_stats = True
+    else:
+        update_personal_stats = True
+
     result_sig: celery.canvas.Signature
     if update_self:
         result_sig = tornget.signature(
             kwargs={
-                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats,battlestats",
+                "endpoint": f"user/{user_id}?selections=profile,discord,battlestats{',personalstats' if update_personal_stats else ''}",
                 "key": key,
             },
             queue="api",
@@ -116,7 +137,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     else:
         result_sig = tornget.signature(
             kwargs={
-                "endpoint": f"user/{user_id}?selections=profile,discord,personalstats",
+                "endpoint": f"user/{user_id}?selections=profile,discord{',personalstats' if update_personal_stats else ''}",
                 "key": (user.key if user is not None and user.key not in (None, "") else key),
             },
             queue="api",
@@ -229,39 +250,14 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-        pstat_id = int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2)
-
-        PersonalStats.insert(
-            pstat_id=pstat_id,
-            tid=user_data["player_id"],
-            timestamp=now,
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
-
-        stored_ps: typing.Optional[PersonalStats] = (
-            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
-        )
-
-        if (
-            stored_ps is not None
-            and len(
-                set(PersonalStats._meta.sorted_field_names)
-                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+        try:
+            PersonalStats.create(
+                user=user_data["player_id"],
+                timestamp=datetime.date.today(),
+                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
             )
-            == 0
-        ):
-            user_data_kwargs["personal_stats"] = pstat_id
+        except IntegrityError:
+            pass
 
     User.insert(
         tid=user_data["player_id"],
@@ -374,39 +370,15 @@ def update_user_other(user_data):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        now: datetime.datetime = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-        pstat_id = int(bin(user_data["player_id"] << 8), 2) + int(bin(int(now.timestamp())), 2)
-
-        PersonalStats.insert(
-            pstat_id=pstat_id,
-            tid=user_data["player_id"],
-            timestamp=now,
-            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-        ).on_conflict(
-            conflict_target=[PersonalStats.pstat_id],
-            preserve=[
-                PersonalStats.timestamp,
-                *(
-                    getattr(PersonalStats, k)
-                    for k in user_data["personalstats"].keys()
-                    if k in PersonalStats._meta.sorted_field_names
-                ),
-            ],
-        ).execute()
-
-        stored_ps: typing.Optional[PersonalStats] = (
-            PersonalStats.select().where(PersonalStats.pstat_id == pstat_id).first()
-        )
-
-        if (
-            stored_ps is not None
-            and len(
-                set(PersonalStats._meta.sorted_field_names)
-                - set(k for k in PersonalStats._meta.sorted_field_names if getattr(stored_ps, k) is not None)
+        # /user/personalstats upon other users uses data from the end of the previous day
+        try:
+            PersonalStats.create(
+                user=user_data["player_id"],
+                timestamp=datetime.date.today() - datetime.timedelta(days=1),
+                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
             )
-            == 0
-        ):
-            user_data_kwargs["personal_stats"] = pstat_id
+        except IntegrityError:
+            pass
 
     User.insert(
         tid=user_data["player_id"],
@@ -432,15 +404,6 @@ def update_user_other(user_data):
         ],
     ).execute()
 
-    # Caches valid public personal stat keys
-    try:
-        n = rds().sadd("tornium:personal-stats", *(user_data["personal_stats"].keys()))
-
-        if n > 0:
-            rds().expire("tornium:personal-stats", 3600, nx=True)
-    except KeyError:
-        pass
-
     if user_data["discord"]["discordID"] not in ("", 0):
         # Remove users' Discord IDs if another user has the same Discord ID
         User.update(discord_id=None).where(
@@ -452,7 +415,7 @@ def update_user_other(user_data):
     name="tasks.user.refresh_users",
     routing_key="default.refresh_users",
     queue="default",
-    time_limit=5,
+    time_limit=60,
 )
 def refresh_users():
     for api_key in TornKey.select(TornKey.user).join(User).distinct(TornKey.user).where(TornKey.default == True):
@@ -478,7 +441,7 @@ def refresh_users():
     name="tasks.user.fetch_attacks_user_runner",
     routing_key="quick.fetch_user_attacks",
     queue="quick",
-    time_limit=5,
+    time_limit=60,
 )
 def fetch_attacks_user_runner():
     redis = rds()

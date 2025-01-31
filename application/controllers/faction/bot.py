@@ -48,13 +48,7 @@ def bot(*args, **kwargs):
 
         Faction.update(guild=guild_id).where(Faction.tid == current_user.faction_id).execute()
 
-    assist_servers = [
-        server
-        for server in Server.select(Server.name, Server.sid).where(Server.sid << current_user.faction.assist_servers)
-    ]
-
     return render_template(
         "faction/bot.html",
         guildid=guild_id,
-        assist_servers=assist_servers,
     )

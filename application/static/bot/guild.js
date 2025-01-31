@@ -43,11 +43,6 @@ $(document).ready(function () {
         .then((configs) => {
             let serverConfig = configs[0];
             let channels = configs[1];
-            let assistsChannel = $(`#assist-channel option[value="${serverConfig["assists"]["channel"]}"]`);
-
-            if (assistsChannel.length !== 0) {
-                assistsChannel.attr("selected", "");
-            }
 
             $.each(serverConfig["attacks"], function (factionid, factionConfig) {
                 let option = $(
@@ -140,18 +135,6 @@ $(document).ready(function () {
                     option.attr("selected", "");
                 });
             });
-
-            $.each(serverConfig["assists"]["roles"], function (role_type, roles) {
-                $.each(roles, function (index, role) {
-                    let option = $(`#assist-${role_type}-roles option[value="${role}"]`);
-
-                    if (option.length !== 1) {
-                        return;
-                    }
-
-                    option.attr("selected", "");
-                });
-            });
         })
         .finally(() => {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
@@ -188,49 +171,6 @@ $(document).ready(function () {
             errorTitle: "Faction Remove Failed",
         }).then(() => {
             window.location.reload();
-        });
-    });
-
-    $("#assist-channel").on("change", function () {
-        tfetch("POST", `bot/${guildid}/assists/channel`, {
-            body: { channel: this.options[this.selectedIndex].value },
-            errorTitle: "Assists Channel Set Failed",
-        }).then(() => {});
-    });
-
-    function addAssistsFaction() {
-        const id = $("#assist-faction-id").val();
-        const xhttp = new XMLHttpRequest();
-        // TODO: Migrate this to the API
-
-        xhttp.onload = function () {
-            window.location.reload();
-        };
-
-        xhttp.open("POST", `/bot/assists/${guildid}/update?action=faction&value=${id}`);
-        xhttp.send();
-    }
-
-    $("#assist-faction-id").on("keypress", function (e) {
-        if (e.which === 13) {
-            addAssistsFaction();
-        }
-    });
-    $("#assist-faction-submit").on("click", addAssistsFaction);
-
-    $(".assist-role-selector").on("change", function () {
-        var selectedOptions = $(this).find(":selected");
-        var selectedRoles = [];
-
-        $.each(selectedOptions, function (index, item) {
-            selectedRoles.push(item.getAttribute("value"));
-        });
-
-        tfetch("POST", `bot/${guildid}/assists/roles/${$(this).attr("id").split("-")[1]}`, {
-            body: { roles: selectedRoles },
-            errorTitle: "Assist Role Add Failed",
-        }).then((response) => {
-            generateToast("Role Add Successful");
         });
     });
 

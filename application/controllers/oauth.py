@@ -27,7 +27,6 @@ valid_scopes = (
     "identity",
     # Faction scopes
     "faction",
-    "faction:assists",
     "faction:banking",
     "faction:crimes",
     # API key scopes

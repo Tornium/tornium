@@ -39,11 +39,8 @@ def get_user(*args, **kwargs):
                 "name": kwargs["user"].name,
                 "username": f'{kwargs["user"].name} [{kwargs["user"].tid}]',
                 "last_refresh": kwargs["user"].last_refresh.timestamp(),
-                "battlescore": kwargs["user"].battlescore,
-                "battlescore_update": kwargs["user"].battlescore_update.timestamp(),
                 "discord_id": kwargs["user"].discord_id,
                 "factiontid": kwargs["user"].faction_id,
-                "aa": kwargs["user"].faction_aa,
                 "status": kwargs["user"].status,
                 "last_action": kwargs["user"].last_action.timestamp(),
             }

@@ -25,7 +25,6 @@ defmodule Tornium.Schema.Faction do
           leader: Tornium.Schema.User.t(),
           coleader: Tornium.Schema.User.t(),
           guild: Tornium.Schema.Server.t(),
-          assist_servers: List,
           stats_db_enabled: boolean(),
           stats_db_global: boolean(),
           od_channel: integer(),
@@ -44,8 +43,6 @@ defmodule Tornium.Schema.Faction do
     belongs_to(:coleader, Tornium.Schema.User, references: :tid)
 
     belongs_to(:guild, Tornium.Schema.Server, references: :sid)
-
-    field(:assist_servers, {:array, :integer})
 
     field(:stats_db_enabled, :boolean)
     field(:stats_db_global, :boolean)

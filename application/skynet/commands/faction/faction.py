@@ -206,8 +206,8 @@ def members_switchboard(interaction, *args, **kwargs):
 
         indices = sorted(
             member_data["members"],
-            key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
-            reverse=True,
+            key=lambda d: member_data["members"][d]["status"]["until"],
+            reverse=False,
         )
         member_data["members"] = {n: member_data["members"][n] for n in indices}
 
@@ -318,7 +318,7 @@ def members_switchboard(interaction, *args, **kwargs):
             version=2,
         )
 
-        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
         not_revivable_count = 0
 
         for member in member_data["members"]:
@@ -333,7 +333,7 @@ def members_switchboard(interaction, *args, **kwargs):
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
                     {
-                        "title": f"Revivable Members of {member_data['name']}",
+                        "title": f"Revivable Members of {member_data['basic']['name']}",
                         "description": "",
                         "color": SKYNET_INFO,
                     }
@@ -356,16 +356,19 @@ def members_switchboard(interaction, *args, **kwargs):
             api_user = user
         else:
             try:
-                api_user = random.choice(
-                    User.select(User.tid, User.name).where(
-                        (PersonalStats.revives >= 1)
-                        & (
-                            User.tid.in_(
-                                Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins
-                            )
-                        )
-                    )
+                # TODO: Convert to subquery
+                # TODO: Optimize these queries
+                api_users = User.select(User.tid, User.name).where(
+                    User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
                 )
+                api_users = {u.tid: u for u in api_users}
+                api_user = api_users[
+                    random.choice(
+                        PersonalStats.select(PersonalStats.user).where(
+                            (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
+                        )
+                    ).tid
+                ]
             except IndexError:
                 return {
                     "type": 4,
@@ -384,7 +387,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
         member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
 
-        payload[0]["title"] = f"Revivable Members of {member_data['name']}"
+        payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
         not_revivable_count = 0
 
         for member in member_data["members"]:
@@ -399,7 +402,7 @@ def members_switchboard(interaction, *args, **kwargs):
             if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
                 payload.append(
                     {
-                        "title": f"Revivable Members of {member_data['name']}",
+                        "title": f"Revivable Members of {member_data['basic']['name']}",
                         "description": "",
                         "color": SKYNET_INFO,
                     }

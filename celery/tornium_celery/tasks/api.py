@@ -115,7 +115,6 @@ def handle_discord_error(e: DiscordError):
                 Server.verify_log_channel,
                 Server.banking_config,
                 Server.armory_config,
-                Server.assist_channel,
                 Server.oc_config,
             )
             .where(Server.sid == webhook_data["guild_id"])
@@ -147,9 +146,6 @@ def handle_discord_error(e: DiscordError):
                 db_updates["armory_config"] = guild.armory_config
 
             db_updates["armory_config"][armory_faction]["channel"] = 0
-
-        if int(guild.assist_channel) == channel_id:
-            db_updates["assist_channel"] = 0
 
         for oc_faction, oc_config in guild.oc_config.items():
             for oc_n_type, oc_n_config in oc_config.items():

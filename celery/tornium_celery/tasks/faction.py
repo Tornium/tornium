@@ -25,12 +25,15 @@ import uuid
 from decimal import DivisionByZero
 
 from peewee import JOIN, SQL, DoesNotExist
-from tornium_commons.db_connection import db
 from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import LinkHTMLParser, commas, timestamp, torn_timestamp
+from tornium_commons.formatters import (
+    LinkHTMLParser,
+    commas,
+    date_to_timestamp,
+    timestamp,
+    torn_timestamp,
+)
 from tornium_commons.models import (
-    Assist,
-    AssistMessage,
     Faction,
     FactionPosition,
     Item,
@@ -280,9 +283,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
         FactionPosition.name << (existing_position_names - latest_position_names)
     ):
         try:
-            User.update(faction_position=None).join(FactionPosition).where(
-                User.faction_position.pid == deleted_position.pid
-            ).execute()
+            User.update(faction_position=None).where(User.faction_position_id == deleted_position.pid).execute()
             existing_positions.where(FactionPosition.name == deleted_position.name).get().delete_instance()
         except Exception as e:
             logger.exception(e)
@@ -308,7 +309,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
             loan_temporary_item=bool(perms["canLoanTemporaryItem"]),
             loan_weapon_armory=bool(perms["canLoanWeaponAndArmory"]),
             retrieve_loaned_armory=bool(perms["canRetrieveLoanedArmory"]),
-            plan_init_oc=bool(perms["canPlanAndInitiateOrganisedCrime"]),
+            plan_init_oc=bool(perms.get("canPlanAndInitiateOrganisedCrime") or perms.get("canManageOC2") or False),
             access_fac_api=bool(perms["canAccessFactionApi"]),
             give_item=bool(perms["canGiveItem"]),
             give_money=bool(perms["canGiveMoney"]),
@@ -359,7 +360,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
             loan_temporary_item=bool(perms["canLoanTemporaryItem"]),
             loan_weapon_armory=bool(perms["canLoanWeaponAndArmory"]),
             retrieve_loaned_armory=bool(perms["canRetrieveLoanedArmory"]),
-            plan_init_oc=bool(perms["canPlanAndInitiateOrganisedCrime"]),
+            plan_init_oc=bool(perms.get("canPlanAndInitiateOrganisedCrime") or perms.get("canManageOC2") or False),
             access_fac_api=bool(perms["canAccessFactionApi"]),
             give_item=bool(perms["canGiveItem"]),
             give_money=bool(perms["canGiveMoney"]),
@@ -538,9 +539,9 @@ def check_faction_ods(faction_od_data):
 
 @celery.shared_task(
     name="tasks.faction.fetch_attacks_runner",
-    routing_key="quick.fetch_attacks_runner",
-    queue="quick",
-    time_limit=5,
+    routing_key="default.fetch_attacks_runner",
+    queue="default",
+    time_limit=15,
 )
 def fetch_attacks_runner():
     for api_key in (
@@ -594,6 +595,7 @@ def fetch_attacks_runner():
         Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
     ):
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
+        # TODO: Convert to a delete returning query
         try:
             discordpatch.delay(
                 f"channels/{retal.channel_id}/messages/{retal.message_id}",
@@ -892,19 +894,9 @@ def generate_retaliation_embed(
             User.select(
                 User.tid,
                 User.name,
-                PersonalStats.xantaken,
-                PersonalStats.useractivity,
-                PersonalStats.elo,
-                PersonalStats.statenhancersused,
-                PersonalStats.energydrinkused,
-                PersonalStats.booksread,
-                PersonalStats.attackswon,
-                PersonalStats.respectforfaction,
-                PersonalStats.timestamp,
             )
-            .join(PersonalStats, JOIN.LEFT_OUTER)
             .where(User.tid == attack["attacker_id"])
-            .first()
+            .get()
         )
     except DoesNotExist:
         opponent = User.create(
@@ -912,6 +904,22 @@ def generate_retaliation_embed(
             name=attack["attacker_name"],
             faction=attack["attacker_faction"],
         )
+
+    opponents_personal_stats: typing.Optional[PersonalStats] = (
+        PersonalStats.select(
+            PersonalStats.xantaken,
+            PersonalStats.useractivity,
+            PersonalStats.elo,
+            PersonalStats.statenhancersused,
+            PersonalStats.energydrinkused,
+            PersonalStats.booksread,
+            PersonalStats.attackswon,
+            PersonalStats.respectforfaction,
+            PersonalStats.timestamp,
+        )
+        .where(PersonalStats.user == attack["attacker_id"])
+        .first()
+    )
 
     if attack["attacker_faction"] == 0:
         title = f"{faction.name} can retal on {opponent.name} [{opponent.tid}]"
@@ -1032,20 +1040,20 @@ def generate_retaliation_embed(
         )
 
     if (
-        opponent.personal_stats is not None
-        and (opponent.personal_stats.timestamp - datetime.datetime.utcnow()).total_seconds() <= 604800
+        opponents_personal_stats is not None
+        and int(time.time()) - date_to_timestamp(opponents_personal_stats.timestamp) <= 604800
     ):  # One week
         fields.append(
             {
                 "name": "Personal Stats",
                 "value": inspect.cleandoc(
-                    f"""Xanax Used: {commas(opponent.personal_stats.xantaken)}
-                    SEs Used: {commas(opponent.personal_stats.statenhancersused)}
-                    E-Cans Used: {commas(opponent.personal_stats.energydrinkused)}
-                    Books Read: {commas(opponent.personal_stats.booksread)}
+                    f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
+                    SEs Used: {commas(opponents_personal_stats.statenhancersused)}
+                    E-Cans Used: {commas(opponents_personal_stats.energydrinkused)}
+                    Books Read: {commas(opponents_personal_stats.booksread)}
 
-                    ELO: {commas(opponent.personal_stats.elo)}
-                    Average Respect: {commas(opponent.personal_stats.respectforfaction / opponent.personal_stats.attackswon, stock_price=True)}
+                    ELO: {commas(opponents_personal_stats.elo)}
+                    Average Respect: {commas(opponents_personal_stats.respectforfaction / opponents_personal_stats.attackswon, stock_price=True)}
                     """
                 ),
             }
@@ -1137,7 +1145,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
     name="tasks.faction.check_attacks",
     routing_key="quick.check_attacks",
     queue="quick",
-    time_limit=5,
+    time_limit=10,
 )
 def check_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
@@ -2173,69 +2181,3 @@ def armory_check_subtask(_armory_data, faction_id: int):
             payload=payload,
             channel=faction_config["channel"],
         ).forget()
-
-
-@celery.shared_task(
-    name="tasks.faction.check_assists",
-    routing_key="quick.check_assists",
-    queue="quick",
-    time_limit=5,
-)
-def check_assists():
-    expired_assist: Assist
-    for expired_assist in (
-        Assist.delete().where(Assist.time_requested <= SQL("NOW() - INTERVAL '5 minutes'")).returning(Assist)
-    ):
-        expired_message: AssistMessage
-        for expired_message in (
-            AssistMessage.delete()
-            .where(AssistMessage.message_id << expired_assist.sent_messages)
-            .returning(AssistMessage)
-        ):
-            discorddelete.apply_async(
-                kwargs={"endpoint": f"channels/{expired_message.channel_id}/messages/{expired_message.message_id}"},
-            )
-
-    assist: Assist
-    for assist in Assist.select().distinct(Assist.target):
-        try:
-            aa_keys = assist.requester.faction.aa_keys
-        except DoesNotExist:
-            continue
-
-        if len(aa_keys) == 0:
-            continue
-
-        tornget.signature(
-            kwargs={
-                "endpoint": f"user/{assist.target.tid}?selections=basic",
-                "key": random.choice(aa_keys),
-            },
-            queue="default",
-        ).apply_async(
-            expires=25,
-            link=check_user_assist.s(),
-        )
-
-
-@celery.shared_task(
-    name="tasks.faction.check_user_assist",
-    routing_key="quick.check_user_assist",
-    queue="quick",
-    time_limit=5,
-)
-def check_user_assist(target_data):
-    if target_data is None or target_data["status"]["color"] == "green":
-        return
-
-    completed_assist: Assist
-    for completed_assist in Assist.delete().where(Assist.target == target_data["player_id"]).returning(Assist):
-        completed_message: AssistMessage
-        for completed_message in (
-            AssistMessage.delete()
-            .where(AssistMessage.message_id << completed_assist.sent_messages)
-            .returning(AssistMessage)
-        ):
-            discorddelete.apply_async(
-                kwargs={"endpoint": f"channels/{completed_message.channel_id}/messages/{completed_message.message_id}"},
-            )

@@ -25,7 +25,7 @@ defmodule Tornium.User.Key do
   end
 
   @spec get_by_user(user :: Tornium.Schema.User.t(), pid :: pid()) :: Tornium.Schema.TornKey.t() | nil
-  def get_by_user(%Tornium.Schema.User{} = user, pid) do
+  def get_by_user(%Tornium.Schema.User{} = user, pid) when not is_nil(pid) do
     case Tornium.User.KeyStore.get(pid, user.tid) do
       nil ->
         where = [user_id: user.tid, paused: false, disabled: false, default: true]

@@ -29,9 +29,6 @@ from tornium_commons import Config, db, models, rds
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import *  # noqa: F403  # Used for create_db()
 
-from utils.notification_trigger import load_trigger
-from utils.tornium_ext import TorniumExt
-
 mod = Blueprint("cli", __name__)
 
 EXCLUDE_KEYS = ("function", "active", "disabled")
@@ -76,20 +73,7 @@ def update_commands(verbose=False):
             command_json = json.load(command_file)
             commands_data.append(command_json)
 
-    if verbose:
-        click.echo("Searching for installed Tornium extensions...")
-
-    tornium_ext: TorniumExt
-    for tornium_ext in TorniumExt.__iter__():
-        if verbose:
-            click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
-
-        command: dict
-        for command in tornium_ext.extension.discord_commands:
-            commands_data.append({k: v for k, v in command.items() if k not in EXCLUDE_KEYS})
-
     click.echo(f"{len(commands_data)} commands discovered and ready to be exported")
-
     botlogger.debug(commands_data)
 
     try:
@@ -106,61 +90,6 @@ def update_commands(verbose=False):
         botlogger.error(e)
         click.echo(f"Command export failed due to error {e}")
         raise e
-
-    click.echo("Commands have been successfully exported")
-
-
-@mod.cli.command("update-guild-commands")
-@click.option("--verbose", "-v", is_flag=True, show_default=True, default=False)
-def update_guild_commands(verbose=False):
-    botlogger = logging.getLogger("skynet")
-    botlogger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
-    handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-    botlogger.addHandler(handler)
-
-    application_id = Config.from_json().bot_application_id
-    botlogger.debug(application_id)
-
-    if verbose:
-        click.echo("Searching for installed Tornium extensions...")
-
-    tornium_ext: TorniumExt
-    for tornium_ext in TorniumExt.__iter__():
-        if verbose:
-            click.echo(f"Discovered Tornium extension {tornium_ext.name}...")
-
-        if not hasattr(tornium_ext.extension, "guilds") or not hasattr(tornium_ext.extension, "guild_commands"):
-            click.echo(f'Skipping Tornium extension {tornium_ext.name}: missing "guilds" or "guild_commands"...')
-            continue
-        elif len(tornium_ext.extension.guilds) == 0:
-            click.echo(f"Skipping Tornium extension {tornium_ext.name}: no guilds are stored")
-            continue
-
-        commands_data = []
-
-        command: dict
-        for command in tornium_ext.extension.guild_commands:
-            commands_data.append({k: v for k, v in command.items() if k not in EXCLUDE_KEYS})
-
-        click.echo(f"{len(commands_data)} commands discovered and ready to be exported")
-
-        for guild in tornium_ext.extension.guilds:
-            try:
-                _c = discordput(
-                    f"applications/{application_id}/guilds/{guild}/commands",
-                    commands_data,
-                )
-                botlogger.info(commands_data)
-                click.echo(f"Exported {len(_c)} commands to {guild}...")
-            except DiscordError as e:
-                botlogger.error(e)
-                click.echo(f"Command export failed due to Discord API error {e.code}")
-                raise e
-            except Exception as e:
-                botlogger.error(e)
-                click.echo(f"Command export failed due to error {e}")
-                raise e
 
     click.echo("Commands have been successfully exported")
 

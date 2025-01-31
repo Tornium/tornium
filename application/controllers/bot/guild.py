@@ -37,7 +37,6 @@ def guild_dashboard(guild_id: str):
                 Server.factions,
                 Server.sid,
                 Server.name,
-                Server.assist_factions,
                 Server.admins,
             )
             .where(Server.sid == int(guild_id))
@@ -64,7 +63,6 @@ def guild_dashboard(guild_id: str):
         )
 
     factions: typing.List[Faction] = []
-    assist_factions: typing.List[Faction] = []
 
     for faction in guild.factions:
         try:
@@ -74,16 +72,9 @@ def guild_dashboard(guild_id: str):
         except DoesNotExist:
             continue
 
-    for faction in guild.assist_factions:
-        try:
-            assist_factions.append(Faction.select(Faction.tid, Faction.name).where(Faction.tid == faction).get())
-        except DoesNotExist:
-            continue
-
     return render_template(
         "bot/guild.html",
         server=guild,
         factions=factions,
         guildid=guild_id,
-        assist_factions=assist_factions,
     )

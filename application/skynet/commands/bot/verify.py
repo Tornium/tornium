@@ -108,7 +108,7 @@ def verify(interaction, *args, **kwargs):
         member = None
         force = None
 
-    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction, all_keys=True))
 
     if len(admin_keys) == 0:
         return {

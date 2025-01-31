@@ -30,7 +30,7 @@ defmodule Tornium.Application do
       Tornium.PromEx,
       Tornium.Repo,
       Tornium.Discord.Consumer,
-      Tornium.User.KeyStore,
+      {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},

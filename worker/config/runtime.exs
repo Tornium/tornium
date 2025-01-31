@@ -36,6 +36,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :nostrum,
+  ffmpeg: nil,
   youtubedl: nil,
   streamlink: nil,
   gateway_intents: [

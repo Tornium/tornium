@@ -19,8 +19,9 @@ defmodule Tornium.User.KeyStore do
   # 5 minutes
   @ttl 300
 
-  def start_link(_) do
-    Agent.start_link(fn -> %{} end)
+  def start_link(opts \\ [name: Tornium.User.KeyStore]) do
+    IO.inspect(opts)
+    Agent.start_link(fn -> %{} end, opts)
   end
 
   @spec put(pid :: pid(), key :: integer(), value :: Tornium.Schema.TornKey.t() | nil, ttl :: integer()) :: :ok | :error

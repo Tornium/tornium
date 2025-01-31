@@ -13,14 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .assist import Assist, AssistMessage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition
 from .gateway_client import GatewayClient
 from .gateway_message import GatewayMessage
 from .item import Item
-from .member_report import MemberReport
 from .notification import Notification
 from .notification_trigger import NotificationTrigger
 from .oauth_authorization_code import OAuthAuthorizationCode
@@ -42,15 +40,12 @@ from .withdrawal import Withdrawal
 # Otherwise the table won't be able to be generated
 
 __all__ = [
-    "Assist",
-    "AssistMessage",
     "AuthLog",
     "Faction",
     "FactionPosition",
     "GatewayClient",
     "GatewayMessage",
     "Item",
-    "MemberReport",
     "Notification",
     "NotificationTrigger",
     "OAuthAuthorizationCode",

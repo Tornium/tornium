@@ -17,7 +17,6 @@ from flask import Blueprint, jsonify, render_template, request, send_from_direct
 from flask_login import current_user, fresh_login_required
 from tornium_commons.models import OAuthToken, Server, TornKey, User
 
-import utils
 from controllers.decorators import token_required
 
 mod = Blueprint("baseroutes", __name__)
@@ -26,9 +25,7 @@ mod = Blueprint("baseroutes", __name__)
 @mod.route("/")
 @mod.route("/index")
 def index():
-    extensions = [extension.name for extension in utils.tornium_ext.TorniumExt.__iter__()]
-
-    return render_template("index.html", extensions=extensions)
+    return render_template("index.html")
 
 
 @mod.route("/terms")

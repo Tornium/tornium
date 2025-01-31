@@ -33,7 +33,7 @@ def chain_config(*args, **kwargs):
         return make_exception_response("1102", key)
 
     return (
-        jsonify({"od": {"channel": kwargs["user"].faction.od_channel}}),
+        jsonify({"od": {"channel": str(kwargs["user"].faction.od_channel)}}),
         200,
         api_ratelimit_response(key),
     )
@@ -58,7 +58,7 @@ def chain_od_channel(*args, **kwargs):
     Faction.update(od_channel=int(channel_id)).where(Faction.tid == kwargs["user"].faction_id).execute()
 
     return (
-        jsonify({"od_channel": int(channel_id)}),
+        jsonify({"od_channel": str(channel_id)}),
         200,
         api_ratelimit_response(key),
     )

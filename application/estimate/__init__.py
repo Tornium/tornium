@@ -3,6 +3,7 @@
 # Proprietary and confidential
 # Written by tiksan <webmaster@deek.sh>
 
+import datetime
 import pathlib
 import time
 import typing
@@ -12,6 +13,7 @@ import xgboost
 from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
+from tornium_commons.formatters import date_to_timestamp
 from tornium_commons.models import PersonalStats, User
 
 _model: typing.Optional[xgboost.XGBRegressor] = None
@@ -54,14 +56,12 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     except (ValueError, TypeError):
         pass
 
-    ps: typing.Optional[PersonalStats]
-    try:
-        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
-    except DoesNotExist:
-        ps = None
+    ps: typing.Optional[PersonalStats] = (
+        PersonalStats.select().where(PersonalStats.user == user_tid).order_by(-PersonalStats.timestamp).first()
+    )
 
     df: pd.DataFrame
-    if ps is not None and now - ps.timestamp.timestamp() <= ESTIMATE_TTL:
+    if ps is not None and now - date_to_timestamp(ps.timestamp) <= ESTIMATE_TTL:
         df = pd.DataFrame(columns=model_features, index=[0])
 
         for field_name in model_features:
@@ -76,7 +76,7 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         estimate = int(model().predict(df))
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-        return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL
+        return estimate, now - date_to_timestamp(ps.timestamp) + ESTIMATE_TTL
 
     if not allow_api_calls:
         raise PermissionError
@@ -88,11 +88,11 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         update_error = True
 
     try:
-        ps = User.select(User.personal_stats).join(PersonalStats).where(User.tid == user_tid).get().personal_stats
+        ps = PersonalStats.select().where(PersonalStats.user == user_tid).order_by(-PersonalStats.timestamp).get()
     except DoesNotExist:
         raise ValueError("Personal stats could not be found in the database")
 
-    if not update_error and now - ps.timestamp.timestamp() > ESTIMATE_TTL:
+    if not update_error and now - date_to_timestamp(ps.timestamp) > ESTIMATE_TTL:
         raise ValueError("Personal stats data is too old after an update")
 
     df = pd.DataFrame(columns=model_features, index=[0])
@@ -109,4 +109,4 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     estimate = int(model().predict(df))
     redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
-    return estimate, now - ps.timestamp.timestamp() + ESTIMATE_TTL
+    return estimate, now - date_to_timestamp(ps.timestamp) + ESTIMATE_TTL

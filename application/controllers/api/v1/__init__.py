@@ -22,7 +22,6 @@ from controllers.api.v1 import (
     items,
     key,
     notification,
-    report,
     stat,
     stocks,
     user,
@@ -64,16 +63,6 @@ mod.add_url_rule(
 mod.add_url_rule(
     "/api/v1/bot/<int:guildid>/armory/<int:factionid>/roles",
     view_func=bot.armory.armorer_roles,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guildid>/assists/channel",
-    view_func=bot.assists.assists_channel,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/assists/roles/<string:role_type>",
-    view_func=bot.assists.assists_role_set,
     methods=["POST"],
 )
 mod.add_url_rule(
@@ -224,12 +213,6 @@ mod.add_url_rule(
 
 # /api/v1/faction
 mod.add_url_rule(
-    "/api/v1/faction/assist/<int:target_tid>",
-    view_func=faction.assist.forward_assist,
-    methods=["POST"],
-)
-mod.add_url_rule("/api/v1/faction/assists", view_func=faction.assist.valid_assists, methods=["GET"])
-mod.add_url_rule(
     "/api/v1/faction/banking",
     view_func=faction.banking.banking_request,
     methods=["POST"],
@@ -238,16 +221,6 @@ mod.add_url_rule(
     "/api/v1/faction/banking/vault",
     view_func=faction.banking.vault_balance,
     methods=["GET"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/assists/server/<int:guild_id>",
-    view_func=faction.bot.add_assist_server,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/assists/server/<int:guild_id>",
-    view_func=faction.bot.remove_assist_server,
-    methods=["DELETE"],
 )
 mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
 mod.add_url_rule(
@@ -268,28 +241,6 @@ mod.add_url_rule(
 
 # /api/v1/items
 mod.add_url_rule("/api/v1/items", view_func=items.item_name_map, methods=["GET"])
-
-# /api/v1/report
-mod.add_url_rule(
-    "/api/v1/report/faction/members",
-    view_func=report.faction_member.get_reports,
-    methods=["GET"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members",
-    view_func=report.faction_member.create_report,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members/<string:rid>",
-    view_func=report.faction_member.delete_report,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/v1/report/faction/members/<string:rid>",
-    view_func=report.faction_member.get_report,
-    methods=["GET"],
-)
 
 # /api/v1/stat
 mod.add_url_rule("/api/v1/chain-list", view_func=stat.generate_chain_list, methods=["GET"])

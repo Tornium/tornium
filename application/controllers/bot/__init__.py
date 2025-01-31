@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.bot import armory, assists, guild, notification, oc, verify
+from controllers.bot import armory, guild, notification, oc, verify
 
 mod = Blueprint("botroutes", __name__)
 
@@ -32,13 +32,6 @@ mod.add_url_rule(
     "/bot/dashboard/<string:guild_id>",
     view_func=guild.guild_dashboard,
     methods=["GET"],
-)
-
-# Assist Routes
-mod.add_url_rule(
-    "/bot/assists/<string:guild_id>/update",
-    view_func=assists.assists_update,
-    methods=["GET", "POST"],
 )
 
 # Verify Routes

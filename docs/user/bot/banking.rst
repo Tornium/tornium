@@ -122,5 +122,5 @@ Marks a vault request as cancelled. Cancels the last request if no withdrawal ID
       - Default
     * - ``id``
       - Withdrawal ID
-      - True
+      - False
       -

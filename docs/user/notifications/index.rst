@@ -33,3 +33,7 @@ You can create a notification from a notification trigger. Official triggers can
     Currently, only official triggers can be used to create notifications while this feature is being tested.
 
 Once the notification is created, you can access your server's list of notifications on your server's dashboard. There server admins can modify the configuration of their notifications and delete notifications.
+
+Restricted Notifications
+------------------------
+Some notifications may be marked as "restricted". This indicates that the notification will require non-public information about a faction, user, etc. which requires an API key from its respective "owner". For example, restricted notifications for faction will require the faction to be linked with the Discord server the notification is in and will require someone from that faction with API permissions to be signed into Tornium. Similarly, restricted notifications for users will require the user to an admin in the server the notification is in and for that user to be signed into Tornium.

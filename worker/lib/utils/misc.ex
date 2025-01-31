@@ -14,7 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Utils do
-  # TODO: Add documentation
+  @doc """
+  Convert a string to an integer. Return nil if the value can not be converted to an integer.
+  """
   @spec string_to_integer(string :: String.t()) :: integer() | nil
   def string_to_integer(string) do
     try do
@@ -24,6 +26,9 @@ defmodule Tornium.Utils do
     end
   end
 
+  @doc """
+  Create a string of role mentions from a list of Discord roles.
+  """
   @spec roles_to_string(roles :: list(String.t() | integer())) :: binary()
   def roles_to_string(roles) when is_list(roles) do
     roles
@@ -31,8 +36,13 @@ defmodule Tornium.Utils do
     |> Enum.join(" ")
   end
 
+  @doc """
+  Recursively create a map from group of tuples (used by Tornium.Lua).
+  """
   @spec tuples_to_map(data :: list(tuple())) :: map()
   def tuples_to_map(data) when is_list(data) do
+    # TODO: Test this
+
     Enum.map(data, fn
       {key, value} when is_list(value) ->
         {key, tuples_to_map(value)}

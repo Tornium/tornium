@@ -137,7 +137,7 @@ SELECTION_MAP = {
         "weaponxp": (PermissionError, "weaponxp"),
         "workstats": (PermissionError, "workstats"),
     },
-    "faction": {  # TODO: Require faction AA for all self faction fields
+    "faction": {
         "applications": (PermissionError, "applications"),
         "armor": (PermissionError, "armor"),
         "armorynews": (PermissionError, "armorynews"),

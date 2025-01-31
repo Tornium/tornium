@@ -33,7 +33,6 @@ from utils.notification_trigger import extract_selections, has_restricted_select
 
 # regex modified based on https://stackoverflow.com/a/57639657/12941872
 # Crontab in Elixir should only accept up to minutes
-# TODO: Validate this regex
 CRON_REGEX = (
     r"(@(annually|yearly|monthly|weekly|daily|hourly))|(@every (\d+(m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5})"
 )
@@ -65,8 +64,6 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         return make_exception_response("1000", key, details={"message": "Invalid trigger name"})
     elif len(trigger_name) == 0:
         return make_exception_response("1000", key, details={"message" "Invalid trigger name (length)"})
-
-    # TODO: Validate the user does not have a trigger named the same thing
 
     if not isinstance(trigger_description, str):
         return make_exception_response(
@@ -186,6 +183,9 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         attribute = e.args[0]
 
         return make_exception_response("0000", key, details={"error": f"Invalid data attribute: {attribute}"})
+
+    if NotificationTrigger.select().where((NotificationTrigger.name == trigger_name) & (NotificationTrigger.owner == kwargs["user"].tid)).exists():
+        return make_exception_response("0000", key, details={"error": "Trigger name already exists for user"})
 
     if update:
         notification = (

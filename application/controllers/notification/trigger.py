@@ -136,7 +136,7 @@ def trigger_setup_server(trigger_uuid: str, guild_id: int):
         )
 
     try:
-        guild: Server = Server.select(Server.name, Server.sid, Server.Admins).where(Server.sid == int(guild_id)).get()
+        guild: Server = Server.select(Server.name, Server.sid, Server.admins).where(Server.sid == int(guild_id)).get()
     except (ValueError, TypeError, DoesNotExist):
         return (
             render_template(

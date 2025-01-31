@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added revivable members slash command `/faction members revivable`
 - Added Elixir-based Discord gateway through Nostrum
 - Added new verification on-join
+- Added new Lua+Solid based notification infrasture
+- Added Oban and ObanWeb to Elixir worker
 
 ### Changed
 - Re-enabled Discord-based authentication
@@ -30,3 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`
 - Removed `discord-gateway` from monorepo
 - Removed verification on join from Celery worker
+- Removed stakeouts

@@ -29,6 +29,8 @@ from tornium_commons import Config, db, models, rds
 from tornium_commons.errors import DiscordError
 from tornium_commons.models import *  # noqa: F403  # Used for create_db()
 
+from utils.notification_trigger import load_trigger
+
 mod = Blueprint("cli", __name__)
 
 EXCLUDE_KEYS = ("function", "active", "disabled")

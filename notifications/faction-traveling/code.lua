@@ -21,7 +21,7 @@ state = state
 
 -- Preprocessed variables
 ---@type integer
-TRAVEL_METHOD = TRAVEL_METHOD or 1  -- Defaults to standard travel
+TRAVEL_METHOD = tonumber(TRAVEL_METHOD) or 1  -- Defaults to standard travel
 
 if state.members == nil then
   state.members = {}

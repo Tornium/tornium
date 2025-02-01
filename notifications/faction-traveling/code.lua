@@ -212,8 +212,8 @@ for member_id, member_data in pairs(faction.members) do
     member_table.status = nil
     member_table.landed = true
     member_table.earliest_departure_time = nil
-  elseif member_data.status.state == "Hospital" and string.starts_with(member_data.status.description, "In a ") and string.find(member_data.status.description, "hospital") then
-    -- The faction member is in the hospital abroad
+  elseif member_data.status.state == "Hospital" and string.starts_with(member_data.status.description, "In a") and string.find(member_data.status.description, "hospital") then
+    -- The faction member is in an hospital abroad
     member_table.status = member_data.status
     member_table.landed = true
     member_table.earliest_departure_time = nil

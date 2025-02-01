@@ -19,6 +19,10 @@ faction = faction
 state = state
 -- TODO: Reset notification states when the code is updated
 
+-- Preprocessed variables
+---@type integer
+TRAVEL_METHOD = TRAVEL_METHOD or 1  -- Defaults to standard travel
+
 if state.members == nil then
   state.members = {}
 end
@@ -247,7 +251,7 @@ for destination, destination_members in pairs(state.members) do
     else
       local regular_landing = nil
       if member.earliest_departure_time and destination_travel_durations[member.origin or destination] then
-        regular_landing = member.earliest_departure_time + destination_travel_durations[member.origin or destination][1]
+        regular_landing = member.earliest_departure_time + destination_travel_durations[member.origin or destination][TRAVEL_METHOD]
       end
 
       try_insert_table(render_state.flying_members, destination, {

@@ -74,7 +74,7 @@ defmodule Tornium.Lua do
       {:ok, {:error, {:lua_error, error, state}}} ->
         # TODO: Determine type of error for typespec
         IO.inspect(error)
-        IO.inspect(state)
+        IO.inspect(:luerl.get_stacktrace(state))
         {:lua_error, error}
 
       {:exit, reason} ->

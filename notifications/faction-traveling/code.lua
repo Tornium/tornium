@@ -27,6 +27,7 @@ if state.members == nil then
   state.members = {}
 end
 
+local travel_methods = { "Standard", "Airstrip", "WLT", "BCT" }
 local destination_travel_durations = {
   -- Destination: [Standard, Airstrip, WLT, BCT]
   ["Mexico"] = { 1560, 1080, 780, 480 },
@@ -233,6 +234,7 @@ local render_state = {
   flying_members = {},
   hospital_members = {},
   abroad_members = {},
+  travel_method = travel_methods[TRAVEL_METHOD],
 }
 
 for destination, destination_members in pairs(state.members) do

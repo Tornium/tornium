@@ -150,7 +150,6 @@ defmodule Tornium.Notification do
     Tornium.Schema.TornKey
     |> where([k], k.user_id == ^Enum.at(admins, 0))
     |> select([:api_key, :user_id])
-    |> order_by(fragment("RANDOM()"))
     |> Repo.one()
   end
 
@@ -159,7 +158,8 @@ defmodule Tornium.Notification do
     |> where([k], k.user_id in ^MapSet.to_list(admins))
     |> select([:api_key, :user_id])
     |> order_by(fragment("RANDOM()"))
-    |> Repo.one()
+    |> Repo.all()
+    |> List.first()
   end
 
   # Determine if any of the notifications for this resource + resource ID requires restricted data

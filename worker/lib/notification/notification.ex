@@ -133,6 +133,7 @@ defmodule Tornium.Notification do
       |> where([k, u], u.faction_aa == true)
       |> select([:api_key, :user_id])
       |> first()
+      |> Repo.one()
     else
       {:error, :restricted}
     end
@@ -147,6 +148,7 @@ defmodule Tornium.Notification do
       |> where([k, u], k.paused == false)
       |> select([:api_key, :user_id])
       |> first()
+      |> Repo.one()
     else
       {:error, :restricted}
     end
@@ -160,6 +162,7 @@ defmodule Tornium.Notification do
     |> where([k, u], k.paused == false)
     |> select([:api_key, :user_id])
     |> first()
+    |> Repo.one()
   end
 
   defp get_api_key(admins, _resource, _resource_id, false, _notifications) do
@@ -171,6 +174,7 @@ defmodule Tornium.Notification do
     |> select([:api_key, :user_id])
     |> order_by(fragment("RANDOM()"))
     |> first()
+    |> Repo.one()
   end
 
   # Determine if any of the notifications for this resource + resource ID requires restricted data

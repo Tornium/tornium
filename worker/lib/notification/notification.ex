@@ -126,10 +126,13 @@ defmodule Tornium.Notification do
     if Enum.member?(server.factions, resource_id) and not is_nil(faction) and faction.guild_id == server.sid do
       Tornium.Schema.TornKey
       |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+      |> where([k, u], k.default == true)
+      |> where([k, u], k.disabled == false)
+      |> where([k, u], k.paused == false)
       |> where([k, u], u.faction_id == ^resource_id)
       |> where([k, u], u.faction_aa == true)
       |> select([:api_key, :user_id])
-      |> Repo.one()
+      |> first()
     else
       {:error, :restricted}
     end
@@ -139,8 +142,11 @@ defmodule Tornium.Notification do
     if Enum.member?(admins, resource_id) do
       Tornium.Schema.TornKey
       |> where([k], k.user_id == ^resource_id)
+      |> where([k, u], k.default == true)
+      |> where([k, u], k.disabled == false)
+      |> where([k, u], k.paused == false)
       |> select([:api_key, :user_id])
-      |> Repo.one()
+      |> first()
     else
       {:error, :restricted}
     end
@@ -149,17 +155,22 @@ defmodule Tornium.Notification do
   defp get_api_key(admins, _resource, _resource_id, false, _notifications) when Kernel.length(admins) == 1 do
     Tornium.Schema.TornKey
     |> where([k], k.user_id == ^Enum.at(admins, 0))
+    |> where([k, u], k.default == true)
+    |> where([k, u], k.disabled == false)
+    |> where([k, u], k.paused == false)
     |> select([:api_key, :user_id])
-    |> Repo.one()
+    |> first()
   end
 
   defp get_api_key(admins, _resource, _resource_id, false, _notifications) do
     Tornium.Schema.TornKey
     |> where([k], k.user_id in ^MapSet.to_list(admins))
+    |> where([k, u], k.default == true)
+    |> where([k, u], k.disabled == false)
+    |> where([k, u], k.paused == false)
     |> select([:api_key, :user_id])
     |> order_by(fragment("RANDOM()"))
-    |> Repo.all()
-    |> List.first()
+    |> first()
   end
 
   # Determine if any of the notifications for this resource + resource ID requires restricted data

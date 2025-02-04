@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Logic do
-  @spec insert_update_roles(state :: map(), new_values :: List) :: map()
+  @spec insert_update_roles(state :: map(), new_values :: list(String.t())) :: map()
   defp insert_update_roles(state, new_values) do
     Map.update(state, :roles, MapSet.new(new_values), fn existing_roles ->
       MapSet.union(existing_roles, MapSet.new(new_values))
@@ -145,7 +145,7 @@ defmodule Tornium.Guild.Verify.Logic do
         ) ::
           map()
   def set_faction_roles(
-        state,
+        %{} = state,
         %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
         %Tornium.Schema.User{} = user
       ) do

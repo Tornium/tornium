@@ -392,18 +392,19 @@ defmodule Tornium.Notification do
 
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [channel_id: nil, enabled: false])
+        |> update([n], set: [channel_id: nil, enabled: false, error: "Unknown channel"])
         |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:invalid_channel, notification)
         {:error, :discord_error, error}
 
-      {:error, %Nostrum.Error.ApiError{} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
+        error_msg = "Nostrum error #{code}"
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false])
+        |> update([n], set: [enabled: false, error: ^error_msg])
         |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:discord_error, notification, error: error)
@@ -442,18 +443,19 @@ defmodule Tornium.Notification do
 
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [channel_id: nil, enabled: false])
+        |> update([n], set: [channel_id: nil, enabled: false, error: "Unknown channel"])
         |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:invalid_channel, notification)
         {:error, :discord_error, error}
 
-      {:error, %Nostrum.Error.ApiError{} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
+        error_msg = "Nostrum error #{code}"
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false])
+        |> update([n], set: [enabled: false, error: ^error_msg])
         |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:discord_error, notification, error: error)
@@ -482,7 +484,7 @@ defmodule Tornium.Notification do
 
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [message_id: nil, channel_id: nil, enabled: false])
+        |> update([n], set: [message_id: nil, channel_id: nil, enabled: false, error: "Unknown channel"])
         |> Repo.update_all([])
 
         Tornium.Notification.Audit.log(:invalid_channel, notification)
@@ -498,15 +500,16 @@ defmodule Tornium.Notification do
           Tornium.Schema.Notification
           |> select([n], n)
           |> where([n], n.nid == ^nid)
-          |> update([n], set: [message_id: nil, enabled: false])
+          |> update([n], set: [message_id: nil, enabled: false, error: "Unknown message"])
           |> Repo.update_all([])
 
         try_message(message, :update, notification)
 
-      {:error, %Nostrum.Error.ApiError{} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
+        error_msg = "Nostrum error #{code}"
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false])
+        |> update([n], set: [enabled: false, error: ^error_msg])
         |> Repo.update_all([])
 
         {:error, :discord_error, error}

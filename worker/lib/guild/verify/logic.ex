@@ -150,7 +150,13 @@ defmodule Tornium.Guild.Verify.Logic do
         %Tornium.Schema.User{} = user
       ) do
     if can_set_faction_roles?(faction_verify, user) do
-      insert_update_roles(state, Map.get(Map.get(faction_verify, Integer.to_string(user.faction.tid)), "roles"))
+      roles =
+        faction_verify
+        |> Map.get(Integer.to_string(user.faction.tid))
+        |> Map.get("roles")
+        |> Enum.map(&String.to_integer/1)
+
+      insert_update_roles(state, roles)
     else
       state
     end

@@ -50,7 +50,7 @@ defmodule Tornium.MixProject do
       {:bandit, "~> 1.2"},
       {:luerl, github: "rvirding/luerl", tag: "1.2.3"},
       {:solid, "~> 0.17.2"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "de296649a7bb0888e209abd8ea3f695286ae61d2"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "299b3c4fe7113fb54277dc172e926f5df037cbdd"}
     ]
   end
 

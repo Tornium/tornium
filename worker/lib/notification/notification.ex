@@ -402,6 +402,7 @@ defmodule Tornium.Notification do
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
         error_msg = "Nostrum error #{code}"
+
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
         |> update([n], set: [enabled: false, error: ^error_msg])
@@ -453,6 +454,7 @@ defmodule Tornium.Notification do
         # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
 
         error_msg = "Nostrum error #{code}"
+
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
         |> update([n], set: [enabled: false, error: ^error_msg])
@@ -507,6 +509,7 @@ defmodule Tornium.Notification do
 
       {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
         error_msg = "Nostrum error #{code}"
+
         Tornium.Schema.Notification
         |> where([n], n.nid == ^nid)
         |> update([n], set: [enabled: false, error: ^error_msg])

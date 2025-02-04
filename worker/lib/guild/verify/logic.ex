@@ -154,7 +154,7 @@ defmodule Tornium.Guild.Verify.Logic do
         faction_verify
         |> Map.get(Integer.to_string(user.faction.tid))
         |> Map.get("roles")
-        |> Enum.map(&String.to_integer/1)
+        |> Enum.map(&Integer.to_string/1)
 
       insert_update_roles(state, roles)
     else

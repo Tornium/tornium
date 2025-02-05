@@ -26,4 +26,4 @@ Donations are accepted with both real life money and in-game money. However, due
 Donate to https://www.buymeacoffee.com/tornium via buymeacoffee!
 
 ## License
-Most of Tornium is licensed under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html), however sections may have different licensing. Be sure to read the `LICENSE` files in the various root directories and the license headers within the respective files.
+Most of Tornium is licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html), however different sections of the codebase may have different licensing. Be sure to read the license headers within the respective files.

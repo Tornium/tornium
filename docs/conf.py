@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Tornium"
-copyright = "2021-2023, tiksan [2383326]"
+copyright = "2021-2025, tiksan [2383326]"
 author = "tiksan [2383326]"
 
 # -- General configuration ---------------------------------------------------

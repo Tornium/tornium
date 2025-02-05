@@ -54,21 +54,28 @@ Tornium - Bot Dashboard
             <div class="col-sm-12 col-md-8 col-xl-4">
                 <ul class="list-group" id="faction-list">
                     {% for faction in factions %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <p class="px-1 my-2">
-                            {{ faction.name }} [{{ faction.tid }}]
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <p class="px-1 my-2">
+                                {{ faction.name }} [{{ faction.tid }}]
 
-                            {% if server.sid | int == faction.guild_id | int %}
-                            <i class="fa-regular fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
-                               title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
-                            {% else %}
-                            <i class="fa-regular fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
-                               title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
-                            {% endif %}
-                        </p>
-                        <div class="px-1">
-                            <button type="button" class="btn btn-outline-danger remove-faction" data-factiontid="{{ faction.tid }}">Remove</button>
+                                {% if server.sid | int == faction.guild_id | int %}
+                                <i class="fa-regular fa-circle-check" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   title="{{ faction.name }} has been properly set up in {{ server.name }}."></i>
+                                {% else %}
+                                <i class="fa-regular fa-circle-xmark" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   title="{{ faction.name }} has not been properly set up in {{ server.name }}. Make sure that the faction is set in the server and the server is set in the faction."></i>
+                                {% endif %}
+                            </p>
+                            <div class="px-1 mt-1">
+                                <button type="button" class="btn btn-outline-danger remove-faction" data-factiontid="{{ faction.tid }}">Remove</button>
+                            </div>
                         </div>
+
+                        {% if faction.aa_keys_missing %}
+                        <hr />
+                        <small class="pb-2">No faction AA keys available</small>
+                        {% endif %}
                     </li>
                     {% endfor %}
                 </ul>

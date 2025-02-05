@@ -66,9 +66,9 @@ def guild_dashboard(guild_id: str):
 
     for faction in guild.factions:
         try:
-            factions.append(
-                Faction.select(Faction.tid, Faction.name, Faction.guild).where(Faction.tid == faction).get()
-            )
+            faction: Faction = Faction.select(Faction.tid, Faction.name, Faction.guild).where(Faction.tid == faction).get()
+            faction.aa_keys_missing = len(faction.aa_keys) == 0
+            factions.append(faction)
         except DoesNotExist:
             continue
 

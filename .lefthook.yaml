@@ -13,6 +13,9 @@ pre-commit:
         application-bandit:
             root: "application/"
             run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
+        application-static-format:
+            root: "application/"
+            run: "biome format ."
         application-sass:
             root: "application/"
             run: "make sass"
@@ -40,3 +43,6 @@ pre-commit:
         worker-format:
             root: "worker/"
             run: "mix format"
+        userscript-format:
+            root: "userscript/"
+            run: "biome format ."

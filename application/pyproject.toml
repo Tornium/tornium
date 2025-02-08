@@ -60,7 +60,7 @@ extra = [
     "pytoml"
 ]
 docs = [
-    "Sphinx >=5,<6",
+    "Sphinx >=5,<9",
     "sphinx_rtd_theme"
 ]
 

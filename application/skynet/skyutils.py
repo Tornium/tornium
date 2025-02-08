@@ -58,11 +58,15 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
             invoker = User.select(User.tid).where(User.discord_id == interaction["member"]["user"]["id"]).get()
         else:
             invoker = User.select(User.tid).where(User.discord_id == interaction["user"]["id"]).get()
+
+        admin_keys.append(invoker.key)
     except DoesNotExist:
         invoker = None
 
-    if invoker is not None and not all_keys and invoker.key is not None:
-        return tuple([invoker.key])
+    if invoker is not None and not all_keys:
+        return tuple(admin_keys)
+    elif "guild_id" not in interaction:
+        return tuple(admin_keys)
 
     if "guild_id" in interaction:
         try:

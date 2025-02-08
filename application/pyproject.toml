@@ -21,7 +21,7 @@ dependencies = [
     "flask ~= 3.0.0",
     "flask-cors ~= 4.0.0",
     "flask-login ~= 0.6.2",
-    "msgpack ~= 1.0.0",
+    "msgpack ~= 1.1.0",
     "scikit-learn",
     "toml",
     "pandas",

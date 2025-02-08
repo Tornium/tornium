@@ -5,7 +5,19 @@
 
 version: 2
 updates:
-    - package-ecosystem: "pip" # See documentation for possible values
-      directory: "/" # Location of package manifests
+    - package-ecosystem: "pip"
+      directory: "/application"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pip"
+      directory: "/celery"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pip"
+      directory: "/commons"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "mix"
+      directory: "/worker"
       schedule:
           interval: "daily"

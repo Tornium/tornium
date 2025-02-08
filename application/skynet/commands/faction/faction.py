@@ -367,7 +367,7 @@ def members_switchboard(interaction, *args, **kwargs):
                         PersonalStats.select(PersonalStats.user).where(
                             (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
                         )
-                    ).tid
+                    ).user
                 ]
             except IndexError:
                 return {

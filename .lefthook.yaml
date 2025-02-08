@@ -12,7 +12,7 @@ pre-commit:
             run: "isort ."
         application-bandit:
             root: "application/"
-            run: "bandit ."
+            run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
         celery-lint:
             root: "celery/"
             run: "flake8 ."

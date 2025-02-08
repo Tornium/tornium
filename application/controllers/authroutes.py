@@ -679,7 +679,7 @@ def set_security_mode(*args, **kwargs):
     mode = data.get("mode")
     otp_generated = False
 
-    if current_user.otp_secret is None or current_user.otp_secret == "":
+    if current_user.otp_secret is None or current_user.otp_secret == "":  # nosec B105
         current_user.generate_otp_secret()
         otp_generated = True
 

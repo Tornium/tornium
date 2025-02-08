@@ -36,8 +36,7 @@ dev = [
     "bandit",
     "black",
     "flake8",
-    "isort",
-    "tox"
+    "isort"
 ]
 test = [
     "pytest",
@@ -49,9 +48,7 @@ ci = [
     "flake8",
     "isort",
     "pytest",
-    "pytest-sugar",
-    "tox",
-    "tox-gh-actions"
+    "pytest-sugar"
 ]
 extra = [
     "orjson",
@@ -63,7 +60,7 @@ homepage = "https://tornium.com"
 repository = "https://github.com/Tornium/tornium"
 
 [tool.bandit]
-exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv"]
+exclude = ["./tests", ".git", "__pycache__", "./venv"]
 skips = ["B201", "B311", "B112"]
 
 [tool.black]

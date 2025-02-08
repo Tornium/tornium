@@ -14,7 +14,7 @@ pre-commit:
             root: "application/"
             run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
         application-static-format:
-            root: "application/"
+            root: "application/static/"
             run: "biome format ."
         application-sass:
             root: "application/"

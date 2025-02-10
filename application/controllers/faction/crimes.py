@@ -17,13 +17,15 @@ from flask import render_template
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
 
-from controllers.faction.decorators import fac_required, manage_crimes_required, aa_required
+from controllers.faction.decorators import (
+    aa_required,
+    fac_required,
+    manage_crimes_required,
+)
 
 
 @login_required
 @fac_required
 @aa_required
 def crimes(*args, **kwargs):
-    return render_template(
-        "faction/crimes.html"
-    )
+    return render_template("faction/crimes.html")

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Tornium - Faction
+Tornium - Faction OCs Dashboard
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -9,14 +9,17 @@ Tornium - Faction
     <li class="breadcrumb-item">
         <a href="/">Tornium</a>
     </li>
-    <li class="breadcrumb-item active">
+    <li class="breadcrumb-item">
         <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/crimes">Organized Crimes</a>
     </li>
 </ol>
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/faction/members">
@@ -34,11 +37,6 @@ Tornium - Faction
         <div class="row mb-3">
             <a class="nav-link" href="/faction/chain">
                 <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
-            </a>
-        </div>
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/crimes">
-                <i class="col-1 col-sm-2 fa-solid fa-bell"></i> <span class="col">Organized Crimes</span>
             </a>
         </div>
 
@@ -67,29 +65,47 @@ Tornium - Faction
 {% endblock %}
 
 {% block content %}
-<div class="container h-100">
-    <div class="py-3">
-        <div class="card">
+<div class="py-3 px-3">
+    <div class="row">
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
             <div class="card-header">
-                <i class="fa-solid fa-list"></i>
-                Features
+                OCs Recruiting
             </div>
             <div class="card-body">
-                <p class="card-text">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            OD Watcher - a faction utility that reports overdoses in a specified Discord channel when enabled
-                        </li>
-                        <li class="list-group-item">
-                            Banking - a faction utility for requesting money from the faction vault
-                        </li>
-                        <li class="list-group-item">
-                            And many more can be found under the <a href="/bot">bot dashboard</a>
-                        </li>
-                    </ul>
-                </p>
+                NYI
+            </div>
+        </div>
+
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                OCs In-Progress
+            </div>
+            <div class="card-body">
+                NYI
+            </div>
+        </div>
+
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                OCs Missing Tools
+            </div>
+            <div class="card-body">
+                NYI
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                Members not in OCs
+            </div>
+            <div class="card-body">
+                NYI
             </div>
         </div>
     </div>
 </div>
+
+<script src="/static/faction/crimes.js"></script>
 {% endblock %}

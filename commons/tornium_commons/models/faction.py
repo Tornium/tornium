@@ -56,6 +56,7 @@ class Faction(BaseModel):
     # Internal data
     last_members = DateTimeField(null=True)
     last_attacks = DateTimeField(null=True)
+    has_migrated_oc = BooleanField(default=False, null=False)
 
     def get_bankers(self):
         from .user import User

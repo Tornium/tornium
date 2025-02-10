@@ -52,4 +52,15 @@ defmodule Tornium.Utils do
     end)
     |> Map.new()
   end
+
+  @spec unix_to_timestamp(timestamp :: integer() | nil) :: DateTime.t() | nil
+  def unix_to_timestamp(timestamp, unit \\ :second)
+
+  def unix_to_timestamp(timestamp, unit) when is_integer(timestamp) do
+    DateTime.from_unix!(timestamp, unit)
+  end
+
+  def unix_to_timestamp(_timestamp, _unit) do
+    nil
+  end
 end

@@ -19,6 +19,9 @@ from .base_model import BaseModel
 
 
 class FactionPosition(BaseModel):
+    class Meta:
+        table_name = "faction_position"
+
     pid = UUIDField(primary_key=True)
     name = CharField()
     faction_tid = IntegerField()

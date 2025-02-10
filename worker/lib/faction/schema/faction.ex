@@ -30,7 +30,8 @@ defmodule Tornium.Schema.Faction do
           od_channel: integer(),
           od_data: Map,
           last_members: DateTime.t(),
-          last_attacks: DateTime.t()
+          last_attacks: DateTime.t(),
+          has_migrated_oc: boolean()
         }
 
   @primary_key {:tid, :integer, autogenerate: false}
@@ -52,5 +53,6 @@ defmodule Tornium.Schema.Faction do
 
     field(:last_members, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)
+    field(:has_migrated_oc, :boolean)
   end
 end

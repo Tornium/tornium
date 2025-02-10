@@ -229,11 +229,6 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/faction/crimes",
-    view_func=faction.crimes.crimes_data,
-    methods=["GET"],
-)
-mod.add_url_rule(
     "/api/v1/faction/positions",
     view_func=faction.positions.get_positions,
     methods=["GET"],

@@ -155,4 +155,23 @@ defmodule Tornium.Faction.OC do
   def parse_slots([], _oc_id, slots) do
     slots
   end
+
+  @spec check(oc_list :: [Tornium.Schema.OrganizedCrime.t()]) :: Tornium.Faction.OC.Check.Struct.t()
+  def check(oc_list, oc_checks \\ nil)
+
+  def check(oc_list, oc_checks) when is_list(oc_list) and is_nil(oc_checks) do
+    check(oc_list, Tornium.Faction.OC.Check.Struct.new())
+  end
+
+  def check([%Tornium.Schema.OrganizedCrime{} = oc | remaining_oc], oc_checks) do
+    oc_checks =
+      oc_checks
+      |> Tornium.Faction.OC.Check.check_tools(oc)
+
+    check(remaining_oc, oc_checks)
+  end
+
+  def check([], oc_checks) do
+    oc_checks
+  end
 end

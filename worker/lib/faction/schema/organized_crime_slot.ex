@@ -22,10 +22,13 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
           oc: Tornium.Schema.OrganizedCrime.t(),
           slot_index: integer(),
           crime_position: String.t(),
-          user: Tornium.Schema.User.t(),
-          user_success_chance: integer(),
+          user: Tornium.Schema.User.t() | nil,
+          user_success_chance: integer() | nil,
           item_required: Tornium.Schema.Item.t() | nil,
-          item_available: boolean() | nil
+          item_available: boolean() | nil,
+          delayer: boolean() | nil,
+          delayed_reason: String.t(),
+          sent_tool_notification: boolean()
         }
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
@@ -39,6 +42,11 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
     belongs_to(:item_required, Tornium.Schema.Item, references: :tid)
     field(:item_available, :boolean)
+
+    field(:delayer, :boolean)
+    field(:delayed_reason, :string)
+
+    field(:sent_tool_notification, :boolean)
   end
 
   @spec map(entries :: [Tornium.Schema.OrganizedCrimeSlot.t()]) :: list(map())
@@ -53,7 +61,10 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
                        user_id: user_id,
                        user_success_chance: user_success_chance,
                        item_required_id: item_required_id,
-                       item_available: item_available
+                       item_available: item_available,
+                       delayer: delayer,
+                       delayed_reason: delayed_reason,
+                       sent_tool_notification: sent_tool_notification
                      },
                      index
                    }
@@ -66,7 +77,10 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
         user_id: user_id,
         user_success_chance: user_success_chance,
         item_required_id: item_required_id,
-        item_available: item_available || false
+        item_available: item_available || false,
+        delayer: delayer || false,
+        delayed_reason: delayed_reason,
+        sent_tool_notification: sent_tool_notification || false
       }
     end)
   end
@@ -80,6 +94,8 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   end
 
   def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
+    # WARNING: Test logic for when member joins a slot and leaves the slot
+
     # The schema entries have already been remapped
     {_, returned_slot_entries} =
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,

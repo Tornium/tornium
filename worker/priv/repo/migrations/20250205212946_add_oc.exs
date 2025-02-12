@@ -37,6 +37,9 @@ defmodule Tornium.Repo.Migrations.AddOc do
       add :user_success_chance, :integer, default: nil, null: true
       add :item_required_id, references(:item, column: :tid, type: :integer), default: nil, null: true
       add :item_available, :boolean, default: false, null: false
+      add :delayer, :boolean, default: false, null: false
+      add :delayed_reason, :string, default: nil, null: true
+      add :sent_tool_notification, :boolean, default: false, null: false
     end
 
     create_if_not_exists unique_index(:organized_crime_slot, [:oc_id, :slot_index, :user_id])

@@ -55,6 +55,8 @@ defmodule Tornium.Workers.OCUpdateScheduler do
         |> Tornium.Faction.OC.parse(faction_tid)
         |> Tornium.Schema.OrganizedCrime.upsert_all()
         |> IO.inspect()
+        |> Tornium.Faction.OC.check()
+        |> Tornium.Faction.OC.Render.render_all(faction_tid)
       end)
     end)
 

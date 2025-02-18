@@ -17,6 +17,10 @@ end
 
 local hospitalized_members = {}
 
+if faction == nil or faction.members == nil then
+  return false, {}, state
+end
+
 -- Iterate over the faction members
 for member_id, member_data in pairs(faction.members) do
   -- Check if the faction member is in the hospital

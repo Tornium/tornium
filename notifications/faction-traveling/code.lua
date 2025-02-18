@@ -169,6 +169,10 @@ local function remove_member_other_destinations(member_id, destination)
   end
 end
 
+if faction == nil or faction.members == nil then
+  return false, {}, state
+end
+
 -- Iterate over the faction members
 for member_id, member_data in pairs(faction.members) do
   local destination = get_destination(member_data.status.description)

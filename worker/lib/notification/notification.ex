@@ -222,6 +222,11 @@ defmodule Tornium.Notification do
           resource :: trigger_resource(),
           selections :: [String.t()]
         ) :: map()
+  defp filter_response({:error, _}, resource, selections) do
+    # FIXME: Better handle this case
+    :error
+  end
+
   defp filter_response(response, resource, selections) when is_list(selections) do
     valid_keys =
       Enum.reduce(selections, MapSet.new([]), fn selection, acc ->
@@ -237,6 +242,11 @@ defmodule Tornium.Notification do
           trigger :: Tornium.Schema.Trigger.t(),
           notifications :: [Tornium.Schema.Notification.t()]
         ) :: {:error, Tornium.API.Error.t()} | list(nil)
+  defp handle_api_response(:error, _trigger, _notifications) do
+    # NOTE: Temporary solution to unknown errors from Tornex
+    {:error, :unknown}
+  end
+
   defp handle_api_response(
          %{"error" => %{"code" => code, "error" => error}} = _response,
          _trigger,

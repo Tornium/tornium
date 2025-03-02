@@ -46,6 +46,7 @@ defmodule Tornium.MixProject do
       {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
       {:oban, "~> 2.19"},
+      {:plug_cowboy, "~> 2.7"},  # Required for oban_web
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
       {:luerl, github: "rvirding/luerl", tag: "1.2.3"},

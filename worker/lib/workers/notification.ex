@@ -19,7 +19,7 @@ defmodule Tornium.Workers.Notification do
   import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 1,
+    max_attempts: 3,
     priority: 5,
     queue: :notifications,
     tags: ["notification"],

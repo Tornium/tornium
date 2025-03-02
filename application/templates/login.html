@@ -26,11 +26,13 @@
                         <h5 class="card-title">Log into Tornium</h5>
 
                         <p class="card-text">
-                            Tornium keeps all your data protected and secured on its servers. No data or API keys will be accessed without permission beyond for security and maintenance.  It is recommended to use a separate API for each service you utilize.
+                            Tornium keeps all your data protected and secured on its servers. No data or API keys will be accessed without permission except for security and maintenance.
+                            <br />
+                            By signing into Tornium, you agree to the <a href="/terms">Terms of Service</a> and the <a href="/privacy">Privacy Policy</a>.
                         </p>
 
                         <p class="card-text">
-                            <b>NOTE:</b> Tornium logs all authentication attempts including IP addresses for security reasons.
+                            <b>NOTE:</b> Tornium logs all authentication attempts including IP addresses for security purposes.
                         </p>
 
                         <form method="POST" action="/login?state={{ session["oauth_state"] }}">

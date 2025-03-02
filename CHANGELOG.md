@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed stat score calculation on gym page in `tornium-estimate.user.js`
 - Fixed OD channel loader on website
 - Fixed point withdrawals in `/withdraw`
+- Fixed IP address logging in `AuthLog`
 
 ### Removed
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`

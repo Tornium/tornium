@@ -13,6 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .inet import INETField
+import ipaddress
 
-__all__ = ["INETField"]
+from peewee import Field
+
+
+class INETField(Field):
+    # See https://www.postgresql.org/docs/current/datatype-net-types.html
+
+    field_type = "inet"
+
+    def db_value(self, value: str | ipaddress.IPv4Address | ipaddress.IPv6Address):
+        if isinstance(value, ipaddress.IPv4Address) or isinstance(value, ipaddress.IPv6Address):
+            return str(value)
+
+        return value
+
+    def python_value(self, value):
+        return ipaddress.ip_address(value)

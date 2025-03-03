@@ -12,6 +12,28 @@ Tornium
 </ol>
 {% endblock %}
 
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/terms">
+                <i class="col-1 col-sm-2 fa-solid fa-file-contract"></i> <span class="col">Terms of Service</span>
+            </a>
+        </div>
+        <div class="row mb-3">
+            <a class="nav-link" href="/privacy">
+                <i class="col-1 col-sm-2 fa-solid fa-fingerprint"></i> <span class="col">Privacy Policy</span>
+            </a>
+        </div>
+        <div class="row mb-3">
+            <a class="nav-link" href="https://github.com/Tornium/tornium/security/policy">
+                <i class="col-1 col-sm-2 fa-solid fa-user-secret"></i> <span class="col">Security Policy</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="card m-3">
     <div class="card-body">
@@ -48,7 +70,6 @@ Tornium
             If you need help with Tornium, would like to report a bug, or would like a suggest a new feature, head 
             over to <a href="https://discord.com/invite/pPcqTRTRyF">Tornium's Discord server</a> and open a ticket 
             there. For security or account related issues, please contact tiksan [2383326] via 
-            <a href="https://discord.com/users/695828257949352028">Discord</a> (preferred) or 
             <a href="https://www.torn.com/profiles.php?XID=2383326">Torn</a>.
         </p>
     </div>
@@ -81,17 +102,5 @@ Tornium
             <a href="/bot/dashboard">Bot Configuration</a>
         </li>
     </ul>
-</div>
-
-<div class="card m-3">
-    <div class="card-body container-fluid">
-        <h5 class="card-title">Legal Stuffs</h5>
-        <p class="card-text">Thank you Discord for making me add this...</p>
-
-        <a class="btn btn-outline-danger" href="/terms">Terms of Service</a>
-        <br />
-        <br />
-        <a class="btn btn-outline-danger" href="/privacy">Privacy Policy</a>
-    </div>
 </div>
 {% endblock %}

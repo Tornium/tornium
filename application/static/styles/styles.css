@@ -1,428 +1,428 @@
 :root {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: rgb(320, 320, 320);
-  --error: inherit;
-  --text-color: black;
-  --text-alternate-color: black;
-  --border-color: var(--white);
-  --primary-bg-color: inherit;
-  --secondary-bg-color: inherit;
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
 }
 
-:root[data-bs-theme=custom-dark] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --off-white: rgb(175, 175, 175);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--white);
-  --text-alternate-color: var(--off-white);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
-:root[data-bs-theme=light] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: inherit;
-  --error: inherit;
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
 }
 
-:root[data-bs-theme=neon-dark] {
-  --white: rgb(229, 229, 229);
-  --neon: rgb(57, 255, 20);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--neon);
-  --text-alternate-color: var(--neon);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
 a {
-  color: var(--text-color) !important;
-  background-color: inherit !important;
-  text-decoration: none !important;
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+    text-decoration: none !important;
 }
 a:visited {
-  color: var(--text-color);
-  text-decoration: none;
+    color: var(--text-color);
+    text-decoration: none;
 }
 a:hover {
-  color: var(--text-alternate-color);
-  text-decoration: none;
+    color: var(--text-alternate-color);
+    text-decoration: none;
 }
 a:active {
-  color: var(--text-color);
-  text-decoration: none;
+    color: var(--text-color);
+    text-decoration: none;
 }
 
 input {
-  color: var(--text-color) !important;
-  border-color: var(--text-color);
+    color: var(--text-color) !important;
+    border-color: var(--text-color);
 }
 input::focus {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 input::placeholder {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 
 select {
-  color: var(--text-color) !important;
-  background-color: var(--primary-bg-color) !important;
-  border-color: var(--text-color) !important;
+    color: var(--text-color) !important;
+    background-color: var(--primary-bg-color) !important;
+    border-color: var(--text-color) !important;
 }
 
 p {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 
 thead th {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 tbody th a,
 tbody td a {
-  color: inherit;
+    color: inherit;
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
 }
 body {
-  font-family: "JetBrains Mono", serif;
-  height: 100vh;
-  overflow: auto;
-  background-color: var(--secondary-bg-color) !important;
+    font-family: "JetBrains Mono", serif;
+    height: 100vh;
+    overflow: auto;
+    background-color: var(--secondary-bg-color) !important;
 }
 
 html {
-  height: 100vh;
-  overflow: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
-html[data-bs-theme=custom-dark] #tornium-icon {
-  filter: invert(100%);
+html[data-bs-theme="custom-dark"] #tornium-icon {
+    filter: invert(100%);
 }
 
-html[data-bs-theme=neon-dark] #tornium-icon {
-  filter: invert(100%);
+html[data-bs-theme="neon-dark"] #tornium-icon {
+    filter: invert(100%);
 }
 
 :root {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: rgb(320, 320, 320);
-  --error: inherit;
-  --text-color: black;
-  --text-alternate-color: black;
-  --border-color: var(--white);
-  --primary-bg-color: inherit;
-  --secondary-bg-color: inherit;
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
 }
 
-:root[data-bs-theme=custom-dark] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --off-white: rgb(175, 175, 175);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--white);
-  --text-alternate-color: var(--off-white);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
-:root[data-bs-theme=light] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: inherit;
-  --error: inherit;
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
 }
 
-:root[data-bs-theme=neon-dark] {
-  --white: rgb(229, 229, 229);
-  --neon: rgb(57, 255, 20);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--neon);
-  --text-alternate-color: var(--neon);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
 .primary {
-  background-color: var(--primary-grey);
+    background-color: var(--primary-grey);
 }
 
 :root {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: rgb(320, 320, 320);
-  --error: inherit;
-  --text-color: black;
-  --text-alternate-color: black;
-  --border-color: var(--white);
-  --primary-bg-color: inherit;
-  --secondary-bg-color: inherit;
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
 }
 
-:root[data-bs-theme=custom-dark] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --off-white: rgb(175, 175, 175);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--white);
-  --text-alternate-color: var(--off-white);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
-:root[data-bs-theme=light] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: inherit;
-  --error: inherit;
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
 }
 
-:root[data-bs-theme=neon-dark] {
-  --white: rgb(229, 229, 229);
-  --neon: rgb(57, 255, 20);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--neon);
-  --text-alternate-color: var(--neon);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
 @media (min-height: 992px) {
-  #verticalNavContainer {
-    border-right-color: var(--white);
-    border-right-style: solid;
-    border-right-width: 1px;
-    min-height: 100vh;
-  }
+    #verticalNavContainer {
+        border-right-color: var(--white);
+        border-right-style: solid;
+        border-right-width: 1px;
+        min-height: 100vh;
+    }
 }
 #verticalNavContainer {
-  background-color: var(--secondary-bg-color);
-  color: var(--text-color);
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
 }
 
 #top-nav {
-  background-color: var(--secondary-bg-color);
-  color: var(--text-color);
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
 }
 #top-nav .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28229, 229, 229, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28229, 229, 229, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 #top-nav .navbar-toggler {
-  border-color: var(--text-color);
+    border-color: var(--text-color);
 }
 
 .card {
-  border-color: var(--text-color);
-  color: var(--text-color);
-  background-color: inherit;
+    border-color: var(--text-color);
+    color: var(--text-color);
+    background-color: inherit;
 }
 .card .card-header {
-  border-color: var(--border-color);
-  color: var(--text-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
 }
 .card .card-title {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 .card .card-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 .card .card-subtitle {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-control {
-  height: 38px;
-  background-color: inherit !important;
-  color: inherit !important;
+    height: 38px;
+    background-color: inherit !important;
+    color: inherit !important;
 }
 .form-control .ts-control {
-  max-height: 100%;
+    max-height: 100%;
 }
 
 .list-group-item {
-  background-color: inherit;
-  color: inherit;
+    background-color: inherit;
+    color: inherit;
 }
 
 .form-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-floating label {
-  color: var(--text-alternate-color) !important;
+    color: var(--text-alternate-color) !important;
 }
 .form-floating label::after {
-  background-color: inherit !important;
+    background-color: inherit !important;
 }
 
 label.btn {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 label.btn:hover {
-  color: inherit !important;
+    color: inherit !important;
 }
 
 .btn-outline {
-  color: var(--text-color);
-  border-color: var(--text-color);
+    color: var(--text-color);
+    border-color: var(--text-color);
 }
 .btn-outline:hover {
-  border-color: var(--text-color) !important;
+    border-color: var(--text-color) !important;
 }
 
 .modal-content {
-  background-color: var(--primary-bg-color);
-  color: var(--text-color);
-  border-color: var(--text-color);
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    border-color: var(--text-color);
 }
 .modal-content tr th {
-  color: var(--text-color);
-  background-color: inherit;
+    color: var(--text-color);
+    background-color: inherit;
 }
 
 .dropdown-menu {
-  background-color: var(--primary-bg-color);
+    background-color: var(--primary-bg-color);
 }
 
 .dropdown-toggle {
-  background-color: var(--primary-bg-color);
-  color: var(--text-color);
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
 }
 
 .breadcrumb-item::before {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 
 .accordion-button {
-  background-color: inherit;
-  color: inherit;
+    background-color: inherit;
+    color: inherit;
 }
 .accordion-button:after {
-  -webkit-filter: grayscale(1) invert(1);
-  filter: grayscale(1) invert(1);
+    -webkit-filter: grayscale(1) invert(1);
+    filter: grayscale(1) invert(1);
 }
 
 :root {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: rgb(320, 320, 320);
-  --error: inherit;
-  --text-color: black;
-  --text-alternate-color: black;
-  --border-color: var(--white);
-  --primary-bg-color: inherit;
-  --secondary-bg-color: inherit;
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
 }
 
-:root[data-bs-theme=custom-dark] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --off-white: rgb(175, 175, 175);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--white);
-  --text-alternate-color: var(--off-white);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
-:root[data-bs-theme=light] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: inherit;
-  --error: inherit;
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
 }
 
-:root[data-bs-theme=neon-dark] {
-  --white: rgb(229, 229, 229);
-  --neon: rgb(57, 255, 20);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--neon);
-  --text-alternate-color: var(--neon);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
 .pagination {
-  padding-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
 }
 
 .dataTables_wrapper {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 
-i [class^=fa-] {
-  color: var(--text-color);
+i [class^="fa-"] {
+    color: var(--text-color);
 }
 
 .ts-control {
-  background-color: var(--primary-bg-color) !important;
-  color: var(--text-color);
-  border-radius: 0.375rem;
-  min-width: 18rem;
+    background-color: var(--primary-bg-color) !important;
+    color: var(--text-color);
+    border-radius: 0.375rem;
+    min-width: 18rem;
 }
 .ts-control .item {
-  background-color: inherit !important;
-  color: var(--text-color) !important;
+    background-color: inherit !important;
+    color: var(--text-color) !important;
 }
 .ts-control .item .remove {
-  background-color: inherit !important;
+    background-color: inherit !important;
 }
 .ts-control input {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 
 .ts-dropdown {
-  background-color: var(--primary-bg-color);
-  border: 1px solid var(--text-color);
-  border-radius: 0.25rem;
-  color: var(--text-color);
+    background-color: var(--primary-bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 0.25rem;
+    color: var(--text-color);
 }
 .ts-dropdown .active {
-  background-color: var(--secondary-bg-color);
-  color: white;
+    background-color: var(--secondary-bg-color);
+    color: white;
 }
 .ts-dropdown .optgroup-header {
-  background-color: var(--secondary-bg-color);
-  color: white;
-  border-bottom: var(--text-color) 1px solid;
-  border-top: var(--text-color) 1px solid;
+    background-color: var(--secondary-bg-color);
+    color: white;
+    border-bottom: var(--text-color) 1px solid;
+    border-top: var(--text-color) 1px solid;
 }
 
 /*# sourceMappingURL=styles.css.map */

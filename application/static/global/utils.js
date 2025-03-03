@@ -85,3 +85,53 @@ function debounce(func, delay) {
         timer = setTimeout(() => func.apply(this, args), delay);
     };
 }
+
+function parseIntArray(inputString) {
+    if (inputString == "") {
+        return [];
+    } else if (!inputString.startsWith("[") || !inputString.endsWith("]")) {
+        return [];
+    }
+
+    inputString = inputString.slice(1, -1).trim();
+
+    const numbers = inputString.split(',').map(num => num.trim());
+    const result = [];
+
+    for (const num of numbers) {
+        if (num == "") {
+            continue;
+        }
+
+        result.push(num);
+    }
+
+    return result;
+}
+
+function parseStringArray(inputString) {
+    if (inputString == "") {
+        return [];
+    } else if (!inputString.startsWith("[") || !inputString.endsWith("]")) {
+        return [];
+    }
+
+    inputString = inputString.slice(1, -1).trim();
+
+    const strings = inputString.split(',').map(str => str.trim());
+    const result = [];
+
+    for (let string of strings) {
+        if (string == "") {
+            continue;
+        } else if (string.startsWith("'") && string.endsWith("'")) {
+            string = string.slice(1, -1).trim();
+        } else if (string.startsWith("\"") && string.endsWith("\"")) {
+            string = string.slice(1, -1).trim();
+        }
+
+        result.push(string);
+    }
+
+    return result;
+}

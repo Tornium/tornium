@@ -13,4 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import banking, chain, crimes, positions
+import typing
+
+from flask import jsonify
+from tornium_commons.models import OrganizedCrimeNew
+
+from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
+from controllers.api.v1.utils import api_ratelimit_response
+
+
+@require_oauth()
+@ratelimit
+@global_cache
+def get_oc_names(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    oc_names: typing.List[str] = [
+        crime.oc_name for crime in OrganizedCrimeNew.select().distinct(OrganizedCrimeNew.oc_name)
+    ]
+
+    return jsonify(oc_names), 200, api_ratelimit_response(key)

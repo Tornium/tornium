@@ -1,16 +1,16 @@
 thead th {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 tbody th a,
 tbody td a {
-  color: inherit;
+    color: inherit;
 }
 
 /*# sourceMappingURL=table.css.map */

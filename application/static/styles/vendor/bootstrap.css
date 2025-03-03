@@ -1,96 +1,96 @@
 .card {
-  border-color: var(--text-color);
-  color: var(--text-color);
-  background-color: inherit;
+    border-color: var(--text-color);
+    color: var(--text-color);
+    background-color: inherit;
 }
 .card .card-header {
-  border-color: var(--border-color);
-  color: var(--text-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
 }
 .card .card-title {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 .card .card-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 .card .card-subtitle {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-control {
-  height: 38px;
-  background-color: inherit !important;
-  color: inherit !important;
+    height: 38px;
+    background-color: inherit !important;
+    color: inherit !important;
 }
 .form-control .ts-control {
-  max-height: 100%;
+    max-height: 100%;
 }
 
 .list-group-item {
-  background-color: inherit;
-  color: inherit;
+    background-color: inherit;
+    color: inherit;
 }
 
 .form-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-text {
-  color: var(--text-alternate-color);
+    color: var(--text-alternate-color);
 }
 
 .form-floating label {
-  color: var(--text-alternate-color) !important;
+    color: var(--text-alternate-color) !important;
 }
 .form-floating label::after {
-  background-color: inherit !important;
+    background-color: inherit !important;
 }
 
 label.btn {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 label.btn:hover {
-  color: inherit !important;
+    color: inherit !important;
 }
 
 .btn-outline {
-  color: var(--text-color);
-  border-color: var(--text-color);
+    color: var(--text-color);
+    border-color: var(--text-color);
 }
 .btn-outline:hover {
-  border-color: var(--text-color) !important;
+    border-color: var(--text-color) !important;
 }
 
 .modal-content {
-  background-color: var(--primary-bg-color);
-  color: var(--text-color);
-  border-color: var(--text-color);
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    border-color: var(--text-color);
 }
 .modal-content tr th {
-  color: var(--text-color);
-  background-color: inherit;
+    color: var(--text-color);
+    background-color: inherit;
 }
 
 .dropdown-menu {
-  background-color: var(--primary-bg-color);
+    background-color: var(--primary-bg-color);
 }
 
 .dropdown-toggle {
-  background-color: var(--primary-bg-color);
-  color: var(--text-color);
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
 }
 
 .breadcrumb-item::before {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 
 .accordion-button {
-  background-color: inherit;
-  color: inherit;
+    background-color: inherit;
+    color: inherit;
 }
 .accordion-button:after {
-  -webkit-filter: grayscale(1) invert(1);
-  filter: grayscale(1) invert(1);
+    -webkit-filter: grayscale(1) invert(1);
+    filter: grayscale(1) invert(1);
 }
 
 /*# sourceMappingURL=bootstrap.css.map */

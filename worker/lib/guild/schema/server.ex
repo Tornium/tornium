@@ -43,7 +43,6 @@ defmodule Tornium.Schema.Server do
     field(:icon, :string)
 
     field(:factions, {:array, :integer})
-    # has_many(:factions, Tornium.Schema.Faction)
 
     field(:verify_enabled, :boolean)
     field(:auto_verify_enabled, :boolean)

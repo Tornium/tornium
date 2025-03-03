@@ -101,6 +101,21 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/tool/channel",
+    view_func=bot.crimes.set_tool_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/tool/roles",
+    view_func=bot.crimes.set_tool_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/tool/crimes",
+    view_func=bot.crimes.set_tool_crimes,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction",
     view_func=bot.faction.faction_setter,
     methods=["DELETE", "POST"],
@@ -109,11 +124,6 @@ mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction/<int:faction_tid>/banking",
     view_func=bot.banking.banking_setter,
     methods=["GET", "POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/faction/<int:faction_tid>/oc/<string:notif>/<string:element>",
-    view_func=bot.oc.oc_config_setter,
-    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/notification",
@@ -223,6 +233,7 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/crimes/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/faction/chain/od/channel",
     view_func=faction.chain.chain_od_channel,

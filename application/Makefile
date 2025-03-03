@@ -5,3 +5,6 @@ run:
 
 sass:
 	cd static/styles/ && sass .
+
+format-js:
+	cd static/ && biome format . --write

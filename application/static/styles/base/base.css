@@ -1,124 +1,124 @@
 :root {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: rgb(320, 320, 320);
-  --error: inherit;
-  --text-color: black;
-  --text-alternate-color: black;
-  --border-color: var(--white);
-  --primary-bg-color: inherit;
-  --secondary-bg-color: inherit;
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
 }
 
-:root[data-bs-theme=custom-dark] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --off-white: rgb(175, 175, 175);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--white);
-  --text-alternate-color: var(--off-white);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
-:root[data-bs-theme=light] {
-  --white: rgb(229, 229, 229);
-  --primary-grey: inherit;
-  --secondary-grey: inherit;
-  --off-white: inherit;
-  --error: inherit;
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
 }
 
-:root[data-bs-theme=neon-dark] {
-  --white: rgb(229, 229, 229);
-  --neon: rgb(57, 255, 20);
-  --primary-grey: rgb(35, 35, 35);
-  --secondary-grey: rgb(25, 25, 25);
-  --error: rgb(225, 10, 10);
-  --text-color: var(--neon);
-  --text-alternate-color: var(--neon);
-  --primary-bg-color: var(--primary-grey);
-  --secondary-bg-color: var(--secondary-grey);
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
 }
 
 a {
-  color: var(--text-color) !important;
-  background-color: inherit !important;
-  text-decoration: none !important;
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+    text-decoration: none !important;
 }
 a:visited {
-  color: var(--text-color);
-  text-decoration: none;
+    color: var(--text-color);
+    text-decoration: none;
 }
 a:hover {
-  color: var(--text-alternate-color);
-  text-decoration: none;
+    color: var(--text-alternate-color);
+    text-decoration: none;
 }
 a:active {
-  color: var(--text-color);
-  text-decoration: none;
+    color: var(--text-color);
+    text-decoration: none;
 }
 
 input {
-  color: var(--text-color) !important;
-  border-color: var(--text-color);
+    color: var(--text-color) !important;
+    border-color: var(--text-color);
 }
 input::focus {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 input::placeholder {
-  color: var(--text-color) !important;
+    color: var(--text-color) !important;
 }
 
 select {
-  color: var(--text-color) !important;
-  background-color: var(--primary-bg-color) !important;
-  border-color: var(--text-color) !important;
+    color: var(--text-color) !important;
+    background-color: var(--primary-bg-color) !important;
+    border-color: var(--text-color) !important;
 }
 
 p {
-  color: var(--text-color);
+    color: var(--text-color);
 }
 
 thead th {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-  color: var(--white) !important;
-  background-color: inherit !important;
+    color: var(--white) !important;
+    background-color: inherit !important;
 }
 tbody th a,
 tbody td a {
-  color: inherit;
+    color: inherit;
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
 }
 body {
-  font-family: "JetBrains Mono", serif;
-  height: 100vh;
-  overflow: auto;
-  background-color: var(--secondary-bg-color) !important;
+    font-family: "JetBrains Mono", serif;
+    height: 100vh;
+    overflow: auto;
+    background-color: var(--secondary-bg-color) !important;
 }
 
 html {
-  height: 100vh;
-  overflow: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
-html[data-bs-theme=custom-dark] #tornium-icon {
-  filter: invert(100%);
+html[data-bs-theme="custom-dark"] #tornium-icon {
+    filter: invert(100%);
 }
 
-html[data-bs-theme=neon-dark] #tornium-icon {
-  filter: invert(100%);
+html[data-bs-theme="neon-dark"] #tornium-icon {
+    filter: invert(100%);
 }
 
 /*# sourceMappingURL=base.css.map */

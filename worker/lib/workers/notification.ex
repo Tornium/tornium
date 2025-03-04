@@ -53,4 +53,14 @@ defmodule Tornium.Workers.Notification do
 
     :ok
   end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{args: %{"notifications" => notifications}} = _job) when is_list(notifications) do
+    :timer.minutes(2)
+  end
+
+  def timeout(_job) do
+    # This condition should never happen but is here for stability
+    :timer.seconds(30)
+  end
 end

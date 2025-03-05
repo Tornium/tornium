@@ -14,10 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template
-from flask_login import fresh_login_required
+from flask_login import login_required
 
 
-@fresh_login_required
+@login_required
 def oc_dashboard(guild_id):
     return render_template(
         "bot/oc.html",

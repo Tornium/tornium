@@ -16,12 +16,12 @@
 import uuid
 
 from flask import render_template
-from flask_login import current_user, fresh_login_required
+from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_commons.models import Notification, Server, ServerNotificationsConfig
 
 
-@fresh_login_required
+@login_required
 def notification_dashboard(guild_id: int):
     try:
         guild: Server = Server.select().where(Server.sid == guild_id).get()
@@ -57,7 +57,7 @@ def notification_dashboard(guild_id: int):
     return render_template("bot/notification.html", guild=guild)
 
 
-@fresh_login_required
+@login_required
 def view_notification(guild_id: int, notification_uuid: str):
     try:
         guild: Server = Server.select().where(Server.sid == guild_id).get()

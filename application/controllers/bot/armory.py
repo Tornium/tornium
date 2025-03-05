@@ -14,12 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template
-from flask_login import current_user, fresh_login_required
+from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_commons.models import Server
 
 
-@fresh_login_required
+@login_required
 def armory_dashboard(guild_id: int):
     try:
         guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()

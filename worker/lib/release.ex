@@ -2,6 +2,8 @@ defmodule Tornium.Release do
   @moduledoc """
   Used for executing DB release tasks when run in production without Mix
   installed.
+
+  Source: https://hexdocs.pm/ecto_sql/Ecto.Migrator.html
   """
   @app :tornium
 

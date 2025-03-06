@@ -95,6 +95,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
   def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
     # WARNING: Test logic for when member joins a slot and leaves the slot
+    # TODO: clear old data (such as `sent_tool_notification`) when a member leaves a slot or a different member joins the slot
 
     # The schema entries have already been remapped
     {_, returned_slot_entries} =

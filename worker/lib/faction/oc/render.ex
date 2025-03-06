@@ -17,6 +17,7 @@ defmodule Tornium.Faction.OC.Render do
   import Ecto.Query
   alias Tornium.Repo
 
+  # TODO: Document function
   @spec render_all(check_state :: Tornium.Faction.OC.Check.Struct.t(), faction_id :: integer()) :: [
           Nostrum.Struct.Message.t()
         ]
@@ -44,29 +45,63 @@ defmodule Tornium.Faction.OC.Render do
 
   def render_all(%Tornium.Faction.OC.Check.Struct{} = check_state, _faction_id, %Tornium.Schema.Server{} = guild) do
     []
-    |> render_all(:missing_tools, check_state.missing_tools, guild)
+    |> render_feature(:missing_tools, check_state.missing_tools, guild)
   end
 
-  @spec render_all(
+  # TODO: Document function
+  @spec render_feature(
           messages :: [Nostrum.Struct.Message.t()],
           state_element :: Tornium.Faction.OC.Check.Struct.keys(),
           slots :: [Tornium.Schema.OrganizedCrimeSlot.t()],
           guild :: Tornium.Schema.Server.t()
         ) :: [Nostrum.Struct.Message.t()]
-  def render_all(
+  def render_feature(
         messages,
         :missing_tools,
-        [%Tornium.Schema.OrganizedCrimeSlot{} = _slot | remaining_slots],
+        [
+          %Tornium.Schema.OrganizedCrimeSlot{
+            oc: %Tornium.Schema.OrganizedCrime{} = crime,
+            user: %Tornium.Schema.User{} = user,
+            crime_position: position,
+            item_required: %Tornium.Schema.Item{} = item
+          } = _slot
+          | remaining_slots
+        ],
         %Tornium.Schema.Server{} = guild
       )
       when is_list(messages) do
-    %Nostrum.Struct.Message{
-      embeds: [
-        %Nostrum.Struct.Embed{
-          title: "foo"
-        }
-      ]
-    }
+    messages = [
+      %Nostrum.Struct.Message{
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "OC Missing Tool",
+            description:
+              "Member #{user.name} [#{user.tid}] in position #{position} is missing #{item.name} [#{item.tid}] for an #{crime.oc_name} OC.",
+            footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "#{user.name} [#{user.tid}]",
+                url: "https://www.torn.com/profiles.php?XID=#{user.tid}"
+              },
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Organized Crime",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{crime.oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+      | messages
+    ]
 
     render_all(messages, :missing_tools, remaining_slots, guild)
   end

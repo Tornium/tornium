@@ -107,4 +107,16 @@ defmodule Tornium.Test.Faction.OC.Checks do
 
     assert Kernel.length(missing_tools) == 0
   end
+
+  test "test_not_ready_oc" do
+    # TODO: Write test
+  end
+
+  test "test_ready_not_delayed_oc" do
+    # TODO: Write test
+  end
+
+  test "test_ready_delayed_oc" do
+    # TODO: Write test
+  end
 end

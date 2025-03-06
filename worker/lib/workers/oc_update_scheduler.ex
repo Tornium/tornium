@@ -19,7 +19,7 @@ defmodule Tornium.Workers.OCUpdateScheduler do
   import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 1,
+    max_attempts: 3,
     priority: 0,
     queue: :scheduler,
     tags: ["scheduler", "oc"],
@@ -43,20 +43,22 @@ defmodule Tornium.Workers.OCUpdateScheduler do
         resource: "v2/faction",
         resource_id: faction_tid,
         key: api_key,
-        selections: ["crimes"],
+        selections: ["crimes", "members"],
         key_owner: user_tid,
         # TODO: Set nice value
         nice: 0
       }
 
+      # TODO: Move body of task into separate job
       Task.Supervisor.async(Tornium.TornexTaskSupervisor, fn ->
         request
         |> Tornex.Scheduler.Bucket.enqueue()
         |> Tornium.Faction.OC.parse(faction_tid)
         |> Tornium.Schema.OrganizedCrime.upsert_all()
-        |> IO.inspect()
         |> Tornium.Faction.OC.check()
         |> Tornium.Faction.OC.Render.render_all(faction_tid)
+
+        # TODO: Send the messages from the render
       end)
     end)
 

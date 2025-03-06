@@ -14,17 +14,21 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Faction.OC.Check.Struct do
-  defstruct [:missing_tools]
+  defstruct [:missing_tools, :delayers]
+
+  @type checked_slots :: [Tornium.Schema.OrganizedCrimeSlot.t()]
 
   @type t :: %Tornium.Faction.OC.Check.Struct{
-          missing_tools: list(Tornium.Schema.OrganizedCrimeSlot.t())
+          missing_tools: checked_slots(),
+          delayers: checked_slots()
         }
-  @type keys :: Map.keys(t)
+  @type keys :: Map.keys(t())
 
   @spec new() :: t()
   def new() do
     %Tornium.Faction.OC.Check.Struct{
-      missing_tools: []
+      missing_tools: [],
+      delayers: []
     }
   end
 end

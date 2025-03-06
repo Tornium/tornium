@@ -28,7 +28,7 @@ defmodule Tornium.Faction.OC.Check do
   def check_tools(
         check_state,
         %Tornium.Schema.OrganizedCrime{ready_at: ready_at, slots: slots, status: :planning} = _crime
-      ) do
+      ) when not is_nil(ready_at) do
     if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
       check_slot_tool(slots, check_state)
     else
@@ -88,9 +88,10 @@ defmodule Tornium.Faction.OC.Check do
 
   @spec check_slot_delayer([Tornium.Schema.OrganizedCrimeSlot.t()], state()) :: state()
   defp check_slot_delayer(
-         [%Tornium.Schema.OrganizedCrimeSlot{} = _slot | remaining_slots],
-         %Tornium.Faction.OC.Check.Struct{} = state
+         [%Tornium.Schema.OrganizedCrimeSlot{delayer: true} = slot | remaining_slots],
+         %Tornium.Faction.OC.Check.Struct{delayers: delayers} = state
        ) do
+    state = Map.replace(state, :delayers, [slot | delayers])
     check_slot_delayer(remaining_slots, state)
   end
 

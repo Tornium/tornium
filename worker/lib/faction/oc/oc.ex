@@ -151,6 +151,7 @@ defmodule Tornium.Faction.OC do
       }
       |> put_item_required(item_requirement)
       |> put_delayer(members, oc_ready)
+
     # FIXME: members is of type `maybe_improper_list` instead of `[map()]`
 
     parse_slots(remaining_slots, members, oc_id, oc_ready, [slot | slots])

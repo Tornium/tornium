@@ -28,7 +28,6 @@ defmodule Tornium.Faction.OC do
     true
   end
 
-  # TODO: Test this function
   @doc ~S"""
   Parse an API response into a list of Organized Crime 2.0 crimes including the slots of the crimes.
   """
@@ -166,7 +165,7 @@ defmodule Tornium.Faction.OC do
   defp put_item_required(%Tornium.Schema.OrganizedCrimeSlot{} = slot, item_requirement) when is_nil(item_requirement) do
     slot
     |> Map.put(:item_required_id, nil)
-    |> Map.put(:is_available, nil)
+    |> Map.put(:item_available, nil)
   end
 
   defp put_item_required(%Tornium.Schema.OrganizedCrimeSlot{} = slot, %{
@@ -175,7 +174,7 @@ defmodule Tornium.Faction.OC do
        }) do
     slot
     |> Map.put(:item_required_id, item_id)
-    |> Map.put(:is_available, item_available)
+    |> Map.put(:item_available, item_available)
   end
 
   @spec put_delayer(slot :: Tornium.Schema.OrganizedCrimeSlot.t(), members :: [map()], oc_ready :: boolean()) ::
@@ -190,17 +189,16 @@ defmodule Tornium.Faction.OC do
 
   defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} = slot, members, true) do
     member = Enum.find(members, fn m -> m["id"] == user_id end)
-    delayer = false
-    delayed_reason = nil
 
-    if member["status"]["description"] != "Okay" do
-      ^delayer = true
-      ^delayed_reason = member["status"]["description"]
-    end
+    {delayer, delayed_reason} =
+      case member["status"]["description"] do
+        "Okay" -> {false, nil}
+        other_status -> {true, other_status}
+      end
 
     slot
     |> Map.put(:delayer, delayer)
-    |> Map.put(:delayer_reason, delayed_reason)
+    |> Map.put(:delayed_reason, delayed_reason)
   end
 
   # TODO: Document this function

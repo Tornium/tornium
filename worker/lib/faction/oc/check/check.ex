@@ -28,7 +28,8 @@ defmodule Tornium.Faction.OC.Check do
   def check_tools(
         check_state,
         %Tornium.Schema.OrganizedCrime{ready_at: ready_at, slots: slots, status: :planning} = _crime
-      ) when not is_nil(ready_at) do
+      )
+      when not is_nil(ready_at) do
     if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
       check_slot_tool(slots, check_state)
     else

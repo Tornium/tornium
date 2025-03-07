@@ -14,9 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Test.Faction.OC.Parser do
-  use Tornium.RepoCase
+  use Tornium.RepoCase, async: true
 
-  # TODO: Fill out members
   @members [
     %{
       "id" => 1,
@@ -99,8 +98,6 @@ defmodule Tornium.Test.Faction.OC.Parser do
       ]
       |> Tornium.Faction.OC.parse_slots(@members, 380_813, false, [])
 
-    # |> IO.inspect()
-
     assert Kernel.length(slots) == 2
 
     %Tornium.Schema.OrganizedCrimeSlot{
@@ -170,7 +167,6 @@ defmodule Tornium.Test.Faction.OC.Parser do
         }
       ]
       |> Tornium.Faction.OC.parse_slots(@members, 380_813, true, [])
-      # |> IO.inspect()
 
     assert Kernel.length(slots) == 3
 

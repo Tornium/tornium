@@ -140,7 +140,7 @@ defmodule Tornium.Faction.OC do
         oc_ready,
         slots
       )
-      when is_list(members) and is_boolean(oc_ready) do
+      when is_list(members) and is_boolean(oc_ready) and (is_map(item_requirement) or is_nil(item_requirement)) do
     slot =
       %Tornium.Schema.OrganizedCrimeSlot{
         oc_id: oc_id,
@@ -201,7 +201,9 @@ defmodule Tornium.Faction.OC do
     |> Map.put(:delayed_reason, delayed_reason)
   end
 
-  # TODO: Document this function
+  @doc ~S"""
+  Execute the checks in `Tornium.Faction.OC.Check` against an list of Organized Crimes to create a `Tornium.Faction.OC.Check.Struct` state that contains the slots or crimes triggering each check.
+  """
   @spec check(oc_list :: [Tornium.Schema.OrganizedCrime.t()]) :: Tornium.Faction.OC.Check.Struct.t()
   def check(oc_list, oc_checks \\ nil)
 

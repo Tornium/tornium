@@ -22,6 +22,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
           oc: Tornium.Schema.OrganizedCrime.t(),
           slot_index: integer(),
           crime_position: String.t(),
+          user_id: integer() | nil,
           user: Tornium.Schema.User.t() | nil,
           user_success_chance: integer() | nil,
           item_required: Tornium.Schema.Item.t() | nil,

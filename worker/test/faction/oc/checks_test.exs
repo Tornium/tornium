@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Test.Faction.OC.Checks do
-  use Tornium.RepoCase
+  use Tornium.RepoCase, async: true
 
   test "test_oc_no_tool" do
     crime = %Tornium.Schema.OrganizedCrime{

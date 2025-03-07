@@ -13,21 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Faction.OC.Check.Struct do
-  defstruct [:missing_tools, :delayers]
+defmodule Tornium.Test.Faction.OC.Render do
+  use Tornium.RepoCase, async: true
 
-  @type checked_slots :: [Tornium.Schema.OrganizedCrimeSlot.t()]
-  @type t :: %Tornium.Faction.OC.Check.Struct{
-          missing_tools: checked_slots(),
-          delayers: checked_slots()
-        }
-  @type keys :: :missing_tools | :delayers
-
-  @spec new() :: t()
-  def new() do
-    %Tornium.Faction.OC.Check.Struct{
-      missing_tools: [],
-      delayers: []
-    }
-  end
+  doctest Tornium.Faction.OC.Render, only: [{:render_crime?, 2}]
 end

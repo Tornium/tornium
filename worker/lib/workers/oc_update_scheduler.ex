@@ -14,6 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCUpdateScheduler do
+  # TODO: Rename worker
+
   require Logger
   alias Tornium.Repo
   import Ecto.Query

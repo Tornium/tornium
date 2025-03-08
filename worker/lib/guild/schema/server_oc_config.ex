@@ -29,7 +29,7 @@ defmodule Tornium.Schema.ServerOCConfig do
         }
 
   @primary_key false
-  schema "server_notifications_config" do
+  schema "server_oc_config" do
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     field(:enabled, :boolean)

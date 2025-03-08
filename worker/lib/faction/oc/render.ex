@@ -28,21 +28,20 @@ defmodule Tornium.Faction.OC.Render do
           Nostrum.Struct.Message.t()
         ]
   def render_all(%Tornium.Faction.OC.Check.Struct{} = check_state, faction_id) when is_integer(faction_id) do
-    faction =
+    # TODO: Add passthrough for when there are no handle in the check struct
+    [guild_id, guild_factions] =
       Tornium.Schema.Faction
-      |> join(:inner, [f], s in assoc(f, :guild_id), on: f.guild_id == s.sid)
+      |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)
       |> where([f, s], f.tid == ^faction_id)
-      |> preload([f, s], guild: s)
+      |> select([f, s], [f.guild_id, s.factions])
       |> Repo.one()
-
-    # TODO: Select necessary fields
 
     config =
       Tornium.Schema.ServerOCConfig
-      |> where([c], c.server_id == ^faction.guild_id and c.faction_id == ^faction_id)
+      |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
       |> Repo.one()
 
-    if faction != nil and config != nil and Enum.member?(faction.guild.factions, faction_id) do
+    if guild_factions != nil and config != nil and Enum.member?(guild_factions, faction_id) do
       render_all(check_state, faction_id, config)
     else
       []
@@ -86,12 +85,21 @@ defmodule Tornium.Faction.OC.Render do
           } = slot
           | remaining_slots
         ],
-        %Tornium.Schema.ServerOCConfig{tool_channel: tool_channel, tool_roles: tool_roles, tool_crimes: tool_crimes} =
+        %Tornium.Schema.ServerOCConfig{
+          # enabled: true,
+          tool_channel: tool_channel,
+          tool_roles: tool_roles,
+          tool_crimes: tool_crimes
+        } =
           config
       )
-      when is_list(messages) do
+      when is_list(messages) and not is_nil(tool_channel) do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
+
+    # TODO: Re-enable the `enabled` check once the UI for that is created
+
+    # FIXME: OC, user, and item_required needs to be loaded into the slot
 
     messages =
       if render_crime?(slot, tool_crimes) do
@@ -133,7 +141,7 @@ defmodule Tornium.Faction.OC.Render do
         messages
       end
 
-    render_all(messages, :missing_tools, remaining_slots, config)
+    render_feature(messages, :missing_tools, remaining_slots, config)
   end
 
   def render_feature(
@@ -149,12 +157,19 @@ defmodule Tornium.Faction.OC.Render do
           } = slot
           | remaining_slots
         ],
-        %Tornium.Schema.ServerOCConfig{delayed_channel: delayed_channel, delayed_roles: delayed_roles, delayed_crimes: delayed_crimes} =
+        %Tornium.Schema.ServerOCConfig{
+          # enabled: true,
+          delayed_channel: delayed_channel,
+          delayed_roles: delayed_roles,
+          delayed_crimes: delayed_crimes
+        } =
           config
       )
       when is_list(messages) do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
+
+    # TODO: Re-enable the `enabled` check once the UI for that is created
 
     messages =
       if render_crime?(slot, delayed_crimes) do
@@ -199,10 +214,14 @@ defmodule Tornium.Faction.OC.Render do
         messages
       end
 
-    render_all(messages, :delayers, remaining_slots, config)
+    render_feature(messages, :delayers, remaining_slots, config)
   end
 
-  def render_all(messages, _state_element, [] = _slots, %Tornium.Schema.ServerOCConfig{} = _config) do
+  def render_feature(messages, state_element, slots, %Tornium.Schema.ServerOCConfig{} = config) do
+    IO.inspect(state_element, label: "State element")
+    IO.inspect(slots, label: "Slots")
+    IO.inspect(config, label: "config")
+
     messages
   end
 

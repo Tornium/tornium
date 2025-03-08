@@ -32,12 +32,18 @@ defmodule Tornium.Faction.OC do
   Parse an API response into a list of Organized Crime 2.0 crimes including the slots of the crimes.
   """
   @spec parse(
-          api_data :: map() | [map()],
+          api_data :: map() | {:error, any()},
           faction_id :: integer(),
           crimes :: [Tornium.Schema.OrganizedCrime.t()]
         ) ::
           [Tornium.Schema.OrganizedCrime.t()]
   def parse(api_data, faction_id, crimes \\ [])
+
+  def parse({:error, _}, _faction_id, _crimes) do
+    # Encountered any issues with the Torn API
+    # TODO: Add type in tornex to describe errors
+    []
+  end
 
   def parse(%{"crimes" => crime_data, "members" => members}, faction_id, crimes)
       when is_list(crime_data) and is_list(members) do
@@ -82,8 +88,17 @@ defmodule Tornium.Faction.OC do
       |> String.downcase()
       |> String.to_atom()
 
-    ready_at = Utils.unix_to_timestamp(ready_at)
-    oc_ready = DateTime.after?(DateTime.utc_now(), ready_at)
+    {ready_at_ts, oc_ready} =
+      case {status, ready_at} do
+        {:planning, _} when not is_nil(ready_at) ->
+          # This should only trigger on OCs that are still in the planning stage but are past the `ready_at`
+          # timestamp to make sure that the delay notifications don't trigger before the OC is ready.
+          ready_at_ts = Utils.unix_to_timestamp(ready_at)
+          {ready_at_ts, DateTime.after?(DateTime.utc_now(), ready_at_ts)}
+
+        {_, _} ->
+          {Utils.unix_to_timestamp(ready_at), false}
+      end
 
     crime = %Tornium.Schema.OrganizedCrime{
       oc_id: oc_id,
@@ -93,7 +108,7 @@ defmodule Tornium.Faction.OC do
       status: status,
       created_at: Utils.unix_to_timestamp(created_at),
       planning_started_at: Utils.unix_to_timestamp(planning_started_at),
-      ready_at: ready_at,
+      ready_at: ready_at_ts,
       expires_at: Utils.unix_to_timestamp(expires_at),
       executed_at: Utils.unix_to_timestamp(executed_at),
       slots: parse_slots(slots, api_members, oc_id, oc_ready)
@@ -183,10 +198,6 @@ defmodule Tornium.Faction.OC do
     slot
   end
 
-  defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{} = slot, _members, false) do
-    slot
-  end
-
   defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} = slot, members, true) do
     member = Enum.find(members, fn m -> m["id"] == user_id end)
 
@@ -199,6 +210,10 @@ defmodule Tornium.Faction.OC do
     slot
     |> Map.put(:delayer, delayer)
     |> Map.put(:delayed_reason, delayed_reason)
+  end
+
+  defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{} = slot, _members, false) do
+    slot
   end
 
   @doc ~S"""

@@ -58,9 +58,11 @@ defmodule Tornium.Workers.OCUpdateScheduler do
         |> Tornium.Faction.OC.parse(faction_tid)
         |> Tornium.Schema.OrganizedCrime.upsert_all()
         |> Tornium.Faction.OC.check()
+        |> IO.inspect()
         |> Tornium.Faction.OC.Render.render_all(faction_tid)
-
-        # TODO: Send the messages from the render
+        |> IO.inspect()
+        |> Tornium.Discord.send_messages(collect: true)
+        |> IO.inspect()
       end)
     end)
 

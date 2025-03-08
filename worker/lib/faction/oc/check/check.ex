@@ -30,7 +30,9 @@ defmodule Tornium.Faction.OC.Check do
         %Tornium.Schema.OrganizedCrime{ready_at: ready_at, slots: slots, status: :planning} = _crime
       )
       when not is_nil(ready_at) do
-    if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
+    # FIXME: Revert
+    # if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
+    if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 48 do
       check_slot_tool(slots, check_state)
     else
       check_state
@@ -69,12 +71,12 @@ defmodule Tornium.Faction.OC.Check do
 
   defp check_slot_tool(
          [
-           %Tornium.Schema.OrganizedCrimeSlot{user_id: user, item_required: item, item_available: false} = slot
+           %Tornium.Schema.OrganizedCrimeSlot{user_id: user, item_required_id: item_id, item_available: false} = slot
            | remaining_slots
          ],
          %Tornium.Faction.OC.Check.Struct{missing_tools: missing_tools} = state
        )
-       when not is_nil(item) and not is_nil(user) do
+       when not is_nil(item_id) and not is_nil(user) do
     state = Map.replace(state, :missing_tools, [slot | missing_tools])
     check_slot_tool(remaining_slots, state)
   end

@@ -46,11 +46,13 @@ defmodule Tornium.MixProject do
       {:prom_ex, "~> 1.10"},
       {:crontab, "~> 1.1"},
       {:oban, "~> 2.19"},
+      # Required for oban_web
+      {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
       {:luerl, github: "rvirding/luerl", tag: "1.2.3"},
       {:solid, "~> 0.17.2"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "299b3c4fe7113fb54277dc172e926f5df037cbdd"}
+      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "db81d670226badff4d09807e51cc0f7f63bbdf8b"}
     ]
   end
 

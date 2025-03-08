@@ -85,7 +85,7 @@ def oc_dashboard(guild_id):
                 ServerOCConfig.delayed_roles,
                 ServerOCConfig.delayed_crimes,
             )
-            .where(ServerOCConfig.faction_id == faction.tid)
+            .where((ServerOCConfig.faction_id == faction.tid) & (ServerOCConfig.server_id == faction.guild_id))
             .first()
         )
 

@@ -120,16 +120,19 @@ ready(() => {
     channelInput = document.getElementById("notification-channel");
     resourceIDInput = document.getElementById("notification-resource-id");
 
-    channelsPromise.then(() => {
-        new TomSelect(".discord-channel-selector", {
-            create: false,
-        });
+    channelsPromise
+        .then(() => {
+            const channelOption = channelInput.querySelector(`option[value=${channel_id}"]`);
 
-        const channelOption = $(`#notification-channel option[value="${channel_id}"]`);
-        if (channelOption.length !== 0) {
-            channelOption.attr("selected", "");
-        }
-    });
+            if (channelOption != null) {
+                channelOption.attr("selected", "");
+            }
+        })
+        .finally(() => {
+            new TomSelect(".discord-channel-selector", {
+                create: false,
+            });
+        });
 
     document.getElementById("setup-trigger").addEventListener("click", setupTrigger);
     document.getElementById("delete-notification").addEventListener("click", deleteNotification);

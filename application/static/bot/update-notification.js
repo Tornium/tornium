@@ -122,7 +122,7 @@ ready(() => {
 
     channelsPromise
         .then(() => {
-            const channelOption = channelInput.querySelector(`option[value=${channel_id}"]`);
+            const channelOption = channelInput.querySelector(`option[value="${channel_id}"]`);
 
             if (channelOption != null) {
                 channelOption.attr("selected", "");

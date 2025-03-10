@@ -26,7 +26,7 @@ defmodule Tornium.Application do
     Tornex.Telemetry.attach_default_logger()
     Oban.Telemetry.attach_default_logger()
 
-    # TODO: rename `Tornium.TornexTaskSupervisor`
+    # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [
       Tornium.PromEx,
       Tornium.Repo,

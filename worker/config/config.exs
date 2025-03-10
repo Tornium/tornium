@@ -50,8 +50,7 @@ config :tornium, Oban,
      crontab: [
        {"* * * * *", Tornium.Workers.NotificationScheduler},
        {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       # FIXME: Revert to */5 minutes
-       {"* * * * *", Tornium.Workers.OCUpdateScheduler}
+       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler}
      ]},
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)}

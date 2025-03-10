@@ -73,8 +73,9 @@ defmodule Tornium.Faction.OC.Render do
     |> render_feature(:delayers, check_state.delayers, config)
   end
 
-  # TODO: Test function
+  # TODO: Write test for this function
   @doc ~S"""
+  Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Check.Struct`.
   """
   @spec render_feature(
           messages :: [Nostrum.Struct.Message.t()],

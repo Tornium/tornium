@@ -22,8 +22,11 @@ defmodule Tornium.Workers.OCUpdate do
     priority: 0,
     queue: :faction_processing,
     tags: ["faction", "oc"],
-    # TODO: Update unique period
-    unique: [period: 45]
+    unique: [
+      period: :infinity,
+      keys: [:faction_tid],
+      states: [:available, :executing, :retryable, :scheduled]
+    ]
 
   @impl Oban.Worker
   def perform(
@@ -50,7 +53,7 @@ defmodule Tornium.Workers.OCUpdate do
       |> Tornium.Faction.OC.parse(faction_tid)
       |> Tornium.Schema.OrganizedCrime.upsert_all()
       |> Repo.preload(slots: [:oc, :item_required, user: [:faction]])
-      # Required for rending the checks
+      # Preload required for rending the checks
       # TODO: Preload after checks to reduce DB load
       |> Tornium.Faction.OC.check()
 
@@ -59,7 +62,6 @@ defmodule Tornium.Workers.OCUpdate do
     |> Tornium.Discord.send_messages(collect: false)
 
     # Perform this after the attempting to send the messages to avoid a flag being updated despite the message not being sent (e.g. from a rendering issue)
-    # TODO: Only update this if the config is enabled for the feature
     Tornium.Schema.OrganizedCrimeSlot.update_sent_state(check_state)
 
     :ok

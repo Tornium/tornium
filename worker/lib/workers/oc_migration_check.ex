@@ -23,8 +23,10 @@ defmodule Tornium.Workers.OCMigrationCheck do
     priority: 0,
     queue: :scheduler,
     tags: ["scheduler", "oc"],
-    # TODO: Update unique period
-    unique: [period: 45]
+    unique: [
+      period: :infinity,
+      states: [:available, :executing, :retryable, :scheduled]
+    ]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -45,10 +47,10 @@ defmodule Tornium.Workers.OCMigrationCheck do
         key: api_key,
         selections: ["crimes"],
         key_owner: user_tid,
-        # TODO: Set nice value
-        nice: 0
+        nice: 20
       }
 
+      # TODO: Stop using the `Tornium.TornexTaskSupervisor`
       Task.Supervisor.async(Tornium.TornexTaskSupervisor, fn ->
         request
         |> Tornex.Scheduler.Bucket.enqueue()

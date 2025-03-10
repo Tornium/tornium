@@ -74,17 +74,15 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
       ])
     )
     |> Enum.map(fn %{} = slot -> Map.update!(slot, :id, fn id -> id || Ecto.UUID.generate() end) end)
-    |> IO.inspect(limit: :infinity)
     |> upsert_all()
-    |> IO.inspect(limit: :infinity)
   end
 
   def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
-    # WARNING: Test logic for when member joins a slot and leaves the slot
-    # TODO: clear old data (such as `sent_tool_notification`) when a member leaves a slot or a different member joins the slot
-    IO.puts("upserting")
+    # FIXME: Handle member leaving a slot: Need to clear old data
+    # Maybe this can be done with one SQL query
 
-    # The schema entries have already been remapped
+    # NOTE: Don't replace certain data that doesn't originate from the Torn API as the data will not exist until checks run
+    # The data should be used if the slot does not already exist though
     {_, returned_slot_entries} =
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
         on_conflict:

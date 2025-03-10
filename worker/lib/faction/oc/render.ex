@@ -109,6 +109,7 @@ defmodule Tornium.Faction.OC.Render do
 
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
+    # TODO: Add commas to market value of item
     messages =
       if render_crime?(slot, tool_crimes) do
         [
@@ -139,6 +140,25 @@ defmodule Tornium.Faction.OC.Render do
                     style: 5,
                     label: "Organized Crime",
                     url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{crime.oc_id}"
+                  }
+                ]
+              },
+              %Nostrum.Struct.Component{
+                type: 1,
+                components: [
+                  %Nostrum.Struct.Component{
+                    type: 2,
+                    style: 5,
+                    label: "Purchase #{item.name}",
+                    url:
+                      "https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=#{item.tid}&itemName=#{item.name}&itemType=#{item.item_type}"
+                  },
+                  %Nostrum.Struct.Component{
+                    type: 2,
+                    style: 2,
+                    label: "MV: $#{item.market_value}",
+                    disabled: true,
+                    custom_id: "oc:missing-tool:#{slot.oc_id}"
                   }
                 ]
               }
@@ -190,7 +210,7 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Delayed",
                 description:
-                  "Member #{user.name} [#{user.tid}] in position #{position} is delaying an #{crime.oc_name} OC... is #{String.downcase(delayed_reason)}.",
+                  "#{String.capitalize(user.faction.name)} member #{user.name} [#{user.tid}] (#{position}) is delaying an #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime... is #{String.downcase(delayed_reason)}.",
                 color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }

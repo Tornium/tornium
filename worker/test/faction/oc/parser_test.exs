@@ -111,13 +111,13 @@ defmodule Tornium.Test.Faction.OC.Parser do
       delayed_reason: delayed_reason
     } = Enum.at(slots, 0)
 
-    assert delayer == nil
+    assert delayer == false
     assert user_id == 2
     assert oc_id == 380_813
     assert crime_position == "Muscle"
     assert user_success_chance == 71
     assert item_required_id == nil
-    assert item_available == nil
+    assert item_available == false
     assert delayed_reason == nil
 
     %Tornium.Schema.OrganizedCrimeSlot{
@@ -131,7 +131,7 @@ defmodule Tornium.Test.Faction.OC.Parser do
       delayed_reason: delayed_reason
     } = Enum.at(slots, 1)
 
-    assert delayer == nil
+    assert delayer == false
     assert user_id == 1
     assert oc_id == 380_813
     assert crime_position == "Enforcer"
@@ -171,6 +171,7 @@ defmodule Tornium.Test.Faction.OC.Parser do
     assert Kernel.length(slots) == 3
 
     %Tornium.Schema.OrganizedCrimeSlot{
+      slot_index: slot_index,
       delayer: delayer,
       user_id: user_id,
       oc_id: oc_id,
@@ -183,14 +184,16 @@ defmodule Tornium.Test.Faction.OC.Parser do
 
     assert delayer == true
     assert user_id == 3
+    assert slot_index == 2
     assert oc_id == 380_813
     assert crime_position == "Muscle"
     assert user_success_chance == 70
     assert item_required_id == nil
-    assert item_available == nil
+    assert item_available == false
     assert delayed_reason == "Traveling to Nowhere"
 
     %Tornium.Schema.OrganizedCrimeSlot{
+      slot_index: slot_index,
       delayer: delayer,
       user_id: user_id,
       oc_id: oc_id,
@@ -203,14 +206,16 @@ defmodule Tornium.Test.Faction.OC.Parser do
 
     assert delayer == false
     assert user_id == 2
+    assert slot_index == 1
     assert oc_id == 380_813
     assert crime_position == "Muscle"
     assert user_success_chance == 71
     assert item_required_id == nil
-    assert item_available == nil
+    assert item_available == false
     assert delayed_reason == nil
 
     %Tornium.Schema.OrganizedCrimeSlot{
+      slot_index: slot_index,
       delayer: delayer,
       user_id: user_id,
       oc_id: oc_id,
@@ -223,6 +228,7 @@ defmodule Tornium.Test.Faction.OC.Parser do
 
     assert delayer == false
     assert user_id == 1
+    assert slot_index == 0
     assert oc_id == 380_813
     assert crime_position == "Enforcer"
     assert user_success_chance == 75

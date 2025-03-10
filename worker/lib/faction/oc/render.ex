@@ -21,14 +21,22 @@ defmodule Tornium.Faction.OC.Render do
   import Ecto.Query
   alias Tornium.Repo
 
-  # TODO: Add color to the embeds
-
-  # TODO: Document function
+  @doc ~S"""
+  Render embeds for each failed check listed for each feature in `Tornium.Faction.OC.Check.Struct`.
+  """
   @spec render_all(check_state :: Tornium.Faction.OC.Check.Struct.t(), faction_id :: integer()) :: [
           Nostrum.Struct.Message.t()
         ]
+  def render_all(
+        %Tornium.Faction.OC.Check.Struct{delayers: delayers, missing_tools: missing_tools} = _check_state,
+        _faction_id
+      )
+      when Kernel.length(delayers) == 0 and Kernel.length(missing_tools) == 0 do
+    # Passthrough for when there is nothing to render to avoid unnecessary API calls
+    []
+  end
+
   def render_all(%Tornium.Faction.OC.Check.Struct{} = check_state, faction_id) when is_integer(faction_id) do
-    # TODO: Add passthrough for when there are no handle in the check struct
     [guild_id, guild_factions] =
       Tornium.Schema.Faction
       |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)
@@ -66,7 +74,8 @@ defmodule Tornium.Faction.OC.Render do
   end
 
   # TODO: Test function
-  # TODO: Document function
+  @doc ~S"""
+  """
   @spec render_feature(
           messages :: [Nostrum.Struct.Message.t()],
           state_element :: Tornium.Faction.OC.Check.Struct.keys(),
@@ -97,9 +106,7 @@ defmodule Tornium.Faction.OC.Render do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
 
-    # TODO: Re-enable the `enabled` check once the UI for that is created
-
-    # FIXME: OC, user, and item_required needs to be loaded into the slot
+    # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     messages =
       if render_crime?(slot, tool_crimes) do
@@ -111,7 +118,8 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Missing Tool",
                 description:
-                  "Member #{user.name} [#{user.tid}] in position #{position} is missing #{item.name} [#{item.tid}] for an #{crime.oc_name} OC.",
+                  "#{item.name} [#{item.tid}] is required for #{user.faction.name} member #{user.name} [#{user.tid}] (#{position}) in the #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime.",
+                color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }
             ],
@@ -169,7 +177,7 @@ defmodule Tornium.Faction.OC.Render do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
 
-    # TODO: Re-enable the `enabled` check once the UI for that is created
+    # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     messages =
       if render_crime?(slot, delayed_crimes) do
@@ -181,10 +189,8 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Delayed",
                 description:
-                  "Member #{user.name} [#{user.tid}] in position #{position} is delaying an #{crime.oc_name} OC.",
-                fields: [
-                  %Nostrum.Struct.Embed.Field{name: "Reason", value: delayed_reason}
-                ],
+                  "Member #{user.name} [#{user.tid}] in position #{position} is delaying an #{crime.oc_name} OC... is #{String.downcase(delayed_reason)}.",
+                color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }
             ],
@@ -217,11 +223,7 @@ defmodule Tornium.Faction.OC.Render do
     render_feature(messages, :delayers, remaining_slots, config)
   end
 
-  def render_feature(messages, state_element, slots, %Tornium.Schema.ServerOCConfig{} = config) do
-    IO.inspect(state_element, label: "State element")
-    IO.inspect(slots, label: "Slots")
-    IO.inspect(config, label: "config")
-
+  def render_feature(messages, _state_element, _slots, %Tornium.Schema.ServerOCConfig{} = _config) do
     messages
   end
 

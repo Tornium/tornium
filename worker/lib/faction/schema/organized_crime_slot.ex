@@ -15,21 +15,23 @@
 
 defmodule Tornium.Schema.OrganizedCrimeSlot do
   alias Tornium.Repo
+  import Ecto.Query
   use Ecto.Schema
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          oc: Tornium.Schema.OrganizedCrime.t(),
+          oc: Tornium.Schema.OrganizedCrime.t() | Ecto.Association.NotLoaded.t(),
           slot_index: integer(),
           crime_position: String.t(),
           user_id: integer() | nil,
-          user: Tornium.Schema.User.t() | nil,
+          user: Tornium.Schema.User.t() | Ecto.Association.NotLoaded.t() | nil,
           user_success_chance: integer() | nil,
-          item_required: Tornium.Schema.Item.t() | nil,
+          item_required: Tornium.Schema.Item.t() | Ecto.Association.NotLoaded.t() | nil,
           item_available: boolean() | nil,
           delayer: boolean() | nil,
           delayed_reason: String.t(),
-          sent_tool_notification: boolean()
+          sent_tool_notification: boolean(),
+          sent_delayer_notification: boolean()
         }
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
@@ -48,64 +50,108 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     field(:delayed_reason, :string)
 
     field(:sent_tool_notification, :boolean)
-  end
-
-  @spec map(entries :: [Tornium.Schema.OrganizedCrimeSlot.t()]) :: list(map())
-  def map(entries) do
-    entries
-    |> Enum.with_index()
-    |> Enum.map(fn {
-                     %Tornium.Schema.OrganizedCrimeSlot{
-                       id: id,
-                       oc_id: oc_id,
-                       crime_position: crime_position,
-                       user_id: user_id,
-                       user_success_chance: user_success_chance,
-                       item_required_id: item_required_id,
-                       item_available: item_available,
-                       delayer: delayer,
-                       delayed_reason: delayed_reason,
-                       sent_tool_notification: sent_tool_notification
-                     },
-                     index
-                   }
-                   when is_integer(index) ->
-      %{
-        id: id || Ecto.UUID.generate(),
-        oc_id: oc_id,
-        slot_index: index,
-        crime_position: crime_position,
-        user_id: user_id,
-        user_success_chance: user_success_chance,
-        item_required_id: item_required_id,
-        item_available: item_available || false,
-        delayer: delayer || false,
-        delayed_reason: delayed_reason,
-        sent_tool_notification: sent_tool_notification || false
-      }
-    end)
+    field(:sent_delayer_notification, :boolean)
   end
 
   @spec upsert_all(entries :: [t()]) :: [t()]
   def upsert_all([%Tornium.Schema.OrganizedCrimeSlot{} | _] = entries) when is_list(entries) do
-    # The entries are still in the format of the schema and needs to be remapped first
+    # [Ecto.Schema] -> [map()] transformation comes from https://github.com/elixir-ecto/ecto/issues/1167#issuecomment-186894460
+    # NOTE: need to remove internal ecto data, associations, and data not originating from the Torn API before upserting
+
     entries
-    |> Enum.map(&map/1)
+    |> Enum.map(&Map.from_struct/1)
+    |> Enum.map(
+      &Map.drop(&1, [
+        :__struct__,
+        :__meta__,
+        :user,
+        :item_required,
+        :oc,
+        :delayer,
+        :delayed_reason,
+        :sent_tool_notification,
+        :sent_delayer_notification
+      ])
+    )
+    |> Enum.map(fn %{} = slot -> Map.update!(slot, :id, fn id -> id || Ecto.UUID.generate() end) end)
+    |> IO.inspect(limit: :infinity)
     |> upsert_all()
+    |> IO.inspect(limit: :infinity)
   end
 
   def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
     # WARNING: Test logic for when member joins a slot and leaves the slot
     # TODO: clear old data (such as `sent_tool_notification`) when a member leaves a slot or a different member joins the slot
+    IO.puts("upserting")
 
     # The schema entries have already been remapped
     {_, returned_slot_entries} =
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
-        on_conflict: {:replace_all_except, [:id]},
-        conflict_target: [:oc_id, :slot_index, :user_id],
+        on_conflict:
+          {:replace_all_except,
+           [:id, :oc_id, :slot_index, :delayer, :delayer_reason, :sent_tool_notification, :sent_delayer_notification]},
+        conflict_target: [:oc_id, :slot_index],
         returning: true
       )
 
     returned_slot_entries
+  end
+
+  @doc ~S"""
+  Update the sent state of slots for each checked feature from the state of `Tornium.Faction.OC.Check.Struct`.
+  """
+  @spec update_sent_state(check_state :: Tornium.Faction.OC.Check.Struct.t()) :: nil
+  def update_sent_state(
+        %Tornium.Faction.OC.Check.Struct{missing_tools: missing_tools, delayers: delayers} = _check_state
+      )
+      when Kernel.length(missing_tools) == 0 and Kernel.length(delayers) == 0 do
+    nil
+  end
+
+  def update_sent_state(%Tornium.Faction.OC.Check.Struct{} = check_state) do
+    update_tool_state(check_state)
+    update_delayer_state(check_state)
+
+    nil
+  end
+
+  @spec update_tool_state(check_state :: Tornium.Faction.OC.Check.Struct.t()) :: nil
+  defp update_tool_state(%Tornium.Faction.OC.Check.Struct{missing_tools: missing_tools} = _check_state)
+       when Kernel.length(missing_tools) != 0 do
+    missing_tools_ids = get_ids(missing_tools)
+
+    Tornium.Schema.OrganizedCrimeSlot
+    |> where([s], s.id in ^missing_tools_ids)
+    |> update(set: [sent_tool_notification: true])
+    |> Repo.update_all([])
+
+    nil
+  end
+
+  defp update_tool_state(_check_state) do
+    nil
+  end
+
+  @spec update_delayer_state(check_state :: Tornium.Faction.OC.Check.Struct.t()) :: nil
+  defp update_delayer_state(%Tornium.Faction.OC.Check.Struct{delayers: delayers} = _check_state)
+       when Kernel.length(delayers) != 0 do
+    delayers_ids = get_ids(delayers)
+
+    Tornium.Schema.OrganizedCrimeSlot
+    |> where([s], s.id in ^delayers_ids)
+    |> update(set: [sent_delayer_notification: true])
+    |> Repo.update_all([])
+
+    nil
+  end
+
+  defp update_delayer_state(_check_state) do
+    nil
+  end
+
+  @spec get_ids(list_slots :: [Tornium.Schema.OrganizedCrimeSlot.t()]) :: [Ecto.UUID.t() | String.t()]
+  defp get_ids(list_slots) do
+    # TODO: make this function look better
+    Enum.map(list_slots, fn %Tornium.Schema.OrganizedCrimeSlot{id: id} -> id end)
   end
 end

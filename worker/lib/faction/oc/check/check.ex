@@ -15,9 +15,14 @@
 
 defmodule Tornium.Faction.OC.Check do
   @moduledoc ~S"""
-  """
+  Execute checks against a faction's organized crimes to determine if the OCs are in invalid states.
 
-  # TODO: Write overall docs for the module
+  These checks can determine the invalid states:
+    - Slot missing a tool/material (`Tornium.Faction.OC.check_tools/2`)
+    - Slot delaying the initiation of the OC (`Tornium.Faction.OC.check_delayers/2`)
+
+  These checks update and return the combined state of the checks, `Tornium.Faction.OC.Check.Struct`, and can be piped into each other.
+  """
 
   @type state :: Tornium.Faction.OC.Check.Struct.t()
 
@@ -30,9 +35,7 @@ defmodule Tornium.Faction.OC.Check do
         %Tornium.Schema.OrganizedCrime{ready_at: ready_at, slots: slots, status: :planning} = _crime
       )
       when not is_nil(ready_at) do
-    # FIXME: Revert
-    # if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
-    if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 48 do
+    if DateTime.diff(ready_at, DateTime.utc_now(), :hour) <= 24 do
       check_slot_tool(slots, check_state)
     else
       check_state
@@ -90,6 +93,14 @@ defmodule Tornium.Faction.OC.Check do
   end
 
   @spec check_slot_delayer([Tornium.Schema.OrganizedCrimeSlot.t()], state()) :: state()
+  defp check_slot_delayer(
+         [%Tornium.Schema.OrganizedCrimeSlot{sent_delayer_notification: true} = _slot | remaining_slots],
+         %Tornium.Faction.OC.Check.Struct{} = state
+       ) do
+    # Skip slots that have already had a notification sent for them
+    check_slot_delayer(remaining_slots, state)
+  end
+
   defp check_slot_delayer(
          [%Tornium.Schema.OrganizedCrimeSlot{delayer: true} = slot | remaining_slots],
          %Tornium.Faction.OC.Check.Struct{delayers: delayers} = state

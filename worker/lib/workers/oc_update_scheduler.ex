@@ -14,8 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCUpdateScheduler do
-  # TODO: Rename worker
-
   require Logger
   alias Tornium.Repo
   import Ecto.Query
@@ -41,29 +39,13 @@ defmodule Tornium.Workers.OCUpdateScheduler do
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
     |> Enum.map(fn [api_key, user_tid, faction_tid] when is_integer(faction_tid) ->
-      request = %Tornex.Query{
-        resource: "v2/faction",
-        resource_id: faction_tid,
-        key: api_key,
-        selections: ["crimes", "members"],
-        key_owner: user_tid,
-        # TODO: Set nice value
-        nice: 0
+      %{
+        api_key: api_key,
+        user_tid: user_tid,
+        faction_tid: faction_tid
       }
-
-      # TODO: Move body of task into separate job
-      Task.Supervisor.async(Tornium.TornexTaskSupervisor, fn ->
-        request
-        |> Tornex.Scheduler.Bucket.enqueue()
-        |> Tornium.Faction.OC.parse(faction_tid)
-        |> Tornium.Schema.OrganizedCrime.upsert_all()
-        |> Tornium.Faction.OC.check()
-        |> IO.inspect()
-        |> Tornium.Faction.OC.Render.render_all(faction_tid)
-        |> IO.inspect()
-        |> Tornium.Discord.send_messages(collect: true)
-        |> IO.inspect()
-      end)
+      |> Tornium.Workers.OCUpdate.new()
+      |> Oban.insert()
     end)
 
     :ok

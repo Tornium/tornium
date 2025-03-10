@@ -193,10 +193,6 @@ defmodule Tornium.Notification.Audit do
   end
 
   defp get_audit_channel(%Tornium.Schema.Notification{server_id: server_id}) do
-    # TODO: Add caching to this
-    # Probably use LRU caching with TTL
-    # https://github.com/whitfin/cachex
-
     config =
       Tornium.Schema.ServerNotificationsConfig
       |> select([c], c.log_channel)

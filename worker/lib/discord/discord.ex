@@ -45,7 +45,11 @@ defmodule Tornium.Discord do
          [%Nostrum.Struct.Message{channel_id: channel_id} = message | remaining_messages],
          message_tasks
        ) do
-    opts = Keyword.new(message, fn {k, v} -> {String.to_existing_atom(k), v} end)
+    opts =
+      message
+      |> Map.from_struct()
+      |> Map.to_list()
+      |> Keyword.delete(:channel_id)
 
     task =
       Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn -> Nostrum.Api.Message.create(channel_id, opts) end)

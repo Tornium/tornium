@@ -40,9 +40,10 @@ defmodule Tornium.Repo.Migrations.AddOc do
       add :delayer, :boolean, default: false, null: false
       add :delayed_reason, :string, default: nil, null: true
       add :sent_tool_notification, :boolean, default: false, null: false
+      add :sent_delayer_notification, :boolean, default: false, null: false
     end
 
-    create_if_not_exists unique_index(:organized_crime_slot, [:oc_id, :slot_index, :user_id])
+    create_if_not_exists unique_index(:organized_crime_slot, [:oc_id, :slot_index])
   end
 
   def down do

@@ -42,7 +42,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [notifications: 10, scheduler: 10],
+  queues: [faction_processing: 20, notifications: 10, scheduler: 5],
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [

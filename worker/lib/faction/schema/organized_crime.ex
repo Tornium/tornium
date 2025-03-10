@@ -63,12 +63,14 @@ defmodule Tornium.Schema.OrganizedCrime do
     returned_slot_entries =
       entries
       |> Enum.flat_map(fn %Tornium.Schema.OrganizedCrime{slots: slots} ->
-        Tornium.Schema.OrganizedCrimeSlot.map(slots)
+        slots
       end)
       |> Tornium.Schema.OrganizedCrimeSlot.upsert_all()
       |> Enum.group_by(& &1.oc_id)
 
     Enum.map(returned_entries, fn %Tornium.Schema.OrganizedCrime{oc_id: oc_id} = oc ->
+      # TODO: Determine a better way to implement this
+      # Maybe use something similar to https://hexdocs.pm/ecto/Ecto.Repo.html#c:load/2
       Map.replace(oc, :slots, returned_slot_entries[oc_id])
     end)
   end

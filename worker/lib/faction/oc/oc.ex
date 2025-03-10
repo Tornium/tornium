@@ -32,7 +32,7 @@ defmodule Tornium.Faction.OC do
   Parse an API response into a list of Organized Crime 2.0 crimes including the slots of the crimes.
   """
   @spec parse(
-          api_data :: map() | {:error, any()},
+          api_data :: map() | Tornex.API.error(),
           faction_id :: integer(),
           crimes :: [Tornium.Schema.OrganizedCrime.t()]
         ) ::
@@ -41,7 +41,6 @@ defmodule Tornium.Faction.OC do
 
   def parse({:error, _}, _faction_id, _crimes) do
     # Encountered any issues with the Torn API
-    # TODO: Add type in tornex to describe errors
     []
   end
 
@@ -56,7 +55,14 @@ defmodule Tornium.Faction.OC do
     []
   end
 
-  # TODO: Document this function
+  def parse(_api_data, _faction_id, _crimes) do
+    # API error fallback
+    []
+  end
+
+  @doc ~S"""
+  Parse the crimes from the API response into a list of organized crimes including the slots of the crimes.
+  """
   @spec parse_crimes(
           api_crimes :: [map()],
           api_members :: [map()],
@@ -158,6 +164,7 @@ defmodule Tornium.Faction.OC do
       when is_list(members) and is_boolean(oc_ready) and (is_map(item_requirement) or is_nil(item_requirement)) do
     slot =
       %Tornium.Schema.OrganizedCrimeSlot{
+        slot_index: Kernel.length(slots),
         oc_id: oc_id,
         crime_position: crime_position,
         user_id: user_id,
@@ -180,7 +187,7 @@ defmodule Tornium.Faction.OC do
   defp put_item_required(%Tornium.Schema.OrganizedCrimeSlot{} = slot, item_requirement) when is_nil(item_requirement) do
     slot
     |> Map.put(:item_required_id, nil)
-    |> Map.put(:item_available, nil)
+    |> Map.put(:item_available, false)
   end
 
   defp put_item_required(%Tornium.Schema.OrganizedCrimeSlot{} = slot, %{
@@ -194,11 +201,8 @@ defmodule Tornium.Faction.OC do
 
   @spec put_delayer(slot :: Tornium.Schema.OrganizedCrimeSlot.t(), members :: [map()], oc_ready :: boolean()) ::
           Tornium.Schema.OrganizedCrimeSlot.t()
-  defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{user_id: nil} = slot, _members, _oc_ready) do
-    slot
-  end
-
-  defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} = slot, members, true) do
+  defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} = slot, members, true)
+       when not is_nil(user_id) do
     member = Enum.find(members, fn m -> m["id"] == user_id end)
 
     {delayer, delayed_reason} =
@@ -214,6 +218,8 @@ defmodule Tornium.Faction.OC do
 
   defp put_delayer(%Tornium.Schema.OrganizedCrimeSlot{} = slot, _members, false) do
     slot
+    |> Map.put(:delayer, false)
+    |> Map.put(:delayed_reason, nil)
   end
 
   @doc ~S"""

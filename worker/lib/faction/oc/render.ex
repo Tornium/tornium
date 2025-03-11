@@ -151,7 +151,7 @@ defmodule Tornium.Faction.OC.Render do
                     style: 5,
                     label: "Purchase #{item.name}",
                     url:
-                      "https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=#{item.tid}&itemName=#{item.name}&itemType=#{item.item_type}"
+                      "https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=#{item.tid}&itemName=Tornium"
                   },
                   %Nostrum.Struct.Component{
                     type: 2,

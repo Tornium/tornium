@@ -95,7 +95,7 @@ function parseIntArray(inputString) {
 
     inputString = inputString.slice(1, -1).trim();
 
-    const numbers = inputString.split(',').map(num => num.trim());
+    const numbers = inputString.split(",").map((num) => num.trim());
     const result = [];
 
     for (const num of numbers) {
@@ -118,7 +118,7 @@ function parseStringArray(inputString) {
 
     inputString = inputString.slice(1, -1).trim();
 
-    const strings = inputString.split(',').map(str => str.trim());
+    const strings = inputString.split(",").map((str) => str.trim());
     const result = [];
 
     for (let string of strings) {
@@ -126,7 +126,7 @@ function parseStringArray(inputString) {
             continue;
         } else if (string.startsWith("'") && string.endsWith("'")) {
             string = string.slice(1, -1).trim();
-        } else if (string.startsWith("\"") && string.endsWith("\"")) {
+        } else if (string.startsWith('"') && string.endsWith('"')) {
             string = string.slice(1, -1).trim();
         }
 

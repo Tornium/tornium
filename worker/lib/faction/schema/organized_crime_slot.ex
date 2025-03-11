@@ -78,8 +78,26 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   end
 
   def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
-    # FIXME: Handle member leaving a slot: Need to clear old data
-    # Maybe this can be done with one SQL query
+    # Find all slots where the user ID for the slot does not match the user ID in the API response.
+    # Indicates that the user left the slot.
+    # The slot should be deleted to avoid bad/old data from polluting the current user of the slot.
+
+    dynamic_query =
+      Enum.reduce(entries, false, fn %{oc_id: oc_id, slot_index: slot_index, user_id: user_id}, acc ->
+        cond do
+          is_nil(user_id) ->
+            # Skip slots where there's no one in it
+            # We only need to remove data from slots where someone left
+            acc
+
+          true ->
+            dynamic([s], ^acc or (s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.user_id != ^user_id))
+        end
+      end)
+
+    Tornium.Schema.OrganizedCrimeSlot
+    |> where(^dynamic_query)
+    |> Repo.delete_all()
 
     # NOTE: Don't replace certain data that doesn't originate from the Torn API as the data will not exist until checks run
     # The data should be used if the slot does not already exist though

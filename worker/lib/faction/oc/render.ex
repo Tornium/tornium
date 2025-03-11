@@ -37,12 +37,19 @@ defmodule Tornium.Faction.OC.Render do
   end
 
   def render_all(%Tornium.Faction.OC.Check.Struct{} = check_state, faction_id) when is_integer(faction_id) do
-    [guild_id, guild_factions] =
+    faction_return =
       Tornium.Schema.Faction
       |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)
       |> where([f, s], f.tid == ^faction_id)
       |> select([f, s], [f.guild_id, s.factions])
       |> Repo.one()
+
+    {guild_id, guild_factions} =
+      case faction_return do
+        nil -> {nil, nil}
+        {first, second} -> {first, second}
+        _ -> {nil, nil}
+      end
 
     config =
       Tornium.Schema.ServerOCConfig

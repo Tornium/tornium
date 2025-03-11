@@ -6,19 +6,25 @@ pre-commit:
             run: "flake8 ."
         application-autoformat:
             root: "application/"
-            run: "black ."
+            run: "black --check ."
         application-isort:
             root: "application/"
             run: "isort ."
         application-bandit:
             root: "application/"
-            run: "bandit ."
+            run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
+        application-static-format:
+            root: "application/static/"
+            run: "biome format ."
+        application-sass:
+            root: "application/"
+            run: "make sass"
         celery-lint:
             root: "celery/"
             run: "flake8 ."
         celery-autoformat:
             root: "celery/"
-            run: "black ."
+            run: "black --check ."
         celery-isort:
             root: "celery/"
             run: "isort ."
@@ -27,7 +33,7 @@ pre-commit:
             run: "flake8 ."
         commons-autoformat:
             root: "commons/"
-            run: "black ."
+            run: "black --check ."
         commons-isort:
             root: "commons/"
             run: "isort ."
@@ -37,3 +43,6 @@ pre-commit:
         worker-format:
             root: "worker/"
             run: "mix format"
+        userscript-format:
+            root: "userscript/"
+            run: "biome format ."

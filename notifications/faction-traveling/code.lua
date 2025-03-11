@@ -169,6 +169,10 @@ local function remove_member_other_destinations(member_id, destination)
   end
 end
 
+if faction == nil or faction.members == nil then
+  return false, {}, state
+end
+
 -- Iterate over the faction members
 for member_id, member_data in pairs(faction.members) do
   local destination = get_destination(member_data.status.description)
@@ -253,7 +257,8 @@ for destination, destination_members in pairs(state.members) do
     else
       local regular_landing = nil
       if member.earliest_departure_time and destination_travel_durations[member.origin or destination] then
-        regular_landing = member.earliest_departure_time + destination_travel_durations[member.origin or destination][TRAVEL_METHOD]
+        -- NOTE: `floor(landing_time / 1.03)` is to calculate the earliest landing time versus the average
+        regular_landing = member.earliest_departure_time + math.floor(destination_travel_durations[member.origin or destination][TRAVEL_METHOD] / 1.03)
       end
 
       try_insert_table(render_state.flying_members, destination, {

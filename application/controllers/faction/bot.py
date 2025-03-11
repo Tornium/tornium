@@ -14,13 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template, request
-from flask_login import current_user, fresh_login_required
+from flask_login import current_user, login_required
 from tornium_commons.models import Faction, Server
 
 from controllers.faction.decorators import aa_required, fac_required
 
 
-@fresh_login_required
+@login_required
 @fac_required
 @aa_required
 def bot(*args, **kwargs):

@@ -24,7 +24,7 @@ dependencies = [
     "celery ~= 5.4.0",
     "pynacl ~= 1.5.0",
     "redis ~= 5.0.0",
-    "requests ~= 2.31.0",
+    "requests ~= 2.32.0",
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]
@@ -36,8 +36,7 @@ dev = [
     "bandit",
     "black",
     "flake8",
-    "isort",
-    "tox"
+    "isort"
 ]
 test = [
     "pytest",
@@ -49,9 +48,7 @@ ci = [
     "flake8",
     "isort",
     "pytest",
-    "pytest-sugar",
-    "tox",
-    "tox-gh-actions"
+    "pytest-sugar"
 ]
 extra = [
     "orjson",
@@ -63,7 +60,7 @@ homepage = "https://tornium.com"
 repository = "https://github.com/Tornium/tornium"
 
 [tool.bandit]
-exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv"]
+exclude = ["./tests", ".git", "__pycache__", "./venv"]
 skips = ["B201", "B311", "B112"]
 
 [tool.black]

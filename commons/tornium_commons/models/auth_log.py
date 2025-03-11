@@ -19,7 +19,7 @@ import enum
 from peewee import DateTimeField, ForeignKeyField, IntegerField, TextField
 
 from .base_model import BaseModel
-from .extra_fields import IPAddressField
+from .extra_fields import INETField
 from .user import User
 
 
@@ -44,7 +44,7 @@ class AuthAction(enum.Enum):
 class AuthLog(BaseModel):
     user = ForeignKeyField(User, null=True)
     timestamp = DateTimeField(null=False, default=datetime.datetime.utcnow)
-    ip = IPAddressField(null=True)
+    ip = INETField(default=None, null=True)
     action = IntegerField(null=False)
 
     # Value used to login in

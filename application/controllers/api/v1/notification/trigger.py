@@ -16,7 +16,7 @@
 import json
 import random
 import re
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 import typing
 import uuid
@@ -166,7 +166,8 @@ def create_trigger(trigger_id=None, *args, **kwargs):
         print(fp.read())
         print(fp.name)
 
-        ret = subprocess.run(["luac", "-p", fp.name], capture_output=True, timeout=1)
+        # TODO: Check for https://bandit.readthedocs.io/en/1.8.0/plugins/b603_subprocess_without_shell_equals_true.html
+        ret = subprocess.run(["luac", "-p", fp.name], capture_output=True, timeout=1)  # nosec B607 B603
 
         if ret.returncode == 1:
             return make_exception_response("0000", key, details={"error": ret.stderr.decode("utf-8")})

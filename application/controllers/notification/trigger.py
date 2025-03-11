@@ -17,7 +17,7 @@ import random
 import uuid
 
 from flask import render_template
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_commons.models import Notification, NotificationTrigger, Server
 
@@ -82,7 +82,7 @@ def trigger_get(trigger_uuid: str):
     )
 
 
-@fresh_login_required
+@login_required
 def trigger_add_server(trigger_uuid: str):
     try:
         trigger: NotificationTrigger = (
@@ -110,7 +110,7 @@ def trigger_add_server(trigger_uuid: str):
     return render_template("notification/trigger_server_add.html", trigger=trigger)
 
 
-@fresh_login_required
+@login_required
 def trigger_setup_server(trigger_uuid: str, guild_id: int):
     try:
         trigger: NotificationTrigger = (

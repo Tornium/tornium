@@ -16,7 +16,7 @@
 import typing
 
 from flask import Blueprint, render_template, request
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, login_required
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import Faction, Stat, User
 
@@ -105,7 +105,7 @@ def chain():
 
 
 @mod.route("/stats/config", methods=["GET", "POST"])
-@fresh_login_required
+@login_required
 @aa_required
 def config():
     stats_global = current_user.faction.stats_db_global

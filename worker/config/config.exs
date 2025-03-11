@@ -42,7 +42,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 20, notifications: 10, scheduler: 5],
+  queues: [faction_processing: 20, notifications: 20, scheduler: 5],
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
@@ -53,7 +53,7 @@ config :tornium, Oban,
        {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler}
      ]},
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
-    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)}
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 
 config :tornium, Tornium.Web.Endpoint,

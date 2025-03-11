@@ -1263,7 +1263,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
             if attack["attacker_id"] in (0, ""):
                 attacker_str = "an unknown attacker and faction"
             else:
-                attacker_str = f"{attack['attacker_factionname']} [{attack['attacker_faction']}] (through {attack['attacker_name']} [{attack['attacker']}])"
+                attacker_str = f"{attack['attacker_factionname']} [{attack['attacker_faction']}] (through {attack['attacker_name']} [{attack['attacker_id']}])"
 
             payload = {
                 "embeds": [
@@ -1280,12 +1280,6 @@ def check_attacks(faction_data: dict, last_attacks: int):
                             {
                                 "type": 2,
                                 "style": 5,
-                                "label": "Attacking Faction",
-                                "url": f"https://www.torn.com/factions.php?step=profile&ID={attack['attacker_faction']}",
-                            },
-                            {
-                                "type": 2,
-                                "style": 5,
                                 "label": "Attack Log",
                                 "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
                             },
@@ -1295,7 +1289,14 @@ def check_attacks(faction_data: dict, last_attacks: int):
             }
 
             if attack["attacker_id"] not in (0, ""):
-                payload["components"].append()
+                payload["components"][0]["components"].append(
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Attacking Faction",
+                        "url": f"https://www.torn.com/factions.php?step=profile&ID={attack['attacker_faction']}",
+                    }
+                )
 
             for role in attack_config.chain_bonus_roles:
                 if "content" not in payload:

@@ -17,7 +17,7 @@ import datetime
 import secrets
 
 from flask import redirect, render_template, request
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, login_required
 from tornium_commons.models import OAuthClient
 
 from controllers.decorators import admin_required
@@ -31,7 +31,7 @@ def clients_list():
     return render_template("/developers/clients.html", clients=clients)
 
 
-@fresh_login_required
+@login_required
 @admin_required
 def create_client():
     client: OAuthClient = OAuthClient.create(
@@ -54,7 +54,7 @@ def create_client():
     return redirect(f"/developers/clients/{client.client_id}")
 
 
-@fresh_login_required
+@login_required
 @admin_required
 def client_dashboard(client_id: str):
     client: OAuthClient = OAuthClient.select().where(OAuthClient.client_id == client_id).first()

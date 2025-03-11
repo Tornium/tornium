@@ -19,7 +19,7 @@ defmodule Tornium.Workers.Notification do
   import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 1,
+    max_attempts: 3,
     priority: 5,
     queue: :notifications,
     tags: ["notification"],
@@ -52,5 +52,15 @@ defmodule Tornium.Workers.Notification do
     Tornium.Notification.execute_resource(String.to_atom(resource), resource_id, notifications)
 
     :ok
+  end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{args: %{"notifications" => notifications}} = _job) when is_list(notifications) do
+    :timer.minutes(2)
+  end
+
+  def timeout(_job) do
+    # This condition should never happen but is here for stability
+    :timer.seconds(30)
   end
 end

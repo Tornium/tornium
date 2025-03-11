@@ -34,8 +34,7 @@ dev = [
     "black",
     "flake8",
     "isort",
-    "pre-commit",
-    "tox"
+    "pre-commit"
 ]
 test = [
     "pytest",

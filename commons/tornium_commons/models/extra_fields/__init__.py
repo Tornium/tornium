@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .ip_addr import IPAddressField
+from .inet import INETField
 
-__all__ = ["IPAddressField"]
+__all__ = ["INETField"]

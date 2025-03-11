@@ -5,4 +5,3 @@ Allow: /bot
 Allow: /stats
 Allow: /stats/db
 Disallow: /login
-Disallow: /

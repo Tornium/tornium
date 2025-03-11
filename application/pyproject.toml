@@ -18,8 +18,8 @@ classifiers = [
 ]
 dependencies = [
     "authlib",
-    "flask ~= 3.0.0",
-    "flask-cors ~= 4.0.0",
+    "flask ~= 3.1.0",
+    "flask-cors ~= 5.0.0",
     "flask-login ~= 0.6.2",
     "msgpack ~= 1.0.0",
     "scikit-learn",
@@ -60,7 +60,7 @@ extra = [
     "pytoml"
 ]
 docs = [
-    "Sphinx >= 5,<6",
+    "Sphinx >=5,<6",
     "sphinx_rtd_theme"
 ]
 
@@ -70,8 +70,8 @@ repository = "https://github.com/tornium/tornium-core"
 changelog = "https://github.com/tornium/tornium-core/blob/master/CHANGELOG.adoc"
 
 [tool.bandit]
-exclude = ["./tests", "./.tox", ".git", "__pycache__", "./venv", "./docs"]
-skips = ["B201", "B311", "B112"]
+exclude = ["./tests", ".git", "__pycache__", "./venv", "./docs"]
+skips = ["B201", "B311", "B112", "B311"]
 
 [tool.black]
 line-length = 120

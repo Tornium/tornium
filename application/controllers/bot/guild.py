@@ -16,7 +16,7 @@
 import typing
 
 from flask import render_template
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server
 
@@ -29,7 +29,7 @@ def dashboard():
     )
 
 
-@fresh_login_required
+@login_required
 def guild_dashboard(guild_id: str):
     try:
         guild: Server = (

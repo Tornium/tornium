@@ -14,8 +14,6 @@ We have a Discord support server where you can ask your questions. But first, pl
 #### Legal Notice
 All commits must be signed with a Signed-off-by line in the commit description matching the commit author. This certifies (under the Developer Certificate of Origin) that you have written the code or have the right to submit the code to the project. Full details can be found at https://developercertificate.org/.
 
-Additionally, most of Tornium is licensed under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html), however different parts of the monorepo/codebase may have different licensing. Be sure to read the `LICENSE` files in the various root directories and the license headers within the respective files.
-
 ### Reporting Bugs
 #### Before submitting a bug report
 A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report such as the following details:

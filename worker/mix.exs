@@ -43,7 +43,7 @@ defmodule Tornium.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
       {:postgrex, ">= 0.0.0"},
-      {:prom_ex, "~> 1.10"},
+      {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
       {:oban, "~> 2.19"},
       # Required for oban_web

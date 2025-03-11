@@ -78,7 +78,7 @@ def client_callback(client_id: str):
 
     if client is None:
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
-    elif client.token_endpoint_auth_method != "none":
+    elif client.token_endpoint_auth_method != "none":  # nosec B105
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidClientError())
     elif not client.check_redirect_uri(flask.request.base_url):
         return oauth_server.handle_error_response(oauth_server.create_json_request(flask.request), InvalidGrantError())

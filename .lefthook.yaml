@@ -13,12 +13,12 @@ pre-commit:
         application-bandit:
             root: "application/"
             run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
-        application-static-format:
+        application-js-format:
             root: "application/static/"
             run: "biome format ."
         application-sass:
-            root: "application/"
-            run: "make sass"
+            root: "application/static/styles/"
+            run: "sass . && cd .. && biome format styles/ --write |&> /dev/null"
         celery-lint:
             root: "celery/"
             run: "flake8 ."
@@ -39,10 +39,10 @@ pre-commit:
             run: "isort ."
         sse-proxy-format:
             root: "sse-proxy/"
-            run: "clang-format ."
+            run: "clang-format include/**/*.h src/**/*.cpp"
         worker-format:
             root: "worker/"
             run: "mix format"
         userscript-format:
-            root: "userscript/"
+            root: "userscripts/"
             run: "biome format ."

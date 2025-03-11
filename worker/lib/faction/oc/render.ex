@@ -44,17 +44,23 @@ defmodule Tornium.Faction.OC.Render do
       |> select([f, s], [f.guild_id, s.factions])
       |> Repo.one()
 
-    {guild_id, guild_factions} =
+    # TODO: Refactor this case
+    {guild_id, guild_factions, config} =
       case faction_return do
-        nil -> {nil, nil}
-        {first, second} -> {first, second}
-        _ -> {nil, nil}
-      end
+        nil ->
+          {nil, nil, nil}
 
-    config =
-      Tornium.Schema.ServerOCConfig
-      |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
-      |> Repo.one()
+        {first, second} ->
+          config =
+            Tornium.Schema.ServerOCConfig
+            |> where([c], c.server_id == ^first and c.faction_id == ^faction_id)
+            |> Repo.one()
+
+          {first, second, config}
+
+        _ ->
+          {nil, nil}
+      end
 
     if guild_factions != nil and config != nil and Enum.member?(guild_factions, faction_id) do
       render_all(check_state, faction_id, config)

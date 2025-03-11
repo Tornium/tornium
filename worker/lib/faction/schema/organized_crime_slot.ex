@@ -113,6 +113,11 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     returned_slot_entries
   end
 
+  def upsert_all([] = _entries) do
+    # Fallback
+    []
+  end
+
   @doc ~S"""
   Update the sent state of slots for each checked feature from the state of `Tornium.Faction.OC.Check.Struct`.
   """

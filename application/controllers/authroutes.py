@@ -20,9 +20,19 @@ import json
 import secrets
 import time
 import typing
+from functools import wraps
 
 import requests
-from flask import Blueprint, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    Response,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_login import (
     current_user,
     fresh_login_required,
@@ -78,7 +88,21 @@ def _log_auth(
         ).execute()
 
 
+def disable_cache(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        response: Response = make_response(f(*args, **kwargs))
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
+        return response
+
+    return wrapper
+
+
 @mod.route("/login", methods=["GET", "POST"])
+@disable_cache
 def login(*args, **kwargs):
     if request.method == "GET":
         session["oauth_state"] = secrets.token_urlsafe()
@@ -343,17 +367,10 @@ def login(*args, **kwargs):
 
 
 @mod.route("/login/totp", methods=["GET", "POST"])
+@disable_cache
 def topt_verification():
     if request.method == "GET":
-        return (
-            render_template("totp.html"),
-            200,
-            {
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
-            },
-        )
+        return (render_template("totp.html"), 200)
 
     client_token = request.form.get("client-token")
     totp_token = request.form.get("totp-token")
@@ -418,6 +435,7 @@ def topt_verification():
 
 
 @mod.route("/login/discord", methods=["GET"])
+@disable_cache
 def discord_login():
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
     session_oauth_state = session.pop("oauth_state", None)
@@ -606,6 +624,7 @@ def discord_login():
 
 @mod.route("/logout", methods=["POST"])
 @login_required
+@disable_cache
 def logout():
     logout_token = session.pop("logout_token", None)
     state = request.args.get("state")

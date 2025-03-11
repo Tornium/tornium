@@ -52,4 +52,9 @@ defmodule Tornium.Workers.OCUpdateScheduler do
 
     :ok
   end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{} = _job) do
+    :timer.minutes(1)
+  end
 end

@@ -1372,6 +1372,9 @@ def oc_refresh():
 
         if faction is None:
             continue
+        elif faction.has_migrated_oc:
+            # This faction's OCs should be processed in the Elixir worker
+            continue
         elif len(faction.aa_keys) == 0:
             continue
 

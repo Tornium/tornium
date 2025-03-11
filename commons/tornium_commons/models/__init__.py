@@ -25,11 +25,14 @@ from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
 from .organized_crime import OrganizedCrime
+from .organized_crime_new import OrganizedCrimeNew
+from .organized_crime_slot import OrganizedCrimeSlot
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
 from .server_attack_config import ServerAttackConfig
 from .server_notifications_config import ServerNotificationsConfig
+from .server_oc_config import ServerOCConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -52,11 +55,14 @@ __all__ = [
     "OAuthClient",
     "OAuthToken",
     "OrganizedCrime",
+    "OrganizedCrimeNew",
+    "OrganizedCrimeSlot",
     "PersonalStats",
     "Retaliation",
     "Server",
     "ServerAttackConfig",
     "ServerNotificationsConfig",
+    "ServerOCConfig",
     "Stat",
     "StockTick",
     "TornKey",

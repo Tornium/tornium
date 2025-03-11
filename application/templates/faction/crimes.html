@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Tornium - Organized Crimes
+Tornium - Faction OCs Dashboard
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -39,16 +39,17 @@ Tornium - Organized Crimes
                 <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
             </a>
         </div>
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/crimes">
-                <i class="col-1 col-sm-2 fa-solid fa-bell"></i> <span class="col">Organized Crimes</span>
-            </a>
-        </div>
 
-        {% if current_user.faction_aa %}
+        {% if current_user.is_authenticated and current_user.faction_aa %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/bankingaa">
                 <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes">
+                <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
             </a>
         </div>
 
@@ -63,118 +64,44 @@ Tornium - Organized Crimes
 </div>
 {% endblock %}
 
-{% block styles %}
-<style>
-.card {
-    height: fit-content;
-}
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="row px-3 pt-3">
-    <div class="col-sm-12 col-lg-6 col-xl-4">
-        <div class="card">
+<div class="py-3 px-3">
+    <div class="row">
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                OCs Recruiting
+            </div>
             <div class="card-body">
-                <h5 class="card-title">Pending Crimes</h5>
-                
-                <p class="card-text">These crimes are ready to be initiated but haven't yet.</p>
+                NYI
+            </div>
+        </div>
 
-                {% if pending_crimes|length == 0 %}
-                <span class="card-text">No data available...</span>
-                {% else %}
-                <ul class="list-group list-group-flush">
-                    {% for crime in pending_crimes %}
-                    {% if crime.delayers|length == 0 %}
-                    <li class="list-group-item" data-ocid="{{ crime.oc_id }}">
-                        {{ crime_id_string(crime.crime_id) }} - {{ crime.time_ready|reltime }}
-                    </li>
-                    {% else %}
-                    <li class="list-group-item" data-ocid="{{ crime.co_id }}">
-                        {{ crime_id_string(crime.crime_id) }} - {{ crime.time_ready|reltime }} - Delayed ({{ crime.delayers|length}}x)
-                    </li>
-                    {% endif %}
-                    {% endfor %}
-                </ul>
-                {% endif %}
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                OCs In-Progress
+            </div>
+            <div class="card-body">
+                NYI
+            </div>
+        </div>
+
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                OCs Missing Tools
+            </div>
+            <div class="card-body">
+                NYI
             </div>
         </div>
     </div>
 
-    <div class="col-sm-12 col-lg-6 col-xl-4 pt-3 pt-lg-0">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">In-Progress Crimes</h5>
-                
-                <p class="card-text">These crimes aren't ready to be initiated yet.</p>
-
-                {% if in_progress_crimes|length == 0 %}
-                <span class="card-text">No data available...</span>
-                {% else %}
-                <ul class="list-group list-group-flush">
-                    {% for crime in in_progress_crimes %}
-                    <li class="list-group-item" data-ocid="{{ crime.oc_id }}">
-                        {{ crime_id_string(crime.crime_id) }} - {{ crime.time_ready|reltime }}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
+    <div class="row">
+        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
+            <div class="card-header">
+                Members not in OCs
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="row px-3 pt-3">
-    <div class="col-12">
-        <div class="card mb-3">
             <div class="card-body">
-                <h5 class="card-title">Organized Crimes Viewer</h5>
-
-                <div class="card mx-1 my-3 p-2">
-                    <div class="card-header">Options</div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-2">
-                            <label for="data-limit" class="form-label">Limit</label>
-                            <input type="number" class="form-control" id="data-limit" inputmode="numeric" value="10">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="data-oc-type" class="form-label">Crime Type</label>
-                            <select class="form-control" id="data-oc-type" multiple autocomplete="off">
-                                {% for crime in oc_types %}
-                                <option value="{{ crime }}">{{ oc_types[crime] }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-md-2">
-                            <label for="data-from-time" class="form-label">From Time</label>
-                            <input type="date" class="form-control" id="data-from-time">
-                        </div>
-                        
-                        <div class="col-md-2">
-                            <label for="data-to-time" class="form-label">To Time</label>
-                            <input type="date" class="form-control" id="data-to-time">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="data-participants" class="form-label">Participants</label>
-                            <input class="form-control" id="data-participants" autocomplete="off">
-                        </div>
-                   
-                        <div class="col-12 d-flex justify-content-end">
-                            <button type="button" id="generate-viewer" class="btn btn-outline-success">Load</button>
-                        </div>
-                    </div>
-                </div>
-
-                <ul class="list-group list-group-flush accordion accordion-flush d-none" id="oc-viewer-data"></ul>
-                <div id="viewer-navigation" class="d-flex justify-content-end">
-                    <button class="btn btn-outline-secondary btn-sm me-2 data-previous-page" disabled>Previous Page</button>
-                    <button class="btn btn-outline-secondary btn-sm data-next-page">Next Page</button>
-                </div>
-
-                <p class="card-text m-2 d-none" id="oc-status-text">Status: <span id="oc-viewer-status">Waiting...</span></p>
+                NYI
             </div>
         </div>
     </div>

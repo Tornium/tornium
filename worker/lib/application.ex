@@ -26,12 +26,14 @@ defmodule Tornium.Application do
     Tornex.Telemetry.attach_default_logger()
     Oban.Telemetry.attach_default_logger()
 
+    # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [
       Tornium.PromEx,
       Tornium.Repo,
       Tornium.Discord.Consumer,
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
+      {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
       Tornium.Web.Endpoint

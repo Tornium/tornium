@@ -13,47 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
-
 from flask import render_template
 from flask_login import current_user, login_required
-from tornium_celery.tasks.faction import ORGANIZED_CRIMES
-from tornium_commons.models import OrganizedCrime
+from peewee import DoesNotExist
 
-from controllers.faction.decorators import fac_required
-
-
-def crime_id_string(crime_id: int) -> str:
-    return ORGANIZED_CRIMES.get(crime_id, "")
+from controllers.faction.decorators import (
+    aa_required,
+    fac_required,
+    manage_crimes_required,
+)
 
 
 @login_required
 @fac_required
-def crimes_dashboard():
-    now = datetime.datetime.utcnow()
-
-    pending_crimes = (
-        OrganizedCrime.select()
-        .where(
-            (OrganizedCrime.faction_tid == current_user.faction_id)
-            & (OrganizedCrime.time_completed.is_null(True))
-            & (OrganizedCrime.time_ready <= now)
-            & (OrganizedCrime.canceled == False)
-        )
-        .order_by(-OrganizedCrime.time_ready)
-        .limit(10)
-    )
-    in_process_crimes = (
-        OrganizedCrime.select()
-        .where((OrganizedCrime.faction_tid == current_user.faction_id) & (OrganizedCrime.time_ready > now))
-        .order_by(OrganizedCrime.time_ready)
-        .limit(10)
-    )
-
-    return render_template(
-        "faction/crimes.html",
-        pending_crimes=pending_crimes,
-        in_progress_crimes=in_process_crimes,
-        crime_id_string=crime_id_string,
-        oc_types=ORGANIZED_CRIMES,
-    )
+@aa_required
+def crimes(*args, **kwargs):
+    return render_template("faction/crimes.html")

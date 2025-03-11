@@ -18,9 +18,9 @@ from controllers.api.v1.bot import (
     attacks,
     banking,
     config,
+    crimes,
     faction,
     notification,
-    oc,
     utils,
     verify,
 )
@@ -31,9 +31,9 @@ __all__ = [
     "attacks",
     "banking",
     "config",
+    "crimes",
     "faction",
     "notification",
-    "oc",
     "utils",
     "verify",
 ]

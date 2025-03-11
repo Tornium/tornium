@@ -20,7 +20,6 @@ defmodule Tornium.User.KeyStore do
   @ttl 300
 
   def start_link(opts \\ [name: Tornium.User.KeyStore]) do
-    IO.inspect(opts)
     Agent.start_link(fn -> %{} end, opts)
   end
 

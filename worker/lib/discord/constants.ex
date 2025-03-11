@@ -18,8 +18,8 @@ defmodule Tornium.Discord.Constants do
   Get all the pre-defined color constants.
 
   ## Examples
-
     iex> Tornium.Discord.Constants.colors()[:good]
+    0xC83F49
   """
   @spec colors() :: %{any() => integer()}
   def colors() do

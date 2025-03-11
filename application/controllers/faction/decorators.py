@@ -22,10 +22,25 @@ from flask_login import current_user
 def aa_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.faction_aa:
+        if not current_user.is_authenticated:
+            return abort(401)
+        if not current_user.faction_aa:
             return abort(403)
         else:
             return f(*args, **kwargs)
+
+    return wrapper
+
+
+def manage_crimes_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return abort(401)
+        elif not current_user.faction_position.plan_init_oc:
+            return abort(403)  # TODO: Replace with custom 403 error message
+
+        return f(*args, **kwargs)
 
     return wrapper
 

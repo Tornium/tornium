@@ -103,6 +103,12 @@ API_EXCEPTIONS = {
         "http": 404,
         "message": "Server failed to locate the requested Torn item.",
     },
+    "1105": {
+        "code": 1105,
+        "name": "UnknownOrganizedCrime",
+        "http": 404,
+        "message": "Server failed to locate the requested Torn organized crime.",
+    },
     "1200": {
         "code": 1200,
         "name": "UnknownKey",
@@ -251,6 +257,7 @@ API_EXCEPTIONS = {
         "http": 429,
         "message": "User has reached a ratelimit on banking.",
     },
+    "4300": {"code": 4300, "name": "OCMigrationError", "message": "Faction has not migrated to OCs 2.0."},
     "5000": {
         "code": 5000,
         "name": "BackendError",

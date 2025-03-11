@@ -32,11 +32,11 @@ mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 # Chain Routes
 mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET"])
 
+# Crime Routes
+mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])
+
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])
-
-# Crime Routes
-mod.add_url_rule("/faction/crimes", view_func=crimes.crimes_dashboard, methods=["GET"])
 
 
 @mod.route("/faction")

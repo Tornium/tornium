@@ -58,6 +58,21 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     # [Ecto.Schema] -> [map()] transformation comes from https://github.com/elixir-ecto/ecto/issues/1167#issuecomment-186894460
     # NOTE: need to remove internal ecto data, associations, and data not originating from the Torn API before upserting
 
+    delayers =
+      entries
+      |> Enum.reduce(%{}, fn %Tornium.Schema.OrganizedCrimeSlot{
+                               oc_id: oc_id,
+                               slot_index: slot_index,
+                               delayer: delayer,
+                               delayed_reason: delayed_reason
+                             },
+                             acc ->
+        case delayer do
+          _ when is_nil(delayer) or delayer == false -> acc
+          _ -> Map.put(acc, {oc_id, slot_index}, %{delayer: delayer, delayed_reason: delayed_reason})
+        end
+      end)
+
     entries
     |> Enum.map(&Map.from_struct/1)
     |> Enum.map(
@@ -74,10 +89,10 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
       ])
     )
     |> Enum.map(fn %{} = slot -> Map.update!(slot, :id, fn id -> id || Ecto.UUID.generate() end) end)
-    |> upsert_all()
+    |> upsert_all(delayers)
   end
 
-  def upsert_all([entry | _] = entries) when is_list(entries) and is_map(entry) do
+  def upsert_all([entry | _] = entries, delayers) when is_list(entries) and is_map(entry) and is_map(delayers) do
     # Find all slots where the user ID for the slot does not match the user ID in the API response.
     # Indicates that the user left the slot.
     # The slot should be deleted to avoid bad/old data from polluting the current user of the slot.
@@ -105,15 +120,37 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
         on_conflict:
           {:replace_all_except,
-           [:id, :oc_id, :slot_index, :delayer, :delayer_reason, :sent_tool_notification, :sent_delayer_notification]},
+           [:id, :oc_id, :slot_index, :delayer, :delayed_reason, :sent_tool_notification, :sent_delayer_notification]},
         conflict_target: [:oc_id, :slot_index],
         returning: true
       )
 
     returned_slot_entries
+    |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{oc_id: oc_id, slot_index: slot_index, delayer: delayer} = slot ->
+      cond do
+        delayer == true ->
+          slot
+
+        not is_nil(Map.get(delayers, {oc_id, slot_index})) ->
+          %{delayer: delayer_new, delayed_reason: delayed_reason_new} =
+            Map.get(delayers, {oc_id, slot_index}) |> IO.inspect()
+
+          Tornium.Schema.OrganizedCrimeSlot
+          |> where([s], s.oc_id == ^oc_id and s.slot_index == ^slot_index)
+          |> update([s], set: [delayer: ^delayer_new, delayed_reason: ^delayed_reason_new])
+          |> Repo.update_all([])
+
+          slot
+          |> Map.put(:delayer, delayer_new)
+          |> Map.put(:delayed_reason, delayed_reason_new)
+
+        true ->
+          slot
+      end
+    end)
   end
 
-  def upsert_all([] = _entries) do
+  def upsert_all([] = _entries, _delayers) do
     # Fallback
     []
   end

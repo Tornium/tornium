@@ -46,7 +46,7 @@ defmodule Tornium.Schema.FactionPosition do
         }
 
   @primary_key {:pid, Ecto.UUID, autogenerate: true}
-  schema "factionposition" do
+  schema "faction_position" do
     field(:name, :string)
     field(:faction_tid, :integer)
 

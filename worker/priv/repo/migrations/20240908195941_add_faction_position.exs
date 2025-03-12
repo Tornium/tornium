@@ -2,7 +2,7 @@ defmodule Tornium.Repo.Migrations.AddFactionPosition do
   use Ecto.Migration
 
   def up do
-    create_if_not_exists table("factionposition", primary_key: false) do
+    create_if_not_exists table("faction_position", primary_key: false) do
       add :pid, :binary_id, primary_key: true
       add :name, :string, null: false
       add :faction_tid, :integer, null: false
@@ -32,7 +32,7 @@ defmodule Tornium.Repo.Migrations.AddFactionPosition do
       add :change_announcement, :boolean, null: false
       add :change_description, :boolean, null: false
     end
-    create unique_index(:factionposition, [:pid])
+    create unique_index(:faction_position, [:pid])
   end
 
   def down do

@@ -50,7 +50,7 @@ defmodule Tornium.Faction.OC.Render do
         nil ->
           {nil, nil, nil}
 
-        {first, second} ->
+        [first, second] ->
           config =
             Tornium.Schema.ServerOCConfig
             |> where([c], c.server_id == ^first and c.faction_id == ^faction_id)
@@ -59,7 +59,7 @@ defmodule Tornium.Faction.OC.Render do
           {first, second, config}
 
         _ ->
-          {nil, nil}
+          {nil, nil, nil}
       end
 
     if guild_factions != nil and config != nil and Enum.member?(guild_factions, faction_id) do

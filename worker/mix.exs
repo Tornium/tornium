@@ -37,8 +37,8 @@ defmodule Tornium.MixProject do
 
   def deps do
     [
-      # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.18.2 requires certifi ~> 2.12
-      {:certifi, "~> 2.13", override: true},
+      # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.21.0 requires certifi ~> 2.14
+      {:certifi, "~> 2.14", override: true},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
       {:nostrum, "~> 0.10"},
@@ -50,9 +50,9 @@ defmodule Tornium.MixProject do
       {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
-      {:luerl, github: "rvirding/luerl", tag: "1.2.3"},
+      {:luerl, "~> 1.2"},
       {:solid, "~> 0.17.2"},
-      {:tornex, git: "https://github.com/Tornium/tornex.git", ref: "da738ce06b6bea6c4f51b5eba6dba83645c27c2d"}
+      {:tornex, "~> 0.1"}
     ]
   end
 

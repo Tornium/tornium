@@ -300,7 +300,7 @@ def verify_users(
         int(redis_client.get(f"tornium:verify:{guild.sid}:member_count"))
         > server_data["approximate_member_count"] * 0.99
         or int(redis_client.get(f"tornium:verify:{guild.sid}:member_fetch_runs"))
-        >= (server_data["approximate_member_count"] // ((15 * len(admin_keys)) + 1))
+        >= max(server_data["approximate_member_count"] // ((15 * len(admin_keys)) + 1), 1)
         or int(redis_client.get(f"tornium:verify:{guild.sid}:member_fetch_runs")) >= 50
     ):
         if log_channel > 0:

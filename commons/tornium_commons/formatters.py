@@ -334,7 +334,7 @@ def discord_escaper(value: str) -> str:
     Examples
     --------
     >>> discord_escaper("_tiksan_")
-    "\_tiksan\_"
+    "\\_tiksan\\_"
     """  # noqa W605
 
     return value.replace("*", "\\*").replace("_", "\\_")

@@ -15,8 +15,7 @@
 
 import datetime
 
-from peewee import DateTimeField, ForeignKeyField, IntegerField, TextField, UUIDField
-from playhouse.postgres_ext import ArrayField
+from peewee import DateTimeField, ForeignKeyField, IntegerField, UUIDField
 
 from .base_model import BaseModel
 from .user import User

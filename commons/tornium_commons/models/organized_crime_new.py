@@ -15,11 +15,9 @@
 
 from peewee import (
     BigIntegerField,
-    BooleanField,
     CharField,
     DateTimeField,
     ForeignKeyField,
-    IntegerField,
     SmallIntegerField,
 )
 

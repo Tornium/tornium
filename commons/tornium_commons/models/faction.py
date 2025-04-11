@@ -25,7 +25,7 @@ from peewee import (
     DoesNotExist,
     IntegerField,
 )
-from playhouse.postgres_ext import ArrayField, JSONField
+from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
 from .faction_position import FactionPosition

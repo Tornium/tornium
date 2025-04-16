@@ -17,6 +17,7 @@ defmodule Tornium.Schema.ServerOCConfig do
   use Ecto.Schema
 
   @type t :: %__MODULE__{
+          guid: Ecto.UUID.t(),
           server: Tornium.Schema.Server.t(),
           faction: Tornium.Schema.Faction.t(),
           enabled: boolean(),
@@ -25,11 +26,16 @@ defmodule Tornium.Schema.ServerOCConfig do
           tool_crimes: [String.t()],
           delayed_channel: integer(),
           delayed_roles: [integer()],
-          delayed_crimes: [String.t()]
+          delayed_crimes: [String.t()],
+          extra_range_channel: integer(),
+          extra_range_roles: [integer()],
+          extra_range_global_min: integer(),
+          extra_range_global_max: integer()
         }
 
   @primary_key false
   schema "server_oc_config" do
+    field(:guid, Ecto.UUID, autogenerate: true)
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     field(:enabled, :boolean)
@@ -41,5 +47,10 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:delayed_channel, :integer)
     field(:delayed_roles, {:array, :integer})
     field(:delayed_crimes, {:array, :string})
+
+    field(:extra_range_channel, :integer)
+    field(:extra_range_roles, {:array, :integer})
+    field(:extra_range_global_min, :integer)
+    field(:extra_range_global_max, :integer)
   end
 end

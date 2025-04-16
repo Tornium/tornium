@@ -64,49 +64,110 @@ function setToolCrimes(event) {
     });
 }
 
-function addRangeCrime(crimeName, container) {
-    // TODO: Add range via API
+function setRangeChannel(event) {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/channel`, {
+        body: { channel: this.options[this.selectedIndex].value },
+        errorTitle: "OC Range Channel Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Range Channel Set Successful",
+            "The channel for OC extra-range notifications has been successfully set.",
+        );
+    });
+}
 
+function setRangeRoles(event) {
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedRoles = [];
+
+    selectedOptions.forEach((element) => {
+        selectedRoles.push(element.getAttribute("value"));
+    });
+
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/roles`, {
+        body: { roles: selectedRoles },
+        errorTitle: "OC Range Roles Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Range Roles Set Successful",
+            "The roles for OC extra-range notifications have been successfully set.",
+        );
+    });
+}
+
+function setRangeGlobalMin(event) {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/minimum`, {
+        body: { minimum: this.value },
+        errorTitle: "OC Range Global Min Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Range Global Min Set Successful",
+            "The global minimum for OC extra-range notifications have been successfully set.",
+        );
+    });
+}
+
+function setRangeGlobalMax(event) {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/maximum`, {
+        body: { maximum: this.value },
+        errorTitle: "OC Range Global Max Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Range Global Max Set Successful",
+            "The global maximum for OC extra-range notifications have been successfully set.",
+        );
+    });
+}
+
+function insertDOMRangeCrime(crimeName, container) {
     const crimeListElement = document.createElement("div");
-    crimeListElement.classList = ["list-group-item"];
+    crimeListElement.classList.add("list-group-item");
     crimeListElement.setAttribute("data-crime-name", crimeName);
 
     const label = document.createElement("div");
-    label.classList = ["fw-bold"];
+    label.classList.add("fw-bold");
     label.textContent = crimeName;
     crimeListElement.append(label);
 
     const inputGroup = document.createElement("div");
-    inputGroup.classList = ["input-group"];
+    inputGroup.classList.add("input-group");
 
     const minLabel = document.createElement("span");
     const minSelector = document.createElement("input");
     minLabel.textContent = "Min";
-    minLabel.classList = ["input-group-text"];
+    minLabel.classList.add("input-group-text");
     minSelector.type = "number";
-    minSelector.classList = ["form-control"];
+    minSelector.classList.add("form-control", "oc-range-local-min");
     minSelector.setAttribute("aria-label", `Minimum CPR for ${crimeName}`);
-    minSelector.value = 0;
+    minSelector.setAttribute("data-crime-name", crimeName);
+    minSelector.setAttribute("autocomplete", "off");
     inputGroup.append(minLabel);
     inputGroup.append(minSelector);
 
     const maxLabel = document.createElement("span");
     const maxSelector = document.createElement("input");
     maxLabel.textContent = "Max";
-    maxLabel.classList = ["input-group-text"];
+    maxLabel.classList.add("input-group-text");
     maxSelector.type = "number";
-    maxSelector.classList = ["form-control"];
+    maxSelector.classList.add("form-control", "oc-range-local-max");
     maxSelector.setAttribute("aria-label", `Maximum CPR for ${crimeName}`);
-    maxSelector.value = 100;
+    maxSelector.setAttribute("data-crime-name", crimeName);
+    maxSelector.setAttribute("autocomplete", "off");
     inputGroup.append(maxLabel);
     inputGroup.append(maxSelector);
 
     crimeListElement.append(inputGroup);
     container.append(crimeListElement);
+
+    minSelector.addEventListener("change", (event) => {
+        modifyRangeLocalMinMax(event, "minimum");
+    });
+    maxSelector.addEventListener("change", (event) => {
+        modifyRangeLocalMinMax(event, "maximum");
+    });
 }
 
-function removeRangeCrime(crimeName, container) {
-    // TOOD: remove range via API
+function removeDOMRangeCrime(crimeName, container) {
     const element = container.querySelector(`[data-crime-name="${crimeName}"]`);
 
     if (element == null) {
@@ -117,10 +178,48 @@ function removeRangeCrime(crimeName, container) {
     element.remove();
 }
 
+function addRangeCrime(crimeName, container) {
+    tfetch("POST", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/range/local/${crimeName}`, {
+        errorTitle: "OC-Specific Range Creation Failed",
+    }).then((data) => {
+        generateToast(
+            "OC-Specific Range Creation Successful",
+            "The per-OC configuration for OC extra-range notifications has been successfully created.",
+        );
+
+        insertDOMRangeCrime(crimeName, container);
+
+        const minInput = container.querySelector(`.oc-range-local-min[data-crime-name="${crimeName}"]`);
+        const maxInput = container.querySelector(`.oc-range-local-max[data-crime-name="${crimeName}"]`);
+
+        if (minInput == null || maxInput == null) {
+            console.error("Min input or max input could not be found in the DOM");
+            return;
+        }
+
+        minInput.value = data.minimum;
+        maxInput.value = data.maximum;
+    });
+}
+
+function removeRangeCrime(crimeName, container) {
+    tfetch("DELETE", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/range/local/${crimeName}`, {
+        errorTitle: "OC-Specific Range Deletion Failed",
+    })
+        .then(() => {
+            generateToast(
+                "OC-Specific Range Deletion Successful",
+                "The per-OC configuration for OC extra-range notifications has been successfully deleted.",
+            );
+        })
+        .then(() => {
+            removeDOMRangeCrime(crimeName, container);
+        });
+}
+
 function modifyRangeCrimes(event) {
     const factionID = this.getAttribute("data-faction");
     const selectedOptions = this.querySelectorAll(":checked");
-    let selectedCrimes = [];
 
     let listContainer = document.querySelector(`.list-group-range-crimes[data-faction="${factionID}"]`);
     if (listContainer == null) {
@@ -128,13 +227,10 @@ function modifyRangeCrimes(event) {
         return;
     }
 
+    let selectedCrimes = [];
     selectedOptions.forEach((element) => {
         selectedCrimes.push(element.getAttribute("value"));
     });
-
-    if (!(factionID in factionCrimeRanges)) {
-        factionCrimeRanges[factionID] = [];
-    }
 
     let newCrimes = selectedCrimes.filter((crime) => !factionCrimeRanges[factionID].includes(crime));
     let removedCrimes = factionCrimeRanges[factionID].filter((crime) => !selectedCrimes.includes(crime));
@@ -158,11 +254,28 @@ function modifyRangeCrimes(event) {
     }
 }
 
-ready(() => {
-    const channelsPromise = channelsRequest();
-    const rolesPromise = rolesRequest();
+function modifyRangeLocalMinMax(event, rangeType) {
+    const body = {};
+    body[rangeType] = event.currentTarget.value;
+    console.log(event.currentTarget);
+    console.log(event.currentTarget.value);
 
-    channelsPromise
+    const factionID = event.currentTarget.parentElement.parentElement.parentElement.getAttribute("data-faction");
+    const crimeName = event.currentTarget.getAttribute("data-crime-name");
+
+    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/range/local/${crimeName}`, {
+        body: body,
+        errorTitle: "OC-Specific Range Min/Max Change Failed",
+    }).then(() => {
+        generateToast(
+            "OC-Specific Range Deletion Successful",
+            "The per-OC configuration for OC extra-range notifications has been successfully updated.",
+        );
+    });
+}
+
+ready(() => {
+    channelsRequest()
         .then(() => {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 let channelID = element.getAttribute("data-selected-channel");
@@ -184,7 +297,7 @@ ready(() => {
             });
         });
 
-    rolesPromise
+    rolesRequest()
         .then(() => {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
                 let roles = parseIntArray(element.getAttribute("data-selected-roles"));
@@ -227,15 +340,17 @@ ready(() => {
         .then(() => {
             document.querySelectorAll(".oc-range-crimes").forEach((element) => {
                 const crimes = parseStringArray(element.getAttribute("data-selected-crimes"));
-                const factionid = element.getAttribute("data-faction");
-                // TODO: Update `factionCrimeRanges` with values passed
+                const factionID = element.getAttribute("data-faction");
+                const listContainer = document.querySelector(`.list-group-range-crimes[data-faction="${factionID}"]`);
+                factionCrimeRanges[factionID] = crimes;
+
+                if (listContainer == null) {
+                    console.error(`Could not find list container for faction ID ${factionID}`);
+                    return;
+                }
 
                 crimes.forEach((crimeName) => {
-                    if (element.querySelectorAll(`option[value="${crimeName}"]`).length !== 1) {
-                        return;
-                    }
-
-                    addRangeCrime(crimeName);
+                    // TODO: Add event listeners to inputs created by template
                 });
             });
         })
@@ -255,6 +370,18 @@ ready(() => {
     });
     document.querySelectorAll(".oc-tool-crimes").forEach((element) => {
         element.addEventListener("change", setToolCrimes);
+    });
+    document.querySelectorAll(".oc-range-channel").forEach((element) => {
+        element.addEventListener("change", setRangeChannel);
+    });
+    document.querySelectorAll(".oc-range-roles").forEach((element) => {
+        element.addEventListener("change", setRangeRoles);
+    });
+    document.querySelectorAll(".oc-range-global-min").forEach((element) => {
+        element.addEventListener("change", setRangeGlobalMin);
+    });
+    document.querySelectorAll(".oc-range-global-max").forEach((element) => {
+        element.addEventListener("change", setRangeGlobalMax);
     });
     document.querySelectorAll(".oc-range-crimes").forEach((element) => {
         element.addEventListener("change", modifyRangeCrimes);

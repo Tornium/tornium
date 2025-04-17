@@ -37,6 +37,14 @@ defmodule Tornium.Faction.OC.Render do
     |> render_feature(:extra_range, check_state.extra_range, config)
   end
 
+  def render_all(
+        %Tornium.Faction.OC.Check.Struct{} = check_state,
+        config
+      )
+      when is_nil(config) do
+    []
+  end
+
   # TODO: Write test for this series of functions
   @doc """
   Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Check.Struct`.

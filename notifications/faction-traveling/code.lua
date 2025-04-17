@@ -21,7 +21,7 @@ state = state
 
 -- Preprocessed variables
 ---@type integer
-TRAVEL_METHOD = tonumber(TRAVEL_METHOD) or 1  -- Defaults to standard travel
+TRAVEL_METHOD = tonumber(TRAVEL_METHOD) or 1 -- Defaults to standard travel
 
 if state.members == nil then
   state.members = {}
@@ -184,7 +184,7 @@ for member_id, member_data in pairs(faction.members) do
     name = member_data.name,
   }
 
-  if string.starts_with(member_data.status.description, "In hospital") or string.starts_with(member_data.status.description, "In jail") then
+  if string.starts_with(member_data.status.description, "In hospital") or string.starts_with(member_data.status.description, "In jail") or string.starts_with(member_data.status.description, "In federal jail") then
     -- e.g. "In hospital for 4 mins "
     destination = nil
   elseif string.starts_with(member_data.status.description, "Traveling") then

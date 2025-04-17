@@ -17,6 +17,8 @@ from .discord import DiscordError
 from .networking import NetworkingError
 from .torn import MissingKeyError, TornError
 
+__all__ = ["DiscordError", "NetworkingError", "MissingKeyError", "TornError", "RatelimitError"]
+
 
 class RatelimitError(Exception):
     """

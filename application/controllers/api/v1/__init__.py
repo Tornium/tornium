@@ -116,6 +116,21 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/channel",
+    view_func=bot.crimes.set_delayed_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/roles",
+    view_func=bot.crimes.set_delayed_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/crimes",
+    view_func=bot.crimes.set_delayed_crimes,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/channel",
     view_func=bot.crimes.set_extra_range_channel,
     methods=["POST"],

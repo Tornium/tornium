@@ -15,18 +15,9 @@
 
 import datetime
 
-from peewee import (
-    DateTimeField,
-    ForeignKeyField,
-    IntegerField,
-    SmallIntegerField,
-    TextField,
-    UUIDField,
-)
-from playhouse.postgres_ext import ArrayField
+from peewee import DateTimeField, IntegerField, TextField, UUIDField
 
 from .base_model import BaseModel
-from .user import User
 
 
 class GatewayMessage(BaseModel):

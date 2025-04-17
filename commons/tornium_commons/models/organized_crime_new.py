@@ -18,11 +18,9 @@ from functools import lru_cache
 
 from peewee import (
     BigIntegerField,
-    BooleanField,
     CharField,
     DateTimeField,
     ForeignKeyField,
-    IntegerField,
     SmallIntegerField,
 )
 

@@ -18,7 +18,6 @@ from peewee import (
     CharField,
     DateTimeField,
     ForeignKeyField,
-    IntegerField,
     TextField,
     UUIDField,
 )

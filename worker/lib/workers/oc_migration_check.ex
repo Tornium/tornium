@@ -51,12 +51,16 @@ defmodule Tornium.Workers.OCMigrationCheck do
       }
 
       # TODO: Stop using the `Tornium.TornexTaskSupervisor`
-      Task.Supervisor.async(Tornium.TornexTaskSupervisor, fn ->
+      Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
         request
         |> Tornex.Scheduler.Bucket.enqueue()
         |> Tornium.Faction.OC.migrated?()
         |> update_migrated(faction_tid)
+
+        nil
       end)
+
+      nil
     end)
 
     :ok

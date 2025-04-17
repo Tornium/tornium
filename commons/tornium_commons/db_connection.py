@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from functools import wraps
-
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from .config import Config

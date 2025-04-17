@@ -13,23 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Faction.OC.Check.Struct do
-  defstruct [:missing_tools, :delayers, :extra_range]
+defmodule Tornium.Schema.ServerOCRangeConfig do
+  use Ecto.Schema
 
-  @type checked_slots :: [Tornium.Schema.OrganizedCrimeSlot.t()]
-  @type t :: %Tornium.Faction.OC.Check.Struct{
-          missing_tools: checked_slots(),
-          delayers: checked_slots(),
-          extra_range: checked_slots()
+  @type t :: %__MODULE__{
+          guid: Ecto.UUID.t(),
+          server_oc_config_id: Ecto.UUID.t(),
+          server_oc_config: Tornium.Schema.ServerOCConfig.t(),
+          oc_name: String.t(),
+          minimum: integer(),
+          maximum: integer()
         }
-  @type keys :: :missing_tools | :delayers | :extra_range
 
-  @spec new() :: t()
-  def new() do
-    %Tornium.Faction.OC.Check.Struct{
-      missing_tools: [],
-      delayers: [],
-      extra_range: []
-    }
+  @primary_key {:guid, Ecto.UUID, autogenerate: true}
+  schema "server_oc_range_config" do
+    belongs_to(:server_oc_config, Tornium.Schema.ServerOCConfig, references: :guid, type: :binary_id)
+    field(:oc_name, :string)
+    field(:minimum, :integer)
+    field(:maximum, :integer)
   end
 end

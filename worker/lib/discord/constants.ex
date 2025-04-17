@@ -26,6 +26,7 @@ defmodule Tornium.Discord.Constants do
     %{
       good: 0xC83F49,
       error: 0xC83F49,
+      warning: 0x755FBE,
       info: 0x7DF9FF
     }
   end

@@ -26,6 +26,8 @@ defmodule Tornium.Faction.OC.Check do
 
   @type state :: Tornium.Faction.OC.Check.Struct.t()
 
+  # TODO: Determine if the expires_at time also needs to be validated before performing the checks
+
   @doc ~S"""
   Check the slots for an Organized Crime to determine if any of the slots are missing any of the required tools. This only affects organized crimes that are within 24 hours of being ready. If a tool is missing, update `Tornium.Faction.OC.Check.Struct` with the slot missing the tool.
   """
@@ -61,6 +63,37 @@ defmodule Tornium.Faction.OC.Check do
 
   def check_delayers(check_state, %Tornium.Schema.OrganizedCrime{} = _crime) do
     check_state
+  end
+
+  @doc """
+  Check the slots of an Organized Crime to determine if any of the slots have a CPR outside of a specified range. The range is provided by a server's configuration with a global range and an optional per-OC name local range. If a member is outside of that range, update `Tornium.Faction.OC.Check.Struct` with the slot outside the range.
+  """
+  @spec check_extra_range(
+          check_state :: state(),
+          crime :: Tornium.Schema.OrganizedCrime.t(),
+          config :: Tornium.Schema.ServerOCConfig.t()
+        ) :: state()
+  def check_extra_range(
+        check_state,
+        %Tornium.Schema.OrganizedCrime{} = _crime,
+        %Tornium.Schema.ServerOCConfig{extra_range_channel: nil} = _config
+      ) do
+    # As this cheeck depends on a server's configuration, skip the check if the feature is disabled.
+    # Then if the feature is later enabled, the check can be run then.
+    check_state
+  end
+
+  def check_extra_range(
+        check_state,
+        %Tornium.Schema.OrganizedCrime{ready_at: ready_at, slots: slots} = _crime,
+        %Tornium.Schema.ServerOCConfig{} = config
+      ) do
+    # OCs that have already been completed are pointless to be checked
+    if is_nil(ready_at) or DateTime.after?(DateTime.utc_now(), ready_at) do
+      check_slot_extra_range(slots, check_state, config)
+    else
+      check_state
+    end
   end
 
   @spec check_slot_tool([Tornium.Schema.OrganizedCrimeSlot.t()], state()) :: state()
@@ -114,6 +147,55 @@ defmodule Tornium.Faction.OC.Check do
   end
 
   defp check_slot_delayer([], state) do
+    state
+  end
+
+  @spec check_slot_extra_range(
+          [Tornium.Schema.OrganizedCrimeSlot.t()],
+          state :: state(),
+          config :: Tornium.Schema.ServerOCConfig.t()
+        ) :: state()
+  defp check_slot_extra_range(
+         [%Tornium.Schema.OrganizedCrimeSlot{sent_extra_range_notification: true} = _slot | remaining_slots],
+         %Tornium.Faction.OC.Check.Struct{} = state,
+         %Tornium.Schema.ServerOCConfig{} = config
+       ) do
+    check_slot_extra_range(remaining_slots, state, config)
+  end
+
+  defp check_slot_extra_range(
+         [
+           %Tornium.Schema.OrganizedCrimeSlot{user_id: nil} = slot
+           | remaining_slots
+         ],
+         %Tornium.Faction.OC.Check.Struct{} = state,
+         %Tornium.Schema.ServerOCConfig{} = config
+       ) do
+    check_slot_extra_range(remaining_slots, state, config)
+  end
+
+  defp check_slot_extra_range(
+         [
+           %Tornium.Schema.OrganizedCrimeSlot{oc: %Tornium.Schema.OrganizedCrime{}, user_success_chance: chance} = slot
+           | remaining_slots
+         ],
+         %Tornium.Faction.OC.Check.Struct{extra_range: extra_range} = state,
+         %Tornium.Schema.ServerOCConfig{} = config
+       ) do
+    {minimum, maximum} =
+      Tornium.Schema.ServerOCConfig.chance_range(config, slot.oc) |> IO.inspect(label: slot.oc.oc_name)
+
+    cond do
+      chance < minimum or chance > maximum ->
+        state = Map.replace(state, :extra_range, [slot | extra_range])
+        check_slot_extra_range(remaining_slots, state, config)
+
+      true ->
+        check_slot_extra_range(remaining_slots, state, config)
+    end
+  end
+
+  defp check_slot_extra_range([], %Tornium.Faction.OC.Check.Struct{} = state, _config) do
     state
   end
 end

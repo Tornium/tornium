@@ -14,80 +14,31 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Faction.OC.Render do
-  @moduledoc ~S"""
+  @moduledoc """
   Functions to render the embeds and components of OC-related notifications.
   """
 
-  import Ecto.Query
-  alias Tornium.Repo
-
-  @doc ~S"""
+  @doc """
   Render embeds for each failed check listed for each feature in `Tornium.Faction.OC.Check.Struct`.
   """
-  @spec render_all(check_state :: Tornium.Faction.OC.Check.Struct.t(), faction_id :: integer()) :: [
-          Nostrum.Struct.Message.t()
-        ]
-  def render_all(
-        %Tornium.Faction.OC.Check.Struct{delayers: delayers, missing_tools: missing_tools} = _check_state,
-        _faction_id
-      )
-      when Kernel.length(delayers) == 0 and Kernel.length(missing_tools) == 0 do
-    # Passthrough for when there is nothing to render to avoid unnecessary API calls
-    []
-  end
-
-  def render_all(%Tornium.Faction.OC.Check.Struct{} = check_state, faction_id) when is_integer(faction_id) do
-    faction_return =
-      Tornium.Schema.Faction
-      |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)
-      |> where([f, s], f.tid == ^faction_id)
-      |> select([f, s], [f.guild_id, s.factions])
-      |> Repo.one()
-
-    # TODO: Refactor this case
-    {guild_id, guild_factions, config} =
-      case faction_return do
-        nil ->
-          {nil, nil, nil}
-
-        [first, second] ->
-          config =
-            Tornium.Schema.ServerOCConfig
-            |> where([c], c.server_id == ^first and c.faction_id == ^faction_id)
-            |> Repo.one()
-
-          {first, second, config}
-
-        _ ->
-          {nil, nil, nil}
-      end
-
-    if guild_factions != nil and config != nil and Enum.member?(guild_factions, faction_id) do
-      render_all(check_state, faction_id, config)
-    else
-      []
-    end
-  end
-
   @spec render_all(
           check_state :: Tornium.Faction.OC.Check.Struct.t(),
-          faction_id :: integer(),
           config :: Tornium.Schema.ServerOCConfig.t()
         ) :: [
           Nostrum.Struct.Message.t()
         ]
   def render_all(
         %Tornium.Faction.OC.Check.Struct{} = check_state,
-        _faction_id,
         %Tornium.Schema.ServerOCConfig{} = config
       ) do
     []
     |> render_feature(:missing_tools, check_state.missing_tools, config)
     |> render_feature(:delayers, check_state.delayers, config)
+    |> render_feature(:extra_range, check_state.extra_range, config)
   end
 
-  # TODO: Write test for this function
-  @doc ~S"""
+  # TODO: Write test for this series of functions
+  @doc """
   Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Check.Struct`.
   """
   @spec render_feature(
@@ -255,6 +206,69 @@ defmodule Tornium.Faction.OC.Render do
       end
 
     render_feature(messages, :delayers, remaining_slots, config)
+  end
+
+  def render_feature(
+        messages,
+        :extra_range,
+        [
+          %Tornium.Schema.OrganizedCrimeSlot{
+            oc: %Tornium.Schema.OrganizedCrime{} = crime,
+            user: %Tornium.Schema.User{} = user,
+            user_success_chance: chance
+          } = _slot
+          | remaining_slots
+        ],
+        %Tornium.Schema.ServerOCConfig{
+          # enabled: true,
+          extra_range_channel: extra_range_channel,
+          extra_range_roles: extra_range_roles
+        } =
+          config
+      )
+      when is_list(messages) and not is_nil(extra_range_channel) do
+    # TODO: Restructure this code
+    # Maybe split the message struct creation into a separate function
+
+    # FIXME: Re-enable the `enabled` check once the UI for that is created
+
+    {expected_minimum, expected_maximum} = Tornium.Schema.ServerOCConfig.chance_range(config, crime)
+
+    new_message =
+      %Nostrum.Struct.Message{
+        channel_id: extra_range_channel,
+        content: Tornium.Utils.roles_to_string(extra_range_roles),
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "OC CPR Extra-Range",
+            description:
+              "#{String.capitalize(crime.faction.name)} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
+            color: Tornium.Discord.Constants.colors()[:warning],
+            footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "#{user.name} [#{user.tid}]",
+                url: "https://www.torn.com/profiles.php?XID=#{user.tid}"
+              },
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Organized Crime",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{crime.oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+
+    render_feature([new_message | messages], :extra_range, remaining_slots, config)
   end
 
   def render_feature(messages, _state_element, _slots, %Tornium.Schema.ServerOCConfig{} = _config) do

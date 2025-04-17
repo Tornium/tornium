@@ -17,7 +17,8 @@ import Config
 
 config :tornium,
   ecto_repos: [Tornium.Repo],
-  generators: [timestamp_type: :utc_datetime, binary_id: true]
+  generators: [timestamp_type: :utc_datetime, binary_id: true],
+  env: config_env()
 
 # Configures Elixir's Logger
 config :logger, :console,

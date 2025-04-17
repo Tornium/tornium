@@ -223,23 +223,44 @@ defmodule Tornium.Faction.OC do
   @doc ~S"""
   Execute the checks in `Tornium.Faction.OC.Check` against an list of Organized Crimes to create a `Tornium.Faction.OC.Check.Struct` state that contains the slots or crimes triggering each check.
   """
-  @spec check(oc_list :: [Tornium.Schema.OrganizedCrime.t()]) :: Tornium.Faction.OC.Check.Struct.t()
-  def check(oc_list, oc_checks \\ nil)
+  @spec check(
+          oc_list :: [Tornium.Schema.OrganizedCrime.t()],
+          config :: Tornium.Schema.ServerOCConfig.t() | nil,
+          oc_checks :: Tornium.Faction.OC.Check.Struct.t() | nil
+        ) :: Tornium.Faction.OC.Check.Struct.t()
+  def check(oc_list, config, oc_checks \\ nil)
 
-  def check(oc_list, oc_checks) when is_list(oc_list) and is_nil(oc_checks) do
-    check(oc_list, Tornium.Faction.OC.Check.Struct.new())
+  def check(oc_list, config, oc_checks) when is_list(oc_list) and is_nil(oc_checks) do
+    check(oc_list, config, Tornium.Faction.OC.Check.Struct.new())
   end
 
-  def check([%Tornium.Schema.OrganizedCrime{} = oc | remaining_oc], oc_checks) do
+  def check(
+        [%Tornium.Schema.OrganizedCrime{} = oc | remaining_oc],
+        %Tornium.Schema.ServerOCConfig{} = config,
+        oc_checks
+      ) do
+    oc_checks =
+      oc_checks
+      |> Tornium.Faction.OC.Check.check_tools(oc)
+      |> Tornium.Faction.OC.Check.check_delayers(oc)
+      |> Tornium.Faction.OC.Check.check_extra_range(oc, config)
+
+    check(remaining_oc, config, oc_checks)
+  end
+
+  def check([%Tornium.Schema.OrganizedCrime{} = oc | remaining_oc], config, oc_checks) when is_nil(config) do
+    # Skip OC checks that require a configuration from a server
+    # e.g. extra-range notifications
+
     oc_checks =
       oc_checks
       |> Tornium.Faction.OC.Check.check_tools(oc)
       |> Tornium.Faction.OC.Check.check_delayers(oc)
 
-    check(remaining_oc, oc_checks)
+    check(remaining_oc, config, oc_checks)
   end
 
-  def check([], oc_checks) do
+  def check([], _config, oc_checks) do
     oc_checks
   end
 end

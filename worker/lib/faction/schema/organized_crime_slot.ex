@@ -31,7 +31,8 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
           delayer: boolean() | nil,
           delayed_reason: String.t(),
           sent_tool_notification: boolean(),
-          sent_delayer_notification: boolean()
+          sent_delayer_notification: boolean(),
+          sent_extra_range_notification: boolean()
         }
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
@@ -51,6 +52,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
     field(:sent_tool_notification, :boolean)
     field(:sent_delayer_notification, :boolean)
+    field(:sent_extra_range_notification, :boolean)
   end
 
   @spec upsert_all(entries :: [t()]) :: [t()]
@@ -85,7 +87,8 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
         :delayer,
         :delayed_reason,
         :sent_tool_notification,
-        :sent_delayer_notification
+        :sent_delayer_notification,
+        :sent_extra_range_notification
       ])
     )
     |> Enum.map(fn %{} = slot -> Map.update!(slot, :id, fn id -> id || Ecto.UUID.generate() end) end)
@@ -120,7 +123,16 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
         on_conflict:
           {:replace_all_except,
-           [:id, :oc_id, :slot_index, :delayer, :delayed_reason, :sent_tool_notification, :sent_delayer_notification]},
+           [
+             :id,
+             :oc_id,
+             :slot_index,
+             :delayer,
+             :delayer_reason,
+             :sent_tool_notification,
+             :sent_delayer_notification,
+             :sent_extra_range_notification
+           ]},
         conflict_target: [:oc_id, :slot_index],
         returning: true
       )
@@ -165,15 +177,17 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   """
   @spec update_sent_state(check_state :: Tornium.Faction.OC.Check.Struct.t()) :: nil
   def update_sent_state(
-        %Tornium.Faction.OC.Check.Struct{missing_tools: missing_tools, delayers: delayers} = _check_state
+        %Tornium.Faction.OC.Check.Struct{missing_tools: missing_tools, delayers: delayers, extra_range: extra_range} =
+          _check_state
       )
-      when Kernel.length(missing_tools) == 0 and Kernel.length(delayers) == 0 do
+      when Kernel.length(missing_tools) == 0 and Kernel.length(delayers) == 0 and Kernel.length(extra_range) == 0 do
     nil
   end
 
   def update_sent_state(%Tornium.Faction.OC.Check.Struct{} = check_state) do
     update_tool_state(check_state)
     update_delayer_state(check_state)
+    update_extra_range_state(check_state)
 
     nil
   end
@@ -209,6 +223,23 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   end
 
   defp update_delayer_state(_check_state) do
+    nil
+  end
+
+  @spec update_extra_range_state(check_state :: Tornium.Faction.OC.Check.Struct.t()) :: nil
+  defp update_extra_range_state(%Tornium.Faction.OC.Check.Struct{extra_range: extra_range} = _check_state)
+       when Kernel.length(extra_range) != 0 do
+    extra_range_ids = get_ids(extra_range)
+
+    Tornium.Schema.OrganizedCrimeSlot
+    |> where([s], s.id in ^extra_range_ids)
+    |> update(set: [sent_extra_range_notification: true])
+    |> Repo.update_all([])
+
+    nil
+  end
+
+  defp update_extra_range_state(_check_state) do
     nil
   end
 

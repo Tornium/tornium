@@ -47,19 +47,30 @@ defmodule Tornium.Workers.OCUpdate do
       nice: 10
     }
 
+    config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
+
     check_state =
       request
       |> Tornex.Scheduler.Bucket.enqueue()
       |> Tornium.Faction.OC.parse(faction_tid)
       |> Tornium.Schema.OrganizedCrime.upsert_all()
-      |> Repo.preload(slots: [:oc, :item_required, user: [:faction]])
-      # Preload required for rending the checks
-      # TODO: Preload after checks to reduce DB load
-      |> Tornium.Faction.OC.check()
+      |> Repo.preload(slots: [:item_required, :user, oc: [:faction]])
+      # `Repo.preload` is required to load additional information for performing and rending the checks
+      # TODO: Consider manually making the queries and using preload to add the data to avoid unnescessary data (e.g. item descriptions)
+      |> Tornium.Faction.OC.check(config)
 
-    check_state
-    |> Tornium.Faction.OC.Render.render_all(faction_tid)
-    |> Tornium.Discord.send_messages(collect: false)
+    collected_messages =
+      check_state
+      |> Tornium.Faction.OC.Render.render_all(config)
+      |> Tornium.Discord.send_messages(collect: Application.get_env(:tornium, :env) == :dev)
+
+    case collected_messages do
+      nil ->
+        nil
+
+      _ when is_list(collected_messages) ->
+        IO.inspect(collected_messages, label: "Collected messages")
+    end
 
     # Perform this after the attempting to send the messages to avoid a flag being updated despite the message not being sent (e.g. from a rendering issue)
     Tornium.Schema.OrganizedCrimeSlot.update_sent_state(check_state)

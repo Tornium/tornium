@@ -13,14 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import uuid
+
 from peewee import (
     BigIntegerField,
     BooleanField,
     CharField,
-    CompositeKey,
     ForeignKeyField,
+    SmallIntegerField,
 )
-from playhouse.postgres_ext import ArrayField
+from playhouse.postgres_ext import ArrayField, UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
@@ -30,8 +32,8 @@ from .server import Server
 class ServerOCConfig(BaseModel):
     class Meta:
         table_name = "server_oc_config"
-        primary_key = CompositeKey("server", "faction")
 
+    guid = UUIDField(primary_key=True)
     server = ForeignKeyField(Server, null=False)
     faction = ForeignKeyField(Faction, null=False)
     enabled = BooleanField(default=False, null=False)
@@ -45,6 +47,12 @@ class ServerOCConfig(BaseModel):
     delayed_channel = BigIntegerField(default=None, null=True)
     delayed_roles = ArrayField(BigIntegerField, index=False, default=[])
     delayed_crimes = ArrayField(CharField, index=False, default=[])
+
+    # Extra-range OCs
+    extra_range_channel = BigIntegerField(default=None, null=True)
+    extra_range_roles = ArrayField(BigIntegerField, index=False, default=[])
+    extra_range_global_min = SmallIntegerField(default=0, null=False)
+    extra_range_global_max = SmallIntegerField(default=100, null=False)
 
     def create_or_update(server_id: int, faction_id: int, **kwargs: dict):
         """
@@ -69,7 +77,7 @@ class ServerOCConfig(BaseModel):
             elif key in ("server", "server_id", "faction", "faction_id"):
                 raise ValueError(f'Kwargs key "{key}" can not be used in this function as it\'s a primary key')
 
-        ServerOCConfig.insert(server=server_id, faction=faction_id, **kwargs).on_conflict(
+        ServerOCConfig.insert(guid=uuid.uuid4(), server=server_id, faction=faction_id, **kwargs).on_conflict(
             conflict_target=[ServerOCConfig.server, ServerOCConfig.faction],
             preserve=[getattr(ServerOCConfig, field) for field in kwargs.keys()],
         ).execute()
@@ -83,6 +91,7 @@ class ServerOCConfig(BaseModel):
 
     def to_dict(self) -> dict:
         return {
+            "guid": self.guid,
             "server_id": self.server_id,
             "faction_id": self.faction_id,
             "enabled": self.enabled,
@@ -92,4 +101,8 @@ class ServerOCConfig(BaseModel):
             "delayed_channel": self.delayed_channel,
             "delayed_roles": self.delayed_roles,
             "delayed_crimes": self.delayed_crimes,
+            "extra_range_channel": self.extra_range_channel,
+            "extra_range_roles": self.extra_range_roles,
+            "extra_range_global_min": self.extra_range_global_min,
+            "extra_range_global_max": self.extra_range_global_max,
         }

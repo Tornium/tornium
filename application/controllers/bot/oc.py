@@ -14,11 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import typing
+import uuid
 
 from flask import render_template
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
-from tornium_commons.models import Faction, Server, ServerOCConfig
+from tornium_commons.models import Faction, Server, ServerOCConfig, ServerOCRangeConfig
 
 
 @login_required
@@ -73,27 +74,30 @@ def oc_dashboard(guild_id):
             continue
 
     for faction in factions:
+        # TODO: Limit selections on this query
         faction.server_oc_config: typing.Optional[ServerOCConfig] = (
-            ServerOCConfig.select(
-                ServerOCConfig.server_id,
-                ServerOCConfig.faction_id,
-                ServerOCConfig.enabled,
-                ServerOCConfig.tool_channel,
-                ServerOCConfig.tool_roles,
-                ServerOCConfig.tool_crimes,
-                ServerOCConfig.delayed_channel,
-                ServerOCConfig.delayed_roles,
-                ServerOCConfig.delayed_crimes,
-            )
+            ServerOCConfig.select()
             .where((ServerOCConfig.faction_id == faction.tid) & (ServerOCConfig.server_id == faction.guild_id))
             .first()
         )
 
         if faction.server_oc_config is None:
+            # TODO: maybe use function in ServerOCConfig
             faction.server_oc_config = ServerOCConfig.create(
+                guid=uuid.uuid4(),
                 server_id=faction.guild_id,
                 faction_id=faction.tid,
             )
+
+        faction.server_oc_config.local_range_configs = [
+            config
+            for config in ServerOCRangeConfig.select(
+                ServerOCRangeConfig.oc_name, ServerOCRangeConfig.minimum, ServerOCRangeConfig.maximum
+            ).where(ServerOCRangeConfig.server_oc_config == faction.server_oc_config.guid)
+        ]
+        faction.server_oc_config.local_range_crimes = [
+            config.oc_name for config in faction.server_oc_config.local_range_configs
+        ]
 
     return render_template(
         "bot/oc.html",

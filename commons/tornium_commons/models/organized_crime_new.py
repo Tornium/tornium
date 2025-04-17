@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+from functools import lru_cache
+
 from peewee import (
     BigIntegerField,
     CharField,
@@ -42,3 +45,8 @@ class OrganizedCrimeNew(BaseModel):
     ready_at = DateTimeField(default=None, null=True)
     expires_at = DateTimeField(default=None, null=True)
     executed_at = DateTimeField(default=None, null=True)
+
+    @classmethod
+    @lru_cache
+    def oc_names(cls) -> typing.List[str]:
+        return [crime.oc_name for crime in OrganizedCrimeNew.select().distinct(OrganizedCrimeNew.oc_name)]

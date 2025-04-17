@@ -131,6 +131,41 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/channel",
+    view_func=bot.crimes.set_extra_range_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/roles",
+    view_func=bot.crimes.set_extra_range_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/minimum",
+    view_func=bot.crimes.set_extra_range_global_minimum,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/maximum",
+    view_func=bot.crimes.set_extra_range_global_maximum,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    view_func=bot.crimes.create_extra_range_local,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    view_func=bot.crimes.delete_extra_range_local,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    view_func=bot.crimes.patch_extra_range_local,
+    methods=["PATCH"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction",
     view_func=bot.faction.faction_setter,
     methods=["DELETE", "POST"],

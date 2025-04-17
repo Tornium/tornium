@@ -51,7 +51,7 @@ defmodule Tornium.MixProject do
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
       {:luerl, "~> 1.2"},
-      {:solid, "~> 0.18.0"},
+      {:solid, "~> 0.18"},
       {:tornex, "~> 0.1"}
     ]
   end

@@ -394,7 +394,7 @@ def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args
     update_kwargs = {}
     if minimum is not None and isinstance(minimum, str) and minimum.isdigit():
         update_kwargs["minimum"] = int(minimum)
-    elif minimum is not None and isinstance(maximum, int):
+    elif minimum is not None and isinstance(minimum, int):
         update_kwargs["minimum"] = minimum
     elif maximum is not None and isinstance(maximum, str) and maximum.isdigit():
         update_kwargs["maximum"] = int(maximum)

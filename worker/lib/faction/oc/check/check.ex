@@ -89,7 +89,7 @@ defmodule Tornium.Faction.OC.Check do
         %Tornium.Schema.ServerOCConfig{} = config
       ) do
     # OCs that have already been completed are pointless to be checked
-    if is_nil(ready_at) or DateTime.after?(DateTime.utc_now(), ready_at) do
+    if is_nil(ready_at) or DateTime.after?(ready_at, DateTime.utc_now()) do
       check_slot_extra_range(slots, check_state, config)
     else
       check_state

@@ -183,7 +183,7 @@ defmodule Tornium.Faction.OC.Check do
          %Tornium.Schema.ServerOCConfig{} = config
        ) do
     {minimum, maximum} =
-      Tornium.Schema.ServerOCConfig.chance_range(config, slot.oc) |> IO.inspect(label: slot.oc.oc_name)
+      Tornium.Schema.ServerOCConfig.chance_range(config, slot.oc)
 
     cond do
       chance < minimum or chance > maximum ->

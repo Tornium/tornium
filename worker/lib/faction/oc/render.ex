@@ -84,7 +84,7 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Missing Tool",
                 description:
-                  "#{item.name} [#{item.tid}] is required for #{user.faction.name} member #{user.name} [#{user.tid}] (#{position}) in the #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime.",
+                  "#{item.name} [#{item.tid}] is required for #{user.faction.name} member #{user.name} [#{user.tid}] (#{position}) in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC.",
                 color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }
@@ -174,7 +174,7 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Delayed",
                 description:
-                  "#{String.capitalize(user.faction.name)} member #{user.name} [#{user.tid}] (#{position}) is delaying an #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime... is #{String.downcase(delayed_reason)}.",
+                  "#{String.capitalize(user.faction.name)} member #{user.name} [#{user.tid}] (#{position}) is delaying an #{crime.oc_name} (T#{crime.oc_difficulty}) OC ... is #{String.downcase(delayed_reason)}.",
                 color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }
@@ -242,7 +242,7 @@ defmodule Tornium.Faction.OC.Render do
           %Nostrum.Struct.Embed{
             title: "OC CPR Extra-Range",
             description:
-              "#{String.capitalize(crime.faction.name)} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) organized crime has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
+              "#{String.capitalize(crime.faction.name)} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
             color: Tornium.Discord.Constants.colors()[:warning],
             footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
           }

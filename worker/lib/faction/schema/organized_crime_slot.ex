@@ -145,7 +145,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
         not is_nil(Map.get(delayers, {oc_id, slot_index})) ->
           %{delayer: delayer_new, delayed_reason: delayed_reason_new} =
-            Map.get(delayers, {oc_id, slot_index}) |> IO.inspect()
+            Map.get(delayers, {oc_id, slot_index})
 
           Tornium.Schema.OrganizedCrimeSlot
           |> where([s], s.oc_id == ^oc_id and s.slot_index == ^slot_index)

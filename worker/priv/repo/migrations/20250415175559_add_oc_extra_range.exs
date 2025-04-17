@@ -10,6 +10,7 @@ defmodule Tornium.Repo.Migrations.AddOCExtraRange do
     end
 
     create_if_not_exists table("server_oc_range_config", primary_key: false) do
+      add :guid, :binary_id, primary_key: true, autogenerate: true
       add :server_oc_config_id, references(:server_oc_config, column: :guid, type: :binary_id), null: false
       add :oc_name, :string, null: false
       add :minimum, :integer, default: 0, null: false

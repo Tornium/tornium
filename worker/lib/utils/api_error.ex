@@ -28,28 +28,28 @@ defmodule Tornium.API.Error do
 
   @spec construct(code :: integer(), error :: String.t()) :: t()
   def construct(0, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Unhandled error, should not occur."}
+    %Tornium.API.Error{code: 0, error: error, message: "Unhandled error, should not occur."}
   end
 
   def construct(1, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Private key is empty in current request."}
+    %Tornium.API.Error{code: 1, error: error, message: "Private key is empty in current request."}
   end
 
   def construct(2, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Private key is wrong/incorrect format."}
+    %Tornium.API.Error{code: 2, error: error, message: "Private key is wrong/incorrect format."}
   end
 
   def construct(3, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Requesting an incorrect basic type."}
+    %Tornium.API.Error{code: 3, error: error, message: "Requesting an incorrect basic type."}
   end
 
   def construct(4, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Requesting incorrect selection fields."}
+    %Tornium.API.Error{code: 4, error: error, message: "Requesting incorrect selection fields."}
   end
 
   def construct(5, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 5,
       error: error,
       message:
         "Requests are blocked for a small period of time because of too many requests per user (max 100 per minute)."
@@ -57,12 +57,12 @@ defmodule Tornium.API.Error do
   end
 
   def construct(6, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Wrong ID value."}
+    %Tornium.API.Error{code: 6, error: error, message: "Wrong ID value."}
   end
 
   def construct(7, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 7,
       error: error,
       message: "A requested selection is private (For example, personal data of another user / faction)."
     }
@@ -70,39 +70,39 @@ defmodule Tornium.API.Error do
 
   def construct(8, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 8,
       error: error,
       message: "Current IP is banned for a small period of time because of abuse."
     }
   end
 
   def construct(9, error) do
-    %Tornium.API.Error{code: code, error: error, message: "API system is currently disabled."}
+    %Tornium.API.Error{code: 9, error: error, message: "API system is currently disabled."}
   end
 
   def construct(10, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 10,
       error: error,
       message: "Current key can't be used because owner is in federal jail."
     }
   end
 
   def construct(11, error) do
-    %Tornium.API.Error{code: code, error: error, message: "You can only change your API key once every 60 seconds."}
+    %Tornium.API.Error{code: 11, error: error, message: "You can only change your API key once every 60 seconds."}
   end
 
   def construct(12, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Error reading key from database."}
+    %Tornium.API.Error{code: 12, error: error, message: "Error reading key from database."}
   end
 
   def construct(13, error) do
-    %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't been online for more than 7 days."}
+    %Tornium.API.Error{code: 13, error: error, message: "The key owner hasn't been online for more than 7 days."}
   end
 
   def construct(14, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 14,
       error: error,
       message: "Too many records have been pulled today by this user from our cloud services."
     }
@@ -110,7 +110,7 @@ defmodule Tornium.API.Error do
 
   def construct(15, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 15,
       error: error,
       message: "An error code specifically for testing purposes that has no dedicated meaning."
     }
@@ -118,45 +118,41 @@ defmodule Tornium.API.Error do
 
   def construct(16, error) do
     %Tornium.API.Error{
-      code: code,
+      code: 16,
       error: error,
       message: "A selection is being called of which this key does not have permission to access."
     }
   end
 
   def construct(17, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Backend error occurred, please try again."}
+    %Tornium.API.Error{code: 17, error: error, message: "Backend error occurred, please try again."}
   end
 
   def construct(18, error) do
-    %Tornium.API.Error{code: code, error: error, message: "API key has been paused by the owner."}
+    %Tornium.API.Error{code: 18, error: error, message: "API key has been paused by the owner."}
   end
 
   def construct(19, error) do
-    %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't migrated to crimes 2.0."}
+    %Tornium.API.Error{code: 19, error: error, message: "The key owner hasn't migrated to crimes 2.0."}
   end
 
   def construct(20, error) do
-    %Tornium.API.Error{code: code, error: error, message: "This race has not finished yet."}
-  end
-
-  def construct(20, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Invalid category value."}
+    %Tornium.API.Error{code: 20, error: error, message: "This race has not finished yet."}
   end
 
   def construct(21, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Wrong category value."}
+    %Tornium.API.Error{code: 21, error: error, message: "Invalid category value."}
   end
 
   def construct(22, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Selection only available in API v1."}
+    %Tornium.API.Error{code: 23, error: error, message: "Selection only available in API v1."}
   end
 
   def construct(23, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Selection only available in API v2."}
+    %Tornium.API.Error{code: 24, error: error, message: "Selection only available in API v2."}
   end
 
   def construct(24, error) do
-    %Tornium.API.Error{code: code, error: error, message: "Closed temporarily."}
+    %Tornium.API.Error{code: 25, error: error, message: "Closed temporarily."}
   end
 end

@@ -68,7 +68,7 @@ def get_positions(*args, **kwargs):
 
         faction: Faction = kwargs["user"].faction
 
-    if faction is None:
+    if faction is None or faction.last_members is None:
         return make_exception_response("1102", key)
     elif int(time.time()) - faction.last_members.timestamp() >= 86400:  # one day
         return make_exception_response(

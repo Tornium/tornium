@@ -477,6 +477,7 @@ def member_verification_name(
             tid=tid,
             tag=tag,
         )
+        .lstrip()
     )
 
 

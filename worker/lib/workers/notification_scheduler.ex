@@ -43,7 +43,7 @@ defmodule Tornium.Workers.NotificationScheduler do
     |> preload([n, t, s, c], trigger: t)
     |> Repo.all()
     |> Enum.group_by(&{&1.trigger.resource, &1.resource_id})
-    |> Enum.map(fn {{resource, resource_id}, notifications} ->
+    |> Enum.each(fn {{resource, resource_id}, notifications} ->
       %{
         resource_id: resource_id,
         resource: resource,

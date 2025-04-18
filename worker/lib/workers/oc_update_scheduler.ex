@@ -40,7 +40,7 @@ defmodule Tornium.Workers.OCUpdateScheduler do
     |> where([k, u, f], f.has_migrated_oc == true)
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
-    |> Enum.map(fn [api_key, user_tid, faction_tid] when is_integer(faction_tid) ->
+    |> Enum.each(fn [api_key, user_tid, faction_tid] when is_integer(faction_tid) ->
       %{
         api_key: api_key,
         user_tid: user_tid,

@@ -102,14 +102,12 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
     dynamic_query =
       Enum.reduce(entries, false, fn %{oc_id: oc_id, slot_index: slot_index, user_id: user_id}, acc ->
-        cond do
-          is_nil(user_id) ->
-            # Skip slots where there's no one in it
-            # We only need to remove data from slots where someone left
-            acc
-
-          true ->
-            dynamic([s], ^acc or (s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.user_id != ^user_id))
+        if is_nil(user_id) do
+          # Skip slots where there's no one in it
+          # We only need to remove data from slots where someone left
+          acc
+        else
+          dynamic([s], ^acc or (s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.user_id != ^user_id))
         end
       end)
 

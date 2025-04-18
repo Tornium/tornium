@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Utils do
+  @moduledoc """
+  Collection of utility functions.
+  """
+
   @doc """
   Convert a string to an integer. Return nil if the value can not be converted to an integer.
   """
@@ -31,9 +35,7 @@ defmodule Tornium.Utils do
   """
   @spec roles_to_string(roles :: list(String.t() | integer())) :: binary()
   def roles_to_string(roles) when is_list(roles) do
-    roles
-    |> Enum.map(&"<@&#{&1}>")
-    |> Enum.join(" ")
+    Enum.map_join(roles, " ", &"<@&#{&1}>")
   end
 
   @doc """
@@ -53,6 +55,7 @@ defmodule Tornium.Utils do
     |> Map.new()
   end
 
+  # TODO: Document function
   @spec unix_to_timestamp(timestamp :: integer() | nil) :: DateTime.t() | nil
   def unix_to_timestamp(timestamp, unit \\ :second)
 

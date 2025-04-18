@@ -394,7 +394,7 @@ defmodule Tornium.Notification do
 
         {:ok, resp_message}
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
         # Discord Opcode 10003: Unknown channel
         # The message could be updated as the channel does not exist, so
         #   - Disable the notification
@@ -446,7 +446,7 @@ defmodule Tornium.Notification do
 
         {:ok, resp_message}
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
         # Discord Opcode 10003: Unknown channel
         # The message could be updated as the channel does not exist, so
         #   - Disable the notification
@@ -488,7 +488,7 @@ defmodule Tornium.Notification do
         # The message was successfully updated and no further action is required
         resp_message
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10003}} = error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
         # Discord Opcode 10003: Unknown channel
         # The message could be updated as the channel does not exist, so
         #   - Disable the notification
@@ -502,7 +502,7 @@ defmodule Tornium.Notification do
         Tornium.Notification.Audit.log(:invalid_channel, notification)
         {:error, :discord_error, error}
 
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10008}} = _error} ->
+      {:error, %Nostrum.Error.ApiError{response: %{code: 10_008}} = _error} ->
         # Discord Opcode 10008: Unknown message
         # The message couldn't be updated so
         #   - The message ID should be set to nil

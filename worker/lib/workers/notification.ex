@@ -45,7 +45,7 @@ defmodule Tornium.Workers.Notification do
 
     notifications
     |> Enum.uniq_by(fn %Tornium.Schema.Notification{} = notification -> notification.trigger end)
-    |> Enum.map(fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{} = trigger} = _notification ->
+    |> Enum.each(fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{} = trigger} ->
       Tornium.Notification.update_next_execution(trigger)
     end)
 

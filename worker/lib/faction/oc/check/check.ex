@@ -185,13 +185,11 @@ defmodule Tornium.Faction.OC.Check do
     {minimum, maximum} =
       Tornium.Schema.ServerOCConfig.chance_range(config, slot.oc)
 
-    cond do
-      chance < minimum or chance > maximum ->
-        state = Map.replace(state, :extra_range, [slot | extra_range])
-        check_slot_extra_range(remaining_slots, state, config)
-
-      true ->
-        check_slot_extra_range(remaining_slots, state, config)
+    if chance < minimum or chance > maximum do
+      state = Map.replace(state, :extra_range, [slot | extra_range])
+      check_slot_extra_range(remaining_slots, state, config)
+    else
+      check_slot_extra_range(remaining_slots, state, config)
     end
   end
 

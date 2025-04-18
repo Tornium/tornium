@@ -14,6 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.User.KeyStore do
+  @moduledoc """
+  Agent to cache API keys.
+  """
+
+  # TODO: Add documentation
+
   use Agent
 
   # 5 minutes

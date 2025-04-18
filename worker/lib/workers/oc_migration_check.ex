@@ -40,7 +40,7 @@ defmodule Tornium.Workers.OCMigrationCheck do
     |> where([k, u, f], f.has_migrated_oc == false)
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
-    |> Enum.map(fn [api_key, user_tid, faction_tid] ->
+    |> Enum.each(fn [api_key, user_tid, faction_tid] ->
       request = %Tornex.Query{
         resource: "v2/faction",
         resource_id: faction_tid,
@@ -59,8 +59,6 @@ defmodule Tornium.Workers.OCMigrationCheck do
 
         nil
       end)
-
-      nil
     end)
 
     :ok

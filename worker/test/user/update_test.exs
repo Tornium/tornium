@@ -31,7 +31,7 @@ defmodule Tornium.Test.User.Update do
           "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
           "discord" => %{"discordID" => 317_719_897_578_799_114},
           "faction" => %{
-            "faction_id" => 42113,
+            "faction_id" => 42_113,
             "faction_name" => "TEs_t!.@&#039;",
             "faction_tag" => "ÃÃ©â„",
             "position" => "Leader"
@@ -53,7 +53,7 @@ defmodule Tornium.Test.User.Update do
 
     db_faction =
       Tornium.Schema.Faction
-      |> where([f], f.tid == 42113)
+      |> where([f], f.tid == 42_113)
       |> Repo.one()
 
     assert db_faction.name == "TEs_t!.@&#039;"
@@ -73,7 +73,7 @@ defmodule Tornium.Test.User.Update do
           "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
           "discord" => %{"discordID" => nil},
           "faction" => %{
-            "faction_id" => 42113,
+            "faction_id" => 42_113,
             "faction_name" => "TEs_t!.@&#039;",
             "faction_tag" => "ÃÃ©â„",
             "position" => "Co-leader"

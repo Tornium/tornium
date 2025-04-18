@@ -27,102 +27,136 @@ defmodule Tornium.API.Error do
   ]
 
   @spec construct(code :: integer(), error :: String.t()) :: t()
-  def construct(code, error) when is_integer(code) do
-    case {code, error} do
-      {0, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Unhandled error, should not occur."}
+  def construct(0, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Unhandled error, should not occur."}
+  end
 
-      {1, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Private key is empty in current request."}
+  def construct(1, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Private key is empty in current request."}
+  end
 
-      {2, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Private key is wrong/incorrect format."}
+  def construct(2, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Private key is wrong/incorrect format."}
+  end
 
-      {3, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Requesting an incorrect basic type."}
+  def construct(3, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Requesting an incorrect basic type."}
+  end
 
-      {4, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Requesting incorrect selection fields."}
+  def construct(4, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Requesting incorrect selection fields."}
+  end
 
-      {5, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message:
-            "Requests are blocked for a small period of time because of too many requests per user (max 100 per minute)."
-        }
+  def construct(5, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message:
+        "Requests are blocked for a small period of time because of too many requests per user (max 100 per minute)."
+    }
+  end
 
-      {6, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Wrong ID value."}
+  def construct(6, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Wrong ID value."}
+  end
 
-      {7, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "A requested selection is private (For example, personal data of another user / faction)."
-        }
+  def construct(7, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "A requested selection is private (For example, personal data of another user / faction)."
+    }
+  end
 
-      {8, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "Current IP is banned for a small period of time because of abuse."
-        }
+  def construct(8, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "Current IP is banned for a small period of time because of abuse."
+    }
+  end
 
-      {9, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "API system is currently disabled."}
+  def construct(9, error) do
+    %Tornium.API.Error{code: code, error: error, message: "API system is currently disabled."}
+  end
 
-      {10, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "Current key can't be used because owner is in federal jail."
-        }
+  def construct(10, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "Current key can't be used because owner is in federal jail."
+    }
+  end
 
-      {11, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "You can only change your API key once every 60 seconds."}
+  def construct(11, error) do
+    %Tornium.API.Error{code: code, error: error, message: "You can only change your API key once every 60 seconds."}
+  end
 
-      {12, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Error reading key from database."}
+  def construct(12, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Error reading key from database."}
+  end
 
-      {13, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't been online for more than 7 days."}
+  def construct(13, error) do
+    %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't been online for more than 7 days."}
+  end
 
-      {14, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "Too many records have been pulled today by this user from our cloud services."
-        }
+  def construct(14, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "Too many records have been pulled today by this user from our cloud services."
+    }
+  end
 
-      {15, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "An error code specifically for testing purposes that has no dedicated meaning."
-        }
+  def construct(15, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "An error code specifically for testing purposes that has no dedicated meaning."
+    }
+  end
 
-      {16, _} ->
-        %Tornium.API.Error{
-          code: code,
-          error: error,
-          message: "A selection is being called of which this key does not have permission to access."
-        }
+  def construct(16, error) do
+    %Tornium.API.Error{
+      code: code,
+      error: error,
+      message: "A selection is being called of which this key does not have permission to access."
+    }
+  end
 
-      {17, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Backend error occurred, please try again."}
+  def construct(17, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Backend error occurred, please try again."}
+  end
 
-      {18, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "API key has been paused by the owner."}
+  def construct(18, error) do
+    %Tornium.API.Error{code: code, error: error, message: "API key has been paused by the owner."}
+  end
 
-      {19, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't migrated to crimes 2.0."}
+  def construct(19, error) do
+    %Tornium.API.Error{code: code, error: error, message: "The key owner hasn't migrated to crimes 2.0."}
+  end
 
-      {20, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "This race has not finished yet."}
+  def construct(20, error) do
+    %Tornium.API.Error{code: code, error: error, message: "This race has not finished yet."}
+  end
 
-      {21, _} ->
-        %Tornium.API.Error{code: code, error: error, message: "Invalid category value."}
-    end
+  def construct(20, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Invalid category value."}
+  end
+
+  def construct(21, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Wrong category value."}
+  end
+
+  def construct(22, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Selection only available in API v1."}
+  end
+
+  def construct(23, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Selection only available in API v2."}
+  end
+
+  def construct(24, error) do
+    %Tornium.API.Error{code: code, error: error, message: "Closed temporarily."}
   end
 end

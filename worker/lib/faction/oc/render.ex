@@ -166,7 +166,7 @@ defmodule Tornium.Faction.OC.Render do
         } =
           config
       )
-      when is_list(messages) and not is_nil(delayed_channel) do
+      when is_list(messages) and not is_nil(delayed_channel) and not is_nil(delayed_reason) do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
 
@@ -182,7 +182,7 @@ defmodule Tornium.Faction.OC.Render do
               %Nostrum.Struct.Embed{
                 title: "OC Delayed",
                 description:
-                  "#{crime.faction.name} member #{user.name} [#{user.tid}] (#{position}) is delaying an #{crime.oc_name} (T#{crime.oc_difficulty}) OC ... is #{String.downcase(delayed_reason)}.",
+                  "#{String.capitalize(crime.faction.name)} member #{user.name} [#{user.tid}] (#{position}) is delaying an #{crime.oc_name} (T#{crime.oc_difficulty}) OC ... is #{String.downcase(delayed_reason)}.",
                 color: Tornium.Discord.Constants.colors()[:error],
                 footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
               }
@@ -250,7 +250,7 @@ defmodule Tornium.Faction.OC.Render do
           %Nostrum.Struct.Embed{
             title: "OC CPR Extra-Range",
             description:
-              "#{crime.faction.name} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
+              "#{String.capitalize(crime.faction.name)} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
             color: Tornium.Discord.Constants.colors()[:warning],
             footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
           }

@@ -117,6 +117,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
     # NOTE: Don't replace certain data that doesn't originate from the Torn API as the data will not exist until checks run
     # The data should be used if the slot does not already exist though
+    # TODO: Make the query replace only certain targets instead of all except
     {_, returned_slot_entries} =
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
         on_conflict:

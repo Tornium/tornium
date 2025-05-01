@@ -64,7 +64,7 @@ defmodule Tornium.Schema.OrganizedCrime do
     slot_users =
       entries
       |> Enum.flat_map(fn %Tornium.Schema.OrganizedCrime{slots: slots} -> slots end)
-      |> Enum.flat_map(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> user_id end)
+      |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> user_id end)
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
       |> Enum.map(

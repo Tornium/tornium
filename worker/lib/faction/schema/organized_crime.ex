@@ -68,11 +68,11 @@ defmodule Tornium.Schema.OrganizedCrime do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
       |> Enum.map(
-        &%Tornium.Schema.User{
+        &%{
           tid: &1
         }
       )
-      |> (&Repo.insert_all(Tornium.Schema.User, &1, on_conflict: :nothing, conflict_target: [:tid])).()
+    Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 
     returned_slot_entries =
       entries

@@ -434,7 +434,39 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        elif user.faction.guild is None or user.faction_id not in user.faction.guild.factions:
+        elif user.faction.guild_id is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        try:
+            guild = Server.select(Server.factions).where(Server.sid == user.faction.guild_id).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Server Does Not Exist",
+                            "description": "This server does not exist in the database.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if user.faction_id not in guild.factions:
             return {
                 "type": 4,
                 "data": {
@@ -570,14 +602,46 @@ def members_switchboard(interaction, *args, **kwargs):
                     },
                 }
 
-        if faction.guild is None or faction.tid not in faction.guild.factions:
+        if user.faction.guild_id is None:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Permission Denied",
-                            "description": "This faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        try:
+            guild = Server.select(Server.factions).where(Server.sid == user.faction.guild_id).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Server Does Not Exist",
+                            "description": "This server does not exist in the database.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if user.faction_id not in guild.factions:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
                             "color": SKYNET_ERROR,
                         }
                     ],

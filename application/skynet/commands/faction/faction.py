@@ -434,7 +434,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        elif user.faction.guild_id is None:
+        elif user.faction.guild_id is None or user.faction.guild_id != interaction["guild_id"]:
             return {
                 "type": 4,
                 "data": {
@@ -602,7 +602,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     },
                 }
 
-        if user.faction.guild_id is None:
+        if user.faction.guild_id is None or user.faction.guild_id != interaction["guild_id"]:
             return {
                 "type": 4,
                 "data": {

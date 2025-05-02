@@ -530,7 +530,7 @@ def members_switchboard(interaction, *args, **kwargs):
         return {
             "type": 4,
             "data": {
-                "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+                "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
                 + " Turn off your revives.",
             },
         }
@@ -644,7 +644,7 @@ def members_switchboard(interaction, *args, **kwargs):
         return {
             "type": 4,
             "data": {
-                "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+                "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
                 + " Turn off your revives.",
             },
         }

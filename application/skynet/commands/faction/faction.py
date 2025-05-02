@@ -434,7 +434,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        elif user.faction.guild is not None or user.faction_id not in user.faction.guild.factions:
+        elif user.faction.guild is None or user.faction_id not in user.faction.guild.factions:
             return {
                 "type": 4,
                 "data": {
@@ -514,7 +514,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     "embeds": [
                         {
                             "title": "No Revivable Members",
-                            "description": f"No members of {member_data["name"]} are revivable matching the specified filter.",
+                            "description": f"No members of {member_data['name']} are revivable matching the specified filter.",
                             "color": SKYNET_GOOD,
                         }
                     ],
@@ -529,8 +529,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
         return {
             "type": 4,
-            "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
-            + " Turn off your revives.",
+            "data": {
+                "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+                + " Turn off your revives.",
+            },
         }
 
     def revivable_ping_other_faction():
@@ -568,7 +570,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     },
                 }
 
-        if faction.guild is not None or faction.tid not in faction.guild.factions:
+        if faction.guild is None or faction.tid not in faction.guild.factions:
             return {
                 "type": 4,
                 "data": {
@@ -626,7 +628,7 @@ def members_switchboard(interaction, *args, **kwargs):
                     "embeds": [
                         {
                             "title": "No Revivable Members",
-                            "description": f"No members of {member_data["name"]} are revivable matching the specified filter.",
+                            "description": f"No members of {member_data['name']} are revivable matching the specified filter.",
                             "color": SKYNET_GOOD,
                         }
                     ],
@@ -641,8 +643,10 @@ def members_switchboard(interaction, *args, **kwargs):
 
         return {
             "type": 4,
-            "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
-            + " Turn off your revives.",
+            "data": {
+                "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+                + " Turn off your revives.",
+            },
         }
 
     try:

@@ -22,7 +22,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, PersonalStats, Server, User
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
+from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from skynet.decorators import invoker_required
 from skynet.skyutils import get_admin_keys, get_faction_keys
@@ -419,6 +419,232 @@ def members_switchboard(interaction, *args, **kwargs):
             "data": {"embeds": payload},
         }
 
+    def revivable_ping():
+        if not user.faction_aa or user.faction is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "Only AA members of your faction are able to use this command.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif user.faction.guild is not None or user.faction_id not in user.faction.guild.factions:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        aa_keys = get_faction_keys(interaction, user.faction)
+
+        if not isinstance(aa_keys, tuple) or len(aa_keys) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys of faction AA members could be located. Please sign "
+                            "into Tornium or ask a faction AA member to sign in.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        member_data = tornget(
+            f"faction/{faction.tid}?selections=basic,members",
+            random.choice(aa_keys),
+            version=2,
+        )
+
+        revivable_users = []
+        revive_filter = find_list(subcommand_data, "name", "type")
+
+        if revive_filter is None:
+            revive_filter = "all"
+        elif revive_filter["value"] == "all":
+            revive_filter = "all"
+        elif revive_filter["value"] == "everyone":
+            revive_filter = "everyone"
+        else:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Revive Option",
+                            "description": f'"{revive_filter.get("value")}" is not a valid option.',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        for member in member_data["members"]:
+            if member["status"]["state"] in ("Federal", "Fallen"):
+                continue
+            elif member["revive_setting"].lower() == "no one":
+                continue
+            elif revive_filter == "everyone" and member["revive_setting"].lower() != "everyone":
+                continue
+
+            revivable_users.append(member["id"])
+
+        if len(revivable_users) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No Revivable Members",
+                            "description": f"No members of {member_data["name"]} are revivable matching the specified filter.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        revivable_users_discord_ids = [
+            revivable_user.discord_id
+            for revivable_user in User.select(User.discord_id).where(User.tid << revivable_users)
+        ]
+
+        return {
+            "type": 4,
+            "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+            + " Turn off your revives.",
+        }
+
+    def revivable_ping_other_faction():
+        api_user: User
+        if user.personal_stats.revives >= 1 and user.key is not None:
+            api_user = user
+        else:
+            try:
+                # TODO: Convert to subquery
+                # TODO: Optimize these queries
+                api_users = User.select(User.tid, User.name).where(
+                    User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
+                )
+                api_users = {u.tid: u for u in api_users}
+                api_user = api_users[
+                    random.choice(
+                        PersonalStats.select(PersonalStats.user).where(
+                            (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
+                        )
+                    ).user_id
+                ]
+            except IndexError:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "No API Keys",
+                                "description": "No API keys of admins could be located. Please sign into Tornium or ask a "
+                                "server admin to sign in.",
+                                "color": SKYNET_ERROR,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
+        if faction.guild is not None or faction.tid not in faction.guild.factions:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "This faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
+
+        revivable_users = []
+        revive_filter = find_list(subcommand_data, "name", "type")
+
+        if revive_filter is None:
+            revive_filter = "all"
+        elif revive_filter["value"] == "all":
+            revive_filter = "all"
+        elif revive_filter["value"] == "everyone":
+            revive_filter = "everyone"
+        else:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Revive Option",
+                            "description": f'"{revive_filter.get("value")}" is not a valid option.',
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        for member in member_data["members"]:
+            if member["status"]["state"] in ("Federal", "Fallen"):
+                continue
+            elif member["revive_setting"].lower() == "no one":
+                continue
+            elif revive_filter == "everyone" and member["revive_setting"].lower() != "everyone":
+                continue
+
+            revivable_users.append(member["id"])
+
+        if len(revivable_users) == 0:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No Revivable Members",
+                            "description": f"No members of {member_data["name"]} are revivable matching the specified filter.",
+                            "color": SKYNET_GOOD,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        revivable_users_discord_ids = [
+            revivable_user.discord_id
+            for revivable_user in User.select(User.discord_id).where(User.tid << revivable_users)
+        ]
+
+        return {
+            "type": 4,
+            "content": "".join([f"<{discord_id}>" for discord_id in revivable_users_discord_ids])
+            + " Turn off your revives.",
+        }
+
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
@@ -531,6 +757,12 @@ def members_switchboard(interaction, *args, **kwargs):
             return revivable()
         else:
             return revivable_other_faction()
+    elif subcommand == "revivable-ping":
+        # Skips tornget call as uses v2 of the API for this
+        if faction.tid == user.faction.tid:
+            return revivable_ping()
+        else:
+            return revivable_ping_other_faction()
 
     member_data = tornget(
         f"faction/{faction.tid}?selections=",

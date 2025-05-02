@@ -103,6 +103,35 @@
                             "required": false
                         }
                     ]
+                },
+                {
+                    "type": 1,
+                    "name": "revivable-ping",
+                    "description": "Ping all members of a faction set up in the server",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description" :"The faction's name or Torn ID",
+                            "required": false
+                        },
+                        {
+                            "type": 3,
+                            "name": "type",
+                            "description": "Type of revives set (defaults to all revivable)",
+                            "required": false,
+                            "choices": [
+                                {
+                                    "name": "Everyone + Friends",
+                                    "value": "all"
+                                },
+                                {
+                                    "name": "Everyone",
+                                    "value": "everyone"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }

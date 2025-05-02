@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Oban and ObanWeb to Elixir worker
 - Added OC delay notifications
 - Added OC missing tool notifications
+- Added revivable member ping slash command `/faction members revivable-ping`
 
 ### Changed
 - Re-enabled Discord-based authentication

@@ -5,8 +5,6 @@ build:
   tools:
     rust: latest
   jobs:
-    install:
-      - cargo install mdbook
     build:
-      html:
-        - mdbook build docs --dest-dir $READTHEDOCS_OUTPUT/html
+      - cargo install mdbook
+      - mdbook build docs --dest-dir $READTHEDOCS_OUTPUT/html

@@ -1,1 +1,1 @@
-# Setup Vericication
+# Setup Verification

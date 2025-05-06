@@ -1,6 +1,7 @@
 # Summary
 
 [Introduction](README.md)
+[How to Report](report.md)
 
 # Tutorial
 
@@ -13,7 +14,12 @@
 # User Guide
 # Reference
 
-- [How to Report](reference/report.md)
 - [Faction AA](reference/faction-aa.md)
+- [Discord Bot]()
+    - [Verification](reference/bot-verification.md)
+    - [Organized Crimes]()
+    - [Notifications]()
 
 # Explanation
+
+- [Notifications]()

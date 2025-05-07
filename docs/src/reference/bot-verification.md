@@ -1,4 +1,4 @@
-# Verification
+# Bot Verification
 Tornium's Discord member verification updates a Discord member's roles and nickname according to the server's verification configuration and the member's Discord ID. The verification feature requires a Discord server's member to be verified through the [official Torn Discord server](https://torn.com/discord) to determine which Torn user corresponds to a Discord user.
 
 ***NOTE:*** Due to restrictions with Discord’s permission system, Tornium is unable to modify the nicknames and roles of server members with a role higher than the bot’s highest role or modify the server owner. Changes to these members need to be done manually by a server administrator. Server owners are considered to be the highest role in the server by Discord, so the bot will never be able to verify the server owner.

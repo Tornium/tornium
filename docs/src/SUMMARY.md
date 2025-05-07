@@ -17,7 +17,7 @@
 - [Faction AA](reference/faction-aa.md)
 - [Discord Bot]()
     - [Verification](reference/bot-verification.md)
-    - [Organized Crimes]()
+    - [Organized Crimes](reference/bot-oc.md)
     - [Notifications]()
 
 # Explanation

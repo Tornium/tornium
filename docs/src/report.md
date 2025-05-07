@@ -1,11 +1,7 @@
-.. _report
+# How to Report
+How should you report bugs and ask questions? This document describes the do's and don'ts of reporting bugs and asking for help for things related to Tornium. Effectively asking questions and reporting bugs allows for easier diagnoses and responses and saves everyone time.
 
-Reporting
-=========
-This document describes the do's and don'ts of reporting bugs and asking for help for things related to Tornium.
-
-Reporting Bugs
---------------
+## Reporting Bugs
 Reporting bugs in a coherent manner is important to avoid wasting everyone's time. When reporting a bug, you should be sure that the bug is reproducible and is observable. Be specific!
 
 1. A one sentence description of the bug.
@@ -16,10 +12,9 @@ Reporting bugs in a coherent manner is important to avoid wasting everyone's tim
 6. When this occurred (including your timezone if you stated the time in local time).
 7. An error message if one is indicated.
 
-If this bug occurred on the Tornium website, please also include the device, the browser, etc. this occurred on.
+If this bug occurred on the Tornium website, please also include the device, the browser, etc. the bug occurred on.
 
-Asking Questions
-----------------
+## Asking Questions
 Asking questions regarding Tornium should follow a specific format. Be specific!
 
 1. A one sentence overview of the question.

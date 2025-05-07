@@ -388,7 +388,7 @@ $(document).ready(function () {
                 });
             });
 
-            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+            document.querySelectorAll(".faction-position-roles-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
                     plugins: ["remove_button"],

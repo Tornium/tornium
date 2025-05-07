@@ -248,7 +248,7 @@ def withdraw(interaction, *args, **kwargs):
 
     # Creating a followup message is necessary due to increased Torn and Discord API latencies
     # causing sometimes frequent client-side timeouts of withdrawal slash commands.
-    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5})
+    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
 
     faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))["donations"]
 

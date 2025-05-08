@@ -73,9 +73,35 @@ Tornium - Faction OCs Dashboard
             <h5 class="card-title">Organized Crimes</h5>
 
             {% if current_user.faction.has_migrated_oc %}
-            <div class="card mt-3">
-                <div class="card-header">Organized Crime Teams</div>
-                <div class="card-body"></div>
+            <div class="row">
+                <div class="col-sm-12 col-lg-6">
+                    <div class="card mt-3">
+                        <div class="card-header">Organized Crime Teams</div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <input type="radio" name="team-selector">
+                            </li>
+                        </ul>
+                        <div class="card-footer d-flex flex-wrap justify-content-between">
+                            <div class="col-sm-12 col-lg-6">
+                                <select class="oc-name-selector" aria-label="New OC Name" data-live-search="true"></select>
+                                <button type="button" class="btn btn-outline-success mt-2 mt-md-0">New</button>
+                            </div>
+
+                            <div class="col-sm-12 col-lg-6 d-flex flex-fill justify-content-end mt-2 mt-md-0">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" disabled style="height: min-content;">Prev Page</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled style="height: min-content;">Next Page</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-lg-6">
+                    <div class="card mt-3 placeholder-glow">
+                        <div class="card-header">Select a Team</div>
+                        <div class="card-body"></div>
+                    </div>
+                </div>
             </div>
             {% else %}
             <p class="card-text">
@@ -85,6 +111,9 @@ Tornium - Faction OCs Dashboard
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script src="/static/global/oc.js"></script>
 <script src="/static/faction/crimes.js"></script>
 {% endblock %}

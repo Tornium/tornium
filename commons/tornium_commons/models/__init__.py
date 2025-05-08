@@ -16,8 +16,6 @@
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition
-from .gateway_client import GatewayClient
-from .gateway_message import GatewayMessage
 from .item import Item
 from .notification import Notification
 from .notification_trigger import NotificationTrigger
@@ -47,8 +45,6 @@ __all__ = [
     "AuthLog",
     "Faction",
     "FactionPosition",
-    "GatewayClient",
-    "GatewayMessage",
     "Item",
     "Notification",
     "NotificationTrigger",

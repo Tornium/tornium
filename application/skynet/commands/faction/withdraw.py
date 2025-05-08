@@ -31,7 +31,7 @@ from skynet.skyutils import get_faction_keys
 @invoker_required
 def withdraw(interaction, *args, **kwargs):
     def followup_return(response):
-        discordpatch("webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
         return
 
     if "guild_id" not in interaction:
@@ -255,21 +255,18 @@ def withdraw(interaction, *args, **kwargs):
     if str(user.tid) not in faction_balances:
         followup_return(
             {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Faction Error",
-                            "description": (
-                                f"{discord_escaper(user.name)} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
-                                f"indicate that they are not in the faction or that they don't have any funds in the "
-                                f"faction vault."
-                            ),
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
+                "embeds": [
+                    {
+                        "title": "Faction Error",
+                        "description": (
+                            f"{discord_escaper(user.name)} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
+                            f"indicate that they are not in the faction or that they don't have any funds in the "
+                            f"faction vault."
+                        ),
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             }
         )
         return {}
@@ -282,42 +279,36 @@ def withdraw(interaction, *args, **kwargs):
     if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
         followup_return(
             {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Not Enough",
-                            "description": "You do not have enough of the requested currency in the faction vault.",
-                            "fields": [
-                                {"name": "Amount Requested", "value": withdrawal_amount},
-                                {
-                                    "name": "Amount Available",
-                                    "value": faction_balances[str(user.tid)][withdrawal_option_str],
-                                },
-                            ],
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
+                "embeds": [
+                    {
+                        "title": "Not Enough",
+                        "description": "You do not have enough of the requested currency in the faction vault.",
+                        "fields": [
+                            {"name": "Amount Requested", "value": withdrawal_amount},
+                            {
+                                "name": "Amount Available",
+                                "value": faction_balances[str(user.tid)][withdrawal_option_str],
+                            },
+                        ],
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             }
         )
         return {}
     elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
         followup_return(
             {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Not Enough",
-                            "description": "You have requested all of your currency, but have zero or a negative vault "
-                            "balance.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
+                "embeds": [
+                    {
+                        "title": "Not Enough",
+                        "description": "You have requested all of your currency, but have zero or a negative vault "
+                        "balance.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             }
         )
         return {}
@@ -455,40 +446,34 @@ def withdraw(interaction, *args, **kwargs):
 
         followup_return(
             {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Withdrawal Failure",
-                            "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
+                "embeds": [
+                    {
+                        "title": "Withdrawal Failure",
+                        "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             }
         )
         return {}
 
     followup_return(
         {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": f"Vault Request #{request_id}",
-                        "description": "Your vault request has been forwarded to the faction leadership.",
-                        "fields": [
-                            {
-                                "name": "Request Type",
-                                "value": "Cash" if withdrawal_option == 0 else "Points",
-                            },
-                            {"name": "Amount Requested", "value": withdrawal_amount},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
+            "embeds": [
+                {
+                    "title": f"Vault Request #{request_id}",
+                    "description": "Your vault request has been forwarded to the faction leadership.",
+                    "fields": [
+                        {
+                            "name": "Request Type",
+                            "value": "Cash" if withdrawal_option == 0 else "Points",
+                        },
+                        {"name": "Amount Requested", "value": withdrawal_amount},
+                    ],
+                }
+            ],
+            "flags": 64,
         }
     )
     return {}

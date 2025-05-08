@@ -76,16 +76,19 @@ Tornium - Faction OCs Dashboard
             <div class="row">
                 <div class="col-sm-12 col-lg-6">
                     <div class="card mt-3">
-                        <div class="card-header">Organized Crime Teams</div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
+                        <div class="card-header">Team Selector</div>
+                        <ul class="list-group list-group-flush" id="team-list">
+                            <li class="list-group-item d-flex">
                                 <input type="radio" name="team-selector">
+                                <p class="card-text px-3" style="max-width: 100%;">
+                                    Break the Bank: <span class="text-secondary d-inline-block text-truncate" style="max-width: inherit;">tiksan, Chedburn, bogie, asdf, asdf, lorem ipsum, dolor, set</span>
+                                </p>
                             </li>
                         </ul>
                         <div class="card-footer d-flex flex-wrap justify-content-between">
                             <div class="col-sm-12 col-lg-6">
                                 <select class="oc-name-selector" aria-label="New OC Name" data-live-search="true"></select>
-                                <button type="button" class="btn btn-outline-success mt-2 mt-md-0">New</button>
+                                <button type="button" class="btn btn-outline-success mt-2 mt-md-0" id="new-team-button">New</button>
                             </div>
 
                             <div class="col-sm-12 col-lg-6 d-flex flex-fill justify-content-end mt-2 mt-md-0">
@@ -97,9 +100,11 @@ Tornium - Faction OCs Dashboard
                 </div>
 
                 <div class="col-sm-12 col-lg-6">
-                    <div class="card mt-3 placeholder-glow">
-                        <div class="card-header">Select a Team</div>
-                        <div class="card-body"></div>
+                    <div class="card mt-3">
+                        <div class="card-header">Team Viewer</div>
+                        <div class="card-body">
+                            <p class="card-text" id="viewer-default">Select a team first.</p>
+                        </div>
                     </div>
                 </div>
             </div>

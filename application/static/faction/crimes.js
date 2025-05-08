@@ -13,6 +13,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+function createTeam(event) {
+    console.log(event);
+}
+
 ready(() => {
     ocNamesRequest().then(() => {
         document.querySelectorAll(".oc-name-selector").forEach((element) => {
@@ -21,4 +25,6 @@ ready(() => {
             });
         });
     });
+
+    document.getElementById("new-team-button").addEventListener("click", createTeam);
 });

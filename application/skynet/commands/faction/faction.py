@@ -434,7 +434,25 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        elif user.faction.guild_id is None or user.faction.guild_id != interaction["guild_id"]:
+
+        try:
+            faction: Faction = Faction.select(Faction.guild_id).where(Faction.tid == user.faction_id).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Does Not Exist",
+                            "description": "Your faction does not exist in the database.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if faction.guild_id is None or faction.guild_id != interaction["guild_id"]:
             return {
                 "type": 4,
                 "data": {
@@ -450,7 +468,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
 
         try:
-            guild = Server.select(Server.factions).where(Server.sid == user.faction.guild_id).get()
+            guild: Server = Server.select(Server.factions).where(Server.sid == faction.guild_id).get()
         except DoesNotExist:
             return {
                 "type": 4,
@@ -481,7 +499,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        aa_keys = get_faction_keys(interaction, user.faction)
+        aa_keys = get_faction_keys(interaction, faction)
 
         if not isinstance(aa_keys, tuple) or len(aa_keys) == 0:
             return {

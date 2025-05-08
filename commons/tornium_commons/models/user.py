@@ -100,6 +100,21 @@ class User(BaseModel):
     def user_discord_id(tid: int) -> int:
         return User.select(User.discord_id).where(User.tid == tid).get().discord_id
 
+    def can_manage_crimes(self) -> bool:
+        if isinstance(self.faction_position, FactionPosition):
+            return self.faction_position.plan_init_oc
+
+        try:
+            faction_position: FactionPosition = (
+                FactionPosition.select(FactionPosition.plan_init_oc)
+                .where(FactionPosition.pid == self.faction_position_id)
+                .get()
+            )
+        except DoesNotExist:
+            return False
+
+        return faction_position.plan_init_oc
+
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"
 

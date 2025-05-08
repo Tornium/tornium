@@ -18,7 +18,7 @@ import random
 import uuid
 
 from peewee import DoesNotExist, IntegrityError
-from tornium_celery.tasks.api import discorddelete, discordpost, tornget
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import Server, User, Withdrawal
@@ -30,6 +30,10 @@ from skynet.skyutils import get_faction_keys
 
 @invoker_required
 def withdraw(interaction, *args, **kwargs):
+    def followup_return(response):
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        return
+
     if "guild_id" not in interaction:
         return {
             "type": 4,
@@ -138,14 +142,11 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    # -1: default
     # 0: cash (default)
     # 1: points
     withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
-    if withdrawal_option is None:
-        withdrawal_option = 0
-    elif withdrawal_option["value"] == "Cash":
+    if withdrawal_option is None or withdrawal_option["value"] == "Cash":
         withdrawal_option = 0
     elif withdrawal_option["value"] == "Points":
         withdrawal_option = 1
@@ -166,7 +167,7 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     client = rds()
-
+    # TODO: Make this set of redis queries atomic
     if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
         return {
             "type": 4,
@@ -245,12 +246,15 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
+    # Creating a followup message is necessary due to increased Torn and Discord API latencies
+    # causing sometimes frequent client-side timeouts of withdrawal slash commands.
+    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
+
     faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))["donations"]
 
     if str(user.tid) not in faction_balances:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Faction Error",
@@ -263,8 +267,9 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
     if withdrawal_option == 1:
         withdrawal_option_str = "points_balance"
@@ -272,9 +277,8 @@ def withdraw(interaction, *args, **kwargs):
         withdrawal_option_str = "money_balance"
 
     if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Not Enough",
@@ -290,12 +294,12 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
     elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Not Enough",
@@ -305,8 +309,9 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
     last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
@@ -439,9 +444,8 @@ def withdraw(interaction, *args, **kwargs):
             f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
         ).forget()
 
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Withdrawal Failure",
@@ -450,12 +454,12 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
-    return {
-        "type": 4,
-        "data": {
+    followup_return(
+        {
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -470,5 +474,6 @@ def withdraw(interaction, *args, **kwargs):
                 }
             ],
             "flags": 64,
-        },
-    }
+        }
+    )
+    return {}

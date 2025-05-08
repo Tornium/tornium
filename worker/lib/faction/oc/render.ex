@@ -166,7 +166,7 @@ defmodule Tornium.Faction.OC.Render do
         } =
           config
       )
-      when is_list(messages) and not is_nil(delayed_channel) do
+      when is_list(messages) and not is_nil(delayed_channel) and not is_nil(delayed_reason) do
     # TODO: Restructure this code
     # Maybe split the message struct creation into a separate function
 

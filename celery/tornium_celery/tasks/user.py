@@ -20,7 +20,7 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import JOIN, DoesNotExist, IntegrityError
+from peewee import DoesNotExist, IntegrityError
 from tornium_commons import rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp

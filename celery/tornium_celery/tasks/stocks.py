@@ -19,21 +19,15 @@ import typing
 
 from redis.commands.json.path import Path
 from tornium_commons import rds
-from tornium_commons.formatters import commas, timestamp, torn_timestamp
+from tornium_commons.formatters import timestamp
 from tornium_commons.models import StockTick, TornKey
-from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 import celery
 from celery.utils.log import get_task_logger
 
-from .api import discordpost, tornget
-from .misc import send_dm
+from .api import tornget
 
 logger = get_task_logger("celery_app")
-
-
-def _map_stock_image(acronym: str):
-    return f"https://www.torn.com/images/v2/stock-market/portfolio/{acronym.upper()}.png"
 
 
 def _get_stocks_tick(

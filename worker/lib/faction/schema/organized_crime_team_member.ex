@@ -14,11 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.OrganizedCrimeTeamMember do
-  alias Tornium.Repo
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          guid: Ecto.UUID.t()
+          guid: Ecto.UUID.t(),
+          user_id: integer(),
+          user: Tornium.Schema.User.t(),
+          team_id: Ecto.UUID.t(),
+          team: Tornium.Schema.OrganizedCrimeTeam.t(),
+          slot_type: String.t(),
+          slot_index: integer()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}

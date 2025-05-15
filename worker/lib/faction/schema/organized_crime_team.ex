@@ -14,16 +14,22 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.OrganizedCrimeTeam do
-  alias Tornium.Repo
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          guid: Ecto.UUID.t()
+          guid: Ecto.UUID.t(),
+          name: String.t(),
+          members: [Tornium.Schema.OrganizedCrimeTeamMember.t()],
+          crimes: [Tornium.Schema.OrganizedCrime.t()],
+          current_crime: Tornium.Schema.OrganizedCrime.t()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "organized_crime_team" do
+    field(:name, :string)
+
     has_many(:members, Tornium.Schema.OrganizedCrimeTeamMember, foreign_key: :guid)
-    has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team)
+    has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
+    has_one(:current_crime, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
   end
 end

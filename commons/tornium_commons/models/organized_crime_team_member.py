@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import CharField, UUIDField
+from peewee import CharField, ForeignKeyField, IntegerField, UUIDField
 
 from .base_model import BaseModel
+from .organized_crime_team import OrganizedCrimeTeam
+from .user import User
 
 
 class OrganizedCrimeTeam(BaseModel):
@@ -23,8 +25,8 @@ class OrganizedCrimeTeam(BaseModel):
         table_name = "organized_crime_team"
 
     guid = UUIDField(primary_key=True)
-    name = CharField(null=False)
+    user = ForeignKeyField(User, null=False, unique=True)
+    team = ForeignKeyField(OrganizedCrimeTeam, null=False, unique=True)
 
-    # members
-    # crimes
-    # current_crime
+    slot_type = CharField(null=False)
+    slot_index = IntegerField(null=False)

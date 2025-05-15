@@ -47,6 +47,9 @@ defmodule Tornium.Schema.OrganizedCrime do
     field(:executed_at, :utc_datetime)
 
     has_many(:slots, Tornium.Schema.OrganizedCrimeSlot, foreign_key: :oc_id)
+
+    # Tornium-specific data
+    belongs_to(:assigned_team, Tornium.Schema.OrganizedCrimeTeam, references: :guid)
   end
 
   @spec upsert_all(entries :: [t()]) :: [t()]
@@ -72,6 +75,7 @@ defmodule Tornium.Schema.OrganizedCrime do
           tid: &1
         }
       )
+
     Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 
     returned_slot_entries =

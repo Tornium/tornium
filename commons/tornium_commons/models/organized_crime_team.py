@@ -13,23 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import jsonify
-from tornium_commons.models import OrganizedCrimeNew
+from peewee import (
+    BooleanField,
+    CharField,
+    ForeignKeyField,
+    SmallIntegerField,
+    UUIDField,
+)
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth, session_required
-from controllers.api.v1.utils import api_ratelimit_response
-
-
-@require_oauth()
-@ratelimit
-@global_cache
-def get_oc_names(*args, **kwargs):
-    return jsonify(OrganizedCrimeNew.oc_names()), 200, api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}")
+from .base_model import BaseModel
 
 
-@session_required
-@ratelimit
-def create_oc_team(faction_id: str, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+class OrganizedCrimeTeam(BaseModel):
+    class Meta:
+        table_name = "organized_crime_team"
 
-    return
+    guid = UUIDField(primary_key=True)

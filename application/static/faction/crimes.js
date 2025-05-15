@@ -13,8 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+function loadViewer(teamData) {
+}
+
+function clearViewer() {
+}
+
 function createTeam(event) {
-    console.log(event);
+    const crimeName = document.getElementById("new-oc-selector").value;
 }
 
 ready(() => {

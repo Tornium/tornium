@@ -26,6 +26,7 @@ from peewee import (
 
 from .base_model import BaseModel
 from .faction import Faction
+from .organized_crime_team import OrganizedCrimeTeam
 
 
 class OrganizedCrimeNew(BaseModel):
@@ -45,6 +46,9 @@ class OrganizedCrimeNew(BaseModel):
     ready_at = DateTimeField(default=None, null=True)
     expires_at = DateTimeField(default=None, null=True)
     executed_at = DateTimeField(default=None, null=True)
+
+    # Tornium-specific OC data
+    assigned_team = ForeignKeyField(OrganizedCrimeTeam, default=None, null=True)
 
     @classmethod
     @lru_cache

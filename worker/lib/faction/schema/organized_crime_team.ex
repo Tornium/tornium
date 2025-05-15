@@ -1,35 +1,29 @@
 # Copyright (C) 2021-2025 tiksan
-#
+# 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import jsonify
-from tornium_commons.models import OrganizedCrimeNew
+defmodule Tornium.Schema.OrganizedCrimeTeam do
+  alias Tornium.Repo
+  use Ecto.Schema
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth, session_required
-from controllers.api.v1.utils import api_ratelimit_response
+  @type t :: %__MODULE__{
+          guid: Ecto.UUID.t()
+        }
 
-
-@require_oauth()
-@ratelimit
-@global_cache
-def get_oc_names(*args, **kwargs):
-    return jsonify(OrganizedCrimeNew.oc_names()), 200, api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}")
-
-
-@session_required
-@ratelimit
-def create_oc_team(faction_id: str, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    return
+  @primary_key {:guid, Ecto.UUID, autogenerate: true}
+  schema "organized_crime_team" do
+    has_many(:members, Tornium.Schema.OrganizedCrimeTeamMember, foreign_key: :guid)
+    has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team)
+  end
+end

@@ -16,6 +16,7 @@
 from peewee import (
     BooleanField,
     CharField,
+    DateTimeField,
     ForeignKeyField,
     SmallIntegerField,
     UUIDField,
@@ -37,6 +38,7 @@ class OrganizedCrimeSlot(BaseModel):
     crime_position = CharField(null=False)
     user = ForeignKeyField(User, null=False)
     user_success_chance = SmallIntegerField(default=None, null=True)
+    user_joined_at = DateTimeField(default=None, null=True)
 
     item_required = ForeignKeyField(Item, default=None, null=True)
     item_available = BooleanField(default=None, null=True)

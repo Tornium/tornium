@@ -151,8 +151,11 @@ defmodule Tornium.Faction.OC do
           %{
             "position" => crime_position,
             "item_requirement" => item_requirement,
-            "user_id" => user_id,
-            "success_chance" => user_success_chance
+            "user" => %{
+              "id" => user_id,
+              "joined_at" => user_joined_at,
+            },
+            "checkpoint_pass_rate" => user_success_chance
           } = _slot
           | remaining_slots
         ],
@@ -168,10 +171,41 @@ defmodule Tornium.Faction.OC do
         oc_id: oc_id,
         crime_position: crime_position,
         user_id: user_id,
-        user_success_chance: user_success_chance
+        user_success_chance: user_success_chance,
+        user_joined_at: Utils.unix_to_timestamp(user_joined_at)
       }
       |> put_item_required(item_requirement)
       |> put_delayer(members, oc_ready)
+
+    parse_slots(remaining_slots, members, oc_id, oc_ready, [slot | slots])
+  end
+
+  def parse_slots(
+        [
+          %{
+            "position" => crime_position,
+            "item_requirement" => item_requirement,
+            "user" => nil,
+            "checkpoint_pass_rate" => user_success_chance
+          } = _slot
+          | remaining_slots
+        ],
+        members,
+        oc_id,
+        oc_ready,
+        slots
+      )
+      when is_list(members) and is_boolean(oc_ready) and (is_map(item_requirement) or is_nil(item_requirement)) do
+    slot =
+      %Tornium.Schema.OrganizedCrimeSlot{
+        slot_index: Kernel.length(slots),
+        oc_id: oc_id,
+        crime_position: crime_position,
+        user_id: nil,
+        user_success_chance: user_success_chance,
+        user_joined_at: nil
+      }
+      |> put_item_required(item_requirement)
 
     parse_slots(remaining_slots, members, oc_id, oc_ready, [slot | slots])
   end

@@ -19,6 +19,9 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           name: String.t(),
+          oc_name: String.t(),
+          faction_id: integer(),
+          faction: Tornium.Schema.Faction.t(),
           members: [Tornium.Schema.OrganizedCrimeTeamMember.t()],
           crimes: [Tornium.Schema.OrganizedCrime.t()],
           current_crime: Tornium.Schema.OrganizedCrime.t()
@@ -27,6 +30,8 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "organized_crime_team" do
     field(:name, :string)
+    field(:oc_name, :string)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     has_many(:members, Tornium.Schema.OrganizedCrimeTeamMember, foreign_key: :guid)
     has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)

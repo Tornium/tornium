@@ -20,13 +20,13 @@ from peewee import (
     BigIntegerField,
     CharField,
     DateTimeField,
+    DeferredForeignKey,
     ForeignKeyField,
     SmallIntegerField,
 )
 
 from .base_model import BaseModel
 from .faction import Faction
-from .organized_crime_team import OrganizedCrimeTeam
 
 
 class OrganizedCrimeNew(BaseModel):
@@ -48,7 +48,7 @@ class OrganizedCrimeNew(BaseModel):
     executed_at = DateTimeField(default=None, null=True)
 
     # Tornium-specific OC data
-    assigned_team = ForeignKeyField(OrganizedCrimeTeam, default=None, null=True)
+    assigned_team = DeferredForeignKey("OrganizedCrimeTeam", default=None, null=True)
 
     @classmethod
     @lru_cache

@@ -25,6 +25,8 @@ from .oauth_token import OAuthToken
 from .organized_crime import OrganizedCrime
 from .organized_crime_new import OrganizedCrimeNew
 from .organized_crime_slot import OrganizedCrimeSlot
+from .organized_crime_team import OrganizedCrimeTeam
+from .organized_crime_team_member import OrganizedCrimeTeamMember
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
@@ -54,6 +56,8 @@ __all__ = [
     "OrganizedCrime",
     "OrganizedCrimeNew",
     "OrganizedCrimeSlot",
+    "OrganizedCrimeTeam",
+    "OrganizedCrimeTeamMember",
     "PersonalStats",
     "Retaliation",
     "Server",

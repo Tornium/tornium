@@ -16,7 +16,7 @@
 from flask import jsonify
 from tornium_commons.models import OrganizedCrimeNew
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth, session_required
+from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response
 
 
@@ -25,11 +25,3 @@ from controllers.api.v1.utils import api_ratelimit_response
 @global_cache
 def get_oc_names(*args, **kwargs):
     return jsonify(OrganizedCrimeNew.oc_names()), 200, api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}")
-
-
-@session_required
-@ratelimit
-def create_oc_team(faction_id: str, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    return

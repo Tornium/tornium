@@ -20,9 +20,9 @@ from .organized_crime_team import OrganizedCrimeTeam
 from .user import User
 
 
-class OrganizedCrimeTeam(BaseModel):
+class OrganizedCrimeTeamMember(BaseModel):
     class Meta:
-        table_name = "organized_crime_team"
+        table_name = "organized_crime_team_member"
 
     guid = UUIDField(primary_key=True)
     user = ForeignKeyField(User, null=False, unique=True)

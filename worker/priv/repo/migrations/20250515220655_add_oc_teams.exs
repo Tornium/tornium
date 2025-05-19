@@ -4,7 +4,9 @@ defmodule Tornium.Repo.Migrations.AddOcTeams do
   def change do
     create_if_not_exists table("organized_crime_team", primary_key: false) do
       add :guid, :binary_id, primary_key: true, autogenerate: true
+      add :oc_name, :string, null: false
       add :name, :string, null: false
+      add :faction_id, references(:faction, column: :tid, type: :integer), null: false
     end
 
     create_if_not_exists table("organized_crime_team_member", primary_key: false) do

@@ -101,10 +101,8 @@ Tornium - Faction OCs Dashboard
 
                 <div class="col-sm-12 col-lg-6">
                     <div class="card mt-3">
-                        <div class="card-header">Team Viewer</div>
-                        <div class="card-body">
-                            <p class="card-text" id="viewer-default">Select a team first.</p>
-                        </div>
+                        <div class="card-header" id="viewer-title">Team Viewer</div>
+                        <div class="card-body" id="viewer"></div>
                     </div>
                 </div>
             </div>
@@ -120,5 +118,5 @@ Tornium - Faction OCs Dashboard
 
 {% block scripts %}
 <script src="/static/global/oc.js"></script>
-<script src="/static/faction/crimes.js"></script>
+<script src="/static/faction/crimes.js" data-faction-id="{{ current_user.faction_id }}"></script>
 {% endblock %}

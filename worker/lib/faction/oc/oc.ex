@@ -153,7 +153,7 @@ defmodule Tornium.Faction.OC do
             "item_requirement" => item_requirement,
             "user" => %{
               "id" => user_id,
-              "joined_at" => user_joined_at,
+              "joined_at" => user_joined_at
             },
             "checkpoint_pass_rate" => user_success_chance
           } = _slot

@@ -72,6 +72,7 @@ defmodule Tornium.Schema.OrganizedCrime do
           tid: &1
         }
       )
+
     Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 
     returned_slot_entries =

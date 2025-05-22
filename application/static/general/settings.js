@@ -18,7 +18,22 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 });
 const token = params.token;
 
-$(document).ready(function () {
+function toggleSetting(settingID, settingValue) {
+    tfetch("PUT", `user/settings/${settingID}`, {
+        body: {
+            enabled: settingValue,
+        },
+        errorTitle: "Setting Toggle Failed",
+        errorHandler: (jsonError) => {
+            // TODO: Update error handler
+            console.log(jsonError);
+        },
+    }).then((data) => {
+        generateToast("Setting Toggle Successful", `The setting ${settingID} has been successfully toggled.`);
+    });
+}
+
+ready(() => {
     // Theme selection
     const getTheme = function () {
         if (localStorage.getItem("theme")) {
@@ -297,5 +312,12 @@ $(document).ready(function () {
             generateToast("API Key Delete Successful");
             $(this).closest(".key-parent").remove();
         });
+    });
+
+    document.getElementById("cpr-toggle-enable").addEventListener("click", (event) => {
+        toggleSetting("cpr", true);
+    });
+    document.getElementById("cpr-toggle-disable").addEventListener("click", (event) => {
+        toggleSetting("cpr", false);
     });
 });

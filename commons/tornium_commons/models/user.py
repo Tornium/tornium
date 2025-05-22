@@ -25,6 +25,7 @@ from peewee import (
     BooleanField,
     CharField,
     DateTimeField,
+    DeferredForeignKey,
     DoesNotExist,
     FloatField,
     ForeignKeyField,
@@ -76,6 +77,8 @@ class User(BaseModel):
     security = SmallIntegerField(null=True)
     otp_secret = TextField(null=True)
     otp_backups = ArrayField(TextField, index=False, default=[])
+
+    settings = DeferredForeignKey("UserSettings", default=None, null=True)
 
     @staticmethod
     def user_str(tid: int) -> str:

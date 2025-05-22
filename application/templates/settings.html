@@ -130,10 +130,27 @@ Tornium - Settings
                         </div>
                     </div>
                 </div>
+
+                <div class="col-sm-12 col-md-8 col-xl-6">
+                    <div class="card mt-3">
+                        <div class="card-header">Tornium Usage Settings</div>
+                        <div class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <label for="cpr-toggle" class="form-label">Share CPR:</label>
+
+                                <!-- TODO: Use DB to determine which is checked -->
+                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-enable" autocomplete="off" checked>
+                                <label class="btn" for="cpr-toggle-enable">Enable</label>
+
+                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-disable" autocomplete="off">
+                                <label class="btn" for="cpr-toggle-disable">Disable</label>
+                            </li>
+                            <!-- TODO: Add toggle to share attack stats for stat DB -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        {# <button disabled class="m-2 btn btn-outline-danger">Delete Account</button> #}
     </div>
 </div>
 
@@ -141,7 +158,7 @@ Tornium - Settings
     <div class="card-body">
         <h5 class="card-title">Authorized Applications</h5>
         <p class="card-text">
-            You have granted {{ tokens|count }} application(s) to your Tornium account. 
+            You have granted {{ tokens|count }} application(s) access to your Tornium account. 
         </p>
 
         <ul class="list-group list-group-flush">

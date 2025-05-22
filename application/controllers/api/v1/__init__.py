@@ -288,6 +288,11 @@ mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>", view_func=faction.crime_team.get_oc_team, methods=["GET"]
 )
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
+    view_func=faction.crimes.get_members_cpr,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/v1/faction/chain/od/channel",
     view_func=faction.chain.chain_od_channel,
     methods=["POST"],

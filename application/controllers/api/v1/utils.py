@@ -181,6 +181,12 @@ API_EXCEPTIONS = {
         "http": 403,
         "message": "The provided authentication code was not sufficient for an AA level request.",
     },
+    "4006": {
+        "code": 4006,
+        "name": "InsufficientFactionPermissions",
+        "http": 403,
+        "message": "The provided authentication code was not sufficient for a MC level request.",
+    },
     "4010": {
         "code": 4010,
         "name": "EndpointNotFound",

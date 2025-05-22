@@ -16,8 +16,13 @@
 from flask import jsonify
 from tornium_commons.models import OrganizedCrimeNew
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
-from controllers.api.v1.utils import api_ratelimit_response
+from controllers.api.v1.decorators import (
+    global_cache,
+    ratelimit,
+    require_oauth,
+    session_required,
+)
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @require_oauth()
@@ -25,3 +30,18 @@ from controllers.api.v1.utils import api_ratelimit_response
 @global_cache
 def get_oc_names(*args, **kwargs):
     return jsonify(OrganizedCrimeNew.oc_names()), 200, api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}")
+
+
+@session_required
+@ratelimit
+def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if oc_name not in OrganizedCrimeNew.oc_names():
+        return make_exception_response("1105", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4004", key)
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4005", key)
+
+    return {}, api_ratelimit_response(key)

@@ -14,7 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template
-from flask_login import login_required
+from flask_login import current_user, login_required
+from tornium_commons.models import OrganizedCrimeTeam
 
 from controllers.faction.decorators import fac_required, manage_crimes_required
 
@@ -23,4 +24,5 @@ from controllers.faction.decorators import fac_required, manage_crimes_required
 @fac_required
 @manage_crimes_required
 def crimes(*args, **kwargs):
-    return render_template("faction/crimes.html")
+    teams = OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.faction_id == current_user.faction_id)
+    return render_template("faction/crimes.html", teams=teams.limit(10), team_count=teams.count())

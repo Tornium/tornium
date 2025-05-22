@@ -25,8 +25,19 @@ class OrganizedCrimeTeamMember(BaseModel):
         table_name = "organized_crime_team_member"
 
     guid = UUIDField(primary_key=True)
-    user = ForeignKeyField(User, null=False, unique=True)
+    user = ForeignKeyField(User, null=True, unique=True)
     team = ForeignKeyField(OrganizedCrimeTeam, null=False, unique=True)
 
     slot_type = CharField(null=False)
+    slot_count = IntegerField(null=False)
     slot_index = IntegerField(null=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "guid": self.guid,
+            "user": self.user_id,
+            "team": self.team_id,
+            "slot_type": self.slot_type,
+            "slot_count": self.slot_count,
+            "slot_index": self.slot_index,
+        }

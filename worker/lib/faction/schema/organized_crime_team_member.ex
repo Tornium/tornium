@@ -23,6 +23,7 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
           team_id: Ecto.UUID.t(),
           team: Tornium.Schema.OrganizedCrimeTeam.t(),
           slot_type: String.t(),
+          slot_count: integer(),
           slot_index: integer()
         }
 
@@ -32,6 +33,7 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
     belongs_to(:team, Tornium.Schema.OrganizedCrimeTeam, references: :guid)
 
     field(:slot_type, :string)
+    field(:slot_count, :integer)
     field(:slot_index, :integer)
   end
 end

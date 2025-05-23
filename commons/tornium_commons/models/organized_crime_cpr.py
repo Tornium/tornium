@@ -21,6 +21,9 @@ from .user import User
 
 
 class OrganizedCrimeCPR(BaseModel):
+    class Meta:
+        table_name = "organized_crime_cpr"
+
     guid = UUIDField(primary_key=True)
     user = ForeignKeyField(User, null=False)
     oc_name = CharField(null=False)

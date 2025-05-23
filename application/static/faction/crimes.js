@@ -15,6 +15,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const factionID = document.currentScript.getAttribute("data-faction-id");
 
+let prevPageButton;
+let nextPageButton;
+const OFFSET = 10;
+let page = 0;
+
 function addTeamSelector({ current_crime: current_crime, guid: guid, members: members, name: name, oc_name: oc_name }) {
     const container = document.getElementById("team-list");
 
@@ -44,7 +49,34 @@ function addTeamSelector({ current_crime: current_crime, guid: guid, members: me
     teamDescription.appendChild(teamMembers);
 }
 
-function loadViewerTeam({members: members, name: name, oc_name: oc_name}) {
+function clearTeamSelector() {
+    document.getElementById("team-list").innerHTML = "";
+}
+
+function loadTeamSelectorPage(pageLoaded) {
+    tfetch("GET", `faction/${factionID}/crime/team?limit=10&offset=${pageLoaded * OFFSET}`, {
+        errorTitle: "Member CPR Load Failed",
+    }).then((data) => {
+        clearTeamSelector();
+        data.forEach((team) => {
+            addTeamSelector(team);
+        });
+
+        if (data.length < OFFSET) {
+            nextPageButton.setAttribute("disabled", "");
+        }
+    });
+
+    page = pageLoaded;
+    prevPageButton.removeAttribute("disabled");
+    nextPageButton.removeAttribute("disabled");
+
+    if (page == 0) {
+        prevPageButton.setAttribute("disabled", "");
+    }
+}
+
+function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
     const viewerTitle = document.getElementById("viewer-title");
     viewerTitle.textContent = `Team Viewer: ${name} [${oc_name}]`;
 
@@ -64,7 +96,7 @@ function loadViewerTeam({members: members, name: name, oc_name: oc_name}) {
     viewerMembersList.classList.add("list-group", "list-group-flush", "list-group-numbered");
     viewerMembers.appendChild(viewerMembersList);
 
-    members.forEach(({guid, slot_type, slot_index}) => {
+    members.forEach(({ guid, slot_type, slot_index }) => {
         const viewerMemberChild = document.createElement("li");
         viewerMemberChild.classList.add("list-group-item", "d-flex", "flex-fill", "align-items-center");
         viewerMembersList.appendChild(viewerMemberChild);
@@ -78,10 +110,16 @@ function loadViewerTeam({members: members, name: name, oc_name: oc_name}) {
         memberSelector.classList.add("team-member-selector", "ms-0", "ms-md-3");
         memberSelector.setAttribute("data-team-member-guid", guid);
         viewerMemberChild.appendChild(memberSelector);
+
+        // TODO: Align tomselects vertically
         new TomSelect(memberSelector, {
             create: false,
-            preload: "focus",
-            load: function(query, callback) {
+            loadingClass: null,
+            preload: true,
+            valueField: "value",
+            labelField: "label",
+            sortField: [{ field: "$cpr" }, { field: "$score" }],
+            load: function (query, callback) {
                 if (this.loading > 1) {
                     // Blocks loading this more than once.
                     // The data shouldn't change between keypresses and can be filtered on the client
@@ -90,17 +128,27 @@ function loadViewerTeam({members: members, name: name, oc_name: oc_name}) {
                 }
 
                 tfetch("GET", `faction/${factionID}/crime/cpr/${oc_name}/${slot_type}`, {
-                    errorTitle: "Member CPR Load Failed"
-                }).then((data) => {
-                    callback(data);
-                    this.settings.load = null;
-                });
+                    errorTitle: "Member CPR Load Failed",
+                })
+                    .then((data) => {
+                        callback(
+                            Object.entries(data).map(([key, value]) => ({
+                                value: key,
+                                label: `${value.name} [${value.cpr}%]`,
+                                cpr: value.cpr,
+                            })),
+                        );
+                        this.settings.load = null;
+                    })
+                    .catch(() => {
+                        callback();
+                    });
             },
             render: {
                 loading: null,
-            }
+            },
         });
-        // TODO: Add member selection and updating via API
+        // TODO: Add existing member selection and member updating via API
     });
 
     const viewerStats = document.createElement("div");
@@ -111,8 +159,6 @@ function loadViewerTeam({members: members, name: name, oc_name: oc_name}) {
     viewerStatsHeader.classList.add("card-header");
     viewerStatsHeader.textContent = "Team Statistics";
     viewerStats.appendChild(viewerStatsHeader);
-
-    // TODO: Have OC team members pre-initialized
 }
 
 function loadViewer(event) {
@@ -120,10 +166,6 @@ function loadViewer(event) {
 
     tfetch("GET", `faction/${factionID}/crime/team/${teamGUID}`, {
         errorTitle: "Team Retrieval Failed",
-        errorHandler: (jsonError) => {
-            // TODO: Update error handler
-            console.log(jsonError);
-        },
     }).then((data) => {
         loadViewerTeam(data);
     });
@@ -146,12 +188,7 @@ function createTeam(event) {
     const crimeName = document.getElementById("new-oc-selector").value;
 
     tfetch("POST", `faction/${factionID}/crime/team/${crimeName}`, {
-        body: {},
         errorTitle: "Team Creation Failed",
-        errorHandler: (jsonError) => {
-            // TODO: Update error handler
-            console.log(jsonError);
-        },
     }).then((data) => {
         generateToast("Team Created Successfully", "The OC team has been successfully created.");
         addTeamSelector(data);
@@ -175,6 +212,13 @@ ready(() => {
     document.querySelectorAll(`input[name="team-selector"]`).forEach((teamRadioButton) => {
         teamRadioButton.addEventListener("change", loadViewer);
     });
-});
 
-<!-- TODO: Bind prev and next page buttons -->
+    prevPageButton = document.getElementById("team-prev-page");
+    nextPageButton = document.getElementById("team-next-page");
+    prevPageButton.addEventListener("click", (event) => {
+        loadTeamSelectorPage(page - 1);
+    });
+    nextPageButton.addEventListener("click", (event) => {
+        loadTeamSelectorPage(page + 1);
+    });
+});

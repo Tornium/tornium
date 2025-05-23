@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
 import uuid
 
-from flask import jsonify
+from flask import jsonify, request
 from peewee import DoesNotExist
 from tornium_commons.db_connection import db
 from tornium_commons.models import (
@@ -119,6 +120,26 @@ def get_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
             .get()
         )
     except DoesNotExist:
-        return make_exception_response()
+        # TODO: Add error code
+        return make_exception_response("0000", key)
 
     return jsonify(team.to_dict()), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def get_oc_teams(faction_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    limit = int(request.args.get("limit", 10))
+    offset = int(request.args.get("offset", 0))
+    # TODO: Validate limit and offset
+
+    teams: typing.Iterable[OrganizedCrimeTeam] = (
+        OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.faction_id == faction_id).offset(offset).limit(limit)
+    )
+
+    return [team.to_dict() for team in teams], 200, api_ratelimit_response(key)

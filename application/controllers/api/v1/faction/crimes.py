@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from flask import jsonify
-from tornium_commons.models import OrganizedCrimeNew
+from tornium_commons.models import Faction, OrganizedCrimeCPR, OrganizedCrimeNew, User
 
 from controllers.api.v1.decorators import (
     global_cache,
@@ -42,6 +44,28 @@ def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args,
     elif kwargs["user"].faction_id != faction_id:
         return make_exception_response("4004", key)
     elif not kwargs["user"].can_manage_crimes():
-        return make_exception_response("4005", key)
+        return make_exception_response("4006", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
 
-    return {}, api_ratelimit_response(key)
+    members = [member.tid for member in User.select(User.tid).where(User.faction_id == faction_id)]
+    members_cpr: typing.Iterable[OrganizedCrimeCPR] = (
+        OrganizedCrimeCPR.select()
+        .join(User)
+        .where(
+            (User.tid.in_(members))
+            & (OrganizedCrimeCPR.oc_name == oc_name)
+            & (OrganizedCrimeCPR.oc_position == oc_position_name)
+        )
+    )
+
+    return (
+        {
+            member.user_id: {"cpr": member.cpr, "name": member.user.name, "updated_at": member.updated_at}
+            for member in members_cpr
+        },
+        200,
+        api_ratelimit_response(key),
+    )

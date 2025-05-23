@@ -116,7 +116,7 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
 
     members.forEach(({ guid: guid, slot_type: slot_type, slot_index: slot_index, user: user }) => {
         const viewerMemberChild = document.createElement("li");
-        viewerMemberChild.classList.add("list-group-item", "d-flex", "flex-fill", "align-items-center");
+        viewerMemberChild.classList.add("list-group-item", "d-flex", "flex-wrap", "flex-fill", "align-items-center");
         viewerMembersList.appendChild(viewerMemberChild);
 
         const memberTitle = document.createElement("div");

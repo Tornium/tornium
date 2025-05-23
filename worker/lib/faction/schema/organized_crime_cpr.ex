@@ -27,6 +27,7 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
   """
 
   use Ecto.Schema
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -38,12 +39,35 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
           updated_at: DateTime.t()
         }
 
-  @primary_key {:guid, Ecto.UUID, autogenerate: false}
+  @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "organized_crime_cpr" do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     field(:oc_name, :string)
     field(:oc_position, :string)
     field(:cpr, :integer)
     field(:updated_at, :utc_datetime_usec)
+  end
+
+  @spec upsert_all(entries :: [t()]) :: [t()]
+  def upsert_all([%__MODULE__{} | _] = entries) when is_list(entries) do
+    {_, returned_entries} =
+      entries
+      |> Enum.map(
+        &%{
+          guid: &1.guid,
+          user_id: &1.user_id,
+          oc_name: &1.oc_name,
+          oc_position: &1.oc_position,
+          cpr: &1.cpr,
+          updated_at: &1.updated_at
+        }
+      )
+      |> (&Repo.insert_all(__MODULE__, &1,
+            on_conflict: {:replace, [:cpr, :updated_at]},
+            conflict_target: [:user_id, :oc_name, :oc_position],
+            returning: true
+          )).()
+
+    returned_entries
   end
 end

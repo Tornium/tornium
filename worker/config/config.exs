@@ -43,15 +43,16 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 20, notifications: 20, scheduler: 5],
+  queues: [faction_processing: 20, user_processing: 20, notifications: 20, scheduler: 5],
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"* * * * *", Tornium.Workers.NotificationScheduler},
-       {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler}
+       # {"* * * * *", Tornium.Workers.NotificationScheduler},
+       # {"0 * * * *", Tornium.Workers.OCMigrationCheck},
+       # {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
+       {"* * * * *", Tornium.Workers.OCCPRUpdateScheduler}
      ]},
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}

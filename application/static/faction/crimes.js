@@ -36,16 +36,32 @@ function addTeamSelector({ current_crime: current_crime, guid: guid, members: me
 
     const teamDescription = document.createElement("p");
     teamDescription.classList.add("card-text", "px-3");
-    teamDescription.setAttribute("style", "width: 100%"); // TODO: Determine if there's a better method of setting the style here
+    teamDescription.setAttribute("style", "width: 100%");
     teamDescription.textContent = `${oc_name}:`;
     team.appendChild(teamDescription);
 
     const teamMembers = document.createElement("span");
     teamMembers.classList.add("text-secondary", "d-inline-block", "text-truncate");
-    teamMembers.setAttribute("style", "width: inherit"); // TODO: Determine if there's a better method of setting the style here
-    // FIXME: Use the usernames of the members or skip if not set
+    teamMembers.setAttribute("style", "width: inherit");
     // TODO: Add icon flagging OC teams with not enough members
-    teamMembers.textContent = members.length == 0 ? "None" : members.join(", ");
+
+    if (
+        members.every((member) => {
+            return member.user == null;
+        })
+    ) {
+        teamMembers.textContent = "No Members Set";
+    } else {
+        let setMembers = [];
+        members.forEach((member) => {
+            if (member.user != null) {
+                setMembers.push(member.user.name);
+            }
+        });
+
+        teamMembers.textContent = setMembers.join(", ");
+    }
+
     teamDescription.appendChild(teamMembers);
 }
 
@@ -76,11 +92,13 @@ function loadTeamSelectorPage(pageLoaded) {
     }
 }
 
-function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
+function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_name }) {
     const viewerTitle = document.getElementById("viewer-title");
     viewerTitle.textContent = `Team Viewer: ${name} [${oc_name}]`;
+    // TODO: Convert the OC name to an input
 
     const viewer = document.getElementById("viewer");
+    viewer.setAttribute("data-team-guid", guid);
     viewer.innerHTML = "";
 
     const viewerMembers = document.createElement("div");
@@ -96,7 +114,7 @@ function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
     viewerMembersList.classList.add("list-group", "list-group-flush", "list-group-numbered");
     viewerMembers.appendChild(viewerMembersList);
 
-    members.forEach(({ guid, slot_type, slot_index }) => {
+    members.forEach(({ guid: guid, slot_type: slot_type, slot_index: slot_index, user: user }) => {
         const viewerMemberChild = document.createElement("li");
         viewerMemberChild.classList.add("list-group-item", "d-flex", "flex-fill", "align-items-center");
         viewerMembersList.appendChild(viewerMemberChild);
@@ -109,16 +127,18 @@ function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
         const memberSelector = document.createElement("select");
         memberSelector.classList.add("team-member-selector", "ms-0", "ms-md-3");
         memberSelector.setAttribute("data-team-member-guid", guid);
+        memberSelector.addEventListener("change", updateTeamMember);
         viewerMemberChild.appendChild(memberSelector);
 
         // TODO: Align tomselects vertically
         new TomSelect(memberSelector, {
             create: false,
-            loadingClass: null,
             preload: true,
             valueField: "value",
             labelField: "label",
             sortField: [{ field: "$cpr" }, { field: "$score" }],
+            options: user == null ? [] : [{ value: user.tid, label: `${user.name} [${user.cpr}%]` }],
+            items: user == null ? [] : [user.tid],
             load: function (query, callback) {
                 if (this.loading > 1) {
                     // Blocks loading this more than once.
@@ -148,7 +168,6 @@ function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
                 loading: null,
             },
         });
-        // TODO: Add existing member selection and member updating via API
     });
 
     const viewerStats = document.createElement("div");
@@ -159,6 +178,25 @@ function loadViewerTeam({ members: members, name: name, oc_name: oc_name }) {
     viewerStatsHeader.classList.add("card-header");
     viewerStatsHeader.textContent = "Team Statistics";
     viewerStats.appendChild(viewerStatsHeader);
+}
+
+function updateTeamMember(event) {
+    const memberGUID = this.getAttribute("data-team-member-guid");
+    const teamGUID = document.getElementById("viewer").getAttribute("data-team-guid");
+    const selectedMember = this.options[this.selectedIndex].value;
+
+    tfetch("PUT", `faction/${factionID}/crime/team/${teamGUID}/member/${memberGUID}/${selectedMember}`, {
+        errorHandler: (jsonError) => {
+            let errorBody = `[${jsonError.code}] ${jsonError.message}`;
+            if (jsonError.details.message != null) {
+                errorBody += " " + jsonError.details.message;
+            }
+
+            generateToast("Team Member Set Failed", errorBody);
+        },
+    }).then((data) => {
+        // TODO: Handle response data
+    });
 }
 
 function loadViewer(event) {

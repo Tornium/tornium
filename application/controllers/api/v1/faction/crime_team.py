@@ -17,7 +17,7 @@ import typing
 import uuid
 
 from flask import jsonify, request
-from peewee import DoesNotExist
+from peewee import DoesNotExist, IntegrityError
 from tornium_commons.db_connection import db
 from tornium_commons.models import (
     Faction,
@@ -25,6 +25,7 @@ from tornium_commons.models import (
     OrganizedCrimeSlot,
     OrganizedCrimeTeam,
     OrganizedCrimeTeamMember,
+    User,
 )
 
 from controllers.api.v1.decorators import ratelimit, session_required
@@ -142,4 +143,44 @@ def get_oc_teams(faction_id: int, *args, **kwargs):
         OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.faction_id == faction_id).offset(offset).limit(limit)
     )
 
+    for team in teams:
+        print(team.to_dict())
+
     return [team.to_dict() for team in teams], 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def set_oc_team_member(faction_id: int, team_guid: str, member_guid: str, user_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif not OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.guid == team_guid).exists():
+        # TODO: Add error code
+        return make_exception_response("0000", key)
+    elif not OrganizedCrimeTeamMember.select().where(OrganizedCrimeTeamMember.guid == member_guid).exists():
+        # TODO: Add error code
+        return make_exception_response("0000", key)
+
+    try:
+        user: User = User.select().where(User.tid == user_id).get()
+    except DoesNotExist:
+        return make_exception_response("1100", key)
+
+    if user.faction_id != faction_id:
+        return make_exception_response("0000", key, details={"message": "User not in faction"})
+
+    try:
+        member: OrganizedCrimeTeamMember = (
+            OrganizedCrimeTeamMember.update(user=user_id)
+            .where(OrganizedCrimeTeamMember.guid == member_guid)
+            .returning(OrganizedCrimeTeamMember)
+            .execute()[0]
+        )
+    except IntegrityError:
+        return make_exception_response(
+            "0000", key, details={"message": "User has already been set in a position on this team."}
+        )
+
+    return member.to_dict(), 200, api_ratelimit_response(key)

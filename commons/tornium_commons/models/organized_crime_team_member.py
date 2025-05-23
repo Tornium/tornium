@@ -13,9 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from peewee import CharField, ForeignKeyField, IntegerField, UUIDField
 
 from .base_model import BaseModel
+from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_team import OrganizedCrimeTeam
 from .user import User
 
@@ -33,11 +36,35 @@ class OrganizedCrimeTeamMember(BaseModel):
     slot_index = IntegerField(null=False)
 
     def to_dict(self) -> dict:
-        return {
-            "guid": self.guid,
-            "user": self.user_id,
-            "team": self.team_id,
-            "slot_type": self.slot_type,
-            "slot_count": self.slot_count,
-            "slot_index": self.slot_index,
-        }
+        if self.user is None:
+            return {
+                "guid": self.guid,
+                "user": None,
+                "team": self.team_id,
+                "slot_type": self.slot_type,
+                "slot_count": self.slot_count,
+                "slot_index": self.slot_index,
+            }
+        else:
+            cpr: typing.Optional[OrganizedCrimeCPR] = (
+                OrganizedCrimeCPR.select(OrganizedCrimeCPR.cpr)
+                .where(
+                    (OrganizedCrimeCPR.user == self.user)
+                    & (OrganizedCrimeCPR.oc_name == self.team.oc_name)
+                    & (OrganizedCrimeCPR.oc_position == self.slot_type)
+                )
+                .first()
+            )
+
+            return {
+                "guid": self.guid,
+                "user": {
+                    "tid": self.user_id,
+                    "name": User.user_name(self.user_id),
+                    "cpr": cpr.cpr if cpr is not None else None,
+                },
+                "team": self.team_id,
+                "slot_type": self.slot_type,
+                "slot_count": self.slot_count,
+                "slot_index": self.slot_index,
+            }

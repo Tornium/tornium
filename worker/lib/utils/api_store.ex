@@ -62,9 +62,7 @@ defmodule Tornium.API.Store do
 
   @impl true
   def handle_cast({:create, api_call_id, %DateTime{} = expires_at}, %{} = state) do
-    {:noreply,
-     Map.put_new(state, api_call_id, %StoredResponse{response: :not_ready, expires_at: expires_at})
-    }
+    {:noreply, Map.put_new(state, api_call_id, %StoredResponse{response: :not_ready, expires_at: expires_at})}
   end
 
   @impl true

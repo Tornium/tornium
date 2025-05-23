@@ -8,7 +8,7 @@ defmodule Tornium.Repo.Migrations.AddOcCprTable do
       add :oc_name, :string, null: false
       add :oc_position, :string, null: false
       add :cpr, :integer, null: false
-      add :updated_at, :utc_datetime_usec, null: false
+      add :updated_at, :utc_datetime, null: false
     end
 
     create_if_not_exists unique_index(:organized_crime_cpr, [:user_id, :oc_name, :oc_position])

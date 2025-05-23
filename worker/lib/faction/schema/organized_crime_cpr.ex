@@ -45,7 +45,7 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
     field(:oc_name, :string)
     field(:oc_position, :string)
     field(:cpr, :integer)
-    field(:updated_at, :utc_datetime_usec)
+    field(:updated_at, :utc_datetime)
   end
 
   @spec upsert_all(entries :: [t()]) :: [t()]

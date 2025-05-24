@@ -37,6 +37,8 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
     |> where([k, u], u.faction_aa == true)
     |> join(:inner, [k, u], f in assoc(u, :faction), on: f.tid == u.faction_id)
     |> where([k, u, f], f.has_migrated_oc == true)
+    |> join(:left, [k, u, f], s in assoc(u, :settings), on: s.guid == u.settings_id)
+    |> where([k, u, f, s], is_nil(s) or s.cpr_enabled == true)
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
     |> Enum.each(fn [api_key, user_tid, faction_tid] ->
@@ -50,8 +52,8 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
         params: [cat: "recruiting"]
       }
 
-      # TODO: Validate nice value
       # TODO: Exclude users how have diasbled this feature in their user settings
+      # TODO: Check the above
 
       api_call_id = Ecto.UUID.generate()
       Tornium.API.Store.create(api_call_id, 300)

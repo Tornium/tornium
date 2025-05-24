@@ -1,0 +1,14 @@
+[book]
+title = "Tornium"
+authors = ["tiksan"]
+description = "Documentation and guides covering Tornium and its official userscripts"
+src = "src/"
+language = "en"
+text-direction = "ltr"
+multilingual = false
+
+[build]
+build-dir = "build/"
+create-missing = true
+use-default-preprocessors = true
+extra-watch-dirs = []

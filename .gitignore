@@ -90,3 +90,6 @@ settings.json
 celery.json
 wsgi.py
 *.log
+
+# Docs
+docs/build/

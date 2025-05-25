@@ -78,6 +78,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
                 "guid": uuid.uuid4(),
                 "user_id": None,
                 "team_id": None,
+                "faction_id": faction.tid,
                 "slot_type": slot.crime_position,
                 "slot_count": slot.crime_position_index,
                 "slot_index": position_count.get(slot.crime_position, 0),
@@ -180,7 +181,7 @@ def set_oc_team_member(faction_id: int, team_guid: str, member_guid: str, user_i
         )
     except IntegrityError:
         return make_exception_response(
-            "0000", key, details={"message": "User has already been set in a position on this team."}
+            "0000", key, details={"message": "User has already been set in a position on an OC team."}
         )
 
     return member.to_dict(), 200, api_ratelimit_response(key)

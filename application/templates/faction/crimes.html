@@ -85,14 +85,20 @@ Tornium - Faction OCs Dashboard
                             {% for team in teams %}
                             <li class="list-group-item d-flex">
                                 <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}">
-                                <p class="card-text px-3" style="max-width: 100%;">
+                                <p class="card-text px-3" style="width: 100%;">
                                     {{ team.oc_name }}: 
-                                    <span class="text-secondary d-inline-block text-truncate" style="max-width: inherit;">
+                                    <span class="text-secondary d-inline-block text-truncate" style="width: inherit;">
+                                        {% set ns = namespace(has_members=false) %}
                                         {% for member in team.team_members() %}
-                                            {{ member.user }},
-                                            <!-- TODO: Add Jinja formatter to show username instead of ID -->
-                                            <!-- TODO: Remove last commas -->
+                                            {% if member.user is not none %}
+                                                {% set ns.has_members = true %}
+                                                {{ member.user.name }}{{ ", " if not loop.last else "" }}
+                                            {% endif %}
                                         {% endfor %}
+                                        
+                                        {% if not ns.has_members %}
+                                            No Members Set
+                                        {% endif %}
                                     </span>
                                 </p>
                             </li>

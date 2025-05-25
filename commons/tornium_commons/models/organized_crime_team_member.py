@@ -18,6 +18,7 @@ import typing
 from peewee import CharField, ForeignKeyField, IntegerField, UUIDField
 
 from .base_model import BaseModel
+from .faction import Faction
 from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_team import OrganizedCrimeTeam
 from .user import User
@@ -29,7 +30,8 @@ class OrganizedCrimeTeamMember(BaseModel):
 
     guid = UUIDField(primary_key=True)
     user = ForeignKeyField(User, null=True, unique=True)
-    team = ForeignKeyField(OrganizedCrimeTeam, null=False, unique=True)
+    team = ForeignKeyField(OrganizedCrimeTeam, null=False)
+    faction = ForeignKeyField(Faction, null=False, unique=True)
 
     slot_type = CharField(null=False)
     slot_count = IntegerField(null=False)

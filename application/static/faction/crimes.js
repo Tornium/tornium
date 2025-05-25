@@ -136,7 +136,8 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
             preload: true,
             valueField: "value",
             labelField: "label",
-            sortField: [{ field: "$cpr" }, { field: "$score" }],
+            // sortField: [{ field: "$cpr" }, { field: "$score" }],
+            sortField: [{ field: "cpr", direction: "desc" }],
             options: user == null ? [] : [{ value: user.tid, label: `${user.name} [${user.cpr}%]` }],
             items: user == null ? [] : [user.tid],
             load: function (query, callback) {

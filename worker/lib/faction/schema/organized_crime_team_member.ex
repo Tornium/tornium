@@ -18,10 +18,12 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
-          user_id: integer(),
-          user: Tornium.Schema.User.t(),
+          user_id: integer() | nil,
+          user: Tornium.Schema.User.t() | nil,
           team_id: Ecto.UUID.t(),
           team: Tornium.Schema.OrganizedCrimeTeam.t(),
+          faction_id: integer(),
+          faction: Tornium.Schema.Faction.t(),
           slot_type: String.t(),
           slot_count: integer(),
           slot_index: integer()
@@ -31,6 +33,7 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
   schema "organized_crime_team_member" do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     belongs_to(:team, Tornium.Schema.OrganizedCrimeTeam, references: :guid)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     field(:slot_type, :string)
     field(:slot_count, :integer)

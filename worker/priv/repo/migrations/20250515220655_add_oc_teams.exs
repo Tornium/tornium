@@ -13,6 +13,7 @@ defmodule Tornium.Repo.Migrations.AddOcTeams do
       add :guid, :binary_id, primary_key: true, autogenerate: true
       add :user_id, references(:user, column: :tid, type: :integer), null: true
       add :team_id, references(:organized_crime_team, column: :guid, type: :binary_id), null: false
+      add :faction_id, references(:faction, column: :tid, type: :integer), null: false
 
       add :slot_type, :string, null: false
       add :slot_count, :integer, null: false
@@ -27,6 +28,6 @@ defmodule Tornium.Repo.Migrations.AddOcTeams do
       add :crime_position_index, :integer, default: -1, null: false
     end
 
-    create_if_not_exists unique_index(:organized_crime_team_member, [:user_id, :team_id])
+    create_if_not_exists unique_index(:organized_crime_team_member, [:user_id, :faction_id])
   end
 end

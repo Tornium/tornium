@@ -24,21 +24,25 @@ function addTeamSelector({ current_crime: current_crime, guid: guid, members: me
     const container = document.getElementById("team-list");
 
     const team = document.createElement("li");
-    team.classList.add("list-group-item", "d-flex");
+    team.classList.add("list-group-item");
     container.appendChild(team);
+
+    const teamLabel = document.createElement("label");
+    teamLabel.classList.add("d-flex");
+    team.append(teamLabel);
 
     const teamSelector = document.createElement("input");
     teamSelector.setAttribute("type", "radio");
     teamSelector.setAttribute("name", "team-selector");
     teamSelector.setAttribute("data-team-guid", guid);
     teamSelector.addEventListener("change", loadViewer);
-    team.appendChild(teamSelector);
+    teamLabel.appendChild(teamSelector);
 
     const teamDescription = document.createElement("p");
     teamDescription.classList.add("card-text", "px-3");
     teamDescription.setAttribute("style", "width: 100%");
     teamDescription.textContent = `${oc_name}:`;
-    team.appendChild(teamDescription);
+    teamLabel.appendChild(teamDescription);
 
     const teamMembers = document.createElement("span");
     teamMembers.classList.add("text-secondary", "d-inline-block", "text-truncate");
@@ -97,6 +101,9 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
     viewerTitle.textContent = `Team Viewer: ${name} [${oc_name}]`;
     // TODO: Convert the OC name to an input
 
+    const teamDeleteButton = document.getElementById("delete-team-button");
+    teamDeleteButton.classList.remove("disabled");
+
     const viewer = document.getElementById("viewer");
     viewer.setAttribute("data-team-guid", guid);
     viewer.innerHTML = "";
@@ -130,13 +137,11 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
         memberSelector.addEventListener("change", updateTeamMember);
         viewerMemberChild.appendChild(memberSelector);
 
-        // TODO: Align tomselects vertically
         new TomSelect(memberSelector, {
             create: false,
             preload: true,
             valueField: "value",
             labelField: "label",
-            // sortField: [{ field: "$cpr" }, { field: "$score" }],
             sortField: [{ field: "cpr", direction: "desc" }],
             options: user == null ? [] : [{ value: user.tid, label: `${user.name} [${user.cpr}%]` }],
             items: user == null ? [] : [user.tid],
@@ -221,6 +226,7 @@ function clearViewer() {
     viewer.appendChild(defaultViewer);
 
     document.getElementById("viewer-title").textContent = "Team Viewer";
+    document.getElementById("delete-team-button").classList.add("disabled");
 }
 
 function createTeam(event) {
@@ -233,6 +239,38 @@ function createTeam(event) {
         addTeamSelector(data);
         loadViewerTeam(data);
         // TODO: Select the OC team in the selector
+    });
+}
+
+function createDeleteConfirmation(event) {
+    const confirmation = document.createElement("alert-confirm");
+    confirmation.setAttribute("data-title", "Are you sure?");
+    confirmation.setAttribute(
+        "data-body-text",
+        "This action cannot be undone. This OC team will be permanently deleted from our servers.",
+    );
+    confirmation.setAttribute("data-close-button-text", "Cancel");
+    confirmation.setAttribute("data-accept-button-text", "Delete");
+    confirmation.setAttribute("data-close-callback", null);
+    confirmation.setAttribute("data-accept-callback", "deleteTeam");
+    document.body.appendChild(confirmation);
+}
+
+function deleteTeam(event) {
+    const teamGUID = document.getElementById("viewer").getAttribute("data-team-guid");
+
+    if (teamGUID == null) {
+        throw Error("No Team GUID found");
+    }
+
+    tfetch("DELETE", `faction/${factionID}/crime/team/${teamGUID}`, {
+        errorTitle: "Team Deletion Failed",
+    }).then(() => {
+        generateToast("Team Deleted Successfully", "The OC team has been successfully deleted.");
+        clearViewer();
+
+        const team = document.querySelector(`input[name="team-selector"][data-team-guid="${teamGUID}"]`);
+        team.closest(".list-group-item").remove();
     });
 }
 
@@ -260,4 +298,6 @@ ready(() => {
     nextPageButton.addEventListener("click", (event) => {
         loadTeamSelectorPage(page + 1);
     });
+
+    document.getElementById("delete-team-button").addEventListener("click", createDeleteConfirmation);
 });

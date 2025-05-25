@@ -83,24 +83,26 @@ Tornium - Faction OCs Dashboard
                         <div class="card-header">Team Selector</div>
                         <ul class="list-group list-group-flush" id="team-list">
                             {% for team in teams %}
-                            <li class="list-group-item d-flex">
-                                <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}">
-                                <p class="card-text px-3" style="width: 100%;">
-                                    {{ team.oc_name }}: 
-                                    <span class="text-secondary d-inline-block text-truncate" style="width: inherit;">
-                                        {% set ns = namespace(has_members=false) %}
-                                        {% for member in team.team_members() %}
-                                            {% if member.user is not none %}
-                                                {% set ns.has_members = true %}
-                                                {{ member.user.name }}{{ ", " if not loop.last else "" }}
+                            <li class="list-group-item">
+                                <label class="d-flex">
+                                    <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}">
+                                    <p class="card-text px-3" style="width: 100%;">
+                                        {{ team.oc_name }}: 
+                                        <span class="text-secondary d-inline-block text-truncate" style="width: inherit;">
+                                            {% set ns = namespace(has_members=false) %}
+                                            {% for member in team.team_members() %}
+                                                {% if member.user is not none %}
+                                                    {% set ns.has_members = true %}
+                                                    {{ member.user.name }}{{ ", " if not loop.last else "" }}
+                                                {% endif %}
+                                            {% endfor %}
+                                            
+                                            {% if not ns.has_members %}
+                                                No Members Set
                                             {% endif %}
-                                        {% endfor %}
-                                        
-                                        {% if not ns.has_members %}
-                                            No Members Set
-                                        {% endif %}
-                                    </span>
-                                </p>
+                                        </span>
+                                    </p>
+                                </label>
                             </li>
                             {% endfor %}
                         </ul>
@@ -120,7 +122,14 @@ Tornium - Faction OCs Dashboard
 
                 <div class="col-sm-12 col-lg-6">
                     <div class="card mt-3">
-                        <div class="card-header" id="viewer-title">Team Viewer</div>
+                        <div class="card-header d-flex justify-content-between">
+                            <span id="viewer-title">Team Viewer</span>
+                            {# TODO: Add disabled as an attribute instead of class #}
+                            {# Currently, disabled is just being removed on page load for some reason #}
+                            <button type="button" class="btn btn-sm btn-outline-danger disabled" id="delete-team-button">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                         <div class="card-body" id="viewer"></div>
                     </div>
                 </div>
@@ -137,5 +146,6 @@ Tornium - Faction OCs Dashboard
 
 {% block scripts %}
 <script src="/static/global/oc.js"></script>
+<script src="/static/components/alert-confirm.js"></script>
 <script src="/static/faction/crimes.js" data-faction-id="{{ current_user.faction_id }}"></script>
 {% endblock %}

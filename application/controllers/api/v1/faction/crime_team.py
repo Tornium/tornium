@@ -133,6 +133,33 @@ def get_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
 
 @session_required
 @ratelimit
+def delete_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
+
+    try:
+        team: OrganizedCrimeTeam = (
+            OrganizedCrimeTeam.select()
+            .where((OrganizedCrimeTeam.faction_id == faction_id) & (OrganizedCrimeTeam.guid == team_guid))
+            .get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1106", key)
+
+    OrganizedCrimeTeamMember.delete().where(OrganizedCrimeTeamMember.team_id == team.guid).execute()
+    team.delete_instance()
+
+    return "", 204, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
 def get_oc_teams(faction_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 

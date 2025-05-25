@@ -228,7 +228,7 @@ def cancel_command(interaction, *args, **kwargs):
         {
             "embeds": [
                 {
-                    "title": f"Vault Request #{withdrawal_id}",
+                    "title": f"Vault Request #{withdrawal.wid}",
                     "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
                     "fields": [
                         {

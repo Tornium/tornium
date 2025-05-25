@@ -44,7 +44,9 @@ class OrganizedCrimeTeam(BaseModel):
 
         return [
             member.to_dict()
-            for member in OrganizedCrimeTeamMember.select().where(OrganizedCrimeTeamMember.team == self.guid)
+            for member in OrganizedCrimeTeamMember.select()
+            .where(OrganizedCrimeTeamMember.team == self.guid)
+            .order_by(OrganizedCrimeTeamMember.slot_count)
         ]
 
     def team_crimes(self):

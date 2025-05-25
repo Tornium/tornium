@@ -67,7 +67,7 @@ defmodule Tornium.Schema.ServerOCConfig do
 
     Tornium.Schema.ServerOCConfig
     |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
-    # FIXME: This prelod doesn't work
+    # FIXME: This preload doesn't work
     |> preload(:extra_range_local_configs)
     |> Repo.one()
   end

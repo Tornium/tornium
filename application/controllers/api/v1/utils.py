@@ -109,6 +109,18 @@ API_EXCEPTIONS = {
         "http": 404,
         "message": "Server failed to locate the requested Torn organized crime.",
     },
+    "1106": {
+        "code": 1106,
+        "name": "UnknownOrganizedCrimeTeam",
+        "http": 404,
+        "messsage": "Server failed to located the requested organized crime team.",
+    },
+    "1107": {
+        "code": 1107,
+        "name": "UnknownOrganizedCrimeTeamMember",
+        "http": 404,
+        "message": "Server failed to locate the requested organized crime team member.",
+    },
     "1200": {
         "code": 1200,
         "name": "UnknownKey",

@@ -39,12 +39,12 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
 
     if oc_name not in OrganizedCrimeNew.oc_names():
         return make_exception_response("1105", key)
-
-    try:
-        faction: Faction = Faction.select().where(Faction.tid == faction_id).get()
-        # TODO: Limit to required selections (or convert to an `exists` query)
-    except DoesNotExist:
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
 
     # The OC slots of the latest OC for the specified OC name need to be retrieved to determine
     # the names and indices of the positions in the OC
@@ -78,7 +78,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
                 "guid": uuid.uuid4(),
                 "user_id": None,
                 "team_id": None,
-                "faction_id": faction.tid,
+                "faction_id": faction_id,
                 "slot_type": slot.crime_position,
                 "slot_count": slot.crime_position_index,
                 "slot_index": position_count.get(slot.crime_position, 0),
@@ -93,7 +93,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
                 guid=guid,
                 name=f"oc-team-{str(guid)[:8]}",
                 oc_name=oc_name,
-                faction=faction.tid,
+                faction=faction_id,
             )
             .returning(OrganizedCrimeTeam)
             .execute()[0]
@@ -114,6 +114,10 @@ def get_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
 
     if not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
 
     try:
         team: OrganizedCrimeTeam = (
@@ -122,8 +126,7 @@ def get_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
             .get()
         )
     except DoesNotExist:
-        # TODO: Add error code
-        return make_exception_response("0000", key)
+        return make_exception_response("1106", key)
 
     return jsonify(team.to_dict()), 200, api_ratelimit_response(key)
 
@@ -135,17 +138,22 @@ def get_oc_teams(faction_id: int, *args, **kwargs):
 
     if not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
 
     limit = int(request.args.get("limit", 10))
     offset = int(request.args.get("offset", 0))
-    # TODO: Validate limit and offset
+
+    if not isinstance(limit, int) or limit <= 0:
+        return make_exception_response("0000", key, details={"element": "limit"})
+    elif not isinstance(offset, int) or offset < 0:
+        return make_exception_response("0000", key, details={"element": "offset"})
 
     teams: typing.Iterable[OrganizedCrimeTeam] = (
         OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.faction_id == faction_id).offset(offset).limit(limit)
     )
-
-    for team in teams:
-        print(team.to_dict())
 
     return [team.to_dict() for team in teams], 200, api_ratelimit_response(key)
 
@@ -157,15 +165,17 @@ def set_oc_team_member(faction_id: int, team_guid: str, member_guid: str, user_i
 
     if not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
     elif not OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.guid == team_guid).exists():
-        # TODO: Add error code
-        return make_exception_response("0000", key)
+        return make_exception_response("1106", key)
     elif not OrganizedCrimeTeamMember.select().where(OrganizedCrimeTeamMember.guid == member_guid).exists():
-        # TODO: Add error code
-        return make_exception_response("0000", key)
+        return make_exception_response("1107", key)
 
     try:
-        user: User = User.select().where(User.tid == user_id).get()
+        user: User = User.select(User.faction_id).where(User.tid == user_id).get()
     except DoesNotExist:
         return make_exception_response("1100", key)
 

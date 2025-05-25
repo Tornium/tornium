@@ -63,7 +63,11 @@ def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args,
 
     return (
         {
-            member.user_id: {"cpr": member.cpr, "name": member.user.name, "updated_at": member.updated_at}
+            member.user_id: {
+                "cpr": member.cpr,
+                "name": member.user.name,
+                "updated_at": int(member.updated_at.timestamp()),
+            }
             for member in members_cpr
         },
         200,

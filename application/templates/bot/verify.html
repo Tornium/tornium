@@ -170,9 +170,11 @@ Tornium - Verification
 
             <div class="row">
                 <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                    <div class="form-floating">
+                    <div class="form-floating input-group">
                         <input class="form-control" id="verification-name-template" name="name-template" value="{{ guild.verify_template }}">
                         <label for="name-template">Verification Name Template</label>
+                        <button type="button" id="verification-name-template-submit" class="btn btn-outline-success">Set</button>
+
                         <div class="form-text">
                             Please enter the template to be used for verification names. Leave the template empty to prevent faction 
                             members from having their names automatically changed.

@@ -64,12 +64,12 @@ def jsonified_server_config(guild: Server):
                     "roles": list(map(str, config.retal_roles)),
                 },
                 "chain_bonus": {
-                    "channel": ("0" if config.retal_channel is None else str(config.chain_bonus_channel)),
+                    "channel": ("0" if config.chain_bonus_channel is None else str(config.chain_bonus_channel)),
                     "roles": list(map(str, config.chain_bonus_roles)),
                     "length": config.chain_bonus_length,
                 },
                 "chain_alert": {
-                    "channel": ("0" if config.retal_channel is None else str(config.chain_alert_channel)),
+                    "channel": ("0" if config.chain_alert_channel is None else str(config.chain_alert_channel)),
                     "roles": list(map(str, config.chain_alert_roles)),
                 },
             }

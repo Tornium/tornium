@@ -125,7 +125,7 @@ API_EXCEPTIONS = {
         "code": 1300,
         "name": "UnknownGatewayClient",
         "http": 404,
-        "message": "Server failed to locate the requested gateway client.",
+        "message": "[DEPRECATED] Server failed to locate the requested gateway client.",
     },
     "1400": {
         "code": 1400,

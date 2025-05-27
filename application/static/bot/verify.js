@@ -219,6 +219,17 @@ $(document).ready(function () {
         });
     });
 
+    document.getElementById("verification-name-template-submit").addEventListener("click", (event) => {
+        const template = document.getElementById("verification-name-template").value;
+
+        tfetch("POST", "bot/verify/template", {
+            body: { guildid: guildid, template: template },
+            errorTitle: "Verification Template Set Failed",
+        }).then(() => {
+            generateToast("Verification Template Set Successful");
+        });
+    });
+
     $(".verification-faction-enable").on("click", function () {
         tfetch("POST", "bot/verify/faction", {
             body: { guildid: guildid, factiontid: this.getAttribute("data-faction") },
@@ -388,7 +399,7 @@ $(document).ready(function () {
                 });
             });
 
-            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+            document.querySelectorAll(".faction-position-roles-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
                     plugins: ["remove_button"],

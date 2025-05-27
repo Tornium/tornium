@@ -18,7 +18,7 @@ import random
 import uuid
 
 from peewee import DoesNotExist, IntegrityError
-from tornium_celery.tasks.api import discorddelete, discordpost, tornget
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import Server, User, Withdrawal
@@ -30,21 +30,11 @@ from skynet.skyutils import get_faction_keys
 
 @invoker_required
 def withdraw(interaction, *args, **kwargs):
-    if "guild_id" not in interaction:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Allowed",
-                        "description": "This command can not be run in a DM (for now).",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    elif "options" not in interaction["data"]:
+    def followup_return(response):
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        return
+
+    if "options" not in interaction["data"]:
         return {
             "type": 4,
             "data": {
@@ -52,23 +42,6 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Options Required",
                         "description": "This command requires that options be passed.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    try:
-        guild: Server = Server.get_by_id(interaction["guild_id"])
-    except DoesNotExist:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Not Located",
-                        "description": "This server could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -106,7 +79,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction.guild is None or user.faction_id not in user.faction.guild.factions:
         return {
             "type": 4,
             "data": {
@@ -114,7 +87,7 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
-                        f"to the server. Please contact the server administrators to do this via "
+                        f"to the server. Please contact the server administrators for the faction's server to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -122,7 +95,8 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
+        str(user.faction_id) not in user.faction.guild.banking_config
+        or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -138,14 +112,11 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    # -1: default
     # 0: cash (default)
     # 1: points
     withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
-    if withdrawal_option is None:
-        withdrawal_option = 0
-    elif withdrawal_option["value"] == "Cash":
+    if withdrawal_option is None or withdrawal_option["value"] == "Cash":
         withdrawal_option = 0
     elif withdrawal_option["value"] == "Points":
         withdrawal_option = 1
@@ -166,7 +137,7 @@ def withdraw(interaction, *args, **kwargs):
         }
 
     client = rds()
-
+    # TODO: Make this set of redis queries atomic
     if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
         return {
             "type": 4,
@@ -245,12 +216,15 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
+    # Creating a followup message is necessary due to increased Torn and Discord API latencies
+    # causing sometimes frequent client-side timeouts of withdrawal slash commands.
+    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
+
     faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))["donations"]
 
     if str(user.tid) not in faction_balances:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Faction Error",
@@ -263,8 +237,9 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
     if withdrawal_option == 1:
         withdrawal_option_str = "points_balance"
@@ -272,9 +247,8 @@ def withdraw(interaction, *args, **kwargs):
         withdrawal_option_str = "money_balance"
 
     if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Not Enough",
@@ -290,12 +264,12 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
     elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Not Enough",
@@ -305,8 +279,9 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
     last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
@@ -405,14 +380,14 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    for role in guild.banking_config[str(user.faction_id)]["roles"]:
+    for role in user.faction.guild.banking_config[str(user.faction_id)]["roles"]:
         if "content" not in message_payload:
             message_payload["content"] = ""
 
         message_payload["content"] += f"<@&{role}>"
 
     message = discordpost(
-        f'channels/{guild.banking_config[str(user.faction_id)]["channel"]}/messages',
+        f'channels/{user.faction.guild.banking_config[str(user.faction_id)]["channel"]}/messages',
         payload=message_payload,
     )
 
@@ -436,12 +411,11 @@ def withdraw(interaction, *args, **kwargs):
         )
     except IntegrityError:
         discorddelete.delay(
-            f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+            f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
         ).forget()
 
-        return {
-            "type": 4,
-            "data": {
+        followup_return(
+            {
                 "embeds": [
                     {
                         "title": "Withdrawal Failure",
@@ -450,12 +424,12 @@ def withdraw(interaction, *args, **kwargs):
                     }
                 ],
                 "flags": 64,
-            },
-        }
+            }
+        )
+        return {}
 
-    return {
-        "type": 4,
-        "data": {
+    followup_return(
+        {
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
@@ -470,5 +444,6 @@ def withdraw(interaction, *args, **kwargs):
                 }
             ],
             "flags": 64,
-        },
-    }
+        }
+    )
+    return {}

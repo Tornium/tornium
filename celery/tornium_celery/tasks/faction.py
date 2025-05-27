@@ -24,7 +24,7 @@ import urllib.parse
 import uuid
 from decimal import DivisionByZero
 
-from peewee import JOIN, SQL, DoesNotExist
+from peewee import JOIN, DoesNotExist
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import (
     LinkHTMLParser,
@@ -52,7 +52,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 import celery
 from celery.utils.log import get_task_logger
 
-from .api import discorddelete, discordpatch, discordpost, torn_stats_get, tornget
+from .api import discordpatch, discordpost, torn_stats_get, tornget
 from .misc import send_dm
 from .user import update_user
 

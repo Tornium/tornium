@@ -51,6 +51,7 @@ defmodule Tornium.Schema.OrganizedCrime do
 
   @spec upsert_all(entries :: [t()]) :: [t()]
   def upsert_all(entries) when is_list(entries) do
+    # TODO: Check the type of the head of the list
     {_, returned_entries} =
       entries
       |> map()
@@ -59,6 +60,20 @@ defmodule Tornium.Schema.OrganizedCrime do
             conflict_target: [:oc_id],
             returning: true
           )).()
+
+    slot_users =
+      entries
+      |> Enum.flat_map(fn %Tornium.Schema.OrganizedCrime{slots: slots} -> slots end)
+      |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> user_id end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.map(
+        &%{
+          tid: &1
+        }
+      )
+
+    Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 
     returned_slot_entries =
       entries

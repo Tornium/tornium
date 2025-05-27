@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import math
 import typing
 
 from flask import render_template
@@ -46,29 +45,7 @@ def members(*args, **kwargs):
         .execute()
     )
 
-    if current_user.faction_aa:
-        stats = []
-
-        member: User
-        for member in fac_members:
-            if member.battlescore in (None, 0):
-                continue
-
-            stats.append(member.battlescore)
-
-        average = sum(stats) / len(stats) if len(stats) != 0 else 0
-
-        stats.sort(reverse=True)
-        stats = stats[: math.floor(0.8 * len(stats)) - 1]
-
-        return render_template(
-            "faction/members.html",
-            members=fac_members,
-            average_stat=average,
-            average_stat_80=sum(stats) / len(stats) if len(stats) != 0 else 0,
-        )
-    else:
-        return render_template(
-            "faction/members.html",
-            members=fac_members,
-        )
+    return render_template(
+        "faction/members.html",
+        members=fac_members,
+    )

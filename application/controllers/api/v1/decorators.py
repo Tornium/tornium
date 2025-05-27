@@ -22,7 +22,7 @@ from authlib.integrations.flask_oauth2 import current_token
 from flask import Response, request, session
 from flask_login import current_user
 from tornium_commons import rds
-from tornium_commons.altjson import loads, dumps
+from tornium_commons.altjson import dumps, loads
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response

@@ -12,6 +12,6 @@ Now that the bot has been added to the Discord server, you will need to wait for
 Once the Discord server is listed on the "Server Selector", we can now start configuring features for the Discord server. You will need to select the specific Discord server with the "Edit Server" button. After pressing the "Edit Server" button, you will be redirected to the main bot configuration page for the selected Discord server. On this page, you will be able to set up various features for the bot on this Discord server.
 
 For information on configuring specific features, follow these tutorials:
-- [Setup Vericication](discord-server-verification.md)
+- [Setup Verification](discord-server-verification.md)
 - [Setup Organized Crimes](discord-server-oc.md)
 - [Setup Notifications](discord-server-notification.md)

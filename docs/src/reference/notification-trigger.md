@@ -6,6 +6,7 @@ At this time, only official notification triggers can be used. Once notification
 ***WARNING:*** As stated in Tornium's [Terms of Service](https://tornium.com/terms), you are not allowed to use this feature to disrupt Tornium. Intentionally malicious use of this feature is not permitted and may result in a banning of the user, user's faction, and/or user's Discord server.
 
 ## Trigger Metadata
+TODO
 
 ## Trigger Conditions
 TODO

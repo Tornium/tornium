@@ -5,7 +5,7 @@ Tornium's banking allows faction members to request money and faction bankers to
 Under the `Faction Banking` section of the faction's linked Discord server, the faction's banking channel and optional role(s) can be configured. The banking channel is the location vault requests will be sent to. If the optional banking role(s) are configured, the roles will be mentioned in the request sent to the banking channel.
 
 ## Slash Commands
-Tornium's Discord bot contains two slash commands related to banking:
+Tornium's Discord bot contains four banking-related slash commands:
 - [`/balance`](#balance-command): Command to check a member's balance
 - [`/withdraw`](#withdraw-command): Command to perform a vault request 
 - [`/cancel`](#cancel-command): Command to cancel a vault request

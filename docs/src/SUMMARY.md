@@ -10,8 +10,10 @@
     - [Setup Verification](tutorial/discord-server-verification.md)
     - [Setup Organized Crimes](tutorial/discord-server-oc.md)
     - [Setup Notifications](tutorial/discord-server-notification.md)
+    - [Setup Banking](tutorial/discord-server-banking.md)
 
 # User Guide
+
 # Reference
 
 - [Faction AA](reference/faction-aa.md)
@@ -19,6 +21,7 @@
     - [Verification](reference/bot-verification.md)
     - [Organized Crimes](reference/bot-oc.md)
     - [Notifications]()
+    - [Banking](reference/bot-banking.md)
 
 # Explanation
 

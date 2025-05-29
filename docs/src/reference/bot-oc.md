@@ -7,7 +7,7 @@ Tornium supports notifications for organized crime-related events:
 Tornium updates and performs all checks for the latest organized crimes every five minutes. All features can be configured to send messages in specific channels and ping roles. Additionally, all features can be optionally configured to only check against specific OC names (e.g. `Honey Trap`).
 
 ***WARNING:*** This series of features is in active development and will change as time passes.
-***DEPRECATION NOTICE:*** Factions remaining on OCs 1.0 are deprecated and will no longer be supported at an undetermined date in the future.
+***DEPRECATION NOTICE:*** Factions remaining on OCs 1.0 are deprecated and will no longer be supported on August 1st.
 
 These configuration options can be set on the Tornium website on the organized crimes dashboard for any Discord server the Tornium bot is in. For basic information on setting up OCs in a Discord server, the [tutorial](../tutorial/discord-server-oc.md) is recommended.
 

@@ -17,12 +17,13 @@
 # Reference
 
 - [Faction AA](reference/faction-aa.md)
+- [Notifications](reference/notification.md)
+    - [Notification Triggers](reference/notification-trigger.md)
 - [Discord Bot]()
     - [Verification](reference/bot-verification.md)
     - [Organized Crimes](reference/bot-oc.md)
-    - [Notifications]()
     - [Banking](reference/bot-banking.md)
 
 # Explanation
 
-- [Notifications]()
+- [Notifications](explanation/notification.md)

@@ -296,7 +296,7 @@ def verify(interaction, *args, **kwargs):
                     "embeds": [
                         {
                             "title": "Verification Failed",
-                            "description": "Discord prevents bots from modifying the roles and nickname of users that are the server owner or have a role higher than the bot's highest role. For more information, check out the [docs](https://docs.tornium.com/en/latest/user/bot/verification.html#verification).",
+                            "description": "Discord prevents bots from modifying the roles and nickname of users that are the server owner or have a role higher than the bot's highest role. For more information, check out the [documentation](https://docs.tornium.com/en/latest/reference/bot-verification.html).",
                             "color": SKYNET_ERROR,
                         }
                     ],

@@ -8,6 +8,12 @@ Tornium is a website and Discord with integrating userscripts to automate and as
 
 For a more comprehensive list of features, see the navigation in the sidebar.
 
+# Links
+- [GitHub Repository](https://github.com/Tornium/tornium)
+- [Issue Tracker](https://github.com/Tornium/tornium/issues)
+- [Discord Support Server](https://discord.gg/pPcqTRTRyF)
+- [Developer @ Torn](https://torn.com/profiles.php?XID=2383326)
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. For more information, see the [contributing guide](https://github.com/Tornium/tornium/blob/master/CONTRIBUTING.md) on GitHub.
 

@@ -25,5 +25,3 @@
     - [Banking](reference/bot-banking.md)
 
 # Explanation
-
-- [Notifications](explanation/notification.md)

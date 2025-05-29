@@ -31,3 +31,6 @@ Once you find the notification trigger you want to install, you can press the pl
 The notification channel is the Discord channel where messages for the notification trigger will be sent when the trigger is activated. The resource ID is the ID of the user, faction, etc. the notification trigger will be acting upon. The one-shot flag determines how many times the notification trigger can be activated before the notification is deleted, but you should follow the instructions provided in the notification trigger's description when setting this value. The notification triggers are parameters provided by the developer of the notification trigger to provide additional configuration, and once again you will need to follow the instructions provided in the description of the notification trigger.
 
 Once the notification trigger has been configured, you can press the "Setup Trigger" button for the notification trigger to be installed into the Discord server. At this point, the notification will now be running until the notification is deleted or disabled. For more information on notifications and notification triggers, visit the [notification reference](../reference/notification.md) and the [notification trigger reference](../reference/notification-trigger.md).
+
+## Bot Configuration
+TODO

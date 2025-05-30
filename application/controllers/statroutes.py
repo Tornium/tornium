@@ -15,7 +15,7 @@
 
 import typing
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, abort, render_template, request
 from flask_login import current_user, login_required
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import Faction, Stat, User
@@ -104,19 +104,20 @@ def chain():
     return render_template("stats/chain.html")
 
 
+@mod.route("/stats/config", methods=["GET"])
+def get_config():
+    return render_template("stats/config.html", stats_global=current_user.faction.stats_db_global)
+
+
 @mod.route("/stats/config", methods=["GET", "POST"])
 @login_required
 @aa_required
 def config():
-    stats_global = current_user.faction.stats_db_global
+    if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
+        stats_global = request.form.get("enabled") is not None
+        Faction.update(stats_db_global=stats_global).where(Faction.tid == current_user.faction_id).execute()
 
-    if request.method == "POST":
-        if (request.form.get("enabled") is not None) ^ (request.form.get("disabled") is not None):
-            if request.form.get("enabled") is not None:
-                stats_global = True
-            else:
-                stats_global = False
+        return render_template("stats/config.html", stats_global=stats_global)
 
-            Faction.update(stats_db_global=stats_global).where(Faction.tid == current_user.faction_id).execute()
-
-    return render_template("stats/config.html", stats_global=stats_global)
+    # This should never occur as enabled/disabled are the only options in the form
+    abort(400)

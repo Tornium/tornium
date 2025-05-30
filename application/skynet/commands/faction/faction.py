@@ -684,35 +684,10 @@ def members_switchboard(interaction, *args, **kwargs):
         member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
 
         revivable_users = []
-        revive_filter = find_list(subcommand_data, "name", "type")
-
-        if revive_filter is None:
-            revive_filter = "all"
-        elif revive_filter["value"] == "all":
-            revive_filter = "all"
-        elif revive_filter["value"] == "everyone":
-            revive_filter = "everyone"
-        else:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Invalid Revive Option",
-                            "description": f'"{revive_filter.get("value")}" is not a valid option.',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
         for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif member["revive_setting"].lower() == "no one":
-                continue
-            elif revive_filter == "everyone" and member["revive_setting"].lower() != "everyone":
+            elif not member["is_revivable"]:
                 continue
 
             revivable_users.append(member["id"])

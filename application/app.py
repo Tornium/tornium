@@ -54,8 +54,6 @@ from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
 config = Config.from_json()
 
-import utils
-
 if globals().get("ddtrace:loaded"):
     FORMAT = (
         "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "

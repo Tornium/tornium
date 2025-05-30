@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import pathlib
 import time
 import typing
@@ -24,7 +23,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.user import update_user
 from tornium_commons import rds
 from tornium_commons.formatters import date_to_timestamp
-from tornium_commons.models import PersonalStats, User
+from tornium_commons.models import PersonalStats
 
 _model: typing.Optional[xgboost.XGBRegressor] = None
 model_features: typing.List[str] = None

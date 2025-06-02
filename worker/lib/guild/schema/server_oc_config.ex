@@ -110,7 +110,7 @@ defmodule Tornium.Schema.ServerOCConfig do
       ) do
     config =
       Enum.find(local_configs, fn %Tornium.Schema.ServerOCRangeConfig{oc_name: config_oc_name} ->
-        oc_name == config_oc_name
+        String.downcase(oc_name) == String.downcase(config_oc_name)
       end)
 
     case config do

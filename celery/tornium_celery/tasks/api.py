@@ -72,7 +72,7 @@ def discord_ratelimit_pre(
 
 
 def handle_discord_error(e: DiscordError):
-    from tornium_commons.models import Faction, Notification, Server
+    from tornium_commons.models import Faction, Server
     from tornium_commons.skyutils import SKYNET_ERROR
 
     # Channel errors
@@ -160,9 +160,6 @@ def handle_discord_error(e: DiscordError):
             Server.update(**db_updates).where(Server.sid == webhook_data["guild_id"]).execute()
 
         Faction.update(od_channel=0).where(Faction.od_channel == channel_id).execute()
-        Notification.update(enabled=False).where(
-            (Notification.recipient == channel_id) & (Notification.recipient_guild != 0)
-        ).execute()
 
         if only_delete:
             return

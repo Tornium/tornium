@@ -46,7 +46,14 @@ from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import AuthAction, AuthLog, TornKey, User, OAuthClient, OAuthToken
+from tornium_commons.models import (
+    AuthAction,
+    AuthLog,
+    OAuthClient,
+    OAuthToken,
+    TornKey,
+    User,
+)
 from tornium_commons.skyutils import SKYNET_INFO
 
 import utils

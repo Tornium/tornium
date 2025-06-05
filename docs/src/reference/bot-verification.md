@@ -44,6 +44,8 @@ The verification name template is used to generate the nickname for all members 
 ### Exclusion Roles
 All members in the Discord server who have an exclusion role will not be verified through any [verification method](#verification-methods). These members will have to have their nickname and roles be manually updated by a server administrator. Exclusion roles are commonly used to allow faction members who are guesting to retain faction-related roles and to skip verification of server administrators.
 
+***TIP:*** It is suggested to give faction leadership and guesting members these roles. Faction leaders and co-leaders are not assigned faction positions by the bot and members who are guesting will have their faction-related roles removed from this. Giving these members an exclusion role will allow them to retain their roles and their roles will have to be changed manually.
+
 ### Faction Roles
 Members of the Discord server can be given role(s) corresponding to their faction in-game. If the member is not in a faction configured for verification in the Discord server, there will be no faction-related changes during verification. The factions configured for faction roles during verification do not have to be [linked](../tutorial/discord-server-link.md) to the Discord server.
 

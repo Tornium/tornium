@@ -61,20 +61,31 @@ def settings(*args, **kwargs):
         .where(TornKey.user.tid == current_user.tid)
     )
 
-    tokens = list(
-        t
-        for t in OAuthToken.select().where(
+    # Applications the user has authorized are:
+    #  - belonging to the user
+    #  - have a not-revoked access token OR have a not-revoked refresh token
+    applications = list(
+        token
+        for token in OAuthToken.select()
+        .distinct(OAuthToken.client)
+        .where(
             (OAuthToken.user == current_user.tid)
-            & (OAuthToken.access_token_revoked_at.is_null(True) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
+            & (
+                (OAuthToken.access_token_revoked_at.is_null(True))
+                | (OAuthToken.refresh_token.is_null(False) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
+            )
         )
+        .order_by(OAuthToken.client.asc(), OAuthToken.issued_at)
     )
+
+    print(applications)
 
     return render_template(
         "settings.html",
         enabled_mfa=current_user.security,
         obfuscated_key=obfuscated_key,
         api_keys=api_keys,
-        tokens=tokens,
+        applications=applications,
         discord_linked=("Not Linked" if current_user.discord_id in ("", None, 0) else "Linked"),
     )
 

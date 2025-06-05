@@ -46,7 +46,7 @@ from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
-from tornium_commons.models import AuthAction, AuthLog, TornKey, User
+from tornium_commons.models import AuthAction, AuthLog, TornKey, User, OAuthClient, OAuthToken
 from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
@@ -708,3 +708,22 @@ def set_security_mode(*args, **kwargs):
     User.update(security=mode).where(User.tid == current_user.tid).execute()
 
     return make_exception_response("0001", details={"otp_generated": otp_generated})
+
+
+@mod.route("/oauth/client/<client_id>/revoke", methods=["POST"])
+@fresh_login_required
+@token_required(setnx=False)
+def revoke_client(client_id: str, *args, **kwargs):
+    if not OAuthClient.select().where(OAuthClient.client_id == client_id).exists():
+        return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})
+
+    OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
+        (OAuthToken.client == client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
+    ).execute()
+    OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
+        (OAuthToken.client == client_id)
+        & (OAuthToken.refresh_token.is_null(False))
+        & (OAuthToken.refresh_token_revoked_at.is_null(True))
+    ).execute()
+
+    return make_exception_response("0001")

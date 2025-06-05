@@ -141,12 +141,12 @@ Tornium - Settings
     <div class="card-body">
         <h5 class="card-title">Authorized Applications</h5>
         <p class="card-text">
-            You have authorized access to your Tornium account to the following {{ applications|count }} application(s):
+            You have authorized access to your Tornium account to the following <span id="application-count">{{ applications|count }}</span> application(s):
         </p>
 
         <ul class="list-group list-group-flush">
             {% for application in applications %}
-            <li class="list-group-item d-flex justify-content-between align-items-start">
+            <li class="list-group-item d-flex flex-wrap flex-lg-nowrap justify-content-lg-between align-items-start">
                 <div class="ms-2 me-auto">
                     <div class="fw-bold align-middle">
                         {{ application.client.client_name }}
@@ -163,6 +163,8 @@ Tornium - Settings
                     </div>
                     Created by: {{ application.client.user.user_str_self() }}
                 </div>
+
+                <button class="ms-2 pt-3 pt-lg-0 btn btn-outline-danger revoke-client" data-client-id="{{ application.client.client_id }}">Revoke</button>
             </li>
             {% endfor %}
         </ul>

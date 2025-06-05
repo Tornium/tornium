@@ -18,7 +18,38 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 });
 const token = params.token;
 
-$(document).ready(function () {
+function revokeClient(event) {
+    const clientID = this.getAttribute("data-client-id");
+    const parent = this.parentNode;
+
+    if (token === null) {
+        generateToast("Permission Denied", "Invalid token", "Error");
+        return;
+    }
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.onload = function () {
+        let response = xhttp.response;
+
+        if ("code" in response && response["code"] != "0001") {
+            generateToast("Application Revocation Failed", response["message"]);
+            window.location.reload();
+        } else {
+            parent.remove();
+            generateToast("Application Revocation Successful", "The application was successully revoked.");
+
+            const applicationCountElement = document.getElementById("application-count");
+            const applicationCount = parseInt(applicationCountElement.textContent);
+            applicationCountElement.textContent = applicationCount - 1;
+        }
+    };
+
+    xhttp.responseType = "json";
+    xhttp.open("POST", `/oauth/client/${clientID}/revoke?token=${token}`);
+    xhttp.send();
+}
+
+ready(() => {
     // Theme selection
     const getTheme = function () {
         if (localStorage.getItem("theme")) {
@@ -297,5 +328,9 @@ $(document).ready(function () {
             generateToast("API Key Delete Successful");
             $(this).closest(".key-parent").remove();
         });
+    });
+
+    Array.from(document.getElementsByClassName("revoke-client")).forEach((button) => {
+        button.addEventListener("click", revokeClient);
     });
 });

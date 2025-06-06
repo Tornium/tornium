@@ -149,7 +149,7 @@ Tornium - Settings
             <li class="list-group-item d-flex flex-wrap flex-lg-nowrap justify-content-lg-between align-items-start">
                 <div class="ms-2 me-auto">
                     <div class="fw-bold align-middle">
-                        {{ application.client.client_name }}
+                        <a href="/settings/application/{{ application.client.client_id }}">{{ application.client.client_name }}</a>
                         
                         {% if application.client.official %}
                         <div class="btn btn-sm btn-outline-success">Official</div>
@@ -161,7 +161,7 @@ Tornium - Settings
                         <div class="btn btn-sm btn-outline-warning">Unverified</div>
                         {% endif %}
                     </div>
-                    Created by: {{ application.client.user.user_str_self() }}
+                    Created by: <a href="https://torn.com/profiles.php?XID={{ application.client.user_id }}">{{ application.client.user.user_str_self() }}</a>
                 </div>
 
                 <button class="ms-2 pt-3 pt-lg-0 btn btn-outline-danger revoke-client" data-client-id="{{ application.client.client_id }}">Revoke</button>

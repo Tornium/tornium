@@ -15,7 +15,8 @@
 
 from flask import Blueprint, jsonify, render_template, request, send_from_directory
 from flask_login import current_user, fresh_login_required
-from tornium_commons.models import OAuthToken, Server, TornKey, User
+from peewee import DoesNotExist
+from tornium_commons.models import OAuthClient, OAuthToken, Server, TornKey, User
 
 from controllers.decorators import token_required
 
@@ -78,15 +79,53 @@ def settings(*args, **kwargs):
         .order_by(OAuthToken.client.asc(), OAuthToken.issued_at)
     )
 
-    print(applications)
-
     return render_template(
-        "settings.html",
+        "settings/settings.html",
         enabled_mfa=current_user.security,
         obfuscated_key=obfuscated_key,
         api_keys=api_keys,
         applications=applications,
         discord_linked=("Not Linked" if current_user.discord_id in ("", None, 0) else "Linked"),
+    )
+
+
+@mod.route("/settings/application/<application_id>")
+@fresh_login_required
+def settings_application(application_id: str, *args, **kwargs):
+    try:
+        current_token: OAuthToken = (
+            OAuthToken.select()
+            .where(
+                (OAuthToken.user == current_user.tid)
+                & (OAuthToken.client == application_id)
+                & (
+                    (OAuthToken.access_token_revoked_at.is_null(True))
+                    | (OAuthToken.refresh_token.is_null(False) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
+                )
+            )
+            .order_by(OAuthToken.issued_at.desc())
+            .get()
+        )
+        first_token: OAuthToken = (
+            OAuthToken.select()
+            .where((OAuthToken.user == current_user.tid) & (OAuthToken.client == application_id))
+            .order_by(OAuthToken.issued_at.asc())
+            .get()
+        )
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Invalid Application ID",
+                error="You have not authorized any application with this ID.",
+            ),
+            404,
+        )
+
+    scopes = current_token.scope.split()
+
+    return render_template(
+        "settings/application.html", current_token=current_token, first_token=first_token, scopes=scopes
     )
 
 
@@ -118,6 +157,7 @@ def settings(*args, **kwargs):
 @mod.route("/static/notification/trigger.js")
 @mod.route("/static/notification/trigger-create.js")
 @mod.route("/static/notification/trigger-server-add.js")
+@mod.route("/static/settings/application.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

@@ -22,11 +22,6 @@ function revokeClient(event) {
     const clientID = this.getAttribute("data-client-id");
     const parent = this.parentNode;
 
-    if (token === null) {
-        generateToast("Permission Denied", "Invalid token", "Error");
-        return;
-    }
-
     let xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         let response = xhttp.response;
@@ -45,7 +40,7 @@ function revokeClient(event) {
     };
 
     xhttp.responseType = "json";
-    xhttp.open("POST", `/oauth/client/${clientID}/revoke?token=${token}`);
+    xhttp.open("POST", `/oauth/client/${clientID}/revoke`);
     xhttp.send();
 }
 

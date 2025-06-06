@@ -58,6 +58,7 @@ from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
+from controllers.api.v1.decorators import session_required
 from controllers.api.v1.utils import make_exception_response
 from controllers.decorators import token_required
 from models.user import AuthUser
@@ -719,7 +720,7 @@ def set_security_mode(*args, **kwargs):
 
 @mod.route("/oauth/client/<client_id>/revoke", methods=["POST"])
 @fresh_login_required
-@token_required(setnx=False)
+@session_required
 def revoke_client(client_id: str, *args, **kwargs):
     if not OAuthClient.select().where(OAuthClient.client_id == client_id).exists():
         return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})

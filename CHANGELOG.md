@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added OC delay notifications
 - Added OC missing tool notifications
 - Added revivable member ping slash command `/faction members revivable-ping`
+- Added OAuth client revocation page
 
 ### Changed
 - Re-enabled Discord-based authentication

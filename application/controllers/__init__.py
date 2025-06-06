@@ -157,6 +157,7 @@ def settings_application(application_id: str, *args, **kwargs):
 @mod.route("/static/notification/trigger.js")
 @mod.route("/static/notification/trigger-create.js")
 @mod.route("/static/notification/trigger-server-add.js")
+@mod.route("/static/settings/settings.js")
 @mod.route("/static/settings/application.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")

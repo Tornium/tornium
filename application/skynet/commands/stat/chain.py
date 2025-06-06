@@ -104,17 +104,14 @@ def chain(interaction, *args, **kwargs):
     except ValueError:
         followup_return(
             {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Invalid Parameter",
-                            "description": "An inputted paramter to this command may be invalid.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
+                "embeds": [
+                    {
+                        "title": "Invalid Parameter",
+                        "description": "An inputted paramter to this command may be invalid.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
             }
         )
         return {}
@@ -137,11 +134,8 @@ def chain(interaction, *args, **kwargs):
 
     followup_return(
         {
-            "type": 4,
-            "data": {
-                "embeds": [embed],
-                "flags": 64,
-            },
+            "embeds": [embed],
+            "flags": 64,
         }
     )
     return {}

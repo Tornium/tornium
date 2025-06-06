@@ -15,6 +15,7 @@
 
 import typing
 
+from tornium_celery.tasks.api import discordpatch, discordpost
 from tornium_commons.formatters import commas, find_list
 from tornium_commons.models import Stat
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
@@ -25,18 +26,18 @@ from skynet.skyutils import get_admin_keys
 
 @invoker_required
 def chain(interaction, *args, **kwargs):
+    def followup_return(response):
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        return
+
+    length: typing.Optional[int] = None
+    difficulty: typing.Optional[int] = None
+    sort: typing.Literal["timestamp", "random", "respect"] = None
+
     if "options" in interaction["data"]:
         length = find_list(interaction["data"]["options"], "name", "length")
         difficulty = find_list(interaction["data"]["options"], "name", "difficulty")
         sort = find_list(interaction["data"]["options"], "name", "sort")
-    else:
-        length = None
-        difficulty = None
-        sort = None
-
-    length: int
-    difficulty: int
-    sort: typing.Literal["timestamp", "random", "respect"]
 
     if length is None:
         length = 9
@@ -89,6 +90,10 @@ def chain(interaction, *args, **kwargs):
             },
         }
 
+    # Creating a followup message is necessary due to increased chain list generation latencies
+    # causing frequent client-side timeouts of the chain list generation slash command.
+    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
+
     try:
         chain_list = Stat.generate_chain_list(
             sort=sort,
@@ -97,19 +102,22 @@ def chain(interaction, *args, **kwargs):
             invoker=kwargs["invoker"],
         )
     except ValueError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Invalid Parameter",
-                        "description": "An inputted paramter to this command may be invalid.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
+        followup_return(
+            {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Parameter",
+                            "description": "An inputted paramter to this command may be invalid.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        )
+        return {}
 
     embed = {
         "title": "Generated Chain List",
@@ -127,10 +135,13 @@ def chain(interaction, *args, **kwargs):
             }
         )
 
-    return {
-        "type": 4,
-        "data": {
-            "embeds": [embed],
-            "flags": 64,
-        },
-    }
+    followup_return(
+        {
+            "type": 4,
+            "data": {
+                "embeds": [embed],
+                "flags": 64,
+            },
+        }
+    )
+    return {}

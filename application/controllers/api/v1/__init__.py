@@ -127,6 +127,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/team/channel",
+    view_func=bot.crimes.set_team_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/channel",
     view_func=bot.crimes.set_extra_range_channel,
     methods=["POST"],

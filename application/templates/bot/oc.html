@@ -163,6 +163,46 @@ Tornium - OCs
                 </p>
 
                 <hr />
+                <p class="card-text">
+                    <b>OC Teams:</b> Notifications regarding OC teams set up by the faction.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Team Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_channel }}"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Team Features</div>
+                        <select
+                            class=" oc-team-features w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Channel"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            multiple
+                            autocomplete="off"
+                        >
+                            <option value=""></option>
+                            <option value="oc-spawn-required">OC spawn required</option>
+                            <option value="team-join-required">Team members need to join OC</option>
+                            <option value="invalid-team-join">Team member joined incorrect OC</option>
+                            <option value="oc-team-assigned">OC team assigned to an OC</option>
+                        </select>
+                        {# TODO: Add selected to selected features #}
+                    </div>
+                </div>
+
+                <hr />
 
                 <p class="card-text">
                     <b>Extra-Range OCs:</b> Notifications regarding OCs that have members with CPRs in a slot that is too low or too high

@@ -48,6 +48,9 @@ class ServerOCConfig(BaseModel):
     delayed_roles = ArrayField(BigIntegerField, index=False, default=[])
     delayed_crimes = ArrayField(CharField, index=False, default=[])
 
+    # OC team-related
+    team_channel = BigIntegerField(default=None, null=True)
+
     # Extra-range OCs
     extra_range_channel = BigIntegerField(default=None, null=True)
     extra_range_roles = ArrayField(BigIntegerField, index=False, default=[])

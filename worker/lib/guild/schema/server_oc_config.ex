@@ -25,13 +25,14 @@ defmodule Tornium.Schema.ServerOCConfig do
           faction_id: integer(),
           faction: Tornium.Schema.Faction.t(),
           enabled: boolean(),
-          tool_channel: integer(),
+          tool_channel: integer() | nil,
           tool_roles: [integer()],
           tool_crimes: [String.t()],
-          delayed_channel: integer(),
+          delayed_channel: integer() | nil,
           delayed_roles: [integer()],
           delayed_crimes: [String.t()],
-          extra_range_channel: integer(),
+          team_channel: integer() | nil,
+          extra_range_channel: integer() | nil,
           extra_range_roles: [integer()],
           extra_range_global_min: integer(),
           extra_range_global_max: integer(),
@@ -51,6 +52,8 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:delayed_channel, :integer)
     field(:delayed_roles, {:array, :integer})
     field(:delayed_crimes, {:array, :string})
+
+    field(:team_channel, :integer)
 
     field(:extra_range_channel, :integer)
     field(:extra_range_roles, {:array, :integer})

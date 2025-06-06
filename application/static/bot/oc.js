@@ -114,6 +114,20 @@ function setDelayedCrimes(event) {
     });
 }
 
+function setTeamChannel(event) {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/team/channel`, {
+        body: { channel: this.options[this.selectedIndex].value },
+        errorTitle: "OC Team Channel Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Team Channel Set Successful",
+            "The channel for OC team notifications has been successfully set.",
+        );
+    });
+}
+
+function setTeamFeatures(event) {}
+
 function setRangeChannel(event) {
     tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/channel`, {
         body: { channel: this.options[this.selectedIndex].value },
@@ -429,6 +443,13 @@ ready(() => {
     });
     document.querySelectorAll(".oc-delayed-crimes").forEach((element) => {
         element.addEventListener("change", setDelayedCrimes);
+    });
+    document.querySelectorAll(".oc-team-channel").forEach((element) => {
+        element.addEventListener("change", setTeamChannel);
+    });
+    document.querySelectorAll(".oc-team-features").forEach((element) => {
+        new TomSelect(element, { create: false });
+        element.addEventListener("change", setTeamFeatures);
     });
     document.querySelectorAll(".oc-range-channel").forEach((element) => {
         element.addEventListener("change", setRangeChannel);

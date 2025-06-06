@@ -281,6 +281,46 @@ def set_delayed_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
 
 @session_required
 @ratelimit
+def set_team_channel(guild_id: int, faction_tid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    channel_id = data.get("channel")
+
+    if channel_id is None:
+        return make_exception_response("1002", key)
+    elif channel_id is not None and (channel_id in ("", 0) or not channel_id.isdigit()):
+        return make_exception_response("1002", key)
+
+    try:
+        guild: Server = Server.select(Server.sid, Server.admins, Server.factions).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = (
+            Faction.select(Faction.guild, Faction.has_migrated_oc).where(Faction.tid == faction_tid).get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+    elif not faction.has_migrated_oc:
+        return make_exception_response("4300", key)
+
+    oc_config = ServerOCConfig.create_or_update(guild_id, faction_tid, team_channel=channel_id)
+
+    return oc_config.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
 def set_extra_range_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

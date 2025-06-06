@@ -18,9 +18,11 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
   alias Tornium.Repo
   import Ecto.Query
 
+  @batch_limit 100
+
   use Oban.Worker,
     max_attempts: 1,
-    priority: 0,
+    priority: 3,
     queue: :scheduler,
     tags: ["scheduler", "oc"],
     unique: [
@@ -29,19 +31,24 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
     ]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{id: job_id} = _job) do
-    Tornium.Schema.TornKey
-    |> where([k], k.default == true)
-    |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
-    |> where([k, u], not is_nil(u.faction_id) and u.faction_id != 0)
-    |> where([k, u], u.faction_aa == true)
-    |> join(:inner, [k, u], f in assoc(u, :faction), on: f.tid == u.faction_id)
-    |> where([k, u, f], f.has_migrated_oc == true)
-    |> join(:left, [k, u, f], s in assoc(u, :settings), on: s.guid == u.settings_id)
-    |> where([k, u, f, s], is_nil(s) or s.cpr_enabled == true)
-    |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
-    |> Repo.all()
-    |> Enum.each(fn [api_key, user_tid, faction_tid] ->
+  def perform(%Oban.Job{id: job_id, args: %{"after" => after_id}} = _job) do
+    users =
+      Tornium.Schema.TornKey
+      |> where([k], k.default == true)
+      |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+      |> where([k, u], not is_nil(u.faction_id) and u.faction_id != 0)
+      |> where([k, u], u.faction_aa == true)
+      |> join(:inner, [k, u], f in assoc(u, :faction), on: f.tid == u.faction_id)
+      |> where([k, u, f], f.has_migrated_oc == true)
+      |> join(:left, [k, u, f], s in assoc(u, :settings), on: s.guid == u.settings_id)
+      |> where([k, u, f, s], is_nil(s) or s.cpr_enabled == true)
+      |> where([k, u, f, s], u.tid > ^after_id)
+      |> select([k, u, f, s], [k.api_key, u.tid, u.faction_id])
+      |> limit(@batch_limit)
+      |> Repo.all()
+
+    Enum.each(users, fn [api_key, user_tid, faction_tid]
+                        when is_binary(api_key) and is_integer(user_tid) and is_integer(faction_tid) ->
       request = %Tornex.Query{
         resource: "v2/faction",
         resource_id: faction_tid,
@@ -51,9 +58,6 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
         nice: 20,
         params: [cat: "recruiting"]
       }
-
-      # TODO: Exclude users how have diasbled this feature in their user settings
-      # TODO: Check the above
 
       api_call_id = Ecto.UUID.generate()
       Tornium.API.Store.create(api_call_id, 300)
@@ -74,6 +78,22 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
       |> Oban.insert()
     end)
 
+    case List.last(users) do
+      nil ->
+        nil
+
+      [_api_key, user_tid, _faction_tid] ->
+        %{after: user_tid}
+        # |> Tornium.Workers.OCCPRUpdateScheduler.new(schedule_in: _seconds = 600)
+        |> Tornium.Workers.OCCPRUpdateScheduler.new(schedule_in: _seconds = 5)
+        |> Oban.insert()
+    end
+
     :ok
+  end
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{id: job_id, args: args} = job) do
+    perform(%Oban.Job{job | args: %{"after" => 0}})
   end
 end

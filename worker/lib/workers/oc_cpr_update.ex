@@ -18,7 +18,7 @@ defmodule Tornium.Workers.OCCPRUpdate do
 
   use Oban.Worker,
     max_attempts: 3,
-    priority: 0,
+    priority: 5,
     queue: :user_processing,
     tags: ["user", "oc"],
     unique: [
@@ -47,16 +47,19 @@ defmodule Tornium.Workers.OCCPRUpdate do
         {:cancel, :expired}
 
       :not_ready ->
+        # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
 
       %{} = result ->
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
         result
         |> Tornium.Faction.OC.parse(faction_tid)
         |> Enum.sort_by(fn %Tornium.Schema.OrganizedCrime{created_at: created_at} -> created_at end, :desc)
         |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrime{oc_name: oc_name} -> oc_name end)
         |> flatten_crimes()
         |> Enum.map(fn %Tornium.Schema.OrganizedCrimeCPR{} = cpr ->
-          %Tornium.Schema.OrganizedCrimeCPR{cpr | user_id: user_tid, updated_at: DateTime.utc_now()}
+          %Tornium.Schema.OrganizedCrimeCPR{cpr | user_id: user_tid, updated_at: now}
         end)
         |> Tornium.Schema.OrganizedCrimeCPR.upsert_all()
 

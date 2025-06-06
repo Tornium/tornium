@@ -17,11 +17,11 @@ import datetime
 import random
 import uuid
 
-from peewee import DoesNotExist, IntegrityError
+from peewee import IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
-from tornium_commons.models import Server, User, Withdrawal
+from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
 from skynet.decorators import invoker_required

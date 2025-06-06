@@ -44,10 +44,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import typing
 
 from authlib.integrations.flask_oauth2 import ResourceProtector as _ResourceProtector
 from authlib.oauth2.rfc6749 import grants
+from authlib.oauth2.rfc6749.errors import InvalidGrantError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 from authlib.oauth2.rfc6750.errors import InvalidTokenError
 
@@ -69,7 +71,10 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             user=request.user.tid,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
+            used_at=None,
+            used_by=None,
         ).execute()
+
         return auth_code
 
     def query_authorization_code(self, code, client):
@@ -83,10 +88,69 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             return item
 
     def delete_authorization_code(self, authorization_code):
-        OAuthAuthorizationCode.delete().where(OAuthAuthorizationCode.code == authorization_code).execute()
+        # NOTE: This should not be implemented. Authorization codes should never be deleted, only expired.
+        return
 
     def authenticate_user(self, authorization_code):
         return authorization_code.user
+
+    def create_token_response(self):
+        """If the access token request is valid and authorized, the
+        authorization server issues an access token and optional refresh
+        token as described in Section 5.1.  If the request client
+        authentication failed or is invalid, the authorization server returns
+        an error response as described in Section 5.2. Per `Section 4.1.4`_.
+
+        An example successful response:
+
+        .. code-block:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+            Cache-Control: no-store
+            Pragma: no-cache
+
+            {
+                "access_token":"2YotnFZFEjr1zCsicMWpAA",
+                "token_type":"example",
+                "expires_in":3600,
+                "refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
+                "example_parameter":"example_value"
+            }
+
+        :returns: (status_code, body, headers)
+
+        .. _`Section 4.1.4`: https://tools.ietf.org/html/rfc6749#section-4.1.4
+        """
+        client = self.request.client
+        authorization_code = self.request.authorization_code
+
+        user = self.authenticate_user(authorization_code)
+        if not user:
+            raise InvalidGrantError("There is no 'user' for this code.")
+        self.request.user = user
+
+        authorization_code.used_by: typing.Optional[OAuthToken]
+        if authorization_code.used_by is not None:
+            authorization_code.used_by.revoke()
+            raise InvalidGrantError("This authorization_code has already been used.")
+
+        scope = authorization_code.get_scope()
+        token = self.generate_token(
+            user=user,
+            scope=scope,
+            include_refresh_token=client.check_grant_type("refresh_token"),
+        )
+        logging.getLogger(__name__).debug("Issue token %r to %r", token, client)
+
+        saved_token = self.save_token(token)
+        authorization_code.mark_created(saved_token)
+
+        # NOTE: the authorization code should not be deleted for auditability and to allow for deletion of
+        # access tokens created by the authorization code when the authorization code is reused
+        # self.delete_authorization_code(authorization_code)
+
+        return 200, token, self.TOKEN_RESPONSE_HEADER
 
 
 class RefreshTokenGrant(grants.RefreshTokenGrant):

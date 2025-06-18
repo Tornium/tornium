@@ -32,7 +32,7 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "organized_crime_team_member" do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
-    belongs_to(:team, Tornium.Schema.OrganizedCrimeTeam, references: :guid)
+    belongs_to(:team, Tornium.Schema.OrganizedCrimeTeam, references: :guid, type: Ecto.UUID)
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     field(:slot_type, :string)

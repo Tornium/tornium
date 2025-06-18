@@ -1,0 +1,121 @@
+# Copyright (C) 2021-2025 tiksan
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+defmodule Tornium.Faction.OC.Team do
+  @moduledoc """
+  Functionality related to Organized Crime teams.
+  """
+
+  @type new_team_assignments :: %{
+          Tornium.Schema.OrganizedCrimeTeam.t() => Tornium.Schema.OrganizedCrime.t() | {:spawn_required, String.t()}
+        }
+
+  @doc """
+  Assign organized crimes to organized crime teams.
+
+  Organized crime teams that have completed their OC (or have an expired OC) or are recently created and don't have an 
+  assigned OC will be assigned a new organized crime. If there is an available OC of the correct OC name, the OC team 
+  will be assigned to that OC. If there does not exist such an OC, the `{:spawn_required, oc_name}` will be returned
+  for the OC team to indicate that an OC manager will need to spawn an OC of that name.
+
+  It is assumed that the provided OC teams are already filtered to not include teams of completed OCs, teams of
+  expired OCs, and new OC teams. While assigning OCs to teams, priority will be given to an OC partially filled with
+  exclusively members of a team.
+  """
+  @spec reassign_teams(
+          teams :: [Tornium.Schema.OrganizedCrimeTeam.t()],
+          crimes :: [Tornium.Schema.OrganizedCrime.t()],
+          assignments :: new_team_assignments()
+        ) :: new_team_assignments()
+  def reassign_teams(teams, crimes, assignments \\ %{})
+
+  def reassign_teams(
+        [%Tornium.Schema.OrganizedCrimeTeam{oc_name: oc_name, members: members} = team | remaining_teams] = teams,
+        [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes,
+        %{} = assignments
+      ) do
+    team_user_ids = team_member_ids(team)
+
+    {crimes, assignments} =
+      if Enum.member?(team_user_ids, nil) do
+        team
+        |> filter_team_crimes(crimes)
+        |> List.first()
+        |> do_assign_team(crimes, team, assignments)
+      else
+        {crimes, assignments}
+      end
+
+    reassign_teams(remaining_teams, crimes, assignments)
+  end
+
+  def reassign_teams([], _crimes, %{} = assignments) do
+    assignments
+  end
+
+  @spec filter_team_crimes(team :: Tornium.Schema.OrganizedCrimeTeam.t(), crimes :: [Tornium.Schema.OrganizedCrime.t()]) ::
+          [Tornium.Schema.OrganizedCrime.t()]
+  defp filter_team_crimes(
+         %Tornium.Schema.OrganizedCrimeTeam{oc_name: oc_name} = team,
+         [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes
+       ) do
+    crimes
+    |> Enum.filter(fn %Tornium.Schema.OrganizedCrime{oc_name: name, status: status} ->
+      oc_name == name and status == :recruiting
+    end)
+    |> Enum.filter(fn %Tornium.Schema.OrganizedCrime{slots: slots} ->
+      # Filter out OCs where slots are contain users not in the team
+      Enum.all?(slots, fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} ->
+        is_nil(user_id) or Enum.member?(team_member_ids(team), user_id)
+      end)
+    end)
+    |> Enum.sort_by(fn %Tornium.Schema.OrganizedCrime{slots: slots, expires_at: expires_at} ->
+      {
+        Enum.count(slots, fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> not is_nil(user_id) end),
+        expires_at
+      }
+    end)
+  end
+
+  @spec do_assign_team(
+          crime :: Tornium.Schema.OrganizedCrime.t() | nil,
+          crimes :: [Tornium.Schema.OrganizedCrime.t()],
+          team :: Tornium.Schema.OrganizedCrimeTeam.t(),
+          assignments :: new_team_assignments()
+        ) :: {[Tornium.Schema.OrganizedCrime.t()], new_team_assignments()}
+  def do_assign_team(
+        %Tornium.Schema.OrganizedCrime{} = crime,
+        [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes,
+        %Tornium.Schema.OrganizedCrimeTeam{} = team,
+        %{} = assignments
+      ) do
+    # TODO: update DB with assigned crime
+    {List.delete(crimes, crime), Map.put(assignments, team, crime)}
+  end
+
+  def do_assign_team(
+        nil = _crime,
+        [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes,
+        %Tornium.Schema.OrganizedCrimeTeam{oc_name: oc_name} = team,
+        %{} = assignments
+      ) do
+    {crimes, Map.put(assignments, team, {:spawn_required, oc_name})}
+  end
+
+  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [integer()]
+  defp team_member_ids(%Tornium.Schema.OrganizedCrimeTeam{members: members} = _team) do
+    Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
+  end
+end

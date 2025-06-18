@@ -50,6 +50,7 @@ defmodule Tornium.Schema.OrganizedCrime do
 
     # Tornium-specific data
     belongs_to(:assigned_team, Tornium.Schema.OrganizedCrimeTeam, references: :guid)
+    field(:assigned_team_at, :utc_datetime)
   end
 
   @spec upsert_all(entries :: [t()]) :: [t()]

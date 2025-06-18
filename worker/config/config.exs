@@ -51,9 +51,9 @@ config :tornium, Oban,
      crontab: [
        # {"* * * * *", Tornium.Workers.NotificationScheduler},
        # {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       # {"* * * * *", Tornium.Workers.OCUpdateScheduler}
+       {"* * * * *", Tornium.Workers.OCUpdateScheduler}
        # {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
-       {"* * * * *", Tornium.Workers.OCCPRUpdateScheduler}
+        # {"* * * * *", Tornium.Workers.OCCPRUpdateScheduler}
      ]},
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}

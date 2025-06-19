@@ -25,9 +25,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :tesla,
-  adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
-
 config :tornium, Tornium.PromEx,
   # See https://hexdocs.pm/prom_ex/PromEx.Config.html for configuration details
   disabled: false,

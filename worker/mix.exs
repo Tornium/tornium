@@ -52,7 +52,9 @@ defmodule Tornium.MixProject do
       {:bandit, "~> 1.2"},
       {:luerl, "~> 1.2.3"},
       {:solid, "~> 0.18"},
-      {:tornex, "~> 0.1"},
+      {:tornex, "~> 0.2"},
+      # Required for tornex's default HTTP adapater
+      {:finch, "~> 0.19"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end

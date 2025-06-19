@@ -25,11 +25,8 @@ defmodule Tornium.Application do
     # Attach the default loggers from :telemetry before the start of the children
     Tornex.Telemetry.attach_default_logger()
 
-    if Mix.env() == :dev do
-      Oban.Telemetry.attach_default_logger()
-    else
-      Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
-    end
+    Oban.Telemetry.attach_default_logger()
+    # Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
 
     # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [

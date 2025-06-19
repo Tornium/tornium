@@ -51,7 +51,7 @@ defmodule Tornium.MixProject do
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
       {:luerl, "~> 1.2.3"},
-      {:solid, "~> 0.18"},
+      {:solid, "~> 1.0"},
       {:tornex, "~> 0.2"},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.19"},

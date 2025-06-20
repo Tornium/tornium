@@ -84,6 +84,7 @@ class Stat(BaseModel):
             invoker.faction_id,
             int(0.375 * invoker.battlescore * (min_ff - 1)),
             int(0.375 * invoker.battlescore * (max_ff - 1)),
+            invoker.faction_id,
             limit,
         ]
 
@@ -91,14 +92,15 @@ class Stat(BaseModel):
         # 0 = added faction
         # 1 = min battlescore
         # 2 = max battlescore
-        # 3 = limit
+        # 3 = user's faction ID
+        # 4 = limit
 
         if sort == "timestamp":
-            query = """select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' order by s.time_added desc limit %s"""
+            query = """select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' and u.faction_id != %s order by s.time_added desc limit %s"""
         elif sort == "random":
-            query = """select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' order by random() limit %s"""
+            query = """select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' and u.faction_id != %s order by random() limit %s"""
         else:  # Sorted by respect
-            query = f"""select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' order by (((u.level / 198) + 197 / 198) * least(1 + 8 / 3 * (s.battlescore / {int(invoker.battlescore)}), 3)) desc, s.time_added desc limit %s"""
+            query = f"""select s.id, s.tid_id, s.time_added, s.battlescore, u.name, u.level, u.last_refresh, u.faction_id, u.status, u.last_action, f.name from (select distinct on (s.tid_id) s.id, s.tid_id, s.time_added, s.battlescore from public.stat s where (s.added_group in (0, %s)) and (s.battlescore between %s and %s) order by s.tid_id, s.time_added DESC) s join public."user" as u on u.tid = s.tid_id left join public.faction as f on f.tid = u.faction_id where u.level is not null and s.time_added > now() - interval '3 months' and u.faction_id != %s order by (((u.level / 198) + 197 / 198) * least(1 + 8 / 3 * (s.battlescore / {int(invoker.battlescore)}), 3)) desc, s.time_added desc limit %s"""
 
         stat_entries = []
 

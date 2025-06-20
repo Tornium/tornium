@@ -123,11 +123,12 @@ def chain(interaction, *args, **kwargs):
         "color": SKYNET_GOOD,
         "footer": {"text": ""},
     }
+
     for stat_entry in chain_list:
         embed["fields"].append(
             {
                 "name": f"{stat_entry['user']['name']} [{stat_entry['user']['tid']}]",
-                "value": f"Stat Score: {commas(stat_entry['battlescore'])}\nRespect: {stat_entry['respect']}\nLast Update: <t:{int(stat_entry['timeadded'])}:R>\nFaction: {stat_entry['user']['faction']['name']}",
+                "value": f"Respect: {stat_entry['respect']}\nLast Update: <t:{int(stat_entry['timeadded'])}:R>\nFaction: {stat_entry['user']['faction']['name']}\n[Link](https://tcy.sh/p/{stat_entry['user']['tid']})",
                 "inline": True,
             }
         )

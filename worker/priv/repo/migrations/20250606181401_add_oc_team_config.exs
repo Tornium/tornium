@@ -3,7 +3,7 @@ defmodule Tornium.Repo.Migrations.AddOcTeamConfig do
 
   def change do
     alter table("server_oc_config") do
-      add :team_channel, :integer, default: nil, null: true
+      add :team_channel, :bigint, default: nil, null: true
     end
   end
 end

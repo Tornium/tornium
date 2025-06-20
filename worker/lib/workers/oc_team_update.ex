@@ -61,18 +61,23 @@ defmodule Tornium.Workers.OCTeamUpdate do
       |> order_by([c], desc: c.assigned_team_at)
       |> distinct([c], c.assigned_team_id)
 
-    Tornium.Schema.OrganizedCrimeTeam
-    |> where([t], t.faction_id == ^faction_tid)
-    |> join(:left, [t], c in subquery(current_crime_query), on: t.guid == c.assigned_team_id)
-    # New OC team and no OC assigned; OR
-    # The current assigned OC has finished or has expired
-    |> where([t, c], is_nil(c.oc_id) or not is_nil(c.executed_at) or ^DateTime.utc_now() >= c.expires_at)
-    |> join(:left, [t, c], m in assoc(t, :members), on: m.team_id == t.guid)
-    |> join(:left, [t, c, m], s in assoc(c, :slots), on: c.oc_id == s.oc_id)
-    |> preload([t, c, m, s], current_crime: {c, slots: s}, members: m)
-    |> Repo.all()
-    |> Tornium.Faction.OC.Team.reassign_teams(crimes)
-    |> Map.values()
+    %Tornium.Faction.OC.Team.Check.Struct{} =
+      _check_struct =
+      Tornium.Schema.OrganizedCrimeTeam
+      |> where([t], t.faction_id == ^faction_tid)
+      |> join(:left, [t], c in subquery(current_crime_query), on: t.guid == c.assigned_team_id)
+      # New OC team and no OC assigned; OR
+      # The current assigned OC has finished or has expired
+      |> where([t, c], is_nil(c) or not is_nil(c.executed_at) or ^DateTime.utc_now() >= c.expires_at)
+      |> join(:left, [t, c], m in assoc(t, :members), on: m.team_id == t.guid)
+      |> join(:left, [t, c, m], s in assoc(c, :slots), on: c.oc_id == s.oc_id)
+      |> preload([t, c, m, s], current_crime: {c, slots: s}, members: m)
+      |> Repo.all()
+      |> Tornium.Faction.OC.Team.reassign_teams(crimes)
+      |> Tornium.Faction.OC.Team.Check.Struct.set_assigned_teams()
+      |> IO.inspect()
+
+    # TODO: Update DB for assigned/missing team OCs
 
     :ok
   end

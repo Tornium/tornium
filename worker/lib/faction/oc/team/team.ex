@@ -42,21 +42,15 @@ defmodule Tornium.Faction.OC.Team do
   def reassign_teams(teams, crimes, assignments \\ %{})
 
   def reassign_teams(
-        [%Tornium.Schema.OrganizedCrimeTeam{oc_name: oc_name, members: members} = team | remaining_teams] = teams,
+        [%Tornium.Schema.OrganizedCrimeTeam{} = team | remaining_teams] = _teams,
         [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes,
         %{} = assignments
       ) do
-    team_user_ids = team_member_ids(team)
-
     {crimes, assignments} =
-      if Enum.member?(team_user_ids, nil) do
-        team
-        |> filter_team_crimes(crimes)
-        |> List.first()
-        |> do_assign_team(crimes, team, assignments)
-      else
-        {crimes, assignments}
-      end
+      team
+      |> filter_team_crimes(crimes)
+      |> List.first()
+      |> do_assign_team(crimes, team, assignments)
 
     reassign_teams(remaining_teams, crimes, assignments)
   end

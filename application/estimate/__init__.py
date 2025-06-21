@@ -68,9 +68,9 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
 
     df: pd.DataFrame
     if ps is not None and now - date_to_timestamp(ps.timestamp) <= ESTIMATE_TTL:
-        df = pd.DataFrame(columns=model_features, index=[0])
+        df = pd.DataFrame(columns=_model_features, index=[0])
 
-        for field_name in model_features:
+        for field_name in _model_features:
             try:
                 df[field_name][0] = ps.__getattribute__(field_name)
             except AttributeError:
@@ -101,9 +101,9 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     if not update_error and now - date_to_timestamp(ps.timestamp) > ESTIMATE_TTL:
         raise ValueError("Personal stats data is too old after an update")
 
-    df = pd.DataFrame(columns=model_features, index=[0])
+    df = pd.DataFrame(columns=_model_features, index=[0])
 
-    for field_name in model_features:
+    for field_name in _model_features:
         try:
             df[field_name][0] = ps.__getattribute__(field_name)
         except AttributeError:

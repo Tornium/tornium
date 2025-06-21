@@ -197,6 +197,7 @@ def generate_faction_stats_csv():
                         (Stat.tid == user_id)
                         & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
                     )
+                    .order_by(Stat.time_added.desc())
                     .first()
                 )
             else:

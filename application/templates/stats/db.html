@@ -82,6 +82,25 @@ Tornium - Stat DB
             </table>
         </div>
     </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Faction Stat File</h5>
+            <p class="card-text">
+                Use Tornium's database to generate a CSV file containing the stats (from this stat DB) and estimated stats of members of any faction.
+            </p>
+            <p class="card-text">
+                <b>NOTE:</b> This may take a minute or two to generate.
+            </p>
+
+            <div class="col-sm-12 col-md-8 col-xl-4">
+                <form class="input-group" action="/stats/faction" method="POST" target="_blank">
+                    <input type="number" class="form-control" id="faction-stats-input" placeholder="Faction ID" inputmode="numeric" min="1" pattern="\d*" name="faction-id" required>
+                    <button type="submit" class="btn btn-outline-primary" id="submit-faction-stats-input">Generate</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="stats-modal" tabindex="-1" aria-labelledby="stats-modal" aria-hidden="true">

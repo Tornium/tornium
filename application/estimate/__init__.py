@@ -34,7 +34,7 @@ ESTIMATE_TTL = 604_800  # One week
 def model() -> xgboost.XGBRegressor:
     global _model, model_features
 
-    if _model is not None:
+    if _model is not None and model_features is not None:
         return _model
 
     _model = xgboost.XGBRegressor()

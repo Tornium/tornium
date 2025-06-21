@@ -25,29 +25,26 @@ from tornium_commons import rds
 from tornium_commons.formatters import date_to_timestamp
 from tornium_commons.models import PersonalStats
 
-_model: typing.Optional[xgboost.XGBRegressor] = None
-model_features: typing.List[str] = None
-
-ESTIMATE_TTL = 604_800  # One week
-
 
 def model() -> xgboost.XGBRegressor:
-    global _model, model_features
-
-    if _model is not None and model_features is not None:
-        return _model
-
-    _model = xgboost.XGBRegressor()
+    local_model = xgboost.XGBRegressor()
 
     if pathlib.Path("estimate/models/base-model.json").exists():
-        _model.load_model("estimate/models/base-model.json")
+        local_model.load_model("estimate/models/base-model.json")
     else:
-        _model.load_model("estimate/models/base-model-0.0.1.json")
+        local_model.load_model("estimate/models/base-model-0.0.1.json")
 
-    if model_features is None:
-        model_features = list(_model.feature_names_in_)
+    return local_model
 
-    return _model
+
+def model_features() -> typing.List[str]:
+    return list(_model.feature_names_in_)
+
+
+_model: typing.Optional[xgboost.XGBRegressor] = model()
+_model_features: typing.List[str] = model_features()
+
+ESTIMATE_TTL = 604_800  # One week
 
 
 def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:

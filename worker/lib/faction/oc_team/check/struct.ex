@@ -14,7 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Faction.OC.Team.Check.Struct do
-  # TODO: Add moduledoc
+  @moduledoc """
+  Struct containing triggered checks related to organized crime teams.
+  """
 
   defstruct [:team_spawn_required, :assigned_team]
 
@@ -37,8 +39,11 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
     }
   end
 
-  # TODO: Add documentation
   @doc """
+  Update the check struct provided the new organized crime team assignments.
+
+  If the check struct has not been passed, a new `Tornium.Faction.OC.Team.Check.Struct` will be
+  created.
   """
   @spec set_assigned_teams(assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
   def set_assigned_teams(assignments) do
@@ -47,9 +52,15 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
 
   @spec set_assigned_teams(check_struct :: t(), assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
   def set_assigned_teams(%__MODULE__{} = check_struct, assignments) do
+    # TODO: Test this
     Enum.reduce(assignments, check_struct, &do_set_assigned_teams/2)
   end
 
+  @spec do_set_assigned_teams(
+          {team :: Tornium.Schema.OrganizedCrimeTeam.t(), crime :: Tornium.Schema.OrganizedCrime.t()}
+          | {:spawn_required, oc_name :: String.t()},
+          acc :: t()
+        ) :: t()
   defp do_set_assigned_teams(
          {%Tornium.Schema.OrganizedCrimeTeam{} = team, %Tornium.Schema.OrganizedCrime{} = crime},
          %__MODULE__{assigned_team: assigned_team} = acc

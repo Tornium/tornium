@@ -46,7 +46,7 @@ defmodule Tornium.Faction.OC.Team.Render do
 
   # TODO: Write test for this series of functions
   @doc """
-  Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Check.Struct`.
+  Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Team.Check.Struct`.
   """
   @spec render_feature(
           messages :: [Nostrum.Struct.Message.t()],

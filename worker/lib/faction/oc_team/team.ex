@@ -15,7 +15,7 @@
 
 defmodule Tornium.Faction.OC.Team do
   @moduledoc """
-  Functionality related to Organized Crime teams.
+  Functionality related to organized crime teams.
   """
 
   import Ecto.Query
@@ -86,7 +86,14 @@ defmodule Tornium.Faction.OC.Team do
     end)
   end
 
-  # TODO: Add documentation
+  @doc """
+  Assign a specific organized crime team to a specific organized crime.
+
+  Returns a tuple of the remaining OCs to be assigned and a map of OC team assignments (see
+  `Tornium.Faction.OC.Team.new_team_assignments()`). If there is no OC that can be assigned
+  to the OC team, `{:spawn_required, oc_name}` will be added to the assignments map without
+  removing any OCs from the list to be assigned.
+  """
   @spec do_assign_team(
           crime :: Tornium.Schema.OrganizedCrime.t() | nil,
           crimes :: [Tornium.Schema.OrganizedCrime.t()],
@@ -112,7 +119,7 @@ defmodule Tornium.Faction.OC.Team do
   end
 
   @doc """
-  Update all newly assigned OC teams in the DB.
+  Update all newly assigned organized crime teams in the DB.
   """
   @spec update_assigned_teams(check_struct :: Tornium.Faction.OC.Team.Check.Struct.t()) ::
           Tornium.Faction.OC.Team.Check.Struct.t()
@@ -123,7 +130,10 @@ defmodule Tornium.Faction.OC.Team do
   end
 
   @doc """
-  Update the assigned OC team for an organized crime.
+  Assign an organized crime team to an organized crime in the DB.
+
+  The `assigned_team_at` timestamp will be set to the current time indicating when the OC team was assigned to the
+  OC.
   """
   @spec update_assigned_team(team :: Tornium.Schema.OrganizedCrimeTeam.t(), crime :: Tornium.Schema.OrganizedCrime.t()) ::
           {non_neg_integer(), nil}

@@ -24,7 +24,7 @@ defmodule Tornium.Discord.Constants do
   @spec colors() :: %{any() => integer()}
   def colors() do
     %{
-      good: 0xC83F49,
+      good: 0x32CD32,
       error: 0xC83F49,
       warning: 0x755FBE,
       info: 0x7DF9FF

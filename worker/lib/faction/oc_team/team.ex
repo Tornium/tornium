@@ -18,6 +18,9 @@ defmodule Tornium.Faction.OC.Team do
   Functionality related to Organized Crime teams.
   """
 
+  import Ecto.Query
+  alias Tornium.Repo
+
   @type new_team_assignments :: %{
           Tornium.Schema.OrganizedCrimeTeam.t() => Tornium.Schema.OrganizedCrime.t() | {:spawn_required, String.t()}
         }
@@ -83,6 +86,7 @@ defmodule Tornium.Faction.OC.Team do
     end)
   end
 
+  # TODO: Add documentation
   @spec do_assign_team(
           crime :: Tornium.Schema.OrganizedCrime.t() | nil,
           crimes :: [Tornium.Schema.OrganizedCrime.t()],
@@ -95,7 +99,6 @@ defmodule Tornium.Faction.OC.Team do
         %Tornium.Schema.OrganizedCrimeTeam{} = team,
         %{} = assignments
       ) do
-    # TODO: update DB with assigned crime
     {List.delete(crimes, crime), Map.put(assignments, team, crime)}
   end
 
@@ -106,6 +109,32 @@ defmodule Tornium.Faction.OC.Team do
         %{} = assignments
       ) do
     {crimes, Map.put(assignments, team, {:spawn_required, oc_name})}
+  end
+
+  @doc """
+  Update all newly assigned OC teams in the DB.
+  """
+  @spec update_assigned_teams(check_struct :: Tornium.Faction.OC.Team.Check.Struct.t()) ::
+          Tornium.Faction.OC.Team.Check.Struct.t()
+  def update_assigned_teams(%Tornium.Faction.OC.Team.Check.Struct{assigned_team: assigned_team} = check_struct) do
+    Enum.each(assigned_team, fn {team, crime} -> update_assigned_team(team, crime) end)
+
+    check_struct
+  end
+
+  @doc """
+  Update the assigned OC team for an organized crime.
+  """
+  @spec update_assigned_team(team :: Tornium.Schema.OrganizedCrimeTeam.t(), crime :: Tornium.Schema.OrganizedCrime.t()) ::
+          {non_neg_integer(), nil}
+  def update_assigned_team(
+        %Tornium.Schema.OrganizedCrimeTeam{guid: team_guid} = _team,
+        %Tornium.Schema.OrganizedCrime{oc_id: oc_id} = _crime
+      ) do
+    Tornium.Schema.OrganizedCrime
+    |> update([c], set: [assigned_team_id: ^team_guid, assigned_team_at: ^DateTime.utc_now()])
+    |> where([c], c.oc_id == ^oc_id)
+    |> Repo.update_all([])
   end
 
   @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [integer()]

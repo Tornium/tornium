@@ -32,6 +32,7 @@ defmodule Tornium.Schema.ServerOCConfig do
           delayed_roles: [integer()],
           delayed_crimes: [String.t()],
           team_channel: integer() | nil,
+          team_roles: [integer()],
           extra_range_channel: integer() | nil,
           extra_range_roles: [integer()],
           extra_range_global_min: integer(),
@@ -54,6 +55,8 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:delayed_crimes, {:array, :string})
 
     field(:team_channel, :integer)
+    field(:team_roles, {:array, :integer})
+    field(:team_features, {:array, Ecto.Enum}, values: [:team_spawn_required, :assigned_team])
 
     field(:extra_range_channel, :integer)
     field(:extra_range_roles, {:array, :integer})

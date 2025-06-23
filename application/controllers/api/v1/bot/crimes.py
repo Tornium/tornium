@@ -25,6 +25,7 @@ from tornium_commons.models import (
     ServerOCConfig,
     ServerOCRangeConfig,
 )
+from tornium_commons.models.server_oc_config import TEAM_FEATURES
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -321,6 +322,88 @@ def set_team_channel(guild_id: int, faction_tid: int, *args, **kwargs):
 
 @session_required
 @ratelimit
+def set_team_roles(guild_id: int, faction_tid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    roles = data.get("roles")
+
+    if roles is None:
+        return make_exception_response("1003", key)
+    elif roles is not None and not isinstance(roles, list):
+        return make_exception_response("1003", key)
+
+    try:
+        guild: Server = Server.select(Server.sid, Server.admins, Server.factions).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = (
+            Faction.select(Faction.guild, Faction.has_migrated_oc).where(Faction.tid == faction_tid).get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+    elif not faction.has_migrated_oc:
+        return make_exception_response("4300", key)
+
+    oc_config = ServerOCConfig.create_or_update(guild_id, faction_tid, team_roles=list(set(map(int, roles))))
+
+    return oc_config.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def set_team_features(guild_id: int, faction_tid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    features = data.get("features")
+
+    if features is None:
+        return make_exception_response("1000", key)
+    elif features is not None and not isinstance(features, list):
+        return make_exception_response("1000", key)
+    elif set(features) - set(TEAM_FEATURES):
+        return make_exception_response("1000", key, details={"message": "Invalid team feature"})
+
+    try:
+        guild: Server = Server.select(Server.sid, Server.admins, Server.factions).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = (
+            Faction.select(Faction.guild, Faction.has_migrated_oc).where(Faction.tid == faction_tid).get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+    elif not faction.has_migrated_oc:
+        return make_exception_response("4300", key)
+
+    oc_config = ServerOCConfig.create_or_update(guild_id, faction_tid, team_features=list(set(features)))
+
+    return oc_config.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
 def set_extra_range_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -368,7 +451,7 @@ def set_extra_range_roles(guild_id: int, faction_tid: int, *args, **kwargs):
     roles = data.get("roles")
 
     if roles is None:
-        return make_exception_response("1002", key)
+        return make_exception_response("1003", key)
     elif roles is not None and not isinstance(roles, list):
         return make_exception_response("1003", key)
 

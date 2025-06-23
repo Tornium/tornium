@@ -28,6 +28,10 @@ from .base_model import BaseModel
 from .faction import Faction
 from .server import Server
 
+# NOTE: These values come from Ecto's Enum mapping. To update this tuple, see:
+# Ecto.Enum.mappings(Tornium.Schema.ServerOCConfig, :team_features)
+TEAM_FEATURES = ("team_spawn_required", "assigned_team")
+
 
 class ServerOCConfig(BaseModel):
     class Meta:
@@ -50,6 +54,8 @@ class ServerOCConfig(BaseModel):
 
     # OC team-related
     team_channel = BigIntegerField(default=None, null=True)
+    team_roles = ArrayField(BigIntegerField, index=False, default=[])
+    team_features = ArrayField(CharField, index=False, default=[])
 
     # Extra-range OCs
     extra_range_channel = BigIntegerField(default=None, null=True)

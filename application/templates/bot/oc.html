@@ -180,25 +180,35 @@ Tornium - OCs
                             <option value="0">Disabled</option>
                         </select>
                     </div>
-
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Team Features</div>
                         <select
                             class=" oc-team-features w-100"
                             data-faction="{{ faction.tid }}"
-                            aria-label="OC Team Channel"
+                            aria-label="OC Team Features"
                             data-live-search="true"
                             data-selected-text-format="count > 2"
                             multiple
                             autocomplete="off"
                         >
                             <option value=""></option>
-                            <option value="oc-spawn-required">OC spawn required</option>
-                            <option value="team-join-required">Team members need to join OC</option>
-                            <option value="invalid-team-join">Team member joined incorrect OC</option>
-                            <option value="oc-team-assigned">OC team assigned to an OC</option>
+                            <option value="team_spawn_required" {% if "team_spawn_required" in faction.server_oc_config.team_features %} selected {% endif %}>OC spawn required</option>
+                            <option value="">Team members need to join OC</option>
+                            <option value="">Team member joined incorrect OC</option>
+                            <option value="assigned_team" {% if "assigned_team" in faction.server_oc_config.team_features %} selected {% endif %}>OC team assigned to an OC</option>
                         </select>
-                        {# TODO: Add selected to selected features #}
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Team Roles (Optional)</div>
+                        <select
+                            class="discord-role-selector oc-team-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_roles }}"
+                            multiple
+                        ></select>
                     </div>
                 </div>
 

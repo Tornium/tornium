@@ -126,7 +126,43 @@ function setTeamChannel(event) {
     });
 }
 
-function setTeamFeatures(event) {}
+function setTeamRoles(event) {
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedRoles = [];
+
+    selectedOptions.forEach((element) => {
+        selectedRoles.push(element.getAttribute("value"));
+    });
+
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/team/roles`, {
+        body: { roles: selectedRoles },
+        errorTitle: "OC Team Roles Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Team Roles Set Successful",
+            "The roles for OC team notifications have been successfully set.",
+        );
+    });
+}
+
+function setTeamFeatures(event) {
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedFeatures = [];
+
+    selectedOptions.forEach((element) => {
+        selectedFeatures.push(element.getAttribute("value"));
+    });
+
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/team/features`, {
+        body: { features: selectedFeatures },
+        errorTitle: "OC Team Features Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Team Features Set Successful",
+            "The enabled features for OC team notifications have been successfully set.",
+        );
+    });
+}
 
 function setRangeChannel(event) {
     tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/channel`, {
@@ -446,6 +482,9 @@ ready(() => {
     });
     document.querySelectorAll(".oc-team-channel").forEach((element) => {
         element.addEventListener("change", setTeamChannel);
+    });
+    document.querySelectorAll(".oc-team-roles").forEach((element) => {
+        element.addEventListener("change", setTeamRoles);
     });
     document.querySelectorAll(".oc-team-features").forEach((element) => {
         new TomSelect(element, { create: false });

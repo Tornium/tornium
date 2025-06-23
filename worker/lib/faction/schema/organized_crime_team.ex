@@ -15,7 +15,6 @@
 
 defmodule Tornium.Schema.OrganizedCrimeTeam do
   use Ecto.Schema
-  import Ecto.Query
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -37,15 +36,5 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
     has_many(:members, Tornium.Schema.OrganizedCrimeTeamMember, foreign_key: :team_id)
     has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
     has_one(:current_crime, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
-  end
-
-  def preload_current_crime(query) do
-    latest_comment_query =
-      Tornium.Schema.OrganizedCrime
-      |> where([c], c.assigned_team == ^query.guid)
-      |> order_by([c], desc: c.created_at)
-      |> limit(1)
-
-    preload(query, latest_comment: ^latest_comment_query)
   end
 end

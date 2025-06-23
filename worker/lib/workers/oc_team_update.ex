@@ -55,29 +55,37 @@ defmodule Tornium.Workers.OCTeamUpdate do
       |> preload([c, s], slots: s)
       |> Repo.all()
 
-    # This is necessary to retrieve the most recent OC assigned to each OC team
+    # This is necessary to retrieve the most recent OC assigned to each OC team.
+    # Otherwise, the query is not guaranteed to use the most recent OC assigned.
     current_crime_query =
       Tornium.Schema.OrganizedCrime
       |> order_by([c], desc: c.assigned_team_at)
       |> distinct([c], c.assigned_team_id)
 
     %Tornium.Faction.OC.Team.Check.Struct{} =
-      _check_struct =
+      check_struct =
       Tornium.Schema.OrganizedCrimeTeam
       |> where([t], t.faction_id == ^faction_tid)
-      |> join(:left, [t], c in subquery(current_crime_query), on: t.guid == c.assigned_team_id)
+      |> join(:left, [t], m in assoc(t, :members), on: m.team_id == t.guid)
+      |> join(:left, [t, m], c in subquery(current_crime_query), on: t.guid == c.assigned_team_id)
+      |> join(:inner, [t, m, c], f in assoc(t, :faction), on: f.tid == t.faction_id)
       # New OC team and no OC assigned; OR
       # The current assigned OC has finished or has expired
-      |> where([t, c], is_nil(c) or not is_nil(c.executed_at) or ^DateTime.utc_now() >= c.expires_at)
-      |> join(:left, [t, c], m in assoc(t, :members), on: m.team_id == t.guid)
-      |> join(:left, [t, c, m], s in assoc(c, :slots), on: c.oc_id == s.oc_id)
-      |> preload([t, c, m, s], current_crime: {c, slots: s}, members: m)
+      |> where(
+        [t, m, c, f],
+        is_nil(c.assigned_team_id) or not is_nil(c.executed_at) or ^DateTime.utc_now() >= c.expires_at
+      )
+      |> preload([t, m, c, f], members: m, faction: f)
       |> Repo.all()
       |> Tornium.Faction.OC.Team.reassign_teams(crimes)
       |> Tornium.Faction.OC.Team.Check.Struct.set_assigned_teams()
-      |> IO.inspect()
+      |> Tornium.Faction.OC.Team.update_assigned_teams()
 
-    # TODO: Update DB for assigned/missing team OCs
+    config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
+
+    check_struct
+    |> Tornium.Faction.OC.Team.Render.render_all(config)
+    |> Tornium.Discord.send_messages()
 
     :ok
   end

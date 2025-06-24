@@ -156,7 +156,7 @@ defmodule Tornium.Faction.OC.Team.Render do
                     type: 2,
                     style: 5,
                     label: "Organized Crimes",
-                    url: "https://www.torn.com/factions.php?step=your&type=1#faction-crimes"
+                    url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
                   }
                 ]
               }
@@ -168,6 +168,7 @@ defmodule Tornium.Faction.OC.Team.Render do
         messages
       end
 
+    # TODO: Add link to Tornium's OC page and autoload the OC there
     render_feature(messages, :assigned_team, remaining_slots, config)
   end
 

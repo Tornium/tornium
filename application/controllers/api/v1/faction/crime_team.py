@@ -196,9 +196,17 @@ def set_oc_team_member(faction_id: int, team_guid: str, member_guid: str, user_i
         return make_exception_response("4022")
     elif not kwargs["user"].can_manage_crimes():
         return make_exception_response("4006")
-    elif not OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.guid == team_guid).exists():
+    elif (
+        not OrganizedCrimeTeam.select()
+        .where((OrganizedCrimeTeam.guid == team_guid) & (OrganizedCrimeTeam.faction_id == faction_id))
+        .exists()
+    ):
         return make_exception_response("1106", key)
-    elif not OrganizedCrimeTeamMember.select().where(OrganizedCrimeTeamMember.guid == member_guid).exists():
+    elif (
+        not OrganizedCrimeTeamMember.select()
+        .where((OrganizedCrimeTeamMember.guid == member_guid) & (OrganizedCrimeTeamMember.faction_id == faction_id))
+        .exists()
+    ):
         return make_exception_response("1107", key)
 
     try:
@@ -235,7 +243,11 @@ def update_oc_team_name(faction_id: int, team_guid: str, new_name: str, *args, *
         return make_exception_response("4022")
     elif not kwargs["user"].can_manage_crimes():
         return make_exception_response("4006")
-    elif not OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.guid == team_guid).exists():
+    elif (
+        not OrganizedCrimeTeam.select()
+        .where((OrganizedCrimeTeam.guid == team_guid) & (OrganizedCrimeTeam.faction_id == faction_id))
+        .exists()
+    ):
         return make_exception_response("1106", key)
 
     if not isinstance(new_name, str):

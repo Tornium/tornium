@@ -15,6 +15,8 @@
 
 defmodule Tornium.Schema.OrganizedCrimeTeam do
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -24,7 +26,8 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
           faction: Tornium.Schema.Faction.t(),
           members: [Tornium.Schema.OrganizedCrimeTeamMember.t()],
           crimes: [Tornium.Schema.OrganizedCrime.t()],
-          current_crime: Tornium.Schema.OrganizedCrime.t()
+          current_crime: Tornium.Schema.OrganizedCrime.t(),
+          required_spawn_at: DateTime.t()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -36,5 +39,18 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
     has_many(:members, Tornium.Schema.OrganizedCrimeTeamMember, foreign_key: :team_id)
     has_many(:crimes, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
     has_one(:current_crime, Tornium.Schema.OrganizedCrime, foreign_key: :assigned_team_id)
+
+    field(:required_spawn_at, :utc_datetime)
+  end
+
+  @doc """
+  Update the `required_spawn_at` timestamp of an `OrganizedCrimeTeam`.
+  """
+  @spec update_spawn_required(team :: t()) :: {non_neg_integer(), nil}
+  def update_spawn_required(%__MODULE__{guid: team_guid} = _team) do
+    __MODULE__
+    |> update([t], set: [required_spawn_at: ^DateTime.utc_now()])
+    |> where([t], t.guid == ^team_guid)
+    |> Repo.update_all([])
   end
 end

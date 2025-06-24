@@ -24,6 +24,7 @@ defmodule Tornium.Schema.OrganizedCrime do
 
   alias Tornium.Repo
   use Ecto.Schema
+  import Ecto.Query
 
   @type t :: %__MODULE__{
           oc_id: integer(),
@@ -140,5 +141,22 @@ defmodule Tornium.Schema.OrganizedCrime do
         }
       end
     )
+  end
+
+  @doc """
+  Assign an organized crime team to an organized crime in the DB.
+
+  The `assigned_team_at` timestamp will be set to the current time indicating when the OC team was assigned to the
+  OC.
+  """
+  @spec update_assigned_team(team :: Tornium.Schema.OrganizedCrimeTeam.t(), crime :: t()) :: {non_neg_integer(), nil}
+  def update_assigned_team(
+        %Tornium.Schema.OrganizedCrimeTeam{guid: team_guid} = _team,
+        %__MODULE__{oc_id: oc_id} = _crime
+      ) do
+    __MODULE__
+    |> update([c], set: [assigned_team_id: ^team_guid, assigned_team_at: ^DateTime.utc_now()])
+    |> where([c], c.oc_id == ^oc_id)
+    |> Repo.update_all([])
   end
 end

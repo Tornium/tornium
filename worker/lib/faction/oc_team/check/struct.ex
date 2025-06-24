@@ -43,7 +43,9 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
   Update the check struct provided the new organized crime team assignments.
 
   If the check struct has not been passed, a new `Tornium.Faction.OC.Team.Check.Struct` will be
-  created.
+  created. If the OC team requires an OC to be spawned and that requirement has been 
+  "registered" within the last 24 hours, the spawning requirement will not be added to the check 
+  struct to avoid sending a message every time the OC team checks are run.
   """
   @spec set_assigned_teams(assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
   def set_assigned_teams(assignments) do
@@ -69,9 +71,13 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
   end
 
   defp do_set_assigned_teams(
-         {%Tornium.Schema.OrganizedCrimeTeam{} = team, {:spawn_required, _oc_name}},
+         {%Tornium.Schema.OrganizedCrimeTeam{required_spawn_at: required_spawn_at} = team, {:spawn_required, _oc_name}},
          %__MODULE__{team_spawn_required: team_spawn_required} = acc
        ) do
-    %__MODULE__{acc | team_spawn_required: [team | team_spawn_required]}
+    if is_nil(required_spawn_at) or DateTime.diff(DateTime.utc_now(), required_spawn_at, :hour) >= 24 do
+      %__MODULE__{acc | team_spawn_required: [team | team_spawn_required]}
+    else
+      acc
+    end
   end
 end

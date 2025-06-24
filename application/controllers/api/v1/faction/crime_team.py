@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import re
 import typing
 import uuid
 
@@ -254,6 +255,8 @@ def update_oc_team_name(faction_id: int, team_guid: str, new_name: str, *args, *
         return make_exception_response("0000", key, details={"message": "Invalid team name"})
     elif len(new_name) == 0 or len(new_name) > 32:
         return make_exception_response("0000", key, details={"message": "Invalid team name length"})
+    elif not re.fullmatch(r"[A-Za-z0-9_-]+", new_name):
+        return make_exception_response("0000", key, details={"message": "Invalid team name characters"})
 
     try:
         team: OrganizedCrimeTeam = (

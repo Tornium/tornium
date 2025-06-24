@@ -212,8 +212,16 @@ function updateTeamName() {
 
     if (newTeamName.length == 0) {
         generateToast("Invalid Team Name", "An OC team name is required.");
+        return;
     } else if (newTeamName.length > 32) {
         generateToast("Invalid Team Name", "The OC team name must be at most 32 characters.");
+        return;
+    } else if (!/^[A-Za-z0-9_-]+$/.test(newTeamName)) {
+        generateToast(
+            "Invalid Team Name",
+            "The OC team name can only contain alphanumeric characters, hyphens, and underscores.",
+        );
+        return;
     }
 
     tfetch("PUT", `faction/${factionID}/crime/team/${teamGUID}/name/${newTeamName}`, {

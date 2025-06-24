@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import CharField, DoesNotExist, ForeignKeyField, UUIDField
+from peewee import CharField, DateTimeField, DoesNotExist, ForeignKeyField, UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
@@ -28,6 +28,9 @@ class OrganizedCrimeTeam(BaseModel):
     name = CharField(null=False)
     oc_name = CharField(null=False)
     faction = ForeignKeyField(Faction, null=False)
+
+    # Internal Data
+    required_spawn_at = DateTimeField(default=None, null=True)
 
     def to_dict(self) -> dict:
         return {

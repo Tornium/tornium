@@ -18,6 +18,9 @@ defmodule Tornium.Faction.OC.Team.Render do
   Functions to render the embeds and components of OC team-related notifications.
   """
 
+  import Ecto.Query
+  alias Tornium.Repo
+
   @doc """
   Render embeds for each triggered check listed for each feature in `Tornium.Faction.OC.Team.Check.Struct`.
   """
@@ -118,7 +121,7 @@ defmodule Tornium.Faction.OC.Team.Render do
         messages,
         :assigned_team,
         [
-          {%Tornium.Schema.OrganizedCrimeTeam{name: team_name, guid: team_guid} = _team,
+          {%Tornium.Schema.OrganizedCrimeTeam{name: team_name, guid: team_guid, members: team_members} = _team,
            %Tornium.Schema.OrganizedCrime{oc_name: oc_name, oc_id: oc_id} = _crime}
           | remaining_slots
         ] =
@@ -139,7 +142,7 @@ defmodule Tornium.Faction.OC.Team.Render do
         [
           %Nostrum.Struct.Message{
             channel_id: team_channel,
-            content: Tornium.Utils.roles_to_string(team_roles),
+            content: Tornium.Utils.roles_to_string(team_roles, assigns: team_member_discord_ids(team_members)),
             embeds: [
               %Nostrum.Struct.Embed{
                 title: "OC Team Assigned",
@@ -155,7 +158,7 @@ defmodule Tornium.Faction.OC.Team.Render do
                   %Nostrum.Struct.Component{
                     type: 2,
                     style: 5,
-                    label: "Organized Crimes",
+                    label: "Assigned OC",
                     url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
                   }
                 ]
@@ -169,10 +172,34 @@ defmodule Tornium.Faction.OC.Team.Render do
       end
 
     # TODO: Add link to Tornium's OC page and autoload the OC there
+    # TODO: Add link to Tornium's OC page and autoload the OC team there
     render_feature(messages, :assigned_team, remaining_slots, config)
   end
 
   def render_feature(messages, _state_element, _slots, %Tornium.Schema.ServerOCConfig{} = _config) do
     messages
+  end
+
+  @spec team_member_discord_ids(members :: [Tornium.Schema.OrganizedCrimeTeamMember.t()]) :: [non_neg_integer()]
+  defp team_member_discord_ids([%Tornium.Schema.OrganizedCrimeTeamMember{} = _member | _remaining_members] = members) do
+    user_ids =
+      members
+      |> Enum.map(fn
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} when is_integer(user_id) -> user_id
+        _ -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    Tornium.Schema.User
+    |> where([u], u.tid in ^user_ids)
+    |> select([u], u.discord_id)
+    |> Repo.all()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(fn discord_id -> {:user, discord_id} end)
+  end
+
+  defp team_member_discord_ids([] = _members) do
+    # Fallback to avoid making unnecessary DB requests when there are no team members set up
+    []
   end
 end

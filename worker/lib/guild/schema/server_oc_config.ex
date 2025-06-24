@@ -18,6 +18,7 @@ defmodule Tornium.Schema.ServerOCConfig do
   import Ecto.Query
   alias Tornium.Repo
 
+  @type team_features :: :team_spawn_required | :assigned_team
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           server_id: integer(),
@@ -32,7 +33,8 @@ defmodule Tornium.Schema.ServerOCConfig do
           delayed_roles: [integer()],
           delayed_crimes: [String.t()],
           team_channel: integer() | nil,
-          team_roles: [integer()],
+          team_roles: [non_neg_integer() | -1],
+          team_features: [team_features()],
           extra_range_channel: integer() | nil,
           extra_range_roles: [integer()],
           extra_range_global_min: integer(),

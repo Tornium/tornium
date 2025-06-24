@@ -97,9 +97,29 @@ function loadTeamSelectorPage(pageLoaded) {
 }
 
 function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_name }) {
+    const viewerNameInput = document.createElement("input");
+    viewerNameInput.setAttribute("type", "text");
+    viewerNameInput.setAttribute(
+        "style",
+        "width: initial; display: inline; background-color: #1a1a1a !important; border: 1px solid #444;",
+    );
+    viewerNameInput.setAttribute("id", "viewer-name-input");
+    viewerNameInput.setAttribute("minlength", 1);
+    viewerNameInput.setAttribute("maxlength", 32);
+    viewerNameInput.setAttribute("required", "");
+    viewerNameInput.classList.add("form-control");
+    viewerNameInput.value = name;
+    viewerNameInput.addEventListener("keydown", (event) => {
+        if (event.which !== 13) {
+            return;
+        }
+
+        updateTeamName();
+    });
+
     const viewerTitle = document.getElementById("viewer-title");
-    viewerTitle.textContent = `Team Viewer: ${name} [${oc_name}]`;
-    // TODO: Convert the OC name to an input
+    viewerTitle.innerHTML = "";
+    viewerTitle.append("Team Viewer: ", viewerNameInput, ` [${oc_name}]`);
 
     const teamDeleteButton = document.getElementById("delete-team-button");
     teamDeleteButton.classList.remove("disabled");
@@ -184,6 +204,23 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
     viewerStatsHeader.classList.add("card-header");
     viewerStatsHeader.textContent = "Team Statistics";
     viewerStats.appendChild(viewerStatsHeader);
+}
+
+function updateTeamName() {
+    const newTeamName = document.getElementById("viewer-name-input").value;
+    const teamGUID = document.getElementById("viewer").getAttribute("data-team-guid");
+
+    if (newTeamName.length == 0) {
+        generateToast("Invalid Team Name", "An OC team name is required.");
+    } else if (newTeamName.length > 32) {
+        generateToast("Invalid Team Name", "The OC team name must be at most 32 characters.");
+    }
+
+    tfetch("PUT", `faction/${factionID}/crime/team/${teamGUID}/name/${newTeamName}`, {
+        errorTitle: "Team Name Change Failed",
+    }).then((data) => {
+        generateToast("Team Name Change Successfully", "The OC team name was successfully changed.");
+    });
 }
 
 function updateTeamMember(event) {

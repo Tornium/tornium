@@ -317,6 +317,11 @@ mod.add_url_rule(
     methods=["PUT"],
 )
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/name/<new_name>",
+    view_func=faction.crime_team.update_oc_team_name,
+    methods=["PUT"],
+)
+mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
     view_func=faction.crimes.get_members_cpr,
     methods=["GET"],

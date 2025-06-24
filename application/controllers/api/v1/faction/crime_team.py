@@ -222,3 +222,35 @@ def set_oc_team_member(faction_id: int, team_guid: str, member_guid: str, user_i
         )
 
     return member.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def update_oc_team_name(faction_id: int, team_guid: str, new_name: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
+    elif not OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.guid == team_guid).exists():
+        return make_exception_response("1106", key)
+
+    if not isinstance(new_name, str):
+        return make_exception_response("0000", key, details={"message": "Invalid team name"})
+    elif len(new_name) == 0 or len(new_name) > 32:
+        return make_exception_response("0000", key, details={"message": "Invalid team name length"})
+
+    try:
+        team: OrganizedCrimeTeam = (
+            OrganizedCrimeTeam.update(name=new_name)
+            .where(OrganizedCrimeTeam.guid == team_guid)
+            .returning(OrganizedCrimeTeam)
+            .execute()[0]
+        )
+    except DoesNotExist:
+        return make_exception_response("1106", key)
+
+    return team.to_dict(), 200, api_ratelimit_response(key)

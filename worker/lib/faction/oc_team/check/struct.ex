@@ -54,7 +54,6 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
 
   @spec set_assigned_teams(check_struct :: t(), assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
   def set_assigned_teams(%__MODULE__{} = check_struct, assignments) do
-    # TODO: Test this
     Enum.reduce(assignments, check_struct, &do_set_assigned_teams/2)
   end
 

@@ -119,11 +119,13 @@ def chain():
 
 
 @mod.route("/stats/config", methods=["GET"])
+@login_required
+@aa_required
 def get_config():
     return render_template("stats/config.html", stats_global=current_user.faction.stats_db_global)
 
 
-@mod.route("/stats/config", methods=["GET", "POST"])
+@mod.route("/stats/config", methods=["POST"])
 @login_required
 @aa_required
 def config():

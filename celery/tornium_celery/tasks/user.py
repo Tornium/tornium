@@ -168,17 +168,6 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
 def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     user_data_kwargs = {"faction_aa": False}
 
-    if key is not None:
-        TornKey.insert(
-            guid=uuid.uuid4(),
-            api_key=key,
-            user=user_data["player_id"],
-            default=False,
-            disabled=False,
-            paused=False,
-            access_level=None,
-        ).on_conflict_ignore().execute()
-
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
         faction = (
@@ -299,6 +288,17 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
             *(getattr(User, k) for k in user_data_kwargs.keys()),
         ],
     ).execute()
+
+    if key is not None:
+        TornKey.insert(
+            guid=uuid.uuid4(),
+            api_key=key,
+            user=user_data["player_id"],
+            default=False,
+            disabled=False,
+            paused=False,
+            access_level=None,
+        ).on_conflict_ignore().execute()
 
     if user_data["discord"]["discordID"] not in ("", 0):
         # Remove users' Discord IDs if another user has the same Discord ID

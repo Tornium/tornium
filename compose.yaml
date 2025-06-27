@@ -1,0 +1,25 @@
+services:
+  application:
+    build:
+      context: .
+      dockerfile: ./application/Dockerfile
+    ports:
+      - 8080:5000
+    volumes:
+      - ./settings-docker.json:/srv/tornium/application/settings.json:ro
+
+  redis:
+    image: redis/redis-stack-server
+    restart: always
+    ports:
+      - 6378:6379
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5431:5432
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: Tornium
+      POSTGRES_DB: Tornium

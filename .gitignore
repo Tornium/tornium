@@ -87,6 +87,7 @@ dmypy.json
 
 # Tornium Stuff
 settings.json
+settings-docker.json
 celery.json
 wsgi.py
 *.log

@@ -1,0 +1,11 @@
+authlib
+flask ~= 3.1.0
+flask-cors ~= 6.0.0
+flask-login ~= 0.6.2
+scikit-learn
+toml
+pandas
+peewee ~= 3.18.1
+psycopg2
+pynacl ~= 1.5.0
+xgboost

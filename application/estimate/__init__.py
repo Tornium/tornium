@@ -32,7 +32,7 @@ def model() -> xgboost.XGBRegressor:
     if pathlib.Path("estimate/models/base-model.json").exists():
         local_model.load_model("estimate/models/base-model.json")
     else:
-        local_model.load_model("estimate/models/base-model-0.0.1.json")
+        local_model.load_model("estimate/models/base-model-0.0.2.json")
 
     return local_model
 
@@ -71,14 +71,16 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
         df = pd.DataFrame(columns=_model_features, index=[0])
 
         for field_name in _model_features:
+            if field_name == "user":
+                df.loc[0, "user"] = user_tid
+                continue
+
             try:
-                df[field_name][0] = ps.__getattribute__(field_name)
+                df.loc[0, field_name] = ps.__getattribute__(field_name)
             except AttributeError:
-                df[field_name][0] = 0
+                df.loc[0, field_name] = 0
 
-        df["tid"][0] = user_tid
         df = df.astype("int64")
-
         estimate = int(model().predict(df))
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
@@ -104,14 +106,16 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     df = pd.DataFrame(columns=_model_features, index=[0])
 
     for field_name in _model_features:
+        if field_name == "user":
+            df.loc[0, "user"] = user_tid
+            continue
+
         try:
-            df[field_name][0] = ps.__getattribute__(field_name)
+            df.loc[0, field_name] = ps.__getattribute__(field_name)
         except AttributeError:
-            df[field_name][0] = 0
+            df.loc[0, field_name] = 0
 
-    df["tid"][0] = user_tid
     df = df.astype("int64")
-
     estimate = int(model().predict(df))
     redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 

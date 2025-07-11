@@ -23,7 +23,7 @@ import typing
 
 import jinja2
 from peewee import DoesNotExist, Expression
-from tornium_commons import rds
+from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
 from tornium_commons.models import FactionPosition, Server, ServerAttackConfig, User
@@ -114,6 +114,7 @@ def refresh_guild(guild: dict):
     queue="default",
     time_limit=1200,
 )
+@with_db_connection
 def refresh_guilds():
     # Largest guild ID and guild count used for pagination if the number of servers
     # is greater than 200 where the API call limits the returned results
@@ -173,6 +174,7 @@ def refresh_guilds():
     queue="default",
     time_limit=600,
 )
+@with_db_connection
 def verify_guilds():
     def _modulo(lhs, rhs):
         return Expression(lhs, "%%", rhs)
@@ -199,6 +201,7 @@ def verify_guilds():
     queue="default",
     time_limit=600,
 )
+@with_db_connection
 def verify_users(
     guild_id: int,
     admin_keys: typing.Optional[list] = None,
@@ -552,6 +555,7 @@ def invalid_member_position_roles(
     queue="quick",
     time_limit=60,
 )
+@with_db_connection
 def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bool = False):
     # TODO: Cache guild verification config so the same database calls aren't made for every user
     guild: Server = Server.select().where(Server.sid == guild_id).get()

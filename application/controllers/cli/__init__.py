@@ -44,8 +44,8 @@ def create_db(verbose=False):
     else:
         click.echo(f"Located {len(models.__all__)} models...")
 
-    with db() as _db:
-        _db.create_tables([globals()[n] for n in models.__all__ if globals().get(n) is not None])
+    with db as db_connection:
+        db_connection.create_tables([globals()[n] for n in models.__all__ if globals().get(n) is not None])
 
     click.echo("Tables created")
 

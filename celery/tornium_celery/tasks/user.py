@@ -21,7 +21,7 @@ import uuid
 from decimal import DivisionByZero
 
 from peewee import DoesNotExist, IntegrityError
-from tornium_commons import rds
+from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import (
@@ -50,6 +50,7 @@ MIN_USER_UPDATE = 600
     bind=True,
     time_limit=10,
 )
+@with_db_connection
 def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
     # TODO: Change default values of tid and discordid to None
     # TODO: Refactor discordid -> discord_id
@@ -165,6 +166,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     queue="quick",
     time_limit=10,
 )
+@with_db_connection
 def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     user_data_kwargs = {"faction_aa": False}
 
@@ -313,6 +315,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_user_other(user_data):
     user_data_kwargs = {"faction_aa": False}
 
@@ -417,6 +420,7 @@ def update_user_other(user_data):
     queue="default",
     time_limit=60,
 )
+@with_db_connection
 def refresh_users():
     for api_key in TornKey.select(TornKey.user).join(User).distinct(TornKey.user).where(TornKey.default == True):
         try:
@@ -443,6 +447,7 @@ def refresh_users():
     queue="quick",
     time_limit=60,
 )
+@with_db_connection
 def fetch_attacks_user_runner():
     redis = rds()
 
@@ -496,6 +501,7 @@ def fetch_attacks_user_runner():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def stat_db_attacks_user(user_data):
     if len(user_data.get("attacks", [])) == 0:
         return
@@ -645,6 +651,7 @@ def stat_db_attacks_user(user_data):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def check_api_keys():
     for key in TornKey.select().where((TornKey.user.is_null(True)) | (TornKey.access_level.is_null(True))):
         celery.chord(
@@ -697,6 +704,7 @@ def check_api_keys():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def check_api_key_sub(args, guid: str):
     key_data, user_data = args
     if "error" in key_data:

@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `PersonalStats` model to store per-day data instead of per-hour data
 - Changed license of stat estimation code and model from proprietary to GPLv3
 - Changed all license to GPLv3
+- Changed DB connection to utilize pool
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed

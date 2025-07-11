@@ -99,7 +99,7 @@ class Item(BaseModel):
                 }
             )
 
-        with db().atomic():
+        with db.atomic():
             for batch in chunked(bulk_data, 10):
                 cmd = """INSERT INTO item (tid, name, description, item_type, market_value, circulation)
                     VALUES
@@ -117,7 +117,7 @@ class Item(BaseModel):
                         circulation = EXCLUDED.circulation;
                 """
 
-                db().execute_sql(cmd)
+                db.execute_sql(cmd)
 
         redis_client.set(
             "tornium:items:last-update",

@@ -25,6 +25,7 @@ import uuid
 from decimal import DivisionByZero
 
 from peewee import JOIN, DoesNotExist
+from tornium_commons import with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import (
     LinkHTMLParser,
@@ -91,6 +92,7 @@ ATTACK_RESULTS = {
     queue="default",
     time_limit=30,
 )
+@with_db_connection
 def refresh_factions():
     faction: Faction
     for faction in Faction.select().join(Server, JOIN.LEFT_OUTER):
@@ -149,6 +151,7 @@ def refresh_factions():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_faction(faction_data):
     if faction_data is None:
         return
@@ -252,6 +255,7 @@ def update_faction(faction_data):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_faction_positions(faction_positions_data: dict) -> typing.Optional[dict]:
     if "positions" not in faction_positions_data or "ID" not in faction_positions_data:
         return None
@@ -396,6 +400,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def update_faction_ts(faction_ts_data):
     if not faction_ts_data["status"]:
         return
@@ -438,6 +443,7 @@ def update_faction_ts(faction_ts_data):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def check_faction_ods(faction_od_data):
     try:
         faction: Faction = (
@@ -543,6 +549,7 @@ def check_faction_ods(faction_od_data):
     queue="default",
     time_limit=15,
 )
+@with_db_connection
 def fetch_attacks_runner():
     for api_key in (
         TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
@@ -629,6 +636,7 @@ def fetch_attacks_runner():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def stat_db_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
@@ -1147,6 +1155,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
     queue="quick",
     time_limit=10,
 )
+@with_db_connection
 def check_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
@@ -1360,6 +1369,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def oc_refresh():
     for api_key in (
         TornKey.select()
@@ -1396,6 +1406,7 @@ def oc_refresh():
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def oc_refresh_subtask(oc_data):
     # TODO: Refactor this to be more readable
 
@@ -1762,6 +1773,7 @@ def oc_refresh_subtask(oc_data):
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def auto_cancel_requests():
     faction_withdrawals: typing.Dict[int, typing.List[int]] = {}
 
@@ -1879,6 +1891,7 @@ def auto_cancel_requests():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def verify_faction_withdrawals(funds_news: dict, withdrawals):
     faction_tid = funds_news["ID"]
     missing_fulfillments: typing.List[Withdrawal] = [
@@ -2038,6 +2051,7 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def armory_check():
     for api_key in (
         TornKey.select()
@@ -2094,6 +2108,7 @@ def armory_check():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def armory_check_subtask(_armory_data, faction_id: int):
     try:
         faction: Faction = Faction.select().where(Faction.tid == faction_id).get()

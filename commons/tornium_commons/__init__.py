@@ -14,13 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .config import Config
-from .db_connection import db
+from .db_connection import db, init_db, with_db_connection
 from .dbucket import DBucket
 from .redisconnection import rds
 
-__all__ = [
-    "Config",
-    "db",
-    "DBucket",
-    "rds",
-]
+__all__ = ["Config", "db", "DBucket", "init_db", "rds", "with_db_connection"]

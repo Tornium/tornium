@@ -104,7 +104,7 @@ class Stat(BaseModel):
 
         stat_entries = []
 
-        for stat_entry in db().execute_sql(query, parameters):
+        for stat_entry in db.execute_sql(query, parameters):
             target_ff = round(1 + 8 / 3 * (stat_entry[3] / invoker.battlescore), 2)
 
             if target_ff > 3:

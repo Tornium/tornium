@@ -22,7 +22,7 @@ if globals().get("orjson:loaded"):
     import orjson
 
 import requests
-from tornium_commons import Config, DBucket, rds
+from tornium_commons import Config, DBucket, rds, with_db_connection
 from tornium_commons.errors import (
     DiscordError,
     MissingKeyError,
@@ -206,6 +206,7 @@ def handle_discord_error(e: DiscordError):
 
 
 @celery.shared_task(name="tasks.api.tornget", time_limit=5, routing_key="api.tornget", queue="api")
+@with_db_connection
 def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=False, version=1):
     url = (
         f'{config.torn_api_uri}v{version}/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'

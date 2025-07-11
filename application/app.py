@@ -47,7 +47,7 @@ from authlib.oauth2.rfc7636 import CodeChallenge
 from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
-from tornium_commons import Config
+from tornium_commons import Config, db, init_db
 from tornium_commons.formatters import commas, rel_time, torn_timestamp
 from tornium_commons.models import Faction, OAuthClient, OAuthToken
 from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
@@ -86,6 +86,8 @@ def init__app():
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
+
+    init_db()
 
     app = flask.Flask(__name__)
     if config.flask_secret is None:
@@ -224,6 +226,8 @@ def faction_filter(tid):
 
 @app.before_request
 def before_request():
+    db.connect()
+
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
@@ -234,6 +238,8 @@ def before_request():
 
 @app.after_request
 def after_request(response: flask.Response):
+    db.close()
+
     # HSTS enabled through CloudFlare
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 

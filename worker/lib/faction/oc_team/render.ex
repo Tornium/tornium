@@ -38,6 +38,7 @@ defmodule Tornium.Faction.OC.Team.Render do
     |> render_feature(:team_spawn_required, check_state.team_spawn_required, config)
     |> render_feature(:team_member_join_required, check_state.team_member_join_required, config)
     |> render_feature(:team_member_incorrect_crime, check_state.team_member_incorrect_crime, config)
+    |> render_feature(:team_incorrect_member, check_state.team_incorrect_member, config)
     |> render_feature(:team_member_incorrect_slot, check_state.team_member_incorrect_slot, config)
     |> render_feature(:assigned_team, check_state.assigned_team, config)
   end

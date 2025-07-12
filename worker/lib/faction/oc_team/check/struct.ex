@@ -16,14 +16,41 @@
 defmodule Tornium.Faction.OC.Team.Check.Struct do
   @moduledoc """
   Struct containing triggered checks related to organized crime teams.
-  """
 
-  # TODO: Define each check state
+  # Team Spawn Required
+  When an OC team does not have an OC assigned to them (either because the previously assigned OC was completed or 
+  the OC team was newly created), the OC team will be assigned to a new OC. If there is no OC available to assign 
+  to that OC team according to the OC team's specified OC type, a new OC of that type will have to be spawned for 
+  the OC team.
+
+  # Team Member Join Required
+  Once an OC has been assigned to an OC team, the OC team's members will have to join the OC in their assigned
+  slots.
+
+  # Team Member Incorrect Crime
+  Once an OC has been assigned to an OC team, the OC team's members will have to join the OC in their assigned
+  slots. This ensures that members of the OC team will join the correct OC and not a different OC.
+
+  # Team Incorrect Member
+  Once an OC has been assigned to an OC team, the OC team's members will have to join the OC in their assigned
+  slots. This ensures that only members of the OC team assigned to the OC join slots that are already assigned
+  to members of the OC team.
+
+  # Team Member Incorrect Slot
+  Once an OC has been assigned to an OC team, the OC team's members will have to join the OC in their assigned
+  slots. This ensures that members of the OC team will join the correct slot of the assigned OC and not a
+  different slot.
+
+  # Assigned Team
+  Once an OC has been spawned in, the OC will be assigned to an OC team if there is an OC team that is lacking
+  an assigned OC of the same type as the OC.
+  """
 
   defstruct [
     :team_spawn_required,
     :team_member_join_required,
     :team_member_incorrect_crime,
+    :team_incorrect_member,
     :team_member_incorrect_slot,
     :assigned_team
   ]
@@ -36,8 +63,9 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
             {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrime.t(),
              Tornium.Schema.OrganizedCrime.t()}
           ],
+          team_incorrect_member: [{Tornium.Schema.OrganizedCrimeSlot.t(), Tornium.Schema.OrganizedCrimeTeam.t()}],
           team_member_incorrect_slot: [
-            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrimeslot.t(),
+            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrimeSlot.t(),
              Tornium.Schema.OrganizedCrimeSlot.t()}
           ],
           assigned_team: [{Tornium.Schema.OrganizedCrimeTeam.t(), Tornium.Schema.OrganizedCrime.t()}]
@@ -55,6 +83,7 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
       team_spawn_required: [],
       team_member_join_required: [],
       team_member_incorrect_crime: [],
+      team_incorrect_member: [],
       team_member_incorrect_slot: [],
       assigned_team: []
     }

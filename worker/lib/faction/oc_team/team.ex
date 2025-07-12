@@ -135,8 +135,48 @@ defmodule Tornium.Faction.OC.Team do
     check_struct
   end
 
-  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [integer()]
+  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [non_neg_integer()]
   defp team_member_ids(%Tornium.Schema.OrganizedCrimeTeam{members: members} = _team) do
     Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
+  end
+
+  @doc """
+  Execute the checks in `Tornium.Faction.OC.Team.Check`.
+
+  Executes the checks of `Tornium.Faction.OC.Team.Checks` against an list of OC teams and their assigned OCs
+  to create a `Tornium.Faction.OC.Team.Check.Struct` state that contains the teams or OC triggering each
+  check. The checks performed by this function are not the exhaustive list contained by
+  `Tornium.Faction.OC.Team.Check.Struct` as the team assignments are performed before the checks are performed.
+  """
+  @spec check(
+          team_list :: [Tornium.Schema.OrganizedCrimeTeam.t()],
+          config :: Tornium.Schema.ServerOCConfig.t() | nil,
+          team_checks :: Tornium.Faction.OC.Team.Check.Struct.t() | nil
+        ) :: Tornium.Faction.OC.Team.Check.Struct.t()
+  def check(team_list, config, team_checks \\ nil)
+
+  def check(team_list, config, team_checks) when is_list(team_list) and is_nil(team_checks) do
+    check(team_list, config, Tornium.Faction.OC.Check.Struct.new())
+  end
+
+  def check(
+        [%Tornium.Schema.OrganizedCrimeTeam{} = team | remaining_teams],
+        %Tornium.Schema.ServerOCConfig{} = config,
+        team_checks
+      ) do
+    team_checks =
+      team_checks
+      |> Tornium.Faction.OC.Team.Check.check_tools(team)
+      |> Tornium.Faction.OC.Team.Check.check_delayers(team)
+      |> Tornium.Faction.OC.Team.Check.check_extra_range(team, config)
+
+    check(remaining_teams, config, team_checks)
+  end
+
+  def check(_team_list, _config, team_checks) do
+    # Fallback; OR
+    # Skip all OC team checks when a configuration from a server is required (currently all checks)
+
+    team_checks
   end
 end

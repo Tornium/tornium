@@ -18,7 +18,6 @@ defmodule Tornium.Schema.ServerOCConfig do
   import Ecto.Query
   alias Tornium.Repo
 
-  @type team_features :: :team_spawn_required | :assigned_team
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           server_id: integer(),
@@ -32,14 +31,23 @@ defmodule Tornium.Schema.ServerOCConfig do
           delayed_channel: integer() | nil,
           delayed_roles: [integer()],
           delayed_crimes: [String.t()],
-          team_channel: integer() | nil,
-          team_roles: [non_neg_integer() | -1],
-          team_features: [team_features()],
           extra_range_channel: integer() | nil,
           extra_range_roles: [integer()],
           extra_range_global_min: integer(),
           extra_range_global_max: integer(),
-          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()]
+          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()],
+          team_spawn_required_channel: integer() | nil,
+          team_spawn_required_roles: [Tornium.Discord.role()],
+          team_member_join_required_channel: integer() | nil,
+          team_member_join_required_roles: [Tornium.Discord.role_assignable()],
+          team_member_incorrect_crime_channel: integer() | nil,
+          team_member_incorrect_crime_roles: [Tornium.Discord.role_assignable()],
+          team_incorrect_member_channel: integer() | nil,
+          team_incorrect_member_roles: [Tornium.Discord.role_assignable()],
+          team_member_incorrect_slot_channel: integer() | nil,
+          team_member_incorrect_slot_roles: [Tornium.Discord.role_assignable()],
+          assigned_team_channel: integer() | nil,
+          assigned_team_roles: [Tornium.Discord.role()]
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -56,15 +64,29 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:delayed_roles, {:array, :integer})
     field(:delayed_crimes, {:array, :string})
 
-    field(:team_channel, :integer)
-    field(:team_roles, {:array, :integer})
-    field(:team_features, {:array, Ecto.Enum}, values: [:team_spawn_required, :assigned_team])
-
     field(:extra_range_channel, :integer)
     field(:extra_range_roles, {:array, :integer})
     field(:extra_range_global_min, :integer)
     field(:extra_range_global_max, :integer)
     has_many(:extra_range_local_configs, Tornium.Schema.ServerOCRangeConfig, foreign_key: :server_oc_config_id)
+
+    field(:team_spawn_required_channel, :integer)
+    field(:team_spawn_required_roles, {:array, :integer})
+
+    field(:team_member_join_required_channel, :integer)
+    field(:team_member_join_required_roles, {:array, :integer})
+
+    field(:team_member_incorrect_crime_channel, :integer)
+    field(:team_member_incorrect_crime_roles, {:array, :integer})
+
+    field(:team_incorrect_member_channel, :integer)
+    field(:team_incorrect_member_roles, {:array, :integer})
+
+    field(:team_member_incorrect_slot_channel, :integer)
+    field(:team_member_incorrect_slot_roles, {:array, :integer})
+
+    field(:assigned_team_channel, :integer)
+    field(:assigned_team_roles, {:array, :integer})
   end
 
   @doc """

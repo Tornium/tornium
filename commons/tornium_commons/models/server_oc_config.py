@@ -28,10 +28,6 @@ from .base_model import BaseModel
 from .faction import Faction
 from .server import Server
 
-# NOTE: These values come from Ecto's Enum mapping. To update this tuple, see:
-# Ecto.Enum.mappings(Tornium.Schema.ServerOCConfig, :team_features)
-TEAM_FEATURES = ("team_spawn_required", "assigned_team")
-
 
 class ServerOCConfig(BaseModel):
     class Meta:
@@ -52,16 +48,25 @@ class ServerOCConfig(BaseModel):
     delayed_roles = ArrayField(BigIntegerField, index=False, default=[])
     delayed_crimes = ArrayField(CharField, index=False, default=[])
 
-    # OC team-related
-    team_channel = BigIntegerField(default=None, null=True)
-    team_roles = ArrayField(BigIntegerField, index=False, default=[])
-    team_features = ArrayField(CharField, index=False, default=[])
-
     # Extra-range OCs
     extra_range_channel = BigIntegerField(default=None, null=True)
     extra_range_roles = ArrayField(BigIntegerField, index=False, default=[])
     extra_range_global_min = SmallIntegerField(default=0, null=False)
     extra_range_global_max = SmallIntegerField(default=100, null=False)
+
+    # OC-team related
+    team_spawn_required_channel = BigIntegerField(default=None, null=True)
+    team_spawn_required_roles = ArrayField(BigIntegerField, index=False, default=[])
+    team_member_join_required_channel = BigIntegerField(default=None, null=True)
+    team_member_join_required_roles = ArrayField(BigIntegerField, index=False, default=[])
+    team_member_incorrect_crime_channel = BigIntegerField(default=None, null=True)
+    team_member_incorrect_crime_roles = ArrayField(BigIntegerField, index=False, default=[])
+    team_incorrect_member_channel = BigIntegerField(default=None, null=True)
+    team_incorrect_member_roles = ArrayField(BigIntegerField, index=False, default=[])
+    team_member_incorrect_slot_channel = BigIntegerField(default=None, null=True)
+    team_member_incorrect_slot_roles = ArrayField(BigIntegerField, index=False, default=[])
+    assigned_team_channel = BigIntegerField(default=None, null=True)
+    assigned_team_roles = ArrayField(BigIntegerField, index=False, default=[])
 
     def create_or_update(server_id: int, faction_id: int, **kwargs: dict):
         """
@@ -114,4 +119,16 @@ class ServerOCConfig(BaseModel):
             "extra_range_roles": self.extra_range_roles,
             "extra_range_global_min": self.extra_range_global_min,
             "extra_range_global_max": self.extra_range_global_max,
+            "team_spawn_required_channel": self.team_spawn_required_channel,
+            "team_spawn_required_roles": self.team_spawn_required_roles,
+            "team_member_join_required_channel": self.team_member_join_required_channel,
+            "team_member_join_required_roles": self.team_member_join_required_roles,
+            "team_member_incorrect_crime_channel": self.team_member_incorrect_crime_channel,
+            "team_member_incorrect_crime_roles": self.team_member_incorrect_crime_roles,
+            "team_incorrect_member_channel": self.team_incorrect_member_channel,
+            "team_incorrect_member_roles": self.team_incorrect_member_roles,
+            "team_member_incorrect_slot_channel": self.team_member_incorrect_slot_channel,
+            "team_member_incorrect_slot_roles": self.team_member_incorrect_slot_roles,
+            "assigned_team_channel": self.assigned_team_channel,
+            "assigned_team_roles": self.assigned_team_roles,
         }

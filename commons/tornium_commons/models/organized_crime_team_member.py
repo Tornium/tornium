@@ -27,11 +27,12 @@ from .user import User
 class OrganizedCrimeTeamMember(BaseModel):
     class Meta:
         table_name = "organized_crime_team_member"
+        # TODO: Add unique index on (user_id, faction_id)
 
     guid = UUIDField(primary_key=True)
-    user = ForeignKeyField(User, null=True, unique=True)
+    user = ForeignKeyField(User, null=True)
     team = ForeignKeyField(OrganizedCrimeTeam, null=False)
-    faction = ForeignKeyField(Faction, null=False, unique=True)
+    faction = ForeignKeyField(Faction, null=False)
 
     slot_type = CharField(null=False)
     slot_count = IntegerField(null=False)

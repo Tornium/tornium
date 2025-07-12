@@ -36,11 +36,14 @@ defmodule Tornium.Faction.OC.Team.Render do
       ) do
     []
     |> render_feature(:team_spawn_required, check_state.team_spawn_required, config)
+    |> render_feature(:team_member_join_required, check_state.team_member_join_required, config)
+    |> render_feature(:team_member_incorrect_crime, check_state.team_member_incorrect_crime, config)
+    |> render_feature(:team_member_incorrect_slot, check_state.team_member_incorrect_slot, config)
     |> render_feature(:assigned_team, check_state.assigned_team, config)
   end
 
   def render_all(
-        %Tornium.Faction.OC.Check.Struct{} = _check_state,
+        %Tornium.Faction.OC.Team.Check.Struct{} = _check_state,
         config
       )
       when is_nil(config) do
@@ -70,49 +73,44 @@ defmodule Tornium.Faction.OC.Team.Render do
           | remaining_slots
         ],
         %Tornium.Schema.ServerOCConfig{
-          team_channel: team_channel,
-          team_roles: team_roles,
-          team_features: team_features
+          team_spawn_required_channel: team_spawn_required_channel,
+          team_spawn_required_roles: team_spawn_required_roles
           # enabled: true,
         } =
           config
       )
-      when is_list(messages) and not is_nil(team_channel) do
+      when is_list(messages) and not is_nil(team_spawn_required_channel) do
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     messages =
-      if Enum.member?(team_features, :team_spawn_required) do
-        [
-          %Nostrum.Struct.Message{
-            channel_id: team_channel,
-            content: Tornium.Utils.roles_to_string(team_roles),
-            embeds: [
-              %Nostrum.Struct.Embed{
-                title: "OC Spawn Required",
-                description: "An #{oc_name} OC needs to be spawned in #{faction_name} for the #{team_name} OC team.",
-                color: Tornium.Discord.Constants.colors()[:error],
-                footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid}"}
-              }
-            ],
-            components: [
-              %Nostrum.Struct.Component{
-                type: 1,
-                components: [
-                  %Nostrum.Struct.Component{
-                    type: 2,
-                    style: 5,
-                    label: "Organized Crimes",
-                    url: "https://www.torn.com/factions.php?step=your&type=1#faction-crimes"
-                  }
-                ]
-              }
-            ]
-          }
-          | messages
-        ]
-      else
-        messages
-      end
+      [
+        %Nostrum.Struct.Message{
+          channel_id: team_spawn_required_channel,
+          content: Tornium.Utils.roles_to_string(team_spawn_required_roles),
+          embeds: [
+            %Nostrum.Struct.Embed{
+              title: "OC Spawn Required",
+              description: "An #{oc_name} OC needs to be spawned in #{faction_name} for the #{team_name} OC team.",
+              color: Tornium.Discord.Constants.colors()[:error],
+              footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid}"}
+            }
+          ],
+          components: [
+            %Nostrum.Struct.Component{
+              type: 1,
+              components: [
+                %Nostrum.Struct.Component{
+                  type: 2,
+                  style: 5,
+                  label: "Organized Crimes",
+                  url: "https://www.torn.com/factions.php?step=your&type=1#faction-crimes"
+                }
+              ]
+            }
+          ]
+        }
+        | messages
+      ]
 
     render_feature(messages, :team_spawn_required, remaining_slots, config)
   end
@@ -127,49 +125,44 @@ defmodule Tornium.Faction.OC.Team.Render do
         ] =
           _slots,
         %Tornium.Schema.ServerOCConfig{
-          team_channel: team_channel,
-          team_roles: team_roles,
-          team_features: team_features
+          assigned_team_channel: assigned_team_channel,
+          assigned_team_roles: assigned_team_roles
           # enabled: true,
         } =
           config
       )
-      when is_list(messages) and not is_nil(team_channel) do
+      when is_list(messages) and not is_nil(assigned_team_channel) do
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     messages =
-      if Enum.member?(team_features, :assigned_team) do
-        [
-          %Nostrum.Struct.Message{
-            channel_id: team_channel,
-            content: Tornium.Utils.roles_to_string(team_roles, assigns: team_member_discord_ids(team_members)),
-            embeds: [
-              %Nostrum.Struct.Embed{
-                title: "OC Team Assigned",
-                description: "The #{team_name} OC team has been assigned to an #{oc_name} OC.",
-                color: Tornium.Discord.Constants.colors()[:good],
-                footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid} | OC ID: #{oc_id}"}
-              }
-            ],
-            components: [
-              %Nostrum.Struct.Component{
-                type: 1,
-                components: [
-                  %Nostrum.Struct.Component{
-                    type: 2,
-                    style: 5,
-                    label: "Assigned OC",
-                    url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
-                  }
-                ]
-              }
-            ]
-          }
-          | messages
-        ]
-      else
-        messages
-      end
+      [
+        %Nostrum.Struct.Message{
+          channel_id: assigned_team_channel,
+          content: Tornium.Utils.roles_to_string(assigned_team_roles, assigns: team_member_discord_ids(team_members)),
+          embeds: [
+            %Nostrum.Struct.Embed{
+              title: "OC Team Assigned",
+              description: "The #{team_name} OC team has been assigned to an #{oc_name} OC.",
+              color: Tornium.Discord.Constants.colors()[:good],
+              footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid} | OC ID: #{oc_id}"}
+            }
+          ],
+          components: [
+            %Nostrum.Struct.Component{
+              type: 1,
+              components: [
+                %Nostrum.Struct.Component{
+                  type: 2,
+                  style: 5,
+                  label: "Assigned OC",
+                  url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
+                }
+              ]
+            }
+          ]
+        }
+        | messages
+      ]
 
     # TODO: Add link to Tornium's OC page and autoload the OC there
     # TODO: Add link to Tornium's OC page and autoload the OC team there

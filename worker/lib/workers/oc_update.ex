@@ -114,7 +114,7 @@ defmodule Tornium.Workers.OCUpdate do
       |> Repo.one()
 
     case count do
-      _ when count > 1 ->
+      _ when count >= 1 ->
         %{faction_tid: faction_tid}
         |> Tornium.Workers.OCTeamUpdate.new()
         |> Oban.insert()

@@ -18,10 +18,28 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
   Struct containing triggered checks related to organized crime teams.
   """
 
-  defstruct [:team_spawn_required, :assigned_team]
+  # TODO: Define each check state
 
+  defstruct [
+    :team_spawn_required,
+    :team_member_join_required,
+    :team_member_incorrect_crime,
+    :team_member_incorrect_slot,
+    :assigned_team
+  ]
+
+  # TODO: Add type doc describing what's stored in each check state
   @type t :: %Tornium.Faction.OC.Team.Check.Struct{
           team_spawn_required: [Tornium.Schema.OrganizedCrimeTeam.t()],
+          team_member_join_required: [{Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrime.t()}],
+          team_member_incorrect_crime: [
+            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrime.t(),
+             Tornium.Schema.OrganizedCrime.t()}
+          ],
+          team_member_incorrect_slot: [
+            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrimeslot.t(),
+             Tornium.Schema.OrganizedCrimeSlot.t()}
+          ],
           assigned_team: [{Tornium.Schema.OrganizedCrimeTeam.t(), Tornium.Schema.OrganizedCrime.t()}]
         }
   @type keys :: :team_spawn_required | :assigned_team
@@ -35,6 +53,9 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
   def new() do
     %Tornium.Faction.OC.Team.Check.Struct{
       team_spawn_required: [],
+      team_member_join_required: [],
+      team_member_incorrect_crime: [],
+      team_member_incorrect_slot: [],
       assigned_team: []
     }
   end

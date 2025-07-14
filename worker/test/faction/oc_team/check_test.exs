@@ -124,4 +124,25 @@ defmodule Tornium.Test.Faction.OC.Team.Check do
     assert incorrect_crime.assigned_team_id == 1
     assert Enum.at(incorrect_crime.slots, 0).user_id == 1
   end
+
+  test "check_incorrect_member_unassigned" do
+    team = %Tornium.Schema.OrganizedCrimeTeam{
+      current_crime: nil,
+      members: []
+    }
+
+    check_struct =
+      Tornium.Faction.OC.Team.Check.Struct.new()
+      |> Tornium.Faction.OC.Team.Check.check_incorrect_member(team)
+
+    assert Enum.empty?(check_struct.team_incorrect_member)
+  end
+
+  test "check_incorrect_member_valid" do
+    # TODO: Implement this test
+  end
+
+  test "check_incorrect_member_invalid" do
+    # TODO: Implement this test
+  end
 end

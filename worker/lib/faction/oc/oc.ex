@@ -170,6 +170,7 @@ defmodule Tornium.Faction.OC do
         slot_index: Kernel.length(slots),
         oc_id: oc_id,
         crime_position: crime_position,
+        # FIXME: Either slot_index and crime_position_index should not be the same
         crime_position_index: Kernel.length(slots),
         user_id: user_id,
         user_success_chance: user_success_chance,
@@ -202,6 +203,7 @@ defmodule Tornium.Faction.OC do
         slot_index: Kernel.length(slots),
         oc_id: oc_id,
         crime_position: crime_position,
+        # FIXME: Either slot_index and crime_position_index should not be the same
         crime_position_index: Kernel.length(slots),
         user_id: nil,
         user_success_chance: user_success_chance,

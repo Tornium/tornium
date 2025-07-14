@@ -133,4 +133,54 @@ defmodule Tornium.Faction.OC.Team.Check do
       assigned_team_id != team_id and member_in_crime?(member, crime)
     end)
   end
+
+  @doc """
+  Determine if any slot of the OC assigned to the OC team is not a member of the OC team.
+
+  If the slot filled is for a wildcard member of the OC team, the slot will be skipped as wildcard slots can
+  be filled by anyone.
+  """
+  @spec check_incorrect_member(check_state :: state(), team :: Tornium.Schema.OrganizedCrimeTeam.t()) :: state()
+  def check_incorrect_member(
+        %Tornium.Faction.OC.Team.Check.Struct{} = check_state,
+        %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime} = _team
+      )
+      when is_nil(assigned_crime) do
+    # Fallback for no assigned OC for the team
+    check_state
+  end
+
+  def check_incorrect_member(
+        %Tornium.Faction.OC.Team.Check.Struct{team_incorrect_member: team_incorrect_member} = check_state,
+        %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime, members: members} = _team
+      ) do
+    # We need to index OC slots according to their position in the OC as that data is not stored in 
+    # the database outside of the overall order of the slots.
+    indexed_crime_slots =
+      assigned_crime.slots
+      |> Enum.sort_by(& &1.crime_position_index, :asc)
+      |> Enum.reduce(%{}, fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: crime_position} = slot, acc ->
+        if Enum.member?(acc, crime_position) do
+          position_slots = Map.fetch!(acc, crime_position)
+          Map.replace(acc, crime_position, position_slots ++ [{slot, length(position_slots)}])
+        else
+          Map.put_new(acc, crime_position, [{slot, 0}])
+        end
+      end)
+      |> Map.values()
+      |> List.flatten()
+
+    new_incorrect_member_assignments =
+      for {%Tornium.Schema.OrganizedCrimeSlot{crime_position: crime_position, user_id: slot_user_id} = slot, slot_index} <-
+            indexed_crime_slots,
+          slot_member = Tornium.Schema.OrganizedCrimeTeamMember.find_slot_member(members, crime_position, slot_index),
+          not is_nil(slot_member) and not Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(slot_member) and
+            slot_user_id != slot_member.user_id,
+          do: {slot, assigned_crime}
+
+    %Tornium.Faction.OC.Team.Check.Struct{
+      check_state
+      | team_incorrect_member: [new_incorrect_member_assignments | team_incorrect_member] |> List.flatten()
+    }
+  end
 end

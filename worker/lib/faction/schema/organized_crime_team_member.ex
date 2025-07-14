@@ -39,4 +39,44 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
     field(:slot_count, :integer)
     field(:slot_index, :integer)
   end
+
+  @doc """
+  Find an OC team member in a specific slot.
+
+  This will match against:
+    - `:slot_type`
+    - `:slot_index`
+
+  This will also operate under the assumption the OC types match.
+  """
+  @spec find_slot_member(members :: [t()], slot_type :: String.t(), slot_index :: integer()) :: t() | nil
+  def find_slot_member([%__MODULE__{} | _remaining_members] = members, slot_type, slot_index)
+      when is_binary(slot_type) and is_integer(slot_index) do
+    Enum.find(members, fn %__MODULE__{slot_type: member_slot_type, slot_index: member_slot_index} = _member ->
+      member_slot_type == slot_type and member_slot_index == slot_index
+    end)
+  end
+
+  @doc """
+  Determine if the OC team member is a wildcard member.
+
+  A wildcard OC team member can be filled by any member of the faction. A wildcard member is represented
+  by a `nil` user and is the default value for an OC team member.
+
+  ## Examples
+
+    iex> Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(
+    ...>   %Tornium.Schema.OrganizedCrimeTeamMember{user_id: nil, user: nil}
+    ...> )
+    true
+
+    iex> Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(
+    ...>   %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 1}
+    ...> )
+    false
+  """
+  @spec wildcard?(member :: t()) :: boolean()
+  def wildcard?(%__MODULE__{user_id: member_id} = _member) do
+    is_nil(member_id)
+  end
 end

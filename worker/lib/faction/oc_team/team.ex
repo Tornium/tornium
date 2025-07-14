@@ -166,9 +166,8 @@ defmodule Tornium.Faction.OC.Team do
       ) do
     team_checks =
       team_checks
-      |> Tornium.Faction.OC.Team.Check.check_tools(team)
-      |> Tornium.Faction.OC.Team.Check.check_delayers(team)
-      |> Tornium.Faction.OC.Team.Check.check_extra_range(team, config)
+      |> Tornium.Faction.OC.Team.Check.check_member_join_required(team)
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_crime(team)
 
     check(remaining_teams, config, team_checks)
   end

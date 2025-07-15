@@ -141,14 +141,14 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
     viewerMembersList.classList.add("list-group", "list-group-flush", "list-group-numbered");
     viewerMembers.appendChild(viewerMembersList);
 
-    members.forEach(({ guid: guid, slot_type: slot_type, slot_index: slot_index, user: user }) => {
+    members.forEach(({ guid: guid, slot_type: slot_type, slot_count: slot_count, user: user }) => {
         const viewerMemberChild = document.createElement("li");
         viewerMemberChild.classList.add("list-group-item", "d-flex", "flex-wrap", "flex-fill", "align-items-center");
         viewerMembersList.appendChild(viewerMemberChild);
 
         const memberTitle = document.createElement("div");
         memberTitle.classList.add("fw-bold");
-        memberTitle.textContent = `[${slot_type} ${slot_index}]`;
+        memberTitle.textContent = `[${slot_type} ${slot_count}]`;
         viewerMemberChild.appendChild(memberTitle);
 
         const memberSelector = document.createElement("select");

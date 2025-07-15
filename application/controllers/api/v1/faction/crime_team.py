@@ -62,7 +62,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
     latest_oc_slots = (
         OrganizedCrimeSlot.select()
         .where(OrganizedCrimeSlot.oc_id == latest_oc.oc_id)
-        .order_by(OrganizedCrimeSlot.crime_position_index.asc())
+        .order_by(OrganizedCrimeSlot.slot_index.asc())
     )
     team_members = []
     position_count = {}
@@ -74,6 +74,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
             # database before the DB migration of `20250515220655_add_oc_teams.exs`
             return make_exception_response("0000", key, details={"message": "No known OC slot positioning"})
 
+        # TODO: Better name slot_count to be consistent with schema field naming
         team_members.append(
             {
                 "guid": uuid.uuid4(),
@@ -82,7 +83,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
                 "faction_id": faction_id,
                 "slot_type": slot.crime_position,
                 "slot_count": slot.crime_position_index,
-                "slot_index": position_count.get(slot.crime_position, 0),
+                "slot_index": slot.slot_index,
             }
         )
         position_count[slot.crime_position] = position_count.get(slot.crime_position, 0) + 1

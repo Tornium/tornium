@@ -154,26 +154,14 @@ defmodule Tornium.Faction.OC.Team.Check do
         %Tornium.Faction.OC.Team.Check.Struct{team_incorrect_member: team_incorrect_member} = check_state,
         %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime, members: members} = _team
       ) do
-    # We need to index OC slots according to their position in the OC as that data is not stored in 
-    # the database outside of the overall order of the slots.
-    indexed_crime_slots =
-      assigned_crime.slots
-      |> Enum.sort_by(& &1.crime_position_index, :asc)
-      |> Enum.reduce(%{}, fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: crime_position} = slot, acc ->
-        if Enum.member?(acc, crime_position) do
-          position_slots = Map.fetch!(acc, crime_position)
-          Map.replace(acc, crime_position, position_slots ++ [{slot, length(position_slots)}])
-        else
-          Map.put_new(acc, crime_position, [{slot, 0}])
-        end
-      end)
-      |> Map.values()
-      |> List.flatten()
-
     new_incorrect_member_assignments =
-      for {%Tornium.Schema.OrganizedCrimeSlot{crime_position: crime_position, user_id: slot_user_id} = slot, slot_index} <-
-            indexed_crime_slots,
-          slot_member = Tornium.Schema.OrganizedCrimeTeamMember.find_slot_member(members, crime_position, slot_index),
+      for %Tornium.Schema.OrganizedCrimeSlot{
+            crime_position: crime_position,
+            crime_position_index: crime_position_index,
+            user_id: slot_user_id
+          } = slot <- assigned_crime.slots,
+          slot_member =
+            Tornium.Schema.OrganizedCrimeTeamMember.find_slot_member(members, crime_position, crime_position_index),
           not is_nil(slot_member) and not Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(slot_member) and
             slot_user_id != slot_member.user_id,
           do: {slot, assigned_crime}

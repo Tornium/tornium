@@ -152,7 +152,7 @@ defmodule Tornium.Faction.OC.Team.Check do
 
   def check_incorrect_member(
         %Tornium.Faction.OC.Team.Check.Struct{team_incorrect_member: team_incorrect_member} = check_state,
-        %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime, members: members} = _team
+        %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime, members: members} = team
       ) do
     new_incorrect_member_assignments =
       for %Tornium.Schema.OrganizedCrimeSlot{
@@ -163,7 +163,7 @@ defmodule Tornium.Faction.OC.Team.Check do
           slot_member =
             Tornium.Schema.OrganizedCrimeTeamMember.find_slot_member(members, crime_position, crime_position_index),
           not is_nil(slot_member) and not Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(slot_member) and
-            slot_user_id != slot_member.user_id,
+            slot_user_id != slot_member.user_id and not Tornium.Schema.OrganizedCrimeTeam.member?(team, slot_user_id),
           do: {slot, assigned_crime}
 
     %Tornium.Faction.OC.Team.Check.Struct{

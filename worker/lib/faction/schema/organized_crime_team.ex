@@ -53,4 +53,12 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
     |> where([t], t.guid == ^team_guid)
     |> Repo.update_all([])
   end
+
+  @doc """
+  Checks if the user ID exists within the OC team's member list.
+  """
+  @spec member?(team :: t(), user_id :: integer()) :: boolean()
+  def member?(%__MODULE__{members: members} = _team, user_id) when is_integer(user_id) do
+    Enum.any?(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id} -> member_id == user_id end)
+  end
 end

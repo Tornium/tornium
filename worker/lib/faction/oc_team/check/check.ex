@@ -19,9 +19,9 @@ defmodule Tornium.Faction.OC.Team.Check do
 
   These checks can determine the invalid states:
     - `:team_member_join_required`: Team member needs to join the assigned OC (`Tornium.Faction.OC.Team.Check.check_member_join_required/2`)
-    - `:team_member_incorrect_crime`: Team member is in the wrong OC
-    - `:team_incorrect_member`: Assigned OC contains a member not of the OC team
-    - `:team_member_incorrect_slot`: Team member is in the wrong slot of the OC
+    - `:team_member_incorrect_crime`: Team member is in the wrong OC (`Tornium.Faction.OC.Team.Check.check_member_incorrect_crime/3`)
+    - `:team_incorrect_member`: Assigned OC contains a member not of the OC team (`Tornium.Faction.OC.Team.Check.check_incorrect_member/2`)
+    - `:team_member_incorrect_slot`: Team member is in the wrong slot of the OC (`Tornium.Faction.OC.Team.Check.check_member_incorrect_slot/2`)
 
   These checks update and return the combined state of the checks, `Tornium.Faction.OC.Team.Check.Struct`, and
   can be piped into each other.
@@ -169,6 +169,48 @@ defmodule Tornium.Faction.OC.Team.Check do
     %Tornium.Faction.OC.Team.Check.Struct{
       check_state
       | team_incorrect_member: [new_incorrect_member_assignments | team_incorrect_member] |> List.flatten()
+    }
+  end
+
+  @doc """
+  Determine if any member of the OC team is in the assigned OC but in the incorrect slot.
+  """
+  @spec check_member_incorrect_slot(
+          check_state :: state(),
+          team :: Tornium.Schema.OrganizedCrimeTeam.t()
+        ) :: state()
+  def check_member_incorrect_slot(
+        %Tornium.Faction.OC.Team.Check.Struct{} = check_state,
+        %Tornium.Schema.OrganizedCrimeTeam{current_crime: assigned_crime} = _team
+      )
+      when is_nil(assigned_crime) do
+    check_state
+  end
+
+  def check_member_incorrect_slot(
+        %Tornium.Faction.OC.Team.Check.Struct{team_member_incorrect_slot: team_member_incorrect_slot} = check_state,
+        %Tornium.Schema.OrganizedCrimeTeam{
+          current_crime: %Tornium.Schema.OrganizedCrime{slots: assigned_crime_slots},
+          members: members
+        } = team
+      )
+      when is_list(members) do
+    new_member_incorrect_slot_assignments =
+      for %Tornium.Schema.OrganizedCrimeSlot{
+            crime_position: slot_position,
+            crime_position_index: slot_position_index,
+            user_id: slot_user_id
+          } = slot <- assigned_crime_slots,
+          slot_member =
+            Tornium.Schema.OrganizedCrimeTeamMember.find_slot_member(members, slot_position, slot_position_index),
+          not is_nil(slot_member) and not Tornium.Schema.OrganizedCrimeTeamMember.wildcard?(slot_member) and
+            slot_member.user_id != slot_user_id and Tornium.Schema.OrganizedCrimeTeam.member?(team, slot_user_id),
+          do: {slot_member, slot}
+
+    %Tornium.Faction.OC.Team.Check.Struct{
+      check_state
+      | team_member_incorrect_slot:
+          [new_member_incorrect_slot_assignments | team_member_incorrect_slot] |> List.flatten()
     }
   end
 end

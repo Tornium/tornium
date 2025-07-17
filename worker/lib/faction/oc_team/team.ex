@@ -151,28 +151,32 @@ defmodule Tornium.Faction.OC.Team do
   @spec check(
           team_list :: [Tornium.Schema.OrganizedCrimeTeam.t()],
           config :: Tornium.Schema.ServerOCConfig.t() | nil,
+          crimes :: [Tornium.Schema.OrganizedCrime.t()],
           team_checks :: Tornium.Faction.OC.Team.Check.Struct.t() | nil
         ) :: Tornium.Faction.OC.Team.Check.Struct.t()
-  def check(team_list, config, team_checks \\ nil)
+  def check(team_list, config, crimes, team_checks \\ nil)
 
-  def check(team_list, config, team_checks) when is_list(team_list) and is_nil(team_checks) do
-    check(team_list, config, Tornium.Faction.OC.Check.Struct.new())
+  def check(team_list, config, crimes, team_checks) when is_list(team_list) and is_nil(team_checks) do
+    check(team_list, config, crimes, Tornium.Faction.OC.Team.Check.Struct.new())
   end
 
   def check(
         [%Tornium.Schema.OrganizedCrimeTeam{} = team | remaining_teams],
         %Tornium.Schema.ServerOCConfig{} = config,
-        team_checks
+        [%Tornium.Schema.OrganizedCrime{} = _crime | _remaining_crimes] = crimes,
+        %Tornium.Faction.OC.Team.Check.Struct{} = team_checks
       ) do
     team_checks =
       team_checks
       |> Tornium.Faction.OC.Team.Check.check_member_join_required(team)
-      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_crime(team)
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_crime(team, crimes)
+      |> Tornium.Faction.OC.Team.Check.check_incorrect_member(team)
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_slot(team)
 
     check(remaining_teams, config, team_checks)
   end
 
-  def check(_team_list, _config, team_checks) do
+  def check(_team_list, _config, _crimes, %Tornium.Faction.OC.Team.Check.Struct{} = team_checks) do
     # Fallback; OR
     # Skip all OC team checks when a configuration from a server is required (currently all checks)
 

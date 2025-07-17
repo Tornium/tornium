@@ -48,12 +48,18 @@ defmodule Tornium.Workers.OCTeamUpdate do
         } = _job
       )
       when is_integer(faction_tid) do
-    crimes =
+    in_progress_crimes =
       Tornium.Schema.OrganizedCrime
-      |> where([c], c.faction_id == ^faction_tid and c.status == :recruiting)
+      |> where([c], c.faction_id == ^faction_tid and c.status in [:recruiting, :planning])
       |> join(:inner, [c], s in assoc(c, :slots), on: c.oc_id == s.oc_id)
       |> preload([c, s], slots: s)
       |> Repo.all()
+
+    # This is filtered to avoid a separate query for in-progress OCs
+    recruiting_crimes =
+      Enum.filter(in_progress_crimes, fn %Tornium.Schema.OrganizedCrime{status: crime_status} ->
+        crime_status == :recruiting
+      end)
 
     # This is necessary to retrieve the most recent OC assigned to each OC team.
     # Otherwise, the query is not guaranteed to use the most recent OC assigned.
@@ -77,14 +83,24 @@ defmodule Tornium.Workers.OCTeamUpdate do
       )
       |> preload([t, m, c, f], members: m, faction: f)
       |> Repo.all()
-      |> Tornium.Faction.OC.Team.reassign_teams(crimes)
+      |> Tornium.Faction.OC.Team.reassign_teams(recruiting_crimes)
       |> Tornium.Faction.OC.Team.Check.Struct.set_assigned_teams()
       |> Tornium.Faction.OC.Team.update_assigned_teams()
 
-    config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
+    crime_teams =
+      Tornium.Schema.OrganizedCrimeTeam
+      |> where([t], t.faction_id == ^faction_tid)
+      |> join(:left, [t], m in assoc(t, :members), on: m.team_id == t.guid)
+      |> join(:left, [t, m], c in subquery(current_crime_query), on: t.guid == c.assigned_team_id)
+      |> join(:left, [t, m, c], s in assoc(c, :slots), on: c.oc_id == s.oc_id)
+      |> preload([t, m, c, s], members: m, current_crime: {c, slots: s})
+      |> Repo.all()
 
-    check_struct
-    |> Tornium.Faction.OC.Team.Render.render_all(config)
+    server_oc_config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
+
+    Tornium.Faction.OC.Team.check(crime_teams, server_oc_config, in_progress_crimes, check_struct)
+    |> IO.inspect()
+    |> Tornium.Faction.OC.Team.Render.render_all(server_oc_config)
     |> Tornium.Discord.send_messages()
 
     :ok

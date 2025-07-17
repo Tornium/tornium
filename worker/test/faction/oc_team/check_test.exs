@@ -125,7 +125,7 @@ defmodule Tornium.Test.Faction.OC.Team.Check do
     assert Enum.at(incorrect_crime.slots, 0).user_id == 1
   end
 
-  test "check_incorrect_member_unassigned" do
+  test "check_incorrect_member_wildcard" do
     team = %Tornium.Schema.OrganizedCrimeTeam{
       current_crime: nil,
       members: []
@@ -197,5 +197,103 @@ defmodule Tornium.Test.Faction.OC.Team.Check do
     assert incorrect_slot_user_id == 4
     assert crime_position == "Pickpocket"
     assert crime_position_index == 1
+  end
+
+  test "check_incorrect_slot_wildcard" do
+    team = %Tornium.Schema.OrganizedCrimeTeam{
+      current_crime: %Tornium.Schema.OrganizedCrime{
+        slots: [%Tornium.Schema.OrganizedCrimeSlot{user_id: 1, crime_position: "Muscle", crime_position_index: 1}]
+      },
+      members: [%Tornium.Schema.OrganizedCrimeTeamMember{user_id: nil, slot_type: "Muscle", slot_index: 1}]
+    }
+
+    check_struct =
+      Tornium.Faction.OC.Team.Check.Struct.new()
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_slot(team)
+
+    assert Enum.empty?(check_struct.team_member_incorrect_slot)
+  end
+
+  test "check_incorrect_slot_valid" do
+    team = %Tornium.Schema.OrganizedCrimeTeam{
+      current_crime: %Tornium.Schema.OrganizedCrime{
+        slots: [
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 1, crime_position: "Muscle", crime_position_index: 1},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 2, crime_position: "Muscle", crime_position_index: 2},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 3, crime_position: "Muscle", crime_position_index: 3},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 4, crime_position: "Pickpocket", crime_position_index: 1},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 5, crime_position: "Thief", crime_position_index: 1}
+        ]
+      },
+      members: [
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 3, slot_type: "Muscle", slot_index: 3},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 5, slot_type: "Thief", slot_index: 1},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 4, slot_type: "Pickpocket", slot_index: 1},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 2, slot_type: "Muscle", slot_index: 2},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 1, slot_type: "Muscle", slot_index: 1}
+      ]
+    }
+
+    check_struct =
+      Tornium.Faction.OC.Team.Check.Struct.new()
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_slot(team)
+
+    assert Enum.empty?(check_struct.team_member_incorrect_slot)
+  end
+
+  test "check_incorrect_slot_invalid" do
+    # OC team member is in wrong slot of the OC
+    team = %Tornium.Schema.OrganizedCrimeTeam{
+      current_crime: %Tornium.Schema.OrganizedCrime{
+        slots: [
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 3, crime_position: "Muscle", crime_position_index: 1},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 2, crime_position: "Muscle", crime_position_index: 2},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 1, crime_position: "Muscle", crime_position_index: 3}
+        ]
+      },
+      members: [
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 3, slot_type: "Muscle", slot_index: 3},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 2, slot_type: "Muscle", slot_index: 2},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 1, slot_type: "Muscle", slot_index: 1}
+      ]
+    }
+
+    check_struct =
+      Tornium.Faction.OC.Team.Check.Struct.new()
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_slot(team)
+
+    assert length(check_struct.team_member_incorrect_slot) == 2
+
+    assert Enum.any?(check_struct.team_member_incorrect_slot, fn {team_member, slot} ->
+             slot.user_id == 3 and team_member.user_id == 1 and team_member.slot_index == 1
+           end)
+
+    assert Enum.any?(check_struct.team_member_incorrect_slot, fn {team_member, slot} ->
+             slot.user_id == 1 and team_member.user_id == 3 and team_member.slot_index == 3
+           end)
+  end
+
+  test "check_invalid_slot_incorrect_member" do
+    # Slot held by user that is not an OC team member is invalid
+    team = %Tornium.Schema.OrganizedCrimeTeam{
+      current_crime: %Tornium.Schema.OrganizedCrime{
+        slots: [
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 1, crime_position: "Muscle", crime_position_index: 1},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 2, crime_position: "Muscle", crime_position_index: 2},
+          %Tornium.Schema.OrganizedCrimeSlot{user_id: 4, crime_position: "Muscle", crime_position_index: 3}
+        ]
+      },
+      members: [
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 3, slot_type: "Muscle", slot_index: 3},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 2, slot_type: "Muscle", slot_index: 2},
+        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: 1, slot_type: "Muscle", slot_index: 1}
+      ]
+    }
+
+    check_struct =
+      Tornium.Faction.OC.Team.Check.Struct.new()
+      |> Tornium.Faction.OC.Team.Check.check_member_incorrect_slot(team)
+
+    assert Enum.empty?(check_struct.team_member_incorrect_slot)
   end
 end

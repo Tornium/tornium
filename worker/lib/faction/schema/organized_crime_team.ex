@@ -56,8 +56,15 @@ defmodule Tornium.Schema.OrganizedCrimeTeam do
 
   @doc """
   Checks if the user ID exists within the OC team's member list.
+
+  When the user ID is nil (representing a wildcard OC team member), `true` will be returned if there is
+  a wildcard OC team member in the OC team.
   """
-  @spec member?(team :: t(), user_id :: integer()) :: boolean()
+  @spec member?(team :: t(), user_id :: integer() | nil) :: boolean()
+  def member?(%__MODULE__{members: members} = _team, user_id) when is_nil(user_id) do
+    Enum.any?(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id} -> is_nil(member_id) end)
+  end
+
   def member?(%__MODULE__{members: members} = _team, user_id) when is_integer(user_id) do
     Enum.any?(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id} -> member_id == user_id end)
   end

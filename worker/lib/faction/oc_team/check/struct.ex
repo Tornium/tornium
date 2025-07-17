@@ -65,8 +65,7 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
           ],
           team_incorrect_member: [{Tornium.Schema.OrganizedCrimeSlot.t(), Tornium.Schema.OrganizedCrime.t()}],
           team_member_incorrect_slot: [
-            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrimeSlot.t(),
-             Tornium.Schema.OrganizedCrimeSlot.t()}
+            {Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrimeSlot.t()}
           ],
           assigned_team: [{Tornium.Schema.OrganizedCrimeTeam.t(), Tornium.Schema.OrganizedCrime.t()}]
         }

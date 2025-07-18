@@ -48,6 +48,16 @@ defmodule Tornium.Workers.OCTeamUpdate do
         } = _job
       )
       when is_integer(faction_tid) do
+    # TODO: Test this resetting of OC team members
+    _reset_team_members =
+      Tornium.Schema.OrganizedCrimeTeamMember
+      |> join(:inner, [m], u in assoc(m, :user), on: u.tid == m.user_id)
+      |> where([m, u], m.faction_id == ^faction_tid and u.faction_id != ^faction_tid)
+      |> update([m, u], set: [user: nil])
+      |> Repo.update_all([])
+
+    # TODO: Log these changes
+
     in_progress_crimes =
       Tornium.Schema.OrganizedCrime
       |> where([c], c.faction_id == ^faction_tid and c.status in [:recruiting, :planning])

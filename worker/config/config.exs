@@ -20,10 +20,38 @@ config :tornium,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   env: config_env()
 
-# Configures Elixir's Logger
-config :logger, :console,
+config :tornium, :logger, [
+  {
+    :handler,
+    :loki_telemetry,
+    :logger_std_h,
+    %{
+      config: %{
+        file: ~c".telemetry.log",
+        filesync_repeat_interval: 5000,
+        file_check: 5000,
+        max_no_bytes: 10_000_000,
+        max_no_files: 5,
+        compress_on_rotate: true
+      },
+      formatter: {LoggerJSON.Formatters.Basic, metadata: :all},
+      metadata: :all,
+      level: :debug,
+      filters: [
+        telemetry_only: {&Tornium.Telemetry.Loki.filter/2, []}
+      ],
+      filter_default: :stop
+    }
+  }
+]
+
+config :logger, :default_handler,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: :all,
+  filters: [
+    ignore_telemetry: {&Tornium.Telemetry.Loki.ignore_filter/2, []}
+  ],
+  filter_default: :ignore
 
 config :tesla,
   adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}

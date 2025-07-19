@@ -24,11 +24,6 @@ config :tornium, Tornium.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-# Do not include metadata nor timestamps in development logs
-config :logger, :console,
-  format: "[$level] $message\n",
-  metadata: [:shard, :guild, :channel]
-
 config :tornium, Tornium.Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,

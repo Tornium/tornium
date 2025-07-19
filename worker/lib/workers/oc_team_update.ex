@@ -53,10 +53,16 @@ defmodule Tornium.Workers.OCTeamUpdate do
       Tornium.Schema.OrganizedCrimeTeamMember
       |> join(:inner, [m], u in assoc(m, :user), on: u.tid == m.user_id)
       |> where([m, u], m.faction_id == ^faction_tid and u.faction_id != ^faction_tid)
-      |> update([m, u], set: [user: nil])
+      |> select([m, u], m)
+      |> update([m, u], set: [user_id: nil])
       |> Repo.update_all([])
-
-    # TODO: Log these changes
+      |> Enum.each(fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id, team_id: team_id} ->
+        :telemetry.execute([:tornium, :oc_team, :member_removed], %{}, %{
+          user_id: member_id,
+          team_id: team_id,
+          faction_id: faction_tid
+        })
+      end)
 
     in_progress_crimes =
       Tornium.Schema.OrganizedCrime

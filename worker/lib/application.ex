@@ -22,9 +22,17 @@ defmodule Tornium.Application do
     {:ok, pid(), Application.state()} | {:error, term()}
   )
   def start(_type, _args) do
+    Logger.add_handlers(:tornium)
+
     # Attach the default loggers from :telemetry before the start of the children
+    Tornium.Telemetry.attach_default_logger()
     Tornex.Telemetry.attach_default_logger()
-    Oban.Telemetry.attach_default_logger()
+
+    if Application.get_env(:tornium, :env) == :dev do
+      Oban.Telemetry.attach_default_logger()
+    else
+      Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
+    end
 
     # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [

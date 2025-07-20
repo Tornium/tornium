@@ -49,9 +49,9 @@ defmodule Tornium.Faction.OC.Team.Render do
   # The below apply to all render_feature/4 functions
   # TODO: Add link to Tornium's OC page and autoload the OC there
   # TODO: Add link to Tornium's OC page and autoload the OC team there
+  # TODO: Add tests validating the renders
   # FIXME: Re-enable the `enabled` check once the UI for that is created
 
-  # TODO: Write test for this series of functions
   @doc """
   Render embeds for each failed check for a specific feature in `Tornium.Faction.OC.Team.Check.Struct`.
   """
@@ -230,6 +230,130 @@ defmodule Tornium.Faction.OC.Team.Render do
     ]
 
     render_feature(messages, :team_member_incorrect_crime, remaining_incorrect_crimes, config)
+  end
+
+  def render_feature(
+        messages,
+        :team_incorrect_member,
+        [
+          {
+            %Tornium.Schema.OrganizedCrimeSlot{
+              crime_position: crime_position,
+              crime_position_index: crime_position_index,
+              user: %Tornium.Schema.User{tid: slot_user_id, name: slot_user_name}
+            } =
+              _incorrect_crime_slot,
+            %Tornium.Schema.OrganizedCrime{oc_id: oc_id, oc_name: oc_name, assigned_team_id: assigned_team_guid} =
+              _crime
+          }
+          | remaining_incorrect_members
+        ],
+        %Tornium.Schema.ServerOCConfig{
+          team_incorrect_member_channel: team_incorrect_member_channel,
+          team_incorrect_member_roles: team_incorrect_member_roles
+          # enabled: false
+        } = config
+      )
+      when is_list(messages) and not is_nil(team_incorrect_member_channel) and not is_nil(slot_user_id) do
+    incorrect_member_discord_id = Tornium.User.DiscordStore.get(slot_user_id)
+
+    messages = [
+      %Nostrum.Struct.Message{
+        channel_id: team_incorrect_member_channel,
+        content:
+          Tornium.Utils.roles_to_string(team_incorrect_member_roles, assigns: [{:user, incorrect_member_discord_id}]),
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "Incorrect User Joined OC",
+            description: """
+            #{slot_user_name} [#{slot_user_id}] has joined the #{crime_position} ##{crime_position_index} slot of the \
+            #{oc_name} OC but the slot is already assigned to someone else. The user will need to leave that slot \
+            of the OC.
+            """,
+            color: Tornium.Discord.Constants.colors()[:error],
+            footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{assigned_team_guid} | OC ID: #{oc_id}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Assigned OC",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+      | messages
+    ]
+
+    render_feature(messages, :team_incorrect_member, remaining_incorrect_members, config)
+  end
+
+  # render_feature(:team_member_incorrect_slot, check_state.team_member_incorrect_slot, config)
+  def render_feature(
+        messages,
+        :team_member_incorrect_slot,
+        [
+          {%Tornium.Schema.OrganizedCrimeTeamMember{
+             slot_type: assigned_slot_type,
+             slot_index: assigned_slot_index,
+             team_id: team_guid,
+             user: %Tornium.Schema.User{tid: member_id, name: member_name}
+           },
+           %Tornium.Schema.OrganizedCrimeSlot{
+             crime_position: crime_position,
+             crime_position_index: crime_position_index,
+             oc_id: oc_id
+           }}
+          | remaining_incorrect_slots
+        ],
+        %Tornium.Schema.ServerOCConfig{
+          team_member_incorrect_slot_channel: team_member_incorrect_slot_channel,
+          team_member_incorrect_slot_roles: team_member_incorrect_slot_roles
+          # enabled: true
+        } = config
+      )
+      when is_list(messages) and not is_nil(team_member_incorrect_slot_channel) do
+    member_discord_id = Tornium.User.DiscordStore.get(member_id)
+
+    messages = [
+      %Nostrum.Struct.Message{
+        channel_id: team_member_incorrect_slot_channel,
+        content: Tornium.Utils.roles_to_string(team_member_incorrect_slot_roles, assigns: [{:user, member_discord_id}]),
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "OC Member Joined Incorrect Slot",
+            description: """
+            #{member_name} [#{member_id}] has joined the #{crime_position} ##{crime_position_index} slot of the \
+            assigned OC but was supposed to join the #{assigned_slot_type} ##{assigned_slot_index} of the same OC. \
+            """,
+            color: Tornium.Discord.Constants.colors()[:warning],
+            footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid} | OC ID: #{oc_id}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Assigned OC",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+      | messages
+    ]
+
+    render_feature(messages, :team_member_incorrect_slot, remaining_incorrect_slots, config)
   end
 
   def render_feature(

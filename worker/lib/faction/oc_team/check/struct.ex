@@ -69,7 +69,13 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
           ],
           assigned_team: [{Tornium.Schema.OrganizedCrimeTeam.t(), Tornium.Schema.OrganizedCrime.t()}]
         }
-  @type keys :: :team_spawn_required | :assigned_team
+  @type keys ::
+          :team_spawn_required
+          | :team_member_join_required
+          | :team_member_incorrect_crime
+          | :team_incorrect_member
+          | :team_member_incorrect_slot
+          | :assigned_team
 
   @doc """
   Create a new OC Team check struct.

@@ -27,9 +27,7 @@ defmodule Tornium.Faction.OC.Team.Render do
   @spec render_all(
           check_state :: Tornium.Faction.OC.Team.Check.Struct.t(),
           config :: Tornium.Schema.ServerOCConfig.t()
-        ) :: [
-          Nostrum.Struct.Message.t()
-        ]
+        ) :: [Nostrum.Struct.Message.t()]
   def render_all(
         %Tornium.Faction.OC.Team.Check.Struct{} = check_state,
         %Tornium.Schema.ServerOCConfig{} = config
@@ -50,6 +48,11 @@ defmodule Tornium.Faction.OC.Team.Render do
       when is_nil(config) do
     []
   end
+
+  # The below apply to all render_feature/4 functions
+  # TODO: Add link to Tornium's OC page and autoload the OC there
+  # TODO: Add link to Tornium's OC page and autoload the OC team there
+  # FIXME: Re-enable the `enabled` check once the UI for that is created
 
   # TODO: Write test for this series of functions
   @doc """
@@ -77,12 +80,9 @@ defmodule Tornium.Faction.OC.Team.Render do
           team_spawn_required_channel: team_spawn_required_channel,
           team_spawn_required_roles: team_spawn_required_roles
           # enabled: true,
-        } =
-          config
+        } = config
       )
       when is_list(messages) and not is_nil(team_spawn_required_channel) do
-    # FIXME: Re-enable the `enabled` check once the UI for that is created
-
     messages =
       [
         %Nostrum.Struct.Message{
@@ -118,6 +118,120 @@ defmodule Tornium.Faction.OC.Team.Render do
 
   def render_feature(
         messages,
+        :team_member_join_required,
+        [
+          {
+            %Tornium.Schema.OrganizedCrimeTeamMember{
+              slot_type: oc_slot_type,
+              slot_index: oc_slot_index,
+              team_id: team_guid
+            },
+            %Tornium.Schema.OrganizedCrime{oc_name: oc_name, oc_id: oc_id}
+          }
+          | remaining_joins_required
+        ],
+        %Tornium.Schema.ServerOCConfig{
+          team_member_join_required_channel: team_member_join_required_channel,
+          team_member_join_required_roles: team_member_join_required_roles
+          # enabled: true
+        } = config
+      )
+      when is_list(messages) and not is_nil(team_member_join_required_channel) do
+    messages = [
+      %Nostrum.Struct.Message{
+        channel_id: team_member_join_required_channel,
+        # TODO: Add mention and assigns for user that needs to join
+        content: Tornium.Utils.roles_to_string(team_member_join_required_roles),
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "OC Join Required",
+            description:
+              "<@> needs to join the #{oc_slot_type} ##{oc_slot_index} #{oc_name} OC assigned to their OC team.",
+            color: Tornium.Discord.Constants.colors()[:warning],
+            footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid} | OC ID: #{oc_id}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Assigned OC",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+      | messages
+    ]
+
+    render_feature(messages, :team_member_join_required, remaining_joins_required, config)
+  end
+
+  def render_feature(
+        messages,
+        :team_member_incorrect_crime,
+        [
+          {
+            %Tornium.Schema.OrganizedCrimeTeamMember{
+              slot_type: oc_slot_type,
+              slot_index: oc_slot_index,
+              user: %Tornium.Schema.User{name: member_name, tid: member_id},
+              team_id: team_guid
+            },
+            %Tornium.Schema.OrganizedCrime{oc_name: incorrect_oc_name, oc_id: incorrect_oc_id} = _incorrect_crime,
+            %Tornium.Schema.OrganizedCrime{oc_name: assigned_oc_name, oc_id: assigned_oc_id} = _assigned_crime
+          }
+          | remaining_incorrect_crimes
+        ],
+        %Tornium.Schema.ServerOCConfig{
+          team_member_incorrect_crime_channel: team_member_incorrect_crime_channel,
+          team_member_incorrect_crime_roles: team_member_incorrect_crime_roles
+          # enabled: true
+        } = config
+      ) do
+    messages = [
+      %Nostrum.Struct.Message{
+        channel_id: team_member_incorrect_crime_channel,
+        # TODO: Add mention and assigns for user that needs to join
+        content: Tornium.Utils.roles_to_string(team_member_incorrect_crime_roles),
+        embeds: [
+          %Nostrum.Struct.Embed{
+            title: "Incorrect OC Joined",
+            description: """
+            #{member_name} [#{member_id}] has joined a #{incorrect_oc_name} OC (ID #{incorrect_oc_id}) but was \
+            supposed to join the #{oc_slot_type} ##{oc_slot_index} slot of the assigned #{assigned_oc_name} OC \
+            (ID #{assigned_oc_id}). Join the assigned OC through the button below. \
+            """,
+            color: Tornium.Discord.Constants.colors()[:error],
+            footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid}"}
+          }
+        ],
+        components: [
+          %Nostrum.Struct.Component{
+            type: 1,
+            components: [
+              %Nostrum.Struct.Component{
+                type: 2,
+                style: 5,
+                label: "Assigned OC",
+                url: "https://www.torn.com/factions.php?step=your&type=1#/tab=crimes&crimeId=#{assigned_oc_id}"
+              }
+            ]
+          }
+        ]
+      }
+      | messages
+    ]
+
+    render_feature(messages, :team_member_incorrect_crime, remaining_incorrect_crimes, config)
+  end
+
+  def render_feature(
+        messages,
         :assigned_team,
         [
           {%Tornium.Schema.OrganizedCrimeTeam{name: team_name, guid: team_guid, members: team_members} = _team,
@@ -129,12 +243,9 @@ defmodule Tornium.Faction.OC.Team.Render do
           assigned_team_channel: assigned_team_channel,
           assigned_team_roles: assigned_team_roles
           # enabled: true,
-        } =
-          config
+        } = config
       )
       when is_list(messages) and not is_nil(assigned_team_channel) do
-    # FIXME: Re-enable the `enabled` check once the UI for that is created
-
     messages =
       [
         %Nostrum.Struct.Message{
@@ -165,8 +276,6 @@ defmodule Tornium.Faction.OC.Team.Render do
         | messages
       ]
 
-    # TODO: Add link to Tornium's OC page and autoload the OC there
-    # TODO: Add link to Tornium's OC page and autoload the OC team there
     render_feature(messages, :assigned_team, remaining_slots, config)
   end
 

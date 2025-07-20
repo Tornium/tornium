@@ -135,8 +135,13 @@ defmodule Tornium.Faction.OC.Team do
     check_struct
   end
 
-  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [non_neg_integer()]
-  defp team_member_ids(%Tornium.Schema.OrganizedCrimeTeam{members: members} = _team) do
+  # TODO: Document this
+  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [non_neg_integer() | nil]
+  def team_member_ids(%Tornium.Schema.OrganizedCrimeTeam{members: members} = _team) when is_list(members) do
+    team_member_ids(members)
+  end
+
+  def team_member_ids([%Tornium.Schema.OrganizedCrimeTeamMember{} | _remaining_members] = members) do
     Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
   end
 

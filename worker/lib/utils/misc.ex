@@ -38,7 +38,7 @@ defmodule Tornium.Utils do
   role mentions.
 
   ## Options
-    * `:assigns` - List of role IDs or `{:user, user ID}`
+    * `:assigns` - List of role IDs or `{:user, user Discord ID}`
   """
   @spec roles_to_string(roles :: [Tornium.Discord.role_assignable()], opts :: keyword()) :: String.t()
   def roles_to_string(roles, opts \\ []) when is_list(roles) do
@@ -48,6 +48,7 @@ defmodule Tornium.Utils do
     |> Enum.uniq()
     |> set_assigned_role(opts)
     |> List.flatten()
+    |> Enum.reject(&is_nil/1)
     |> Enum.map_join(" ", fn
       role_id when is_integer(role_id) -> "<@&#{role_id}>"
       {:user, user_id} when is_integer(user_id) -> "<@#{user_id}>"

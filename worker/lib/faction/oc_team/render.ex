@@ -18,9 +18,6 @@ defmodule Tornium.Faction.OC.Team.Render do
   Functions to render the embeds and components of OC team-related notifications.
   """
 
-  import Ecto.Query
-  alias Tornium.Repo
-
   @doc """
   Render embeds for each triggered check listed for each feature in `Tornium.Faction.OC.Team.Check.Struct`.
   """
@@ -124,6 +121,7 @@ defmodule Tornium.Faction.OC.Team.Render do
             %Tornium.Schema.OrganizedCrimeTeamMember{
               slot_type: oc_slot_type,
               slot_index: oc_slot_index,
+              user_id: member_id,
               team_id: team_guid
             },
             %Tornium.Schema.OrganizedCrime{oc_name: oc_name, oc_id: oc_id}
@@ -136,17 +134,18 @@ defmodule Tornium.Faction.OC.Team.Render do
           # enabled: true
         } = config
       )
-      when is_list(messages) and not is_nil(team_member_join_required_channel) do
+      when is_list(messages) and not is_nil(team_member_join_required_channel) and not is_nil(member_id) do
+    member_discord_id = Tornium.User.DiscordStore.get(member_id)
+
     messages = [
       %Nostrum.Struct.Message{
         channel_id: team_member_join_required_channel,
-        # TODO: Add mention and assigns for user that needs to join
-        content: Tornium.Utils.roles_to_string(team_member_join_required_roles),
+        content: Tornium.Utils.roles_to_string(team_member_join_required_roles, assigns: [{:user, member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "OC Join Required",
             description:
-              "<@> needs to join the #{oc_slot_type} ##{oc_slot_index} #{oc_name} OC assigned to their OC team.",
+              "<@#{member_discord_id}> needs to join the #{oc_slot_type} ##{oc_slot_index} #{oc_name} OC assigned to their OC team.",
             color: Tornium.Discord.Constants.colors()[:warning],
             footer: %Nostrum.Struct.Embed.Footer{text: "Team ID: #{team_guid} | OC ID: #{oc_id}"}
           }
@@ -192,12 +191,15 @@ defmodule Tornium.Faction.OC.Team.Render do
           team_member_incorrect_crime_roles: team_member_incorrect_crime_roles
           # enabled: true
         } = config
-      ) do
+      )
+      when is_list(messages) and not is_nil(team_member_incorrect_crime_channel) and not is_nil(member_id) do
+    member_discord_id = Tornium.User.DiscordStore.get(member_id)
+
     messages = [
       %Nostrum.Struct.Message{
         channel_id: team_member_incorrect_crime_channel,
-        # TODO: Add mention and assigns for user that needs to join
-        content: Tornium.Utils.roles_to_string(team_member_incorrect_crime_roles),
+        content:
+          Tornium.Utils.roles_to_string(team_member_incorrect_crime_roles, assigns: [{:user, member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "Incorrect OC Joined",
@@ -285,18 +287,10 @@ defmodule Tornium.Faction.OC.Team.Render do
 
   @spec team_member_discord_ids(members :: [Tornium.Schema.OrganizedCrimeTeamMember.t()]) :: [non_neg_integer()]
   defp team_member_discord_ids([%Tornium.Schema.OrganizedCrimeTeamMember{} = _member | _remaining_members] = members) do
-    user_ids =
-      members
-      |> Enum.map(fn
-        %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} when is_integer(user_id) -> user_id
-        _ -> nil
-      end)
-      |> Enum.reject(&is_nil/1)
-
-    Tornium.Schema.User
-    |> where([u], u.tid in ^user_ids)
-    |> select([u], u.discord_id)
-    |> Repo.all()
+    members
+    |> Tornium.Faction.OC.Team.team_member_ids()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&Tornium.User.DiscordStore.get/1)
     |> Enum.reject(&is_nil/1)
     |> Enum.map(fn discord_id -> {:user, discord_id} end)
   end

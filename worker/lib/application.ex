@@ -40,6 +40,7 @@ defmodule Tornium.Application do
       Tornium.Repo,
       Tornium.Discord.Consumer,
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
+      {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
       Tornium.API.Store,

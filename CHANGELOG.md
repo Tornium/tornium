@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added OC missing tool notifications
 - Added revivable member ping slash command `/faction members revivable-ping`
 - Added OAuth client revocation page
+- Added exponential backoff to subsequent failed authentication attempts
 
 ### Changed
 - Re-enabled Discord-based authentication
@@ -45,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed OD channel loader on website
 - Fixed point withdrawals in `/withdraw`
 - Fixed IP address logging in `AuthLog`
+- Fixed missing armory stock notifications on out-of-stock items
+- Fixed users not being prevented from adding other users' API keys
 
 ### Removed
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`

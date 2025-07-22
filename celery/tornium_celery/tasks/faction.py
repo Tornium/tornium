@@ -2160,9 +2160,11 @@ def armory_check_subtask(_armory_data, faction_id: int):
     for armory_type in _armory_data:
         for armory_item in _armory_data[armory_type]:
             quantity = armory_item.get("available") or armory_item.get("quantity") or 0
-            minimum = faction_config["items"][str(armory_item["ID"])]
+            minimum = faction_config["items"].get(str(armory_item["ID"]))
 
-            if quantity >= minimum:
+            if minimum is None:
+                continue
+            elif quantity >= minimum:
                 continue
 
             item: typing.Optional[Item] = Item.select(Item.market_value).where(Item.tid == armory_item["ID"]).first()

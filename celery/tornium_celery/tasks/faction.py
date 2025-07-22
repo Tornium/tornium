@@ -2159,10 +2159,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
 
     for armory_type in _armory_data:
         for armory_item in _armory_data[armory_type]:
-            if str(armory_item["ID"]) not in faction_config["items"]:
-                continue
-
-            quantity = armory_item.get("available") or armory_item.get("quantity")
+            quantity = armory_item.get("available") or armory_item.get("quantity") or 0
             minimum = faction_config["items"][str(armory_item["ID"])]
 
             if quantity >= minimum:
@@ -2170,11 +2167,11 @@ def armory_check_subtask(_armory_data, faction_id: int):
 
             item: typing.Optional[Item] = Item.select(Item.market_value).where(Item.tid == armory_item["ID"]).first()
 
-            if item is None or item.market_value <= 0:
-                suffix = ""
-            else:
-                suffix = f" (worth about ${commas(item.market_value * (minimum - quantity))})"
-
+            suffix = (
+                ""
+                if item is None or item.market_value <= 0
+                else f" (worth about ${commas(item.market_value * (minimum - quantity))})"
+            )
             payload["embeds"].append(
                 {
                     "title": "Low Armory Stock",

@@ -45,13 +45,13 @@ config :tornium, :logger, [
   }
 ]
 
-config :logger, :default_handler,
+config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: :all,
+  metadata: [:application],
   filters: [
     ignore_telemetry: {&Tornium.Telemetry.Loki.ignore_filter/2, []}
   ],
-  filter_default: :ignore
+  filter_default: :log
 
 config :tesla,
   adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}

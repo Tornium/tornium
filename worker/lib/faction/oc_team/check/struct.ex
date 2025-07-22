@@ -103,12 +103,12 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
   struct to avoid sending a message every time the OC team checks are run.
   """
   @spec set_assigned_teams(assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
-  def set_assigned_teams(assignments) do
+  def set_assigned_teams(assignments) when is_map(assignments) do
     set_assigned_teams(new(), assignments)
   end
 
   @spec set_assigned_teams(check_struct :: t(), assignments :: Tornium.Faction.OC.Team.new_team_assignments()) :: t()
-  def set_assigned_teams(%__MODULE__{} = check_struct, assignments) do
+  def set_assigned_teams(%__MODULE__{} = check_struct, assignments) when is_map(assignments) do
     Enum.reduce(assignments, check_struct, &do_set_assigned_teams/2)
   end
 

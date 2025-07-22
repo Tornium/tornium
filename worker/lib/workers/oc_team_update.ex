@@ -48,21 +48,23 @@ defmodule Tornium.Workers.OCTeamUpdate do
         } = _job
       )
       when is_integer(faction_tid) do
+    # TODO: Extract into separate function
     # TODO: Test this resetting of OC team members
-    _reset_team_members =
+    {_count, reset_team_members} =
       Tornium.Schema.OrganizedCrimeTeamMember
       |> join(:inner, [m], u in assoc(m, :user), on: u.tid == m.user_id)
       |> where([m, u], m.faction_id == ^faction_tid and u.faction_id != ^faction_tid)
       |> select([m, u], m)
       |> update([m, u], set: [user_id: nil])
       |> Repo.update_all([])
-      |> Enum.each(fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id, team_id: team_id} ->
-        :telemetry.execute([:tornium, :oc_team, :member_removed], %{}, %{
-          user_id: member_id,
-          team_id: team_id,
-          faction_id: faction_tid
-        })
-      end)
+
+    Enum.each(reset_team_members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id, team_id: team_id} ->
+      :telemetry.execute([:tornium, :oc_team, :member_removed], %{}, %{
+        user_id: member_id,
+        team_id: team_id,
+        faction_id: faction_tid
+      })
+    end)
 
     in_progress_crimes =
       Tornium.Schema.OrganizedCrime
@@ -115,7 +117,6 @@ defmodule Tornium.Workers.OCTeamUpdate do
     server_oc_config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
 
     Tornium.Faction.OC.Team.check(crime_teams, server_oc_config, in_progress_crimes, check_struct)
-    |> IO.inspect()
     |> Tornium.Faction.OC.Team.Render.render_all(server_oc_config)
     |> Tornium.Discord.send_messages()
 

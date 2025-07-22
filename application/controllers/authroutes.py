@@ -46,6 +46,7 @@ from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.formatters import rel_time
 from tornium_commons.models import (
     AuthAction,
     AuthLog,
@@ -65,8 +66,6 @@ from models.user import AuthUser
 
 mod = Blueprint("authroutes", __name__)
 config = Config.from_json()
-
-# TODO: Add IP ratelimit to authentication endpoints
 
 
 def _log_auth(
@@ -109,9 +108,31 @@ def disable_cache(f):
     return wrapper
 
 
+def _increment_ratelimit(ratelimit_key):
+    redis_client = rds()
+    failed_attempt_count = redis_client.incr(ratelimit_key)
+    redis_client.expire(ratelimit_key, max(10, 2**failed_attempt_count))
+
+
 @mod.route("/login", methods=["GET", "POST"])
 @disable_cache
 def login(*args, **kwargs):
+    redis_client = rds()
+    ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
+    ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
+
+    if redis_client.exists(ratelimit_key):
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+        _increment_ratelimit(ratelimit_key)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Too Many Requests",
+                error=f"Security error. Too many requests. Try again in {rel_time(int(time.time()) + ratelimit_ttl)}.",
+            ),
+            429,
+        )
+
     if request.method == "GET":
         session["oauth_state"] = secrets.token_urlsafe()
         return render_template("login.html")
@@ -121,6 +142,7 @@ def login(*args, **kwargs):
 
     if oauth_state is None:
         _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, details="OAuth state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -132,6 +154,7 @@ def login(*args, **kwargs):
         )
     elif session_oauth_state is None:
         _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, details="OAuth session state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -143,6 +166,7 @@ def login(*args, **kwargs):
         )
     elif oauth_state != session_oauth_state:
         _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, details="OAuth state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -161,6 +185,7 @@ def login(*args, **kwargs):
             login_key=request.form.get("key"),
             details="Invalid API key",
         )
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -188,6 +213,7 @@ def login(*args, **kwargs):
                 login_key=request.form.get("key"),
                 details="Invalid API key",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return utils.handle_torn_error(e), 401
         except NetworkingError as e:
@@ -197,10 +223,12 @@ def login(*args, **kwargs):
                 login_key=request.form.get("key"),
                 details=f"Torn networking error ({e.code})",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return utils.handle_networking_error(e), 502
         except Exception as e:
             _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, login_key=request.form.get("key"))
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template("errors/error.html", title="Error", error=str(e)),
@@ -215,6 +243,7 @@ def login(*args, **kwargs):
                 login_key=request.form.get("key"),
                 details="Key access level too low",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(
@@ -235,6 +264,7 @@ def login(*args, **kwargs):
             login_key=request.form.get("key"),
             details=f"Torn networking error ({e.code})",
         )
+        _increment_ratelimit(ratelimit_key)
 
         return utils.handle_networking_error(e)
     except TornError as e:
@@ -244,6 +274,7 @@ def login(*args, **kwargs):
             login_key=request.form.get("key"),
             details=f"Torn API error ({e.code})",
         )
+        _increment_ratelimit(ratelimit_key)
 
         return utils.handle_torn_error(e)
 
@@ -251,6 +282,8 @@ def login(*args, **kwargs):
         user = TornKey.select(TornKey.user).where(TornKey.api_key == request.form["key"]).get().user
     except DoesNotExist:
         _log_auth(user=None, action=AuthAction.LOGIN_TORN_API_FAILED, login_key=request.form.get("key"))
+        _increment_ratelimit(ratelimit_key)
+
         return render_template(
             "errors/error.html",
             title="User Not Found",
@@ -311,6 +344,8 @@ def login(*args, **kwargs):
             .get()
         )
         _log_auth(user=auth_user.tid, action=AuthAction.LOGIN_TORN_API_SUCCESS, login_key=request.form.get("key"))
+        redis_client.delete(ratelimit_key)
+
         login_user(auth_user, remember=True)
     elif user.security == 1:
         _log_auth(user=user.tid, action=AuthAction.LOGIN_TORN_API_PARTIAL, login_key=request.form.get("key"))
@@ -322,6 +357,7 @@ def login(*args, **kwargs):
                 login_key=request.form.get("key"),
                 details="No OTP secret stored",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(
@@ -341,6 +377,7 @@ def login(*args, **kwargs):
                 login_key=request.form.get("key"),
                 details="Duplicate client token",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(
@@ -359,6 +396,7 @@ def login(*args, **kwargs):
             login_key=request.form.get("key"),
             details="Unknown security mode",
         )
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -377,6 +415,22 @@ def login(*args, **kwargs):
 @mod.route("/login/totp", methods=["GET", "POST"])
 @disable_cache
 def topt_verification():
+    redis_client = rds()
+    ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
+    ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
+
+    if redis_client.exists(ratelimit_key):
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+        _increment_ratelimit(ratelimit_key)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Too Many Requests",
+                error=f"Security error. Too many requests. Try again in {rel_time(int(time.time()) + ratelimit_ttl)}.",
+            ),
+            429,
+        )
+
     if request.method == "GET":
         return (render_template("totp.html"), 200)
 
@@ -385,6 +439,7 @@ def topt_verification():
 
     if client_token is None:
         _log_auth(user=None, action=AuthAction.LOGIN_TOTP_FAILED, details="Invalid client token")
+        _increment_ratelimit(ratelimit_key)
 
         return redirect("/login")
 
@@ -392,6 +447,7 @@ def topt_verification():
 
     if totp_token is None:
         _log_auth(user=None, action=AuthAction.LOGIN_TOTP_FAILED, details="Invalid TOTP token")
+        _increment_ratelimit(ratelimit_key)
 
         redis_client.delete(f"tornium:login:{client_token}")
         return redirect("/login")
@@ -403,6 +459,7 @@ def topt_verification():
         user: AuthUser = AuthUser.get_by_id(int(user_id))
     except (TypeError, ValueError, DoesNotExist):
         _log_auth(user=None, action=AuthAction.LOGIN_TOTP_FAILED)
+        _increment_ratelimit(ratelimit_key)
 
         return redirect("/login")
 
@@ -413,8 +470,8 @@ def topt_verification():
         totp_token, server_totp_tokens[1]
     ):
         login_user(user, remember=True)
-        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
         _log_auth(user=user.tid, action=AuthAction.LOGIN_TOTP_SUCCESS)
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid", ratelimit_key)
 
         return redirect(next_route or url_for("baseroutes.index"))
     elif hashlib.sha256(totp_token.encode("utf-8")).hexdigest() in user.otp_backups:
@@ -422,8 +479,8 @@ def topt_verification():
         User.update(otp_backups=user.otp_backups).where(User.tid == user.tid).execute()
 
         login_user(user, remember=True)
-        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid")
         _log_auth(user=user.tid, action=AuthAction.LOGIN_TOTP_SUCCESS, details="Backup code used")
+        redis_client.delete(f"tornium:login:{client_token}", f"tornium:login:{client_token}:tid", ratelimit_key)
 
         return redirect(next_route or url_for("baseroutes.index"))
     else:
@@ -431,6 +488,7 @@ def topt_verification():
         _log_auth(
             user=user.tid, action=AuthAction.LOGIN_TOTP_FAILED, login_key=str(totp_token), details="Invalid TOTP token"
         )
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -445,11 +503,28 @@ def topt_verification():
 @mod.route("/login/discord", methods=["GET"])
 @disable_cache
 def discord_login():
+    redis_client = rds()
+    ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
+    ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
+
+    if redis_client.exists(ratelimit_key):
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+        _increment_ratelimit(ratelimit_key)
+        return (
+            render_template(
+                "errors/error.html",
+                title="Too Many Requests",
+                error=f"Security error. Too many requests. Try again in {rel_time(int(time.time()) + ratelimit_ttl)}.",
+            ),
+            429,
+        )
+
     # See https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
     session_oauth_state = session.pop("oauth_state", None)
 
     if request.args.get("error") is not None:
         _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details=request.args["errors"])
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -465,6 +540,7 @@ def discord_login():
 
     if oauth_state is None:
         _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details="OAuth state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -476,6 +552,7 @@ def discord_login():
         )
     elif session_oauth_state is None:
         _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details="OAuth session state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -487,6 +564,7 @@ def discord_login():
         )
     elif oauth_state != session_oauth_state:
         _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details="OAuth state mismatch")
+        _increment_ratelimit(ratelimit_key)
 
         return (
             render_template(
@@ -537,14 +615,17 @@ def discord_login():
             )
         except NetworkingError as e:
             _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details=f"Torn networking error ({e.code})")
+            _increment_ratelimit(ratelimit_key)
 
             return utils.handle_networking_error(e)
         except TornError as e:
             _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED, details=f"Torn API error ({e.code})")
+            _increment_ratelimit(ratelimit_key)
 
             return utils.handle_torn_error(e)
         except MissingKeyError:
             _log_auth(user=None, action=AuthAction.LOGIN_DISCORD_FAILED)
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(
@@ -570,6 +651,8 @@ def discord_login():
 
     if user.security == 0 or user.security is None:
         _log_auth(user=user.tid, action=AuthAction.LOGIN_DISCORD_SUCCESS, login_key=user_data["id"])
+        redis_client.delete(ratelimit_key)
+
         login_user(user, remember=True)
     elif user.security == 1:
         _log_auth(user=user.tid, action=AuthAction.LOGIN_DISCORD_PARTIAL, login_key=user_data["id"])
@@ -581,6 +664,7 @@ def discord_login():
                 login_key=user_data["id"],
                 details="No OTP secret stored",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(
@@ -600,6 +684,7 @@ def discord_login():
                 login_key=user_data["id"],
                 details="Duplicate client token",
             )
+            _increment_ratelimit(ratelimit_key)
 
             return (
                 render_template(

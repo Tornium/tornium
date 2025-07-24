@@ -226,7 +226,8 @@ def faction_filter(tid):
 
 @app.before_request
 def before_request():
-    db.connect()
+    if db.is_closed():
+        db.connect()
 
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)

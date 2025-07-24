@@ -45,7 +45,12 @@ from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
 from tornium_celery.tasks.user import update_user
 from tornium_commons import Config, rds
-from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
+from tornium_commons.errors import (
+    DiscordError,
+    MissingKeyError,
+    NetworkingError,
+    TornError,
+)
 from tornium_commons.formatters import rel_time
 from tornium_commons.models import (
     AuthAction,
@@ -583,25 +588,51 @@ def discord_login():
         "code": d_code,
         "redirect_uri": "https://tornium.com/login/discord",
     }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
     access_token_data = requests.post(
         "https://discord.com/api/v10/oauth2/token",
-        headers=headers,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
         data=payload,
-        timeout=5,
     )
-    access_token_data.raise_for_status()
-    access_token_json = access_token_data.json()
+    try:
+        access_token_json = access_token_data.json()
+    except requests.exceptions.JSONDecodeError:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Internal Error",
+                error="Internal error. Discord failed to respond with a valid token response.",
+            ),
+            500,
+        )
 
-    headers = {
-        "Authorization": f"Bearer {access_token_json['access_token']}",
-        "Content-Type": "application/json",
-    }
+    if "error" in access_token_json:
+        return render_template(
+            "errors/error.html",
+            title=f"OAuth Error | {access_token_json['error']}",
+            error=f"Discord failed to create an OAuth token. {access_token_json.get('error_description', 'MISSING ERROR DESCRIPTION')}",
+        )
 
-    user_request = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=5)
-    user_request.raise_for_status()
-    user_data = user_request.json()
+    user_request = requests.get(
+        "https://discord.com/api/v10/users/@me",
+        headers={
+            "Authorization": f"Bearer {access_token_json['access_token']}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        user_data = user_request.json()
+    except requests.exceptions.JSONDecodeError:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Internal Error",
+                error="Internal error. Discord failed to respond with a valid user response.",
+            ),
+            500,
+        )
+
+    if "code" in user_data:
+        raise DiscordError(code=user_data["code"], message=user_data["message"], url="users/@me")
 
     # TODO: Limit selected fields in this query
     user: typing.Optional[AuthUser] = AuthUser.select().where(AuthUser.discord_id == user_data["id"]).first()

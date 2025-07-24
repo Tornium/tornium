@@ -592,6 +592,7 @@ def discord_login():
         "https://discord.com/api/v10/oauth2/token",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data=payload,
+        timeout=10,
     )
     try:
         access_token_json = access_token_data.json()
@@ -618,6 +619,7 @@ def discord_login():
             "Authorization": f"Bearer {access_token_json['access_token']}",
             "Content-Type": "application/json",
         },
+        timeout=10,
     )
     try:
         user_data = user_request.json()

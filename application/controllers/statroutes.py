@@ -30,6 +30,7 @@ from flask import (
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import tornget
+from tornium_commons.db_connection import db
 from tornium_commons.formatters import bs_to_range, commas, get_tid, rel_time
 from tornium_commons.models import Faction, Stat, User
 
@@ -164,7 +165,7 @@ def generate_faction_stats_csv():
             for user_id, user_data in faction_members_data["members"].items()
         )
 
-    executor = ThreadPoolExecutor(max_workers=10)
+    executor = ThreadPoolExecutor(max_workers=5)
 
     def _row(*values):
         output = io.StringIO()
@@ -172,12 +173,16 @@ def generate_faction_stats_csv():
         writer.writerow(values)
         return output.getvalue()
 
+    def estimate_user_with_context(*args, **kwargs):
+        with db.connection_context():
+            return estimate_user(*args, **kwargs)
+
     @stream_with_context
     def generate_csv():
         yield _row("tid", "name", "level", "estimated_stat_score", "stat_score", "stat_score_timestamp")
 
         futures = {
-            executor.submit(estimate_user, user[0], current_user.key, current_user.key is not None): user
+            executor.submit(estimate_user_with_context, user[0], current_user.key, current_user.key is not None): user
             for user in faction_members
         }
 

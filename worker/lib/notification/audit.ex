@@ -33,7 +33,7 @@ defmodule Tornium.Notification.Audit do
           action :: actions(),
           notification :: Tornium.Schema.Notification.t(),
           channel_id :: integer() | nil | false,
-          opts: Keyword
+          opts: Keyword.t()
         ) :: nil
   def log(action, notification, channel_id \\ false, opts \\ [])
 
@@ -61,6 +61,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] There were API keys available to perform this notification and it has been disabled."
     )
+
+    nil
   end
 
   def log(:lua_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
@@ -82,6 +84,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] An error occured in the trigger's Lua code. The trigger's developer should contact tiksan for the error message."
     )
+
+    nil
   end
 
   def log(:invalid_channel = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
@@ -103,6 +107,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] The channel for this notification could not be found when a message was being sent."
     )
+
+    nil
   end
 
   def log(:discord_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
@@ -128,6 +134,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] An unhandled Discord error (#{error_code}) occured during the handling of this notification. You will need to re-enable this notification."
     )
+
+    nil
   end
 
   def log(:restricted = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
@@ -158,6 +166,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] The resource required for this notification is restricted. The faction (#{resource_id}) must be linked to this server and there must be an AA member of that faction signed into Tornium for this notification to work."
     )
+
+    nil
   end
 
   def log(
@@ -176,6 +186,8 @@ defmodule Tornium.Notification.Audit do
       action,
       "[#{nid}] The resource required for this notification is restricted. The user (#{resource_id}) must be an admin in this server for this notification to work."
     )
+
+    nil
   end
 
   @doc """

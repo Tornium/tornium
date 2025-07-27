@@ -270,3 +270,37 @@ def update_oc_team_name(faction_id: int, team_guid: str, new_name: str, *args, *
         return make_exception_response("1106", key)
 
     return team.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def set_wilcard_oc_team_member(faction_id: int, team_guid: str, member_guid: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022")
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006")
+    elif (
+        not OrganizedCrimeTeam.select()
+        .where((OrganizedCrimeTeam.guid == team_guid) & (OrganizedCrimeTeam.faction_id == faction_id))
+        .exists()
+    ):
+        return make_exception_response("1106", key)
+    elif (
+        not OrganizedCrimeTeamMember.select()
+        .where((OrganizedCrimeTeamMember.guid == member_guid) & (OrganizedCrimeTeamMember.faction_id == faction_id))
+        .exists()
+    ):
+        return make_exception_response("1107", key)
+
+    member: OrganizedCrimeTeamMember = (
+        OrganizedCrimeTeamMember.update(user=None)
+        .where(OrganizedCrimeTeamMember.guid == member_guid)
+        .returning(OrganizedCrimeTeamMember)
+        .execute()[0]
+    )
+
+    return member.to_dict(), 200, api_ratelimit_response(key)

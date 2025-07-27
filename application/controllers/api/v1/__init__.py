@@ -282,6 +282,11 @@ mod.add_url_rule(
     methods=["PUT"],
 )
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/member/<member_guid>",
+    view_func=faction.crime_team.set_wilcard_oc_team_member,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/name/<new_name>",
     view_func=faction.crime_team.update_oc_team_name,
     methods=["PUT"],

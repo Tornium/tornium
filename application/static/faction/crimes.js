@@ -35,6 +35,7 @@ function addTeamSelector({ current_crime: current_crime, guid: guid, members: me
     teamSelector.setAttribute("type", "radio");
     teamSelector.setAttribute("name", "team-selector");
     teamSelector.setAttribute("data-team-guid", guid);
+    teamSelector.setAttribute("checked", "");
     teamSelector.addEventListener("change", loadViewer);
     teamLabel.appendChild(teamSelector);
 
@@ -162,8 +163,11 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
             valueField: "value",
             labelField: "label",
             sortField: [{ field: "cpr", direction: "desc" }],
-            options: user == null ? [] : [{ value: user.tid, label: `${user.name} [${user.cpr}%]` }],
-            items: user == null ? [] : [user.tid],
+            options:
+                user == null
+                    ? [{ value: "", label: "Wildcard" }]
+                    : [{ value: user.tid, label: `${user.name} [${user.cpr}%]` }],
+            items: user == null ? [""] : [user.tid],
             load: function (query, callback) {
                 if (this.loading > 1) {
                     // Blocks loading this more than once.
@@ -172,14 +176,21 @@ function loadViewerTeam({ guid: guid, members: members, name: name, oc_name: oc_
                     return;
                 }
 
+                // TODO: Add short-lived local cache for this data to avoid multiple unnescessary requests
+                // Especially when there are multiple positions (e.g. Muscle 1-3) in the same OC type
                 tfetch("GET", `faction/${factionID}/crime/cpr/${oc_name}/${slot_type}`, {
                     errorTitle: "Member CPR Load Failed",
                 })
                     .then((data) => {
+                        data[""] = {
+                            cpr: 999,
+                            name: "Wildcard",
+                            updated_at: undefined,
+                        };
                         callback(
                             Object.entries(data).map(([key, value]) => ({
                                 value: key,
-                                label: `${value.name} [${value.cpr}%]`,
+                                label: value.updated_at ? `${value.name} [${value.cpr}%]` : value.name,
                                 cpr: value.cpr,
                             })),
                         );
@@ -235,18 +246,33 @@ function updateTeamMember(event) {
     const teamGUID = document.getElementById("viewer").getAttribute("data-team-guid");
     const selectedMember = this.options[this.selectedIndex].value;
 
-    tfetch("PUT", `faction/${factionID}/crime/team/${teamGUID}/member/${memberGUID}/${selectedMember}`, {
-        errorHandler: (jsonError) => {
-            let errorBody = `[${jsonError.code}] ${jsonError.message}`;
-            if (jsonError.details.message != null) {
-                errorBody += " " + jsonError.details.message;
-            }
+    if (selectedMember == "") {
+        tfetch("DELETE", `faction/${factionID}/crime/team/${teamGUID}/member/${memberGUID}`, {
+            errorHandler: (jsonError) => {
+                let errorBody = `[${jsonError.code}] ${jsonError.message}`;
+                if (jsonError.details.message != null) {
+                    errorBody += " " + jsonError.details.message;
+                }
 
-            generateToast("Team Member Set Failed", errorBody);
-        },
-    }).then((data) => {
-        // TODO: Handle response data
-    });
+                generateToast("Team Member Wilcarding Failed", errorBody);
+            },
+        }).then((data) => {
+            // TODO: Handle response data
+        });
+    } else {
+        tfetch("PUT", `faction/${factionID}/crime/team/${teamGUID}/member/${memberGUID}/${selectedMember}`, {
+            errorHandler: (jsonError) => {
+                let errorBody = `[${jsonError.code}] ${jsonError.message}`;
+                if (jsonError.details.message != null) {
+                    errorBody += " " + jsonError.details.message;
+                }
+
+                generateToast("Team Member Set Failed", errorBody);
+            },
+        }).then((data) => {
+            // TODO: Handle response data
+        });
+    }
 }
 
 function loadViewer(event) {
@@ -282,7 +308,6 @@ function createTeam(event) {
         generateToast("Team Created Successfully", "The OC team has been successfully created.");
         addTeamSelector(data);
         loadViewerTeam(data);
-        // TODO: Select the OC team in the selector
     });
 }
 

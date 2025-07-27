@@ -85,7 +85,7 @@ Tornium - Faction OCs Dashboard
                             {% for team in teams %}
                             <li class="list-group-item">
                                 <label class="d-flex">
-                                    <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}">
+                                    <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}" autocomplete="off">
                                     <p class="card-text px-3" style="width: 100%;">
                                         {{ team.oc_name }}: 
                                         <span class="text-secondary d-inline-block text-truncate" style="width: inherit;">

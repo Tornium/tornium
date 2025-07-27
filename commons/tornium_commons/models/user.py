@@ -104,17 +104,33 @@ class User(BaseModel):
         return User.select(User.discord_id).where(User.tid == tid).get().discord_id
 
     def can_manage_crimes(self) -> bool:
-        if isinstance(self.faction_position, FactionPosition):
-            return self.faction_position.plan_init_oc
-
-        try:
-            faction_position: FactionPosition = (
-                FactionPosition.select(FactionPosition.plan_init_oc)
-                .where(FactionPosition.pid == self.faction_position_id)
-                .get()
-            )
-        except DoesNotExist:
+        if self.faction_id is None:
             return False
+
+        # Faction lead/co needs to be determined before faction position for API bugs related to the API incorrectly
+        # including lead, co, and recruits as faction positions.
+        faction: typing.Optional[Faction] = self.faction
+
+        if not isinstance(faction, Faction):
+            try:
+                faction = Faction.select(Faction.leader, Faction.coleader).where(Faction.tid == self.faction_id).get()
+            except DoesNotExist:
+                return False
+
+        if isinstance(faction, Faction) and (self.tid == faction.leader or self.tid == faction.coleader):
+            return True
+
+        faction_position: typing.Optional[FactionPosition] = self.faction_position.plan_init_oc
+
+        if not isinstance(faction_position, FactionPosition):
+            try:
+                faction_position = (
+                    FactionPosition.select(FactionPosition.plan_init_oc)
+                    .where(FactionPosition.pid == self.faction_position_id)
+                    .get()
+                )
+            except DoesNotExist:
+                return False
 
         return faction_position.plan_init_oc
 

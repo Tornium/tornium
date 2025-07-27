@@ -611,7 +611,8 @@ def fetch_attacks_runner():
                         {
                             "title": f"Retal Timeout for {retal.defender.faction.name}",
                             "description": (
-                                f"{retal.attacker.user_str_self()} of {retal.attacker.faction.name} has attacked "
+                                f"{retal.attacker.user_str_self()} of "
+                                f"{"N/A" if retal.attacker.faction is None else retal.attacker.faction.name} has attacked "
                                 f"{retal.defender.user_str_self()}, but the retaliation timed out "
                                 f"<t:{int(timestamp(retal.attack_ended) + 300)}:R>"
                             ),

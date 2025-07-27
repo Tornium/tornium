@@ -138,11 +138,10 @@ Tornium - Settings
                             <li class="list-group-item">
                                 <label for="cpr-toggle" class="form-label">Share CPR:</label>
 
-                                <!-- TODO: Use DB to determine which is checked -->
-                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-enable" autocomplete="off" checked>
+                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-enable" autocomplete="off" {% if current_user.settings is not none and current_user.settings.cpr_enabled %} checked {% endif %}>
                                 <label class="btn" for="cpr-toggle-enable">Enable</label>
 
-                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-disable" autocomplete="off">
+                                <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-disable" autocomplete="off" {% if current_user.settings is none or not current_user.settings.cpr_enabled %} checked {% endif %}>
                                 <label class="btn" for="cpr-toggle-disable">Disable</label>
                             </li>
                             <!-- TODO: Add toggle to share attack stats for stat DB -->

@@ -27,7 +27,7 @@ class UserSettings(BaseModel):
         table_name = "user_settings"
 
     guid = UUIDField(primary_key=True)
-    user = ForeignKeyField(User)
+    user = ForeignKeyField(User, unique=True)
 
     cpr_enabled = BooleanField(default=True, null=False)
 
@@ -52,12 +52,20 @@ class UserSettings(BaseModel):
             elif key in ("user", "user_id", "guid"):
                 raise ValueError(f'Kwargs key "{key}" can not be used in this function as it\'s a primary key')
 
-        UserSettings.insert(guid=uuid.uuid4(), user=user_id, **kwargs).on_conflict(
-            conflict_target=[UserSettings.user], preserve=[getattr(UserSettings, field) for field in kwargs.keys()]
-        ).execute()
+        settings = (
+            UserSettings.insert(guid=uuid.uuid4(), user=user_id, **kwargs)
+            .on_conflict(
+                conflict_target=[UserSettings.user], preserve=[getattr(UserSettings, field) for field in kwargs.keys()]
+            )
+            .returning(UserSettings)
+            .execute()[0]
+        )
+
+        User.update(settings=settings).where(User.tid == user_id).execute()
 
         # FIXME: Make this one query with a returning statement from the insert
-        return UserSettings.select().where(UserSettings.user == user_id).first()
+        # return UserSettings.select().where(UserSettings.user == user_id).first()
+        return settings
 
     def to_dict(self) -> dict:
         return {

@@ -44,7 +44,8 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
       |> where([k, u, f, s], is_nil(s) or s.cpr_enabled == true)
       |> where([k, u, f, s], u.tid > ^after_id)
       |> select([k, u, f, s], [k.api_key, u.tid, u.faction_id])
-      |> limit(@batch_limit)
+      |> limit([k, u, f, s], @batch_limit)
+      |> order_by([k, u, f, s], asc: u.tid)
       |> Repo.all()
 
     Enum.each(users, fn [api_key, user_tid, faction_tid]
@@ -74,7 +75,7 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
         origin_job_id: job_id,
         api_call_id: api_call_id
       }
-      |> Tornium.Workers.OCCPRUpdate.new(schedule_in: _seconds = 5)
+      |> Tornium.Workers.OCCPRUpdate.new(schedule_in: _seconds = 15)
       |> Oban.insert()
     end)
 

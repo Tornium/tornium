@@ -89,7 +89,7 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
         position_count[slot.crime_position] = position_count.get(slot.crime_position, 0) + 1
 
     guid = uuid.uuid4()
-    with db().atomic():
+    with db.atomic():
         team: OrganizedCrimeTeam = (
             OrganizedCrimeTeam.insert(
                 guid=guid,

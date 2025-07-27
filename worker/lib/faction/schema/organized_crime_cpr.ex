@@ -70,4 +70,9 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
 
     returned_entries
   end
+
+  def upsert_all(_entries) do
+    # Fallback for API error
+    []
+  end
 end

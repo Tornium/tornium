@@ -226,7 +226,10 @@ def faction_filter(tid):
 
 @app.before_request
 def before_request():
-    if db.is_closed():
+    try:
+        db.connection()
+    except Exception:
+        db.close()
         db.connect()
 
     flask.session.permanent = True
@@ -239,7 +242,8 @@ def before_request():
 
 @app.after_request
 def after_request(response: flask.Response):
-    db.close()
+    if not db.is_closed():
+        db.close()
 
     # HSTS enabled through CloudFlare
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'

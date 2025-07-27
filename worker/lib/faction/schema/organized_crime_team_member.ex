@@ -15,6 +15,8 @@
 
 defmodule Tornium.Schema.OrganizedCrimeTeamMember do
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -78,5 +80,23 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
   @spec wildcard?(member :: t()) :: boolean()
   def wildcard?(%__MODULE__{user_id: member_id} = _member) do
     is_nil(member_id)
+  end
+
+  @doc """
+  Reset members of a faction's OC teams when the member is not in the faction.
+
+  When a member is reset, the position of the OC team the member was in will be set to a wildcard
+  member until otherwise changed.
+  """
+  @spec reset_outside_faction(faction_id :: non_neg_integer()) ::
+          {non_neg_integer(), [Tornium.Schema.OrganizedCrimeTeamMember.t()]}
+  def reset_outside_faction(faction_id) when is_integer(faction_id) do
+    # TODO: Test this function
+    Tornium.Schema.OrganizedCrimeTeamMember
+    |> join(:inner, [m], u in assoc(m, :user), on: u.tid == m.user_id)
+    |> where([m, u], m.faction_id == ^faction_id and u.faction_id != ^faction_id)
+    |> select([m, u], m)
+    |> update([m, u], set: [user_id: nil])
+    |> Repo.update_all([])
   end
 end

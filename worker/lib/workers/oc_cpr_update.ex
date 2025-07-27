@@ -18,7 +18,7 @@ defmodule Tornium.Workers.OCCPRUpdate do
 
   use Oban.Worker,
     max_attempts: 3,
-    priority: 5,
+    priority: 9,
     queue: :user_processing,
     tags: ["user", "oc"],
     unique: [
@@ -26,8 +26,6 @@ defmodule Tornium.Workers.OCCPRUpdate do
       keys: [:api_call_id],
       states: [:available, :executing, :retryable, :scheduled]
     ]
-
-  # TODO: Vaildate priority
 
   @impl Oban.Worker
   def perform(

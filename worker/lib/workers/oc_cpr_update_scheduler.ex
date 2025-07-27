@@ -84,9 +84,7 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
 
       [_api_key, user_tid, _faction_tid] ->
         %{after: user_tid}
-        # FIXME: Revert
-        # |> Tornium.Workers.OCCPRUpdateScheduler.new(schedule_in: _seconds = 600)
-        |> Tornium.Workers.OCCPRUpdateScheduler.new(schedule_in: _seconds = 5)
+        |> Tornium.Workers.OCCPRUpdateScheduler.new(schedule_in: _seconds = 600)
         |> Oban.insert()
     end
 

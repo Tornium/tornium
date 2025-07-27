@@ -48,15 +48,7 @@ defmodule Tornium.Workers.OCTeamUpdate do
         } = _job
       )
       when is_integer(faction_tid) do
-    # TODO: Extract into separate function
-    # TODO: Test this resetting of OC team members
-    {_count, reset_team_members} =
-      Tornium.Schema.OrganizedCrimeTeamMember
-      |> join(:inner, [m], u in assoc(m, :user), on: u.tid == m.user_id)
-      |> where([m, u], m.faction_id == ^faction_tid and u.faction_id != ^faction_tid)
-      |> select([m, u], m)
-      |> update([m, u], set: [user_id: nil])
-      |> Repo.update_all([])
+    {_count, reset_team_members} = Tornium.Schema.OrganizedCrimeTeamMember.reset_outside_faction(faction_tid)
 
     Enum.each(reset_team_members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: member_id, team_id: team_id} ->
       :telemetry.execute([:tornium, :oc_team, :member_removed], %{}, %{

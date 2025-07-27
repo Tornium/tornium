@@ -90,11 +90,13 @@ defmodule Tornium.Schema.ServerOCConfig do
   end
 
   @doc """
+  Gets the OC configuration for a faction and server.
+
+  The faction and server are assumed to be linked. This needs to be checked separately or `get_by_faction/1`
+  should be used.
   """
   @spec get(faction_id :: integer(), guild_id :: integer()) :: t() | nil
   def get(faction_id, guild_id) when is_integer(faction_id) and is_integer(guild_id) do
-    # TODO: Add docs
-
     Tornium.Schema.ServerOCConfig
     |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
     # FIXME: This preload doesn't work
@@ -103,11 +105,10 @@ defmodule Tornium.Schema.ServerOCConfig do
   end
 
   @doc """
+  Gets the OC configuration for a faction's linked server.
   """
   @spec get_by_faction(tid :: integer()) :: t() | nil
   def get_by_faction(tid) when is_integer(tid) do
-    # TODO: Add docs
-
     faction_return =
       Tornium.Schema.Faction
       |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)

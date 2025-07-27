@@ -27,7 +27,7 @@ from .user import User
 class OrganizedCrimeTeamMember(BaseModel):
     class Meta:
         table_name = "organized_crime_team_member"
-        # TODO: Add unique index on (user_id, faction_id)
+        indexes = (("user_id", "faction_id"), True)  # Unique compound index on (user, faction)
 
     guid = UUIDField(primary_key=True)
     user = ForeignKeyField(User, null=True)

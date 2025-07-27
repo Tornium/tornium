@@ -47,7 +47,6 @@ function addTeamSelector({ current_crime: current_crime, guid: guid, members: me
     const teamMembers = document.createElement("span");
     teamMembers.classList.add("text-secondary", "d-inline-block", "text-truncate");
     teamMembers.setAttribute("style", "width: inherit");
-    // TODO: Add icon flagging OC teams with not enough members
 
     if (
         members.every((member) => {

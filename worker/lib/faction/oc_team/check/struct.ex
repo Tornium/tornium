@@ -55,7 +55,20 @@ defmodule Tornium.Faction.OC.Team.Check.Struct do
     :assigned_team
   ]
 
-  # TODO: Add type doc describing what's stored in each check state
+  @typedoc """
+  Struct describing failed checks regarding a faction's organized crime teams.
+
+  The base logic for each of the checks is described in `Tornium.Faction.OC.Team.Check.Struct`. This typedoc only
+  describes the data stored in the struct.
+
+  ## Fields
+  - `:team_spawn_required` - A list of OC teams requiring an OC to be spawned.
+  - `:team_member_join_required` - A list of tuples of an OC team member and an OC where the OC team member needs to join the OC.
+  - `:team_member_incorrect_crime` - A list of tuples of an OC team member and two OCs where the member is in the first OC but needs to join the second OC.
+  - `:team_incorrect_member` - A list of tuples of an OC slot and an OC where the user in the slot should not be in the OC.
+  - `:team_member_incorrect_crime` - A list of tuples of an OC team member and OC slot where the member is in the slot but should be in the position assigned to their member.
+  - `:assigned_team` - A list of tuples of an OC team and an OC where the OC team has been assigned to the OC.
+  """
   @type t :: %Tornium.Faction.OC.Team.Check.Struct{
           team_spawn_required: [Tornium.Schema.OrganizedCrimeTeam.t()],
           team_member_join_required: [{Tornium.Schema.OrganizedCrimeTeamMember.t(), Tornium.Schema.OrganizedCrime.t()}],

@@ -135,12 +135,19 @@ defmodule Tornium.Faction.OC.Team do
     check_struct
   end
 
-  # TODO: Document this
-  @spec team_member_ids(Tornium.Schema.OrganizedCrimeTeam.t()) :: [non_neg_integer() | nil]
+  @doc """
+  Get the user IDs of the users composing the OC team.
+
+  The function will return the user IDs of OC team members when provided an OC team or a list of OC
+  team members. The returned list of OC team members IDs will include wildcard members which are 
+  represented by `nil`.
+  """
+  @spec team_member_ids(team :: Tornium.Schema.OrganizedCrimeTeam.t()) :: [non_neg_integer() | nil]
   def team_member_ids(%Tornium.Schema.OrganizedCrimeTeam{members: members} = _team) when is_list(members) do
     team_member_ids(members)
   end
 
+  @spec team_member_ids(members :: [Tornium.Schema.OrganizedCrimeTeamMember.t()]) :: [non_neg_integer() | nil]
   def team_member_ids([%Tornium.Schema.OrganizedCrimeTeamMember{} | _remaining_members] = members) do
     Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
   end

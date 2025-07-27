@@ -294,7 +294,6 @@ defmodule Tornium.Faction.OC.Team.Render do
     render_feature(messages, :team_incorrect_member, remaining_incorrect_members, config)
   end
 
-  # render_feature(:team_member_incorrect_slot, check_state.team_member_incorrect_slot, config)
   def render_feature(
         messages,
         :team_member_incorrect_slot,

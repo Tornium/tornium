@@ -18,7 +18,7 @@ import time
 import typing
 
 from redis.commands.json.path import Path
-from tornium_commons import rds
+from tornium_commons import rds, with_db_connection
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import StockTick, TornKey
 
@@ -56,6 +56,7 @@ def _get_stocks_tick(
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def stocks_prefetch():
     stocks_timestamp = datetime.datetime.utcnow().replace(second=5, microsecond=0, tzinfo=datetime.timezone.utc)
 
@@ -83,6 +84,7 @@ def stocks_prefetch():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datetime.datetime.utcnow()):
     if stocks_data is None:
         raise ValueError

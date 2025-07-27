@@ -28,38 +28,6 @@ from skynet.skyutils import get_admin_keys
 
 @invoker_required
 def cancel_command(interaction, *args, **kwargs):
-    if "guild_id" not in interaction:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Allowed",
-                        "description": "This command can not be run in a DM (for now).",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    try:
-        guild: Server = Server.get_by_id(interaction["guild_id"])
-    except DoesNotExist:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Not Located",
-                        "description": "This server could not be located in Tornium's database.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
     user: User = kwargs["invoker"]
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
 
@@ -93,7 +61,7 @@ def cancel_command(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction.guild is None or user.faction_id not in user.faction.guild.factions:
         return {
             "type": 4,
             "data": {
@@ -101,7 +69,7 @@ def cancel_command(interaction, *args, **kwargs):
                     {
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
-                        f"to the server. Please contact the server administrators to do this via "
+                        f"to the server. Please contact the server administrators for the faction's server to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -109,7 +77,8 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
+        str(user.faction_id) not in user.faction.guild.banking_config
+        or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -118,7 +87,7 @@ def cancel_command(interaction, *args, **kwargs):
                     {
                         "title": "Server Configuration Required",
                         "description": f"The banking channels needs to be set for {discord_escaper(user.faction.name)}. Please contact "
-                        f"the server administrators to do this via [the dashboard](https://tornium.com).",
+                        f"the server administrators for the faction's server to do this via [the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
                 ]
@@ -224,11 +193,11 @@ def cancel_command(interaction, *args, **kwargs):
         requester = None
 
     discordpatch(
-        f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
+        f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
         {
             "embeds": [
                 {
-                    "title": f"Vault Request #{withdrawal_id}",
+                    "title": f"Vault Request #{withdrawal.wid}",
                     "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
                     "fields": [
                         {

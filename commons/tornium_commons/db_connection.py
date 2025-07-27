@@ -13,20 +13,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from playhouse.postgres_ext import PostgresqlExtDatabase
+from functools import wraps
+
+from playhouse.pool import PooledPostgresqlExtDatabase
 
 from .config import Config
 
-_db = None
+db = PooledPostgresqlExtDatabase(None)
 
 
-def db() -> PostgresqlExtDatabase:
-    global _db
-
-    if _db is not None:
-        return _db
-
+def init_db() -> None:
     _s = Config.from_json()
-    _db = PostgresqlExtDatabase("Tornium", dsn=_s.db_dsn.unicode_string())
+    db.init("Tornium", max_connections=16, stale_timeout=300, dsn=_s.db_dsn.unicode_string())
 
-    return _db
+
+def with_db_connection(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            if db.is_closed():
+                db.connect()
+
+            return f(*args, **kwargs)
+        finally:
+            if not db.is_closed():
+                db.close()
+
+    return wrapper

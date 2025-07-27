@@ -44,8 +44,6 @@ defmodule Tornium.Repo.Migrations.AddTriggerTable do
       add :previous_state, :map, default: %{}, null: false
     end
 
-    create unique_index(:notification, [:nid])
-
     create_if_not_exists table("server_notifications_config") do
       add :server_id, references(:server, column: :sid, type: :bigint), null: false
       add :enabled, :boolean, default: false, null: false

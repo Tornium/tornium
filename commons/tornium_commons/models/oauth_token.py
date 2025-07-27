@@ -95,6 +95,11 @@ class OAuthToken(BaseModel):
     def is_refresh_token_valid(self) -> bool:
         return self.is_revoked or self.is_expired
 
+    def revoke(self) -> None:
+        OAuthToken.update(
+            access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
+        ).where(OAuthToken.access_token == self.access_token).execute()
+
     @staticmethod
     def save_token(token_data, request):
         if request.user:
@@ -102,4 +107,8 @@ class OAuthToken(BaseModel):
         else:
             user_id = None
 
-        OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, **token_data).execute()
+        return (
+            OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, **token_data)
+            .returning(OAuthToken)
+            .execute()[0]
+        )

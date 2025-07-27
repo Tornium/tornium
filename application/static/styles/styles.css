@@ -259,7 +259,6 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
 }
 
 .form-control {
-    height: 38px;
     background-color: inherit !important;
     color: inherit !important;
 }

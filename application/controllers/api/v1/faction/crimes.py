@@ -16,6 +16,7 @@
 import typing
 
 from flask import jsonify
+from peewee import fn
 from tornium_commons.models import Faction, OrganizedCrimeCPR, OrganizedCrimeNew, User
 
 from controllers.api.v1.decorators import (
@@ -31,7 +32,13 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 @global_cache
 def get_oc_names(*args, **kwargs):
-    return jsonify(OrganizedCrimeNew.oc_names()), 200, api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}")
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    oc_names: typing.List[str] = [
+        crime.oc_name for crime in OrganizedCrimeNew.select().distinct(fn.LOWER(OrganizedCrimeNew.oc_name))
+    ]
+
+    return jsonify(oc_names), 200, api_ratelimit_response(key)
 
 
 @session_required

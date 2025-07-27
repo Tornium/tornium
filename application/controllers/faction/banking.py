@@ -243,9 +243,9 @@ def fulfill(guid: str):
         )
 
     if withdrawal.cash_request:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&giveMoneyTo={withdrawal.requester}&money={withdrawal.amount}"
+        send_link = f"https://tcy.sh/s/bg?u={withdrawal.requester}&a={withdrawal.amount}"
     else:
-        send_link = f"https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user&givePointsTo={withdrawal.requester}&money={withdrawal.amount}"
+        send_link = f"https://tcy.sh/s/pg?u={withdrawal.requester}&a={withdrawal.amount}"
 
     if withdrawal.status == 1:
         return render_template(

@@ -418,7 +418,7 @@ defmodule Tornium.Notification do
         |> update([n], set: [enabled: false, error: ^error_msg])
         |> Repo.update_all([])
 
-        Tornium.Notification.Audit.log(:discord_error, notification, error: error)
+        Tornium.Notification.Audit.log(:discord_error, notification, false, error: error)
         {:error, :discord_error, error}
     end
   end
@@ -470,7 +470,7 @@ defmodule Tornium.Notification do
         |> update([n], set: [enabled: false, error: ^error_msg])
         |> Repo.update_all([])
 
-        Tornium.Notification.Audit.log(:discord_error, notification, error: error)
+        Tornium.Notification.Audit.log(:discord_error, notification, false, error: error)
         {:error, :discord_error, error}
     end
   end

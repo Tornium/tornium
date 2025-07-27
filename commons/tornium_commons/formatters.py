@@ -73,9 +73,9 @@ def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
     """
 
     if isinstance(ts, int):
-        datetime_obj = datetime.datetime.fromtimestamp(ts)
+        datetime_obj = datetime.datetime.utcfromtimestamp(ts)
     elif isinstance(ts, float):
-        datetime_obj = datetime.datetime.fromtimestamp(math.floor(ts))
+        datetime_obj = datetime.datetime.utcfromtimestamp(math.floor(ts))
     elif isinstance(ts, datetime.datetime):
         datetime_obj = ts
     else:

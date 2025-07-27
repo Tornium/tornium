@@ -18,6 +18,7 @@ import flask_login
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 from authlib.oauth2 import OAuth2Error
 from authlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from authlib.oauth2.rfc6749.grants import BaseGrant
 from tornium_commons.models import OAuthClient
 
 mod = flask.Blueprint("oauth_routes", __name__)
@@ -37,30 +38,13 @@ valid_scopes = (
 @mod.route("/oauth/authorize", methods=["GET", "POST"])
 @flask_login.fresh_login_required
 def oauth_authorize():
+    try:
+        grant: BaseGrant = oauth_server.get_consent_grant(end_user=flask_login.current_user)
+    except OAuth2Error as error:
+        return oauth_server.handle_error_response(flask.request, error)
+
     if flask.request.method == "GET":
-        scopes = []
-
-        for scope in flask.request.args.get("scope", "").split(" "):
-            scope = scope.lower()
-
-            if scope == "":
-                continue
-            elif scope not in valid_scopes:
-                return (
-                    flask.render_template(
-                        "errors/error.html",
-                        title="Invalid Scope",
-                        error=f"{scope} is not a valid OAuth scope for Tornium.",
-                    ),
-                    400,
-                )
-
-            scopes.append(scope)
-
-        try:
-            grant = oauth_server.get_consent_grant()
-        except OAuth2Error as e:
-            return e.error
+        scopes = [scope for scope in grant.client.get_allowed_scope(grant.request.scope).split()]
 
         return flask.render_template("oauth/authorize.html", grant=grant, scopes=scopes)
 

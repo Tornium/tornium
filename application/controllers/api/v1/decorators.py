@@ -17,12 +17,12 @@ import time
 import typing
 from functools import partial, wraps
 
-import msgpack
 import redis
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Response, request, session
 from flask_login import current_user
 from tornium_commons import rds
+from tornium_commons.altjson import dumps, loads
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -96,7 +96,7 @@ def global_cache(func=None, duration=3600):
 
             client.set(
                 f"tornium:cache:{request.url_rule}",
-                msgpack.dumps(endpoint_response[0].json),
+                dumps(endpoint_response[0].json),
                 nx=True,
                 ex=duration,
             )
@@ -104,7 +104,7 @@ def global_cache(func=None, duration=3600):
             endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
             return endpoint_response
 
-        unpacked_response: dict = msgpack.loads(cached_response)
+        unpacked_response: dict = loads(cached_response)
         cache_ttl = client.ttl(f"tornium:cache:{request.url_rule}")
 
         return (

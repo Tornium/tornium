@@ -434,7 +434,25 @@ def members_switchboard(interaction, *args, **kwargs):
                     "flags": 64,
                 },
             }
-        elif user.faction.guild_id is None or user.faction.guild_id != interaction["guild_id"]:
+
+        try:
+            faction: Faction = Faction.select().where(Faction.tid == user.faction_id).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Does Not Exist",
+                            "description": "Your faction does not exist in the database.",
+                            "color": SKYNET_ERROR,
+                        },
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if faction.guild_id is None or faction.guild_id != int(interaction["guild_id"]):
             return {
                 "type": 4,
                 "data": {
@@ -450,7 +468,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
 
         try:
-            guild = Server.select(Server.factions).where(Server.sid == user.faction.guild_id).get()
+            guild: Server = Server.select(Server.factions).where(Server.sid == faction.guild_id).get()
         except DoesNotExist:
             return {
                 "type": 4,
@@ -481,7 +499,7 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        aa_keys = get_faction_keys(interaction, user.faction)
+        aa_keys = get_faction_keys(interaction, faction)
 
         if not isinstance(aa_keys, tuple) or len(aa_keys) == 0:
             return {
@@ -602,14 +620,14 @@ def members_switchboard(interaction, *args, **kwargs):
                     },
                 }
 
-        if user.faction.guild_id is None or user.faction.guild_id != interaction["guild_id"]:
+        if faction.guild_id is None or faction.guild_id != int(interaction["guild_id"]):
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Permission Denied",
-                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "description": "The faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
                             "color": SKYNET_ERROR,
                         }
                     ],
@@ -618,7 +636,7 @@ def members_switchboard(interaction, *args, **kwargs):
             }
 
         try:
-            guild = Server.select(Server.factions).where(Server.sid == user.faction.guild_id).get()
+            guild = Server.select(Server.factions, Server.admins).where(Server.sid == faction.guild_id).get()
         except DoesNotExist:
             return {
                 "type": 4,
@@ -634,14 +652,28 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        if user.faction_id not in guild.factions:
+        if faction.tid not in guild.factions:
             return {
                 "type": 4,
                 "data": {
                     "embeds": [
                         {
                             "title": "Permission Denied",
-                            "description": "Your faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "description": "The faction and this Discord server are not linked. A server admin will need to do this for this command to work.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif user.tid not in guild.admins:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission denied",
+                            "description": "Only admins of servers linked to factions are allowed to ping for other factions.",
                             "color": SKYNET_ERROR,
                         }
                     ],
@@ -652,35 +684,10 @@ def members_switchboard(interaction, *args, **kwargs):
         member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
 
         revivable_users = []
-        revive_filter = find_list(subcommand_data, "name", "type")
-
-        if revive_filter is None:
-            revive_filter = "all"
-        elif revive_filter["value"] == "all":
-            revive_filter = "all"
-        elif revive_filter["value"] == "everyone":
-            revive_filter = "everyone"
-        else:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Invalid Revive Option",
-                            "description": f'"{revive_filter.get("value")}" is not a valid option.',
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
         for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif member["revive_setting"].lower() == "no one":
-                continue
-            elif revive_filter == "everyone" and member["revive_setting"].lower() != "everyone":
+            elif not member["is_revivable"]:
                 continue
 
             revivable_users.append(member["id"])
@@ -768,7 +775,7 @@ def members_switchboard(interaction, *args, **kwargs):
         faction = user.faction
     elif faction["value"].isdigit():
         try:
-            faction: Faction = Faction.get_by_id(int(faction["value"]))
+            faction: Faction = Faction.select().where(Faction.tid == int(faction["value"])).get()
         except DoesNotExist:
             return {
                 "type": 4,

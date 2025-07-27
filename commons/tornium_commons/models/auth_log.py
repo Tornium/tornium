@@ -40,6 +40,10 @@ class AuthAction(enum.Enum):
     LOGOUT_SUCESS = 31
     LOGOUT_FAILED = 32
 
+    API_KEY_ADD_SUCCESS = 41
+    API_KEY_ADD_FAILED_OTHER_USER = 42
+    API_KEY_ADD_FAILED = 43
+
 
 class AuthLog(BaseModel):
     user = ForeignKeyField(User, null=True)

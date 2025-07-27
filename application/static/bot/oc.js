@@ -155,10 +155,10 @@ function insertDOMRangeCrime(crimeName, container) {
     crimeListElement.append(inputGroup);
     container.append(crimeListElement);
 
-    minSelector.addEventListener("change", (event) => {
+    minSelector.addEventListener("input", (event) => {
         modifyRangeLocalMinMax(event, "minimum");
     });
-    maxSelector.addEventListener("change", (event) => {
+    maxSelector.addEventListener("input", (event) => {
         modifyRangeLocalMinMax(event, "maximum");
     });
 }
@@ -344,10 +344,6 @@ ready(() => {
                     console.error(`Could not find list container for faction ID ${factionID}`);
                     return;
                 }
-
-                crimes.forEach((crimeName) => {
-                    // TODO: Add event listeners to inputs created by template
-                });
             });
         })
         .finally(() => {
@@ -378,5 +374,16 @@ ready(() => {
     });
     document.querySelectorAll(".oc-range-crimes").forEach((element) => {
         element.addEventListener("change", modifyRangeCrimes);
+    });
+    document.querySelectorAll(".oc-range-local-min").forEach((element) => {
+        element.addEventListener("input", (event) => {
+            modifyRangeLocalMinMax(event, "minimum");
+        });
+    });
+    document.querySelectorAll(".oc-range-local-max").forEach((element) => {
+        element.addEventListener("input", (event) => {
+            console.log(event);
+            modifyRangeLocalMinMax(event, "maximum");
+        });
     });
 });

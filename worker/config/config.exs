@@ -53,9 +53,6 @@ config :logger, :console,
   ],
   filter_default: :log
 
-config :tesla,
-  adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
-
 config :tornium, Tornium.PromEx,
   # See https://hexdocs.pm/prom_ex/PromEx.Config.html for configuration details
   disabled: false,
@@ -79,9 +76,10 @@ config :tornium, Oban,
      crontab: [
        {"* * * * *", Tornium.Workers.NotificationScheduler},
        {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       {"* * * * *", Tornium.Workers.OCUpdateScheduler},
        {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
-       {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler}
+       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
+       {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
+       {"0 0 * * *", Tornium.Workers.OAuthRevocation}
      ]},
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}

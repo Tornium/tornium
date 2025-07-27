@@ -14,7 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, render_template, request
-from tornium_commons.errors import DiscordError, NetworkingError, TornError
+from tornium_commons.errors import (
+    DiscordError,
+    NetworkingError,
+    RatelimitError,
+    TornError,
+)
 
 from controllers.api.v1.decorators import make_exception_response
 
@@ -42,6 +47,11 @@ def networking_error_handler(e: NetworkingError):
         render_template("errors/networking.html", code=e.code, message=e.message),
         500,
     )
+
+
+@mod.app_errorhandler(RatelimitError)
+def ratelimit_error_handler(e: RatelimitError):
+    return render_template("errors/ratelimit.html"), 500
 
 
 @mod.app_errorhandler(400)

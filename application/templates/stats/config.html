@@ -19,7 +19,7 @@ Tornium - Stat DB Config
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/stats/db">
@@ -46,7 +46,7 @@ Tornium - Stat DB Config
 
 {% block content %}
 <div class="pbs-3 px-3">
-    <div class="card min-w-25 max-w-50">
+    <div class="card min-w-25 max-w-50 mt-3">
         <div class="card-body">
             <h5 class="card-title">Global Sharing</h5>
             <p class="card-text">
@@ -55,11 +55,11 @@ Tornium - Stat DB Config
             </p>
             <form class="form-floating" method="POST" action="/stats/config">
                 {% if stats_global %}
-                <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled">
-                <input type="submit" class="btn btn-outline-primary active" disabled id="disabled" name="disabled" value="Disabled">
-                {% else %}
-                <input type="submit" class="btn btn-outline-primary active" disabled id="enabled" name="enabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary" disabled id="enabled" name="enabled" value="Enabled">
                 <input type="submit" class="btn btn-outline-primary" id="disabled" name="disabled" value="Disabled">
+                {% else %}
+                <input type="submit" class="btn btn-outline-primary" id="enabled" name="enabled" value="Enabled">
+                <input type="submit" class="btn btn-outline-primary" disabled id="disabled" name="disabled" value="Disabled">
                 {% endif %}
             </form>
         </div>

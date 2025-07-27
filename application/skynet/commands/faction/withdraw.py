@@ -17,11 +17,11 @@ import datetime
 import random
 import uuid
 
-from peewee import DoesNotExist, IntegrityError
+from peewee import IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
-from tornium_commons.models import Server, User, Withdrawal
+from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
 from skynet.decorators import invoker_required
@@ -34,21 +34,7 @@ def withdraw(interaction, *args, **kwargs):
         discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
         return
 
-    if "guild_id" not in interaction:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Not Allowed",
-                        "description": "This command can not be run in a DM (for now).",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    elif "options" not in interaction["data"]:
+    if "options" not in interaction["data"]:
         return {
             "type": 4,
             "data": {
@@ -56,23 +42,6 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Options Required",
                         "description": "This command requires that options be passed.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    try:
-        guild: Server = Server.get_by_id(interaction["guild_id"])
-    except DoesNotExist:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Server Not Located",
-                        "description": "This server could not be located in Tornium's database.",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -110,7 +79,7 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    elif user.faction_id not in guild.factions or user.faction.guild_id != guild.sid:
+    elif user.faction.guild is None or user.faction_id not in user.faction.guild.factions:
         return {
             "type": 4,
             "data": {
@@ -118,7 +87,7 @@ def withdraw(interaction, *args, **kwargs):
                     {
                         "title": "Server Configuration Required",
                         "description": f"The server needs to be added to {discord_escaper(user.faction.name)}'s bot configuration and "
-                        f"to the server. Please contact the server administrators to do this via "
+                        f"to the server. Please contact the server administrators for the faction's server to do this via "
                         f"[the dashboard](https://tornium.com).",
                         "color": SKYNET_ERROR,
                     }
@@ -126,7 +95,8 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
     elif (
-        str(user.faction_id) not in guild.banking_config or guild.banking_config[str(user.faction_id)]["channel"] == "0"
+        str(user.faction_id) not in user.faction.guild.banking_config
+        or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
         return {
             "type": 4,
@@ -221,7 +191,7 @@ def withdraw(interaction, *args, **kwargs):
                                 "title": "Invalid Withdrawal Amount",
                                 "description": f"You have tried to withdraw `{withdrawal_amount}`, but this is not a "
                                 f"valid amount. For proper formatting, take a look at the "
-                                f"[documentation](https://docs.tornium.com/en/latest/user/bot/banking.html#withdraw)",
+                                f"[documentation](https://docs.tornium.com/en/latest/reference/bot-banking.html#withdraw-command)",
                             }
                         ],
                         "flags": 64,
@@ -410,14 +380,14 @@ def withdraw(interaction, *args, **kwargs):
             ],
         }
 
-    for role in guild.banking_config[str(user.faction_id)]["roles"]:
+    for role in user.faction.guild.banking_config[str(user.faction_id)]["roles"]:
         if "content" not in message_payload:
             message_payload["content"] = ""
 
         message_payload["content"] += f"<@&{role}>"
 
     message = discordpost(
-        f'channels/{guild.banking_config[str(user.faction_id)]["channel"]}/messages',
+        f'channels/{user.faction.guild.banking_config[str(user.faction_id)]["channel"]}/messages',
         payload=message_payload,
     )
 
@@ -441,7 +411,7 @@ def withdraw(interaction, *args, **kwargs):
         )
     except IntegrityError:
         discorddelete.delay(
-            f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+            f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
         ).forget()
 
         followup_return(

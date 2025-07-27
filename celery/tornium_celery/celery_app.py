@@ -26,7 +26,7 @@ import json
 import typing
 
 import kombu
-from tornium_commons import Config
+from tornium_commons import Config, init_db
 
 from celery import Celery
 from celery.app import trace
@@ -79,6 +79,8 @@ def config_loggers(logger, *args, **kwargs):
 
 
 if celery_app is None:
+    init_db()
+
     try:
         file = open("celery.json")
         file.close()
@@ -102,7 +104,7 @@ if celery_app is None:
             "armory-check": {
                 "task": "tasks.faction.armory_check",
                 "enabled": True,
-                "schedule": {"type": "cron", "minute": "0", "hour": "*"},
+                "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
             },
             "auto-cancel-requests": {
                 "task": "tasks.faction.auto_cancel_requests",

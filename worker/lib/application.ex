@@ -44,6 +44,7 @@ defmodule Tornium.Application do
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
       Tornium.API.Store,
+      Tornex.HTTP.FinchClient,
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
       Tornium.Web.Endpoint

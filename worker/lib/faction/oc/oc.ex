@@ -150,6 +150,7 @@ defmodule Tornium.Faction.OC do
         [
           %{
             "position" => crime_position,
+            "position_number" => crime_position_index,
             "item_requirement" => item_requirement,
             "user" => %{
               "id" => user_id,
@@ -170,6 +171,7 @@ defmodule Tornium.Faction.OC do
         slot_index: Kernel.length(slots),
         oc_id: oc_id,
         crime_position: crime_position,
+        crime_position_index: crime_position_index,
         user_id: user_id,
         user_success_chance: user_success_chance,
         user_joined_at: Utils.unix_to_timestamp(user_joined_at)
@@ -184,6 +186,7 @@ defmodule Tornium.Faction.OC do
         [
           %{
             "position" => crime_position,
+            "position_number" => crime_position_index,
             "item_requirement" => item_requirement,
             "user" => nil,
             "checkpoint_pass_rate" => user_success_chance
@@ -201,6 +204,7 @@ defmodule Tornium.Faction.OC do
         slot_index: Kernel.length(slots),
         oc_id: oc_id,
         crime_position: crime_position,
+        crime_position_index: crime_position_index,
         user_id: nil,
         user_success_chance: user_success_chance,
         user_joined_at: nil

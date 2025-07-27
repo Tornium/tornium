@@ -14,37 +14,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const factionCrimeRanges = {};
 
-function setToolChannel(event) {
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/tool/channel`, {
-        body: { channel: this.options[this.selectedIndex].value },
-        errorTitle: "OC Tool Channel Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Tool Channel Set Successful",
-            "The channel for OC missing tool notifications has been successfully set.",
-        );
-    });
-}
-
-function setToolRoles(event) {
-    const selectedOptions = this.querySelectorAll(":checked");
-    let selectedRoles = [];
-
-    selectedOptions.forEach((element) => {
-        selectedRoles.push(element.getAttribute("value"));
-    });
-
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/tool/roles`, {
-        body: { roles: selectedRoles },
-        errorTitle: "OC Tool Roles Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Tool Roles Set Successful",
-            "The roles for OC missing tool notifications have been successfully set.",
-        );
-    });
-}
-
 function setToolCrimes(event) {
     const selectedOptions = this.querySelectorAll(":checked");
     let selectedCrimes = [];
@@ -64,37 +33,6 @@ function setToolCrimes(event) {
     });
 }
 
-function setDelayedChannel(event) {
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/delayed/channel`, {
-        body: { channel: this.options[this.selectedIndex].value },
-        errorTitle: "OC Tool Channel Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Tool Channel Set Successful",
-            "The channel for OC missing delayed notifications has been successfully set.",
-        );
-    });
-}
-
-function setDelayedRoles(event) {
-    const selectedOptions = this.querySelectorAll(":checked");
-    let selectedRoles = [];
-
-    selectedOptions.forEach((element) => {
-        selectedRoles.push(element.getAttribute("value"));
-    });
-
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/delayed/roles`, {
-        body: { roles: selectedRoles },
-        errorTitle: "OC Tool Roles Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Tool Roles Set Successful",
-            "The roles for OC missing delayed notifications have been successfully set.",
-        );
-    });
-}
-
 function setDelayedCrimes(event) {
     const selectedOptions = this.querySelectorAll(":checked");
     let selectedCrimes = [];
@@ -110,37 +48,6 @@ function setDelayedCrimes(event) {
         generateToast(
             "OC Tool Crimes Set Successful",
             "The crimes for OC missing delayed notifications have been successfully set.",
-        );
-    });
-}
-
-function setRangeChannel(event) {
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/channel`, {
-        body: { channel: this.options[this.selectedIndex].value },
-        errorTitle: "OC Range Channel Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Range Channel Set Successful",
-            "The channel for OC extra-range notifications has been successfully set.",
-        );
-    });
-}
-
-function setRangeRoles(event) {
-    const selectedOptions = this.querySelectorAll(":checked");
-    let selectedRoles = [];
-
-    selectedOptions.forEach((element) => {
-        selectedRoles.push(element.getAttribute("value"));
-    });
-
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/roles`, {
-        body: { roles: selectedRoles },
-        errorTitle: "OC Range Roles Set Failed",
-    }).then(() => {
-        generateToast(
-            "OC Range Roles Set Successful",
-            "The roles for OC extra-range notifications have been successfully set.",
         );
     });
 }
@@ -165,6 +72,45 @@ function setRangeGlobalMax(event) {
         generateToast(
             "OC Range Global Max Set Successful",
             "The global maximum for OC extra-range notifications have been successfully set.",
+        );
+    });
+}
+
+function setFeatureChannel(event) {
+    tfetch(
+        "POST",
+        `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/${this.getAttribute("data-feature")}/channel`,
+        {
+            body: { channel: this.options[this.selectedIndex].value },
+            errorTitle: "OC Feature Channel Set Failed",
+        },
+    ).then(() => {
+        generateToast(
+            "OC Feature Channel Set Successful",
+            "The channel for the feature's notifications has been successfully set.",
+        );
+    });
+}
+
+function setFeatureRoles(event) {
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedRoles = [];
+
+    selectedOptions.forEach((element) => {
+        selectedRoles.push(element.getAttribute("value"));
+    });
+
+    tfetch(
+        "POST",
+        `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/${this.getAttribute("data-feature")}/roles`,
+        {
+            body: { roles: selectedRoles },
+            errorTitle: "OC Feature Roles Set Failed",
+        },
+    ).then(() => {
+        generateToast(
+            "OC Feature Roles Set Successful",
+            "The roles for the feature's notifications have been successfully set.",
         );
     });
 }
@@ -408,29 +354,17 @@ ready(() => {
             });
         });
 
-    document.querySelectorAll(".oc-tool-channel").forEach((element) => {
-        element.addEventListener("change", setToolChannel);
+    document.querySelectorAll(".discord-channel-selector").forEach((element) => {
+        element.addEventListener("change", setFeatureChannel);
     });
-    document.querySelectorAll(".oc-tool-roles").forEach((element) => {
-        element.addEventListener("change", setToolRoles);
+    document.querySelectorAll(".discord-role-selector").forEach((element) => {
+        element.addEventListener("change", setFeatureRoles);
     });
     document.querySelectorAll(".oc-tool-crimes").forEach((element) => {
         element.addEventListener("change", setToolCrimes);
     });
-    document.querySelectorAll(".oc-delayed-channel").forEach((element) => {
-        element.addEventListener("change", setDelayedChannel);
-    });
-    document.querySelectorAll(".oc-delayed-roles").forEach((element) => {
-        element.addEventListener("change", setDelayedRoles);
-    });
     document.querySelectorAll(".oc-delayed-crimes").forEach((element) => {
         element.addEventListener("change", setDelayedCrimes);
-    });
-    document.querySelectorAll(".oc-range-channel").forEach((element) => {
-        element.addEventListener("change", setRangeChannel);
-    });
-    document.querySelectorAll(".oc-range-roles").forEach((element) => {
-        element.addEventListener("change", setRangeRoles);
     });
     document.querySelectorAll(".oc-range-global-min").forEach((element) => {
         element.addEventListener("change", setRangeGlobalMin);

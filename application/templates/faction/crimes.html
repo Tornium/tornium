@@ -40,16 +40,18 @@ Tornium - Faction OCs Dashboard
             </a>
         </div>
 
-        {% if current_user.is_authenticated and current_user.faction_aa %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/bankingaa">
-                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
-            </a>
-        </div>
-
+        {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
                 <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
             </a>
         </div>
 
@@ -66,46 +68,86 @@ Tornium - Faction OCs Dashboard
 
 {% block content %}
 <div class="py-3 px-3">
-    <div class="row">
-        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
-            <div class="card-header">
-                OCs Recruiting
-            </div>
-            <div class="card-body">
-                NYI
-            </div>
-        </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Organized Crimes Teams (ALPHA)</h5>
+            <p class="card-text">
+                <b>WARNING:</b> This feature is in alpha and may not work as expected or have bugs. Report any issues or suggestions you have on the <a href="https://discord.gg/pPcqTRTRyF">support server</a>.
+            </p>
+            <p class="card-text">
+                Organized crime teams provides a method of creating preset groups of faction members to participate in OCs while nudging members to join the correct slots of the correct OC. Once OC teams have been set up here, notifications regarding members joining the wrong OC, OCs needing to be spawned, etc. can be set up in the linked Discord server. For more information, see the documentation (not yet created).
+            </p>
 
-        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
-            <div class="card-header">
-                OCs In-Progress
-            </div>
-            <div class="card-body">
-                NYI
-            </div>
-        </div>
+            {% if current_user.faction.has_migrated_oc %}
+            <div class="row">
+                <div class="col-sm-12 col-lg-6">
+                    <div class="card mt-3">
+                        <div class="card-header">Team Selector</div>
+                        <ul class="list-group list-group-flush" id="team-list">
+                            {% for team in teams %}
+                            <li class="list-group-item">
+                                <label class="d-flex">
+                                    <input type="radio" name="team-selector" data-team-guid="{{ team.guid }}" autocomplete="off">
+                                    <p class="card-text px-3" style="width: 100%;">
+                                        {{ team.oc_name }}: 
+                                        <span class="text-secondary d-inline-block text-truncate" style="width: inherit;">
+                                            {% set ns = namespace(has_members=false) %}
+                                            {% for member in team.team_members() %}
+                                                {% if member.user is not none %}
+                                                    {% set ns.has_members = true %}
+                                                    {{ member.user.name }}{{ ", " if not loop.last else "" }}
+                                                {% endif %}
+                                            {% endfor %}
+                                            
+                                            {% if not ns.has_members %}
+                                                No Members Set
+                                            {% endif %}
+                                        </span>
+                                    </p>
+                                </label>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="card-footer d-flex flex-wrap justify-content-between">
+                            <div class="col-sm-12 col-lg-6 d-flex flex-wrap align-items-start gap-2">
+                                <select class="oc-name-selector" id="new-oc-selector" aria-label="New OC Name" data-live-search="true"></select>
+                                <button type="button" class="btn btn-outline-success" id="new-team-button">New</button>
+                            </div>
 
-        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
-            <div class="card-header">
-                OCs Missing Tools
-            </div>
-            <div class="card-body">
-                NYI
-            </div>
-        </div>
-    </div>
+                            <div class="col-sm-12 col-lg-6 d-flex flex-fill justify-content-end mt-2 mt-md-0">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="team-prev-page" disabled style="height: min-content;">Prev Page</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="team-next-page" {% if team_count <= 10 %}disabled{% endif %} style="height: min-content;">Next Page</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="row">
-        <div class="card col-sm-12 col-md-4 mt-3 mx-3">
-            <div class="card-header">
-                Members not in OCs
+                <div class="col-sm-12 col-lg-6">
+                    <div class="card mt-3">
+                        <div class="card-header d-flex justify-content-between">
+                            <span id="viewer-title">Team Viewer</span>
+                            {# TODO: Add disabled as an attribute instead of class #}
+                            {# Currently, disabled is just being removed on page load for some reason #}
+                            <button type="button" class="btn btn-sm btn-outline-danger disabled" id="delete-team-button">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                        <div class="card-body" id="viewer"></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                NYI
-            </div>
+            {% else %}
+            <p class="card-text">
+                <b>NOTE:</b> This faction has not yet migrated to Organized Crimes 2.0; Tornium only supports Organized Crimes 1.0 at the moment. If this faction has recently migrated to OCs 2.0, it may take up to an hour for this change to be reflected on Tornium.
+            </p>
+            {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script src="/static/faction/crimes.js"></script>
+{% block scripts %}
+<script src="/static/global/oc.js"></script>
+<script src="/static/components/alert-confirm.js"></script>
+<script src="/static/faction/crimes.js" data-faction-id="{{ current_user.faction_id }}"></script>
 {% endblock %}

@@ -35,7 +35,9 @@ class OrganizedCrimeSlot(BaseModel):
     id = UUIDField(primary_key=True)
     oc = ForeignKeyField(OrganizedCrimeNew, null=False)
 
+    slot_index = SmallIntegerField(null=False)
     crime_position = CharField(null=False)
+    crime_position_index = SmallIntegerField(null=False)
     user = ForeignKeyField(User, null=False)
     user_success_chance = SmallIntegerField(default=None, null=True)
     user_joined_at = DateTimeField(default=None, null=True)

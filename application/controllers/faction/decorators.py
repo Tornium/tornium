@@ -37,7 +37,7 @@ def manage_crimes_required(f):
     def wrapper(*args, **kwargs):
         if not current_user.is_authenticated:
             return abort(401)
-        elif not current_user.faction_position.plan_init_oc:
+        elif not current_user.can_manage_crimes():
             return abort(403)  # TODO: Replace with custom 403 error message
 
         return f(*args, **kwargs)

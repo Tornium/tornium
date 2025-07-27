@@ -20,6 +20,7 @@ from peewee import (
     BigIntegerField,
     CharField,
     DateTimeField,
+    DeferredForeignKey,
     ForeignKeyField,
     SmallIntegerField,
 )
@@ -46,7 +47,28 @@ class OrganizedCrimeNew(BaseModel):
     expires_at = DateTimeField(default=None, null=True)
     executed_at = DateTimeField(default=None, null=True)
 
+    # Tornium-specific OC data
+    assigned_team = DeferredForeignKey("OrganizedCrimeTeam", default=None, null=True)
+
     @classmethod
     @lru_cache
     def oc_names(cls) -> typing.List[str]:
         return [crime.oc_name for crime in OrganizedCrimeNew.select().distinct(OrganizedCrimeNew.oc_name)]
+
+    def to_dict(self) -> dict:
+        # Skip the `assigned_team` to avoid circular imports
+        # At this time, there isn't a purpose in returning that, but if necessary in the future, this can
+        # be done with an optional parameter.
+
+        return {
+            "oc_id": self.oc_id,
+            "oc_name": self.oc_name,
+            "oc_difficulty": self.oc_difficulty,
+            "faction_id": self.faction_id,
+            "status": self.status,
+            "created_at": self.created_at.timestamp(),
+            "planning_started_at": None if self.planning_started_at is None else self.planning_started_at.timestamp(),
+            "ready_at": None if self.ready_at is None else self.ready_at.timestamp(),
+            "expires_at": self.expires_at.timestamp(),
+            "executed_at": None if self.ready_at is None else self.executed_at.timestamp(),
+        }

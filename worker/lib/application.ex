@@ -22,7 +22,10 @@ defmodule Tornium.Application do
     {:ok, pid(), Application.state()} | {:error, term()}
   )
   def start(_type, _args) do
+    Logger.add_handlers(:tornium)
+
     # Attach the default loggers from :telemetry before the start of the children
+    Tornium.Telemetry.attach_default_logger()
     Tornex.Telemetry.attach_default_logger()
 
     if Application.get_env(:tornium, :env) == :dev do
@@ -37,8 +40,10 @@ defmodule Tornium.Application do
       Tornium.Repo,
       Tornium.Discord.Consumer,
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
+      {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
+      Tornium.API.Store,
       Tornex.HTTP.FinchClient,
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},

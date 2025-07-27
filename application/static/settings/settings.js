@@ -18,6 +18,21 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 });
 const token = params.token;
 
+function toggleSetting(settingID, settingValue) {
+    tfetch("PUT", `user/settings/${settingID}`, {
+        body: {
+            enabled: settingValue,
+        },
+        errorTitle: "Setting Toggle Failed",
+        errorHandler: (jsonError) => {
+            // TODO: Update error handler
+            console.log(jsonError);
+        },
+    }).then((data) => {
+        generateToast("Setting Toggle Successful", `The setting ${settingID} has been successfully toggled.`);
+    });
+}
+
 function revokeClient(event) {
     const clientID = this.getAttribute("data-client-id");
     const parent = this.parentNode;
@@ -323,6 +338,13 @@ ready(() => {
             generateToast("API Key Delete Successful");
             $(this).closest(".key-parent").remove();
         });
+    });
+
+    document.getElementById("cpr-toggle-enable").addEventListener("click", (event) => {
+        toggleSetting("cpr", true);
+    });
+    document.getElementById("cpr-toggle-disable").addEventListener("click", (event) => {
+        toggleSetting("cpr", false);
     });
 
     Array.from(document.getElementsByClassName("revoke-client")).forEach((button) => {

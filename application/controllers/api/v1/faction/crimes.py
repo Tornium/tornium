@@ -17,10 +17,15 @@ import typing
 
 from flask import jsonify
 from peewee import fn
-from tornium_commons.models import OrganizedCrimeNew
+from tornium_commons.models import Faction, OrganizedCrimeCPR, OrganizedCrimeNew, User
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
-from controllers.api.v1.utils import api_ratelimit_response
+from controllers.api.v1.decorators import (
+    global_cache,
+    ratelimit,
+    require_oauth,
+    session_required,
+)
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @require_oauth()
@@ -34,3 +39,44 @@ def get_oc_names(*args, **kwargs):
     ]
 
     return jsonify(oc_names), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if oc_name not in OrganizedCrimeNew.oc_names():
+        return make_exception_response("1105", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4004", key)
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    members = [member.tid for member in User.select(User.tid).where(User.faction_id == faction_id)]
+    members_cpr: typing.Iterable[OrganizedCrimeCPR] = (
+        OrganizedCrimeCPR.select()
+        .join(User)
+        .where(
+            (User.tid.in_(members))
+            & (OrganizedCrimeCPR.oc_name == oc_name)
+            & (OrganizedCrimeCPR.oc_position == oc_position_name)
+        )
+    )
+
+    return (
+        {
+            member.user_id: {
+                "cpr": member.cpr,
+                "name": member.user.name,
+                "updated_at": int(member.updated_at.timestamp()),
+            }
+            for member in members_cpr
+        },
+        200,
+        api_ratelimit_response(key),
+    )

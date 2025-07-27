@@ -23,8 +23,11 @@ from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
 from .organized_crime import OrganizedCrime
+from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_new import OrganizedCrimeNew
 from .organized_crime_slot import OrganizedCrimeSlot
+from .organized_crime_team import OrganizedCrimeTeam
+from .organized_crime_team_member import OrganizedCrimeTeamMember
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
@@ -36,6 +39,7 @@ from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
 from .user import User
+from .user_settings import UserSettings
 from .withdrawal import Withdrawal
 
 # NOTE: Non-model variables, classes, etc. can not be stored in __all__
@@ -52,8 +56,11 @@ __all__ = [
     "OAuthClient",
     "OAuthToken",
     "OrganizedCrime",
+    "OrganizedCrimeCPR",
     "OrganizedCrimeNew",
     "OrganizedCrimeSlot",
+    "OrganizedCrimeTeam",
+    "OrganizedCrimeTeamMember",
     "PersonalStats",
     "Retaliation",
     "Server",
@@ -65,5 +72,6 @@ __all__ = [
     "StockTick",
     "TornKey",
     "User",
+    "UserSettings",
     "Withdrawal",
 ]

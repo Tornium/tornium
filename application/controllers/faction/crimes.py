@@ -15,17 +15,14 @@
 
 from flask import render_template
 from flask_login import current_user, login_required
-from peewee import DoesNotExist
+from tornium_commons.models import OrganizedCrimeTeam
 
-from controllers.faction.decorators import (
-    aa_required,
-    fac_required,
-    manage_crimes_required,
-)
+from controllers.faction.decorators import fac_required, manage_crimes_required
 
 
 @login_required
 @fac_required
-@aa_required
+@manage_crimes_required
 def crimes(*args, **kwargs):
-    return render_template("faction/crimes.html")
+    teams = OrganizedCrimeTeam.select().where(OrganizedCrimeTeam.faction_id == current_user.faction_id)
+    return render_template("faction/crimes.html", teams=teams.limit(10), team_count=teams.count())

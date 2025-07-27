@@ -37,250 +37,474 @@ Tornium - OCs
 {% endblock %}
 
 {% block content %}
-<div class="p-3">
-    <div class="row">
-        {% for faction in factions %}
-        <div class="col-sm-12 col-md-6">
-            <div class="card mt-3 faction-oc-card" data-faction-id="{{ faction.tid }}">
-                <div class="card-header">{{ faction.name }} [{{ faction.tid }}]</h5>
-                    <div class="p-2">
-                        {% if faction.has_migrated_oc %}
-                        <p class="card-text">
-                            <!-- TODO: Add info about this feature. -->
+<div class="row p-3">
+    {% for faction in factions %}
+    <div class="col-sm-12 col-md-6">
+        <div class="card mt-3 faction-oc-card" data-faction-id="{{ faction.tid }}">
+            <div class="card-header">{{ faction.name }} [{{ faction.tid }}]</div>
+            <div class="px-3 pb-3">
+                {% if faction.has_migrated_oc %}
+                <p class="card-text">
+                    <!-- TODO: Add info about this feature. -->
 
-                            {% if faction.aa_keys_missing %}
-                            <hr />
-                            <small class="pb-2">No faction AA keys available</small>
-                            <hr />
-                            {% endif %}
-                        </p>
+                    {% if faction.aa_keys_missing %}
+                    <hr />
+                    <small class="pb-2">No faction AA keys available</small>
+                    <hr />
+                    {% endif %}
+                </p>
 
-                        <p class="card-text">
-                            <b>Missing Tools:</b> Notifications regarding OCs that are currently missing a tool/material.
-                        </p>
+                <p class="card-text">
+                    <b>Missing Tools:</b> Notifications regarding OCs that are currently missing a tool/material.
+                </p>
 
-                        <div class="row w-100 ps-3">
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Missing Tools Channel</div>
-                                <select
-                                    class="discord-channel-selector oc-tool-channel w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Missing Tools Channel"
-                                    data-live-search="true"
-                                    data-selected-channel="{{ faction.server_oc_config.tool_channel }}"
-                                >
-                                    <option value="0">Disabled</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Missing Tools Roles (Optional)</div>
-                                <select
-                                    class="discord-role-selector oc-tool-roles w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Missing Tools Role"
-                                    data-live-search="true"
-                                    data-selected-text-format="count > 2"
-                                    data-selected-roles="{{ faction.server_oc_config.tool_roles }}"
-                                    multiple
-                                ></select>
-                            </div>
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Missing Tools Crimes (Optional)</div>
-                                <select
-                                    class="oc-name-selector oc-tool-crimes w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Missing Tools Crimes"
-                                    data-live-search="true"
-                                    data-selected-text-format="count > 2"
-                                    data-selected-crimes='{{ faction.server_oc_config.tool_crimes }}'
-                                    multiple
-                                ></select>
-                            </div>
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Tools Channel</div>
+                        <select
+                            class="discord-channel-selector oc-tool-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing Tools Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.tool_channel }}"
+                            data-feature="tool"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Tools Roles</div>
+                        <select
+                            class="discord-role-selector oc-tool-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing Tools Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.tool_roles }}"
+                            data-feature="tool"
+                            multiple
+                        ></select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Tools Crimes</div>
+                        <select
+                            class="oc-name-selector oc-tool-crimes w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing Tools Crimes"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-crimes='{{ faction.server_oc_config.tool_crimes }}'
+                            data-feature="tool"
+                            multiple
+                        ></select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>Delayed Members:</b> Notifications regarding OCs being delayed by members flying, hospitalized, etc.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Delayed Channel</div>
+                        <select
+                            class="discord-channel-selector oc-delayed-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Delayed OC Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.delayed_channel }}"
+                            data-feature="delayed"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Delayed Roles</div>
+                        <select
+                            class="discord-role-selector oc-delayed-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Delayed OC Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.delayed_roles }}"
+                            data-feature="delayed"
+                            multiple
+                        ></select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Delayed Crimes</div>
+                        <select
+                            class="oc-name-selector oc-delayed-crimes w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Delayed OC Crimes"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-crimes="{{ faction.server_oc_config.delayed_crimes }}"
+                            data-feature="delayed"
+                            multiple
+                        ></select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>Initialized OCs:</b> Notifications regarding OCs being initialized.
+                    
+                    <br />
+                    <br />
+                    Not yet implemented
+                </p>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>Stalled OCs:</b> Notifications regarding OCs that are stalled where not all slots are filled but filled slots are completed.
+                    
+                    <br />
+                    <br />
+                    Not yet implemented
+                </p>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>Extra-Range OCs:</b> Notifications regarding OCs that have members with CPRs in a slot that is too low or too high
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Extra-Range Channel</div>
+                        <select
+                            class="discord-channel-selector oc-range-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Extra-Range OC Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.extra_range_channel }}"
+                            data-feature="extra-range"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Extra-Range Roles</div>
+                        <select
+                            class="discord-role-selector oc-range-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Extra-Range OC Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.extra_range_roles }}"
+                            data-feature="extra-range"
+                            multiple
+                        ></select>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="ms-2 mt-1 fw-bold">Extra-Range Global Minimum-Maximum</div>
+                        <div class="input-group">
+                            <span class="input-group-text">Min</span>
+                            <input
+                                type="number"
+                                class="form-control oc-range-global-min"
+                                data-faction="{{ faction.tid }}"
+                                aria-label="Minimum Global CPR"
+                                value="{{ faction.server_oc_config.extra_range_global_min }}"
+                                autocomplete="off"
+                            >
+
+                            <span class="input-group-text">Max</span>
+                            <input
+                                type="number"
+                                class="form-control oc-range-global-max"
+                                data-faction="{{ faction.tid }}"
+                                aria-label="Maximum Global CPR"
+                                value="{{ faction.server_oc_config.extra_range_global_max }}"
+                                autocomplete="off"
+                            >
                         </div>
+                    </div>
 
-                        <hr />
-
-                        <p class="card-text">
-                            <b>Delayed Members:</b> Notifications regarding OCs being delayed by members flying, hospitalized, etc.
-                        </p>
-
-                        <div class="row w-100 ps-3">
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Delayed Channel</div>
+                    <div class="col-sm-12">
+                        <div class="ms-2 mt-1 fw-bold">Extra-Range Per-OC Minimum-Maximum</div>
+                        <div class="list-group list-group-range-crimes" data-faction="{{ faction.tid }}">
+                            <div class="list-group-item" aria-disabled="true" disabled>
+                                <!-- TODO: Add name describing this select input -->
                                 <select
-                                    class="discord-channel-selector oc-delayed-channel w-100"
+                                    class="oc-name-selector oc-range-crimes w-100"
                                     data-faction="{{ faction.tid }}"
-                                    aria-label="Delayed OC Channel"
-                                    data-live-search="true"
-                                    data-selected-channel="{{ faction.server_oc_config.delayed_channel }}"
-                                >
-                                    <option value="0">Disabled</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Delayed Roles (Optional)</div>
-                                <select
-                                    class="discord-role-selector oc-delayed-roles w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Delayed OC Role"
+                                    aria-label="Extra-Range Crimes"
                                     data-live-search="true"
                                     data-selected-text-format="count > 2"
-                                    data-selected-roles="{{ faction.server_oc_config.delayed_roles }}"
-                                    multiple
-                                ></select>
-                            </div>
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Delayed Crimes (Optional)</div>
-                                <select
-                                    class="oc-name-selector oc-delayed-crimes w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Delayed OC Crimes"
-                                    data-live-search="true"
-                                    data-selected-text-format="count > 2"
-                                    data-selected-crimes="{{ faction.server_oc_config.delayed_crimes }}"
-                                    multiple
-                                ></select>
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <p class="card-text">
-                            <b>Initialized OCs:</b> Notifications regarding OCs being initialized.
-                            
-                            <br />
-                            <br />
-                            Not yet implemented
-                        </p>
-
-                        <hr />
-
-                        <p class="card-text">
-                            <b>Stalled OCs:</b> Notifications regarding OCs that are stalled where not all slots are filled but filled slots are completed.
-                            
-                            <br />
-                            <br />
-                            Not yet implemented
-                        </p>
-
-                        <hr />
-
-                        <p class="card-text">
-                            <b>Extra-Range OCs:</b> Notifications regarding OCs that have members with CPRs in a slot that is too low or too high
-                        </p>
-
-                        <div class="row w-100 ps-3">
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Extra-Range Channel</div>
-                                <select
-                                    class="discord-channel-selector oc-range-channel w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Extra-Range OC Channel"
-                                    data-live-search="true"
-                                    data-selected-channel="{{ faction.server_oc_config.extra_range_channel }}"
-                                >
-                                    <option value="0">Disabled</option>
-                                </select>
-                            </div>
-
-                            <div class="col-sm-12 col-md-6">
-                                <div class="ms-2 mt-1 fw-bold">Extra-Range Roles (Optional)</div>
-                                <select
-                                    class="discord-role-selector oc-range-roles w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Extra-Range OC Role"
-                                    data-live-search="true"
-                                    data-selected-text-format="count > 2"
-                                    data-selected-roles="{{ faction.server_oc_config.extra_range_roles }}"
+                                    data-selected-crimes="{{ faction.server_oc_config.local_range_crimes }}"
                                     multiple
                                 ></select>
                             </div>
 
-                            <div class="col-sm-12">
-                                <div class="ms-2 mt-1 fw-bold">Extra-Range Global Minimum-Maximum</div>
+                            {% for crime_config in faction.server_oc_config.local_range_configs %}
+                            <div class="list-group-item" data-crime-name="{{ crime_config.oc_name }}">
+                                <div class="fw-bold">{{ crime_config.oc_name }}</div>
                                 <div class="input-group">
                                     <span class="input-group-text">Min</span>
                                     <input
                                         type="number"
-                                        class="form-control oc-range-global-min"
-                                        data-faction="{{ faction.tid }}"
-                                        aria-label="Minimum Global CPR"
-                                        value="{{ faction.server_oc_config.extra_range_global_min }}"
+                                        class="form-control oc-range-local-min"
+                                        aria-label="Minimum CPR for {{ crime_config.oc_name }}"
+                                        data-crime-name="{{ crime_config.oc_name }}"
+                                        value="{{ crime_config.minimum }}"
                                         autocomplete="off"
                                     >
 
-                                    <span class="input-group-text">Max</span>
+                                    <span class="input-group-text">Min</span>
                                     <input
                                         type="number"
-                                        class="form-control oc-range-global-max"
-                                        data-faction="{{ faction.tid }}"
-                                        aria-label="Maximum Global CPR"
-                                        value="{{ faction.server_oc_config.extra_range_global_max }}"
+                                        class="form-control oc-range-local-max"
+                                        aria-label="Maximum CPR for {{ crime_config.oc_name }}"
+                                        data-crime-name="{{ crime_config.oc_name }}"
+                                        value="{{ crime_config.maximum }}"
                                         autocomplete="off"
                                     >
                                 </div>
                             </div>
+                            {% endfor %}
 
-                            <div class="col-sm-12">
-                                <div class="ms-2 mt-1 fw-bold">Extra-Range Per-OC Minimum-Maximum</div>
-                                <div class="list-group list-group-range-crimes" data-faction="{{ faction.tid }}">
-                                    <div class="list-group-item" aria-disabled="true" disabled>
-                                        <!-- TODO: Add name describing this select input -->
-                                        <select
-                                            class="oc-name-selector oc-range-crimes w-100"
-                                            data-faction="{{ faction.tid }}"
-                                            aria-label="Extra-Range Crimes"
-                                            data-live-search="true"
-                                            data-selected-text-format="count > 2"
-                                            data-selected-crimes="{{ faction.server_oc_config.local_range_crimes }}"
-                                            multiple
-                                        ></select>
-                                    </div>
-
-                                    {% for crime_config in faction.server_oc_config.local_range_configs %}
-                                    <div class="list-group-item" data-crime-name="{{ crime_config.oc_name }}">
-                                        <div class="fw-bold">{{ crime_config.oc_name }}</div>
-                                        <div class="input-group">
-                                            <span class="input-group-text">Min</span>
-                                            <input
-                                                type="number"
-                                                class="form-control oc-range-local-min"
-                                                aria-label="Minimum CPR for {{ crime_config.oc_name }}"
-                                                data-crime-name="{{ crime_config.oc_name }}"
-                                                value="{{ crime_config.minimum }}"
-                                                autocomplete="off"
-                                            >
-
-                                            <span class="input-group-text">Min</span>
-                                            <input
-                                                type="number"
-                                                class="form-control oc-range-local-max"
-                                                aria-label="Maximum CPR for {{ crime_config.oc_name }}"
-                                                data-crime-name="{{ crime_config.oc_name }}"
-                                                value="{{ crime_config.maximum }}"
-                                                autocomplete="off"
-                                            >
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-
-                                    <div class="list-group-item default-oc-range-value" {% if faction.server_oc_config.local_range_configs|length != 0 %} hidden {% endif %}>
-                                        No OCs selected. Using global min/max for all OCs.
-                                    </div>
-                                </div>
+                            <div class="list-group-item default-oc-range-value" {% if faction.server_oc_config.local_range_configs|length != 0 %} hidden {% endif %}>
+                                No OCs selected. Using global min/max for all OCs.
                             </div>
                         </div>
-                        {% else %}
-                        <p class="card-text">
-                            <b>NOTE:</b> This faction has not yet migrated to Organized Crimes 2.0; to configure this faction's OCs notifications, please create a ticket on Tornium's Discord server. If this faction has recently migrated to OCs 2.0, it may take up to an hour for this change to be reflected on Tornium.
-                        </p>
-                        {% endif %}
                     </div>
                 </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Spawn Required:</b> Notifications regarding OC teams that require an OC to be spawned.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Spawn Required Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-spawn-required-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Spawn Required Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_spawn_required_channel }}"
+                            data-feature="team-spawn-required"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Spawn Required Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-spawn-required-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Spawn Required Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_spawn_required_roles }}"
+                            data-feature="team-spawn-required"
+                            multiple
+                        ></select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Member Join Required:</b> Notifications regarding OC team members that need to join the assigned OC.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Join Required Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-member-join-required-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Join Required Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_member_join_required_channel }}"
+                            data-feature="team-member-join-required"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Join Required Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-member-join-required-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Join Required Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_member_join_required_roles }}"
+                            data-feature="team-member-join-required"
+                            multiple
+                        >
+                            <option value="-1">Relevant Individual(s)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Member Incorrect Crime:</b> Notifications regarding OC team members that have joined the wrong OC.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Incorrect Crime Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-member-incorrect-crime-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Incorrect Crime Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_member_incorrect_crime_channel }}"
+                            data-feature="team-member-incorrect-crime"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Incorrect Crime Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-member-incorrect-crime-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Incorrect Crime Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_member_incorrect_crime_roles }}"
+                            data-feature="team-member-incorrect-crime"
+                            multiple
+                        >
+                            <option value="-1">Relevant Individual(s)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Incorrect Member:</b> Notifications regarding non-team members joining assigned OC slots.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Incorrect Member Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-incorrect-member-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Incorrect Member Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_incorrect_member_channel }}"
+                            data-feature="team-incorrect-member"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Incorrect Member Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-incorrect-member-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Incorrect Member Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_incorrect_member_roles }}"
+                            data-feature="team-incorrect-member"
+                            multiple
+                        >
+                            <option value="-1">Relevant Individual(s)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Member Incorrect Slot:</b> Notifications regarding OC team members that have joined the wrong slot of the assigned OC.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Incorrect Slot Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-member-incorrect-slot-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Incorrect Slot Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.team_member_incorrect_slot_channel }}"
+                            data-feature="team-member-incorrect-slot"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Member Incorrect Slot Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-member-incorrect-slot-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Member Incorrect Slot Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.team_member_incorrect_slot_roles }}"
+                            data-feature="team-member-incorrect-slot"
+                            multiple
+                        >
+                            <option value="-1">Relevant Individual(s)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <p class="card-text">
+                    <b>OC Team Assigned:</b> Notifications regarding OC teams being assigned an OC.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Team Assigned Channel</div>
+                        <select
+                            class="discord-channel-selector oc-team-assigned-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Assigned Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.assigned_team_channel }}"
+                            data-feature="assigned-team"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Team Assigned Roles</div>
+                        <select
+                            class="discord-role-selector oc-team-assigned-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="OC Team Assigned Roles"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.assigned_team_roles }}"
+                            data-feature="assigned-team"
+                            multiple
+                        >
+                        </select>
+                    </div>
+                </div>
+                {% else %}
+                <p class="card-text">
+                    <b>NOTE:</b> This faction has not yet migrated to Organized Crimes 2.0; to configure this faction's OCs notifications, please create a ticket on Tornium's Discord server. If this faction has recently migrated to OCs 2.0, it may take up to an hour for this change to be reflected on Tornium.
+                </p>
+                {% endif %}
             </div>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </div>
 {% endblock %}
 

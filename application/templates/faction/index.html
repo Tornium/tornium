@@ -16,7 +16,7 @@ Tornium - Faction
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/faction/members">
@@ -37,16 +37,18 @@ Tornium - Faction
             </a>
         </div>
 
-        {% if current_user.is_authenticated and current_user.faction_aa %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/bankingaa">
-                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
-            </a>
-        </div>
-
+        {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
                 <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
             </a>
         </div>
 
@@ -77,6 +79,9 @@ Tornium - Faction
                         </li>
                         <li class="list-group-item">
                             Banking - a faction utility for requesting money from the faction vault
+                        </li>
+                        <li class="list-group-item">
+                            Organized Crimes - a collection of faction utilities to manage OCs
                         </li>
                         <li class="list-group-item">
                             And many more can be found under the <a href="/bot">bot dashboard</a>

@@ -14,6 +14,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Discord do
+  @typedoc """
+  Discord role ID.
+  """
+  @type role :: non_neg_integer()
+
+  @typedoc """
+  Discord role ID that may be assigned during the usage of the Discord role.
+
+  The value is either a Discord role or -1. When the value is -1, the value will be replaced with any number of
+  Discord role IDs when rendering a list of roles as a String with `Tornium.Utils.roles_to_string/1`.
+  """
+  @type role_assignable :: role() | -1
+
   @doc ~S"""
   Asynchronously send a list of messages with the option of returning the responses.
 

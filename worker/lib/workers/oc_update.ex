@@ -16,6 +16,7 @@
 defmodule Tornium.Workers.OCUpdate do
   require Logger
   alias Tornium.Repo
+  import Ecto.Query
 
   use Oban.Worker,
     max_attempts: 3,
@@ -38,26 +39,55 @@ defmodule Tornium.Workers.OCUpdate do
           }
         } = _job
       ) do
-    request = %Tornex.Query{
-      resource: "v2/faction",
-      resource_id: faction_tid,
-      key: api_key,
-      selections: ["crimes", "members"],
-      key_owner: user_tid,
-      nice: 10
-    }
-
     config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
 
-    check_state =
-      request
+    parsed_crimes =
+      %Tornex.Query{
+        resource: "v2/faction",
+        resource_id: faction_tid,
+        key: api_key,
+        selections: ["crimes", "members"],
+        key_owner: user_tid,
+        nice: 10
+      }
       |> Tornex.Scheduler.Bucket.enqueue()
       |> Tornium.Faction.OC.parse(faction_tid)
+
+    # `Repo.preload` is required to load additional information for performing and rending the checks
+    check_state =
+      parsed_crimes
       |> Tornium.Schema.OrganizedCrime.upsert_all()
       |> Repo.preload(slots: [:item_required, :user, oc: [:faction]])
-      # `Repo.preload` is required to load additional information for performing and rending the checks
-      # TODO: Consider manually making the queries and using preload to add the data to avoid unnescessary data (e.g. item descriptions)
       |> Tornium.Faction.OC.check(config)
+
+    parsed_crimes
+    |> Enum.flat_map(fn %Tornium.Schema.OrganizedCrime{oc_name: oc_name, slots: slots} ->
+      Enum.map(slots, fn
+        %Tornium.Schema.OrganizedCrimeSlot{user_id: nil} ->
+          nil
+
+        %Tornium.Schema.OrganizedCrimeSlot{
+          user_id: user_id,
+          crime_position: crime_position,
+          user_success_chance: cpr,
+          user_joined_at: user_joined_at
+        } ->
+          %Tornium.Schema.OrganizedCrimeCPR{
+            guid: Ecto.UUID.generate(),
+            user_id: user_id,
+            oc_name: oc_name,
+            oc_position: crime_position,
+            cpr: cpr,
+            updated_at: user_joined_at
+          }
+      end)
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.reverse()
+    |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrimeCPR{user_id: user_id, oc_name: oc_name, oc_position: oc_position} ->
+      {user_id, oc_name, oc_position}
+    end)
+    |> Tornium.Schema.OrganizedCrimeCPR.upsert_all()
 
     collected_messages =
       check_state
@@ -74,6 +104,24 @@ defmodule Tornium.Workers.OCUpdate do
 
     # Perform this after the attempting to send the messages to avoid a flag being updated despite the message not being sent (e.g. from a rendering issue)
     Tornium.Schema.OrganizedCrimeSlot.update_sent_state(check_state)
+
+    # This should be performed after Workers.OCUpdate is run to ensure the OCs have been updated/inserted to the database.
+    # Only factions with at least one OC team should perform this update
+    count =
+      Tornium.Schema.OrganizedCrimeTeam
+      |> where([t], t.faction_id == ^faction_tid)
+      |> select(count())
+      |> Repo.one()
+
+    case count do
+      _ when count >= 1 ->
+        %{faction_tid: faction_tid}
+        |> Tornium.Workers.OCTeamUpdate.new()
+        |> Oban.insert()
+
+      _ ->
+        nil
+    end
 
     :ok
   end

@@ -52,6 +52,8 @@ defmodule Tornium.MixProject do
       {:bandit, "~> 1.2"},
       {:luerl, "~> 1.2.3"},
       {:solid, "~> 0.18"},
+      {:logger_file_backend, "~> 0.0.14"},
+      {:logger_json, "~> 7.0"},
       {:tornex, "~> 0.2"},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.19"},

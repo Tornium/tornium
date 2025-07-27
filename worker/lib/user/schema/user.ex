@@ -36,7 +36,8 @@ defmodule Tornium.Schema.User do
           battlescore_update: DateTime.t(),
           security: integer(),
           otp_secret: String.t(),
-          otp_backups: List
+          otp_backups: List,
+          settings: Tornium.Schema.UserSettings.t() | nil
         }
 
   @primary_key {:tid, :integer, autogenerate: false}
@@ -66,5 +67,7 @@ defmodule Tornium.Schema.User do
     field(:security, :integer)
     field(:otp_secret, :string)
     field(:otp_backups, {:array, :string})
+
+    belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid)
   end
 end

@@ -15,6 +15,8 @@
 
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           name: String.t(),
@@ -62,5 +64,17 @@ defmodule Tornium.Schema.Server do
     field(:oc_config, :map)
 
     has_one(:notifications_config, Tornium.Schema.ServerNotificationsConfig, foreign_key: :server_id, references: :sid)
+  end
+
+  @doc """
+  Insert a new server by ID and name.
+  """
+  @spec new(guild_id :: non_neg_integer(), guild_name :: String.t(), opts :: Keyword.t()) :: t()
+  def new(guild_id, guild_name, opts \\ []) when is_integer(guild_id) and is_binary(guild_name) do
+    __MODULE__
+    |> Ecto.Changeset.put_change(:sid, guild_id)
+    |> Ecto.Changeset.put_change(:name, guild_name)
+    |> Ecto.Changeset.change(opts)
+    |> Repo.insert()
   end
 end

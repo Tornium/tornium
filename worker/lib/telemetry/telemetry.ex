@@ -52,12 +52,31 @@ defmodule Tornium.Telemetry do
         %{user_id: user_id, team_id: team_id, faction_id: faction_id} = _metadata,
         opts
       ) do
-    log(opts, %{
+    opts
+    |> Keyword.put(:level, :info)
+    |> log(%{
       event: "oc_team:member_removed",
       message: "#{user_id} was removed from their OC team",
       user_id: user_id,
       team_id: team_id,
       faction_id: faction_id
+    })
+  end
+
+  @doc false
+  def handle_event(
+        [:tornium, :bot, :guild_joined],
+        %{} = _measurements,
+        %{guild_id: guild_id, guild_name: guild_name} = _metadata,
+        opts
+      ) do
+    opts
+    |> Keyword.put(:level, :info)
+    |> log(%{
+      event: "bot:guild_joined",
+      message: "Bot joined the #{guild_name} [#{guild_id}] guild",
+      guild_id: guild_id,
+      guild_name: guild_name
     })
   end
 

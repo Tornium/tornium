@@ -7,7 +7,7 @@ First, we will be adding the bot to the Discord server. Installation can be done
 At this point, the Discord bot will be added to the selected Discord server. We can verify that the bot has been added to the server by finding Tornium in the member list of the server. Now that the bot has been added to the server, we can now start configuring the bot for this server.
 
 ## Configuring the Bot
-Now that the bot has been added to the Discord server, you will need to wait for Tornium to store the Discord server in its database. This can take up to an hour to occur. If you have administrator permissions on the Discord server, you will be able to see that the bot has been added to the database when the Discord server is listed on the [Server Selector](https://tornium.com/bot/dashboard) on Tornium's website.
+Now that the bot has been added to the Discord server, you will need to wait for Tornium to store the Discord server in its database. If you have administrator permissions on the Discord server, you will be able to see that the bot has been added to the database when the Discord server is listed on the [Server Selector](https://tornium.com/bot/dashboard) on Tornium's website.
 
 Once the Discord server is listed on the "Server Selector", we can now start configuring features for the Discord server. You will need to select the specific Discord server with the "Edit Server" button. After pressing the "Edit Server" button, you will be redirected to the main bot configuration page for the selected Discord server. On this page, you will be able to set up various features for the bot on this Discord server.
 

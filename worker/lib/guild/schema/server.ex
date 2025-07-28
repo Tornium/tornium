@@ -15,27 +15,28 @@
 
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
-  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
+          sid: non_neg_integer(),
           name: String.t(),
-          admins: List,
+          admins: [non_neg_integer()],
           icon: String.t(),
-          factions: List,
+          factions: [non_neg_integer()],
           verify_enabled: boolean(),
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
           verify_template: String.t(),
-          verified_roles: List,
-          exclusion_roles: List,
-          faction_verify: Map,
+          verified_roles: [Tornium.Discord.role()],
+          exclusion_roles: [Tornium.Discord.role()],
+          faction_verify: map(),
           verify_log_channel: integer(),
           verify_jail_channel: integer(),
-          banking_config: Map,
+          banking_config: map(),
           armory_enabled: boolean(),
-          armory_config: Map,
-          oc_config: Map
+          armory_config: map(),
+          oc_config: map(),
+          notifications_config: Tornium.Schema.ServerNotificationsConfig.t()
         }
 
   @primary_key {:sid, :integer, autogenerate: false}

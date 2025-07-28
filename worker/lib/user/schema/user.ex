@@ -36,7 +36,7 @@ defmodule Tornium.Schema.User do
           battlescore_update: DateTime.t(),
           security: integer(),
           otp_secret: String.t(),
-          otp_backups: List,
+          otp_backups: [String.t()],
           settings: Tornium.Schema.UserSettings.t() | nil
         }
 

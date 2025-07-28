@@ -21,9 +21,9 @@ defmodule Tornium.Guild.Verify.Config do
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
           verify_template: String.t(),
-          verified_roles: List,
-          exclusion_roles: List,
-          faction_verify: Map,
+          verified_roles: [Tornium.Discord.role()],
+          exclusion_roles: [Tornium.Discord.role()],
+          faction_verify: map(),
           verify_log_channel: integer(),
           verify_jail_channel: integer()
         }

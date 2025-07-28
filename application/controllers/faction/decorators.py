@@ -38,7 +38,14 @@ def manage_crimes_required(f):
         if not current_user.is_authenticated:
             return abort(401)
         elif not current_user.can_manage_crimes():
-            return abort(403)  # TODO: Replace with custom 403 error message
+            return (
+                render_template(
+                    "errors/error.html",
+                    title="Permission Denied",
+                    error=f'{current_user.name} does not have the "Organized Crimes" permission required to access this page. If you have recently signed into Tornium, please wait for crons to run and the database to updated with the necessary data.',
+                ),
+                403,
+            )
 
         return f(*args, **kwargs)
 

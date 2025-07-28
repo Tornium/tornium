@@ -120,7 +120,7 @@ class User(BaseModel):
         if isinstance(faction, Faction) and (self.tid == faction.leader or self.tid == faction.coleader):
             return True
 
-        faction_position: typing.Optional[FactionPosition] = self.faction_position.plan_init_oc
+        faction_position: typing.Optional[FactionPosition] = self.faction_position
 
         if not isinstance(faction_position, FactionPosition):
             try:

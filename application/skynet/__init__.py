@@ -195,7 +195,7 @@ def skynet_interactions():
                 return jsonify(cb(request.json, invoker=invoker, admin_keys=admin_keys))
     elif request.json["type"] == 2:
         # User command interaction
-        if request.json["data"]["name"] in _commands:
+        if request.json["data"]["name"].lower() in _user_commands:
             return jsonify(
                 _user_commands[request.json["data"]["name"].lower()](
                     request.json, invoker=invoker, admin_keys=admin_keys

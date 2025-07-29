@@ -98,3 +98,8 @@ The `/verifyall` slash command will manually start the [verification cron](#veri
 | -------- | --------------------------------------------- | -------- | ------- |
 | `force`  | Flag to require updated data on the Torn user | False    | True    |
 
+
+### Verify User Command
+The verify user command will silently attempt to verify the member of the Discord server selected according to the Discord server's verification configuration.
+
+There are no arguments for user commands.

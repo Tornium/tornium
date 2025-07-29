@@ -154,7 +154,6 @@ defmodule Tornium.Guild.Verify.Logic do
         faction_verify
         |> Map.get(Integer.to_string(user.faction.tid))
         |> Map.get("roles")
-        |> Enum.map(&Integer.to_string/1)
 
       insert_update_roles(state, roles)
     else
@@ -216,7 +215,8 @@ defmodule Tornium.Guild.Verify.Logic do
       Map.get(faction_verify, Integer.to_string(user.faction.tid)) |> Map.get("enabled", false) == false ->
         false
 
-      Map.get(faction_verify, Integer.to_string(user.faction.tid))
+      faction_verify
+      |> Map.get(Integer.to_string(user.faction.tid))
       |> Map.get("positions", %{})
       |> Map.get(user.faction_position_id)
       |> is_nil() ->
@@ -251,7 +251,8 @@ defmodule Tornium.Guild.Verify.Logic do
     if can_set_faction_position_roles?(faction_verify, user) do
       insert_update_roles(
         state,
-        Map.get(faction_verify, Integer.to_string(user.faction.tid))
+        faction_verify
+        |> Map.get(Integer.to_string(user.faction.tid))
         |> Map.get("positions")
         |> Map.get(user.faction_position_id)
       )

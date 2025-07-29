@@ -37,7 +37,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         }
       )
 
-    assert Map.get(state, "nick") == nil
+    assert is_nil(Map.get(state, :nick))
   end
 
   test "test_valid_template_verified_name" do
@@ -66,7 +66,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         }
       )
 
-    assert Map.get(state, "nick") == "Chedburn [1]"
+    assert Map.get(state, :nick) == "Chedburn [1]"
   end
 
   test "test_verified_roles" do
@@ -207,6 +207,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
             tid: 1,
             name: "Chedburn Test Faction"
           },
+          faction_position_id: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
           faction_position: %Tornium.Schema.FactionPosition{
             pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
             name: "Test Position 1",

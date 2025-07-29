@@ -33,7 +33,7 @@
             "choices": [
                 {
                     "name": "None",
-                    "value": "none",
+                    "value": "none"
                 },
                 {
                     "name": "15 Minutes",

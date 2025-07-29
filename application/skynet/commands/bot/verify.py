@@ -327,3 +327,268 @@ def verify(interaction, *args, **kwargs):
             ]
         },
     }
+
+
+def verify_uc(interaction, *args, **kwargs):
+    if "guild_id" not in interaction:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Invalid Location",
+                        "description": "The verification command must be run in a server where verification is setup "
+                        "and enabled.",
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    try:
+        guild: Server = Server.get_by_id(interaction["guild_id"])
+    except DoesNotExist:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Server Not Located",
+                        "description": "This server could not be located in Tornium's database.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    if not guild.verify_enabled:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Not Enabled",
+                        "description": "Verification is not enabled in the server's admin dashboard.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif guild.verify_template == "" and len(guild.verified_roles) == 0 and len(guild.faction_verify) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Not Enabled",
+                        "description": "Verification is enabled, but nothing will be changed based on the current "
+                        "settings in the server's admin dashboard.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    user: typing.Optional[User] = kwargs["invoker"]
+    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction, all_keys=True))
+
+    member_discord_id: int = int(interaction["data"]["target_id"])
+    member_roles: typing.List[int] = interaction["data"]["resolved"]["members"][member_discord_id]["roles"]
+    member_nick: str = (
+        interaction["data"]["resolved"]["members"][member_discord_id]["nick"]
+        or interaction["data"]["resolved"]["users"][member_discord_id]["username"]
+    )
+
+    if len(admin_keys) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "No API Keys",
+                        "description": "No API keys were found to be run for this command. Please sign into "
+                        "Tornium or run this command in a server with signed-in admins.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    update_user_kwargs = {
+        "discordid": member_discord_id,
+        "key": random.choice(admin_keys),
+        "refresh_existing": True,
+    }
+
+    if set(member_roles) & set(map(str, guild.exclusion_roles)):  # Exclusion role in member's roles
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Failed",
+                        "description": "The user has an exclusion role which prevents automatic verification. "
+                        "Contact a server admin to remove this exclusion role or to manually set roles.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    try:
+        update_user(**update_user_kwargs)
+    except TornError as e:
+        if e.code == 6:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Verification Failed",
+                            "description": "This user may not be verified on Torn. Please make sure that the user is officially verified by Torn. "
+                            "To verify on Torn, the user can link their Discord and Torn accounts through the "
+                            "[official Torn Discord server](https://www.torn.com/discord) or through a "
+                            "[direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify). "
+                            "Once the user is verified, user `/verify force:true` to verify the user.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        raise e
+
+    try:
+        # TODO: Limit selected fields
+        user: User = User.select().where(User.discord_id == update_user_kwargs["discordid"]).get()
+    except DoesNotExist:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "User Not Found",
+                        "description": "The user could not be found in the database after a refresh.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    if user.discord_id in (0, None):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Failed",
+                        "description": "No Discord ID found. Please verify that the user is officially verified by Torn. "
+                        "Otherwise, try forcing the verification. To verify on Torn, the user can link their Discord and "
+                        "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
+                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    patch_json = {
+        "nick": member_verification_name(
+            name=user.name,
+            tid=user.tid,
+            tag=user.faction.tag if user.faction is not None else "",
+            name_template=guild.verify_template,
+        ),
+        "roles": set(str(role) for role in member_roles),
+    }
+
+    patch_json["roles"] -= invalid_member_faction_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+    )
+    patch_json["roles"] -= invalid_member_position_roles(
+        faction_verify=guild.faction_verify,
+        faction_id=user.faction_id,
+        position=user.faction_position,
+    )
+
+    patch_json["roles"].update(member_verified_roles(verified_roles=guild.verified_roles))
+    patch_json["roles"].update(member_faction_roles(faction_verify=guild.faction_verify, faction_id=user.faction_id))
+    patch_json["roles"].update(
+        member_position_roles(
+            faction_verify=guild.faction_verify, faction_id=user.faction_id, position=user.faction_position
+        )
+    )
+
+    if patch_json["nick"] == member_nick:
+        patch_json.pop("nick")
+
+    if patch_json["roles"] == set(member_roles):
+        patch_json.pop("roles")
+    else:
+        patch_json["roles"] = list(patch_json["roles"])
+
+    if len(patch_json) == 0:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Already Completed",
+                        "description": "The verification of this user is already complete.",
+                        "color": SKYNET_INFO,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    try:
+        discordpatch(
+            f"guilds/{guild.sid}/members/{user.discord_id}",
+            patch_json,
+        )
+    except DiscordError as e:
+        if e.code == 50013:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Verification Failed",
+                            "description": "Discord prevents bots from modifying the roles and nickname of users that are the server owner or have a role higher than the bot's highest role. For more information, check out the [documentation](https://docs.tornium.com/en/latest/reference/bot-verification.html).",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        raise e
+
+    faction_str = "None" if user.faction is None else f"{discord_escaper(user.faction.name)} [{user.faction.tid}]"
+
+    return {
+        "type": 4,
+        "data": {
+            "embeds": [
+                {
+                    "title": "Verification Successful",
+                    "description": inspect.cleandoc(
+                        f"""User: [{user.user_str_self()}](https://www.torn.com/profiles.php?XID={user.tid})
+                        Faction: {faction_str}
+                        Discord: <@{user.discord_id}>"""
+                    ),
+                    "color": SKYNET_GOOD,
+                }
+            ]
+        },
+    }

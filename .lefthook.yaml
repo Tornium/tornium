@@ -3,46 +3,61 @@ pre-commit:
     commands:
         application-lint:
             root: "application/"
+            glob: "*.py"
             run: "flake8 ."
         application-autoformat:
             root: "application/"
+            glob: "*.py"
             run: "black --check ."
         application-isort:
             root: "application/"
+            glob: "*.py"
             run: "isort ."
         application-bandit:
             root: "application/"
+            glob: "*.py"
             run: "bandit -r -x __pycache__,./venv,./tests -c pyproject.toml ."
         application-js-format:
             root: "application/static/"
+            glob: "*.js"
             run: "biome format ."
         application-sass:
             root: "application/static/styles/"
+            glob: "*.scss"
             run: "sass . && cd .. && biome format styles/ --write |&> /dev/null"
         celery-lint:
             root: "celery/"
+            glob: "*.py"
             run: "flake8 ."
         celery-autoformat:
             root: "celery/"
+            glob: "*.py"
             run: "black --check ."
         celery-isort:
             root: "celery/"
+            glob: "*.py"
             run: "isort ."
         commons-lint:
             root: "commons/"
+            glob: "*.py"
             run: "flake8 ."
         commons-autoformat:
             root: "commons/"
+            glob: "*.py"
             run: "black --check ."
         commons-isort:
             root: "commons/"
+            glob: "*.py"
             run: "isort ."
         worker-format:
             root: "worker/"
+            glob: "*.{ex,exs}"
             run: "mix format"
         worker-credo:
             root: "worker/"
+            glob: "*.{ex,exs}"
             run: "mix credo diff"
         userscript-format:
             root: "userscripts/"
+            glob: "*.js"
             run: "biome format ."

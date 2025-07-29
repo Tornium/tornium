@@ -72,7 +72,8 @@ defmodule Tornium.Schema.Server do
   """
   @spec new(guild_id :: non_neg_integer(), guild_name :: String.t(), opts :: Keyword.t()) :: t()
   def new(guild_id, guild_name, opts \\ []) when is_integer(guild_id) and is_binary(guild_name) do
-    __MODULE__
+    %__MODULE__{}
+    |> Ecto.Changeset.cast(%{}, [])
     |> Ecto.Changeset.put_change(:sid, guild_id)
     |> Ecto.Changeset.put_change(:name, guild_name)
     |> Ecto.Changeset.change(opts)

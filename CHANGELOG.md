@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added revivable member ping slash command `/faction members revivable-ping`
 - Added OAuth client revocation page
 - Added exponential backoff to subsequent failed authentication attempts
+- Added customizable banking request expiration
 
 ### Changed
 - Re-enabled Discord-based authentication

@@ -24,6 +24,42 @@
                     "value": "Points"
                 }
             ]
+        },
+        {
+            "type": 3,
+            "name": "timeout",
+            "description": "Timeout of request (default: 1 hour)",
+            "required": false,
+            "choices": [
+                {
+                    "name": "None",
+                    "value": "none",
+                },
+                {
+                    "name": "15 Minutes",
+                    "value": "15m"
+                },
+                {
+                    "name": "30 Minutes",
+                    "value": "30m"
+                },
+                {
+                    "name": "1 Hour",
+                    "value": "1h"
+                },
+                {
+                    "name": "2 Hours",
+                    "value": "2h"
+                },
+                {
+                    "name": "4 Hours",
+                    "value": "4h"
+                },
+                {
+                    "name": "8 Hours",
+                    "value": "8h"
+                }
+            ]
         }
     ]
 }

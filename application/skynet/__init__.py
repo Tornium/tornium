@@ -194,8 +194,13 @@ def skynet_interactions():
             if request.json["data"]["custom_id"].startswith(button_str):
                 return jsonify(cb(request.json, invoker=invoker, admin_keys=admin_keys))
     elif request.json["type"] == 2:
-        # User command interaction
-        if request.json["data"]["name"].lower() in _user_commands:
+        if request.json["data"]["name"] in _commands:
+            # Slash commands
+            return jsonify(
+                _commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
+            )
+        elif request.json["data"]["name"].lower() in _user_commands:
+            # User command interaction
             return jsonify(
                 _user_commands[request.json["data"]["name"].lower()](
                     request.json, invoker=invoker, admin_keys=admin_keys

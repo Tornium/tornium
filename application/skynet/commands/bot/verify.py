@@ -589,6 +589,7 @@ def verify_uc(interaction, *args, **kwargs):
                     ),
                     "color": SKYNET_GOOD,
                 }
-            ]
+            ],
+            "flags": 64,
         },
     }

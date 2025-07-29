@@ -396,10 +396,10 @@ def verify_uc(interaction, *args, **kwargs):
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction, all_keys=True))
 
     member_discord_id: int = int(interaction["data"]["target_id"])
-    member_roles: typing.List[int] = interaction["data"]["resolved"]["members"][member_discord_id]["roles"]
+    member_roles: typing.List[int] = interaction["data"]["resolved"]["members"][str(member_discord_id)]["roles"]
     member_nick: str = (
-        interaction["data"]["resolved"]["members"][member_discord_id]["nick"]
-        or interaction["data"]["resolved"]["users"][member_discord_id]["username"]
+        interaction["data"]["resolved"]["members"][str(member_discord_id)]["nick"]
+        or interaction["data"]["resolved"]["users"][str(member_discord_id)]["username"]
     )
 
     if len(admin_keys) == 0:

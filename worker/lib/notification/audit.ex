@@ -247,6 +247,6 @@ defmodule Tornium.Notification.Audit do
       |> put_timestamp(now)
       |> put_color(color || Tornium.Discord.Constants.colors()[:good])
 
-    Nostrum.Api.create_message(audit_channel, embeds: [embed])
+    Nostrum.Api.Message.create(audit_channel, embeds: [embed])
   end
 end

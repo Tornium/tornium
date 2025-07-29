@@ -383,7 +383,7 @@ defmodule Tornium.Notification do
 
   defp try_message(%{} = message, :send, %Tornium.Schema.Notification{nid: nid, channel_id: channel_id} = notification) do
     # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.create_message(channel_id, message) do
+    case Nostrum.Api.Message.create(channel_id, message) do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully sent...
         # Thus the notification should be deleted as one-shot notifications are deleted once triggered
@@ -434,7 +434,7 @@ defmodule Tornium.Notification do
     # This should only occur the first time the notification is triggered
 
     # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.create_message(channel_id, message) do
+    case Nostrum.Api.Message.create(channel_id, message) do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully sent...
         # The notification should be updated to include the message ID
@@ -483,7 +483,7 @@ defmodule Tornium.Notification do
     # Once the notification is created, the notification's pre-existing message will be updated
     # with the new message. If the message is deleted or can't be updated, a new message will be created.
 
-    case Nostrum.Api.edit_message(channel_id, message_id, message) do
+    case Nostrum.Api.Message.edit(channel_id, message_id, message) do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully updated and no further action is required
         resp_message

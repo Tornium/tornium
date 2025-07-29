@@ -221,6 +221,6 @@ defmodule Tornium.Guild.Verify do
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
        ) do
-    Nostrum.Api.modify_guild_member(guild_id, member_id, %{nick: nick, roles: roles})
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
   end
 end

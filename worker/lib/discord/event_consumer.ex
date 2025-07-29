@@ -92,6 +92,6 @@ defmodule Tornium.Discord.Consumer do
     # TODO: Rename the message method
     # TODO: Provide reasons for skipping certain errors
     embed = Tornium.Guild.Verify.Message.message({status_atom, result}, new_member)
-    Nostrum.Api.create_message(server.verify_jail_channel, %{embeds: [embed]})
+    Nostrum.Api.Message.create(server.verify_jail_channel, %{embeds: [embed]})
   end
 end

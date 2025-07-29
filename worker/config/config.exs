@@ -77,7 +77,6 @@ config :tornium, Oban,
        {"* * * * *", Tornium.Workers.NotificationScheduler},
        {"0 * * * *", Tornium.Workers.OCMigrationCheck},
        {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
-       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
        {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
        {"0 0 * * *", Tornium.Workers.OAuthRevocation}
      ]},

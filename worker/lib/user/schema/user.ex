@@ -68,6 +68,6 @@ defmodule Tornium.Schema.User do
     field(:otp_secret, :string)
     field(:otp_backups, {:array, :string})
 
-    belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid)
+    belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid, type: :binary_id)
   end
 end

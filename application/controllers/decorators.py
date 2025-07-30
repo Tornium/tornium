@@ -17,7 +17,7 @@ import secrets
 import time
 from functools import partial, wraps
 
-from flask import abort, redirect, render_template, request, url_for
+from flask import abort, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_fresh
 from tornium_commons import Config, rds
 
@@ -78,6 +78,27 @@ def admin_required(f):
             return redirect(url_for("authroutes.login")), 401
         elif current_user.tid not in Config.from_json().admin_users:
             return render_template("errors/admin_denied.html"), 403
+
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+def session_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            abort(403)
+
+        csrf_token = (
+            request.headers.get("X-CSRF-Token")
+            or request.headers.get("CSRF-Token")
+            or request.form.get("csrf_token")
+            or request.form.get("csrf-token")
+        )
+
+        if csrf_token != session.get("csrf_token") and csrf_token is not None:
+            abort(403)
 
         return f(*args, **kwargs)
 

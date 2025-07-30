@@ -137,33 +137,9 @@ class User(BaseModel):
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"
 
-    def generate_otp_secret(self):
-        self.otp_secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        self.save()
-
-    def generate_otp_url(self):
-        if self.otp_secret == "" or self.security != 1:  # nosec B105
-            raise Exception("Illegal OTP secret or security mode")
-
-        return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
-
     def generate_otp_backups(self, num_codes=5):
         if self.otp_secret == "" or self.security != 1:  # nosec B105
             raise Exception("Illegal OTP secret or security mode")
-
-        codes = []
-        hashed_codes = []
-
-        for _ in range(num_codes):
-            codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
-
-        for code in codes:
-            hashed_codes.append(hashlib.sha256(code.encode("utf-8")).hexdigest())
-
-        self.otp_backups = hashed_codes
-        self.save()
-
-        return codes
 
     @cached_property
     def key(self) -> typing.Optional[str]:

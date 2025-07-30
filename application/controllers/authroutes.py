@@ -16,7 +16,6 @@
 import datetime
 import hashlib
 import inspect
-import json
 import secrets
 import time
 import typing
@@ -33,13 +32,7 @@ from flask import (
     session,
     url_for,
 )
-from flask_login import (
-    current_user,
-    fresh_login_required,
-    login_required,
-    login_user,
-    logout_user,
-)
+from flask_login import current_user, login_required, login_user, logout_user
 from peewee import DataError, DoesNotExist
 from tornium_celery.tasks.api import tornget
 from tornium_celery.tasks.misc import send_dm
@@ -52,21 +45,11 @@ from tornium_commons.errors import (
     TornError,
 )
 from tornium_commons.formatters import rel_time
-from tornium_commons.models import (
-    AuthAction,
-    AuthLog,
-    OAuthClient,
-    OAuthToken,
-    TornKey,
-    User,
-)
+from tornium_commons.models import AuthAction, AuthLog, TornKey, User
 from tornium_commons.skyutils import SKYNET_INFO
 
 import utils
 import utils.totp
-from controllers.api.v1.decorators import session_required
-from controllers.api.v1.utils import make_exception_response
-from controllers.decorators import token_required
 from models.user import AuthUser
 
 mod = Blueprint("authroutes", __name__)
@@ -786,70 +769,3 @@ def logout():
     session.pop("csrf_token", None)
 
     return redirect(url_for("baseroutes.index"))
-
-
-@mod.route("/totp/secret", methods=["GET"])
-@fresh_login_required
-@token_required(setnx=False)
-def totp_secret(*args, **kwargs):
-    return {
-        "secret": current_user.otp_secret,
-        "url": current_user.generate_otp_url(),
-    }, 200
-
-
-@mod.route("/totp/secret", methods=["POST"])
-@fresh_login_required
-@token_required(setnx=False)
-def totp_secret_regen(*args, **kwargs):
-    current_user.generate_otp_secret()
-
-    return make_exception_response("0001")
-
-
-@mod.route("/totp/backup", methods=["POST"])
-@fresh_login_required
-@token_required(setnx=False)
-def totp_backup_regen(*args, **kwargs):
-    codes = current_user.generate_otp_backups()
-
-    return {"codes": codes}, 200
-
-
-@mod.route("/security", methods=["POST"])
-@fresh_login_required
-@token_required(setnx=False)
-def set_security_mode(*args, **kwargs):
-    data = json.loads(request.get_data().decode("utf-8"))
-    mode = data.get("mode")
-    otp_generated = False
-
-    if current_user.otp_secret is None or current_user.otp_secret == "":  # nosec B105
-        current_user.generate_otp_secret()
-        otp_generated = True
-
-    if mode not in (0, 1):
-        return make_exception_response("1000", details={"message": "Invalid security mode"})
-
-    User.update(security=mode).where(User.tid == current_user.tid).execute()
-
-    return make_exception_response("0001", details={"otp_generated": otp_generated})
-
-
-@mod.route("/oauth/client/<client_id>/revoke", methods=["POST"])
-@fresh_login_required
-@session_required
-def revoke_client(client_id: str, *args, **kwargs):
-    if not OAuthClient.select().where(OAuthClient.client_id == client_id).exists():
-        return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})
-
-    OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
-        (OAuthToken.client == client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
-    ).execute()
-    OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
-        (OAuthToken.client == client_id)
-        & (OAuthToken.refresh_token.is_null(False))
-        & (OAuthToken.refresh_token_revoked_at.is_null(True))
-    ).execute()
-
-    return make_exception_response("0001")

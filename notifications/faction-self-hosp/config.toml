@@ -1,0 +1,11 @@
+[trigger]
+uuid = "2dd8149f-7d32-4aaf-956a-cd22846904e4"
+name = "Faction Self-Hosp"
+description = "This notification will ping members leaving the hospital in the next 10 minutes."
+owner = 2383326
+
+[implementation]
+cron = "*/5 * * * *"
+resource = "faction/v2"
+selections = ["members"]
+message_type = "send"

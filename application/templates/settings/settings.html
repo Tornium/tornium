@@ -44,23 +44,38 @@ Tornium - Settings
 
         <div class="card mx-3 my-3">
             <div class="card-body">
-                <h5 class="card-title">Multi-Factor Authentication</h5>
+                <h5 class="card-title">Two-Factor Authentication</h5>
                 <p class="card-text">
-                    Multi-faction authentication currently only supports TOTP. TOTP also includes support for backup
-                    codes that are to be stored offline in case your 2Fa device can't be used.
+                    Two-factor authentication (2FA) is an enhanced security measure. 2FA is intended to prevent
+                    access to a user's Tornium account if their API key or Discord account is compromised. Once enabled,
+                    you will be required to give two forms of identification when you sign into Tornium.
                 </p>
 
-                <div class="my-1">
-                    <button id="disable-mfa" class="m-2 btn btn-outline-danger {% if enabled_mfa == 0 %}disabled{% endif %}">Disabled</button>
-                    <button id="enable-totp" class="m-2 btn btn-outline-success {% if enabled_mfa == 1 %}disabled{% endif %}">TOTP</button>
-                </div>
+                {% if current_user.security %}
+                <form method="POST" target="_self" action="/settings/totp/disable">
+                    <input type="hidden" id="csrf-token" name="csrf-token" hidden value="{{ session["csrf_token"] }}">
+                    <button type="submit" class="btn btn-outline-secondary">Disable TOTP</button>
+                </form>
+                {% else %}
+                <a href="/settings/totp/setup" class="btn btn-outline-secondary">Setup TOTP</a>
+                {% endif %}
 
-                {% if enabled_mfa == 1 %}
-                <div class="my-1">
-                    <button id="show-totp-qr" class="m-2 btn btn-outline-success">Show TOTP QR Code</button>
-                    <button id="regen-totp-secret" class="m-2 btn btn-outline-danger">Regenerate TOTP Secret</button>
-                    <button id="regen-totp-codes" class="m-2 btn btn-outline-danger">Regenerate TOTP Backup Codes</button>
-                </div>
+                {% if current_user.security != 0 %}
+                <hr />
+                <h6 class="card-title">Backup Codes</h6>
+                <p class="card-text">
+                    With two-factor authentication enabled, you will need backup codes in case you lose your authenticator.
+                    Without an authenticator and backup codes, you will have to contact 
+                    <a href="https://www.torn.com/profiles.php?XID=2383326">tiksan [2383326]</a> to recover your account. We
+                    recommend storing the backup codes in a safe place as they can only be viewed once when first generated.
+                </p>
+
+                <form method="POST" target="_self" action="/settings/totp/backup">
+                    <input type="hidden" id="csrf-token" name="csrf-token" hidden value="{{ session["csrf_token"] }}">
+                    <button type="submit" class="btn btn-outline-secondary">Regenerate Backup Codes</button>
+                </form>
+                
+                <p class="text-secondary ms-2 mt-2">{{ current_user.otp_backups | length }}/10 Remaining</p>
                 {% endif %}
             </div>
         </div>
@@ -186,22 +201,8 @@ Tornium - Settings
         </ul>
     </div>
 </div>
-
-<div class="modal fade" id="settings-modal" tabindex="-1" aria-labelledby="settings-modal" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="settings-modal-label"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body" id="settings-modal-body"></div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/static/settings/settings.js"></script>
 {% endblock %}

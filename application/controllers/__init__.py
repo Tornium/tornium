@@ -14,11 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, jsonify, render_template, request, send_from_directory
-from flask_login import current_user, fresh_login_required
-from peewee import DoesNotExist
-from tornium_commons.models import OAuthClient, OAuthToken, Server, TornKey, User
-
-from controllers.decorators import token_required
+from tornium_commons.models import Server, TornKey
 
 mod = Blueprint("baseroutes", __name__)
 
@@ -37,96 +33,6 @@ def terms():
 @mod.route("/privacy")
 def privacy():
     return render_template("privacy.html")
-
-
-@mod.route("/settings")
-@fresh_login_required
-@token_required(setnx=True)
-def settings(*args, **kwargs):
-    if current_user.key is None:
-        obfuscated_key = "Not Set"
-    else:
-        obfuscated_key = current_user.key[:6] + "*" * 10
-
-    api_keys = list(
-        k
-        for k in TornKey.select(
-            TornKey.guid,
-            TornKey.api_key,
-            TornKey.access_level,
-            TornKey.disabled,
-            TornKey.paused,
-            TornKey.default,
-        )
-        .join(User)
-        .where(TornKey.user.tid == current_user.tid)
-    )
-
-    # Applications the user has authorized are:
-    #  - belonging to the user
-    #  - have a not-revoked access token OR have a not-revoked refresh token
-    applications = list(
-        token
-        for token in OAuthToken.select()
-        .distinct(OAuthToken.client)
-        .where(
-            (OAuthToken.user == current_user.tid)
-            & (
-                (OAuthToken.access_token_revoked_at.is_null(True))
-                | (OAuthToken.refresh_token.is_null(False) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
-            )
-        )
-        .order_by(OAuthToken.client.asc(), OAuthToken.issued_at)
-    )
-
-    return render_template(
-        "settings/settings.html",
-        enabled_mfa=current_user.security,
-        obfuscated_key=obfuscated_key,
-        api_keys=api_keys,
-        applications=applications,
-        discord_linked=("Not Linked" if current_user.discord_id in ("", None, 0) else "Linked"),
-    )
-
-
-@mod.route("/settings/application/<application_id>")
-@fresh_login_required
-def settings_application(application_id: str, *args, **kwargs):
-    try:
-        current_token: OAuthToken = (
-            OAuthToken.select()
-            .where(
-                (OAuthToken.user == current_user.tid)
-                & (OAuthToken.client == application_id)
-                & (
-                    (OAuthToken.access_token_revoked_at.is_null(True))
-                    | (OAuthToken.refresh_token.is_null(False) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
-                )
-            )
-            .order_by(OAuthToken.issued_at.desc())
-            .get()
-        )
-        first_token: OAuthToken = (
-            OAuthToken.select()
-            .where((OAuthToken.user == current_user.tid) & (OAuthToken.client == application_id))
-            .order_by(OAuthToken.issued_at.asc())
-            .get()
-        )
-    except DoesNotExist:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Invalid Application ID",
-                error="You have not authorized any application with this ID.",
-            ),
-            404,
-        )
-
-    scopes = current_token.scope.split()
-
-    return render_template(
-        "settings/application.html", current_token=current_token, first_token=first_token, scopes=scopes
-    )
 
 
 @mod.route("/static/favicon.svg")

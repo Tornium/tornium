@@ -83,6 +83,7 @@ def init__app():
     from controllers.notification import mod as notification_mod
     from controllers.oauth import mod as oauth_mod
     from controllers.oauth import oauth_server
+    from controllers.settings_routes import mod as settings_mod
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
@@ -143,6 +144,7 @@ def init__app():
         app.register_blueprint(oauth_mod)
         app.register_blueprint(developers_mod)
         app.register_blueprint(notification_mod)
+        app.register_blueprint(settings_mod)
 
     return app
 

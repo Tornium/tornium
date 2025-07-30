@@ -13,6 +13,7 @@
     - [Setup Banking](tutorial/discord-server-banking.md)
 
 # User Guide
+- [How to setup 2FA?](guide/2fa.md)
 
 # Reference
 
@@ -23,5 +24,6 @@
     - [Verification](reference/bot-verification.md)
     - [Organized Crimes](reference/bot-oc.md)
     - [Banking](reference/bot-banking.md)
+- [Two-Factor Authentication](reference/2fa.md)
 
 # Explanation

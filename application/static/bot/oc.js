@@ -53,7 +53,7 @@ function setDelayedCrimes(event) {
 }
 
 function setRangeGlobalMin(event) {
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/minimum`, {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/extra-range/minimum`, {
         body: { minimum: this.value },
         errorTitle: "OC Range Global Min Set Failed",
     }).then(() => {
@@ -65,7 +65,7 @@ function setRangeGlobalMin(event) {
 }
 
 function setRangeGlobalMax(event) {
-    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/range/maximum`, {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/extra-range/maximum`, {
         body: { maximum: this.value },
         errorTitle: "OC Range Global Max Set Failed",
     }).then(() => {
@@ -175,7 +175,7 @@ function removeDOMRangeCrime(crimeName, container) {
 }
 
 function addRangeCrime(crimeName, container) {
-    tfetch("POST", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/range/local/${crimeName}`, {
+    tfetch("POST", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/extra-range/local/${crimeName}`, {
         errorTitle: "OC-Specific Range Creation Failed",
     }).then((data) => {
         generateToast(
@@ -199,7 +199,7 @@ function addRangeCrime(crimeName, container) {
 }
 
 function removeRangeCrime(crimeName, container) {
-    tfetch("DELETE", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/range/local/${crimeName}`, {
+    tfetch("DELETE", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/extra-range/local/${crimeName}`, {
         errorTitle: "OC-Specific Range Deletion Failed",
     })
         .then(() => {
@@ -259,7 +259,7 @@ function modifyRangeLocalMinMax(event, rangeType) {
     const factionID = event.currentTarget.parentElement.parentElement.parentElement.getAttribute("data-faction");
     const crimeName = event.currentTarget.getAttribute("data-crime-name");
 
-    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/range/local/${crimeName}`, {
+    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/extra-range/local/${crimeName}`, {
         body: body,
         errorTitle: "OC-Specific Range Min/Max Change Failed",
     }).then(() => {

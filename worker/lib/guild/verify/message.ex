@@ -111,7 +111,7 @@ defmodule Tornium.Guild.Verify.Message do
         Nostrum.Struct.Embed.put_field(
           embed,
           "Removed Roles",
-          Tornium.Utils.roles_to_string(MapSet.to_list(removed_roles))
+          Tornium.Discord.roles_to_string(MapSet.to_list(removed_roles))
         )
       else
         embed
@@ -119,7 +119,11 @@ defmodule Tornium.Guild.Verify.Message do
 
     embed =
       if MapSet.size(added_roles) > 0 do
-        Nostrum.Struct.Embed.put_field(embed, "Added Roles", Tornium.Utils.roles_to_string(MapSet.to_list(added_roles)))
+        Nostrum.Struct.Embed.put_field(
+          embed,
+          "Added Roles",
+          Tornium.Discord.roles_to_string(MapSet.to_list(added_roles))
+        )
       else
         embed
       end

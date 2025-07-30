@@ -53,9 +53,9 @@ defmodule Tornium.User.DiscordStore do
       nil ->
         nil
 
-      %Tornium.Schema.User{discord_id: user_discord_id} ->
-        put(Tornium.User.DiscordStore, user_id, user_discord_id)
-        user_discord_id
+      _ when is_integer(discord_id) ->
+        put(Tornium.User.DiscordStore, user_id, discord_id)
+        discord_id
     end
   end
 

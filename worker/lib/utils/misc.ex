@@ -31,45 +31,6 @@ defmodule Tornium.Utils do
   end
 
   @doc """
-  Create a string of role mentions from a list of Discord roles.
-
-  If a role is an assignable role, the assignable role will be replaced with the roles provided in `opts.assigns`
-  if provided. If no `assigns` are provided, the assignable role will not be included in the created string of 
-  role mentions.
-
-  ## Options
-    * `:assigns` - List of role IDs or `{:user, user Discord ID}`
-  """
-  @spec roles_to_string(roles :: [Tornium.Discord.role_assignable()], opts :: keyword()) :: String.t()
-  def roles_to_string(roles, opts \\ []) when is_list(roles) do
-    # TODO: This and `set_assigned_role` should be under Tornium.Discord
-    # TODO: Test this
-    roles
-    |> Enum.uniq()
-    |> set_assigned_role(opts)
-    |> List.flatten()
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map_join(" ", fn
-      role_id when is_integer(role_id) -> "<@&#{role_id}>"
-      {:user, user_id} when is_integer(user_id) -> "<@#{user_id}>"
-    end)
-  end
-
-  @spec set_assigned_role(roles :: [Tornium.Discord.role_assignable()], opts :: keyword()) :: [Tornium.Discord.role()]
-  defp set_assigned_role(roles, opts) do
-    assigns = Keyword.get(opts, :assigns, [])
-
-    if Enum.member?(roles, -1) do
-      Enum.map(roles, fn
-        -1 -> assigns
-        role -> role
-      end)
-    else
-      roles
-    end
-  end
-
-  @doc """
   Recursively create a map from group of tuples (used by Tornium.Lua).
   """
   @spec tuples_to_map(data :: list(tuple())) :: map()

@@ -38,7 +38,7 @@ defmodule Tornium.Faction.OC.Render do
   end
 
   def render_all(
-        %Tornium.Faction.OC.Check.Struct{} = check_state,
+        %Tornium.Faction.OC.Check.Struct{} = _check_state,
         config
       )
       when is_nil(config) do
@@ -76,9 +76,6 @@ defmodule Tornium.Faction.OC.Render do
           config
       )
       when is_list(messages) and not is_nil(tool_channel) do
-    # TODO: Restructure this code
-    # Maybe split the message struct creation into a separate function
-
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     # TODO: Add commas to market value of item
@@ -87,7 +84,7 @@ defmodule Tornium.Faction.OC.Render do
         [
           %Nostrum.Struct.Message{
             channel_id: tool_channel,
-            content: Tornium.Utils.roles_to_string(tool_roles),
+            content: Tornium.Discord.roles_to_string(tool_roles),
             embeds: [
               %Nostrum.Struct.Embed{
                 title: "OC Missing Tool",
@@ -167,17 +164,16 @@ defmodule Tornium.Faction.OC.Render do
           config
       )
       when is_list(messages) and not is_nil(delayed_channel) and not is_nil(delayed_reason) do
-    # TODO: Restructure this code
-    # Maybe split the message struct creation into a separate function
-
     # FIXME: Re-enable the `enabled` check once the UI for that is created
+
+    delayer_user_id = Tornium.User.DiscordStore.get(user.tid)
 
     messages =
       if render_crime?(slot, delayed_crimes) do
         [
           %Nostrum.Struct.Message{
             channel_id: delayed_channel,
-            content: Tornium.Utils.roles_to_string(delayed_roles),
+            content: Tornium.Discord.roles_to_string(delayed_roles, assigns: [{:user, delayer_user_id}]),
             embeds: [
               %Nostrum.Struct.Embed{
                 title: "OC Delayed",
@@ -235,17 +231,15 @@ defmodule Tornium.Faction.OC.Render do
           config
       )
       when is_list(messages) and not is_nil(extra_range_channel) do
-    # TODO: Restructure this code
-    # Maybe split the message struct creation into a separate function
-
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
     {expected_minimum, expected_maximum} = Tornium.Schema.ServerOCConfig.chance_range(config, crime)
+    extra_range_user_id = Tornium.User.DiscordStore.get(user.tid)
 
     new_message =
       %Nostrum.Struct.Message{
         channel_id: extra_range_channel,
-        content: Tornium.Utils.roles_to_string(extra_range_roles),
+        content: Tornium.Discord.roles_to_string(extra_range_roles, assigns: [{:user, extra_range_user_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "OC CPR Extra-Range",

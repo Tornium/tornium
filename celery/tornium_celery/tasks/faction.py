@@ -1809,7 +1809,7 @@ def auto_cancel_requests():
     for withdrawal in Withdrawal.select().where(
         (Withdrawal.status == 0)
         & (Withdrawal.expires_at.is_null(False))
-        & (Withdrawal.expires_at >= datetime.datetime.utcnow())
+        & (Withdrawal.expires_at <= datetime.datetime.utcnow())
     ):  # One hour before now
         Withdrawal.update(status=3, time_fulfilled=datetime.datetime.utcnow()).where(
             Withdrawal.wid == withdrawal.wid

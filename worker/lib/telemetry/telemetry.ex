@@ -27,7 +27,7 @@ defmodule Tornium.Telemetry do
   def attach_default_logger(opts \\ []) when is_list(opts) do
     events = [
       [:tornium, :oc_team, :member_removed],
-      [:tornium, :bot, :guild_joined],
+      [:tornium, :bot, :guild_joined]
     ]
 
     opts =

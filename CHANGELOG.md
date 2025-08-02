@@ -59,3 +59,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `TorniumExt` plugin system
 - Removed private user data from `GET /api/v1/user`
 - Removed member personal stat report
+- Removed OCs 1.0 support

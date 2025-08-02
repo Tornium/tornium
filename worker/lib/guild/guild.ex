@@ -106,6 +106,11 @@ defmodule Tornium.Guild do
     fetch_admins(guild_id, fetched_roles)
   end
 
+  def fetch_admins(guild_id, roles) when is_integer(guild_id) and is_map(roles) do
+    # Necessary when roles come from the gateway
+    fetch_admins(guild_id, Map.values(roles))
+  end
+
   def fetch_admins(guild_id, roles) when is_integer(guild_id) and is_list(roles) do
     admin_roles =
       roles

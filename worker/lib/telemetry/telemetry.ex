@@ -26,7 +26,8 @@ defmodule Tornium.Telemetry do
   @spec attach_default_logger(opts :: Keyword.t()) :: :ok | {:error, :already_exists}
   def attach_default_logger(opts \\ []) when is_list(opts) do
     events = [
-      [:tornium, :oc_team, :member_removed]
+      [:tornium, :oc_team, :member_removed],
+      [:tornium, :bot, :guild_joined],
     ]
 
     opts =

@@ -43,11 +43,17 @@ defmodule Tornium.Discord.Consumer do
 
     Tornium.Schema.Server.new(guild_id, guild_name)
 
-    guild_admins =
+    guild_admins_discord_ids =
       guild_id
       |> Tornium.Guild.fetch_admins(roles)
       |> List.insert_at(0, guild_owner_id)
       |> Enum.uniq()
+
+    guild_admins = 
+      Tornium.Schema.User
+      |> where([u], u.discord_id in ^guild_admins_discord_ids)
+      |> select([u], u.tid)
+      |> Repo.all()
 
     Tornium.Schema.Server
     |> update([s], set: [admins: ^guild_admins])

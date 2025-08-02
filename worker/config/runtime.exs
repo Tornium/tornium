@@ -42,6 +42,7 @@ config :nostrum,
   youtubedl: nil,
   streamlink: nil,
   gateway_intents: [
+    :guilds,
     :guild_members
   ],
   token: System.get_env("DISCORD_TOKEN") || raise("environment variable DISCORD_TOKEN is missing.")

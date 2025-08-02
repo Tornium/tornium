@@ -77,6 +77,6 @@ defmodule Tornium.Schema.Server do
     |> Ecto.Changeset.put_change(:sid, guild_id)
     |> Ecto.Changeset.put_change(:name, guild_name)
     |> Ecto.Changeset.change(opts)
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: {:replace_all_except, [:sid]}, conflict_target: :sid)
   end
 end

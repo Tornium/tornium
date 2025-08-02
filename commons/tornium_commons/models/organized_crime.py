@@ -70,5 +70,5 @@ class OrganizedCrime(BaseModel):
             "planning_started_at": None if self.planning_started_at is None else self.planning_started_at.timestamp(),
             "ready_at": None if self.ready_at is None else self.ready_at.timestamp(),
             "expires_at": self.expires_at.timestamp(),
-            "executed_at": None if self.ready_at is None else self.executed_at.timestamp(),
+            "executed_at": None if self.executed_at is None else self.executed_at.timestamp(),
         }

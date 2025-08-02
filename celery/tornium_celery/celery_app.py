@@ -96,11 +96,6 @@ if celery_app is None:
                 "enabled": True,
                 "schedule": {"type": "periodic", "second": "10"},
             },
-            "oc-refresh": {
-                "task": "tasks.faction.oc_refresh",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
-            },
             "armory-check": {
                 "task": "tasks.faction.armory_check",
                 "enabled": True,

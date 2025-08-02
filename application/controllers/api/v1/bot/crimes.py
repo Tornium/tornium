@@ -20,7 +20,7 @@ from flask import request
 from peewee import DoesNotExist
 from tornium_commons.models import (
     Faction,
-    OrganizedCrimeNew,
+    OrganizedCrime,
     Server,
     ServerOCConfig,
     ServerOCRangeConfig,
@@ -153,7 +153,7 @@ def set_tool_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
     elif crimes is not None and not isinstance(crimes, list):
         return make_exception_response("1003", key)
 
-    if len(set(crimes) - set(OrganizedCrimeNew.oc_names())) != 0:
+    if len(set(crimes) - set(OrganizedCrime.oc_names())) != 0:
         # At least one invalid OC name
         return make_exception_response("1105", key)
 
@@ -197,7 +197,7 @@ def set_delayed_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
     elif crimes is not None and not isinstance(crimes, list):
         return make_exception_response("1003", key)
 
-    db_oc_names = [crime.oc_name for crime in OrganizedCrimeNew.select().distinct(OrganizedCrimeNew.oc_name)]
+    db_oc_names = [crime.oc_name for crime in OrganizedCrime.select().distinct(OrganizedCrime.oc_name)]
     if len(set(crimes) - set(db_oc_names)) != 0:
         # At least one invalid OC name
         return make_exception_response("1105", key)
@@ -316,7 +316,7 @@ def set_extra_range_global_maximum(guild_id: int, faction_tid: int, *args, **kwa
 def create_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    if oc_name not in OrganizedCrimeNew.oc_names():
+    if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
 
     try:
@@ -352,7 +352,7 @@ def create_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *arg
 def delete_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    if oc_name not in OrganizedCrimeNew.oc_names():
+    if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
 
     try:
@@ -397,7 +397,7 @@ def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args
     else:
         raise ValueError
 
-    if oc_name not in OrganizedCrimeNew.oc_names():
+    if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
 
     try:

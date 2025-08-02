@@ -24,7 +24,6 @@ from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
 from .organized_crime import OrganizedCrime
 from .organized_crime_cpr import OrganizedCrimeCPR
-from .organized_crime_new import OrganizedCrimeNew
 from .organized_crime_slot import OrganizedCrimeSlot
 from .organized_crime_team import OrganizedCrimeTeam
 from .organized_crime_team_member import OrganizedCrimeTeamMember
@@ -55,9 +54,8 @@ __all__ = [
     "OAuthAuthorizationCode",
     "OAuthClient",
     "OAuthToken",
-    "OrganizedCrime",
     "OrganizedCrimeCPR",
-    "OrganizedCrimeNew",
+    "OrganizedCrime",
     "OrganizedCrimeSlot",
     "OrganizedCrimeTeam",
     "OrganizedCrimeTeamMember",

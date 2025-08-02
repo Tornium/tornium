@@ -44,7 +44,7 @@ defmodule Tornium.Schema.OrganizedCrime do
         }
 
   @primary_key {:oc_id, :integer, autogenerate: false}
-  schema "organized_crime_new" do
+  schema "organized_crime" do
     field(:oc_name, :string)
     field(:oc_difficulty, :integer)
 

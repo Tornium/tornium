@@ -17,7 +17,7 @@ import typing
 
 from flask import jsonify
 from peewee import fn
-from tornium_commons.models import Faction, OrganizedCrimeCPR, OrganizedCrimeNew, User
+from tornium_commons.models import Faction, OrganizedCrime, OrganizedCrimeCPR, User
 
 from controllers.api.v1.decorators import (
     global_cache,
@@ -35,7 +35,7 @@ def get_oc_names(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     oc_names: typing.List[str] = [
-        crime.oc_name for crime in OrganizedCrimeNew.select().distinct(fn.LOWER(OrganizedCrimeNew.oc_name))
+        crime.oc_name for crime in OrganizedCrime.select().distinct(fn.LOWER(OrganizedCrime.oc_name))
     ]
 
     return jsonify(oc_names), 200, api_ratelimit_response(key)
@@ -46,7 +46,7 @@ def get_oc_names(*args, **kwargs):
 def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    if oc_name not in OrganizedCrimeNew.oc_names():
+    if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
     elif kwargs["user"].faction_id != faction_id:
         return make_exception_response("4004", key)

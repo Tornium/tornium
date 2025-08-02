@@ -17,7 +17,7 @@ from peewee import CharField, DateTimeField, DoesNotExist, ForeignKeyField, UUID
 
 from .base_model import BaseModel
 from .faction import Faction
-from .organized_crime_new import OrganizedCrimeNew
+from .organized_crime import OrganizedCrime
 
 
 class OrganizedCrimeTeam(BaseModel):
@@ -53,23 +53,19 @@ class OrganizedCrimeTeam(BaseModel):
         ]
 
     def team_crimes(self):
-        from .organized_crime_team_member import OrganizedCrimeTeamMember
-
         return [
             crime.to_dict()
-            for crime in OrganizedCrimeNew.select()
-            .where(OrganizedCrimeNew.assigned_team == self.guid)
-            .order_by(-OrganizedCrimeNew.created_at)
+            for crime in OrganizedCrime.select()
+            .where(OrganizedCrime.assigned_team == self.guid)
+            .order_by(-OrganizedCrime.created_at)
         ]
 
     def current_team_crime(self):
-        from .organized_crime_team_member import OrganizedCrimeTeamMember
-
         try:
-            crime: OrganizedCrimeNew = (
-                OrganizedCrimeNew.select()
-                .where(OrganizedCrimeNew.assigned_team == self.guid)
-                .order_by(-OrganizedCrimeNew.created_at)
+            crime: OrganizedCrime = (
+                OrganizedCrime.select()
+                .where(OrganizedCrime.assigned_team == self.guid)
+                .order_by(-OrganizedCrime.created_at)
                 .get()
             )
         except DoesNotExist:

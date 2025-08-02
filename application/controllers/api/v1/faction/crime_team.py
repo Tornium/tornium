@@ -22,7 +22,7 @@ from peewee import DoesNotExist, IntegrityError
 from tornium_commons.db_connection import db
 from tornium_commons.models import (
     Faction,
-    OrganizedCrimeNew,
+    OrganizedCrime,
     OrganizedCrimeSlot,
     OrganizedCrimeTeam,
     OrganizedCrimeTeamMember,
@@ -38,7 +38,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    if oc_name not in OrganizedCrimeNew.oc_names():
+    if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
@@ -50,10 +50,10 @@ def create_oc_team(faction_id: int, oc_name: str, *args, **kwargs):
     # The OC slots of the latest OC for the specified OC name need to be retrieved to determine
     # the names and indices of the positions in the OC
     try:
-        latest_oc: OrganizedCrimeNew = (
-            OrganizedCrimeNew.select(OrganizedCrimeNew.oc_id)
-            .where(OrganizedCrimeNew.oc_name == oc_name)
-            .order_by(OrganizedCrimeNew.created_at.desc())
+        latest_oc: OrganizedCrime = (
+            OrganizedCrime.select(OrganizedCrime.oc_id)
+            .where(OrganizedCrime.oc_name == oc_name)
+            .order_by(OrganizedCrime.created_at.desc())
             .get()
         )
     except DoesNotExist:

@@ -24,7 +24,7 @@ from peewee import (
 
 from .base_model import BaseModel
 from .item import Item
-from .organized_crime_new import OrganizedCrimeNew
+from .organized_crime import OrganizedCrime
 from .user import User
 
 
@@ -33,7 +33,7 @@ class OrganizedCrimeSlot(BaseModel):
         table_name = "organized_crime_slot"
 
     id = UUIDField(primary_key=True)
-    oc = ForeignKeyField(OrganizedCrimeNew, null=False)
+    oc = ForeignKeyField(OrganizedCrime, null=False)
 
     slot_index = SmallIntegerField(null=False)
     crime_position = CharField(null=False)

@@ -1,7 +1,7 @@
 [trigger]
 uuid = "83eaaa98-bd9c-42a2-850e-a58b03677171"
 name = "Faction Members Hospital"
-description = "This notification will show who is in the hospital in a faction and when they will leave."
+description = "This notification will show who is in the hospital in a faction and when they will leave. The notification should be \"Repeating\"."
 owner = 2383326
 
 [implementation]

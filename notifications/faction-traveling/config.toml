@@ -1,7 +1,7 @@
 [trigger]
 uuid = "989ad601-12a7-4ca9-8d61-52c932b7707d"
 name = "Faction Members Traveling"
-description = "This notification will show who in a faction is traveling and when they will land.\n\nModify the TRAVEL_METHOD parameter to change the travel method used in the landing time calculations (1 = standard; 2 = airstrip; 3 = WLT; 4 = BCT)"
+description = "This notification will show who in a faction is traveling and when they will land.\n\nModify the TRAVEL_METHOD parameter to change the travel method used in the landing time calculations (1 = standard; 2 = airstrip; 3 = WLT; 4 = BCT). The notification should be \"Repeating\"."
 owner = 2383326
 
 [implementation]

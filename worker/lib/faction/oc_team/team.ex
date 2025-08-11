@@ -44,8 +44,8 @@ defmodule Tornium.Faction.OC.Team do
   def reassign_teams(
         [%Tornium.Schema.OrganizedCrimeTeam{} = team | remaining_teams] = _teams,
         [%Tornium.Schema.OrganizedCrime{} | _remaining_crimes] = crimes,
-        %{} = assignments
-      ) do
+        assignments
+      ) when is_map(assignments) do
     {crimes, assignments} =
       team
       |> filter_team_crimes(crimes)
@@ -55,7 +55,12 @@ defmodule Tornium.Faction.OC.Team do
     reassign_teams(remaining_teams, crimes, assignments)
   end
 
-  def reassign_teams([], _crimes, %{} = assignments) do
+  def reassign_teams(teams, [] = _crimes, assignments) when is_map(assignments) do
+    # Fallback for factions that have no OC 2.0 crimes stored in the database
+    assignments
+  end
+
+  def reassign_teams([] = _teams, _crimes,  assignments) when is_map(assignments) do
     assignments
   end
 

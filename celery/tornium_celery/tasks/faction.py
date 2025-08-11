@@ -1785,24 +1785,25 @@ def armory_check_subtask(_armory_data, faction_id: int):
 
     out_of_stock_item: int
     for out_of_stock_item in set(map(int, faction_config["items"])) - in_stock_items:
-        minimum = faction_config["items"].get(out_of_stock_item)
+        minimum = faction_config["items"].get(str(out_of_stock_item))
         item: typing.Optional[Item] = (
             Item.select(Item.market_value, Item.name).where(Item.tid == out_of_stock_item).first()
         )
 
         if minimum is None:
             continue
-        elif item is None:
-            # The item should exist in the database if it's set for the armory notifications,
-            # but we don't have the API data about the item.
-            continue
+
+        suffix = (
+            ""
+            if item is None or item.market_value <= 0
+            else f" (worth about ${commas(item.market_value * (minimum - quantity))})"
+        )
 
         payload["embeds"].append(
             {
                 "title": "Armory Out of Stock",
                 "description": f"{faction.name} is currently out of stock of {item.name} ({commas(quantity)} "
-                f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity (worth "
-                f"about ${commas(item.market_value * (minimum - quantity))}).",
+                f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity{suffix}.",
                 "color": SKYNET_ERROR,
                 "timestamp": datetime.datetime.utcnow().isoformat(),
                 "footer": {"text": torn_timestamp()},

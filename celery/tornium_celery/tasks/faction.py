@@ -1784,7 +1784,7 @@ def armory_check_subtask(_armory_data, faction_id: int):
                 payload["embeds"].clear()
 
     out_of_stock_item: int
-    for out_of_stock_item in set(map(int, faction_config["items"])):
+    for out_of_stock_item in set(map(int, faction_config["items"])) - in_stock_items:
         minimum = faction_config["items"].get(out_of_stock_item)
         item: typing.Optional[Item] = (
             Item.select(Item.market_value, Item.name).where(Item.tid == out_of_stock_item).first()

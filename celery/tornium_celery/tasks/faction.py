@@ -1802,8 +1802,8 @@ def armory_check_subtask(_armory_data, faction_id: int):
         payload["embeds"].append(
             {
                 "title": "Armory Out of Stock",
-                "description": f"{faction.name} is currently out of stock of {item.name} ({commas(quantity)} "
-                f"remaining). {commas(minimum - quantity)}x must be bought to meet the minimum quantity{suffix}.",
+                "description": f"{faction.name} is currently out of stock of {item.name}. "
+                f"{commas(minimum)}x must be bought to meet the minimum quantity{suffix}.",
                 "color": SKYNET_ERROR,
                 "timestamp": datetime.datetime.utcnow().isoformat(),
                 "footer": {"text": torn_timestamp()},

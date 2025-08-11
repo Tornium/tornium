@@ -77,6 +77,7 @@ defmodule Tornium.Workers.OCCPRUpdate do
   defp flatten_crimes([%Tornium.Schema.OrganizedCrime{oc_name: oc_name, slots: slots} | remaining_crimes], acc) do
     slot_cpr =
       slots
+      |> Enum.reject(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> not is_nil(user_id) end)
       |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: position} -> position end)
       |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: position, user_success_chance: cpr} ->
         %Tornium.Schema.OrganizedCrimeCPR{

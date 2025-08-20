@@ -50,7 +50,7 @@ defmodule Tornium.MixProject do
       {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
-      {:luerl, "~> 1.2.3"},
+      {:luerl, "~> 1.5.0"},
       {:solid, "~> 0.18"},
       {:logger_file_backend, "~> 0.0.14"},
       {:logger_json, "~> 7.0"},

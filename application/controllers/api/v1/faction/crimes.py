@@ -99,7 +99,7 @@ def get_delays(faction_id: int, *args, **kwargs):
             "user_id": slot.user_id,
             "oc_position": slot.crime_position,
             "oc_position_index": slot.crime_position_index,
-            "delay_reason": slot.delayer_reason,
+            "delay_reason": slot.delayed_reason,
         }
         for slot in slots
     ]

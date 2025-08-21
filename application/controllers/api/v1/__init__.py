@@ -260,6 +260,7 @@ mod.add_url_rule(
 )
 mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/team", view_func=faction.crime_team.get_oc_teams, methods=["GET"]
 )

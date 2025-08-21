@@ -15,9 +15,15 @@
 
 import typing
 
-from flask import jsonify
+from flask import jsonify, request
 from peewee import fn
-from tornium_commons.models import Faction, OrganizedCrime, OrganizedCrimeCPR, User
+from tornium_commons.models import (
+    Faction,
+    OrganizedCrime,
+    OrganizedCrimeCPR,
+    OrganizedCrimeSlot,
+    User,
+)
 
 from controllers.api.v1.decorators import (
     global_cache,
@@ -41,6 +47,64 @@ def get_oc_names(*args, **kwargs):
     return jsonify(oc_names), 200, api_ratelimit_response(key)
 
 
+@require_oauth("faction:crimes")
+@ratelimit
+def get_delays(faction_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    before = request.args.get("before")
+    after = request.args.get("after")
+
+    if isinstance(before, str) and not before.isdigit():
+        return make_exception_response("0000", key)
+    elif isinstance(after, str) and not after.isdigit():
+        return make_exception_response("0000", key)
+
+    try:
+        if before is not None:
+            before = int(before)
+        if after is not None:
+            after = int(after)
+
+        limit = min(int(request.args.get("limit", 100)), 100)
+    except (ValueError, TypeError):
+        return make_exception_response("0000", key)
+
+    if before is not None and after is not None and before >= after:
+        return make_exception_response("0000", key)
+
+    slots = (
+        OrganizedCrimeSlot.select()
+        .join(User)
+        .where((OrganizedCrimeSlot.delayer == True) & (User.faction_id == faction_id))
+        .order_by(OrganizedCrimeSlot.oc_id.desc())
+        .limit(limit)
+    )
+
+    if before is not None:
+        slots = slots.where(OrganizedCrimeSlot.oc_id <= before)
+    if after is not None:
+        slots = slots.where(OrganizedCrimeSlot.oc_id >= after)
+
+    return [
+        {
+            "oc_id": slot.oc_id,
+            "user_id": slot.user_id,
+            "oc_position": slot.crime_position,
+            "oc_position_index": slot.crime_position_index,
+            "delay_reason": slot.delayer_reason,
+        }
+        for slot in slots
+    ]
+
+
 @session_required
 @ratelimit
 def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
@@ -49,11 +113,9 @@ def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args,
     if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
     elif kwargs["user"].faction_id != faction_id:
-        return make_exception_response("4004", key)
+        return make_exception_response("4022", key)
     elif not kwargs["user"].can_manage_crimes():
         return make_exception_response("4006", key)
-    elif kwargs["user"].faction_id != faction_id:
-        return make_exception_response("4022", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
 

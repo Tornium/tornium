@@ -43,6 +43,3 @@ pre-commit:
         worker-credo:
             root: "worker/"
             run: "mix credo diff"
-        userscript-format:
-            root: "userscripts/"
-            run: "biome format ."

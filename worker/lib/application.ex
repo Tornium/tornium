@@ -38,7 +38,14 @@ defmodule Tornium.Application do
     children = [
       Tornium.PromEx,
       Tornium.Repo,
-      Tornium.Discord.Consumer,
+      {
+        Nostrum.Bot,
+        %{
+          consumer: Tornium.Discord.Consumer,
+          intents: [:guilds, :guild_members],
+          wrapped_token: fn -> System.get_env("DISCORD_TOKEN") end
+        }
+      },
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},

@@ -15,9 +15,10 @@
 
 defmodule Tornium.Discord.Consumer do
   require Logger
-  use Nostrum.Consumer
   import Ecto.Query
   alias Tornium.Repo
+
+  @behaviour Nostrum.Consumer
 
   @spec handle_event(event :: Nostrum.Consumer.guild_member_add()) :: term()
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
@@ -62,6 +63,8 @@ defmodule Tornium.Discord.Consumer do
 
     nil
   end
+
+  def handle_event(_event), do: :ok
 
   @spec verification_jail_message(
           {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}

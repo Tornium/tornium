@@ -40,12 +40,7 @@ end
 config :nostrum,
   ffmpeg: nil,
   youtubedl: nil,
-  streamlink: nil,
-  gateway_intents: [
-    :guilds,
-    :guild_members
-  ],
-  token: System.get_env("DISCORD_TOKEN") || raise("environment variable DISCORD_TOKEN is missing.")
+  streamlink: nil
 
 if config_env() == :prod do
   database_url =

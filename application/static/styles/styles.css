@@ -103,13 +103,13 @@ tbody td a {
 }
 body {
     font-family: "JetBrains Mono", serif;
-    height: 100vh;
+    height: 100dvh;
     overflow: auto;
     background-color: var(--secondary-bg-color) !important;
 }
 
 html {
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -220,7 +220,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
         border-right-color: var(--white);
         border-right-style: solid;
         border-right-width: 1px;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
 }
 #verticalNavContainer {

@@ -48,7 +48,7 @@
         border-right-color: var(--white);
         border-right-style: solid;
         border-right-width: 1px;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
 }
 #verticalNavContainer {

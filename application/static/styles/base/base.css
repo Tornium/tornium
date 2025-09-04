@@ -103,13 +103,13 @@ tbody td a {
 }
 body {
     font-family: "JetBrains Mono", serif;
-    height: 100vh;
+    height: 100dvh;
     overflow: auto;
     background-color: var(--secondary-bg-color) !important;
 }
 
 html {
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 

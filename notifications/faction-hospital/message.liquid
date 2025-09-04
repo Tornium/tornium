@@ -5,7 +5,7 @@
 		{% if hospitalized_members.size == 0 %}
 		"description": "No members are hospitalized"
 		{% else %}
-		"description": "{% for index in (1..hospitalized_members.size) limit:member_limit %}[{{ hospitalized_members[index].username }}](https://torn.com/profiles.php?XID={{ hospitalized_members[index].id }}) - <t:{{ hospitalized_members[index].timestamp }}:R>\n{% endfor %}"
+		"description": "{% for index in (1..hospitalized_members.size) limit:10 %}[{{ hospitalized_members[index].username }}](https://torn.com/profiles.php?XID={{ hospitalized_members[index].id }}) - <t:{{ hospitalized_members[index].timestamp }}:R>\n{% endfor %}"
 		{% endif %}
 		}
 	]

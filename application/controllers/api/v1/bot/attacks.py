@@ -179,7 +179,7 @@ def faction_chain_bonus_length(guild_id: int, faction_tid: int, *args, **kwargs)
     try:
         length = int(data["length"])
     except (KeyError, ValueError, TypeError):
-        return make_exception_response("0", key, details={"message": "Invalid chain length"})
+        return make_exception_response("0000", key, details={"message": "Invalid chain length"})
 
     try:
         guild: Server = Server.select(Server.admins, Server.factions).where(Server.sid == guild_id).get()

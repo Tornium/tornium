@@ -24,10 +24,10 @@ defmodule Tornium.Workers.Notification do
     queue: :notifications,
     tags: ["notification"],
     unique: [
-      period: 45,
+      period: :infinity,
       fields: [:worker, :args],
       keys: [:resource, :resource_id],
-      states: [:available, :executing, :scheduled]
+      states: :incomplete
     ]
 
   @impl Oban.Worker

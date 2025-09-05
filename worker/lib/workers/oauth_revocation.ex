@@ -32,7 +32,11 @@ defmodule Tornium.Workers.OAuthRevocation do
     priority: 0,
     queue: :scheduler,
     tags: ["scheduler", "user"],
-    unique: [period: 60]
+    unique: [
+      period: :infinity,
+      fields: [:worker],
+      states: :incomplete
+    ]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

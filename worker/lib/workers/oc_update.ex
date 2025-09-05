@@ -25,8 +25,9 @@ defmodule Tornium.Workers.OCUpdate do
     tags: ["faction", "oc"],
     unique: [
       period: :infinity,
+      fields: [:worker, :args],
       keys: [:faction_tid],
-      states: [:available, :executing, :retryable, :scheduled]
+      states: :incomplete
     ]
 
   @impl Oban.Worker

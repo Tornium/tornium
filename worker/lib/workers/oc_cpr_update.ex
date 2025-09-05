@@ -23,8 +23,9 @@ defmodule Tornium.Workers.OCCPRUpdate do
     tags: ["user", "oc"],
     unique: [
       period: :infinity,
+      fields: [:worker, :args],
       keys: [:api_call_id],
-      states: [:available, :executing, :retryable, :scheduled]
+      states: :incomplete
     ]
 
   @impl Oban.Worker

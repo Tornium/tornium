@@ -27,7 +27,8 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
     tags: ["scheduler", "oc"],
     unique: [
       period: :infinity,
-      states: [:available, :executing, :retryable, :scheduled]
+      fields: [:worker, :args],
+      states: :incomplete
     ]
 
   @impl Oban.Worker

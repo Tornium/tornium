@@ -3,9 +3,10 @@
 // @version      0.1.0-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
+// @match        https://tornium.com/oauth/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/callback*
+// @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/oauth/callback*
+// @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/settings
 // @match        https://www.torn.com/profiles.php*
-// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
-// @match        https://www.torn.com/tornium/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/factions.php*
 // @grant        GM_xmlhttpRequest

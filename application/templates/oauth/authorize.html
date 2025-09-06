@@ -69,6 +69,14 @@
                                     </div>
                                 </li>
                                 {% endif %}
+                                {% if scope == "faction:attacks" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-gun"></i> Faction - Attacks</div>
+                                        This application will be able to retrieve data on attacks and retaliations of the faction.
+                                    </div>
+                                </li>
+                                {% endif %}
                                 {% if scope == "faction:banking" %}
                                 <li class="list-group-item d-flex justify-content-between align-items-start">
                                     <div class="ms-2 me-auto">
@@ -104,7 +112,7 @@
                                 {% endfor %}
 
                                 {% if scopes|length == 0 %}
-                                <li class="list-group-item" data-scope="">No permissions requestsed</li>
+                                <li class="list-group-item" data-scope="">No permissions requested</li>
                                 {% endif %}
                             </ul>
                         </div>

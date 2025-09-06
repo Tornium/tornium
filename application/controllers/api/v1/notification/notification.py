@@ -79,9 +79,19 @@ def update_guild_notification(notification_id, *args, **kwargs):
     elif parameters.keys() != notification.trigger.parameters.keys():
         return make_exception_response("1402", key, details={"message": "Invalid parameter key"})
 
-    Notification.update(channel_id=channel_id, resource_id=resource_id, one_shot=one_shot, parameters=parameters).where(
-        Notification.nid == notification_uuid
-    ).execute()
+    notification_update_kwargs = {}
+    if notification.resource_id != resource_id:
+        # The state of the notification should be reset when the resource ID changes as the state could partially render
+        # data for the old resource
+        notification_update_kwargs["previous_state"] = {}
+
+    Notification.update(
+        channel_id=channel_id,
+        resource_id=resource_id,
+        one_shot=one_shot,
+        parameters=parameters,
+        **notification_update_kwargs,
+    ).where(Notification.nid == notification_uuid).execute()
 
     return (
         {

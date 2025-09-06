@@ -40,17 +40,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var VERSION = "0.1.0-dev";
   var APP_ID = "80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af";
-  var APP_SCOPE = "faction:attacks";
+  var APP_SCOPE = "identity faction:attacks";
   GM_setValue("tornium-retaliations:test", "1");
   var clientLocalGM = localStorage.getItem("tornium-retaliations:test") === "1";
-
-  // logging.js
-  function log(string) {
-    if (!DEBUG) {
-      return;
-    }
-    console.log("[Tornium Retaliations] " + string);
-  }
 
   // oauth.js
   var accessToken = GM_getValue("tornium-retaliations:access-token", null);
@@ -106,12 +98,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     console.log(responseJSON);
     const accessToken2 = responseJSON.access_token;
     const accessTokenExpiration2 = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
-    console.log(accessToken2);
-    console.log(accessTokenExpiration2);
     GM_setValue("tornium-retaliations:access-token", accessToken2);
     GM_setValue("tornium-retaliations:access-token-expires", accessTokenExpiration2);
     window.location.href = "https://torn.com";
     return;
+  }
+
+  // api.js
+  function tornium_fetch(endpoint, options = { method: "GET" }) {
+    return new Promise(async (resolve, reject) => {
+      return GM_xmlhttpRequest({
+        method: options.method,
+        url: `${BASE_URL}/api/v1/${endpoint}`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+        responseType: "json",
+        onload: async (response) => {
+          let responseJSON = response.response;
+          console.log(responseJSON);
+          if (response.responseType === void 0) {
+            responseJSON = JSON.parse(response.responseText);
+            response.responseType = "json";
+          }
+          if (responseJSON.error !== void 0) {
+            GM_deleteValue("tornium-retaliations:access-token");
+            GM_deleteValue("tornium-retaliations:access-token-expires");
+            $("#tornium-estimation").text(
+              `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
+            );
+            reject();
+            return;
+          }
+          resolve(responseJSON);
+          return;
+        },
+        onerror: (error) => {
+          reject(error);
+          return;
+        }
+      });
+    });
+  }
+
+  // logging.js
+  function log(string) {
+    if (!DEBUG) {
+      return;
+    }
+    console.log("[Tornium Retaliations] " + window.location.pathname + " - " + string);
   }
 
   // settings.js
@@ -159,7 +195,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     const oauthScopesLabel = document.createElement("strong");
     oauthScopesLabel.innerText = "Scope(s): ";
     oauthScopes.append(oauthScopesLabel);
-    oauthScopes.append("faction:attacks");
+    oauthScopes.append("identity faction:attacks");
     oauthSection.append(oauthScopes);
     const oauthConnectButton = document.createElement("a");
     oauthConnectButton.classList.add("torn-btn");
@@ -179,6 +215,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       const oauthDisconnectButton = document.createElement("button");
       oauthDisconnectButton.classList.add("torn-btn");
       oauthDisconnectButton.innerText = "Disconnect";
+      oauthDisconnectButton.addEventListener("click", deleteOAuthToken);
       oauthSection.append(oauthDisconnectButton);
     }
     container.append(oauthSection);
@@ -240,6 +277,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         }
     `);
   }
+  function deleteOAuthToken() {
+    GM_deleteValue("tornium-retaliations:access-token");
+    GM_deleteValue("tornium-retaliations:access-token-expires");
+    window.location.reload();
+  }
 
   // entrypoint.js
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
@@ -266,7 +308,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       unsafeWindow.alert("Invalid security state. Try again.");
       window.location.href = "https://www.torn.com";
     }
-  } else {
+  } else if (window.location.pathname.startsWith("/factions.php") && new URLSearchParams(window.location.search).get("step") == "your") {
     createSettingsButton();
+    tornium_fetch("user").then((identityData) => {
+      const factionID = identityData.factiontid;
+    });
   }
 })();

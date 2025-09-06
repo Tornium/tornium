@@ -5,5 +5,5 @@ export function log(string) {
         return;
     }
 
-    console.log("[Tornium Retaliations] " + string);
+    console.log("[Tornium Retaliations] " + window.location.pathname + " - " + string);
 }

@@ -1,3 +1,4 @@
+import { tornium_fetch } from "./api.js";
 import { APP_ID, DEBUG, VERSION } from "./constants.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
@@ -34,9 +35,16 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
         unsafeWindow.alert("Invalid security state. Try again.");
         window.location.href = "https://www.torn.com";
     }
-} else {
-    // TODO: Use an observer against the faction page if the URL is the faction page
+} else if (
+    window.location.pathname.startsWith("/factions.php") &&
+    new URLSearchParams(window.location.search).get("step") == "your"
+) {
     createSettingsButton();
 
-    // TODO: Load settings and other UI elements
+    tornium_fetch("user").then((identityData) => {
+        // TODO: Cache this if possible
+        const factionID = identityData.factiontid;
+
+        // TODO: Load table of retals
+    });
 }

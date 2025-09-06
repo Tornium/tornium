@@ -70,8 +70,6 @@ function resolveTokenCallback(response) {
 
     const accessToken = responseJSON.access_token;
     const accessTokenExpiration = Math.floor(Date.now() / 1000) + responseJSON.expires_in;
-    console.log(accessToken);
-    console.log(accessTokenExpiration);
     GM_setValue("tornium-retaliations:access-token", accessToken);
     GM_setValue("tornium-retaliations:access-token-expires", accessTokenExpiration);
 

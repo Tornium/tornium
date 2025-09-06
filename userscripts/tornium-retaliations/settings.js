@@ -61,7 +61,7 @@ export function injectSettingsPage(container) {
     const oauthScopesLabel = document.createElement("strong");
     oauthScopesLabel.innerText = "Scope(s): ";
     oauthScopes.append(oauthScopesLabel);
-    oauthScopes.append("faction:attacks");
+    oauthScopes.append("identity faction:attacks");
     oauthSection.append(oauthScopes);
 
     const oauthConnectButton = document.createElement("a");
@@ -85,8 +85,7 @@ export function injectSettingsPage(container) {
         const oauthDisconnectButton = document.createElement("button");
         oauthDisconnectButton.classList.add("torn-btn");
         oauthDisconnectButton.innerText = "Disconnect";
-        // TODO: Add event listener callback
-        // oauthDisconnectButton.addEventListener("click", null);
+        oauthDisconnectButton.addEventListener("click", deleteOAuthToken);
         oauthSection.append(oauthDisconnectButton);
     }
 
@@ -160,4 +159,10 @@ export function injectSettingsStyles() {
             margin: 8px 6px 0 0;
         }
     `);
+}
+
+function deleteOAuthToken() {
+    GM_deleteValue("tornium-retaliations:access-token");
+    GM_deleteValue("tornium-retaliations:access-token-expires");
+    window.location.reload();
 }

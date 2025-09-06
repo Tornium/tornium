@@ -249,6 +249,11 @@ mod.add_url_rule(
 
 # /api/v1/faction
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/attacks/retaliations",
+    view_func=faction.attacks.get_faction_retaliations,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/v1/faction/banking",
     view_func=faction.banking.banking_request,
     methods=["POST"],

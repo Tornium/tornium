@@ -90,6 +90,10 @@ config :tornium, Tornium.Web.Endpoint,
   pubsub_server: Tornium.Web.PubSub,
   live_view: [signing_salt: "z8I4+/aT"]
 
+config :tornex,
+  # 3 mintues TTL for buckets
+  bucket_ttl: 180_000
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

@@ -84,7 +84,7 @@ defmodule Tornium.Faction.OC.Team.Render do
       [
         %Nostrum.Struct.Message{
           channel_id: team_spawn_required_channel,
-          content: Tornium.Utils.roles_to_string(team_spawn_required_roles),
+          content: Tornium.Discord.roles_to_string(team_spawn_required_roles),
           embeds: [
             %Nostrum.Struct.Embed{
               title: "OC Spawn Required",
@@ -140,7 +140,8 @@ defmodule Tornium.Faction.OC.Team.Render do
     messages = [
       %Nostrum.Struct.Message{
         channel_id: team_member_join_required_channel,
-        content: Tornium.Utils.roles_to_string(team_member_join_required_roles, assigns: [{:user, member_discord_id}]),
+        content:
+          Tornium.Discord.roles_to_string(team_member_join_required_roles, assigns: [{:user, member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "OC Join Required",
@@ -199,7 +200,7 @@ defmodule Tornium.Faction.OC.Team.Render do
       %Nostrum.Struct.Message{
         channel_id: team_member_incorrect_crime_channel,
         content:
-          Tornium.Utils.roles_to_string(team_member_incorrect_crime_roles, assigns: [{:user, member_discord_id}]),
+          Tornium.Discord.roles_to_string(team_member_incorrect_crime_roles, assigns: [{:user, member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "Incorrect OC Joined",
@@ -261,7 +262,7 @@ defmodule Tornium.Faction.OC.Team.Render do
       %Nostrum.Struct.Message{
         channel_id: team_incorrect_member_channel,
         content:
-          Tornium.Utils.roles_to_string(team_incorrect_member_roles, assigns: [{:user, incorrect_member_discord_id}]),
+          Tornium.Discord.roles_to_string(team_incorrect_member_roles, assigns: [{:user, incorrect_member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "Incorrect User Joined OC",
@@ -323,7 +324,8 @@ defmodule Tornium.Faction.OC.Team.Render do
     messages = [
       %Nostrum.Struct.Message{
         channel_id: team_member_incorrect_slot_channel,
-        content: Tornium.Utils.roles_to_string(team_member_incorrect_slot_roles, assigns: [{:user, member_discord_id}]),
+        content:
+          Tornium.Discord.roles_to_string(team_member_incorrect_slot_roles, assigns: [{:user, member_discord_id}]),
         embeds: [
           %Nostrum.Struct.Embed{
             title: "OC Member Joined Incorrect Slot",
@@ -375,7 +377,7 @@ defmodule Tornium.Faction.OC.Team.Render do
       [
         %Nostrum.Struct.Message{
           channel_id: assigned_team_channel,
-          content: Tornium.Utils.roles_to_string(assigned_team_roles, assigns: team_member_discord_ids(team_members)),
+          content: Tornium.Discord.roles_to_string(assigned_team_roles, assigns: team_member_discord_ids(team_members)),
           embeds: [
             %Nostrum.Struct.Embed{
               title: "OC Team Assigned",

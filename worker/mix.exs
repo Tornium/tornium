@@ -55,7 +55,7 @@ defmodule Tornium.MixProject do
       {:solid, "~> 0.18"},
       {:logger_file_backend, "~> 0.0.14"},
       {:logger_json, "~> 7.0"},
-      {:tornex, "~> 0.3"},
+      {:tornex, "== 0.4.0-rc.1"},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.19"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}

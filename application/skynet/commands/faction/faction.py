@@ -826,12 +826,13 @@ def members_switchboard(interaction, *args, **kwargs):
             "data": {
                 "embeds": [
                     {
-                        "title": "Missing Members",
+                        "title": f"Missing Members of {faction.name}",
                         "description": "",
-                        "footer": {"text": f"Faction: {faction.name} [{faction.tid}]"},
+                        "footer": {"text": f"FID: {faction_member_index} | {len(verified_members)}"},
                         "color": SKYNET_INFO,
                     }
-                ]
+                ],
+                "flags": 64,
             },
         }
 

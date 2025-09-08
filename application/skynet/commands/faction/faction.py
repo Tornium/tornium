@@ -825,17 +825,14 @@ def members_switchboard(interaction, *args, **kwargs):
                     guild_member_index += 1
 
         response = {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": f"Missing Members of {faction.name}",
-                        "description": "",
-                        "color": SKYNET_INFO,
-                    }
-                ],
-                "flags": 64,
-            },
+            "embeds": [
+                {
+                    "title": f"Missing Members of {faction.name}",
+                    "description": "",
+                    "color": SKYNET_INFO,
+                }
+            ],
+            "flags": 64,
         }
 
         if len(listed_members) == 0:

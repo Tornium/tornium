@@ -780,10 +780,11 @@ def members_switchboard(interaction, *args, **kwargs):
 
         faction_member_index = 0
         visited_member_count = 0
-        while (
-            faction_member_index < len(verified_members)
-            and visited_member_count < server_data["approximate_member_count"] * 0.999
-        ):
+        # while (
+        #     faction_member_index < len(verified_members)
+        #     and visited_member_count < server_data["approximate_member_count"] * 0.999
+        # ):
+        while faction_member_index < len(verified_members):
             # Keep trying to find verified members in the server while:
             # - there are still unvisited members
             # - the visited count is not approximately the approximate member count

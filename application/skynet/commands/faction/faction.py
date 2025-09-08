@@ -836,10 +836,10 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
         if len(listed_members) == 0:
-            response["data"]["embeds"][0][
+            response["embeds"][0][
                 "description"
             ] = "There are no members of the faction missing from the Discord server."
-            response["data"]["embeds"][0]["color"] = SKYNET_GOOD
+            response["embeds"][0]["color"] = SKYNET_GOOD
 
             discordpatch(
                 f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response
@@ -848,11 +848,9 @@ def members_switchboard(interaction, *args, **kwargs):
 
         for member_id, (member_name, member_discord_id) in listed_members.items():
             if member_discord_id is None:
-                response["data"]["embeds"][0]["description"] += f"{member_name} [{member_id}] - Unverified\n"
+                response["embeds"][0]["description"] += f"{member_name} [{member_id}] - Unverified\n"
             else:
-                response["data"]["embeds"][0][
-                    "description"
-                ] += f"{member_name} [{member_id}] - <@{member_discord_id}>\n"
+                response["embeds"][0]["description"] += f"{member_name} [{member_id}] - <@{member_discord_id}>\n"
 
         discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
         return {}

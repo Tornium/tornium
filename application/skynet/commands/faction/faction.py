@@ -19,7 +19,7 @@ import time
 import typing
 
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.api import discordget, discordpatch, discordpost, tornget
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, PersonalStats, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -720,6 +720,141 @@ def members_switchboard(interaction, *args, **kwargs):
             },
         }
 
+    def discord():
+        members = User.select(User.tid, User.name, User.discord_id).where(User.faction_id == faction.tid)
+
+        try:
+            include_unverified: bool = bool(find_list(subcommand_data, "name", "unverified")["value"])
+        except Exception:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Interaction Format",
+                            "description": "Discord has returned an invalidly formatted interaction.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if (
+            faction.guild is None
+            or faction.tid not in faction.guild.factions
+            or faction.guild_id != int(interaction["guild_id"])
+        ):
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Not Linked",
+                            "description": "The specified faction is not linked to this Discord server.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        # Creating a followup message is necessary due to increased Discord API latencies
+        # causing sometimes frequent client-side timeouts of slash commands.
+        discordpost(
+            f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}}
+        )
+
+        server_data = discordget(
+            f"guilds/{interaction['guild_id']}?with_counts=true",
+        )
+
+        listed_members = {}
+        if include_unverified:
+            listed_members = {
+                member.tid: (member.name, None)
+                for member in members.where((User.discord_id == 0) | (User.discord_id.is_null(True)))
+            }
+
+        verified_members = {
+            member.discord_id: (member.tid, member.name)
+            for member in members.where((User.discord_id != 0) & (User.discord_id.is_null(False)))
+        }
+        verified_members_ids = sorted(list(verified_members.keys()))
+
+        faction_member_index = 0
+        visited_member_count = 0
+        while (
+            faction_member_index < len(verified_members)
+            and visited_member_count < server_data["approximate_member_count"] * 0.999
+        ):
+            # Keep trying to find verified members in the server while:
+            # - there are still unvisited members
+            # - the visited count is not approximately the approximate member count
+
+            after = 0 if faction_member_index == 0 else verified_members_ids[faction_member_index]
+            guild_members: list = discordget(f"guilds/{interaction['guild_id']}/members?limit=1000&after={after}")
+
+            if len(guild_members) == 0:
+                break
+
+            sorted_guild_members = sorted([int(member["user"]["id"]) for member in guild_members])
+            guild_member_index = 0
+
+            while faction_member_index < len(verified_members_ids) and guild_member_index < len(sorted_guild_members):
+                visited_member_count += 1
+
+                if verified_members_ids[faction_member_index] == sorted_guild_members[guild_member_index]:
+                    # The faction member is in the Discord server
+                    faction_member_index += 1
+                    guild_member_index += 1
+                elif verified_members_ids[faction_member_index] < sorted_guild_members[guild_member_index]:
+                    # The guild member has a larger Discord ID than than the faction member, so the faction
+                    # member can not be in the Discord server
+                    faction_member = verified_members[verified_members_ids[faction_member_index]]
+                    listed_members[faction_member[0]] = (faction_member[1], verified_members_ids[faction_member_index])
+
+                    faction_member_index += 1
+                elif verified_members_ids[faction_member_index] > sorted_guild_members[guild_member_index]:
+                    # The faction member has a larger Discord ID than the guild member, so we can skip this
+                    # guild member
+                    #
+                    # If the faction member has a Discord ID larger than the last guild member listed in this
+                    # list of guild members, the faction member may be in the next iteration of the API call
+                    # which the loop will eventually reach
+                    guild_member_index += 1
+
+        response = {
+            "embeds": [
+                {
+                    "title": f"Missing Members of {faction.name}",
+                    "description": "",
+                    "color": SKYNET_INFO,
+                }
+            ],
+            "flags": 64,
+        }
+
+        if len(listed_members) == 0:
+            response["embeds"][0][
+                "description"
+            ] = "There are no members of the faction missing from the Discord server."
+            response["embeds"][0]["color"] = SKYNET_GOOD
+
+            discordpatch(
+                f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response
+            )
+            return {}
+
+        for member_id, (member_name, member_discord_id) in listed_members.items():
+            if member_discord_id is None:
+                response["embeds"][0]["description"] += f"{member_name} [{member_id}] - Unverified\n"
+            else:
+                response["embeds"][0]["description"] += f"{member_name} [{member_id}] - <@{member_discord_id}>\n"
+
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        return {}
+
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]
         subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
@@ -856,6 +991,8 @@ def members_switchboard(interaction, *args, **kwargs):
         return hospital()
     elif subcommand == "inactive":
         return inactive()
+    elif subcommand == "discord":
+        return discord()
     else:
         return {
             "type": 4,

@@ -780,18 +780,16 @@ def members_switchboard(interaction, *args, **kwargs):
 
         faction_member_index = 0
         visited_member_count = 0
-        # while (
-        #     faction_member_index < len(verified_members)
-        #     and visited_member_count < server_data["approximate_member_count"] * 0.999
-        # ):
-        while faction_member_index < len(verified_members):
+        while (
+            faction_member_index < len(verified_members)
+            and visited_member_count < server_data["approximate_member_count"] * 0.999
+        ):
             # Keep trying to find verified members in the server while:
             # - there are still unvisited members
             # - the visited count is not approximately the approximate member count
 
-            guild_members: list = discordget(
-                f"guilds/{interaction['guild_id']}/members?limit=1000&after={verified_members_ids[faction_member_index]}",
-            )
+            after = 0 if faction_member_index == 0 else verified_members_ids[faction_member_index]
+            guild_members: list = discordget(f"guilds/{interaction['guild_id']}/members?limit=1000&after={after}")
 
             if len(guild_members) == 0:
                 break
@@ -829,7 +827,6 @@ def members_switchboard(interaction, *args, **kwargs):
                     {
                         "title": f"Missing Members of {faction.name}",
                         "description": "",
-                        "footer": {"text": f"FID: {faction_member_index} | {len(verified_members)}"},
                         "color": SKYNET_INFO,
                     }
                 ],

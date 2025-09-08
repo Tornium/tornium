@@ -2,6 +2,7 @@
 
 [Introduction](README.md)
 [How to Report](report.md)
+[Data Use and Storage Policy](data-use-storage.md)
 
 # Tutorial
 

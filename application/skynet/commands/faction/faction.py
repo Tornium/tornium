@@ -795,7 +795,7 @@ def members_switchboard(interaction, *args, **kwargs):
             if len(guild_members) == 0:
                 break
 
-            sorted_guild_members = sorted([member["user"]["id"] for member in guild_members])
+            sorted_guild_members = sorted([int(member["user"]["id"]) for member in guild_members])
             guild_member_index = 0
 
             while faction_member_index < len(verified_members_ids) and guild_member_index < len(sorted_guild_members):

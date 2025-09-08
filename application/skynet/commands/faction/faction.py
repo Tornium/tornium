@@ -981,7 +981,7 @@ def members_switchboard(interaction, *args, **kwargs):
         return hospital()
     elif subcommand == "inactive":
         return inactive()
-    elif subcommand == "faction":
+    elif subcommand == "discord":
         return discord()
     else:
         return {

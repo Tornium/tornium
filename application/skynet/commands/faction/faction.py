@@ -19,7 +19,7 @@ import time
 import typing
 
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import discordget, tornget
+from tornium_celery.tasks.api import discordget, discordpatch, discordpost, tornget
 from tornium_commons.formatters import find_list
 from tornium_commons.models import Faction, PersonalStats, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
@@ -759,7 +759,11 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        # TODO: delay response
+        # Creating a followup message is necessary due to increased Discord API latencies
+        # causing sometimes frequent client-side timeouts of slash commands.
+        discordpost(
+            f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}}
+        )
 
         server_data = discordget(
             f"guilds/{interaction['guild_id']}?with_counts=true",
@@ -839,7 +843,11 @@ def members_switchboard(interaction, *args, **kwargs):
                 "description"
             ] = "There are no members of the faction missing from the Discord server."
             response["data"]["embeds"][0]["color"] = SKYNET_GOOD
-            return response
+
+            discordpatch(
+                f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response
+            )
+            return {}
 
         for member_id, (member_name, member_discord_id) in listed_members.items():
             if member_discord_id is None:
@@ -849,7 +857,8 @@ def members_switchboard(interaction, *args, **kwargs):
                     "description"
                 ] += f"{member_name} [{member_id}] - <@{member_discord_id}>\n"
 
-        return response
+        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
+        return {}
 
     try:
         subcommand = interaction["data"]["options"][0]["options"][0]["name"]

@@ -92,4 +92,8 @@ label.btn:hover {
     filter: grayscale(1) invert(1);
 }
 
+.table caption {
+    color: var(--text-alternate-color) !important;
+}
+
 /*# sourceMappingURL=bootstrap.css.map */

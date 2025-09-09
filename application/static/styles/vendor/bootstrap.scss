@@ -104,3 +104,9 @@ label.btn {
         filter: grayscale(1) invert(1);
     }
 }
+
+.table {
+    caption {
+        color: var(--text-alternate-color) !important;
+    }
+}

@@ -333,6 +333,10 @@ label.btn:hover {
     filter: grayscale(1) invert(1);
 }
 
+.table caption {
+    color: var(--text-alternate-color) !important;
+}
+
 :root {
     --white: rgb(229, 229, 229);
     --primary-grey: inherit;

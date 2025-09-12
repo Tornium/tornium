@@ -1,7 +1,7 @@
 import { torniumFetch } from "./api.js";
 import { APP_ID, DEBUG, VERSION } from "./constants.js";
 import { log } from "./logging.js";
-import { fetchRetaliations } from "./retal.js";
+import { createRetaliationContainer, fetchRetaliations, renderRetaliationContainer } from "./retal.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 
@@ -41,15 +41,23 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     new URLSearchParams(window.location.search).get("step") == "your"
 ) {
     createSettingsButton();
+    createRetaliationContainer();
 
     // Identity TTL: one hour
-    torniumFetch("user", { ttl: 1000 * 60 * 60 }).then((identityData) => {
-        return identityData.factiontid;
-    }).then((factionID) => {
-        torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
-            console.log(retaliations);
-            return retaliations;
+    torniumFetch("user", { ttl: 1000 * 60 * 60 })
+        .then((identityData) => {
+            return identityData.factiontid;
+        })
+        .then((factionID) => {
+            const r = fetchRetaliations(factionID);
+            console.log(r);
+            return r;
+        })
+        .then((retaliations) => {
+            const sortedRetalitions = retaliations.sort((first, second) => {
+                return second.attack_ended - first.attack_ended;
+            });
+
+            renderRetaliationContainer(sortedRetalitions);
         });
-        return fetchRetaliations(factionID);
-    });
 }

@@ -6,8 +6,6 @@
 // @match        https://tornium.com/oauth/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/callback*
 // @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/oauth/callback*
 // @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/settings
-// @match        https://www.torn.com/profiles.php*
-// @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/factions.php*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -34,6 +32,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
+/* Portions of this code are derived from LeoMavri/Userscript-Base
+licensed under the GNU General Public License v3. */
 (() => {
   // cache.js
   var CACHE_ENABLED = "caches" in window;
@@ -188,11 +189,130 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     console.log("[Tornium Retaliations] " + window.location.pathname + " - " + string);
   }
 
+  // dom.js
+  async function waitForElement(querySelector, timeout) {
+    const existingElement = document.querySelector(querySelector);
+    if (existingElement) return existingElement;
+    return new Promise((resolve) => {
+      let timer;
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(querySelector);
+        if (element) {
+          cleanup();
+          resolve(element);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      if (timeout) {
+        timer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, timeout);
+      }
+      function cleanup() {
+        observer.disconnect();
+        if (timer) clearTimeout(timer);
+      }
+    });
+  }
+
   // retal.js
   function fetchRetaliations(factionID) {
     torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
       return retaliations;
     });
+  }
+  function createRetaliationContainer() {
+    waitForElement("#faction_war_list_id").then((parent) => {
+      const container = document.createElement("div");
+      container.classList.add("tornium-retaliations-container");
+      parent.after(container);
+      const retalSection = document.createElement("fieldset");
+      const retalLegend = document.createElement("legend");
+      retalLegend.innerText = "Retaliations";
+      retalSection.append(retalLegend);
+      const retalTable = document.createElement("table");
+      retalTable.classList.add("tornium-retaliations-table");
+      const retalTableHead = document.createElement("thead");
+      retalTableHead.innerHTML = `
+            <tr>
+                <th>User</th>
+                <th>Timeout</th>
+            </tr>
+        `;
+      retalTable.append(retalTableHead);
+      const retalTableBody = document.createElement("tbody");
+      retalTable.append(retalTableBody);
+      retalSection.append(retalTable);
+      container.append(retalSection);
+    });
+    injectRetaliationStyles();
+  }
+  function renderRetaliationContainer(retaliations) {
+  }
+  function injectRetaliationStyles() {
+    GM_addStyle(`
+        .tornium-retaliations-container {
+            margin-top: 10px;
+        }
+
+        .tornium-retaliations-container hr {
+            border: none;
+            border-top: 1px solid #444;
+            margin-top: 20px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .tornium-retaliations-container fieldset {
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .tornium-retaliations-container legend {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0 6px;
+            color: #fff;
+        }
+
+        .tornium-retaliations-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            color: #ddd;
+        }
+
+        .tornium-retaliations-container th,
+        .tornium-retaliations-container td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #444;
+            text-align: left;
+        }
+
+        .tornium-retaliations-container th {
+            color: #fff;
+        }
+
+        .tornium-retaliations-container a {
+            color: #4aa3ff;
+            text-decoration: none;
+        }
+
+        .tornium-retaliations-container a:hover {
+            text-decoration: underline;
+        }
+
+        .tornium-retaliations-container .torn-btn {
+            display: inline-block;
+            margin: 8px 6px 0 0;
+        }
+    `);
   }
 
   // settings.js
@@ -358,14 +478,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   } else if (window.location.pathname.startsWith("/factions.php") && new URLSearchParams(window.location.search).get("step") == "your") {
     createSettingsButton();
+    createRetaliationContainer();
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
       return identityData.factiontid;
     }).then((factionID) => {
-      torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
-        console.log(retaliations);
-        return retaliations;
+      const r = fetchRetaliations(factionID);
+      console.log(r);
+      return r;
+    }).then((retaliations) => {
+      const sortedRetalitions = retaliations.sort((first, second) => {
+        return second.attack_ended - first.attack_ended;
       });
-      return fetchRetaliations(factionID);
+      renderRetaliationContainer(sortedRetalitions);
     });
   }
 })();

@@ -6,8 +6,6 @@
 // @match        https://tornium.com/oauth/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/callback*
 // @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/oauth/callback*
 // @match        https://www.torn.com/tornium/80698282ed024680b0e3a9439bb764aab4d4d3b27ca087af/settings
-// @match        https://www.torn.com/profiles.php*
-// @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/factions.php*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -34,3 +32,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
+/* Portions of this code are derived from LeoMavri/Userscript-Base
+licensed under the GNU General Public License v3. */

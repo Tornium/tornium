@@ -37,7 +37,7 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
                 }
 
                 if (!("code" in responseJSON)) {
-                    putCache(endpoint, response, options.ttl)
+                    putCache(endpoint, response, options.ttl);
                 }
 
                 resolve(responseJSON);

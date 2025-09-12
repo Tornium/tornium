@@ -1,6 +1,6 @@
 const CACHE_ENABLED = "caches" in window;
 const CACHE_NAME = "tornium-retaliation-cache";
-export const CACHE_EXPIRATION = 1000 * 15;  // 15 seconds
+export const CACHE_EXPIRATION = 1000 * 15; // 15 seconds
 
 export async function getCache(url) {
     const cache = await caches.open(CACHE_NAME);

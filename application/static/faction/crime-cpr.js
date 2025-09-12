@@ -16,6 +16,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 const factionID = document.currentScript.getAttribute("data-faction-id");
 let factionMembers = null;
 
+$.fn.dataTable.ext.pager.numbers_length = 5;
+
 function loadViewerCPR(ocName, cprData) {
     if (factionMembers == null) {
         generateToast(
@@ -30,7 +32,7 @@ function loadViewerCPR(ocName, cprData) {
     viewer.innerHTML = "";
 
     const viewerTable = document.createElement("table");
-    viewerTable.classList.add("table", "table-striped");
+    viewerTable.classList.add("table", "table-striped", "w-100");
     viewer.append(viewerTable);
 
     const viewerTableHead = document.createElement("thead");
@@ -58,14 +60,14 @@ function loadViewerCPR(ocName, cprData) {
         viewerTableColumnName.innerText = ocPosition;
         viewerTableHeadRow.append(viewerTableColumnName);
     });
-    console.log(membersData);
 
     const viewerDataTable = new DataTable(viewerTable, {
-        responsive: true,
+        responsive: false,
         data: membersData,
         ordering: true,
         searching: false,
         order: [[0, "desc"]],
+        scrollX: true,
     });
 }
 

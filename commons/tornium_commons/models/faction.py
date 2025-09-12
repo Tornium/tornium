@@ -17,7 +17,6 @@ import typing
 from functools import cached_property, lru_cache
 
 from peewee import (
-    BigIntegerField,
     BooleanField,
     CharField,
     DateTimeField,
@@ -25,7 +24,6 @@ from peewee import (
     DoesNotExist,
     IntegerField,
 )
-from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
 from .faction_position import FactionPosition
@@ -48,10 +46,6 @@ class Faction(BaseModel):
     # Configuration data
     stats_db_enabled = BooleanField(default=True)  # noqa: F712
     stats_db_global = BooleanField(default=True)  # noqa: F712
-
-    # OD data
-    od_channel = BigIntegerField(null=True)
-    od_data = JSONField(null=True)
 
     # Internal data
     last_members = DateTimeField(null=True)

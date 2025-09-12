@@ -16,7 +16,6 @@
 from controllers.api.v1.faction import (
     attacks,
     banking,
-    chain,
     crime_team,
     crimes,
     faction,

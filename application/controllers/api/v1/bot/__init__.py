@@ -21,6 +21,7 @@ from controllers.api.v1.bot import (
     crimes,
     faction,
     notification,
+    overdose,
     utils,
     verify,
 )
@@ -34,6 +35,7 @@ __all__ = [
     "crimes",
     "faction",
     "notification",
+    "overdose",
     "utils",
     "verify",
 ]

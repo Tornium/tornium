@@ -1,8 +1,16 @@
+import { CACHE_EXPIRATION, getCache, putCache } from "./cache.js";
 import { BASE_URL } from "./constants.js";
 import { accessToken } from "./oauth.js";
 
-export function tornium_fetch(endpoint, options = { method: "GET" }) {
+export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION }) {
     return new Promise(async (resolve, reject) => {
+        const cachedResponse = await getCache(endpoint);
+
+        if (cachedResponse != null && cachedResponse != undefined) {
+            resolve(cachedResponse);
+            return cachedResponse;
+        }
+
         return GM_xmlhttpRequest({
             method: options.method,
             url: `${BASE_URL}/api/v1/${endpoint}`,
@@ -13,7 +21,6 @@ export function tornium_fetch(endpoint, options = { method: "GET" }) {
             responseType: "json",
             onload: async (response) => {
                 let responseJSON = response.response;
-                console.log(responseJSON);
 
                 if (response.responseType === undefined) {
                     responseJSON = JSON.parse(response.responseText);
@@ -25,15 +32,16 @@ export function tornium_fetch(endpoint, options = { method: "GET" }) {
                     GM_deleteValue("tornium-retaliations:access-token");
                     GM_deleteValue("tornium-retaliations:access-token-expires");
 
-                    $("#tornium-estimation").text(
-                        `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`,
-                    );
                     reject();
                     return;
                 }
 
+                if (!("code" in responseJSON)) {
+                    putCache(endpoint, response, options.ttl)
+                }
+
                 resolve(responseJSON);
-                return;
+                return responseJSON;
             },
             onerror: (error) => {
                 reject(error);

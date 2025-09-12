@@ -35,6 +35,41 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
+  // cache.js
+  var CACHE_ENABLED = "caches" in window;
+  var CACHE_NAME = "tornium-retaliation-cache";
+  var CACHE_EXPIRATION = 1e3 * 15;
+  async function getCache(url) {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedResponse = await cache.match(url);
+    if (cachedResponse) {
+      const cachedTime = new Date(cachedResponse.headers.get("date")).getTime();
+      const expirationTime = new Date(cachedResponse.headers.get("cache-expiry")).getTime();
+      const now = Date.now();
+      if (now < expirationTime) {
+        return await cachedResponse.json();
+      }
+      await cache.delete(url);
+    }
+    return null;
+  }
+  async function putCache(url, response, ttl = CACHE_EXPIRATION) {
+    const headers = parseHeaders(response.responseHeaders);
+    headers["cache-expiry"] = String(Date.now() + ttl);
+    const cache = await caches.open(CACHE_NAME);
+    await cache.put(url, new Response(response.responseText, { headers }));
+  }
+  function parseHeaders(headerString) {
+    let headers = {};
+    headerString.split("\r\n").forEach((line) => {
+      const [key, value] = line.split(": ").map((item) => item.trim());
+      if (key && value) {
+        headers[key] = value;
+      }
+    });
+    return headers;
+  }
+
   // constants.js
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
@@ -95,7 +130,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       responseJSON = JSON.parse(response.responseText);
       response.responseType = "json";
     }
-    console.log(responseJSON);
     const accessToken2 = responseJSON.access_token;
     const accessTokenExpiration2 = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
     GM_setValue("tornium-retaliations:access-token", accessToken2);
@@ -105,8 +139,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // api.js
-  function tornium_fetch(endpoint, options = { method: "GET" }) {
+  function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION }) {
     return new Promise(async (resolve, reject) => {
+      const cachedResponse = await getCache(endpoint);
+      if (cachedResponse != null && cachedResponse != void 0) {
+        resolve(cachedResponse);
+        return cachedResponse;
+      }
       return GM_xmlhttpRequest({
         method: options.method,
         url: `${BASE_URL}/api/v1/${endpoint}`,
@@ -117,7 +156,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         responseType: "json",
         onload: async (response) => {
           let responseJSON = response.response;
-          console.log(responseJSON);
           if (response.responseType === void 0) {
             responseJSON = JSON.parse(response.responseText);
             response.responseType = "json";
@@ -125,14 +163,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
           if (responseJSON.error !== void 0) {
             GM_deleteValue("tornium-retaliations:access-token");
             GM_deleteValue("tornium-retaliations:access-token-expires");
-            $("#tornium-estimation").text(
-              `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`
-            );
             reject();
             return;
           }
+          if (!("code" in responseJSON)) {
+            putCache(endpoint, response, options.ttl);
+          }
           resolve(responseJSON);
-          return;
+          return responseJSON;
         },
         onerror: (error) => {
           reject(error);
@@ -148,6 +186,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       return;
     }
     console.log("[Tornium Retaliations] " + window.location.pathname + " - " + string);
+  }
+
+  // retal.js
+  function fetchRetaliations(factionID) {
+    torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
+      return retaliations;
+    });
   }
 
   // settings.js
@@ -238,8 +283,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     infoScriptLink.innerHTML = `<strong>Link: </strong> <a href="https://github.com/Tornium/tornium/blob/master/userscripts/tornium-retaliations.user.js">GitHub</a>`;
     infoScriptContainer.append(infoScriptLink);
     const infoScriptDocs = document.createElement("p");
-    infoScriptDocs.innerHTml = `<strong>Docs: </strong> Not yet created`;
+    infoScriptDocs.innerHTML = `<strong>Docs: </strong> Not yet created`;
     infoScriptContainer.append(infoScriptDocs);
+    const infoScriptTerms = document.createElement("p");
+    infoScriptTerms.innerHTML = `<strong>ToS: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">ToS</a>`;
+    infoScriptContainer.append(infoScriptTerms);
     infoContainer.append(infoScriptContainer);
     container.append(infoContainer);
   }
@@ -310,8 +358,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   } else if (window.location.pathname.startsWith("/factions.php") && new URLSearchParams(window.location.search).get("step") == "your") {
     createSettingsButton();
-    tornium_fetch("user").then((identityData) => {
-      const factionID = identityData.factiontid;
+    torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
+      return identityData.factiontid;
+    }).then((factionID) => {
+      torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
+        console.log(retaliations);
+        return retaliations;
+      });
+      return fetchRetaliations(factionID);
     });
   }
 })();

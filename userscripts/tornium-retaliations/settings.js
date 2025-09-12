@@ -119,8 +119,11 @@ export function injectSettingsPage(container) {
     infoScriptLink.innerHTML = `<strong>Link: </strong> <a href="https://github.com/Tornium/tornium/blob/master/userscripts/tornium-retaliations.user.js">GitHub</a>`;
     infoScriptContainer.append(infoScriptLink);
     const infoScriptDocs = document.createElement("p");
-    infoScriptDocs.innerHTml = `<strong>Docs: </strong> Not yet created`;
+    infoScriptDocs.innerHTML = `<strong>Docs: </strong> Not yet created`;
     infoScriptContainer.append(infoScriptDocs);
+    const infoScriptTerms = document.createElement("p");
+    infoScriptTerms.innerHTML = `<strong>ToS: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">ToS</a>`;
+    infoScriptContainer.append(infoScriptTerms);
     infoContainer.append(infoScriptContainer);
 
     container.append(infoContainer);

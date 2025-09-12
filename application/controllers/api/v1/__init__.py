@@ -263,7 +263,6 @@ mod.add_url_rule(
     view_func=faction.banking.vault_balance,
     methods=["GET"],
 )
-mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(
@@ -311,11 +310,6 @@ mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/members",
     view_func=faction.faction.faction_members,
     methods=["GET"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/chain/od/channel",
-    view_func=faction.chain.chain_od_channel,
-    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/faction/positions",

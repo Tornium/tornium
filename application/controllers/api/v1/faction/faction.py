@@ -13,12 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import (
-    attacks,
-    banking,
-    chain,
-    crime_team,
-    crimes,
-    faction,
-    positions,
-)
+from tornium_commons.models import Faction, User
+
+from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
+
+
+@require_oauth()
+@ratelimit
+def faction_members(faction_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    return (
+        [member.to_dict() for member in User.select().where(User.faction_id == faction_id)],
+        200,
+        api_ratelimit_response(key),
+    )

@@ -190,6 +190,14 @@ class User(BaseModel):
 
         return self.faction_position.name
 
+    def to_dict(self) -> dict:
+        return {
+            "ID": self.tid,
+            "name": self.name,
+            "level": self.level,
+            "discord_id": self.discord_id,
+        }
+
     def user_embed(self) -> dict:
         embed = {
             "type": 4,

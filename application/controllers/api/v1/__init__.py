@@ -152,6 +152,11 @@ mod.add_url_rule(
     methods=["GET", "POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/faction/<int:faction_id>/overdose",
+    view_func=bot.overdose.set_overdose_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/notification",
     view_func=bot.notification.get_notification_config,
     methods=["GET"],

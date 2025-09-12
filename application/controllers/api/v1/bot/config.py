@@ -15,7 +15,7 @@
 
 from flask import jsonify
 from peewee import DoesNotExist
-from tornium_commons.models import Faction, Server
+from tornium_commons.models import Faction, Server, ServerOverdoseConfig
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -74,6 +74,12 @@ def jsonified_server_config(guild: Server):
                 },
             }
             for config in guild.attacks_config
+        },
+        "overdose": {
+            od_config.faction_id: str(od_config.channel)
+            for od_config in ServerOverdoseConfig.select(
+                ServerOverdoseConfig.channel, ServerOverdoseConfig.faction
+            ).where(ServerOverdoseConfig.server == guild.sid)
         },
         "oc": {
             faction_id: {

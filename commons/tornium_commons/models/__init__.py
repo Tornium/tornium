@@ -34,6 +34,7 @@ from .server_attack_config import ServerAttackConfig
 from .server_notifications_config import ServerNotificationsConfig
 from .server_oc_config import ServerOCConfig
 from .server_oc_range_config import ServerOCRangeConfig
+from .server_overdose_config import ServerOverdoseConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -66,6 +67,7 @@ __all__ = [
     "ServerNotificationsConfig",
     "ServerOCConfig",
     "ServerOCRangeConfig",
+    "ServerOverdoseConfig",
     "Stat",
     "StockTick",
     "TornKey",

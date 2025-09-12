@@ -17,11 +17,12 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
   @moduledoc """
   Schema for overdose configuration on a per-server and per-faction basis.
 
+  If `:channel` is `nil`, OD notifications are disabled for that server and faction.
+
   ## Fields
     * `:guid` - UUID primary key
     * `:server_id` - Foreign key to the associated server (`Tornium.Schema.Server`).
     * `:faction_id` - Foreign key to the associated faction (`Tornium.Schema.Faction`).
-    * `:enabled` - Boolean flag indicating whether overdose handling/notifications are enabled for this server and faction.
     * `:channel` - Optional channel ID where overdose notifications are sent.
   """
 
@@ -33,7 +34,6 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
           server: Tornium.Schema.Server.t(),
           faction_id: integer(),
           faction: Tornium.Schema.Faction.t(),
-          enabled: boolean(),
           channel: integer() | nil
         }
 
@@ -42,7 +42,6 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
-    field(:enabled, :boolean)
     field(:channel, :integer)
   end
 end

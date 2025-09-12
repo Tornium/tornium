@@ -7,7 +7,6 @@ defmodule Tornium.Repo.Migrations.AddServerOdConfig do
       add :server_id, references(:server, column: :sid, type: :bigint), null: false
       add :faction_id, references(:faction, column: :tid, type: :integer), null: false
 
-      add :enabled, :boolean, default: false, null: false
       add :channel, :bigint, default: nil, null: true
     end
 

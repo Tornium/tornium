@@ -1,7 +1,7 @@
 import { torniumFetch } from "./api.js";
 import { APP_ID, DEBUG, VERSION } from "./constants.js";
 import { log } from "./logging.js";
-import { createRetaliationContainer, fetchRetaliations, renderRetaliationContainer } from "./retal.js";
+import { createRetaliationContainer, renderRetaliationContainer } from "./retal.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 
@@ -49,9 +49,7 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
             return identityData.factiontid;
         })
         .then((factionID) => {
-            const r = fetchRetaliations(factionID);
-            console.log(r);
-            return r;
+            return torniumFetch(`faction/${factionID}/attacks/retaliations`)
         })
         .then((retaliations) => {
             const sortedRetalitions = retaliations.sort((first, second) => {

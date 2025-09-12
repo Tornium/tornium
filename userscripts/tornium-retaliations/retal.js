@@ -1,12 +1,6 @@
 import { torniumFetch } from "./api.js";
 import { waitForElement } from "./dom.js";
 
-export function fetchRetaliations(factionID) {
-    torniumFetch(`faction/${factionID}/attacks/retaliations`).then((retaliations) => {
-        return retaliations;
-    });
-}
-
 export function createRetaliationContainer() {
     waitForElement("#faction_war_list_id").then((parent) => {
         const container = document.createElement("div");
@@ -40,7 +34,34 @@ export function createRetaliationContainer() {
     injectRetaliationStyles();
 }
 
-export function renderRetaliationContainer(retaliations) {}
+export function renderRetaliationContainer(retaliations) {
+    const retalTableBody = document.querySelector(".tornium-retaliations-table tbody");
+
+    if (!retalTableBody) {
+        return;
+    } else if (!retaliations || retaliations == []) {
+        // TODO: Handle this case by injecting a none found into the table
+        return;
+    }
+    retalTableBody.innerHTML = "";
+
+    retaliations.forEach(({attack_ended: attack_ended, attacker: {id: attacker_id, name: attacker_name}}) => {
+        const retalRow = document.createElement("tr");
+
+        const retalUser = document.createElement("td");
+        const retalUserLink = document.createElement("a");
+        retalUserLink.href = `https://torn.com/profiles.php?XID=${attacker_id}`;
+        retalUserLink.target = `_blank`;
+        retalUserLink.innerText = `${attacker_name} [${attacker_id}]`;
+        retalUser.append(retalUserLink);
+        retalRow.append(retalUser);
+
+        const retalTimeout = document.createElement("td");
+        retalRow.append(retalTimeout);
+
+        retalTableBody.append(retalRow);
+    });
+}
 
 function injectRetaliationStyles() {
     GM_addStyle(`

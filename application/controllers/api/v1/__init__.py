@@ -249,6 +249,11 @@ mod.add_url_rule(
 
 # /api/v1/faction
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/attacks/retaliations",
+    view_func=faction.attacks.get_faction_retaliations,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/v1/faction/banking",
     view_func=faction.banking.banking_request,
     methods=["POST"],
@@ -293,8 +298,18 @@ mod.add_url_rule(
     methods=["PUT"],
 )
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>",
+    view_func=faction.crimes.get_members_cpr_oc,
+    methods=["GET"],
+)
+mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
-    view_func=faction.crimes.get_members_cpr,
+    view_func=faction.crimes.get_members_cpr_slot,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/members",
+    view_func=faction.faction.faction_members,
     methods=["GET"],
 )
 mod.add_url_rule(

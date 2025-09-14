@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction OC CPRs
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction/crimes">Organized Crimes</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/crimes/cpr"> Organized Crime CPR</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/members">
+                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/banking">
+                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/chain">
+                <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
+            </a>
+        </div>
+
+        {% if current_user.can_manage_crimes() %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes">
+                <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bot">
+                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Organized Crimes CPR (ALPHA)</h5>
+            <p class="card-text">
+                <b>WARNING:</b> This feature is in alpha and may not work as expected or have bugs. Report any issues or suggestions you have on the <a href="https://discord.gg/pPcqTRTRyF">support server</a>.
+            </p>
+            <p class="card-text">
+                This lists the Organized Crime CPRs for members in various OC slots. This data is collected from members participating in OCs, members with AA perms sharing that data with Tornium, and a userscript (coming soon). For more information, see the documentation (not yet created).
+            </p>
+
+            {% if current_user.faction.has_migrated_oc %}
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card mt-3">
+                        <div class="card-header d-lg-flex justify-content-lg-between">
+                            <span id="viewer-title" class="mb-2 mb-lg-0">CPR Viewer</span>
+
+                            <select class="oc-name-selector" id="oc-cpr-selector" aria-label="Select OC" data-live-search="true"></select>
+                        </div>
+                        <div class="card-body" id="viewer"></div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p class="card-text">
+                <b>NOTE:</b> This faction has not yet migrated to Organized Crimes 2.0; Tornium only supports Organized Crimes 1.0 at the moment. If this faction has recently migrated to OCs 2.0, it may take up to an hour for this change to be reflected on Tornium.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/global/oc.js"></script>
+<script src="/static/components/alert-confirm.js"></script>
+<script src="/static/faction/crime-cpr.js" data-faction-id="{{ current_user.faction_id }}"></script>
+{% endblock %}

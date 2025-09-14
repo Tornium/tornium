@@ -34,6 +34,7 @@ mod.add_url_rule("/faction/chain", view_func=chain.chain, methods=["GET"])
 
 # Crime Routes
 mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])
+mod.add_url_rule("/faction/crimes/cpr", view_func=crimes.crimes_cpr, methods=["GET"])
 
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])

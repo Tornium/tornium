@@ -13,10 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import base64
-import hashlib
 import inspect
-import os
 import typing
 from functools import cached_property, lru_cache
 
@@ -117,7 +114,7 @@ class User(BaseModel):
             except DoesNotExist:
                 return False
 
-        if isinstance(faction, Faction) and (self.tid == faction.leader or self.tid == faction.coleader):
+        if isinstance(faction, Faction) and (self.tid == faction.leader_id or self.tid == faction.coleader_id):
             return True
 
         faction_position: typing.Optional[FactionPosition] = self.faction_position
@@ -189,6 +186,14 @@ class User(BaseModel):
             return "Unknown"
 
         return self.faction_position.name
+
+    def to_dict(self) -> dict:
+        return {
+            "ID": self.tid,
+            "name": self.name,
+            "level": self.level,
+            "discord_id": self.discord_id,
+        }
 
     def user_embed(self) -> dict:
         embed = {

@@ -28,3 +28,14 @@ class Retaliation(BaseModel):
     # Discord data related to the retal's notification
     message_id = BigIntegerField(null=False)
     channel_id = BigIntegerField(null=False)
+
+    def to_dict(self):
+        return {
+            "code": self.attack_code,
+            "attack_ended": self.attack_ended,
+            "defender": {
+                "id": self.defender_id,
+                "name": self.defender.name,
+            },
+            "attacker": {"id": self.attacker_id, "name": self.attacker.name},
+        }

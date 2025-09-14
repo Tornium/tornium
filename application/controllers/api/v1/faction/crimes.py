@@ -107,7 +107,7 @@ def get_delays(faction_id: int, *args, **kwargs):
 
 @session_required
 @ratelimit
-def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
+def get_members_cpr_slot(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
     if oc_name not in OrganizedCrime.oc_names():
@@ -138,6 +138,53 @@ def get_members_cpr(faction_id: int, oc_name: str, oc_position_name: str, *args,
                 "updated_at": int(member.updated_at.timestamp()),
             }
             for member in members_cpr
+        },
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@session_required
+@ratelimit
+def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if oc_name not in OrganizedCrime.oc_names():
+        return make_exception_response("1105", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not kwargs["user"].can_manage_crimes():
+        return make_exception_response("4006", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    members = [member.tid for member in User.select(User.tid).where(User.faction_id == faction_id)]
+    members_cpr: typing.Iterable[OrganizedCrimeCPR] = (
+        OrganizedCrimeCPR.select().join(User).where((User.tid.in_(members)) & (OrganizedCrimeCPR.oc_name == oc_name))
+    )
+
+    positions = set(member_cpr.oc_position for member_cpr in members_cpr)
+    members_cpr_positions = {position: [] for position in positions}
+
+    member_cpr: OrganizedCrimeCPR
+    for member_cpr in members_cpr:
+        members_cpr_positions[member_cpr.oc_position].append(member_cpr)
+
+    for position, members_cpr_list in members_cpr_positions.items():
+        members_cpr_list.sort(key=lambda member: member.cpr)
+
+    return (
+        {
+            position: [
+                {
+                    "cpr": member.cpr,
+                    "id": member.user_id,
+                    "name": member.user.name,
+                    "updated_at": int(member.updated_at.timestamp()),
+                }
+                for member in members_cpr_list
+            ]
+            for position, members_cpr_list in members_cpr_positions.items()
         },
         200,
         api_ratelimit_response(key),

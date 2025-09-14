@@ -114,7 +114,7 @@ class User(BaseModel):
             except DoesNotExist:
                 return False
 
-        if isinstance(faction, Faction) and (self.tid == faction.leader or self.tid == faction.coleader):
+        if isinstance(faction, Faction) and (self.tid == faction.leader_id or self.tid == faction.coleader_id):
             return True
 
         faction_position: typing.Optional[FactionPosition] = self.faction_position

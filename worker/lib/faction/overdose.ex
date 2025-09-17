@@ -90,4 +90,41 @@ defmodule Tornium.Faction.Overdose do
       %{faction_id: faction_id, user_id: member_id, created_at: DateTime.utc_now(), drug: nil}
     end)
   end
+
+  @doc """
+  Generate a Discord embed for the overdose event.
+
+  If the overdose event has a known drug used, the drug will be included in the embed.
+  """
+  @spec to_embed(event :: Tornium.Schema.OverdoseEvent.t()) :: Nostrum.Struct.Embed.t()
+  def to_embed(
+        %Tornium.Schema.OverdoseEvent{
+          drug: drug,
+          user: %Tornium.Schema.User{tid: user_id, name: user_name},
+          faction: %Tornium.Schema.Faction{name: faction_name}
+        } = _event
+      )
+      when is_nil(drug) do
+    %Nostrum.Struct.Embed{
+      title: "Member Overdosed",
+      description:
+        "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on an unknown drug.",
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+  end
+
+  def to_embed(
+        %Tornium.Schema.OverdoseEvent{
+          drug: drug,
+          user: %Tornium.Schema.User{tid: user_id, name: user_name},
+          faction: %Tornium.Schema.Faction{name: faction_name}
+        } = _event
+      ) do
+    %Nostrum.Struct.Embed{
+      title: "Member Overdosed",
+      description:
+        "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on #{drug}.",
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+  end
 end

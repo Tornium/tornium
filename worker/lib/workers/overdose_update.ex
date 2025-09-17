@@ -95,7 +95,8 @@ defmodule Tornium.Workers.OverdoseUpdate do
         {_, overdose_events} =
           Repo.insert_all(
             Tornium.Schema.OverdoseEvents,
-            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id, new_member_ids)
+            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id, new_member_ids),
+            returning: true
           )
 
         send_notifications(overdose_events, faction_id)
@@ -117,9 +118,10 @@ defmodule Tornium.Workers.OverdoseUpdate do
   defp do_send_notifications(%Tornium.Schema.ServerOverdoseConfig{channel: channel}, overdose_events)
        when is_integer(channel) and channel != 0 and is_list(overdose_events) do
     overdose_events
-    |> Enum.map(fn %Tornium.Schema.OverdoseEvent{} -> nil end)
-    |> Enum.chunk_every(10)
-    |> Enum.map(fn overdose_embed_chunks when is_list(overdose_embed_chunks) -> nil end)
+    |> preload(:faction)
+    |> preload(:user)
+    |> Enum.map(fn %Tornium.Schema.OverdoseEvent{} -> &Tornium.Faction.Overdose.to_embed/1 end)
+    |> Tornium.Discord.chunk_messages(chunk_size: 10)
     |> Tornium.Discord.send_messages()
   end
 

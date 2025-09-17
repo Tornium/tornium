@@ -15,7 +15,7 @@
 
 import uuid
 
-from peewee import BigIntegerField, ForeignKeyField
+from peewee import BigIntegerField, ForeignKeyField, TextField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
@@ -32,6 +32,7 @@ class ServerOverdoseConfig(BaseModel):
     faction = ForeignKeyField(Faction, null=False)
 
     channel = BigIntegerField(default=None, null=True)
+    policy = TextField(null=False)
 
     def create_or_update(server_id: int, faction_id: int, **kwargs: dict):
         """

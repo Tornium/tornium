@@ -58,3 +58,37 @@ def set_overdose_channel(guild_id: int, faction_id: int, *args, **kwargs):
     ServerOverdoseConfig.create_or_update(guild_id, faction_id, channel=channel_id)
 
     return jsonified_server_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def set_overdose_policy(guild_id: int, faction_id: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    policy = data.get("policy")
+
+    if policy not in ("immediate", "daily"):
+        return make_exception_response("1000", key)
+
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_id not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.select(Faction.guild).where(Faction.tid == faction_id).get()
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+
+    ServerOverdoseConfig.create_or_update(guild_id, faction_id, policy=policy)
+
+    return jsonified_server_config(guild), 200, api_ratelimit_response(key)

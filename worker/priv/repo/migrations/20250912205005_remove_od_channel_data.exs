@@ -8,6 +8,7 @@ defmodule Tornium.Repo.Migrations.RemoveOdChannelData do
       add :faction_id, references(:faction, column: :tid, type: :integer), null: false
 
       add :channel, :bigint, default: nil, null: true
+      add :policy, :string, default: "immediate", null: false
     end
 
     create_if_not_exists unique_index(:server_overdose_config, [:server_id, :faction_id])

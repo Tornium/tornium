@@ -17,6 +17,8 @@ defmodule Tornium.Repo.Migrations.AddOdCountEvents do
       add :user_id, references(:user, column: :tid, type: :integer), null: false
 
       add :created_at, :utc_datetime, null: false
+      add :notified_at, :utc_datetime, default: nil, null: true
+
       add :drug, :string, default: nil, null: true
     end
 

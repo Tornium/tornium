@@ -27,6 +27,7 @@ defmodule Tornium.Schema.OverdoseEvent do
           user_id: integer(),
           user: Tornium.Schema.User.t(),
           created_at: DateTime.t(),
+          notified_at: DateTime.t() | nil,
           drug: String.t() | nil
         }
 
@@ -36,6 +37,8 @@ defmodule Tornium.Schema.OverdoseEvent do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
 
     field(:created_at, :utc_datetime)
+    field(:notified_at, :utc_datetime)
+
     field(:drug, :string)
   end
 end

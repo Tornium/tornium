@@ -18,12 +18,26 @@ function setOverdoseChannel(event) {
     const factionID = this.getAttribute("data-faction");
 
     tfetch("POST", `bot/${guildid}/faction/${factionID}/overdose`, {
-        body: { channel: this.options[this.selectedIndex].value },
+        body: { channel: channelID },
         errorTitle: "Overdose Channel Set Failed",
     }).then(() => {
         generateToast(
             "Overdose Channel Set Successful",
             "The channel for overdose notifications has been successfully set.",
+        );
+    });
+}
+
+function setOverdosePolicy(event) {
+    const factionID = this.getAttribute("data-faction");
+
+    tfetch("POST", `bot/${guildid}/faction/${factionID}/overdose/policy`, {
+        body: { policy: this.value },
+        errorTitle: "Overdose Policy Set Failed",
+    }).then(() => {
+        generateToast(
+            "Overdose Policy Set Successful",
+            "The policy for overdose notifications has been successfully set.",
         );
     });
 }
@@ -178,6 +192,9 @@ ready(() => {
 
     Array.from(document.getElementsByClassName("faction-overdose-channel")).forEach((channelSelector) => {
         channelSelector.addEventListener("change", setOverdoseChannel);
+    });
+    Array.from(document.getElementsByClassName("faction-overdose-policy")).forEach((policySelector) => {
+        policySelector.addEventListener("change", setOverdosePolicy);
     });
 
     function addFaction() {

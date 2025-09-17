@@ -24,6 +24,13 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
     * `:server_id` - Foreign key to the associated server (`Tornium.Schema.Server`).
     * `:faction_id` - Foreign key to the associated faction (`Tornium.Schema.Faction`).
     * `:channel` - Optional channel ID where overdose notifications are sent.
+    * `:policy` - Policy to determine when OD notifications are sent
+
+  ## Policy
+  Policy to determine when OD notifications are sent to the linked server's channel. When set to
+  `:immediate`, OD notifications will be sent to that channel whenever the OD event is generated. When
+  set to `:daily`, all the OD notifications will be sent at the top of the day without being sent when
+  the original OD event is generated.
   """
 
   use Ecto.Schema
@@ -36,7 +43,8 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
           server: Tornium.Schema.Server.t(),
           faction_id: integer(),
           faction: Tornium.Schema.Faction.t(),
-          channel: integer() | nil
+          channel: integer() | nil,
+          policy: :immediate | :daily
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -45,6 +53,7 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     field(:channel, :integer)
+    field(:policy, Ecto.Enum, values: [:immediate, :daily])
   end
 
   @doc """

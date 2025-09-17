@@ -19,6 +19,8 @@ defmodule Tornium.Schema.OverdoseEvent do
   """
 
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -40,5 +42,27 @@ defmodule Tornium.Schema.OverdoseEvent do
     field(:notified_at, :utc_datetime)
 
     field(:drug, :string)
+  end
+
+  @doc """
+  Mark all overdose events as notified at the current datetime.
+  """
+  def notify_all(events) when is_list(events) do
+    event_guids = Enum.map(events, fn %__MODULE__{guid: guid} -> guid end)
+
+    __MODULE__
+    |> where([e], e.guid in ^event_guids)
+    |> update([e], set: [notified_at: ^DateTime.utc_now()])
+    |> Repo.update_all([])
+  end
+
+  @doc """
+  Mark the overdose event as notified at the current datetime.
+  """
+  def notify(%__MODULE__{guid: guid}) do
+    __MODULE__
+    |> where([e], e.guid == ^guid)
+    |> update([e], set: [notified_at: ^DateTime.utc_now()])
+    |> Repo.update_all([])
   end
 end

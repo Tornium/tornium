@@ -115,14 +115,16 @@ defmodule Tornium.Workers.OverdoseUpdate do
     |> do_send_notifications(overdose_events)
   end
 
-  defp do_send_notifications(%Tornium.Schema.ServerOverdoseConfig{channel: channel}, overdose_events)
+  defp do_send_notifications(%Tornium.Schema.ServerOverdoseConfig{policy: :immediate, channel: channel}, overdose_events)
        when is_integer(channel) and channel != 0 and is_list(overdose_events) do
     overdose_events
     |> preload(:faction)
     |> preload(:user)
-    |> Enum.map(fn %Tornium.Schema.OverdoseEvent{} -> &Tornium.Faction.Overdose.to_embed/1 end)
-    |> Tornium.Discord.chunk_messages(chunk_size: 10)
+    |> Enum.map(&Tornium.Faction.Overdose.to_embed/1)
+    |> Tornium.Discord.chunk_embeds(chunk_size: 10)
     |> Tornium.Discord.send_messages()
+
+    Tornium.Schema.OverdoseEvent.notify_all(overdose_events)
   end
 
   defp do_send_notifications(_server_overdose_config, overdose_events) when is_list(overdose_events) do

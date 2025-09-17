@@ -78,7 +78,7 @@ defmodule Tornium.API.Store do
   Remove and return the API response corresponding to the provided API call ID if it exists and 
   is ready. If the response is not ready, `nil` will be returned instead.
   """
-  @spec pop(api_call_id :: String.t()) :: map() | nil
+  @spec pop(api_call_id :: String.t()) :: map() | :not_ready | :expired | nil
   def pop(api_call_id) do
     GenServer.call(__MODULE__, {:pop, api_call_id})
   end

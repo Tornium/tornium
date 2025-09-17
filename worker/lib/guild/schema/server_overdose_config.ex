@@ -27,6 +27,8 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
   """
 
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
@@ -43,5 +45,39 @@ defmodule Tornium.Schema.ServerOverdoseConfig do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     field(:channel, :integer)
+  end
+
+  @doc """
+  Gets the overdose configuration for a faction and server.
+
+  The faction and server are assumed to be linked. This needs to be checked separately or `get_by_faction/1`
+  should be used.
+  """
+  @spec get(faction_id :: integer(), guild_id :: integer()) :: t() | nil
+  def get(faction_id, guild_id) when is_integer(faction_id) and is_integer(guild_id) do
+    Tornium.Schema.ServerOverdoseConfig
+    |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
+    |> Repo.one()
+  end
+
+  @doc """
+  Gets the overdose configuration for a faction's linked server.
+  """
+  @spec get_by_faction(tid :: integer()) :: t() | nil
+  def get_by_faction(tid) when is_integer(tid) do
+    faction_return =
+      Tornium.Schema.Faction
+      |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)
+      |> where([f, s], f.tid == ^tid and f.tid in s.factions)
+      |> select([f, s], [f.guild_id])
+      |> Repo.one()
+
+    case faction_return do
+      [guild_id] when is_integer(guild_id) ->
+        get(tid, guild_id)
+
+      _ ->
+        nil
+    end
   end
 end

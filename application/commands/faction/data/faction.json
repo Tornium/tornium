@@ -25,7 +25,7 @@
                             "required": false,
                             "choices": [
                                 {
-                                    "name": "Now"
+                                    "name": "Now",
                                     "value": "1 minutes"
                                 },
                                 {

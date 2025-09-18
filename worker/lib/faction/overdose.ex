@@ -127,4 +127,68 @@ defmodule Tornium.Faction.Overdose do
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
     }
   end
+
+  @doc """
+  Generate a Discord embed reporting all overdoses for a day.
+
+  If the overdose event has a known drug used, the drug will be included in the embed.
+  """
+  @spec to_report_embed(events :: [Tornium.Schema.OverdoseEvent.t()], faction_name :: String.t()) ::
+          Nostrum.Struct.Embed.t()
+  def to_report_embed(events, faction_name) when events == [] and is_binary(faction_name) do
+    %Nostrum.Struct.Embed{
+      title: "Overdose Report for #{faction_name}",
+      description: "No overdoses recorded.",
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+  end
+
+  def to_report_embed(events, faction_name) when is_list(events) and is_binary(faction_name) do
+    %Nostrum.Struct.Embed{
+      title: "Overdose Report for #{faction_name}",
+      description: "",
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+    |> do_to_report_embed(events)
+  end
+
+  defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [
+         %Tornium.Schema.OverdoseEvent{
+           drug: drug,
+           created_at: created_at,
+           user: %Tornium.Schema.User{tid: user_tid, name: user_name}
+         }
+         | remaining_events
+       ])
+       when is_nil(drug) do
+    embed
+    |> Map.replace(
+      :description,
+      description <>
+        "\n#{user_name} [#{user_tid}]: #{created_at |> DateTime.from_unix!() |> DateTime.to_iso8601()} (on unknown)"
+    )
+    |> do_to_report_embed(remaining_events)
+  end
+
+  defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [
+         %Tornium.Schema.OverdoseEvent{
+           drug: drug,
+           created_at: created_at,
+           user: %Tornium.Schema.User{tid: user_tid, name: user_name}
+         }
+         | remaining_events
+       ])
+       when is_binary(drug) do
+    embed
+    |> Map.replace(
+      :description,
+      description <>
+        "\n#{user_name} [#{user_tid}]: #{created_at |> DateTime.from_unix!() |> DateTime.to_iso8601()} (on #{drug})"
+    )
+    |> do_to_report_embed(remaining_events)
+  end
+
+  defp do_to_report_embed(%Nostrum.Struct.Embed{} = embed, []) do
+    embed
+  end
 end

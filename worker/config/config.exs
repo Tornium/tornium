@@ -72,14 +72,18 @@ config :tornium, Oban,
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
-    {Oban.Plugins.Cron,
-     crontab: [
-       {"* * * * *", Tornium.Workers.NotificationScheduler},
-       {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
-       {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
-       {"0 0 * * *", Tornium.Workers.OAuthRevocation}
-     ]},
+    {
+      Oban.Plugins.Cron,
+      crontab: [
+        {"* * * * *", Tornium.Workers.NotificationScheduler},
+        {"0 * * * *", Tornium.Workers.OCMigrationCheck},
+        {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
+        {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
+        {"0 0 * * *", Tornium.Workers.OAuthRevocation},
+        {"*/30 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
+        {"10 0 * * * ", Tornium.Workers.OverdoseDailyReport}
+      ]
+    },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]

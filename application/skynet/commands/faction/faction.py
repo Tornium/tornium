@@ -57,7 +57,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
             SELECT
                 u.tid,
                 u.name,
-                TO_CHAR(now() - oc.executed_at, 'HH24 hours MI minutes')
+                EXTRACT(epoch FROM (now() - oc.executed_at))
             FROM public."user" u
             LEFT JOIN (
                 SELECT

@@ -31,7 +31,7 @@ defmodule Tornium.Schema.OverdoseCount do
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
-  schema "overdose_event" do
+  schema "overdose_count" do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     belongs_to(:user, Tornium.Schema.User, references: :tid)
 

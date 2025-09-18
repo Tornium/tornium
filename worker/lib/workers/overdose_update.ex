@@ -23,10 +23,8 @@ defmodule Tornium.Workers.OverdoseUpdate do
   4. Send overdose notifications to the linked server if configured.
   """
 
-  alias Torngen.Client.Schema.FactionContributor
-  alias Torngen.Client.Schema.FactionContributorsResponse
-  alias Tornium.Repo
   import Ecto.Query
+  alias Tornium.Repo
 
   use Oban.Worker,
     max_attempts: 3,
@@ -63,7 +61,9 @@ defmodule Tornium.Workers.OverdoseUpdate do
       %{} = result ->
         %{
           Torngen.Client.Path.Faction.Contributors => %{
-            FactionContributorsResponse => %FactionContributorsResponse{contributors: overdose_data}
+            FactionContributorsResponse => %Torngen.Client.Schema.FactionContributorsResponse{
+              contributors: overdose_data
+            }
           }
         } =
           Tornex.SpecQuery.new()
@@ -72,16 +72,12 @@ defmodule Tornium.Workers.OverdoseUpdate do
           |> Tornex.SpecQuery.put_parameter(:cat, "current")
           |> Tornex.SpecQuery.parse(result)
 
-        {_, new_members} =
-          Repo.insert_all(
-            Tornium.Schema.OverdoseCount,
-            Tornium.Faction.Overdose.map_new_counts(overdose_data, faction_id),
-            on_conflict: :nothing,
-            conflict_target: [:faction_id, :user_id],
-            returning: [:user_id]
-          )
-
-        new_member_ids = Enum.map(new_members, fn %Tornium.Schema.OverdoseCount{user_id: member_id} -> member_id end)
+        original_overdoses =
+          Tornium.Schema.OverdoseCount
+          |> where([c], c.faction_id == ^faction_id)
+          |> Repo.all()
+          |> Enum.map(fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} -> {user_id, count} end)
+          |> Map.new()
 
         {_, overdosed_members} =
           Repo.insert_all(
@@ -89,13 +85,18 @@ defmodule Tornium.Workers.OverdoseUpdate do
             Tornium.Faction.Overdose.map_counts(overdose_data, faction_id),
             on_conflict: {:replace, [:count, :updated_at]},
             conflict_target: [:user_id, :faction_id],
-            returning: [:user_id]
+            returning: true
           )
+
+        overdosed_members =
+          Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} ->
+            original_overdoses |> Map.get(user_id) |> Kernel.==(count)
+          end)
 
         {_, overdose_events} =
           Repo.insert_all(
-            Tornium.Schema.OverdoseEvents,
-            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id, new_member_ids),
+            Tornium.Schema.OverdoseEvent,
+            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id),
             returning: true
           )
 
@@ -124,7 +125,7 @@ defmodule Tornium.Workers.OverdoseUpdate do
     |> Repo.preload(:faction)
     |> Repo.preload(:user)
     |> Enum.map(&Tornium.Faction.Overdose.to_embed/1)
-    |> Tornium.Discord.chunk_embeds(chunk_size: 10)
+    |> Tornium.Discord.chunk_embeds(channel: channel, chunk_size: 10)
     |> Tornium.Discord.send_messages()
 
     Tornium.Schema.OverdoseEvent.notify_all(overdose_events)

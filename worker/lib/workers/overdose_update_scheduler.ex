@@ -60,7 +60,7 @@ defmodule Tornium.Workers.OverdoseUpdateScheduler do
         origin_job_id: job_id,
         api_call_id: api_call_id
       }
-      |> Tornium.Workers.OCCPRUpdate.new(schedule_in: _seconds = 15)
+      |> Tornium.Workers.OverdoseUpdate.new(schedule_in: _seconds = 15)
       |> Oban.insert()
     end)
 

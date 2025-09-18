@@ -81,15 +81,17 @@ defmodule Tornium.Discord do
 
   ## Options
     * `:chunk_size` - Maximum number of embeds in a chunk
+    * `:channel` - Channel the message will be sent to (Optional)
   """
   @spec chunk_embeds(embeds :: [Nostrum.Struct.Embed.t()], opts :: keyword()) :: [Nostrum.Struct.Message.t()]
   def chunk_embeds([%Nostrum.Struct.Embed{} | _] = embeds, opts \\ []) do
     chunk_size = Keyword.get(opts, :chunk_size, 10)
+    channel = Keyword.get(opts, :channel, nil)
 
     embeds
     |> Enum.chunk_every(chunk_size)
     |> Enum.map(fn overdose_embed_chunks when is_list(overdose_embed_chunks) ->
-      %Nostrum.Struct.Message{embeds: overdose_embed_chunks}
+      %Nostrum.Struct.Message{channel_id: channel, embeds: overdose_embed_chunks}
     end)
   end
 

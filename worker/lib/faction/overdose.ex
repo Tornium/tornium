@@ -40,22 +40,6 @@ defmodule Tornium.Faction.Overdose do
   end
 
   @doc """
-  Map the overdose data to `Tornium.Schema.OverdoseCount` without a count.
-
-  This is intended to ensure new members get inserted to the database separately from the upsert.
-  """
-  @spec map_new_counts(overdose_data :: [FactionContributor.t()], faction_id :: integer()) :: [
-          %{faction_id: integer(), user_id: integer(), count: integer(), updated_at: DateTime.t()}
-        ]
-  def map_new_counts([%FactionContributor{} | _] = overdose_data, faction_id) when is_integer(faction_id) do
-    overdose_data
-    |> counts()
-    |> Enum.map(fn {member_id, _overdose_count} ->
-      %{faction_id: faction_id, user_id: member_id, count: 0, updated_at: DateTime.utc_now()}
-    end)
-  end
-
-  @doc """
   Map the overdose data to `Tornium.Schema.OverdoseCount`.
   """
   @spec map_counts(overdose_data :: [FactionContributor.t()], faction_id :: integer()) :: [
@@ -65,30 +49,39 @@ defmodule Tornium.Faction.Overdose do
     overdose_data
     |> counts()
     |> Enum.map(fn {member_id, overdose_count} ->
-      %{faction_id: faction_id, user_id: member_id, count: overdose_count, updated_at: DateTime.utc_now()}
+      %{
+        guid: Ecto.UUID.generate(),
+        faction_id: faction_id,
+        user_id: member_id,
+        count: overdose_count,
+        updated_at: DateTime.utc_now(:second)
+      }
     end)
   end
 
   @doc """
   Map the updated overdose counts to `Tornium.Schema.OverdoseEvent`.
   """
-  @spec map_events(
-          overdosed_members :: [Tornium.Schema.OverdoseCount.t()],
-          faction_id :: integer(),
-          new_member_ids :: [integer()]
-        ) :: [%{faction_id: integer(), user_id: integer(), created_at: DateTime.t(), drug: term()}]
-  def map_events([%Tornium.Schema.OverdoseCount{} | _] = overdosed_members, faction_id, new_member_ids)
-      when is_integer(faction_id) and is_list(new_member_ids) do
-    # TODO: Test this
+  @spec map_events(overdosed_members :: [Tornium.Schema.OverdoseCount.t()], faction_id :: integer()) :: [
+          %{faction_id: integer(), user_id: integer(), created_at: DateTime.t(), drug: term()}
+        ]
+  def map_events([%Tornium.Schema.OverdoseCount{} | _] = overdosed_members, faction_id) when is_integer(faction_id) do
     # TODO: Determine the drug used
+    # TODO: Test this
 
-    overdosed_members
-    |> Enum.reject(fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
-      Enum.member?(new_member_ids, member_id)
+    Enum.map(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
+      %{
+        guid: Ecto.UUID.generate(),
+        faction_id: faction_id,
+        user_id: member_id,
+        created_at: DateTime.utc_now(:second),
+        drug: nil
+      }
     end)
-    |> Enum.map(fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
-      %{faction_id: faction_id, user_id: member_id, created_at: DateTime.utc_now(), drug: nil}
-    end)
+  end
+
+  def map_events([] = _overdosed_members, faction_id) when is_integer(faction_id) do
+    []
   end
 
   @doc """
@@ -109,7 +102,7 @@ defmodule Tornium.Faction.Overdose do
       title: "Member Overdosed",
       description:
         "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on an unknown drug.",
-      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+      timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
   end
 
@@ -124,7 +117,7 @@ defmodule Tornium.Faction.Overdose do
       title: "Member Overdosed",
       description:
         "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on #{drug}.",
-      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+      timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
   end
 
@@ -139,7 +132,7 @@ defmodule Tornium.Faction.Overdose do
     %Nostrum.Struct.Embed{
       title: "Overdose Report for #{faction_name}",
       description: "No overdoses recorded.",
-      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+      timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
   end
 
@@ -147,7 +140,7 @@ defmodule Tornium.Faction.Overdose do
     %Nostrum.Struct.Embed{
       title: "Overdose Report for #{faction_name}",
       description: "",
-      timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+      timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
     |> do_to_report_embed(events)
   end

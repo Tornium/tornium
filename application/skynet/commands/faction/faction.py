@@ -212,7 +212,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
             },
         }
     elif user.faction_id != faction.tid and (
-        interaction.get("guild_id") is None or interaction["guild_id"] != faction.guild_id
+        interaction.get("guild_id") is None or int(interaction["guild_id"]) != faction.guild_id
     ):
         return {
             "type": 4,
@@ -229,7 +229,9 @@ def crimes_switchboard(interaction, *args, **kwargs):
         }
     elif user.faction_id != faction.tid:
         try:
-            server = Server.select(Server.factions, Server.admins).where(Server.sid == interaction["guild_id"]).get()
+            server = (
+                Server.select(Server.factions, Server.admins).where(Server.sid == int(interaction["guild_id"])).get()
+            )
         except DoesNotExist:
             return {
                 "type": 4,

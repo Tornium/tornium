@@ -21,7 +21,7 @@ import typing
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch, discordpost, tornget
 from tornium_commons import db
-from tornium_commons.formatters import find_list
+from tornium_commons.formatters import HumanTimeDelta, find_list
 from tornium_commons.models import Faction, PersonalStats, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
@@ -97,7 +97,10 @@ def crimes_switchboard(interaction, *args, **kwargs):
         }
 
         for user_id, user_name, last_oc in query:
-            payload["data"]["embeds"][0]["description"] += f"[{user_name}](https://tcy.sh/p/{user_id}) - {last_oc}\n"
+            last_oc_delta = HumanTimeDelta.seconds = int(last_oc)
+            payload["data"]["embeds"][0][
+                "description"
+            ] += f"[{user_name}](https://tcy.sh/p/{user_id}) - {last_oc_delta}\n"
 
         if len(payload["data"]["embeds"][0]["description"]) == 0:
             payload["data"]["embeds"][0]["description"] = "All applicable members are in OCs."

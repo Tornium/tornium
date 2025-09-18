@@ -57,7 +57,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
             SELECT
                 u.tid,
                 u.name,
-                now() - oc.executed_at
+                TO_CHAR(now() - oc.executed_at, 'HH24:MI:SS')
             FROM public."user" u
             LEFT JOIN (
                 SELECT
@@ -85,7 +85,14 @@ def crimes_switchboard(interaction, *args, **kwargs):
         payload = {
             "type": 4,
             "data": {
-                "embeds": [{"title": f"Missing OC Members of {faction.name}", "description": "", "color": SKYNET_ERROR}]
+                "embeds": [
+                    {
+                        "title": f"Missing OC Members of {faction.name}",
+                        "description": "",
+                        "color": SKYNET_ERROR,
+                    },
+                ],
+                "flags": 64,
             },
         }
 

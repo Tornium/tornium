@@ -13,20 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import render_template
-from flask_login import current_user, login_required
-from peewee import DoesNotExist
+from peewee import DateTimeField, ForeignKeyField, IntegerField, UUIDField
 
-from controllers.faction.decorators import fac_required
+from .base_model import BaseModel
+from .faction import Faction
+from .user import User
 
 
-@login_required
-@fac_required
-def chain(*args, **kwargs):
-    try:
-        return render_template(
-            "faction/chain.html",
-            guild_id=(0 if current_user.faction.guild_id is None else current_user.faction.guild_id),
-        )
-    except DoesNotExist:
-        return render_template("faction/chain.html", guild_id=0)
+class OverdoseCount(BaseModel):
+    class Meta:
+        table_name = "overdose_count"
+
+    guid = UUIDField(primary_key=True)
+
+    faction = ForeignKeyField(Faction, null=False)
+    user = ForeignKeyField(User, null=False)
+
+    count = IntegerField(null=False)
+    updated_at = DateTimeField(null=False)

@@ -13,7 +13,36 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function () {
+function setOverdoseChannel(event) {
+    const channelID = this.value == "0" ? null : this.value;
+    const factionID = this.getAttribute("data-faction");
+
+    tfetch("POST", `bot/${guildid}/faction/${factionID}/overdose`, {
+        body: { channel: channelID },
+        errorTitle: "Overdose Channel Set Failed",
+    }).then(() => {
+        generateToast(
+            "Overdose Channel Set Successful",
+            "The channel for overdose notifications has been successfully set.",
+        );
+    });
+}
+
+function setOverdosePolicy(event) {
+    const factionID = this.getAttribute("data-faction");
+
+    tfetch("POST", `bot/${guildid}/faction/${factionID}/overdose/policy`, {
+        body: { policy: this.value },
+        errorTitle: "Overdose Policy Set Failed",
+    }).then(() => {
+        generateToast(
+            "Overdose Policy Set Successful",
+            "The policy for overdose notifications has been successfully set.",
+        );
+    });
+}
+
+ready(() => {
     let serverConfigPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Server Config Failed to Load" });
     let channelsPromise = channelsRequest();
     let rolesPromise = rolesRequest();
@@ -70,6 +99,18 @@ $(document).ready(function () {
             $.each(serverConfig["banking"], function (factionid, factionConfig) {
                 let option = $(
                     `.faction-banking-channel[data-faction="${factionid}"] option[value="${factionConfig.channel}"]`,
+                );
+
+                if (option.length !== 1) {
+                    return;
+                }
+
+                option.attr("selected", "");
+            });
+
+            $.each(serverConfig.overdose, (factionID, overdoseChannel) => {
+                let option = $(
+                    `.faction-overdose-channel[data-faction="${factionID}"] option[value="${overdoseChannel}"]`,
                 );
 
                 if (option.length !== 1) {
@@ -147,6 +188,13 @@ $(document).ready(function () {
 
     $('[data-bs-toggle="tooltip"]').tooltip({
         container: ".list-group",
+    });
+
+    Array.from(document.getElementsByClassName("faction-overdose-channel")).forEach((channelSelector) => {
+        channelSelector.addEventListener("change", setOverdoseChannel);
+    });
+    Array.from(document.getElementsByClassName("faction-overdose-policy")).forEach((policySelector) => {
+        policySelector.addEventListener("change", setOverdosePolicy);
     });
 
     function addFaction() {

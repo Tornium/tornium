@@ -97,11 +97,14 @@ def crimes_switchboard(interaction, *args, **kwargs):
         }
 
         for user_id, user_name, last_oc in query:
-            last_oc_delta = HumanTimeDelta()
-            last_oc_delta.seconds = int(last_oc)
-            payload["data"]["embeds"][0][
-                "description"
-            ] += f"[{user_name}](https://tcy.sh/p/{user_id}) - {str(last_oc_delta)}\n"
+            if last_oc is None:
+                payload["data"]["embeds"][0]["description"] += f"[{user_name}](https://tcy.sh/p/{user_id}) - None\n"
+            else:
+                last_oc_delta = HumanTimeDelta()
+                last_oc_delta.seconds = int(last_oc)
+                payload["data"]["embeds"][0][
+                    "description"
+                ] += f"[{user_name}](https://tcy.sh/p/{user_id}) - {str(last_oc_delta)}\n"
 
         if len(payload["data"]["embeds"][0]["description"]) == 0:
             payload["data"]["embeds"][0]["description"] = "All applicable members are in OCs."

@@ -26,7 +26,7 @@ from peewee import DoesNotExist, Expression
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import torn_timestamp
-from tornium_commons.models import FactionPosition, Server, ServerAttackConfig, User
+from tornium_commons.models import FactionPosition, Server, ServerAttackConfig, ServerNotificationsConfig, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 import celery
@@ -163,6 +163,7 @@ def refresh_guilds():
         # Delete certain rows that rely upon the server for the primary key
         try:
             ServerAttackConfig.delete().where(ServerAttackConfig.server == deleted_guild).execute()
+            ServerNotificationsConfig.delete().where(ServerNotificationsConfig.server == deleted_guild).execute()
             Server.delete().where(Server.sid == deleted_guild).execute()
         except (DoesNotExist, AttributeError):
             pass

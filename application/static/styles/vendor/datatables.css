@@ -6,6 +6,7 @@
     --error: inherit;
     --text-color: black;
     --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
     --border-color: var(--white);
     --primary-bg-color: inherit;
     --secondary-bg-color: inherit;
@@ -19,6 +20,7 @@
     --error: rgb(225, 10, 10);
     --text-color: var(--white);
     --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -29,6 +31,7 @@
     --secondary-grey: inherit;
     --off-white: inherit;
     --error: inherit;
+    --primary-bg-color: white;
 }
 
 :root[data-bs-theme="neon-dark"] {
@@ -39,6 +42,7 @@
     --error: rgb(225, 10, 10);
     --text-color: var(--neon);
     --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }

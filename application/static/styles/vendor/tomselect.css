@@ -23,14 +23,14 @@
 }
 .ts-dropdown .active {
     background-color: var(--secondary-bg-color);
-    color: white;
+    color: var(--text-alternate-contrast-color);
 }
 .ts-dropdown .create {
-    color: white !important;
+    color: var(--text-color) !important;
 }
 .ts-dropdown .optgroup-header {
     background-color: var(--secondary-bg-color);
-    color: white;
+    color: var(--text-color);
     border-bottom: var(--text-color) 1px solid;
     border-top: var(--text-color) 1px solid;
 }

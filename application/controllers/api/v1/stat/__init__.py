@@ -113,8 +113,8 @@ def generate_chain_list_v2(*args, **kwargs):
     is_inactive = data.get("inactive", False)
 
     try:
-        minimum_difficulty = int(minimum_difficulty)
-        maximum_difficulty = int(maximum_difficulty)
+        minimum_difficulty = round(float(minimum_difficulty), 2)
+        maximum_difficulty = round(float(maximum_difficulty), 2)
         minimum_level = int(minimum_level)
         maximum_level = int(maximum_level)
         limit = int(limit)

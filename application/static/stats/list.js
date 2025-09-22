@@ -78,7 +78,8 @@ function showDefaultMessage() {
 
 function buildViewer(chainListData) {
     const viewerTable = document.createElement("table");
-    viewerTable.classList.add("table", "table-striped", "w-100");
+    viewerTable.classList.add("table", "table-striped", "card-table", "w-100");
+    viewerTable.id = "viewer-table";
     viewer.append(viewerTable);
 
     const viewerTableHead = document.createElement("thead");
@@ -117,42 +118,59 @@ function buildViewer(chainListData) {
         columns: [
             {
                 // User
+                title: "User",
                 render: function (data, type, row, meta) {
-                    return `<a href="https://www.torn.com/profiles.php?XID=${data}">${idNameMap[data]} [${data}]</a>`;
+                    return `<label>User: </label><a href="https://www.torn.com/profiles.php?XID=${data}">${idNameMap[data]} [${data}]</a>`;
                 },
             },
             {
                 // Faction
-            },
-            {
-                // Last Action
+                title: "Faction",
                 render: function (data, type, row, meta) {
-                    return reltime(data);
+                    return `<label>Faction: </label>${data}`;
                 },
             },
             {
-                // Last User Refresh
+                // Last Action
+                title: "Last Action",
                 render: function (data, type, row, meta) {
-                    return reltime(data);
+                    return `<label>Last Action: </label>${reltime(data)}`;
+                },
+            },
+            {
+                // User Refresh
+                title: "Last User Update",
+                render: function (data, type, row, meta) {
+                    return `<label>Last User Update: </label>${reltime(data)}`;
                 },
             },
             {
                 // Stat insert timestamp
+                title: "Stat Added",
                 render: function (data, type, row, meta) {
-                    return reltime(data);
+                    return `<label>Stat Added: </label>${reltime(data)}`;
                 },
             },
             {
                 // Stat Score
+                title: "Stat Score",
                 render: function (data, type, row, meta) {
-                    return commas(data);
+                    return `<label>Stat Score: </label>${commas(data)}`;
                 },
             },
             {
                 // Fair Fight
+                title: "Fair Fight",
+                render: function (data, type, row, meta) {
+                    return `<label>Fair Fight: </label>${data}`;
+                },
             },
             {
                 // Respect
+                title: "Respect",
+                render: function (data, type, row, meta) {
+                    return `<label>Respect: </label>${data}`;
+                },
             },
         ],
     });

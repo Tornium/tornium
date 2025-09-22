@@ -44,6 +44,20 @@ Tornium - Chain Generator
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+@media (max-width: 768px) {
+    .dataTables_scrollHead {
+        /*
+        Header of table after initialized as a datatable
+        TODO: Determine how this can be added to the SCSS bundle without affecting tables that are not .card-table
+        */
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="px-3 py-3">
     <div class="card">

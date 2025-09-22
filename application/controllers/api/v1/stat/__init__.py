@@ -135,11 +135,11 @@ def generate_chain_list_v2(*args, **kwargs):
             key,
             details={"message": "The maximum difficulty must be at least 1"},
         )
-    elif maximum_difficulty < minimum_difficulty:
+    elif maximum_difficulty <= minimum_difficulty:
         return make_exception_response(
             "0000",
             key,
-            details={"message": "The maximum difficulty must be greater than or equal to the minimum difficulty"},
+            details={"message": "The maximum difficulty must be greater than the minimum difficulty"},
         )
 
     if minimum_level < 1 or minimum_level > 100:

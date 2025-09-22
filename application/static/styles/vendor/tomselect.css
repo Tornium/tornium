@@ -25,6 +25,9 @@
     background-color: var(--secondary-bg-color);
     color: white;
 }
+.ts-dropdown .create {
+    color: white !important;
+}
 .ts-dropdown .optgroup-header {
     background-color: var(--secondary-bg-color);
     color: white;

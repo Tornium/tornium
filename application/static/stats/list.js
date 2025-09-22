@@ -13,184 +13,156 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-$(document).ready(function () {
-    $(".difficulty-button").on("click", function () {
-        if ($(this).hasClass("active")) {
-            $(this).removeClass("active");
-            return;
-        } else if ($(".difficulty-button.active").length !== 0) {
-            $(".difficulty-button.active").removeClass("active");
-        }
+const defaultMessage = document.getElementById("default-chain-list-text");
+const viewer = document.getElementById("chain-list-viewer");
 
-        $(this).addClass("active");
-    });
+const minimumDifficultySelector = document.getElementById("config-minimum-difficulty");
+const maximumDifficultySelector = document.getElementById("config-maximum-difficulty");
+const minimumLevelInput = document.getElementById("config-minimum-level");
+const maximumLevelInput = document.getElementById("config-maximum-level");
+const sortBySelector = document.getElementById("config-sort-by");
+const limitSelector = document.getElementById("config-limit");
+const inactiveToggle = document.getElementById("config-inactive-only");
+const factionlessToggle = document.getElementById("config-factionless-only");
 
-    $(".sorting-button").on("click", function () {
-        if ($(this).hasClass("active")) {
-            $(this).removeClass("active");
-        } else if ($(".sorting-button.active").length !== 0) {
-            $(".sorting-button.active").removeClass("active");
-        }
+const viewerTableHeaders = [
+    "User",
+    "Faction",
+    "Last Action",
+    "Last User Update",
+    "Stat Added",
+    "Stat Score",
+    "Fair Fight",
+    "Respect",
+];
 
-        $(this).addClass("active");
-    });
+function generateChainList() {
+    const options = {
+        minimum_difficulty: parseFloat(minimumDifficultySelector.value),
+        maximum_difficulty: parseFloat(maximumDifficultySelector.value),
+        minimum_level: parseInt(minimumLevelInput.value),
+        maximum_level: parseInt(maximumLevelInput.value),
+        sort_order: sortBySelector.value,
+        limit: parseInt(limitSelector.value),
+        inactive: inactiveToggle.checked,
+        factionless: factionlessToggle.checked,
+    };
 
-    $(".limit-button").on("click", function () {
-        if ($(this).hasClass("active")) {
-            $(this).removeClass("active");
-        } else if ($(".limit-button.active").length !== 0) {
-            $(".limit-button.active").removeClass("active");
-        }
+    tfetch("POST", `stat/chain-list`, { body: options, errorTitle: "Chain List Request Failed" }).then(
+        (chainListData) => {
+            clearTable();
 
-        $(this).addClass("active");
-    });
-
-    $("#generate-list").on("click", function () {
-        let difficulty = $(".difficulty-button.active");
-        const sorting = $(".sorting-button.active");
-        const targets = $(".limit-button.active");
-        let ff;
-        let sort;
-
-        if (difficulty.length === 0) {
-            generateToast("Missing Config", "No difficulty was set.");
-            return;
-        } else if (sorting.length === 0) {
-            generateToast("Missing Config", "No sort was set.");
-            return;
-        } else if (targets.length === 0) {
-            generateToast("Missing Config", "No limit was set.");
-            return;
-        }
-
-        difficulty = parseInt(difficulty.first()[0].getAttribute("data-difficulty"));
-
-        switch (sorting.first()[0].id) {
-            case "recently-updated-sort":
-                sort = "timestamp";
-                break;
-            case "highest-respect-sort":
-                sort = "respect";
-                break;
-            case "random-sort":
-                sort = "random";
-                break;
-            default:
-                generateToast("Invalid Sort", "Invalid sort option");
+            if (chainListData.length == 0) {
+                showDefaultMessage();
+                defaultMessage.innerText = "No targets found...";
                 return;
-        }
+            }
 
-        const limit = parseInt(targets.first()[0].getAttribute("data-limit"));
+            hideDefaultMessage();
+            buildViewer(chainListData);
+        },
+    );
+}
 
-        $("#generate-list").attr("disabled", true);
-        $("#targets-container").empty();
+function clearTable() {
+    viewer.innerHTML = "";
+}
 
-        tfetch("GET", `chain-list?difficulty=${difficulty}&sort=${sort}&limit=${limit}`, {
-            errorTitle: "Chain List Request Failed",
-        })
-            .then((response) => {
-                response["data"].sort((a, b) => parseFloat(b.respect) - parseFloat(a.respect));
+function hideDefaultMessage() {
+    defaultMessage.setAttribute("hidden", "");
+}
 
-                const fragment = document.createDocumentFragment();
+function showDefaultMessage() {
+    defaultMessage.removeAttribute("hidden");
+}
 
-                response.data.forEach(function (user) {
-                    let bsMinMax = bsRange(user.battlescore);
+function buildViewer(chainListData) {
+    const viewerTable = document.createElement("table");
+    viewerTable.classList.add("table", "table-striped", "w-100");
+    viewer.append(viewerTable);
 
-                    $(fragment).append(
-                        $("<div>", {
-                            class: "col-sm-12 col-md-6 col-xl-4",
-                        }).append(
-                            $("<div>", {
-                                class: "card mt-3",
-                                "data-tid": user.tid,
-                            }).append([
-                                $("<div>", {
-                                    class: "card-body",
-                                }).append([
-                                    $("<h5>", {
-                                        class: "card-title",
-                                        text: user.user.username,
-                                    }),
-                                    $("<h6>", {
-                                        class: "card-subtitle mb-2",
-                                        text: `Last Stat Update: ${reltime(user.timeadded)}`,
-                                    }),
-                                    $("<p>", {
-                                        class: "card-subtitle mb-2",
-                                        text: `Last User Update: ${reltime(user.user.last_refresh)}`,
-                                    }),
-                                ]),
-                                $("<ul>", {
-                                    class: "list-group list-group-flush",
-                                }).append([
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Estimated Fair Fight: ${user.ff}`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Estimated Respect: ${user.respect}`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Minimum Estimated Stats: ${commas(bsMinMax[0])}`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Maximum Estimated Stats: ${commas(bsMinMax[1])}`,
-                                    }),
-                                ]),
-                                $("<ul>", {
-                                    class: "list-group list-group-flush mt-2",
-                                }).append([
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text:
-                                            user.user.faction.tid === null
-                                                ? `Faction: None`
-                                                : `Faction: ${user.user.faction.name} [${user.user.faction.tid}]`,
-                                    }),
-                                    $("<li>", {
-                                        class: "list-group-item",
-                                        text: `Last Action: ${reltime(user.user.last_action)}`,
-                                    }),
-                                ]),
-                                $("<div>", {
-                                    class: "card-footer my-1",
-                                }).append([
-                                    $("<button>", {
-                                        class: "btn btn-outline-primary mx-1",
-                                        onclick: `window.open("https://www.torn.com/profiles.php?XID=${user.tid}", "_blank")`,
-                                    }).append(
-                                        $("<i>", {
-                                            class: "fa-regular fa-address-card",
-                                        }),
-                                    ),
-                                    $("<button>", {
-                                        class: "btn btn-outline-primary mx-1",
-                                        onclick: `window.open("https://www.torn.com/loader.php?sid=attack&user2ID=${user.tid}", "_blank")`,
-                                    }).append(
-                                        $("<i>", {
-                                            class: "fa-solid fa-crosshairs",
-                                        }),
-                                    ),
-                                ]),
-                            ]),
-                        ),
-                    );
-                });
-
-                $("#targets-container").append(fragment);
-                $("#generate-list").attr("disabled", false);
-            })
-            .catch((err) => {
-                $("#generate-list").attr("disabled", false);
-                throw err;
-            });
-
-        generateToast(
-            "Chain List Request Sent",
-            "The request for the chain list has been sent to the Tornium API server.",
-        );
+    const viewerTableHead = document.createElement("thead");
+    const viewerTableHeadRow = document.createElement("tr");
+    viewerTableHeaders.forEach((columnName) => {
+        const viewerTableColumnName = document.createElement("th");
+        viewerTableColumnName.innerText = columnName;
+        viewerTableHeadRow.append(viewerTableColumnName);
     });
+    viewerTableHead.append(viewerTableHeadRow);
+    viewerTable.append(viewerTableHead);
+
+    const chainListTargets = [];
+    const idNameMap = {};
+    Array.from(chainListData).forEach((chainTarget) => {
+        idNameMap[chainTarget.target.ID] = chainTarget.target.name;
+        chainListTargets.push([
+            chainTarget.target.ID,
+            chainTarget.target.faction ? chainTarget.target.faction.name : "",
+            chainTarget.target.last_action,
+            chainTarget.target.last_refresh,
+            chainTarget.time_added,
+            chainTarget.stat_score,
+            chainTarget.fair_fight,
+            chainTarget.respect,
+        ]);
+    });
+
+    const viewerDataTable = new DataTable(viewerTable, {
+        responsive: false,
+        data: chainListTargets,
+        ordering: true,
+        searching: false,
+        order: [[0, "desc"]],
+        scrollX: true,
+        columns: [
+            {
+                // User
+                render: function (data, type, row, meta) {
+                    return `<a href="https://www.torn.com/profiles.php?XID=${data}">${idNameMap[data]} [${data}]</a>`;
+                },
+            },
+            {
+                // Faction
+            },
+            {
+                // Last Action
+                render: function (data, type, row, meta) {
+                    return reltime(data);
+                },
+            },
+            {
+                // Last User Refresh
+                render: function (data, type, row, meta) {
+                    return reltime(data);
+                },
+            },
+            {
+                // Stat insert timestamp
+                render: function (data, type, row, meta) {
+                    return reltime(data);
+                },
+            },
+            {
+                // Stat Score
+                render: function (data, type, row, meta) {
+                    return commas(data);
+                },
+            },
+            {
+                // Fair Fight
+            },
+            {
+                // Respect
+            },
+        ],
+    });
+}
+
+ready(() => {
+    new TomSelect(minimumDifficultySelector, { create: true });
+    new TomSelect(maximumDifficultySelector, { create: true });
+    new TomSelect(sortBySelector, { create: false });
+    new TomSelect(limitSelector, { create: true });
+
+    document.getElementById("generate-list-button").addEventListener("click", generateChainList);
 });

@@ -191,7 +191,9 @@ def generate_chain_list_v2(*args, **kwargs):
 
     fair_fight_expression = 1 + 8 / 3 * s.c.battlescore / int(user.battlescore)
     fair_fight_alias = fair_fight_expression.alias("fair_fight")
-    respect_expression = (User.level / 198) + (197 / 198) * fn.LEAST(fair_fight_expression, 3)
+    respect_expression = (fn.ROUND((User.level / SQL("198.0")) + SQL("197.0 / 198.0"), 2)) * (
+        fn.LEAST(fair_fight_expression, 3)
+    )
     respect_alias = respect_expression.alias("respect")
 
     query = (
@@ -245,7 +247,6 @@ def generate_chain_list_v2(*args, **kwargs):
             (User.last_action <= datetime.datetime.utcnow() - datetime.timedelta(days=30))
             & (User.last_refresh >= datetime.datetime.utcnow() - datetime.timedelta(days=21))
         )
-        # query = query.where(User.last_action <= datetime.datetime.utcnow() - datetime.timedelta(days=30))
 
     if sort_order == "recently-updated":
         query = query.order_by(s.c.time_added.desc())

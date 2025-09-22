@@ -177,9 +177,6 @@ def generate_chain_list_v2(*args, **kwargs):
     maximum_stat_score = int(0.375 * user.battlescore * (maximum_difficulty - 1))
     groups = (0,) if user.faction_id in (0, None) else (0, user.faction_id)
 
-    is_factionless = bool(is_factionless)
-    is_inactive = bool(is_inactive)
-
     stat_subquery = (
         Stat.select(Stat.tid_id, Stat.time_added, Stat.battlescore)
         .where(
@@ -242,7 +239,7 @@ def generate_chain_list_v2(*args, **kwargs):
         )
 
     if is_factionless:
-        query = query.where(User.faction_id.in_((0, None)))
+        query = query.where((User.faction_id == 0) | (User.faction_id.is_null(True)))
     if is_inactive:
         query = query.where(
             (User.last_action <= datetime.datetime.utcnow() - datetime.timedelta(days=30))

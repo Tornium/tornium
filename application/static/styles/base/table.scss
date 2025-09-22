@@ -1,12 +1,12 @@
 thead th {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 
 tbody {
     & th,
     td {
-        color: var(--white) !important;
+        color: var(--text-color) !important;
         background-color: inherit !important;
 
         & a {

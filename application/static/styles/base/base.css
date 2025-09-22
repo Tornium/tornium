@@ -83,13 +83,13 @@ p {
 }
 
 thead th {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 tbody th a,

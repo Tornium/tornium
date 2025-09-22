@@ -51,7 +51,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
         # 0: faction ID
         # 1: faction ID
         # 2: interval string
-        parameters = [faction.tid, interval]
+        parameters = [faction.tid, faction.tid, interval]
 
         query = db.execute_sql(
             """

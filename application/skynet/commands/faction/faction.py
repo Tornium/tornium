@@ -49,7 +49,8 @@ def crimes_switchboard(interaction, *args, **kwargs):
 
         # Parameter order:
         # 0: faction ID
-        # 1: interval string
+        # 1: faction ID
+        # 2: interval string
         parameters = [faction.tid, interval]
 
         query = db.execute_sql(
@@ -69,6 +70,8 @@ def crimes_switchboard(interaction, *args, **kwargs):
                     public.organized_crime_slot ocs
                 INNER JOIN public.organized_crime oc ON
                     oc.oc_id = ocs.oc_id
+                WHERE
+                    oc.faction_id = %s
                 ORDER BY
                     ocs.user_id,
                     oc.ready_at DESC
@@ -77,7 +80,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
                 AND oc.faction_id = u.faction_id
             WHERE
                 u.faction_id = %s
-                AND (oc.user_id is null OR (now() - oc.executed_at IS NOT NULL AND now() - oc.executed_at > interval %s))
+                AND (oc.user_id is null OR (oc.executed_at IS NOT NULL AND now() - oc.executed_at > interval %s))
             """,
             parameters,
         )

@@ -19,7 +19,7 @@ Tornium - Chain Generator
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/stats/db">
@@ -44,11 +44,25 @@ Tornium - Chain Generator
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+@media (max-width: 768px) {
+    .dataTables_scrollHead {
+        /*
+        Header of table after initialized as a datatable
+        TODO: Determine how this can be added to the SCSS bundle without affecting tables that are not .card-table
+        */
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="px-3 py-3">
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Chain List Generator</h5>
+            <h5 class="card-title">Chain List Generator (ALPHA)</h5>
             <p class="card-text">
                 The chain list generator uses the data from <a href="/stat/db">stat database</a> to generate a list of potential targets to attack based on the passed configuration.
                 A difficulty, sorting order, and limit must be selected before generating the list of targets.
@@ -60,58 +74,103 @@ Tornium - Chain Generator
                         Configuration Options
                     </div>
                     <div class="card-body">
-                        <div class="btn-group flex-wrap d-flex justify-content-around" role="group" aria-label="Difficulty Options">
-                            <button type="button" class="btn btn-outline-success difficulty-button" data-difficulty="0">Very Easy</button>
-                            <button type="button" class="btn btn-outline-success difficulty-button" data-difficulty="1">Easy</button>
-                            <button type="button" class="btn btn-outline-warning difficulty-button" data-difficulty="2">Medium</button>
-                            <button type="button" class="btn btn-outline-danger difficulty-button" data-difficulty="3">Hard</button>
-                            <button type="button" class="btn btn-outline-danger difficulty-button" data-difficulty="4">Very Hard</button>
-                            <button type="button" class="btn btn-outline-danger difficulty-button" data-difficulty="5">Formidable</button>
-                        </div>
+                        <fieldset>
+                            <div class="d-flex flex-wrap flex-lg-nowrap justify-content-lg-between">
+                                <div>
+                                    <legend>Minimum Difficulty (FF)</legend>
+                                    <select aria-label="Minimum FF" autocomplete="off" id="config-minimum-difficulty">
+                                        <option value="1.25">Very Easy (1.25x)</option>
+                                        <option value="1.75">Easy (1.75x)</option>
+                                        <option value="2">Medium (2x)</option>
+                                        <option value="2.25">Hard (2.25x)</option>
+                                        <option value="2.5">Very Hard (2.5x)</option>
+                                        <option value="3">Formidable (3x)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <legend>Maximum Difficulty (FF)</legend>
+                                    <select aria-label="Minimum FF" autocomplete="off" id="config-maximum-difficulty">
+                                        <option value="1.75">Very Easy (1.75x)</option>
+                                        <option value="2">Easy (2x)</option>
+                                        <option value="2.25">Medium (2.25x)</option>
+                                        <option value="2.5">Hard (2.5x)</option>
+                                        <option value="3">Very Hard (3x)</option>
+                                        <option value="3.4">Formidable (3.4x)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+
                         <hr>
-                        <div class="btn-group d-flex justify-content-around" role="group" aria-label="Sorting Options">
-                            <button type="button" class="btn btn-outline-primary sorting-button" id="recently-updated-sort">Recently Updated</button>
-                            <button type="button" class="btn btn-outline-primary sorting-button" id="highest-respect-sort">Highest Respect</button>
-                            <button type="button" class="btn btn-outline-primary sorting-button" id="random-sort">Random</button>
-                        </div>
+
+                        <fieldset>
+                            <div class="d-flex flex-wrap flex-lg-nowrap justify-content-lg-between">
+                                <div>
+                                    <legend>Minimum Level</legend>
+                                    <input type="number" class="form-control" minimum="1" maximum="100" aria-label="Minimum Level" autocomplete="off" id="config-minimum-level" value="1" required>
+                                </div>
+
+                                <div>
+                                    <legend>Maximum Level</legend>
+                                    <input type="number" class="form-control" minimum="1" maximum="100" aria-label="Maximum Level" autocomplete="off" id="config-maximum-level" value="100" required>
+                                </div>
+                            </div>
+                        </fieldset>
+
                         <hr>
-                        <div class="btn-group d-flex justify-content-center" role="group" aria-label="Limit Options">
-                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="10">10 Targets</button>
-                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="25">25 Targets</button>
-                            <button type="button" class="btn btn-outline-primary limit-button" data-limit="50">50 Targets</button>
-                        </div>
+
+                        <fieldset>
+                            <legend>Sort By</legend>
+                            <select aria-label="Sort By" autocomplete="off" id="config-sort-by">
+                                <option value="recently-updated">Recently Updated</option>
+                                <option value="highest-respect">Highest Respect</option>
+                                <option value="random">Random</option>
+                            </select>
+                        </fieldset>
+
                         <hr>
-                        <div class="btn-group d-flex justify-content-center" role="group" aria-label="Generate List">
-                            <button type="button" class="btn btn-outline-success" id="generate-list">Generate Chain List</button>
+
+                        <fieldset>
+                            <legend>Limit</legend>
+                            <select aria-label="Limit" autocomplete="off" id="config-limit">
+                                <option value="10">10 Targets</option>
+                                <option value="25">25 Targets</option>
+                                <option value="50">50 Targets</option>
+                                <option value="100">100 Targets</option>
+                            </select>
+                        </fieldset>
+
+                        <hr>
+
+                        <fieldset>
+                            <legend>Other Options</legend>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="config-inactive-only" autocomplete="off">
+                                <label class="form-check-label" for="config-inactive-only">Inactive Only</label>
+                            </div>
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="config-factionless-only" autocomplete="off">
+                                <label class="form-check-label" for="config-factionless-only">Factionless Only</label>
+                            </div>
+                        </fieldset>
+
+                        <div class="d-flex justify-content-center mt-3 w-100" aria-label="Generate List">
+                            <button type="button" class="btn btn-outline-success" id="generate-list-button">Generate Chain List</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-3 me-2 row" id="targets-container">
-
+                <div class="col-12 mt-3 card">
+                    <div class="card-header">Chain List</div>
+                    <div class="card-body">
+                        <p class="card-text" id="default-chain-list-text">Please generate a chain list first...</p>
+                        <div id="chain-list-viewer"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="stats-modal" tabindex="-1" aria-labelledby="stats-modal" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="stat-modal-label"></h5>
-                <button class="btn">
-                    <a href="#" id="stat-modal-attack-link" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-solid fa-crosshairs"></i>
-                    </a>
-                    <a href="#" id="stat-modal-profile-link" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-solid fa-id-card"></i>
-                    </a>
-                </button>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body" id="stat-modal-body"></div>
         </div>
     </div>
 </div>

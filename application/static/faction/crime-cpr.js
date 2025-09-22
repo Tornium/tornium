@@ -77,7 +77,7 @@ function loadViewer(event) {
     tfetch("GET", `faction/${factionID}/crime/cpr/${ocName}`, {
         errorTitle: "CPR Retrieval Failed",
     }).then((data) => {
-        generateToast(`Loading CPR for ${ocName}`, "Loading the member CPR for the ${ocName} OC.");
+        generateToast(`Loading CPR for ${ocName}`, `Loading the member CPR for the ${ocName} OC.`);
         loadViewerCPR(ocName, data);
     });
 }

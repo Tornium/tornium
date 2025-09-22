@@ -121,7 +121,7 @@ def generate_chain_list_v2(*args, **kwargs):
         is_factionless = bool(is_factionless)
         is_inactive = bool(is_inactive)
     except (TypeError, ValueError):
-        return make_exception_response("0000", key, details={"message": "Invalid parameter type"})
+        return make_exception_response("0000", key, details={"message": "Invalid configuration parameter value"})
 
     if minimum_difficulty < 1:
         return make_exception_response(

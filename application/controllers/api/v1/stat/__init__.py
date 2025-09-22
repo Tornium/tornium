@@ -210,6 +210,7 @@ def generate_chain_list_v2(*args, **kwargs):
         )
         .join(s, on=(User.tid == s.c.tid_id))
         .join(Faction, JOIN.LEFT_OUTER, on=(Faction.tid == User.faction_id))
+        .where(User.level.is_null(False))
         .limit(limit)
     )
 
@@ -234,8 +235,7 @@ def generate_chain_list_v2(*args, **kwargs):
         fraction_of_max = fn.LEAST(1.0, fn.GREATEST(MIN_FRACTION, seconds_since_activity / MAX_INTERVAL_SECONDS))
 
         query = query.where(
-            # Determine if the data is stale regardless of activity
-            (User.last_refresh >= fn.NOW() - fn.MAKE_INTERVAL(0, 0, 0, 0, 0, 0, fraction_of_max * MAX_INTERVAL_SECONDS))
+            User.last_refresh >= fn.NOW() - fn.MAKE_INTERVAL(0, 0, 0, 0, 0, 0, fraction_of_max * MAX_INTERVAL_SECONDS)
         )
 
     if is_factionless:

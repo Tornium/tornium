@@ -13,29 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.bot import (
-    armory,
-    attacks,
-    banking,
-    config,
-    crimes,
-    faction,
-    notification,
-    overdose,
-    utils,
-    verify,
-)
+from peewee import DateTimeField, ForeignKeyField, TextField, UUIDField
 
-__all__ = [
-    "armory",
-    "assists",
-    "attacks",
-    "banking",
-    "config",
-    "crimes",
-    "faction",
-    "notification",
-    "overdose",
-    "utils",
-    "verify",
-]
+from .base_model import BaseModel
+from .faction import Faction
+from .user import User
+
+
+class OverdoseEvent(BaseModel):
+    class Meta:
+        table_name = "overdose_event"
+
+    guid = UUIDField(primary_key=True)
+
+    faction = ForeignKeyField(Faction, null=False)
+    user = ForeignKeyField(User, null=False)
+
+    created_at = DateTimeField(null=False)
+    notified_at = DateTimeField(default=None, null=True)
+
+    drug = TextField(null=True)

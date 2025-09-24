@@ -22,7 +22,7 @@ defmodule Tornium.Notification do
 
   @type trigger_resource() :: :user | :faction
   @type render_errors() :: {:error, :template_parse_error | :template_render_error, String.t()}
-  @type render_validation_errors :: {:error, :template_decode_error, Jason.DecodeError.t()}
+  @type render_validation_errors() :: {:error, :template_decode_error, Jason.DecodeError.t()}
 
   @doc """
   Execute all notifications against a specific resource (e.g. a certain user ID) with a single API call to retrieve the union.
@@ -47,7 +47,7 @@ defmodule Tornium.Notification do
               MapSet.put(u, notification.user_id)
             }
 
-          guild ->
+          %Tornium.Schema.Server{} = guild ->
             {
               MapSet.union(s, MapSet.new(notification.trigger.selections)),
               MapSet.union(u, MapSet.new(guild.admins))
@@ -89,20 +89,22 @@ defmodule Tornium.Notification do
         end)
 
       {:error, :restricted} ->
-        notifications_to_disable =
-          Enum.filter(notifications, fn %Tornium.Schema.Notification{} = notification ->
-            notification.trigger.restricted_data
-          end)
-
-        notification_nids =
-          Enum.map(notifications_to_disable, fn %Tornium.Schema.Notification{} = notification ->
+        disable_notification_nids =
+          notifications
+          |> Enum.filter(
+            notifications,
+            fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{restricted_data: restricted?}} ->
+              restricted?
+            end
+          )
+          |> Enum.map(fn %Tornium.Schema.Notification{nid: nid} = notification ->
             Tornium.Notification.Audit.log(:restricted, notification)
 
-            notification.nid
+            nid
           end)
 
         Tornium.Schema.Notification
-        |> where([n], n.nid in ^notification_nids)
+        |> where([n], n.nid in ^disable_notification_nids)
         |> Repo.update_all(set: [enabled: false, error: ":restricted"])
     end
   end
@@ -179,12 +181,11 @@ defmodule Tornium.Notification do
 
   # Determine if any of the notifications for this resource + resource ID requires restricted data
   @spec restricted_notification?(notifications :: [Tornium.Schema.Notification.t()]) :: boolean()
-  defp restricted_notification?(notifications) do
-    Enum.any?(notifications, fn %Tornium.Schema.Notification{
-                                  trigger: %Tornium.Schema.Trigger{restricted_data: restricted}
-                                } ->
-      restricted
-    end)
+  defp restricted_notification?(notifications) when is_list(notifications) do
+    Enum.any?(
+      notifications,
+      fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{restricted_data: restricted}} -> restricted end
+    )
   end
 
   @spec resource_data(
@@ -214,6 +215,35 @@ defmodule Tornium.Notification do
       key_owner: api_key.user_id,
       nice: @api_call_priority
     })
+  end
+
+  defp resource_data(
+         resource_atom,
+         resource_id,
+         selections,
+         %Tornium.Schema.TornKey{api_key: api_key, user_id: key_owner}
+       )
+       when is_atom(resource_atom) do
+    resource_string = Atom.to_string(resource_atom)
+
+    case resource_string do
+      <<resource::binary-size(byte_size(resource_string) - byte_size("_v2")), "_v2">> ->
+        # Separates the resource from _v2
+        path_modules =
+          resource
+          |> Tornium.Notification.Selections.find_modules(selections)
+          |> Map.values()
+
+        query = Tornex.SpecQuery.new(key: api_key, key_owner: key_owner, nice: @api_call_priority)
+        query = Enum.reduce(path_modules, query, fn mod, acc -> Tornex.SpecQuery.put_path(mod) end)
+        # TODO: Set the resource ID
+
+        response = Tornex.Scheduler.Bucket.enqueue(query)
+        Tornex.SpecQuery.parse(query, response)
+
+      _ ->
+        {:error, :invalid_resource}
+    end
   end
 
   # Filter the API response to only the keys required for the trigger's selection(s).

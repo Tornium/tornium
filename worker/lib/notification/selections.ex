@@ -192,4 +192,49 @@ defmodule Tornium.Notification.Selections do
   def get_selection_keys(resource, selection) do
     @api_selections[resource][selection] || []
   end
+
+  @doc """
+  Find the module containing the path used by the resource.
+  """
+  @spec find_module(resource :: String.t()) :: %{{String.t(), String.t()} => module()}
+  def find_module(resource) when is_binary(resource) do
+    {:ok, modules} = :application.get_key(:torngen_elixir_client, :modules)
+
+    modules
+    |> Enum.filter(fn mod when is_atom(mod) ->
+      # Some modules under Torngen.Client don't have the path_selection function. These modules need to be
+      # filtered out.
+
+      mod
+      |> apply(:__info__, [:functions])
+      |> Enum.map(fn {key, value} -> {key, value} end)
+      |> Enum.member?({:path_selection, 0})
+    end)
+    |> Enum.flat_map(fn mod when is_atom(mod) ->
+      case apply(mod, :path_selection, []) do
+        {path, _selection} when path != resource -> []
+        {path, selection} -> [{{path, selection}, mod}]
+      end
+    end)
+    |> Map.new()
+  end
+
+  @doc """
+  Find the module containing the path and selection.
+  """
+  @spec find_module(resource :: String.t(), selection :: String.t()) :: %{{String.t(), String.t()} => module()}
+  def find_module(resource, selection) when is_binary(resource) and is_binary(selection) do
+    find_modules(resource, [selection])
+  end
+
+  @doc """
+  Find the modules containing the resource and selections.
+  """
+  @spec find_modules(resource :: String.t(), selections :: [String.t()]) :: %{{String.t(), String.t()} => module()}
+  def find_modules(resource, selections) when is_binary(resource) and is_list(selections) do
+    resource
+    |> find_module()
+    |> Enum.filter(fn {{_mod_path, mod_selection}, mod} -> Enum.member?(selections, mod_selection) end)
+    |> Map.new()
+  end
 end

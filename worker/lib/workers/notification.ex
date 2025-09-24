@@ -44,12 +44,14 @@ defmodule Tornium.Workers.Notification do
       |> Repo.all()
 
     notifications
-    |> Enum.uniq_by(fn %Tornium.Schema.Notification{} = notification -> notification.trigger end)
+    |> Enum.uniq_by(fn %Tornium.Schema.Notification{trigger_id: trigger_id} -> trigger_id end)
     |> Enum.each(fn %Tornium.Schema.Notification{trigger: %Tornium.Schema.Trigger{} = trigger} ->
       Tornium.Notification.update_next_execution(trigger)
     end)
 
-    Tornium.Notification.execute_resource(String.to_atom(resource), resource_id, notifications)
+    resource
+    |> String.to_atom()
+    |> Tornium.Notification.execute_resource(resource_id, notifications)
 
     :ok
   end
@@ -59,6 +61,7 @@ defmodule Tornium.Workers.Notification do
     :timer.minutes(2)
   end
 
+  @impl Oban.Worker
   def timeout(_job) do
     # This condition should never happen but is here for stability
     :timer.seconds(30)

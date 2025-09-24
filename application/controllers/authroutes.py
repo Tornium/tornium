@@ -99,7 +99,7 @@ def disable_cache(f):
 def _increment_ratelimit(ratelimit_key):
     redis_client = rds()
     failed_attempt_count = redis_client.incr(ratelimit_key)
-    redis_client.expire(ratelimit_key, max(10, 2**failed_attempt_count))
+    redis_client.expire(ratelimit_key, max(1, 2 ** (failed_attempt_count - 5)))
 
 
 @mod.route("/login", methods=["GET", "POST"])
@@ -109,8 +109,7 @@ def login(*args, **kwargs):
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key):
-        _increment_ratelimit(ratelimit_key)
+    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (
@@ -408,8 +407,7 @@ def topt_verification():
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key):
-        _increment_ratelimit(ratelimit_key)
+    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (
@@ -497,8 +495,7 @@ def discord_login():
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key):
-        _increment_ratelimit(ratelimit_key)
+    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (

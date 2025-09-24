@@ -27,6 +27,8 @@ defmodule Tornium.Schema.Faction do
           guild: Tornium.Schema.Server.t(),
           stats_db_enabled: boolean(),
           stats_db_global: boolean(),
+          od_channel: integer(),
+          od_data: map(),
           last_members: DateTime.t(),
           last_attacks: DateTime.t(),
           has_migrated_oc: boolean()
@@ -45,6 +47,9 @@ defmodule Tornium.Schema.Faction do
 
     field(:stats_db_enabled, :boolean)
     field(:stats_db_global, :boolean)
+
+    field(:od_channel, :integer)
+    field(:od_data, :map)
 
     field(:last_members, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)

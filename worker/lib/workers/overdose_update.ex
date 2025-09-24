@@ -90,7 +90,8 @@ defmodule Tornium.Workers.OverdoseUpdate do
 
         overdosed_members =
           Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} ->
-            original_overdoses |> Map.get(user_id) |> Kernel.==(count)
+            original_overdoses |> Map.get(user_id) |> is_nil() or
+              original_overdoses |> Map.get(user_id) |> Kernel.==(count)
           end)
 
         {_, overdose_events} =

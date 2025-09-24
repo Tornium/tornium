@@ -112,6 +112,26 @@ def refresh_factions():
                 link=update_faction_ts.s(),
             )
 
+        try:
+            if (
+                faction.od_channel not in (None, 0)
+                and faction.guild is not None
+                and faction.tid in faction.guild.factions
+            ):
+                tornget.signature(
+                    kwargs={
+                        "endpoint": "faction/?selections=basic,contributors",
+                        "stat": "drugoverdoses",
+                        "key": random.choice(faction.aa_keys),
+                    },
+                    queue="api",
+                ).apply_async(
+                    expires=300,
+                    link=check_faction_ods.s(),
+                )
+        except DoesNotExist:
+            pass
+
 
 @celery.shared_task(
     name="tasks.faction.update_faction",
@@ -403,6 +423,112 @@ def update_faction_ts(faction_ts_data):
             user_data["spy"]["timestamp"], tz=datetime.timezone.utc
         )
         user.save()
+
+
+@celery.shared_task(
+    name="tasks.faction.check_faction_ods",
+    routing_key="quick.check_faction_ods",
+    queue="quick",
+    time_limit=5,
+)
+@with_db_connection
+def check_faction_ods(faction_od_data):
+    try:
+        faction: Faction = (
+            Faction.select(
+                Faction.tid,
+                Faction.name,
+                Faction.od_data,
+                Faction.od_channel,
+                Faction.guild,
+            )
+            .join(Server, JOIN.LEFT_OUTER)
+            .where(Faction.tid == faction_od_data["ID"])
+            .get()
+        )
+    except (KeyError, DoesNotExist):
+        return
+
+    if faction.od_data is None or len(faction.od_data) == 0:
+        Faction.update(od_data=faction_od_data["contributors"]["drugoverdoses"]).where(
+            Faction.tid == faction_od_data["ID"]
+        ).execute()
+        return
+    elif faction.od_channel in (0, None):
+        return
+    elif faction.tid not in faction.guild.factions:
+        return
+
+    for tid, user_od in faction_od_data["contributors"]["drugoverdoses"].items():
+        if faction.od_data.get(tid) is None and user_od["contributed"] > 0:
+            overdosed_user: typing.Optional[User] = User.select(User.name).where(User.tid == tid).first()
+            payload = {
+                "embeds": [
+                    {
+                        "title": "User Overdose",
+                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                        f"of faction {faction.name} has overdosed.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": torn_timestamp()},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "User",
+                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                            }
+                        ],
+                    }
+                ],
+            }
+
+            discordpost.delay(
+                f"channels/{faction.od_channel}/messages",
+                payload=payload,
+                channel=faction.od_channel,
+            ).forget()
+        elif faction.od_data.get(tid) is not None and user_od["contributed"] != faction.od_data.get(tid).get(
+            "contributed"
+        ):
+            overdosed_user: typing.Optional[User] = User.select(User.name).where(User.tid == tid).first()
+            payload = {
+                "embeds": [
+                    {
+                        "title": "User Overdose",
+                        "description": f"User {tid if overdosed_user is None else overdosed_user.name} "
+                        f"of faction {faction.name} has overdosed.",
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "footer": {"text": torn_timestamp()},
+                    }
+                ],
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 5,
+                                "label": "User",
+                                "url": f"https://www.torn.com/profiles.php?XID={tid}",
+                            }
+                        ],
+                    }
+                ],
+            }
+
+            discordpost.delay(
+                f"channels/{faction.od_channel}/messages",
+                payload=payload,
+                channel=faction.od_channel,
+            ).forget()
+
+    faction.od_data = faction_od_data["contributors"]["drugoverdoses"]
+    faction.save()
 
 
 @celery.shared_task(

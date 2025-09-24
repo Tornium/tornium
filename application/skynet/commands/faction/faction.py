@@ -20,7 +20,8 @@ import typing
 
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch, discordpost, tornget
-from tornium_commons.formatters import find_list
+from tornium_commons import db
+from tornium_commons.formatters import HumanTimeDelta, find_list
 from tornium_commons.models import Faction, PersonalStats, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
@@ -31,8 +32,272 @@ from skynet.skyutils import get_admin_keys, get_faction_keys
 def faction_data_switchboard(interaction, *args, **kwargs):
     if interaction["data"]["options"][0]["name"] == "members":
         return members_switchboard(interaction, *args, **kwargs)
+    elif interaction["data"]["options"][0]["name"] == "crimes":
+        return crimes_switchboard(interaction, *args, **kwargs)
 
     return {}
+
+
+@invoker_required
+def crimes_switchboard(interaction, *args, **kwargs):
+    def missing_members():
+        interval = find_list(subcommand_data, "name", "minimum")
+        interval = "1 minutes" if interval is None else interval["value"]
+
+        if interval not in ("1 minutes", "1 hours", "4 hours", "12 hours", "1 days", "2 days"):
+            return {}
+
+        # Parameter order:
+        # 0: faction ID
+        # 1: faction ID
+        # 2: interval string
+        parameters = [faction.tid, faction.tid, interval]
+
+        query = db.execute_sql(
+            """
+            SELECT
+                u.tid,
+                u.name,
+                EXTRACT(epoch FROM (now() - oc.executed_at))
+            FROM public."user" u
+            LEFT JOIN (
+                SELECT
+                    DISTINCT ON (ocs.user_id) oc.oc_id,
+                    oc.executed_at,
+                    ocs.user_id,
+                    oc.faction_id
+                FROM
+                    public.organized_crime_slot ocs
+                INNER JOIN public.organized_crime oc ON
+                    oc.oc_id = ocs.oc_id
+                WHERE
+                    oc.faction_id = %s
+                ORDER BY
+                    ocs.user_id,
+                    oc.ready_at DESC
+            ) oc ON
+                oc.user_id = u.tid
+                AND oc.faction_id = u.faction_id
+            WHERE
+                u.faction_id = %s
+                AND (oc.user_id is null OR (oc.executed_at IS NOT NULL AND now() - oc.executed_at > interval %s))
+            """,
+            parameters,
+        )
+
+        payload = {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": f"Missing OC Members of {faction.name}",
+                        "description": "",
+                        "color": SKYNET_ERROR,
+                    },
+                ],
+                "flags": 64,
+            },
+        }
+
+        for user_id, user_name, last_oc in query:
+            if last_oc is None:
+                payload["data"]["embeds"][0]["description"] += f"[{user_name}](https://tcy.sh/p/{user_id}) - None\n"
+            else:
+                last_oc_delta = HumanTimeDelta()
+                last_oc_delta.seconds = int(last_oc)
+                payload["data"]["embeds"][0][
+                    "description"
+                ] += f"[{user_name}](https://tcy.sh/p/{user_id}) - {str(last_oc_delta)}\n"
+
+        if len(payload["data"]["embeds"][0]["description"]) == 0:
+            payload["data"]["embeds"][0]["description"] = "All applicable members are in OCs."
+            payload["data"]["embeds"][0]["color"] = SKYNET_GOOD
+
+        return payload
+
+    try:
+        subcommand = interaction["data"]["options"][0]["options"][0]["name"]
+        subcommand_data = interaction["data"]["options"][0]["options"][0]["options"]
+    except Exception:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Invalid Interaction Format",
+                        "description": "Discord has returned an invalidly formatted interaction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+
+    user: User = kwargs["invoker"]
+    faction: typing.Union[dict, int] = find_list(subcommand_data, "name", "faction")
+
+    if faction is None:
+        if user is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "User Not Found",
+                            "description": "Your user could not be found. Please sign into Tornium or verify yourself on a server using Tornium. Additionally, you may not be able to use this command as an API key is required.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif user.faction is None:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Not Found",
+                            "description": "The faction could not be located in the database. This error is not "
+                            "currently handled.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        faction = user.faction
+    elif faction["value"].isdigit():
+        try:
+            faction: Faction = Faction.select().where(Faction.tid == int(faction["value"])).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Not Found",
+                            "description": "This faction could not be located in the database by name.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+    else:
+        try:
+            faction: Faction = Faction.select().where(Faction.name ** faction["value"]).get()
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Faction Not Found",
+                            "description": "This faction could not be located in the database by name.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+    if user.faction_id == faction.tid and not user.can_manage_crimes():
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "You must have the manage crimes permission to use this slash command.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction_id != faction.tid and (
+        interaction.get("guild_id") is None or int(interaction["guild_id"]) != faction.guild_id
+    ):
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "For factions that are not your own faction, you must be in the faction's linked Discord server.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif user.faction_id != faction.tid:
+        try:
+            server = (
+                Server.select(Server.factions, Server.admins).where(Server.sid == int(interaction["guild_id"])).get()
+            )
+        except DoesNotExist:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Server",
+                            "description": "This server could not be found in the database.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+        if faction.tid not in server.factions:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "For factions that are not your own faction, you must be in the faction's linked Discord server.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+        elif user.tid not in server.admins:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Permission Denied",
+                            "description": "For factions that are not your own faction, you must be an admin in the faction's linked Discord server.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
+
+    if subcommand == "missing-members":
+        return missing_members()
+    else:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Command Not Found",
+                        "description": "This command does not exist.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
 
 @invoker_required

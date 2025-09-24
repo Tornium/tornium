@@ -1,16 +1,56 @@
 thead th {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 tbody th a,
 tbody td a {
     color: inherit;
+}
+
+.card-table tbody label {
+    display: none;
+}
+@media (max-width: 768px) {
+    .card-table thead {
+        /* Required to keep the width of the card correct */
+        display: none;
+    }
+    .card-table tbody {
+        display: block;
+        width: 100%;
+    }
+    .card-table tbody tr {
+        float: left;
+        width: 100%;
+        margin: 0.75rem 0;
+        border: 1px solid var(--text-alternate-color);
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    .card-table tbody td {
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+    .card-table tbody td:last-child {
+        margin-bottom: 0;
+        border: none;
+    }
+    .card-table tbody label {
+        display: block;
+        position: relative;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-alternate-color);
+        min-width: 4rem;
+        margin-right: 1rem;
+        margin-bottom: 0.2rem;
+    }
 }
 
 /*# sourceMappingURL=table.css.map */

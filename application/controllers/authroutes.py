@@ -110,8 +110,9 @@ def login(*args, **kwargs):
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
     if redis_client.exists(ratelimit_key):
-        ratelimit_ttl = redis_client.ttl(ratelimit_key)
         _increment_ratelimit(ratelimit_key)
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+
         return (
             render_template(
                 "errors/error.html",
@@ -408,8 +409,9 @@ def topt_verification():
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
     if redis_client.exists(ratelimit_key):
-        ratelimit_ttl = redis_client.ttl(ratelimit_key)
         _increment_ratelimit(ratelimit_key)
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+
         return (
             render_template(
                 "errors/error.html",
@@ -496,8 +498,9 @@ def discord_login():
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
     if redis_client.exists(ratelimit_key):
-        ratelimit_ttl = redis_client.ttl(ratelimit_key)
         _increment_ratelimit(ratelimit_key)
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+
         return (
             render_template(
                 "errors/error.html",

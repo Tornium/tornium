@@ -12,12 +12,5 @@ defmodule Tornium.Repo.Migrations.RemoveOdChannelData do
     end
 
     create_if_not_exists unique_index(:server_overdose_config, [:server_id, :faction_id])
-
-    # TODO: Move the channel ID to the new table
-
-    alter table("faction") do
-      remove :od_channel, :integer
-      remove :od_data, :map
-    end
   end
 end

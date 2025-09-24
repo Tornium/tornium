@@ -16,6 +16,9 @@
 defmodule Tornium.Workers.OverdoseDailyReport do
   @moduledoc """
   Send a daily report for a faction's overdoses.
+
+  For every faction that has a overdose reporting policy set to `:daily`, a embed reporting the faction's overdoses
+  during that period will be generated and sent to the set channel.
   """
 
   alias Tornium.Repo

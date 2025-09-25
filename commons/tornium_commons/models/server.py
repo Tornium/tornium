@@ -46,6 +46,7 @@ class Server(BaseModel):
     gateway_verify_enabled = BooleanField(default=False)
     verify_template = TextField(default="{{ name }} [{{ tid }}]")
     verified_roles = ArrayField(BigIntegerField, default=[], index=False)
+    unverified_roles = ArrayField(BigIntegerField, default=[], index=False)
     exclusion_roles = ArrayField(BigIntegerField, default=[], index=False)
     faction_verify = JSONField(default={})
     verify_log_channel = BigIntegerField(default=0)

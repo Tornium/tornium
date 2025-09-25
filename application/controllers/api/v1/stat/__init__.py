@@ -179,11 +179,7 @@ def generate_chain_list_v2(*args, **kwargs):
 
     stat_subquery = (
         Stat.select(Stat.tid_id, Stat.time_added, Stat.battlescore)
-        .where(
-            (Stat.time_added > SQL("NOW() - INTERVAL '6 months'"))
-            & (Stat.added_group.in_(groups))
-            & (Stat.battlescore.between(minimum_stat_score, maximum_stat_score))
-        )
+        .where((Stat.time_added > SQL("NOW() - INTERVAL '6 months'")) & (Stat.added_group.in_(groups)))
         .order_by(Stat.tid_id, Stat.time_added.desc())
         .distinct(Stat.tid_id)
     )
@@ -212,7 +208,7 @@ def generate_chain_list_v2(*args, **kwargs):
         )
         .join(s, on=(User.tid == s.c.tid_id))
         .join(Faction, JOIN.LEFT_OUTER, on=(Faction.tid == User.faction_id))
-        .where(User.level.is_null(False))
+        .where(User.level.is_null(False) & (Stat.battlescore.between(minimum_stat_score, maximum_stat_score)))
         .limit(limit)
     )
 

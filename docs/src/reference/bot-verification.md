@@ -47,7 +47,7 @@ The verification name template is used to generate the nickname for all members 
 Members of the Discord server will be given these roles if they are verified by Torn.
 
 ### Unverified Roles
-Members of the Discord server will be given these roles if they are NOT verified by torn.
+Members of the Discord server will be given these roles if they are NOT verified by Torn.
 
 ### Exclusion Roles
 All members in the Discord server who have an exclusion role will not be verified through any [verification method](#verification-methods). These members will have to have their nickname and roles be manually updated by a server administrator. Exclusion roles are commonly used to allow faction members who are guesting to retain faction-related roles and to skip verification of server administrators.

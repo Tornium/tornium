@@ -654,6 +654,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
         "roles": set(str(role) for role in member["roles"]),
     }
 
+    patch_json["roles"] -= member_verified_roles(verified_roles=guild.unverified_roles)
     patch_json["roles"] -= invalid_member_faction_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,

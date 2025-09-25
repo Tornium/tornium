@@ -158,7 +158,7 @@ defmodule Tornium.Faction.Overdose do
     |> Map.replace(
       :description,
       description <>
-        "\n#{user_name} [#{user_tid}]: #{created_at |> DateTime.from_unix!() |> DateTime.to_iso8601()} (on unknown)"
+        "\n#{user_name} [#{user_tid}]: #{DateTime.to_iso8601(created_at)} (on unknown)"
     )
     |> do_to_report_embed(remaining_events)
   end
@@ -176,7 +176,7 @@ defmodule Tornium.Faction.Overdose do
     |> Map.replace(
       :description,
       description <>
-        "\n#{user_name} [#{user_tid}]: #{created_at |> DateTime.from_unix!() |> DateTime.to_iso8601()} (on #{drug})"
+        "\n#{user_name} [#{user_tid}]: #{DateTime.to_iso8601(created_at)} (on #{drug})"
     )
     |> do_to_report_embed(remaining_events)
   end

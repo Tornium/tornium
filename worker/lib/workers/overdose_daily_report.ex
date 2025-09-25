@@ -59,7 +59,7 @@ defmodule Tornium.Workers.OverdoseDailyReport do
           overdose_events :: [Tornium.Schema.OverdoseEvent.t()]
         ) :: nil
   def send_report(
-        %Tornium.Schema.ServerOverdoseConfig{policy: "daily", channel: channel} = _config,
+        %Tornium.Schema.ServerOverdoseConfig{policy: :daily, channel: channel} = _config,
         faction_id,
         overdose_events
       )
@@ -79,7 +79,8 @@ defmodule Tornium.Workers.OverdoseDailyReport do
     Tornium.Schema.OverdoseEvent.notify_all(overdose_events)
   end
 
-  def send_report(_config, _faction_id, _overdose_events) do
+  def send_report(%Tornium.Schema.ServerOverdoseConfig{policy: :immediate} = _config, faction_id, overdose_events)
+      when is_integer(faction_id) and is_list(overdose_events) do
     nil
   end
 end

@@ -508,7 +508,7 @@ def member_faction_roles(faction_verify: dict, faction_id: int) -> typing.Set[st
     return set(str(role) for role in faction_verify[str(faction_id)]["roles"])
 
 
-def invalid_member_faction_roles(faction_verify: dict, faction_id: int) -> typing.Tuple[str]:
+def invalid_member_faction_roles(faction_verify: dict, faction_id: typing.Optional[int]) -> typing.Tuple[str]:
     roles = set()
 
     faction_id: int
@@ -570,6 +570,31 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
     try:
         user: User = User.select().where(User.discord_id == member["id"]).get()
     except DoesNotExist:
+        patch_json: dict = {"roles": set(str(role) for role in member["roles"])}
+        patch_json["roles"] -= member_verified_roles(verified_roles=guild.verified_roles)
+        patch_json["roles"] -= invalid_member_faction_roles(
+            faction_verify=guild.faction_verify,
+            faction_id=None,
+        )
+        patch_json["roles"] -= invalid_member_position_roles(
+            faction_verify=guild.faction_verify,
+            faction_id=None,
+            position=None,
+        )
+        patch_json["roles"].update(member_verified_roles(verified_roles=guild.unverified_roles))
+
+        if patch_json["roles"] == set(member["roles"]):
+            patch_json.pop("roles")
+        else:
+            patch_json["roles"] = list(patch_json["roles"])
+
+        if len(patch_json) != 0:
+            discordpatch.delay(
+                endpoint=f"guilds/{guild_id}/members/{member['id']}",
+                payload=patch_json,
+                countdown=math.floor(random.uniform(0, 30)),
+            ).forget()
+
         if log_channel <= 0:
             return
 

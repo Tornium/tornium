@@ -38,7 +38,7 @@ from skynet.skyutils import get_admin_keys
 
 def verify(interaction, *args, **kwargs):
     def unverify_user_roles():
-        patch_json: dict = {"roles": set(str(role) for role in member["roles"])}
+        patch_json: dict = {"roles": set(str(role) for role in user_roles)}
         patch_json["roles"] -= member_verified_roles(verified_roles=guild.verified_roles)
         patch_json["roles"] -= invalid_member_faction_roles(
             faction_verify=guild.faction_verify,
@@ -51,7 +51,7 @@ def verify(interaction, *args, **kwargs):
         )
         patch_json["roles"].update(member_verified_roles(verified_roles=guild.unverified_roles))
 
-        if patch_json["roles"] == set(member["roles"]):
+        if patch_json["roles"] == set(user_roles):
             patch_json.pop("roles")
         else:
             patch_json["roles"] = list(patch_json["roles"])

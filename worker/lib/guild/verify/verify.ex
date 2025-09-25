@@ -183,7 +183,7 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
-          |> Tornium.Guild.Verify.Logic.set_unverifid_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, user)
 
         {:unverified, changes}
 

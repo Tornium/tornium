@@ -151,7 +151,7 @@ defmodule Tornium.Guild.Verify.Logic do
     updated_roles =
       state
       |> Map.get(:roles)
-      |> Map.difference(MapSet.new(unverified_roles))
+      |> MapSet.difference(MapSet.new(unverified_roles))
 
     Map.replace(state, :roles, updated_roles)
   end

@@ -64,7 +64,7 @@ defmodule Tornium.Workers.OverdoseDailyReport do
         overdose_events
       )
       when is_integer(faction_id) and is_list(overdose_events) and is_integer(channel) and channel != 0 do
-    %Tornium.Schema.Faction{name: faction_name} =
+    faction_name =
       Tornium.Schema.Faction
       |> select([f], f.name)
       |> where([f], f.tid == ^faction_id)

@@ -31,6 +31,8 @@ def jsonified_verify_config(guild: Server):
             "gateway_verify_enabled": guild.gateway_verify_enabled,
             "verify_template": guild.verify_template,
             "verified_roles": guild.verified_roles,
+            "unverified_roles": guild.unverified_roles,
+            "exclusion_roles": guild.exclusion_roles,
             "faction_verify": guild.faction_verify,
             "verify_log_channel": guild.verify_log_channel,
             "verify_jail_channel": guild.verify_jail_channel,
@@ -379,6 +381,40 @@ def guild_verification_roles(*args, **kwargs):
         return make_exception_response("1003", key)
 
     guild.save()
+
+    return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def guild_unverified_roles(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    roles = data.get("roles")
+
+    if roles is None or not isinstance(roles, list):
+        return make_exception_response("1000", key)
+
+    try:
+        guild_id = int(data["guildid"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1001", key)
+
+    try:
+        guild: Server = Server.get_by_id(guild_id)
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    try:
+        guild.unverified_roles = [int(role) for role in roles]
+    except ValueError:
+        return make_exception_response("1003", key)
+
+    Server.update(unverified_roles=guild.unverified_roles).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
 

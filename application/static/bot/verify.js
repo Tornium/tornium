@@ -13,6 +13,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+function setUnverifiedRoles(event) {
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedRoles = [];
+
+    selectedOptions.forEach((element) => {
+        selectedRoles.push(element.getAttribute("value"));
+    });
+
+    tfetch("POST", "bot/verify/unverified", {
+        body: { guildid: guildid, roles: selectedRoles },
+        errorTitle: "Unverified Role Add Failed",
+    }).then(() => {
+        generateToast("Unverified Role Add Successful");
+    });
+}
+
 $(document).ready(function () {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
@@ -36,6 +52,16 @@ $(document).ready(function () {
                 }
 
                 option.attr("selected", "");
+            });
+
+            serverConfig.verify.unverified_roles.forEach((role) => {
+                const option = document.querySelector(`#unverified-roles option[value="${role}"]`);
+
+                if (option == null) {
+                    return;
+                }
+
+                option.setAttribute("selected", "");
             });
 
             $.each(serverConfig.verify.exclusion_roles, function (index, role) {
@@ -290,6 +316,10 @@ $(document).ready(function () {
         }).then(() => {
             generateToast("Verification Role Add Successful");
         });
+    });
+
+    Array.from(document.getElementsByClassName("unverified-roles")).forEach((roleSelector) => {
+        roleSelector.addEventListener("change", setUnverifiedRoles);
     });
 
     $("#exclusion-roles").on("change", function () {

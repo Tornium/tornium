@@ -83,4 +83,9 @@ defmodule Tornium.Workers.OverdoseDailyReport do
       when is_integer(faction_id) and is_list(overdose_events) do
     nil
   end
+
+  def send_report(config, faction_id, overdose_events)
+      when is_nil(config) and is_integer(faction_id) and is_list(overdose_events) do
+    nil
+  end
 end

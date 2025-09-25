@@ -214,6 +214,29 @@ def verify(interaction, *args, **kwargs):
         }
 
     if user.discord_id in (0, None):
+        patch_json: dict = {"roles": set(str(role) for role in member["roles"])}
+        patch_json["roles"] -= member_verified_roles(verified_roles=guild.verified_roles)
+        patch_json["roles"] -= invalid_member_faction_roles(
+            faction_verify=guild.faction_verify,
+            faction_id=None,
+        )
+        patch_json["roles"] -= invalid_member_position_roles(
+            faction_verify=guild.faction_verify,
+            faction_id=None,
+            position=None,
+        )
+        patch_json["roles"].update(member_verified_roles(verified_roles=guild.unverified_roles))
+
+        if patch_json["roles"] == set(member["roles"]):
+            patch_json.pop("roles")
+        else:
+            patch_json["roles"] = list(patch_json["roles"])
+
+        if len(patch_json) != 0:
+            discordpatch.delay(
+                endpoint=f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}", payload=patch_json
+            ).forget()
+
         return {
             "type": 4,
             "data": {
@@ -241,6 +264,7 @@ def verify(interaction, *args, **kwargs):
         "roles": set(str(role) for role in user_roles),
     }
 
+    patch_json["roles"] -= member_verified_roles(verified_roles=guild.unverified_roles)
     patch_json["roles"] -= invalid_member_faction_roles(
         faction_verify=guild.faction_verify,
         faction_id=user.faction_id,

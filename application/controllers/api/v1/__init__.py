@@ -237,6 +237,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/verify/unverified",
+    view_func=bot.verify.guild_unverified_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/verify/exclusion",
     view_func=bot.verify.guild_exclusion_roles,
     methods=["POST"],

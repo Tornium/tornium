@@ -60,7 +60,7 @@ defmodule Tornium.Guild.Verify.Config do
 
   def validate(guild_id) when is_integer(guild_id) do
     Tornium.Schema.Server
-    |> Repo.get(Tornium.Schema.Server)
+    |> Repo.get(guild_id)
     |> validate()
   end
 

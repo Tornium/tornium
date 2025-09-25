@@ -70,9 +70,12 @@ defmodule Tornium.Workers.OverdoseDailyReport do
       |> where([f], f.tid == ^faction_id)
       |> Repo.one()
 
-    overdose_events
-    |> Repo.preload(:user)
-    |> Tornium.Faction.Overdose.to_report_embed(faction_name)
+    daily_report_embed =
+      overdose_events
+      |> Repo.preload(:user)
+      |> Tornium.Faction.Overdose.to_report_embed(faction_name)
+
+    %Nostrum.Struct.Message{channel_id: channel, embeds: [daily_report_embed]}
     |> List.wrap()
     |> Tornium.Discord.send_messages()
 

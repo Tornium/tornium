@@ -28,6 +28,7 @@ defmodule Tornium.Schema.Server do
           gateway_verify_enabled: boolean(),
           verify_template: String.t(),
           verified_roles: [Tornium.Discord.role()],
+          unverified_roles: [Tornium.Discord.role()],
           exclusion_roles: [Tornium.Discord.role()],
           faction_verify: map(),
           verify_log_channel: integer(),
@@ -52,6 +53,7 @@ defmodule Tornium.Schema.Server do
     field(:gateway_verify_enabled, :boolean)
     field(:verify_template, :string)
     field(:verified_roles, {:array, :integer})
+    field(:unverified_roles, {:array, :integer})
     field(:exclusion_roles, {:array, :integer})
     field(:faction_verify, :map)
     field(:verify_log_channel, :integer)

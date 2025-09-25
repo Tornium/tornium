@@ -41,7 +41,7 @@ defmodule Tornium.Workers.OverdoseDailyReport do
     |> where([e], is_nil(e.notified_at))
     |> join(:inner, [e], f in assoc(e, :faction))
     |> join(:inner, [e, f], s in assoc(f, :guild))
-    |> where([e, f, s], f.tid in s.factions and e.created_at >= DateTime.utc_now() |> DateTime.add(-24, :hour))
+    |> where([e, f, s], f.tid in s.factions and e.created_at >= ^(DateTime.utc_now() |> DateTime.add(-24, :hour)))
     |> Repo.all()
     |> Enum.group_by(fn %Tornium.Schema.OverdoseEvent{faction_id: faction_id} -> faction_id end)
     |> Enum.each(fn {faction_id, overdose_events} when is_list(overdose_events) ->

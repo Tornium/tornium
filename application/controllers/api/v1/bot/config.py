@@ -50,6 +50,7 @@ def jsonified_server_config(guild: Server):
             "gateway_verify_enabled": guild.gateway_verify_enabled,
             "template": guild.verify_template,
             "verified_roles": list(map(str, guild.verified_roles)),
+            "unverified_roles": list(map(str, guild.unverified_roles)),
             "exclusion_roles": list(map(str, guild.exclusion_roles)),
             "faction_verify": guild.faction_verify,
             "log_channel": str(guild.verify_log_channel),

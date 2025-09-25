@@ -25,7 +25,7 @@ function setUnverifiedRoles(event) {
         body: { guildid: guildid, roles: selectedRoles },
         errorTitle: "Unverified Role Add Failed",
     }).then(() => {
-        generateToast("Unverified Role Add Successful");
+        generateToast("Unverified Role Add Successful", "The roles for unverified users have successfully updated.");
     });
 }
 
@@ -318,9 +318,7 @@ $(document).ready(function () {
         });
     });
 
-    Array.from(document.getElementsByClassName("unverified-roles")).forEach((roleSelector) => {
-        roleSelector.addEventListener("change", setUnverifiedRoles);
-    });
+    document.getElementById("unverified-roles").addEventListener("change", setUnverifiedRoles);
 
     $("#exclusion-roles").on("change", function () {
         var selectedOptions = $(this).find(":selected");

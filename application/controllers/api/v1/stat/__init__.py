@@ -208,7 +208,7 @@ def generate_chain_list_v2(*args, **kwargs):
         )
         .join(s, on=(User.tid == s.c.tid_id))
         .join(Faction, JOIN.LEFT_OUTER, on=(Faction.tid == User.faction_id))
-        .where(User.level.is_null(False) & (Stat.battlescore.between(minimum_stat_score, maximum_stat_score)))
+        .where(User.level.is_null(False) & (s.c.battlescore.between(minimum_stat_score, maximum_stat_score)))
         .limit(limit)
     )
 

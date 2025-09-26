@@ -67,7 +67,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             code=code,
             client_id=client.client_id,
             redirect_uri=request.redirect_uri,
-            scope=request.scope,
+            scope=request.scope or "",
             user=request.user.tid,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,

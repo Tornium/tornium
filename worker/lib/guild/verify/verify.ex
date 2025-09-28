@@ -203,7 +203,11 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
-  defp build_changes({:error, %Tornium.API.Error{code: code} = _error}, config, _member) when code == 6 do
+  defp build_changes({:error, %Tornium.API.Error{code: code} = _error}, config, %Nostrum.Struct.Guild.Member{
+         roles: roles,
+         nick: nick
+       })
+       when code == 6 do
     changes =
       %{roles: MapSet.new(roles), nick: nick}
       |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, nil)

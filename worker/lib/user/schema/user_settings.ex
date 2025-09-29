@@ -23,6 +23,7 @@ defmodule Tornium.Schema.UserSettings do
   - `:guid` - Internal identifier
   - `:user` - User the settings belong to
   - `:cpr_enabled` - Toggle for retrieval of the user's CPRs in OCs
+  - `:stat_db_enabled` - Toggle for storage of opponent's stats in the stat DB via FF calculations
   """
 
   use Ecto.Schema
@@ -31,7 +32,8 @@ defmodule Tornium.Schema.UserSettings do
           guid: Ecto.UUID.t(),
           user_id: integer(),
           user: Tornium.Schema.User.t(),
-          cpr_enabled: boolean()
+          cpr_enabled: boolean(),
+          stat_db_enabled: boolean()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -39,5 +41,6 @@ defmodule Tornium.Schema.UserSettings do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
 
     field(:cpr_enabled, :boolean)
+    field(:stat_db_enabled, :boolean)
   end
 end

@@ -30,6 +30,7 @@ class UserSettings(BaseModel):
     user = ForeignKeyField(User, unique=True)
 
     cpr_enabled = BooleanField(default=True, null=False)
+    stat_db_enabled = BooleanField(default=True, null=False)
 
     def create_or_update(user_id: int, **kwargs: dict):
         """

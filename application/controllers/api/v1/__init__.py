@@ -354,6 +354,7 @@ mod.add_url_rule("/api/v1/stocks/movers", view_func=stocks.movers.stock_movers, 
 mod.add_url_rule("/api/v1/user", view_func=user.get_user, methods=["GET"])
 mod.add_url_rule("/api/v1/user/guilds", view_func=user.get_admin_guilds, methods=["GET"])
 mod.add_url_rule("/api/v1/user/settings/cpr", view_func=user_settings.toggle_cpr, methods=["PUT"])
+mod.add_url_rule("/api/v1/user/settings/stat-db", view_func=user_settings.toggle_stat_db, methods=["PUT"])
 mod.add_url_rule("/api/v1/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/user/estimate/<int:tid>",

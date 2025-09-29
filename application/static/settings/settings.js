@@ -124,6 +124,13 @@ ready(() => {
         toggleSetting("cpr", false);
     });
 
+    document.getElementById("stat-db-toggle-enable").addEventListener("click", (event) => {
+        toggleSetting("stat-db", true);
+    });
+    document.getElementById("stat-db-toggle-disable").addEventListener("click", (event) => {
+        toggleSetting("stat-db", false);
+    });
+
     Array.from(document.getElementsByClassName("revoke-client")).forEach((button) => {
         button.addEventListener("click", revokeClient);
     });

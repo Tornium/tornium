@@ -31,6 +31,7 @@ from tornium_commons.models import (
     Stat,
     TornKey,
     User,
+    UserSettings,
 )
 
 import celery
@@ -466,8 +467,20 @@ def fetch_attacks_user_runner():
     if redis.ttl("tornium:celery-lock:fetch-attacks-user") < 1:
         redis.expire("tornium:celery-lock:fetch-attacks-user", 1)
 
-    for api_key in TornKey.select(TornKey.user).distinct(TornKey.user).join(User).where(TornKey.default == True):
+    for api_key in (
+        TornKey.select(TornKey.user)
+        .distinct(TornKey.user)
+        .join(User)
+        .join(UserSettings)
+        .where(
+            (TornKey.default == True)
+            & (TornKey.disabled == False)
+            & (TornKey.paused == False)
+            & (UserSettings.stat_db_enabled == True)
+        )
+    ):
         try:
+            # TODO: Combine tornkehy query with user query
             user = User.select().where(User.tid == api_key.user_id).get()
         except DoesNotExist:
             continue

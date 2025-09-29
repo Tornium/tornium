@@ -26,8 +26,8 @@ class Retaliation(BaseModel):
     attacker = ForeignKeyField(User, null=False)
 
     # Discord data related to the retal's notification
-    message_id = BigIntegerField(null=False)
-    channel_id = BigIntegerField(null=False)
+    message_id = BigIntegerField(null=True)
+    channel_id = BigIntegerField(null=True)
 
     def to_dict(self):
         return {

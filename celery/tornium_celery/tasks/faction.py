@@ -1167,6 +1167,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
             ServerAttackConfig.select(
                 ServerAttackConfig.retal_roles,
                 ServerAttackConfig.retal_channel,
+                ServerAttackConfig.retal_wars,
                 ServerAttackConfig.chain_bonus_channel,
                 ServerAttackConfig.chain_bonus_roles,
                 ServerAttackConfig.chain_alert_channel,
@@ -1218,7 +1219,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
         if attack["timestamp_ended"] <= last_attacks + 1:
             continue
 
-        if ALERT_RETALS and attack["modifiers"]["war"] == 1 and validate_attack_retaliation(attack, faction):
+        if ALERT_RETALS and validate_attack_retaliation(attack, faction):
             # TODO: Check possible_retals if the retaliation attack data is in the same API response as the original attack
 
             retal: Retaliation
@@ -1246,7 +1247,9 @@ def check_attacks(faction_data: dict, last_attacks: int):
                     },
                 ).forget()
         elif (
-            ALERT_RETALS and attack["modifiers"]["war"] == 1 and validate_attack_available_retaliation(attack, faction)
+            ALERT_RETALS
+            and validate_attack_available_retaliation(attack, faction)
+            and (attack_config.retal_wars or attack["modifiers"]["war"] == 1)
         ):
             try:
                 possible_retals[attack["code"]] = {

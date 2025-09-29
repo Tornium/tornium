@@ -145,6 +145,10 @@ def delete_oc_team(faction_id: int, team_guid: str, *args, **kwargs):
     elif not kwargs["user"].can_manage_crimes():
         return make_exception_response("4006")
 
+    OrganizedCrime.where(
+        (OrganizedCrime.faction_id == faction_id) & (OrganizedCrime.assigned_team_id == team_guid)
+    ).update(assigned_team=None).execute()
+
     try:
         team: OrganizedCrimeTeam = (
             OrganizedCrimeTeam.select()

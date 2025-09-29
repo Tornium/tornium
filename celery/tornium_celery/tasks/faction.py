@@ -999,21 +999,11 @@ def generate_retaliation_embed(
                 )
             )
 
-    if attack["attacker_faction"] in (0, ""):
-        pass
-    elif attack["chain"] > 100:
+    if attack["attacker_faction"] not in (0, ""):
         fields.append(
             {
                 "name": "Opponent Faction Chaining",
-                "value": f"True ({commas(attack['chain'])})",
-                "inline": False,
-            }
-        )
-    else:
-        fields.append(
-            {
-                "name": "Opponent Faction Chaining",
-                "value": f"False ({commas(attack['chain'])})",
+                "value": f"{attack['chain'] > 10} ({commas(attack['chain'])})",
                 "inline": False,
             }
         )

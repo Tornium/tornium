@@ -120,7 +120,7 @@ function buildViewer(chainListData) {
                 // User
                 title: "User",
                 render: function (data, type, row, meta) {
-                    return `<label>User: </label><a href="https://www.torn.com/profiles.php?XID=${data}">${idNameMap[data]} [${data}]</a>`;
+                    return `<label>User: </label><a href="https://www.torn.com/profiles.php?XID=${data}" target="_blank">${idNameMap[data]} [${data}]</a>`;
                 },
             },
             {

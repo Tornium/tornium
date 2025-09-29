@@ -1381,6 +1381,9 @@ def auto_cancel_requests():
         except DoesNotExist:
             continue
 
+        if len(faction.aa_keys) == 0:
+            continue
+
         tornget.signature(
             kwargs={
                 "endpoint": "faction/?selections=fundsnews,basic",

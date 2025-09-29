@@ -1338,13 +1338,11 @@ def check_attacks(faction_data: dict, last_attacks: int):
             channel = None
         else:
             try:
-                message = retal["task"].get(disable_sync_subtasks=False)
+                message = retal["task"].get(disable_sync_subtasks=False)["id"]
                 channel = message["channel_id"]
             except Exception as e:
                 logger.exception(e)
                 continue
-
-        print(retal)
 
         Retaliation.insert(
             attack_code=retal["code"],

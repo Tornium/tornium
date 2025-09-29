@@ -587,7 +587,9 @@ def fetch_attacks_runner():
 
     retal: Retaliation
     for retal in Retaliation.select().where(
-        Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5))
+        (Retaliation.attack_ended <= (datetime.datetime.utcnow() - datetime.timedelta(minutes=5)))
+        & (Retaliation.channel_id.is_null(False))
+        & (Retaliation.message_id.is_null(False))
     ):
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
         # TODO: Convert to a delete returning query

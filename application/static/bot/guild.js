@@ -13,6 +13,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+function handleRetalWarsToggle(e) {
+    let enabled;
+    if (event.target.classList.contains("faction-retal-wars-enable")) {
+        enabled = true;
+    } else if (event.target.classList.contains("faction-retal-wars-disable")) {
+        enabled = false;
+    } else {
+        generateToast("Retal Wars Set Failed", "Invalid event target ID", "error");
+        throw new Error(`Illegal event target ID: ${event.target.id}`);
+    }
+
+    tfetch("POST", `bot/${guildid}/attacks/retal/${this.getAttribute("data-faction")}/wars`, {
+        body: {
+            enabled: enabled,
+        },
+        errorTitle: "Retal Wars Set Failed",
+    }).then(() => {
+        generateToast("Retal Wars Set Successful", "Retal wars has been successfully toggled.");
+    });
+}
+
 function setOverdoseChannel(event) {
     const channelID = this.value == "0" ? null : this.value;
     const factionID = this.getAttribute("data-faction");
@@ -58,6 +79,13 @@ ready(() => {
                 if (factionConfig.chain_bonus.length != 100) {
                     $(`.faction-bonus-length[data-faction="${factionid}"] option[value="100"]`).removeAttr("selected");
                 }
+            }
+
+            const factionRetalWarToggle = document.querySelector(
+                `#faction-retal-wars-${factionConfig.retal.wars ? "enable" : "disable"}-${factionid}`,
+            );
+            if (factionRetalWarToggle) {
+                factionRetalWarToggle.setAttribute("checked", "");
             }
         });
 
@@ -249,6 +277,10 @@ ready(() => {
         }).then((response) => {
             generateToast("Retal Role Add Successful");
         });
+    });
+
+    document.querySelectorAll("input[name=faction-retal-wars-toggle]").forEach((button) => {
+        button.addEventListener("change", handleRetalWarsToggle);
     });
 
     $(".faction-bonus-channel").on("change", function () {

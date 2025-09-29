@@ -1155,6 +1155,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
             ServerAttackConfig.select(
                 ServerAttackConfig.retal_roles,
                 ServerAttackConfig.retal_channel,
+                ServerAttackConfig.retal_wars,
                 ServerAttackConfig.chain_bonus_channel,
                 ServerAttackConfig.chain_bonus_roles,
                 ServerAttackConfig.chain_alert_channel,
@@ -1233,7 +1234,11 @@ def check_attacks(faction_data: dict, last_attacks: int):
                         "components": [],
                     },
                 ).forget()
-        elif ALERT_RETALS and validate_attack_available_retaliation(attack, faction):
+        elif (
+            ALERT_RETALS
+            and validate_attack_available_retaliation(attack, faction)
+            and (attack_config.retal_wars or attack["modifiers"]["war"] == 1)
+        ):
             try:
                 possible_retals[attack["code"]] = {
                     "task": discordpost.delay(
@@ -1245,6 +1250,8 @@ def check_attacks(faction_data: dict, last_attacks: int):
             except Exception as e:
                 logger.exception(e)
                 pass
+        elif validate_attack_available_retaliation(attack, faction):
+            possible_retals[attack["code"]] = {"task": None, **attack}
 
         # Check for bonuses dropped upon this faction
         if ALERT_CHAIN_BONUS and validate_attack_bonus(attack, faction, attack_config):
@@ -1325,20 +1332,27 @@ def check_attacks(faction_data: dict, last_attacks: int):
         discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
 
     for retal in possible_retals.values():
-        retal["task"]: celery.result.AsyncResult
-        try:
-            message = retal["task"].get(disable_sync_subtasks=False)
-        except celery.exceptions.CeleryError as e:
-            logger.exception(e)
-            continue
+        retal["task"]: typing.Optional[celery.result.AsyncResult]
+        if retal["task"] is None:
+            message = None
+            channel = None
+        else:
+            try:
+                message = retal["task"].get(disable_sync_subtasks=False)
+                channel = message["channel_id"]
+            except Exception as e:
+                logger.exception(e)
+                continue
+
+        print(retal)
 
         Retaliation.insert(
             attack_code=retal["code"],
             attack_ended=datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
             defender=retal["defender_id"],
             attacker=retal["attacker_id"],
-            message_id=message["id"],
-            channel_id=message["channel_id"],
+            message_id=message,
+            channel_id=channel,
         ).on_conflict_ignore().execute()
 
 

@@ -57,7 +57,3 @@ pre-commit:
             root: "worker/"
             glob: "*.{ex,exs}"
             run: "mix credo diff"
-        userscript-format:
-            root: "userscripts/"
-            glob: "*.js"
-            run: "biome format ."

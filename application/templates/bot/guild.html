@@ -111,6 +111,31 @@ Tornium - Bot Dashboard
                                     <div class="ms-2 mt-1 fw-bold">Retaliation Roles - Optional</div>
                                     <select class="discord-role-selector faction-retal-roles w-100" data-faction="{{ faction.tid }}" aria-label="Retal Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                                 </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <label class="ms-2 mt-1 fw-bold">Retaliation Notify Wars</label>
+
+                                    <div class="p-1" style="width: fit-content">
+                                        <input
+                                            type="radio"
+                                            class="btn-check faction-retal-wars-enable"
+                                            name="faction-retal-wars-toggle"
+                                            id="faction-retal-wars-enable-{{ faction.tid }}"
+                                            autocomplete="off"
+                                            data-faction="{{ faction.tid }}"
+                                        >
+                                        <label class="btn" for="faction-retal-wars-enable-{{ faction.tid }}">Enable</label>
+
+                                        <input
+                                            type="radio"
+                                            class="btn-check faction-retal-wars-disable"
+                                            name="faction-retal-wars-toggle"
+                                            id="faction-retal-wars-disable-{{ faction.tid }}"
+                                            autocomplete="off"
+                                            data-faction="{{ faction.tid }}"
+                                        >
+                                        <label class="btn" for="faction-retal-wars-disable-{{ faction.tid }}">Disable</label>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr />

@@ -72,6 +72,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/retal/<int:faction_tid>/wars",
+    view_func=bot.attacks.faction_retal_wars_toggle,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/attacks/chain-bonus/<int:faction_tid>/channel",
     view_func=bot.attacks.faction_chain_bonus_channel,
     methods=["POST"],

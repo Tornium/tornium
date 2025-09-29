@@ -104,6 +104,40 @@ def faction_retal_roles(guild_id: int, faction_tid: int, *args, **kwargs):
 
 @session_required
 @ratelimit
+def faction_retal_wars_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        enabled = bool(data["enabled"])
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1003", key)
+
+    try:
+        guild: Server = Server.select(Server.admins, Server.factions).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = Faction.get_by_id(faction_tid)
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild_id != faction.guild_id:
+        return make_exception_response("4021", key)
+
+    _update_attack_config(faction_tid, guild_id, retal_wars=enabled)
+
+    return "", 204, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
 def faction_chain_bonus_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

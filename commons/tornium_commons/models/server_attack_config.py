@@ -13,7 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BigIntegerField, CompositeKey, ForeignKeyField, IntegerField
+from peewee import (
+    BigIntegerField,
+    BooleanField,
+    CompositeKey,
+    ForeignKeyField,
+    IntegerField,
+)
 from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
@@ -29,6 +35,7 @@ class ServerAttackConfig(BaseModel):
     # Retaliation
     retal_channel = BigIntegerField(null=True)
     retal_roles = ArrayField(BigIntegerField, index=False, default=[])
+    retal_wars = BooleanField(default=False, null=False)
 
     # Chain Bonus
     chain_bonus_channel = BigIntegerField(null=True)

@@ -62,6 +62,7 @@ def jsonified_server_config(guild: Server):
                 "retal": {
                     "channel": ("0" if config.retal_channel is None else str(config.retal_channel)),
                     "roles": list(map(str, config.retal_roles)),
+                    "wars": config.retal_wars,
                 },
                 "chain_bonus": {
                     "channel": ("0" if config.chain_bonus_channel is None else str(config.chain_bonus_channel)),

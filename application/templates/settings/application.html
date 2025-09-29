@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Application Settings
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/settings">Settings</a>
+    </li>
+    <li class="breadcrumbs-item active">
+        <a href="/settings/application/{{ current_token.client_id }}">Application Settings</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="card m-3">
+    <div class="card-body row">
+        <h5 class="card-title">{{ current_token.client.client_name }}</h5>
+        <hr />
+        <div class="d-flex flex-wrap flex-lg-nowrap justify-content-lg-between align-items-start">
+            <p class="card-text">
+                Created by: <a href="https://torn.com/profiles.php?XID={{ current_token.client.user_id }}">{{ current_token.client.user.user_str_self() }}</a>
+                <br />
+                First authorized: {{ first_token.issued_at }} TCT
+                {% if current_token.client.client_uri %}
+                <br />
+                Homepage: <a href="{{ current_token.client.client_uri }}">{{ current_token.client.client_uri }}</a>
+                {% endif %}
+            </p>
+            <button class="ms-2 pt-3 pt-lg-0 btn btn-outline-danger" id="revoke-client" data-client-id="{{ current_token.client.client_id }}">Revoke</button>
+        </div>
+
+        <div class="col">
+            <div class="card-header">Requested Permissions</div>
+            <ul class="list-group list-group-flush">
+                {% for scope in scopes %}
+                {% if scope == "identity" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-address-card"></i> Identity</div>
+                        This application will be able to know your Torn name and ID and your Discord ID.
+                    </div>
+                </li>
+                {% endif %}
+                {% if scope == "faction" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-sitemap"></i> Faction - All</div>
+                        This application will be able to read and write all applicable faction data.
+                    </div>
+                </li>
+                {% endif %}
+                {% if scope == "faction:banking" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-vault"></i> Faction - Banking</div>
+                        This application will be able to retrieve data about their faction vault balance and make a call to withdraw from their vault balance.
+                    </div>
+                </li>
+                {% endif %}
+                {% if scope == "faction:crimes" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-people-robbery"></i> Faction - Crimes</div>
+                        This application will be able to retrieve data on current and historical organized crimes of the faction.
+                    </div>
+                </li>
+                {% endif %}
+                {% if scope == "torn_key" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-key"></i> Torn API Key - All</div>
+                        Not Yet Implemented
+                    </div>
+                </li>
+                {% endif %}
+                {% if scope == "torn_key:usage" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold"><i class="fa-solid fa-unlock-keyhole"></i> Torn API Key - Usage</div>
+                        This application will be able to make Torn API calls using your API key within Tornium. Your API key will NOT be shared with the application.
+                    </div>
+                </li>
+                {% endif %}
+                {% endfor %}
+
+                {% if scopes|length == 0 %}
+                <li class="list-group-item" data-scope="">No permissions requestsed</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/settings/application.js"></script>
+{% endblock %}

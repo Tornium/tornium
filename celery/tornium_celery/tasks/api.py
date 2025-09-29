@@ -22,7 +22,7 @@ if globals().get("orjson:loaded"):
     import orjson
 
 import requests
-from tornium_commons import Config, DBucket, rds
+from tornium_commons import Config, DBucket, rds, with_db_connection
 from tornium_commons.errors import (
     DiscordError,
     MissingKeyError,
@@ -72,7 +72,7 @@ def discord_ratelimit_pre(
 
 
 def handle_discord_error(e: DiscordError):
-    from tornium_commons.models import Faction, Notification, Server
+    from tornium_commons.models import Faction, Server
     from tornium_commons.skyutils import SKYNET_ERROR
 
     # Channel errors
@@ -160,9 +160,6 @@ def handle_discord_error(e: DiscordError):
             Server.update(**db_updates).where(Server.sid == webhook_data["guild_id"]).execute()
 
         Faction.update(od_channel=0).where(Faction.od_channel == channel_id).execute()
-        Notification.update(enabled=False).where(
-            (Notification.recipient == channel_id) & (Notification.recipient_guild != 0)
-        ).execute()
 
         if only_delete:
             return
@@ -209,6 +206,7 @@ def handle_discord_error(e: DiscordError):
 
 
 @celery.shared_task(name="tasks.api.tornget", time_limit=5, routing_key="api.tornget", queue="api")
+@with_db_connection
 def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=False, version=1):
     url = (
         f'{config.torn_api_uri}v{version}/{endpoint}&key={key}&comment=Tornium{"" if fromts == 0 else f"&from={fromts}"}'

@@ -14,10 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import Blueprint, jsonify, render_template, request, send_from_directory
-from flask_login import current_user, fresh_login_required
-from tornium_commons.models import OAuthToken, Server, TornKey, User
-
-from controllers.decorators import token_required
+from tornium_commons.models import Server, TornKey
 
 mod = Blueprint("baseroutes", __name__)
 
@@ -36,47 +33,6 @@ def terms():
 @mod.route("/privacy")
 def privacy():
     return render_template("privacy.html")
-
-
-@mod.route("/settings")
-@fresh_login_required
-@token_required(setnx=True)
-def settings(*args, **kwargs):
-    if current_user.key is None:
-        obfuscated_key = "Not Set"
-    else:
-        obfuscated_key = current_user.key[:6] + "*" * 10
-
-    api_keys = list(
-        k
-        for k in TornKey.select(
-            TornKey.guid,
-            TornKey.api_key,
-            TornKey.access_level,
-            TornKey.disabled,
-            TornKey.paused,
-            TornKey.default,
-        )
-        .join(User)
-        .where(TornKey.user.tid == current_user.tid)
-    )
-
-    tokens = list(
-        t
-        for t in OAuthToken.select().where(
-            (OAuthToken.user == current_user.tid)
-            & (OAuthToken.access_token_revoked_at.is_null(True) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
-        )
-    )
-
-    return render_template(
-        "settings.html",
-        enabled_mfa=current_user.security,
-        obfuscated_key=obfuscated_key,
-        api_keys=api_keys,
-        tokens=tokens,
-        discord_linked=("Not Linked" if current_user.discord_id in ("", None, 0) else "Linked"),
-    )
 
 
 @mod.route("/static/favicon.svg")
@@ -107,6 +63,8 @@ def settings(*args, **kwargs):
 @mod.route("/static/notification/trigger.js")
 @mod.route("/static/notification/trigger-create.js")
 @mod.route("/static/notification/trigger-server-add.js")
+@mod.route("/static/settings/settings.js")
+@mod.route("/static/settings/application.js")
 @mod.route("/static/stats/db.js")
 @mod.route("/static/stats/list.js")
 @mod.route("/static/torn/factions.js")

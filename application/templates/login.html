@@ -31,10 +31,6 @@
                             By signing into Tornium, you agree to the <a href="/terms">Terms of Service</a> and the <a href="/privacy">Privacy Policy</a>.
                         </p>
 
-                        <p class="card-text">
-                            <b>NOTE:</b> Tornium logs all authentication attempts including IP addresses for security purposes.
-                        </p>
-
                         <form method="POST" action="/login?state={{ session["oauth_state"] }}">
                             <div class="form-floating">
                                 <div class="input-group">
@@ -53,6 +49,48 @@
                                 </div>
                             </div>
                         </form>
+                        
+                        <hr />
+
+                        <table class="table table-sm">
+                            <caption>See the <a href="https://docs.tornium.com/en/latest/data-use-storage.html">docs</a> for details.</caption>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Data Storage</th>
+                                    <td>
+                                        Persistent - forever<br />
+                                        Persistent - until account deletion
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Data Sharing</th>
+                                    <td>
+                                        Nobody<br />
+                                        Faction<br />
+                                        General public<br />
+                                        Server owners
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Purpose of Data</th>
+                                    <td>
+                                        Public community tools<br />
+                                        Competitive advantage - Can be used for notifications during wars<br />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">Key Storage and Sharing</th>
+                                    <td>Stored remotely - used for automation without access by anyone else</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Key Access Level</th>
+                                    <td>
+                                        Limited<br />
+                                        Full
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

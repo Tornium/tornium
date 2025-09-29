@@ -5,10 +5,10 @@ end_of_line = lf
 insert_final_newline = true
 charset = utf-8
 
-[*.{js,py,json,html,scss,rst,toml}]
+[*.{js,py,json,html,scss,toml}]
 indent_style = space
 indent_size = 4
 
-[*.lua]
+[*.{lua,ex,exs}]
 indent_style = space
 indent_size = 2

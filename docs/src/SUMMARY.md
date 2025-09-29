@@ -2,6 +2,7 @@
 
 [Introduction](README.md)
 [How to Report](report.md)
+[Data Use and Storage Policy](data-use-storage.md)
 
 # Tutorial
 
@@ -11,8 +12,11 @@
     - [Setup Organized Crimes](tutorial/discord-server-oc.md)
     - [Setup Notifications](tutorial/discord-server-notification.md)
     - [Setup Banking](tutorial/discord-server-banking.md)
+    - [Setup Overdose Reporting](tutorial/discord-server-overdose.md)
+- [Generating a Chain List](tutorial/chain-list.md)
 
 # User Guide
+- [How to setup 2FA?](guide/2fa.md)
 
 # Reference
 
@@ -23,5 +27,9 @@
     - [Verification](reference/bot-verification.md)
     - [Organized Crimes](reference/bot-oc.md)
     - [Banking](reference/bot-banking.md)
+    - [Overdose](reference/bot-overdose.md)
+- [Stat Datbase]()
+    - [Chain List Generator](reference/stats-chain-list-generator.md)
+- [Two-Factor Authentication](reference/2fa.md)
 
 # Explanation

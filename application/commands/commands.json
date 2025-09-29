@@ -3,6 +3,7 @@
         "ping",
         "bot/server",
         "bot/verify/verify",
+        "bot/verify/verify-uc",
         "bot/verify/verifyall",
         "faction/banking/balance",
         "faction/banking/cancel",

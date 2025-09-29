@@ -15,7 +15,7 @@
 
 import datetime
 
-from tornium_commons import rds
+from tornium_commons import rds, with_db_connection
 from tornium_commons.models import Item, User
 
 import celery
@@ -32,6 +32,7 @@ logger = get_task_logger("celery_app")
     queue="default",
     time_limit=15,
 )
+@with_db_connection
 def update_items(items_data):
     Item.update_items(torn_get=tornget, key=User.random_key().api_key)
 

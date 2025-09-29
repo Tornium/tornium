@@ -21,9 +21,10 @@ defmodule Tornium.Guild.Verify.Config do
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
           verify_template: String.t(),
-          verified_roles: List,
-          exclusion_roles: List,
-          faction_verify: Map,
+          verified_roles: [Tornium.Discord.role()],
+          unverified_roles: [Tornium.Discord.role()],
+          exclusion_roles: [Tornium.Discord.role()],
+          faction_verify: map(),
           verify_log_channel: integer(),
           verify_jail_channel: integer()
         }
@@ -34,6 +35,7 @@ defmodule Tornium.Guild.Verify.Config do
     :gateway_verify_enabled,
     :verify_template,
     :verified_roles,
+    :unverified_roles,
     :exclusion_roles,
     :faction_verify,
     :verify_log_channel,
@@ -57,8 +59,9 @@ defmodule Tornium.Guild.Verify.Config do
   end
 
   def validate(guild_id) when is_integer(guild_id) do
-    guild = Repo.get(Tornium.Schema.Server, guild_id)
-    validate(guild)
+    Tornium.Schema.Server
+    |> Repo.get(guild_id)
+    |> validate()
   end
 
   def validate(%Tornium.Schema.Server{} = guild) when not guild.verify_enabled do
@@ -82,6 +85,7 @@ defmodule Tornium.Guild.Verify.Config do
       gateway_verify_enabled: guild.gateway_verify_enabled,
       verify_template: guild.verify_template,
       verified_roles: guild.verified_roles,
+      unverified_roles: guild.unverified_roles,
       exclusion_roles: guild.exclusion_roles,
       faction_verify: guild.faction_verify,
       verify_log_channel: guild.verify_log_channel,

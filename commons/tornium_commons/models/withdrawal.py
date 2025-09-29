@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
+
 from peewee import (
     BigIntegerField,
     BooleanField,
@@ -30,12 +32,13 @@ class Withdrawal(BaseModel):
 
     wid = IntegerField(primary_key=True)
     guid = UUIDField(index=True)
-    faction_tid = IntegerField()
-    amount = BigIntegerField()
+    faction_tid = IntegerField(null=False)
+    amount = BigIntegerField(null=False)
     cash_request = BooleanField(default=True)
 
-    requester = IntegerField()
-    time_requested = DateTimeField()
+    requester = IntegerField(null=False)
+    time_requested = DateTimeField(null=False)
+    expires_at = DateTimeField(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(hours=1), null=True)
 
     # Withdrawal status
     # 0: unfulfilled

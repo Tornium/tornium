@@ -15,13 +15,14 @@
 
 import datetime
 import random
+import typing
 import uuid
 
-from peewee import DoesNotExist, IntegrityError
+from peewee import IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
-from tornium_commons.models import Server, User, Withdrawal
+from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
 from skynet.decorators import invoker_required
@@ -135,6 +136,24 @@ def withdraw(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
+
+    timeout = find_list(interaction["data"]["options"], "name", "timeout")
+    timeout_datetime: typing.Optional[datetime.datetime] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+
+    if timeout is None:
+        pass
+    elif timeout["value"] == "15m":
+        timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    elif timeout["value"] == "30m":
+        timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+    elif timeout["value"] == "2h":
+        timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+    elif timeout["value"] == "4h":
+        timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(hours=4)
+    elif timeout["value"] == "8h":
+        timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    elif timeout["value"] == "none":
+        timeout_datetime = None
 
     client = rds()
     # TODO: Make this set of redis queries atomic
@@ -298,8 +317,8 @@ def withdraw(interaction, *args, **kwargs):
                 {
                     "title": f"Vault Request #{request_id}",
                     "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting {commas(withdrawal_amount)} "
-                    f"in {'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault.",
+                    f"in {'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
+                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
@@ -342,8 +361,8 @@ def withdraw(interaction, *args, **kwargs):
                     "title": f"Vault Request #{request_id}",
                     "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
                     f"{commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
-                    f"{'points' if withdrawal_option == 1 else 'cash'}"
-                    f" from the faction vault.",
+                    f"{'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
+                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
@@ -404,6 +423,7 @@ def withdraw(interaction, *args, **kwargs):
             cash_request=not bool(withdrawal_option),
             requester=user.tid,
             time_requested=datetime.datetime.utcnow(),
+            expires_at=timeout_datetime,
             status=0,
             fulfiller=None,
             time_fulfilled=None,
@@ -433,7 +453,8 @@ def withdraw(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": "Your vault request has been forwarded to the faction leadership.",
+                    "description": "Your vault request has been forwarded to the faction leadership. The request "
+                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "fields": [
                         {
                             "name": "Request Type",

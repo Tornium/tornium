@@ -43,7 +43,8 @@ defmodule Tornium.Guild.Verify do
              | :exclusion_role
              | {:config, String.t()}, Tornium.Schema.Server.t()}
   def handle(guild, %Nostrum.Struct.Guild.Member{} = member) when is_integer(guild) do
-    Repo.get(Tornium.Schema.Server, guild)
+    Tornium.Schema.Server
+    |> Repo.get(guild)
     |> handle(member)
   end
 
@@ -58,6 +59,7 @@ defmodule Tornium.Guild.Verify do
 
   def handle(%Tornium.Schema.Server{} = guild, %Nostrum.Struct.Guild.Member{} = member) do
     if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
+      # Member has at least one exclusion role and should be skipped
       {:error, :exclusion_role, guild}
     else
       api_key = Tornium.Guild.get_random_admin_key(guild)
@@ -69,11 +71,12 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
-  defp validate_on_join(%Tornium.Schema.Server{} = guild) do
-    case guild do
-      %Tornium.Schema.Server{gateway_verify_enabled: false} -> {:error, {:config, "gateway verification disabled"}}
-      %Tornium.Schema.Server{gateway_verify_enabled: true} -> guild
-    end
+  defp validate_on_join(%Tornium.Schema.Server{gateway_verify_enabled: false} = guild) do
+    {:error, {:config, "gateway verification disabled"}}
+  end
+
+  defp validate_on_join(%Tornium.Schema.Server{gateway_verify_enabled: true} = guild) do
+    guild
   end
 
   defp validate_on_join(guild) when is_nil(guild) do
@@ -160,7 +163,7 @@ defmodule Tornium.Guild.Verify do
           {:ok, boolean()} | {:error, Tornium.API.Error.t()},
           config :: Tornium.Guild.Verify.Config.t(),
           member :: Nostrum.Struct.Guild.Member.t()
-        ) :: Map | Tornium.API.Error.t() | :unverified | :nochanges
+        ) :: {:verified, map()} | Tornium.API.Error.t() | {:unverified, map()} | :nochanges
   defp build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
          roles: roles,
          nick: nick,
@@ -175,22 +178,44 @@ defmodule Tornium.Guild.Verify do
 
     case user do
       nil ->
-        :unverified
+        changes =
+          %{roles: MapSet.new(roles), nick: nick}
+          |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, user)
+
+        {:unverified, changes}
 
       user ->
-        %{roles: MapSet.new(roles), nick: nick}
-        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
-        |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
-        |> Tornium.Guild.Verify.Logic.set_verified_name(config, user)
-        |> Tornium.Guild.Verify.Logic.set_verified_roles(config, user)
-        |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
-        |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
-        |> validate_changes_made(roles, nick)
+        changes =
+          %{roles: MapSet.new(roles), nick: nick}
+          |> Tornium.Guild.Verify.Logic.remove_invalid_unverified_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_verified_name(config, user)
+          |> Tornium.Guild.Verify.Logic.set_verified_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
+          |> validate_changes_made(roles, nick)
+
+        {:verified, changes}
     end
   end
 
-  defp build_changes({:error, %Tornium.API.Error{code: code} = _error}, _config, _member) when code == 6 do
-    :unverified
+  defp build_changes({:error, %Tornium.API.Error{code: code} = _error}, config, %Nostrum.Struct.Guild.Member{
+         roles: roles,
+         nick: nick
+       })
+       when code == 6 do
+    changes =
+      %{roles: MapSet.new(roles), nick: nick}
+      |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, nil)
+      |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, nil)
+      |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, nil)
+      |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, nil)
+
+    {:unverified, changes}
   end
 
   defp build_changes({:error, %Tornium.API.Error{} = error}, _config, _member) do
@@ -204,7 +229,12 @@ defmodule Tornium.Guild.Verify do
         ) ::
           {:ok, Nostrum.Struct.Guild.Member.t()}
           | {:error, Nostrum.Error.ApiError | Tornium.API.Error | :unverified | :nochanges}
-  defp perform_changes(:unverified, _guild, _member) do
+  defp perform_changes(
+         {:unverified, %{roles: roles, nick: nick}} = _changeset,
+         %Tornium.Schema.Server{sid: guild_id} = _guild,
+         %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
+       ) do
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
     {:error, :unverified}
   end
 
@@ -217,10 +247,10 @@ defmodule Tornium.Guild.Verify do
   end
 
   defp perform_changes(
-         %{roles: roles, nick: nick} = _changeset,
+         {:verified, %{roles: roles, nick: nick} = _changeset},
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
        ) do
-    Nostrum.Api.modify_guild_member(guild_id, member_id, %{nick: nick, roles: roles})
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
   end
 end

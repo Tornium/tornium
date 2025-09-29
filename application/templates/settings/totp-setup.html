@@ -1,0 +1,65 @@
+{% extends 'base-center.html' %}
+
+{% block title %}
+Tornium - Setup TOTP
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid placeholder-glow">
+                <h5 class="card-title">Setup Two-Factor Authentication</h5>
+
+                <p class="card-text mt-2">
+                    Prevent unauthorized access to your account by requiring authentication codes when signing in. <a href="https://docs.tornium.com/guide/2fa.html" disabled>Learn more</a>.
+                </p>
+
+                <p class="mt-2 border rounded p-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <b>NOTE:</b> You will need to install a 2FA application first. Common options include <a href="https://duo.com/">Duo</a>, <a href="https://www.microsoft.com/en-us/security/mobile-authenticator-app">Microsoft Authenticator</a>, <a href="https://ente.io/auth/">Ente</a>, and <a href="https://getaegis.app/">Aegis</a>.
+                </p>
+
+                <hr />
+
+                <b>Setup Authenticator</b>
+
+                <p class="card-text mt-2">
+                    Open the authenticator app and scan the following QR code:
+                </p>
+                <div class="placeholder col-6 d-flex mx-auto" id="totp-qr" style="aspect-ratio: 1;" data-qr-uri="{{ totp_uri }}">
+                </div>
+
+                <p class="card-text mt-2">
+                    Or manually enter the following code:
+                </p>
+                <span class="d-block text-center w-100" id="totp-secret">
+                    {{ totp_secret }}
+                </span>
+
+                <p class="card-text mt-2">
+                    Once Tornium is registered in the authenticator app, you'll see a 6 digit code generated every 30 seconds in the app.
+                </p>
+
+                <hr />
+
+                <b>Verify Code</b>
+
+                <p class="card-text mt-2">
+                    Enter the code from the authenticator app to ensure it's set up properly.
+                </p>
+
+                <form autocomplete="off" method="POST" target="_self">
+                    <input type="number" required class="form-control" id="totp-token-input" name="totp-token" autocomplete="off" inputmode="numeric">
+
+                    <button type="submit" id="verify-code" class="btn btn-outline-success w-100 mt-3">Verify</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/static/settings/totp-setup.js"></script>
+{% endblock %}

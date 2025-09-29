@@ -15,25 +15,29 @@
 
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
+          sid: non_neg_integer(),
           name: String.t(),
-          admins: List,
+          admins: [non_neg_integer()],
           icon: String.t(),
-          factions: List,
+          factions: [non_neg_integer()],
           verify_enabled: boolean(),
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
           verify_template: String.t(),
-          verified_roles: List,
-          exclusion_roles: List,
-          faction_verify: Map,
+          verified_roles: [Tornium.Discord.role()],
+          unverified_roles: [Tornium.Discord.role()],
+          exclusion_roles: [Tornium.Discord.role()],
+          faction_verify: map(),
           verify_log_channel: integer(),
           verify_jail_channel: integer(),
-          banking_config: Map,
+          banking_config: map(),
           armory_enabled: boolean(),
-          armory_config: Map,
-          oc_config: Map
+          armory_config: map(),
+          oc_config: map(),
+          notifications_config: Tornium.Schema.ServerNotificationsConfig.t()
         }
 
   @primary_key {:sid, :integer, autogenerate: false}
@@ -49,6 +53,7 @@ defmodule Tornium.Schema.Server do
     field(:gateway_verify_enabled, :boolean)
     field(:verify_template, :string)
     field(:verified_roles, {:array, :integer})
+    field(:unverified_roles, {:array, :integer})
     field(:exclusion_roles, {:array, :integer})
     field(:faction_verify, :map)
     field(:verify_log_channel, :integer)
@@ -62,5 +67,18 @@ defmodule Tornium.Schema.Server do
     field(:oc_config, :map)
 
     has_one(:notifications_config, Tornium.Schema.ServerNotificationsConfig, foreign_key: :server_id, references: :sid)
+  end
+
+  @doc """
+  Insert a new server by ID and name.
+  """
+  @spec new(guild_id :: non_neg_integer(), guild_name :: String.t(), opts :: Keyword.t()) :: t()
+  def new(guild_id, guild_name, opts \\ []) when is_integer(guild_id) and is_binary(guild_name) do
+    %__MODULE__{}
+    |> Ecto.Changeset.cast(%{}, [])
+    |> Ecto.Changeset.put_change(:sid, guild_id)
+    |> Ecto.Changeset.put_change(:name, guild_name)
+    |> Ecto.Changeset.change(opts)
+    |> Repo.insert(on_conflict: {:replace_all_except, [:sid]}, conflict_target: :sid)
   end
 end

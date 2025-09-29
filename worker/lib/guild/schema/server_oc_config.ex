@@ -25,17 +25,29 @@ defmodule Tornium.Schema.ServerOCConfig do
           faction_id: integer(),
           faction: Tornium.Schema.Faction.t(),
           enabled: boolean(),
-          tool_channel: integer(),
-          tool_roles: [integer()],
+          tool_channel: integer() | nil,
+          tool_roles: [Tornium.Discord.role()],
           tool_crimes: [String.t()],
-          delayed_channel: integer(),
-          delayed_roles: [integer()],
+          delayed_channel: integer() | nil,
+          delayed_roles: [Tornium.Discord.role_assignable()],
           delayed_crimes: [String.t()],
-          extra_range_channel: integer(),
-          extra_range_roles: [integer()],
+          extra_range_channel: integer() | nil,
+          extra_range_roles: [Tornium.Discord.role_assignable()],
           extra_range_global_min: integer(),
           extra_range_global_max: integer(),
-          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()]
+          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()],
+          team_spawn_required_channel: integer() | nil,
+          team_spawn_required_roles: [Tornium.Discord.role()],
+          team_member_join_required_channel: integer() | nil,
+          team_member_join_required_roles: [Tornium.Discord.role_assignable()],
+          team_member_incorrect_crime_channel: integer() | nil,
+          team_member_incorrect_crime_roles: [Tornium.Discord.role_assignable()],
+          team_incorrect_member_channel: integer() | nil,
+          team_incorrect_member_roles: [Tornium.Discord.role_assignable()],
+          team_member_incorrect_slot_channel: integer() | nil,
+          team_member_incorrect_slot_roles: [Tornium.Discord.role_assignable()],
+          assigned_team_channel: integer() | nil,
+          assigned_team_roles: [Tornium.Discord.role()]
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -57,27 +69,46 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:extra_range_global_min, :integer)
     field(:extra_range_global_max, :integer)
     has_many(:extra_range_local_configs, Tornium.Schema.ServerOCRangeConfig, foreign_key: :server_oc_config_id)
+
+    field(:team_spawn_required_channel, :integer)
+    field(:team_spawn_required_roles, {:array, :integer})
+
+    field(:team_member_join_required_channel, :integer)
+    field(:team_member_join_required_roles, {:array, :integer})
+
+    field(:team_member_incorrect_crime_channel, :integer)
+    field(:team_member_incorrect_crime_roles, {:array, :integer})
+
+    field(:team_incorrect_member_channel, :integer)
+    field(:team_incorrect_member_roles, {:array, :integer})
+
+    field(:team_member_incorrect_slot_channel, :integer)
+    field(:team_member_incorrect_slot_roles, {:array, :integer})
+
+    field(:assigned_team_channel, :integer)
+    field(:assigned_team_roles, {:array, :integer})
   end
 
   @doc """
+  Gets the OC configuration for a faction and server.
+
+  The faction and server are assumed to be linked. This needs to be checked separately or `get_by_faction/1`
+  should be used.
   """
   @spec get(faction_id :: integer(), guild_id :: integer()) :: t() | nil
   def get(faction_id, guild_id) when is_integer(faction_id) and is_integer(guild_id) do
-    # TODO: Add docs
-
     Tornium.Schema.ServerOCConfig
     |> where([c], c.server_id == ^guild_id and c.faction_id == ^faction_id)
-    # FIXME: This prelod doesn't work
+    # FIXME: This preload doesn't work
     |> preload(:extra_range_local_configs)
     |> Repo.one()
   end
 
   @doc """
+  Gets the OC configuration for a faction's linked server.
   """
   @spec get_by_faction(tid :: integer()) :: t() | nil
   def get_by_faction(tid) when is_integer(tid) do
-    # TODO: Add docs
-
     faction_return =
       Tornium.Schema.Faction
       |> join(:inner, [f], s in Tornium.Schema.Server, on: f.guild_id == s.sid)

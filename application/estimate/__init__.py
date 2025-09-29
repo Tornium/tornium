@@ -25,29 +25,26 @@ from tornium_commons import rds
 from tornium_commons.formatters import date_to_timestamp
 from tornium_commons.models import PersonalStats
 
-_model: typing.Optional[xgboost.XGBRegressor] = None
-model_features: typing.List[str] = None
-
-ESTIMATE_TTL = 604_800  # One week
-
 
 def model() -> xgboost.XGBRegressor:
-    global _model, model_features
-
-    if _model is not None:
-        return _model
-
-    _model = xgboost.XGBRegressor()
+    local_model = xgboost.XGBRegressor()
 
     if pathlib.Path("estimate/models/base-model.json").exists():
-        _model.load_model("estimate/models/base-model.json")
+        local_model.load_model("estimate/models/base-model.json")
     else:
-        _model.load_model("estimate/models/base-model-0.0.1.json")
+        local_model.load_model("estimate/models/base-model-0.0.2.json")
 
-    if model_features is None:
-        model_features = list(_model.feature_names_in_)
+    return local_model
 
-    return _model
+
+def model_features() -> typing.List[str]:
+    return list(_model.feature_names_in_)
+
+
+_model: typing.Optional[xgboost.XGBRegressor] = model()
+_model_features: typing.List[str] = model_features()
+
+ESTIMATE_TTL = 604_800  # One week
 
 
 def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> typing.Tuple[int, int]:
@@ -71,17 +68,19 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
 
     df: pd.DataFrame
     if ps is not None and now - date_to_timestamp(ps.timestamp) <= ESTIMATE_TTL:
-        df = pd.DataFrame(columns=model_features, index=[0])
+        df = pd.DataFrame(columns=_model_features, index=[0])
 
-        for field_name in model_features:
+        for field_name in _model_features:
+            if field_name == "user":
+                df.loc[0, "user"] = user_tid
+                continue
+
             try:
-                df[field_name][0] = ps.__getattribute__(field_name)
+                df.loc[0, field_name] = ps.__getattribute__(field_name)
             except AttributeError:
-                df[field_name][0] = 0
+                df.loc[0, field_name] = 0
 
-        df["tid"][0] = user_tid
         df = df.astype("int64")
-
         estimate = int(model().predict(df))
         redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 
@@ -104,17 +103,19 @@ def estimate_user(user_tid: int, api_key: str, allow_api_calls: bool = True) -> 
     if not update_error and now - date_to_timestamp(ps.timestamp) > ESTIMATE_TTL:
         raise ValueError("Personal stats data is too old after an update")
 
-    df = pd.DataFrame(columns=model_features, index=[0])
+    df = pd.DataFrame(columns=_model_features, index=[0])
 
-    for field_name in model_features:
+    for field_name in _model_features:
+        if field_name == "user":
+            df.loc[0, "user"] = user_tid
+            continue
+
         try:
-            df[field_name][0] = ps.__getattribute__(field_name)
+            df.loc[0, field_name] = ps.__getattribute__(field_name)
         except AttributeError:
-            df[field_name][0] = 0
+            df.loc[0, field_name] = 0
 
-    df["tid"][0] = user_tid
     df = df.astype("int64")
-
     estimate = int(model().predict(df))
     redis_client.set(f"tornium:estimate:cache:{user_tid}", estimate, ex=ESTIMATE_TTL)
 

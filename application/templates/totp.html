@@ -27,7 +27,8 @@
                         <form method="POST" action="/login/totp">
                             <div class="form-floating">
                                 <div class="input-group">
-                                    <input type="number" required class="form-control" id="totp-token" name="totp-token" autocomplete="off" inputmode="numeric">
+                                    {# <input type="number" required class="form-control" id="totp-token" name="totp-token" autocomplete="off" inputmode="numeric"> #}
+                                    <input type="input" required class="form-control" id="totp-token" name="totp-token" autocomplete="off" inputmode="numeric">
                                     <button type="submit" class="btn btn-outline-success input-group-text">Validate</button>
 
                                     <input type="hidden" id="client-token" name="client-token">

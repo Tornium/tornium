@@ -22,10 +22,13 @@ defmodule Tornium.Application do
     {:ok, pid(), Application.state()} | {:error, term()}
   )
   def start(_type, _args) do
-    # Attach the default loggers from :telemetry before the start of the children
-    Tornex.Telemetry.attach_default_logger()
+    Logger.add_handlers(:tornium)
 
-    if Mix.env() == :dev do
+    # Attach the default loggers from :telemetry before the start of the children
+    Tornium.Telemetry.attach_default_logger()
+    Tornex.Telemetry.attach_default_logger(ignored: [[:tornex, :bucket, :create]])
+
+    if Application.get_env(:tornium, :env) == :dev do
       Oban.Telemetry.attach_default_logger()
     else
       Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
@@ -35,10 +38,20 @@ defmodule Tornium.Application do
     children = [
       Tornium.PromEx,
       Tornium.Repo,
-      Tornium.Discord.Consumer,
+      {
+        Nostrum.Bot,
+        %{
+          consumer: Tornium.Discord.Consumer,
+          intents: [:guilds, :guild_members],
+          wrapped_token: fn -> System.get_env("DISCORD_TOKEN") end
+        }
+      },
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
+      {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
+      Tornium.API.Store,
+      Tornex.HTTP.FinchClient,
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
       Tornium.Web.Endpoint

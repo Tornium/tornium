@@ -31,14 +31,6 @@ defmodule Tornium.Utils do
   end
 
   @doc """
-  Create a string of role mentions from a list of Discord roles.
-  """
-  @spec roles_to_string(roles :: list(String.t() | integer())) :: binary()
-  def roles_to_string(roles) when is_list(roles) do
-    Enum.map_join(roles, " ", &"<@&#{&1}>")
-  end
-
-  @doc """
   Recursively create a map from group of tuples (used by Tornium.Lua).
   """
   @spec tuples_to_map(data :: list(tuple())) :: map()

@@ -24,6 +24,7 @@ from controllers.api.v1 import (
     stat,
     stocks,
     user,
+    user_settings,
 )
 
 mod = Blueprint("api_routes_v1", __name__)
@@ -101,13 +102,13 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/tool/channel",
-    view_func=bot.crimes.set_tool_channel,
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/<feature>/channel",
+    view_func=bot.crimes.set_oc_config_channel,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/tool/roles",
-    view_func=bot.crimes.set_tool_roles,
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/<feature>/roles",
+    view_func=bot.crimes.set_oc_config_roles,
     methods=["POST"],
 )
 mod.add_url_rule(
@@ -116,52 +117,32 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/channel",
-    view_func=bot.crimes.set_delayed_channel,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/roles",
-    view_func=bot.crimes.set_delayed_roles,
-    methods=["POST"],
-)
-mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/delayed/crimes",
     view_func=bot.crimes.set_delayed_crimes,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/channel",
-    view_func=bot.crimes.set_extra_range_channel,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/roles",
-    view_func=bot.crimes.set_extra_range_roles,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/minimum",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/minimum",
     view_func=bot.crimes.set_extra_range_global_minimum,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/maximum",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/maximum",
     view_func=bot.crimes.set_extra_range_global_maximum,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
     view_func=bot.crimes.create_extra_range_local,
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
     view_func=bot.crimes.delete_extra_range_local,
     methods=["DELETE"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/range/local/<oc_name>",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
     view_func=bot.crimes.patch_extra_range_local,
     methods=["PATCH"],
 )
@@ -174,6 +155,16 @@ mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction/<int:faction_tid>/banking",
     view_func=bot.banking.banking_setter,
     methods=["GET", "POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/faction/<int:faction_id>/overdose",
+    view_func=bot.overdose.set_overdose_channel,
+    methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/faction/<int:faction_id>/overdose/policy",
+    view_func=bot.overdose.set_overdose_policy,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/notification",
@@ -251,6 +242,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/verify/unverified",
+    view_func=bot.verify.guild_unverified_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/verify/exclusion",
     view_func=bot.verify.guild_exclusion_roles,
     methods=["POST"],
@@ -287,12 +283,53 @@ mod.add_url_rule(
     view_func=faction.banking.vault_balance,
     methods=["GET"],
 )
-mod.add_url_rule("/api/v1/faction/chain", view_func=faction.chain.chain_config, methods=["GET"])
-mod.add_url_rule("/api/v1/faction/crimes/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(
-    "/api/v1/faction/chain/od/channel",
-    view_func=faction.chain.chain_od_channel,
+    "/api/v1/faction/<int:faction_id>/crime/team", view_func=faction.crime_team.get_oc_teams, methods=["GET"]
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<oc_name>",
+    view_func=faction.crime_team.create_oc_team,
     methods=["POST"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>", view_func=faction.crime_team.get_oc_team, methods=["GET"]
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>",
+    view_func=faction.crime_team.delete_oc_team,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/member/<member_guid>/<user_id>",
+    view_func=faction.crime_team.set_oc_team_member,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/member/<member_guid>",
+    view_func=faction.crime_team.set_wilcard_oc_team_member,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/name/<new_name>",
+    view_func=faction.crime_team.update_oc_team_name,
+    methods=["PUT"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>",
+    view_func=faction.crimes.get_members_cpr_oc,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
+    view_func=faction.crimes.get_members_cpr_slot,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/members",
+    view_func=faction.faction.faction_members,
+    methods=["GET"],
 )
 mod.add_url_rule(
     "/api/v1/faction/positions",
@@ -306,6 +343,7 @@ mod.add_url_rule("/api/v1/items", view_func=items.item_name_map, methods=["GET"]
 # /api/v1/stat
 mod.add_url_rule("/api/v1/chain-list", view_func=stat.generate_chain_list, methods=["GET"])
 mod.add_url_rule("/api/v1/stat/<int:tid>", view_func=stat.get_stat_user, methods=["GET"])
+mod.add_url_rule("/api/v1/stat/chain-list", view_func=stat.generate_chain_list_v2, methods=["POST"])
 
 # /api/v1/stocks
 mod.add_url_rule("/api/v1/stocks", view_func=stocks.data.stocks_data, methods=["GET"])
@@ -315,6 +353,7 @@ mod.add_url_rule("/api/v1/stocks/movers", view_func=stocks.movers.stock_movers, 
 # /api/v1/user
 mod.add_url_rule("/api/v1/user", view_func=user.get_user, methods=["GET"])
 mod.add_url_rule("/api/v1/user/guilds", view_func=user.get_admin_guilds, methods=["GET"])
+mod.add_url_rule("/api/v1/user/settings/cpr", view_func=user_settings.toggle_cpr, methods=["PUT"])
 mod.add_url_rule("/api/v1/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/user/estimate/<int:tid>",

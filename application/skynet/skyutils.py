@@ -137,9 +137,6 @@ def check_invoker_exists(interaction: dict):
         invoker = User.select().where(User.discord_id == interaction["user"]["id"]).first()
         discord_id = interaction["user"]["id"]
 
-    if invoker is None:
-        return invoker, tuple()
-
     admin_keys = get_admin_keys(interaction, all_keys=True)
 
     if len(admin_keys) == 0:
@@ -157,7 +154,10 @@ def check_invoker_exists(interaction: dict):
                 "flags": 64,
             },
         }
-    elif discord_id is None:
+    elif invoker is None:
+        return invoker, tuple()
+
+    if discord_id is None:
         return {
             "type": 4,
             "data": {

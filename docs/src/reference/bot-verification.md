@@ -1,5 +1,5 @@
 # Bot Verification
-Tornium's Discord member verification updates a Discord member's roles and nickname according to the server's verification configuration and the member's Discord ID. The verification feature requires a Discord server's member to be verified through the [official Torn Discord server](https://torn.com/discord) to determine which Torn user corresponds to a Discord user.
+Tornium's Discord member verification updates a Discord member's roles and nickname according to the server's verification configuration and the member's Discord ID. If a Discord member is not verified, all configured roles will be removed from them unless they have an exclusion role and the member will be given the [unverified roles](#unverified-roles). The verification feature requires a Discord server's member to be verified through the [official Torn Discord server](https://torn.com/discord) to determine which Torn user corresponds to a Discord user.
 
 ***NOTE:*** Due to restrictions with Discord’s permission system, Tornium is unable to modify the nicknames and roles of server members with a role higher than the bot’s highest role or modify the server owner. Changes to these members need to be done manually by a server administrator. Server owners are considered to be the highest role in the server by Discord, so the bot will never be able to verify the server owner.
 
@@ -11,6 +11,8 @@ To customize your server's verification process, Tornium has several options tha
 - [Cron Toggle](#verification-cron-toggle): Toggle enabling/disabling daily verification
 - [On-Join Toggle](#verification-on-join-toggle): Toggle enabling/disabling verification on member join
 - [Name template](#name-template): Template for verified members' nicknames
+- [Verified Roles](#verified-roles): Roles assigned to members that are verified
+- [Unverified Roles](#unverified-roles): Roles assigned to members that are not verified
 - [Exclusion roles](#exclusion-roles): Roles of members that won't be verified
 - [Faction roles](#faction-roles): Roles assigned to members of specified factions
 - [Faction position roles](#faction-position-roles): Roles assigned to members who have specific faction positions
@@ -41,8 +43,16 @@ The verification name template is used to generate the nickname for all members 
 | {{ tid }}  | Torn user ID            | `1`        |
 | {{ tag }}  | Torn user's faction tag | `CR`       |
 
+### Verified Roles
+Members of the Discord server will be given these roles if they are verified by Torn.
+
+### Unverified Roles
+Members of the Discord server will be given these roles if they are NOT verified by Torn.
+
 ### Exclusion Roles
 All members in the Discord server who have an exclusion role will not be verified through any [verification method](#verification-methods). These members will have to have their nickname and roles be manually updated by a server administrator. Exclusion roles are commonly used to allow faction members who are guesting to retain faction-related roles and to skip verification of server administrators.
+
+***TIP:*** It is suggested to give faction leadership and guesting members these roles. Faction leaders and co-leaders are not assigned faction positions by the bot and members who are guesting will have their faction-related roles removed from this. Giving these members an exclusion role will allow them to retain their roles and their roles will have to be changed manually.
 
 ### Faction Roles
 Members of the Discord server can be given role(s) corresponding to their faction in-game. If the member is not in a faction configured for verification in the Discord server, there will be no faction-related changes during verification. The factions configured for faction roles during verification do not have to be [linked](../tutorial/discord-server-link.md) to the Discord server.
@@ -96,3 +106,8 @@ The `/verifyall` slash command will manually start the [verification cron](#veri
 | -------- | --------------------------------------------- | -------- | ------- |
 | `force`  | Flag to require updated data on the Torn user | False    | True    |
 
+
+### Verify User Command
+The verify user command will silently attempt to verify the member of the Discord server selected according to the Discord server's verification configuration.
+
+There are no arguments for user commands.

@@ -13,4 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import attacks, banking, chain, crimes, positions
+from controllers.api.v1.faction import (
+    attacks,
+    banking,
+    crime_team,
+    crimes,
+    faction,
+    positions,
+)

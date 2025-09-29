@@ -19,7 +19,7 @@ Tornium - Faction Banking AA
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/faction/members">
@@ -34,22 +34,18 @@ Tornium - Faction Banking AA
         </div>
 
         {% if current_user.is_authenticated and current_user.factiontid != 0 %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/chain">
-                <i class="col-1 col-sm-2 fa-solid fa-link"></i> <span class="col">Chains</span>
-            </a>
-        </div>
-
-        {% if current_user.is_authenticated and current_user.faction_aa %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/bankingaa">
-                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
-            </a>
-        </div>
-
+        {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
                 <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
             </a>
         </div>
 
@@ -65,22 +61,6 @@ Tornium - Faction Banking AA
 {% endblock %}
 
 {% block content %}
-<div class="row px-3 pt-3">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Setup Instructions</h5>
-                <p class="card-text">
-                    In order to utilize faction banking, please contact an administrator on the faction Discord server and
-                    request that the faction is added to the list of the server's factions (at
-                    <a href="/bot/dashboard">the Bot Dashboard</a>). Then, a faction member with AA (API Access) will need to
-                    setup the faction's Discord banking setup at <a href="/faction/bot">the Faction Bot Dashboard</a>.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="row px-3 pt-3">
     <div class="col-12">
         <div class="card">

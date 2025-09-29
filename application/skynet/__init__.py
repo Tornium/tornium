@@ -46,6 +46,10 @@ mod = Blueprint("botinteractions", __name__)
 
 
 _autocomplete = {}
+_user_commands = {
+    # NOTE: keys are lower case version of the command name
+    "verify": skynet.commands.bot.verify.verify_uc
+}
 _buttons = {
     "faction:vault:cancel": skynet.commands.faction.cancel.cancel_button,
     "faction:vault:fulfill": skynet.commands.faction.fulfill.fulfill_button,
@@ -156,6 +160,7 @@ def skynet_interactions():
         abort(401, "invalid request signature")
 
     if request.json["type"] == 1:
+        # Ping interaction
         return jsonify({"type": 1})
     elif "id" not in request.json:
         return jsonify({})
@@ -190,8 +195,16 @@ def skynet_interactions():
                 return jsonify(cb(request.json, invoker=invoker, admin_keys=admin_keys))
     elif request.json["type"] == 2:
         if request.json["data"]["name"] in _commands:
+            # Slash commands
             return jsonify(
                 _commands[request.json["data"]["name"]](request.json, invoker=invoker, admin_keys=admin_keys)
+            )
+        elif request.json["data"]["name"].lower() in _user_commands:
+            # User command interaction
+            return jsonify(
+                _user_commands[request.json["data"]["name"].lower()](
+                    request.json, invoker=invoker, admin_keys=admin_keys
+                )
             )
     elif request.json["type"] == 4:
         if request.json["data"]["name"] in _autocomplete:

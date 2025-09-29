@@ -4,6 +4,58 @@
     "options": [
         {
             "type": 2,
+            "name": "crimes",
+            "description": "Organized crime-related data",
+            "options": [
+                {
+                    "type": 1,
+                    "name": "missing-members",
+                    "description": "Lists members of the faction not in an OC",
+                    "options": [
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
+                        },
+                        {
+                            "type": 3,
+                            "name": "minimum",
+                            "description": "The minimum duration since the member's previous OC",
+                            "required": false,
+                            "choices": [
+                                {
+                                    "name": "Now",
+                                    "value": "1 minutes"
+                                },
+                                {
+                                    "name": "1 Hour",
+                                    "value": "1 hours"
+                                },
+                                {
+                                    "name": "4 Hours",
+                                    "value": "4 hours"
+                                },
+                                {
+                                    "name": "12 Hours",
+                                    "value": "12 hours"
+                                },
+                                {
+                                    "name": "1 Day",
+                                    "value": "1 days"
+                                },
+                                {
+                                    "name": "2 Days",
+                                    "value": "2 days"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": 2,
             "name": "members",
             "description": "Member status-related data",
             "options": [
@@ -130,6 +182,25 @@
                                     "value": "everyone"
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "type": 1,
+                    "name": "discord",
+                    "description": "Lists players currently not in the Discord server in the specified faction",
+                    "options": [
+                        {
+                            "type": 5,
+                            "name": "unverified",
+                            "description": "Include unverified members of the faction",
+                            "required": true
+                        },
+                        {
+                            "type": 3,
+                            "name": "faction",
+                            "description": "The faction's name or Torn ID",
+                            "required": false
                         }
                     ]
                 }

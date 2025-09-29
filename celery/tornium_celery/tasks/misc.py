@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from tornium_commons import rds
+from tornium_commons import rds, with_db_connection
 
 import celery
 
@@ -24,6 +24,7 @@ import celery
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def send_dm(discord_id: int, payload: dict):
     from .api import discordpost
 

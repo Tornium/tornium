@@ -50,6 +50,7 @@ from peewee import CharField, DateTimeField, FixedCharField, ForeignKeyField, Te
 
 from .base_model import BaseModel
 from .oauth_client import OAuthClient
+from .oauth_token import OAuthToken
 from .user import User
 
 
@@ -64,6 +65,9 @@ class OAuthAuthorizationCode(BaseModel):
 
     code_challenge = TextField(null=True)
     code_challenge_method = CharField(max_length=48, null=True)
+
+    used_at = DateTimeField(null=True, default=None)
+    used_by = ForeignKeyField(OAuthToken, null=True, default=None)
 
     user = ForeignKeyField(User, null=False)
 
@@ -81,3 +85,8 @@ class OAuthAuthorizationCode(BaseModel):
 
     def get_nonce(self):
         return self.nonce
+
+    def mark_created(self, token: OAuthToken):
+        OAuthAuthorizationCode.update(used_at=datetime.datetime.utcnow(), used_by=token).where(
+            OAuthAuthorizationCode.code == self.code
+        ).execute()

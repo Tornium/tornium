@@ -13,10 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import base64
-import hashlib
 import inspect
-import os
 import typing
 from functools import cached_property, lru_cache
 
@@ -25,6 +22,7 @@ from peewee import (
     BooleanField,
     CharField,
     DateTimeField,
+    DeferredForeignKey,
     DoesNotExist,
     FloatField,
     ForeignKeyField,
@@ -77,6 +75,8 @@ class User(BaseModel):
     otp_secret = TextField(null=True)
     otp_backups = ArrayField(TextField, index=False, default=[])
 
+    settings = DeferredForeignKey("UserSettings", default=None, null=True)
+
     @staticmethod
     def user_str(tid: int) -> str:
         if tid == -1:
@@ -100,36 +100,43 @@ class User(BaseModel):
     def user_discord_id(tid: int) -> int:
         return User.select(User.discord_id).where(User.tid == tid).get().discord_id
 
+    def can_manage_crimes(self) -> bool:
+        if self.faction_id is None:
+            return False
+
+        # Faction lead/co needs to be determined before faction position for API bugs related to the API incorrectly
+        # including lead, co, and recruits as faction positions.
+        faction: typing.Optional[Faction] = self.faction
+
+        if not isinstance(faction, Faction):
+            try:
+                faction = Faction.select(Faction.leader, Faction.coleader).where(Faction.tid == self.faction_id).get()
+            except DoesNotExist:
+                return False
+
+        if isinstance(faction, Faction) and (self.tid == faction.leader_id or self.tid == faction.coleader_id):
+            return True
+
+        faction_position: typing.Optional[FactionPosition] = self.faction_position
+
+        if not isinstance(faction_position, FactionPosition):
+            try:
+                faction_position = (
+                    FactionPosition.select(FactionPosition.plan_init_oc)
+                    .where(FactionPosition.pid == self.faction_position_id)
+                    .get()
+                )
+            except DoesNotExist:
+                return False
+
+        return faction_position.plan_init_oc
+
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"
-
-    def generate_otp_secret(self):
-        self.otp_secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        self.save()
-
-    def generate_otp_url(self):
-        if self.otp_secret == "" or self.security != 1:  # nosec B105
-            raise Exception("Illegal OTP secret or security mode")
-
-        return f"otpauth://totp/Tornium:{self.tid}?secret={self.otp_secret}&Issuer=Tornium"
 
     def generate_otp_backups(self, num_codes=5):
         if self.otp_secret == "" or self.security != 1:  # nosec B105
             raise Exception("Illegal OTP secret or security mode")
-
-        codes = []
-        hashed_codes = []
-
-        for _ in range(num_codes):
-            codes.append(base64.b32encode(os.urandom(10)).decode("utf-8"))
-
-        for code in codes:
-            hashed_codes.append(hashlib.sha256(code.encode("utf-8")).hexdigest())
-
-        self.otp_backups = hashed_codes
-        self.save()
-
-        return codes
 
     @cached_property
     def key(self) -> typing.Optional[str]:
@@ -179,6 +186,14 @@ class User(BaseModel):
             return "Unknown"
 
         return self.faction_position.name
+
+    def to_dict(self) -> dict:
+        return {
+            "ID": self.tid,
+            "name": self.name,
+            "level": self.level,
+            "discord_id": self.discord_id,
+        }
 
     def user_embed(self) -> dict:
         embed = {

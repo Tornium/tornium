@@ -23,6 +23,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
           oc: Tornium.Schema.OrganizedCrime.t() | Ecto.Association.NotLoaded.t(),
           slot_index: integer(),
           crime_position: String.t(),
+          crime_position_index: integer(),
           user_id: integer() | nil,
           user: Tornium.Schema.User.t() | Ecto.Association.NotLoaded.t() | nil,
           user_success_chance: integer() | nil,
@@ -42,6 +43,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     field(:slot_index, :integer)
 
     field(:crime_position, :string)
+    field(:crime_position_index, :integer)
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     field(:user_success_chance, :integer)
     field(:user_joined_at, :utc_datetime)

@@ -37,7 +37,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         }
       )
 
-    assert Map.get(state, "nick") == nil
+    assert is_nil(Map.get(state, :nick))
   end
 
   test "test_valid_template_verified_name" do
@@ -66,7 +66,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         }
       )
 
-    assert Map.get(state, "nick") == "Chedburn [1]"
+    assert Map.get(state, :nick) == "Chedburn [1]"
   end
 
   test "test_verified_roles" do
@@ -207,6 +207,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
             tid: 1,
             name: "Chedburn Test Faction"
           },
+          faction_position_id: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
           faction_position: %Tornium.Schema.FactionPosition{
             pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
             name: "Test Position 1",
@@ -253,5 +254,29 @@ defmodule Tornium.Test.Guild.Verify.Logic do
       )
 
     assert MapSet.to_list(Map.get(state, :roles)) == [2]
+  end
+
+  test "test_unverified_roles" do
+    state = %{roles: MapSet.new([1, 2, 3])}
+
+    config = %Tornium.Guild.Verify.Config{
+      verify_enabled: true,
+      auto_verify_enabled: true,
+      gateway_verify_enabled: true,
+      verify_template: "{{ name }} [{{ tid }}]",
+      verified_roles: [1],
+      unverified_roles: [4],
+      exclusion_roles: [],
+      faction_verify: %{},
+      verify_log_channel: nil,
+      verify_jail_channel: nil
+    }
+
+    updated_state =
+      state
+      |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, nil)
+      |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, nil)
+
+    assert MapSet.to_list(Map.get(updated_state, :roles)) == [2, 3, 4]
   end
 end

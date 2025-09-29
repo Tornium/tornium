@@ -20,7 +20,7 @@ defmodule Tornium.MixProject do
     [
       app: :tornium,
       version: "0.1.0",
-      elixir: "~> 1.16",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -41,18 +41,24 @@ defmodule Tornium.MixProject do
       {:certifi, "~> 2.14", override: true},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
-      {:nostrum, "~> 0.10"},
+      # {:nostrum, "~> 0.10"},
+      {:nostrum, github: "Kraigie/nostrum", ref: "c95d702e476513253a0eff3910fa88fb52e91602"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
-      {:oban, "~> 2.19"},
+      {:oban, "~> 2.20"},
       # Required for oban_web
       {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.2"},
       {:luerl, "~> 1.2.3"},
       {:solid, "~> 0.18"},
-      {:tornex, "~> 0.1"},
+      {:logger_file_backend, "~> 0.0.14"},
+      {:logger_json, "~> 7.0"},
+      {:tornex, "~> 0.4"},
+      {:torngen_elixir_client, ">= 3.0.0"},
+      # Required for tornex's default HTTP adapater
+      {:finch, "~> 0.19"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end

@@ -40,7 +40,7 @@ let ocNamesRequest = (obj) => {
         });
     } else {
         return new Promise((resolve, reject) => {
-            tfetch("GET", "faction/crimes/names", { errorTitle: "OC Names Not Loaded" }).then((response) => {
+            tfetch("GET", "faction/crime/names", { errorTitle: "OC Names Not Loaded" }).then((response) => {
                 ocNames = response;
                 _writeOCNames();
                 localStorage.setItem(

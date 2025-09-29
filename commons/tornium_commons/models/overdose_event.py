@@ -13,40 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-from functools import lru_cache
-
-from peewee import (
-    BigIntegerField,
-    CharField,
-    DateTimeField,
-    ForeignKeyField,
-    SmallIntegerField,
-)
+from peewee import DateTimeField, ForeignKeyField, TextField, UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
+from .user import User
 
 
-class OrganizedCrimeNew(BaseModel):
+class OverdoseEvent(BaseModel):
     class Meta:
-        table_name = "organized_crime_new"
+        table_name = "overdose_event"
 
-    oc_id = BigIntegerField(primary_key=True)
-    oc_name = CharField(null=False)
-    oc_difficulty = SmallIntegerField(null=False)
+    guid = UUIDField(primary_key=True)
 
     faction = ForeignKeyField(Faction, null=False)
-
-    status = CharField(null=False)
+    user = ForeignKeyField(User, null=False)
 
     created_at = DateTimeField(null=False)
-    planning_started_at = DateTimeField(default=None, null=True)
-    ready_at = DateTimeField(default=None, null=True)
-    expires_at = DateTimeField(default=None, null=True)
-    executed_at = DateTimeField(default=None, null=True)
+    notified_at = DateTimeField(default=None, null=True)
 
-    @classmethod
-    @lru_cache
-    def oc_names(cls) -> typing.List[str]:
-        return [crime.oc_name for crime in OrganizedCrimeNew.select().distinct(OrganizedCrimeNew.oc_name)]
+    drug = TextField(null=True)

@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added OC delay notifications
 - Added OC missing tool notifications
 - Added revivable member ping slash command `/faction members revivable-ping`
+- Added OAuth client revocation page
+- Added exponential backoff to subsequent failed authentication attempts
+- Added customizable banking request expiration
 
 ### Changed
 - Re-enabled Discord-based authentication
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `PersonalStats` model to store per-day data instead of per-hour data
 - Changed license of stat estimation code and model from proprietary to GPLv3
 - Changed all license to GPLv3
+- Changed DB connection to utilize pool
 
 ### Fixed
 - Fixed retaliations not being marked as completed and being spammed
@@ -43,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed OD channel loader on website
 - Fixed point withdrawals in `/withdraw`
 - Fixed IP address logging in `AuthLog`
+- Fixed missing armory stock notifications on out-of-stock items
+- Fixed users not being prevented from adding other users' API keys
 
 ### Removed
 - Removed `ddtrace` importing and setting of user ID in span within `@app.before_request`
@@ -53,3 +59,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `TorniumExt` plugin system
 - Removed private user data from `GET /api/v1/user`
 - Removed member personal stat report
+- Removed OCs 1.0 support

@@ -20,13 +20,38 @@ config :tornium,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   env: config_env()
 
-# Configures Elixir's Logger
+config :tornium, :logger, [
+  {
+    :handler,
+    :loki_telemetry,
+    :logger_std_h,
+    %{
+      config: %{
+        file: ~c".telemetry.log",
+        filesync_repeat_interval: 5000,
+        file_check: 5000,
+        max_no_bytes: 10_000_000,
+        max_no_files: 5,
+        compress_on_rotate: true
+      },
+      formatter: {LoggerJSON.Formatters.Basic, metadata: :all},
+      metadata: :all,
+      level: :debug,
+      filters: [
+        telemetry_only: {&Tornium.Telemetry.Loki.filter/2, []}
+      ],
+      filter_default: :stop
+    }
+  }
+]
+
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
-
-config :tesla,
-  adapter: {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
+  metadata: [:application],
+  filters: [
+    ignore_telemetry: {&Tornium.Telemetry.Loki.ignore_filter/2, []}
+  ],
+  filter_default: :log
 
 config :tornium, Tornium.PromEx,
   # See https://hexdocs.pm/prom_ex/PromEx.Config.html for configuration details
@@ -43,16 +68,22 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 20, notifications: 20, scheduler: 5],
+  queues: [faction_processing: 50, user_processing: 20, notifications: 20, scheduler: 5],
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
-    {Oban.Plugins.Cron,
-     crontab: [
-       {"* * * * *", Tornium.Workers.NotificationScheduler},
-       {"0 * * * *", Tornium.Workers.OCMigrationCheck},
-       {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler}
-     ]},
+    {
+      Oban.Plugins.Cron,
+      crontab: [
+        {"* * * * *", Tornium.Workers.NotificationScheduler},
+        {"0 * * * *", Tornium.Workers.OCMigrationCheck},
+        {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
+        {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
+        {"0 0 * * *", Tornium.Workers.OAuthRevocation},
+        {"*/30 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
+        {"10 0 * * *", Tornium.Workers.OverdoseDailyReport}
+      ]
+    },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
@@ -62,6 +93,10 @@ config :tornium, Tornium.Web.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   pubsub_server: Tornium.Web.PubSub,
   live_view: [signing_salt: "z8I4+/aT"]
+
+config :tornex,
+  # 3 mintues TTL for buckets
+  bucket_ttl: 180_000
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

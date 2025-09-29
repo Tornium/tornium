@@ -25,6 +25,7 @@ import uuid
 from decimal import DivisionByZero
 
 from peewee import JOIN, DoesNotExist
+from tornium_commons import with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import (
     LinkHTMLParser,
@@ -37,7 +38,6 @@ from tornium_commons.models import (
     Faction,
     FactionPosition,
     Item,
-    OrganizedCrime,
     PersonalStats,
     Retaliation,
     Server,
@@ -57,17 +57,6 @@ from .misc import send_dm
 from .user import update_user
 
 logger = get_task_logger("celery_app")
-
-ORGANIZED_CRIMES = {
-    1: "Blackmail",
-    2: "Kidnapping",
-    3: "Bomb Threat",
-    4: "Planned Robbery",
-    5: "Rob a Money Train",
-    6: "Take over a Cruise Liner",
-    7: "Hijack a Plane",
-    8: "Political Assassination",
-}
 
 ATTACK_RESULTS = {
     "Lost": 0,
@@ -91,6 +80,7 @@ ATTACK_RESULTS = {
     queue="default",
     time_limit=30,
 )
+@with_db_connection
 def refresh_factions():
     faction: Faction
     for faction in Faction.select().join(Server, JOIN.LEFT_OUTER):
@@ -149,6 +139,7 @@ def refresh_factions():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_faction(faction_data):
     if faction_data is None:
         return
@@ -252,6 +243,7 @@ def update_faction(faction_data):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def update_faction_positions(faction_positions_data: dict) -> typing.Optional[dict]:
     if "positions" not in faction_positions_data or "ID" not in faction_positions_data:
         return None
@@ -396,6 +388,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def update_faction_ts(faction_ts_data):
     if not faction_ts_data["status"]:
         return
@@ -438,6 +431,7 @@ def update_faction_ts(faction_ts_data):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def check_faction_ods(faction_od_data):
     try:
         faction: Faction = (
@@ -543,6 +537,7 @@ def check_faction_ods(faction_od_data):
     queue="default",
     time_limit=15,
 )
+@with_db_connection
 def fetch_attacks_runner():
     for api_key in (
         TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
@@ -604,7 +599,8 @@ def fetch_attacks_runner():
                         {
                             "title": f"Retal Timeout for {retal.defender.faction.name}",
                             "description": (
-                                f"{retal.attacker.user_str_self()} of {retal.attacker.faction.name} has attacked "
+                                f"{retal.attacker.user_str_self()} of "
+                                f"{'N/A' if retal.attacker.faction is None else retal.attacker.faction.name} has attacked "
                                 f"{retal.defender.user_str_self()}, but the retaliation timed out "
                                 f"<t:{int(timestamp(retal.attack_ended) + 300)}:R>"
                             ),
@@ -629,6 +625,7 @@ def fetch_attacks_runner():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def stat_db_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
@@ -1002,21 +999,11 @@ def generate_retaliation_embed(
                 )
             )
 
-    if attack["attacker_faction"] in (0, ""):
-        pass
-    elif attack["chain"] > 100:
+    if attack["attacker_faction"] not in (0, ""):
         fields.append(
             {
                 "name": "Opponent Faction Chaining",
-                "value": f"True ({commas(attack['chain'])})",
-                "inline": False,
-            }
-        )
-    else:
-        fields.append(
-            {
-                "name": "Opponent Faction Chaining",
-                "value": f"False ({commas(attack['chain'])})",
+                "value": f"{attack['chain'] > 10} ({commas(attack['chain'])})",
                 "inline": False,
             }
         )
@@ -1147,6 +1134,7 @@ def validate_attack_bonus(attack: dict, faction: Faction, attack_config: ServerA
     queue="quick",
     time_limit=10,
 )
+@with_db_connection
 def check_attacks(faction_data: dict, last_attacks: int):
     if len(faction_data.get("attacks", [])) == 0:
         return
@@ -1369,413 +1357,12 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
 
 @celery.shared_task(
-    name="tasks.faction.oc_refresh",
-    routing_key="quick.oc_refresh",
-    queue="quick",
-    time_limit=5,
-)
-def oc_refresh():
-    for api_key in (
-        TornKey.select()
-        .distinct(TornKey.user.faction.tid)
-        .join(User)
-        .join(Faction)
-        .where((TornKey.default == True) & (TornKey.user.faction_aa == True))
-    ):
-        faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction_id).first()
-
-        if faction is None:
-            continue
-        elif faction.has_migrated_oc:
-            # This faction's OCs should be processed in the Elixir worker
-            continue
-        elif len(faction.aa_keys) == 0:
-            continue
-
-        tornget.signature(
-            kwargs={
-                "endpoint": "faction/?selections=basic,crimes",
-                "key": random.choice(faction.aa_keys),
-            },
-            queue="api",
-        ).apply_async(
-            expires=300,
-            link=oc_refresh_subtask.s(),
-        )
-
-
-@celery.shared_task(
-    name="tasks.faction.oc_refresh_subtask",
-    routing_key="default.oc_refresh_subtask",
-    queue="default",
-    time_limit=5,
-)
-def oc_refresh_subtask(oc_data):
-    # TODO: Refactor this to be more readable
-
-    if oc_data.get("crimes") is None or isinstance(oc_data["crimes"], list):
-        # A faction with no OCs will have an empty list of crimes
-        return
-
-    try:
-        faction: Faction = Faction.select().join(Server, JOIN.LEFT_OUTER).where(Faction.tid == oc_data["ID"]).get()
-    except DoesNotExist:
-        return
-
-    OC_DELAY = False
-    OC_READY = False
-    OC_INITIATED = False
-
-    try:
-        if faction.guild is not None and str(faction.tid) in faction.guild.oc_config:
-            OC_DELAY = faction.guild.oc_config[str(faction.tid)].get("delay", {"channel": 0, "roles": []}).get(
-                "channel"
-            ) not in [
-                None,
-                0,
-            ]
-            OC_READY = faction.guild.oc_config[str(faction.tid)].get("ready", {"channel": 0, "roles": []}).get(
-                "channel"
-            ) not in [
-                None,
-                0,
-            ]
-            OC_INITIATED = faction.guild.oc_config[str(faction.tid)].get("initiated", {"channel": 0}).get(
-                "channel"
-            ) not in [
-                None,
-                0,
-            ]
-    except DoesNotExist:
-        pass
-
-    current_oc_keys = set(int(k) for k in oc_data["crimes"].keys())
-
-    try:
-        oldest_oc_id = next(iter(reversed(oc_data["crimes"])))
-    except StopIteration:
-        oldest_oc_id = None
-
-    try:
-        newest_oc_id = next(iter(oc_data["crimes"]))
-    except StopIteration:
-        newest_oc_id = None
-
-    if oldest_oc_id is not None and newest_oc_id is not None and oldest_oc_id != newest_oc_id:
-        db_oc_keys = set(
-            oc.oc_id
-            for oc in OrganizedCrime.select(OrganizedCrime.oc_id).where(
-                (OrganizedCrime.faction_tid == faction.tid)
-                & (
-                    OrganizedCrime.time_started
-                    >= datetime.datetime.fromtimestamp(
-                        oc_data["crimes"][oldest_oc_id]["time_started"],
-                        tz=datetime.timezone.utc,
-                    )
-                )
-                & (
-                    OrganizedCrime.time_started
-                    <= datetime.datetime.fromtimestamp(
-                        oc_data["crimes"][newest_oc_id]["time_started"],
-                        tz=datetime.timezone.utc,
-                    )
-                )
-            )
-        )
-
-        OrganizedCrime.update(canceled=True).where(OrganizedCrime.oc_id << list(db_oc_keys - current_oc_keys)).execute()
-
-    # OC ready/delay/init notifs
-    for oc_id, oc_data in oc_data["crimes"].items():
-        oc_db: OrganizedCrime = (
-            OrganizedCrime.select()
-            .join(User, JOIN.LEFT_OUTER, on=OrganizedCrime.initiated_by)
-            .where(OrganizedCrime.oc_id == oc_id)
-            .first()
-        )
-
-        User.insert(tid=oc_data["planned_by"]).on_conflict_ignore().execute()
-
-        if oc_data["initiated_by"] != 0:
-            User.insert(tid=oc_data["initiated_by"]).on_conflict_ignore().execute()
-
-        OrganizedCrime.insert(
-            faction_tid=faction.tid,
-            oc_id=oc_id,
-            crime_id=oc_data["crime_id"],
-            participants=[int(list(participant.keys())[0]) for participant in oc_data["participants"]],
-            time_started=(
-                None
-                if oc_data["time_started"] == 0
-                else datetime.datetime.fromtimestamp(oc_data["time_started"], tz=datetime.timezone.utc)
-            ),
-            time_ready=(
-                None
-                if oc_data["time_ready"] == 0
-                else datetime.datetime.fromtimestamp(oc_data["time_ready"], tz=datetime.timezone.utc)
-            ),
-            time_completed=(
-                None
-                if oc_data["time_completed"] == 0
-                else datetime.datetime.fromtimestamp(oc_data["time_completed"], tz=datetime.timezone.utc)
-            ),
-            planned_by=oc_data["planned_by"],
-            initiated_by=(oc_data["initiated_by"] if oc_data["initiated_by"] != 0 else None),
-            money_gain=oc_data["money_gain"] if oc_data["money_gain"] != 0 else None,
-            respect_gain=(oc_data["respect_gain"] if oc_data["respect_gain"] != 0 else None),
-            delayers=[],
-        ).on_conflict(
-            conflict_target=[OrganizedCrime.oc_id],
-            preserve=[
-                OrganizedCrime.faction_tid,
-                OrganizedCrime.crime_id,
-                OrganizedCrime.participants,
-                OrganizedCrime.time_started,
-                OrganizedCrime.time_ready,
-                OrganizedCrime.time_completed,
-                OrganizedCrime.planned_by,
-                OrganizedCrime.initiated_by,
-                OrganizedCrime.money_gain,
-                OrganizedCrime.respect_gain,
-            ],
-        ).execute()
-
-        if oc_db is None:
-            continue
-        elif (
-            oc_db.time_completed is None and OC_INITIATED and time.time() - oc_data["time_completed"] <= 299
-        ):  # Prevents old OCs from being notified
-            if oc_data["money_gain"] == 0 and oc_data["respect_gain"] == 0:
-                oc_status_str = "unsuccessfully"
-                oc_result_str = ""
-                oc_color = SKYNET_ERROR
-            else:
-                oc_status_str = "successfully"
-                oc_result_str = f" resulting in the gain of ${commas(oc_data['money_gain'])} and {commas(oc_data['respect_gain'])} respect"
-                oc_color = SKYNET_GOOD
-
-            if oc_data["initiated_by"] == 0:
-                initiator_str = "Someone"
-            else:
-                initiator: typing.Optional[User] = (
-                    User.select(User.name).where(User.tid == oc_data["initiated_by"]).first()
-                )
-
-                if initiator is None:
-                    initiator_str = "Someone"
-                else:
-                    initiator_str = f"{initiator.name} [{oc_data['initiated_by']}]"
-
-            payload = {
-                "embeds": [
-                    {
-                        "title": f"OC of {faction.name} Initiated",
-                        "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been {oc_status_str} "
-                        f"initiated by {initiator_str}{oc_result_str}.",
-                        "color": oc_color,
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "footer": {"text": f"#{oc_db.oc_id}"},
-                    }
-                ],
-                "components": [
-                    {
-                        "type": 1,
-                        "components": [
-                            {
-                                "type": 2,
-                                "style": 3 if len(oc_db.delayers) == 0 else 4,
-                                "label": "Participants",
-                                "custom_id": f"oc:participants:{oc_db.oc_id}",
-                            }
-                        ],
-                    }
-                ],
-            }
-
-            try:
-                discordpost.delay(
-                    f'channels/{faction.guild.oc_config[str(faction.tid)]["initiated"]["channel"]}/messages',
-                    payload=payload,
-                )
-            except Exception as e:
-                logger.exception(e)
-
-            continue
-        elif timestamp(oc_db.time_ready) > time.time():
-            continue
-        elif next(iter(oc_data["participants"][0].values())) is None:
-            continue
-
-        ready = list(
-            map(
-                lambda participant: (
-                    list(participant.values())[0].get("color") in (None, "green")
-                    if list(participant.values())[0] is not None
-                    else True
-                ),
-                oc_data["participants"],
-            )
-        )
-
-        if len(oc_db.delayers) == 0 and not all(ready):
-            # OC has been delayed
-            delayers: typing.Dict[int, str] = {}
-
-            for participant in oc_data["participants"]:
-                participant_id = list(participant.keys())[0]
-                participant = participant[participant_id]
-
-                if participant["color"] != "green":
-                    delayers[int(participant_id)] = participant["description"]
-
-            if len(delayers) != 0:
-                OrganizedCrime.update(delayers=list(delayers.keys())).where(
-                    OrganizedCrime.oc_id == oc_db.oc_id
-                ).execute()
-
-            if OC_DELAY:
-                payload = {
-                    "embeds": [
-                        {
-                            "title": f"OC of {faction.name} Delayed",
-                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} has been delayed "
-                            f"({ready.count(True)}/{len(oc_data['participants'])}).",
-                            "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": f"#{oc_db.oc_id}"},
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "components": [],
-                }
-
-                roles = faction.guild.oc_config[str(faction.tid)]["delay"]["roles"]
-
-                if len(roles) != 0:
-                    roles_str = ""
-
-                    for role in roles:
-                        roles_str += f"<@&{role}>"
-
-                    payload["content"] = roles_str
-
-                for delayer, delayer_reason in delayers.items():
-                    participant_db: typing.Optional[User] = (
-                        User.select(User.name, User.discord_id).where(User.tid == delayer).first()
-                    )
-
-                    if participant_db is not None and participant_db.discord_id not in ("", 0, None):
-                        send_dm.delay(
-                            discord_id=participant_db.discord_id,
-                            payload={
-                                "embeds": [
-                                    {
-                                        "title": "OC Delayed",
-                                        "description": f"You are currently delaying the "
-                                        f"{ORGANIZED_CRIMES[oc_data['crime_id']]} that you are participating in which "
-                                        f"was ready <t:{int(timestamp(oc_db.time_ready))}:R>. Please return to Torn or otherwise "
-                                        f"become available for the OC to be initiated.",
-                                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                                        "footer": {"text": f"#{oc_db.oc_id}"},
-                                        "color": SKYNET_ERROR,
-                                    }
-                                ]
-                            },
-                        ).forget()
-
-                    if participant_db is None:
-                        payload["components"].append(
-                            {
-                                "type": 1,
-                                "components": [
-                                    {
-                                        "type": 2,
-                                        "style": 5,
-                                        "label": f"Unknown [{delayer}]",
-                                        "url": f"https://www.torn.com/profiles.php?XID={delayer}",
-                                    },
-                                    {
-                                        "type": 2,
-                                        "style": 2,
-                                        "label": delayer_reason,
-                                        "custom_id": f"oc:participant:delay:{delayer}",
-                                        "disabled": True,
-                                    },
-                                ],
-                            }
-                        )
-                    else:
-                        payload["components"].append(
-                            {
-                                "type": 1,
-                                "components": [
-                                    {
-                                        "type": 2,
-                                        "style": 5,
-                                        "label": f"{participant_db.name} [{delayer}]",
-                                        "url": f"https://www.torn.com/profiles.php?XID={delayer}",
-                                    },
-                                    {
-                                        "type": 2,
-                                        "style": 2,
-                                        "label": delayer_reason,
-                                        "custom_id": f"oc:participant:delay:{delayer}",
-                                        "disabled": True,
-                                    },
-                                ],
-                            }
-                        )
-
-                try:
-                    discordpost.delay(
-                        f'channels/{faction.guild.oc_config[str(faction.tid)]["delay"]["channel"]}/messages',
-                        payload=payload,
-                    ).forget()
-                except Exception as e:
-                    logger.exception(e)
-                    continue
-        elif not oc_db.notified and all(ready):
-            # OC is ready
-            OrganizedCrime.update(notified=True).where(OrganizedCrime.oc_id == oc_db.oc_id).execute()
-
-            if OC_READY:
-                payload = {
-                    "embeds": [
-                        {
-                            "title": f"OC of {faction.name} Ready",
-                            "description": f"{ORGANIZED_CRIMES[oc_data['crime_id']]} is ready.",
-                            "timestamp": datetime.datetime.utcnow().isoformat(),
-                            "footer": {"text": f"#{oc_db.oc_id}"},
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                }
-
-                roles = faction.guild.oc_config[str(faction.tid)]["ready"]["roles"]
-
-                if len(roles) != 0:
-                    roles_str = ""
-
-                    for role in roles:
-                        roles_str += f"<@&{role}>"
-
-                    payload["content"] = roles_str
-
-                try:
-                    discordpost.delay(
-                        f'channels/{faction.guild.oc_config[str(faction.tid)]["ready"]["channel"]}/messages',
-                        payload=payload,
-                    )
-                except Exception as e:
-                    logger.exception(e)
-                    continue
-
-
-@celery.shared_task(
     name="tasks.faction.auto_cancel_requests",
     routing_key="default.auto_cancel_requests",
     queue="default",
     time_limit=5,
 )
+@with_db_connection
 def auto_cancel_requests():
     faction_withdrawals: typing.Dict[int, typing.List[int]] = {}
 
@@ -1809,7 +1396,8 @@ def auto_cancel_requests():
     withdrawal: Withdrawal
     for withdrawal in Withdrawal.select().where(
         (Withdrawal.status == 0)
-        & (Withdrawal.time_requested <= datetime.datetime.utcnow() - datetime.timedelta(hours=1))
+        & (Withdrawal.expires_at.is_null(False))
+        & (Withdrawal.expires_at <= datetime.datetime.utcnow())
     ):  # One hour before now
         Withdrawal.update(status=3, time_fulfilled=datetime.datetime.utcnow()).where(
             Withdrawal.wid == withdrawal.wid
@@ -1893,6 +1481,7 @@ def auto_cancel_requests():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def verify_faction_withdrawals(funds_news: dict, withdrawals):
     faction_tid = funds_news["ID"]
     missing_fulfillments: typing.List[Withdrawal] = [
@@ -2052,6 +1641,7 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def armory_check():
     for api_key in (
         TornKey.select()
@@ -2108,6 +1698,7 @@ def armory_check():
     queue="quick",
     time_limit=5,
 )
+@with_db_connection
 def armory_check_subtask(_armory_data, faction_id: int):
     try:
         faction: Faction = Faction.select().where(Faction.tid == faction_id).get()
@@ -2156,24 +1747,27 @@ def armory_check_subtask(_armory_data, faction_id: int):
         ],
     }
 
+    in_stock_items: typing.Set[int] = set()
+
     for armory_type in _armory_data:
         for armory_item in _armory_data[armory_type]:
-            if str(armory_item["ID"]) not in faction_config["items"]:
+            quantity = armory_item.get("available") or armory_item.get("quantity") or 0
+            minimum = faction_config["items"].get(str(armory_item["ID"]))
+
+            in_stock_items.add(armory_item["ID"])
+
+            if minimum is None:
                 continue
-
-            quantity = armory_item.get("available") or armory_item.get("quantity")
-            minimum = faction_config["items"][str(armory_item["ID"])]
-
-            if quantity >= minimum:
+            elif quantity >= minimum:
                 continue
 
             item: typing.Optional[Item] = Item.select(Item.market_value).where(Item.tid == armory_item["ID"]).first()
 
-            if item is None or item.market_value <= 0:
-                suffix = ""
-            else:
-                suffix = f" (worth about ${commas(item.market_value * (minimum - quantity))})"
-
+            suffix = (
+                ""
+                if item is None or item.market_value <= 0
+                else f" (worth about ${commas(item.market_value * (minimum - quantity))})"
+            )
             payload["embeds"].append(
                 {
                     "title": "Low Armory Stock",
@@ -2192,6 +1786,41 @@ def armory_check_subtask(_armory_data, faction_id: int):
                     channel=faction_config["channel"],
                 ).forget()
                 payload["embeds"].clear()
+
+    out_of_stock_item: int
+    for out_of_stock_item in set(map(int, faction_config["items"])) - in_stock_items:
+        minimum = faction_config["items"].get(str(out_of_stock_item))
+        item: typing.Optional[Item] = (
+            Item.select(Item.market_value, Item.name).where(Item.tid == out_of_stock_item).first()
+        )
+
+        if minimum is None:
+            continue
+
+        suffix = (
+            ""
+            if item is None or item.market_value <= 0
+            else f" (worth about ${commas(item.market_value * (minimum - quantity))})"
+        )
+
+        payload["embeds"].append(
+            {
+                "title": "Armory Out of Stock",
+                "description": f"{faction.name} is currently out of stock of {item.name}. "
+                f"{commas(minimum)}x must be bought to meet the minimum quantity{suffix}.",
+                "color": SKYNET_ERROR,
+                "timestamp": datetime.datetime.utcnow().isoformat(),
+                "footer": {"text": torn_timestamp()},
+            }
+        )
+
+        if len(payload["embeds"]) == 10:
+            discordpost.delay(
+                f"channels/{faction_config['channel']}/messages",
+                payload=payload,
+                channel=faction_config["channel"],
+            ).forget()
+            payload["embeds"].clear()
 
     if len(payload["embeds"]) != 0:
         discordpost.delay(

@@ -6,6 +6,7 @@
     --error: inherit;
     --text-color: black;
     --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
     --border-color: var(--white);
     --primary-bg-color: inherit;
     --secondary-bg-color: inherit;
@@ -19,6 +20,7 @@
     --error: rgb(225, 10, 10);
     --text-color: var(--white);
     --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -29,6 +31,7 @@
     --secondary-grey: inherit;
     --off-white: inherit;
     --error: inherit;
+    --primary-bg-color: white;
 }
 
 :root[data-bs-theme="neon-dark"] {
@@ -39,6 +42,7 @@
     --error: rgb(225, 10, 10);
     --text-color: var(--neon);
     --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -83,18 +87,58 @@ p {
 }
 
 thead th {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 
 tbody th,
 tbody td {
-    color: var(--white) !important;
+    color: var(--text-color) !important;
     background-color: inherit !important;
 }
 tbody th a,
 tbody td a {
     color: inherit;
+}
+
+.card-table tbody label {
+    display: none;
+}
+@media (max-width: 768px) {
+    .card-table thead {
+        /* Required to keep the width of the card correct */
+        display: none;
+    }
+    .card-table tbody {
+        display: block;
+        width: 100%;
+    }
+    .card-table tbody tr {
+        float: left;
+        width: 100%;
+        margin: 0.75rem 0;
+        border: 1px solid var(--text-alternate-color);
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    .card-table tbody td {
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+    .card-table tbody td:last-child {
+        margin-bottom: 0;
+        border: none;
+    }
+    .card-table tbody label {
+        display: block;
+        position: relative;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-alternate-color);
+        min-width: 4rem;
+        margin-right: 1rem;
+        margin-bottom: 0.2rem;
+    }
 }
 
 @font-face {
@@ -103,13 +147,13 @@ tbody td a {
 }
 body {
     font-family: "JetBrains Mono", serif;
-    height: 100vh;
+    height: 100dvh;
     overflow: auto;
     background-color: var(--secondary-bg-color) !important;
 }
 
 html {
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -129,6 +173,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: inherit;
     --text-color: black;
     --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
     --border-color: var(--white);
     --primary-bg-color: inherit;
     --secondary-bg-color: inherit;
@@ -142,6 +187,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: rgb(225, 10, 10);
     --text-color: var(--white);
     --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -152,6 +198,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --secondary-grey: inherit;
     --off-white: inherit;
     --error: inherit;
+    --primary-bg-color: white;
 }
 
 :root[data-bs-theme="neon-dark"] {
@@ -162,6 +209,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: rgb(225, 10, 10);
     --text-color: var(--neon);
     --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -178,6 +226,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: inherit;
     --text-color: black;
     --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
     --border-color: var(--white);
     --primary-bg-color: inherit;
     --secondary-bg-color: inherit;
@@ -191,6 +240,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: rgb(225, 10, 10);
     --text-color: var(--white);
     --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -201,6 +251,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --secondary-grey: inherit;
     --off-white: inherit;
     --error: inherit;
+    --primary-bg-color: white;
 }
 
 :root[data-bs-theme="neon-dark"] {
@@ -211,6 +262,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     --error: rgb(225, 10, 10);
     --text-color: var(--neon);
     --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -220,7 +272,7 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
         border-right-color: var(--white);
         border-right-style: solid;
         border-right-width: 1px;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
 }
 #verticalNavContainer {
@@ -333,6 +385,10 @@ label.btn:hover {
     filter: grayscale(1) invert(1);
 }
 
+.table caption {
+    color: var(--text-alternate-color) !important;
+}
+
 :root {
     --white: rgb(229, 229, 229);
     --primary-grey: inherit;
@@ -341,6 +397,7 @@ label.btn:hover {
     --error: inherit;
     --text-color: black;
     --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
     --border-color: var(--white);
     --primary-bg-color: inherit;
     --secondary-bg-color: inherit;
@@ -354,6 +411,7 @@ label.btn:hover {
     --error: rgb(225, 10, 10);
     --text-color: var(--white);
     --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -364,6 +422,7 @@ label.btn:hover {
     --secondary-grey: inherit;
     --off-white: inherit;
     --error: inherit;
+    --primary-bg-color: white;
 }
 
 :root[data-bs-theme="neon-dark"] {
@@ -374,6 +433,7 @@ label.btn:hover {
     --error: rgb(225, 10, 10);
     --text-color: var(--neon);
     --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
     --primary-bg-color: var(--primary-grey);
     --secondary-bg-color: var(--secondary-grey);
 }
@@ -415,11 +475,14 @@ i [class^="fa-"] {
 }
 .ts-dropdown .active {
     background-color: var(--secondary-bg-color);
-    color: white;
+    color: var(--text-alternate-contrast-color);
+}
+.ts-dropdown .create {
+    color: var(--text-color) !important;
 }
 .ts-dropdown .optgroup-header {
     background-color: var(--secondary-bg-color);
-    color: white;
+    color: var(--text-color);
     border-bottom: var(--text-color) 1px solid;
     border-top: var(--text-color) 1px solid;
 }

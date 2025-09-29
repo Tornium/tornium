@@ -19,12 +19,13 @@ from peewee import (
     DateTimeField,
     ForeignKeyField,
     SmallIntegerField,
+    TextField,
     UUIDField,
 )
 
 from .base_model import BaseModel
 from .item import Item
-from .organized_crime_new import OrganizedCrimeNew
+from .organized_crime import OrganizedCrime
 from .user import User
 
 
@@ -33,12 +34,22 @@ class OrganizedCrimeSlot(BaseModel):
         table_name = "organized_crime_slot"
 
     id = UUIDField(primary_key=True)
-    oc = ForeignKeyField(OrganizedCrimeNew, null=False)
+
+    oc = ForeignKeyField(OrganizedCrime, null=False)
+    slot_index = SmallIntegerField(null=False)
 
     crime_position = CharField(null=False)
+    crime_position_index = SmallIntegerField(null=False)
     user = ForeignKeyField(User, null=False)
     user_success_chance = SmallIntegerField(default=None, null=True)
     user_joined_at = DateTimeField(default=None, null=True)
 
     item_required = ForeignKeyField(Item, default=None, null=True)
     item_available = BooleanField(default=None, null=True)
+
+    delayer = BooleanField(default=False, null=False)
+    delayed_reason = TextField(default=None, null=True)
+
+    sent_tool_notification = BooleanField(default=False, null=False)
+    sent_delayer_notification = BooleanField(default=False, null=False)
+    sent_extra_range_notification = BooleanField(default=False, null=False)

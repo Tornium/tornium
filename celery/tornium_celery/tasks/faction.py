@@ -1216,6 +1216,8 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 .where(
                     (Retaliation.attacker == attack["defender_id"])
                     & (Retaliation.defender << (User.select().where(User.faction == attack["attacker_faction"])))
+                    & (Retaliation.channel_id.is_null(False))
+                    & (Retaliation.message_id.is_null(False))
                 )
                 .returning(Retaliation.channel_id, Retaliation.message_id)
             ):

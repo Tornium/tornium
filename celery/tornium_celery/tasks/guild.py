@@ -255,9 +255,14 @@ def verify_users(
         admin: int
         for admin in guild.admins:
             try:
-                admin_keys.append(User.select(User.tid).where(User.tid == admin).get().key)
+                api_key = User.select(User.tid).where(User.tid == admin).get().key
             except DoesNotExist:
                 continue
+
+            if api_key is None:
+                continue
+
+            admin_keys.append(api_key)
 
     if len(admin_keys) == 0:
         raise ValueError("No admin keys are available to use")

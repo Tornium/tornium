@@ -1338,19 +1338,20 @@ def check_attacks(faction_data: dict, last_attacks: int):
     for retal in possible_retals.values():
         retal["task"]: typing.Optional[celery.result.AsyncResult]
         try:
-            message = retal["task"].get(disable_sync_subtasks=False)["id"]
-            channel = message["channel_id"]
+            message = retal["task"].get(disable_sync_subtasks=False)
+            message_id = message["id"]
+            channel_id = message["channel_id"]
         except Exception:
-            message = None
-            channel = None
+            message_id = None
+            channel_id = None
 
         Retaliation.insert(
             attack_code=retal["code"],
             attack_ended=datetime.datetime.fromtimestamp(retal["timestamp_ended"], tz=datetime.timezone.utc),
             defender=retal["defender_id"],
             attacker=retal["attacker_id"],
-            message_id=message,
-            channel_id=channel,
+            message_id=message_id,
+            channel_id=channel_id,
         ).on_conflict_ignore().execute()
 
 

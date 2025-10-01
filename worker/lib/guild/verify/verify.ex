@@ -184,6 +184,7 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, user)
+          |> Map.update!(:roles, &MapSet.to_list/1)
 
         {:unverified, changes}
 
@@ -198,6 +199,7 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
           |> validate_changes_made(roles, nick)
+          |> Map.update!(:roles, &MapSet.to_list/1)
 
         {:verified, changes}
     end

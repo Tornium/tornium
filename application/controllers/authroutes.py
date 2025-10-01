@@ -109,7 +109,7 @@ def login(*args, **kwargs):
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
+    if redis_client.exists(ratelimit_key) and int(redis_client.get(ratelimit_key)) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (
@@ -407,7 +407,7 @@ def topt_verification():
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
+    if redis_client.exists(ratelimit_key) and int(redis_client.get(ratelimit_key)) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (
@@ -495,7 +495,7 @@ def discord_login():
     ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
     ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
 
-    if redis_client.exists(ratelimit_key) and redis_client.get(ratelimit_key) > 5:
+    if redis_client.exists(ratelimit_key) and int(redis_client.get(ratelimit_key)) > 5:
         ratelimit_ttl = redis_client.ttl(ratelimit_key)
 
         return (

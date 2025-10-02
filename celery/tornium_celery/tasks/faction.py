@@ -1162,6 +1162,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 ServerAttackConfig.chain_bonus_roles,
                 ServerAttackConfig.chain_alert_channel,
                 ServerAttackConfig.chain_alert_roles,
+                ServerAttackConfig.chain_alert_minimum,
             )
             .where((ServerAttackConfig.server == faction.guild_id) & (ServerAttackConfig.faction == faction.tid))
             .get()
@@ -1311,7 +1312,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
     if (
         latest_outgoing_attack is not None
         and ALERT_CHAIN_ALERT
-        and int(time.time()) - latest_outgoing_attack[0] >= 240
+        and int(time.time()) - latest_outgoing_attack[0] >= 300 - attack_config.chain_alert_minimum
         and int(time.time()) - latest_outgoing_attack[0] < 300
         and latest_outgoing_attack[1] >= 250
     ):

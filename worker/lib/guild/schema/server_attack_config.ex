@@ -28,7 +28,8 @@ defmodule Tornium.Schema.ServerAttackConfig do
           chain_bonus_roles: [Tornium.Discord.role()],
           chain_bonus_length: non_neg_integer(),
           chain_alert_channel: integer() | nil,
-          chain_alert_roles: [Tornium.Discord.role()]
+          chain_alert_roles: [Tornium.Discord.role()],
+          chain_alert_minimum: 0..300
         }
 
   @primary_key false
@@ -46,5 +47,6 @@ defmodule Tornium.Schema.ServerAttackConfig do
 
     field(:chain_alert_channel, :integer)
     field(:chain_alert_roles, {:array, :integer})
+    field(:chain_alert_minimum, :integer)
   end
 end

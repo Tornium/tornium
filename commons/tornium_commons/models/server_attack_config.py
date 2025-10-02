@@ -45,6 +45,7 @@ class ServerAttackConfig(BaseModel):
     # Chain Alert
     chain_alert_channel = BigIntegerField(null=True)
     chain_alert_roles = ArrayField(BigIntegerField, index=False, default=[])
+    chain_alert_minimum = IntegerField(default=60, null=False)
 
     class Meta:
         primary_key = CompositeKey("faction", "server")

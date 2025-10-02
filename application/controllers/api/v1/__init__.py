@@ -102,6 +102,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-alert/<int:faction_tid>/minimum",
+    view_func=bot.attacks.faction_chain_alert_minimum,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/<feature>/channel",
     view_func=bot.crimes.set_oc_config_channel,
     methods=["POST"],

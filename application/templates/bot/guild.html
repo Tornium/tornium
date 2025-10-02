@@ -192,6 +192,16 @@ Tornium - Bot Dashboard
                                     <div class="ms-2 mt-1 fw-bold">Chain Alert Roles - Optional</div>
                                     <select class="discord-role-selector faction-alert-roles w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Role" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
                                 </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="ms-2 mt-1 fw-bold">Chain Alert Minimum</div>
+                                    <select class="faction-alert-minimum automatic-tom-select w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Minimum" autocomplete="off">
+                                        <option value="30">30 Seconds</option>
+                                        <option value="45">45 Seconds</option>
+                                        <option value="60" selected>60 Seconds</option>
+                                        <option value="90">90 Seconds</option>
+                                        <option value="120">2 Minutes</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>

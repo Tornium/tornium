@@ -235,7 +235,8 @@ defmodule Tornium.Guild.Verify do
          {:unverified, %{roles: roles, nick: nick}} = _changeset,
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       ) when is_list(roles) do
+       )
+       when is_list(roles) do
     Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
     {:error, :unverified}
   end

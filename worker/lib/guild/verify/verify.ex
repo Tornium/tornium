@@ -215,6 +215,7 @@ defmodule Tornium.Guild.Verify do
       |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, nil)
       |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, nil)
       |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, nil)
+      |> Map.update!(:roles, &MapSet.to_list/1)
 
     {:unverified, changes}
   end
@@ -234,7 +235,7 @@ defmodule Tornium.Guild.Verify do
          {:unverified, %{roles: roles, nick: nick}} = _changeset,
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       ) do
+       ) when is_list(roles) do
     Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
     {:error, :unverified}
   end

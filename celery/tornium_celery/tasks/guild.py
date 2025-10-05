@@ -118,7 +118,7 @@ def refresh_guild(guild: dict):
     name="tasks.guild.refresh_guilds",
     routing_key="default.refresh_guilds",
     queue="default",
-    time_limit=1200,
+    time_limit=3000,
 )
 @with_db_connection
 def refresh_guilds():

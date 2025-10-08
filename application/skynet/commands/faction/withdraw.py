@@ -316,9 +316,10 @@ def withdraw(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting {commas(withdrawal_amount)} "
-                    f"in {'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
-                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
+                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
+                    f"{f'${commas(withdrawal_amount)}' if withdrawal_option == 0 else f'{commas(withdrawal_amount)} in points '} "
+                    f"from the faction vault. The request expires "
+                    f"{'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],

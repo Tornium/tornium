@@ -18,6 +18,8 @@ defmodule Tornium.Faction.OC.Render do
   Functions to render the embeds and components of OC-related notifications.
   """
 
+  import Tornium.Utils, only: [commas: 1]
+
   @doc """
   Render embeds for each failed check listed for each feature in `Tornium.Faction.OC.Check.Struct`.
   """
@@ -78,7 +80,6 @@ defmodule Tornium.Faction.OC.Render do
       when is_list(messages) and not is_nil(tool_channel) do
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
-    # TODO: Add commas to market value of item
     messages =
       if render_crime?(slot, tool_crimes) do
         [
@@ -125,7 +126,7 @@ defmodule Tornium.Faction.OC.Render do
                   %Nostrum.Struct.Component{
                     type: 2,
                     style: 2,
-                    label: "MV: $#{item.market_value}",
+                    label: "MV: $#{item.market_value |> commas()}",
                     disabled: true,
                     custom_id: "oc:missing-tool:#{slot.oc_id}"
                   }

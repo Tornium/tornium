@@ -58,4 +58,18 @@ defmodule Tornium.Utils do
   def unix_to_timestamp(_timestamp, _unit) do
     nil
   end
+
+  @doc """
+  Format an integer with commas as the thousands separator.
+  """
+  @spec commas(value :: integer()) :: String.t()
+  def commas(value) when is_integer(value) do
+    value
+    |> Integer.to_charlist()
+    |> Enum.reverse()
+    |> Enum.chunk_every(3)
+    |> Enum.map(&Enum.reverse/1)
+    |> Enum.reverse()
+    |> Enum.join(",")
+  end
 end

@@ -41,13 +41,20 @@ function tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
             if (jsonResponse == 204) {
                 return;
             } else if (jsonResponse.code !== undefined) {
-                if (errorHandler === undefined && jsonResponse.details.message === undefined) {
+                if (
+                    errorHandler === undefined &&
+                    (jsonResponse.details === undefined || jsonResponse.details.message === undefined)
+                ) {
                     generateToast(
                         errorTitle === undefined ? "Tornium Error" : errorTitle,
                         `[${jsonResponse.code}] ${jsonResponse.message}`,
                         "error",
                     );
-                } else if (errorHandler === undefined && jsonResponse.details.message !== undefined) {
+                } else if (
+                    errorHandler === undefined &&
+                    jsonResponse.details !== undefined &&
+                    jsonResponse.details.message !== undefined
+                ) {
                     generateToast(
                         errorTitle === undefined ? "Tornium Error" : errorTitle,
                         `[${jsonResponse.code}] ${jsonResponse.message}<br /><br />${jsonResponse.details.message}`,

@@ -161,7 +161,7 @@ API_EXCEPTIONS = {
         "code": 4000,
         "name": "TooManyRequests",
         "http": 429,
-        "message": "Too many requests were received from this user.",
+        "message": "Too many requests were received from this user/scope.",
     },
     "4001": {
         "code": 4001,

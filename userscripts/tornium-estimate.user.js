@@ -77,7 +77,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var VERSION = "1.0.0-dev";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
-  var APP_SCOPE = "identity api_key:usage";
+  var APP_SCOPE = "torn_key:usage";
   GM_setValue("tornium-estimate:test", "1");
   var clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
 
@@ -162,7 +162,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
           if (responseJSON.error !== void 0) {
             GM_deleteValue("tornium-retaliations:access-token");
             GM_deleteValue("tornium-retaliations:access-token-expires");
-            reject();
+            reject(responseJSON.error);
             return;
           }
           if (!("code" in responseJSON)) {
@@ -322,10 +322,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
   // stats.js
   function getSingleStats(userID) {
-    const statsPromise = torniumFetch(`user/${userID}/stat`, {});
-    const estimatePromise = torniumFetch(`user/estimate/${userID}`, {});
-    Promise.all([statsPromise, estimatePromise]).then((values) => {
-      console.log(values);
+    const statsPromise = torniumFetch(`user/${userID}/stat`, {}).then((stats) => {
+      console.log(stats);
+    });
+    const estimatePromise = torniumFetch(`user/estimate/${userID}`, {}).then((stats) => {
+      console.log(stats);
     });
   }
 

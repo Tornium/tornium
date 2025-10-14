@@ -32,7 +32,7 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
                     GM_deleteValue("tornium-retaliations:access-token");
                     GM_deleteValue("tornium-retaliations:access-token-expires");
 
-                    reject();
+                    reject(responseJSON.error);
                     return;
                 }
 

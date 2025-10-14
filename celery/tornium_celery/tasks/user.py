@@ -107,9 +107,14 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif user is not None and not refresh_existing:
         return
 
-    personal_stats: typing.Optional[PersonalStats] = (
-        PersonalStats.select(PersonalStats.timestamp).order_by(-PersonalStats.timestamp).first()
-    )
+    personal_stats: typing.Optional[PersonalStats] = None
+    if user is not None:
+        personal_stats = (
+            PersonalStats.select(PersonalStats.timestamp)
+            .where(PersonalStats.user == user.tid)
+            .order_by(-PersonalStats.timestamp)
+            .first()
+        )
 
     if (
         user is not None

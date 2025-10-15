@@ -33,3 +33,8 @@ mod.add_url_rule(
     view_func=clients.regenerate_client_secret,
     methods=["POST"],
 )
+
+
+@mod.route("/developers", methods=["GET"])
+def index():
+    return flask.render_template("developers/index.html")

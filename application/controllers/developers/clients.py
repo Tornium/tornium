@@ -14,8 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import json
 import hashlib
+import json
 import secrets
 
 from flask import render_template, request

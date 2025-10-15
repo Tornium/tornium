@@ -72,5 +72,5 @@ function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
 }
 
 function tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
-    return tfetch(method, `/api/v1/${endpoint}`, { body, errorTitle, errorHandler });
+    return _tfetch(method, `/api/v1/${endpoint}`, { body, errorTitle, errorHandler });
 }

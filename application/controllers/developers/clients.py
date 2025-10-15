@@ -14,11 +14,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import json
 import secrets
 
-from flask import redirect, render_template, request
+from flask import render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from tornium_commons.models import OAuthClient
+
+from controllers.api.v1.utils import make_exception_response
 
 
 @login_required
@@ -35,24 +38,53 @@ def new_client():
 
 @fresh_login_required
 def create_client():
+    data = json.loads(request.get_data().decode("utf-8"))
+
+    client_name = data.get("client_name")
+    client_type = data.get("client_type")
+
+    if client_name is None or not isinstance(client_name, str):
+        return make_exception_response("1000", details={"message": "Invalid client name"})
+    elif client_type is None or not isinstance(client_type, str):
+        return make_exception_response("1000", details={"message": "Invalid client type"})
+
+    if client_type == "authorization-code-grant":
+        grant = "code"
+        auth_method = "client_secret_basic"
+    elif client_type == "authorization-code-grant-pkce":
+        grant = "code"
+        auth_method = "none"
+    elif client_type == "device-authorization-grant":
+        grant = "urn:ietf:params:oauth:grant-type:device_code"
+        auth_method = "none"
+    else:
+        return make_exception_response(
+            "1000",
+            details={
+                "message": "Invalid client type. Must be authorization code grant (w/ optional PKCE) or device authorization grant."
+            },
+        )
+
     client: OAuthClient = OAuthClient.create(
         client_id=secrets.token_hex(24),  # Each byte is two characters
         client_secret=secrets.token_hex(60),  # Each byte is two characters
         client_id_issued_at=datetime.datetime.utcnow(),
         client_secret_expires_at=None,
         client_metadata={
-            "client_name": request.form["client-name"],
+            "client_name": client_name,
             "client_uri": "",
-            "grant_types": [request.form["client-grant"]],
+            "grant_types": [grant],
             "redirect_uris": [],
             "response_types": [],
             "scope": "",
-            "token_endpoint_auth_method": "client_secret_basic",
+            "token_endpoint_auth_method": auth_method,
+            "official": False,
+            "verified": False,
         },
         user=current_user.tid,
     )
 
-    return redirect(f"/developers/clients/{client.client_id}")
+    return {"client_id": client.client_id}, 201
 
 
 @fresh_login_required

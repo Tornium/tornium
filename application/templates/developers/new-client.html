@@ -17,7 +17,7 @@ Tornium - New OAuth Client
 
                 <div class="w-100">
                     <label for="client-name" class="form-label">Client Name</label>
-                    <input type="text" class="form-control" id="client-name" name="client-name" required></input>
+                    <input type="text" class="form-control" id="client-name" name="client-name" autocomplete="off" required></input>
                 </div>
 
                 <div class="card w-100 mt-3">
@@ -25,7 +25,7 @@ Tornium - New OAuth Client
                     <ul class="list-group list-group-flush" id="client-type-list">
                         <li class="list-group-item">
                             <label class="d-flex">
-                                <input type="radio" name="client-type-selector" autocomplete="off">
+                                <input type="radio" name="client-type-selector" autocomplete="off" value="authorization-code-grant">
                                 <p class="card-text px-3" style="width: 100%;">
                                     <b>Web App (Server-Side):</b><br />
                                     A server-side application that can securely store secrets. This application will use authorization code grant with a secret.
@@ -35,20 +35,20 @@ Tornium - New OAuth Client
 
                         <li class="list-group-item">
                             <label class="d-flex">
-                                <input type="radio" name="client-type-selector" autocomplete="off">
+                                <input type="radio" name="client-type-selector" autocomplete="off" value="authorization-code-grant-pkce">
                                 <p class="card-text px-3" style="width: 100%;">
                                     <b>Userscript/SPA:</b><br />
-                                    A client-side application that is unable to securely secrets. This application MUST use authorization code grant with PKCE.
+                                    A client-side application that is unable to securely store secrets. This application MUST use authorization code grant with PKCE.
                                 </p>
                             </label>
                         </li>
 
                         <li class="list-group-item">
                             <label class="d-flex">
-                                <input type="radio" name="client-type-selector" autocomplete="off">
+                                <input type="radio" name="client-type-selector" autocomplete="off" value="device-authorization-grant">
                                 <p class="card-text px-3" style="width: 100%;">
                                     <b>CLI Tools/Scripts:</b><br />
-                                    A server-side application that does not have regular access to user authorization. This application will use device flow grant.
+                                    A server-side application that does not have regular access to user authorization. This application will use device authorization grant.
                                 </p>
                             </label>
                         </li>

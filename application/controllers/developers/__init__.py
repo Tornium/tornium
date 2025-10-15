@@ -22,7 +22,7 @@ mod = flask.Blueprint("developers_routes", __name__)
 
 mod.add_url_rule("/developers/clients", view_func=clients.clients_list, methods=["GET"])
 mod.add_url_rule("/developers/clients/new", view_func=clients.new_client, methods=["GET"])
-# mod.add_url_rule("/developers/clients", view_func=clients.create_client, methods=["POST"])
+mod.add_url_rule("/developers/clients/new", view_func=clients.create_client, methods=["POST"])
 mod.add_url_rule(
     "/developers/clients/<client_id>",
     view_func=clients.client_dashboard,

@@ -87,6 +87,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
         if item and not item.is_expired():
             return item
 
+        return None
+
     def delete_authorization_code(self, authorization_code):
         # NOTE: This should not be implemented. Authorization codes should never be deleted, only expired.
         return

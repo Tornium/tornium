@@ -15,14 +15,14 @@ Tornium - Client Dashboard
     <li class="breadcrumb-item">
         <a href="/developers/clients">OAuth Clients</a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="breadcrumb-item active">
         <a href="/developers/clients/{{ client.client_id }}">Client Dashboard</a>
     </li>
 </ol>
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/developers/clients">
@@ -35,19 +35,33 @@ Tornium - Client Dashboard
 
 {% block content %}
 <div class="card m-3">
-    <div class="card-body row">
-        <h5 class="card-title">Client</h5>
+    <div class="card-body">
+        <h5 class="card-title">
+            {{ client.client_name }}
+        </h5>
 
-        <div class="row">
-            <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
-                <label for="client-name" class="form-label">Client Name</label>
-                <input type="text" class="form-control" id="client-name" name="client-name" value="{{ client.client_name }}"></input>
-            </div>
+        <h6 class="card-subtitle">
+            Owned by: {{ client.user.name }} [{{ client.user.tid }}]
+        </h6>
 
-            <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
-                <label for="client-id" class="form-label">Client ID</label>
-                <input type="text" class="form-control disabled card-text text-nowrap" id="client-id" value="{{ client.client_id }}" readonly></input>
-            </div>
+        <hr class="my-2" />
+
+        <div class="col-sm-12 col-md-6 col-lg-4">
+            <label for="client-name" class="form-label">Client Name</label>
+            <input type="text" class="form-control" id="client-name" name="client-name" value="{{ client.client_name }}"></input>
+        </div>
+
+        <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+            <label for="client-id" class="form-label">Client ID</label>
+            <input type="text" class="form-control disabled card-text text-nowrap" id="client-id" value="{{ client.client_id }}" disabled readonly></input>
+            {# TODO: Make this copy on click #}
+        </div>
+
+        <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+            <label for="client-id" class="form-label">Client Secret</label>
+            <input type="password" class="form-control disabled card-text text-nowrap" id="client-secret" value="{{ client.client_secret }}" disabled readonly></input>
+            {# TODO: Make this copy on click #}
+            {# TODO: Add regeneration button #}
         </div>
 
         <div class="row mt-4 mx-0">

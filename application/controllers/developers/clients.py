@@ -29,6 +29,11 @@ def clients_list():
 
 
 @fresh_login_required
+def new_client():
+    return render_template("/developers/new-client.html")
+
+
+@fresh_login_required
 def create_client():
     client: OAuthClient = OAuthClient.create(
         client_id=secrets.token_hex(24),  # Each byte is two characters

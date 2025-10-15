@@ -28,7 +28,12 @@ from controllers.api.v1.utils import make_exception_response
 
 @login_required
 def clients_list():
-    clients = [_client for _client in OAuthClient.select().where(OAuthClient.user_id == current_user.tid)]
+    clients = [
+        _client
+        for _client in OAuthClient.select().where(
+            (OAuthClient.user_id == current_user.tid) & (OAuthClient.deleted_at.is_null(True))
+        )
+    ]
 
     return render_template("/developers/clients.html", clients=clients)
 
@@ -92,7 +97,11 @@ def create_client():
 @fresh_login_required
 def regenerate_client_secret(client_id: str):
     try:
-        client: OAuthClient = OAuthClient.select().where(OAuthClient.client_id == client_id).get()
+        client: OAuthClient = (
+            OAuthClient.select()
+            .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .get()
+        )
     except DoesNotExist:
         return make_exception_response("1500")
 
@@ -100,7 +109,7 @@ def regenerate_client_secret(client_id: str):
         return make_exception_response("4022")
 
     client_secret = secrets.token_hex(60)  # Each byte is two characters
-    hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8"))
+    hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8")).hexdigest()
 
     OAuthClient.update(client_secret=hashed_client_secret).where(OAuthClient.client_id == client_id).execute()
 
@@ -108,10 +117,32 @@ def regenerate_client_secret(client_id: str):
 
 
 @fresh_login_required
-def client_dashboard(client_id: str):
-    client: OAuthClient = OAuthClient.select().where(OAuthClient.client_id == client_id).first()
+def delete_client(client_id: str):
+    try:
+        client: OAuthClient = (
+            OAuthClient.select()
+            .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1500")
 
-    if client is None:
+    if client.user_id != current_user.tid:
+        return make_exception_response("4022")
+
+    client.soft_delete()
+    return "", 204
+
+
+@fresh_login_required
+def client_dashboard(client_id: str):
+    try:
+        client: OAuthClient = (
+            OAuthClient.select()
+            .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .get()
+        )
+    except DoesNotExist:
         return (
             render_template(
                 "errors/error.html",
@@ -120,7 +151,8 @@ def client_dashboard(client_id: str):
             ),
             400,
         )
-    elif client.user.tid != current_user.tid:
+
+    if client.user.tid != current_user.tid:
         return (
             render_template(
                 "errors/error.html",

@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import logging
 import typing
 
@@ -161,22 +162,36 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
     def authenticate_refresh_token(self, refresh_token: str) -> typing.Optional[OAuthToken]:
         token: typing.Optional[OAuthToken] = (
-            OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).first()
+            OAuthToken.select()
+            .where((OAuthToken.refresh_token == refresh_token) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
+            .first()
         )
 
         if token and token.is_refresh_token_valid():
             return token
 
+        return None
+
     def authenticate_user(self, refresh_token: OAuthToken) -> User:
         return OAuthToken.user
 
     def revoke_old_credential(self, refresh_token: OAuthToken):
-        OAuthToken.update(is_revoked=True).where(OAuthToken.access_token == refresh_token.access_token).execute()
+        OAuthToken.update(
+            access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
+        ).where(OAuthToken.access_token == refresh_token.access_token).execute()
 
 
 class BearerTokenValidator(_BearerTokenValidator):
     def authenticate_token(self, token_string: str) -> typing.Optional[OAuthToken]:
-        return OAuthToken.select().where(OAuthToken.access_token == token_string).first()
+        return (
+            OAuthToken.select()
+            .where(
+                (OAuthToken.access_token == token_string)
+                & (OAuthToken.access_token_revoked_at.is_null(True))
+                & (OAuthToken.refresh_token_revoked_at.is_null(True))
+            )
+            .first()
+        )
 
 
 class CustomTokenValidator(_BearerTokenValidator):

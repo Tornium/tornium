@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import hashlib
 import secrets
 import typing
@@ -52,6 +53,7 @@ from authlib.oauth2.rfc6749 import list_to_scope, scope_to_list
 from peewee import DateTimeField, FixedCharField, ForeignKeyField
 from playhouse.postgres_ext import JSONField
 
+from ..db_connection import db
 from .base_model import BaseModel
 from .user import User
 
@@ -62,6 +64,8 @@ class OAuthClient(BaseModel):
     client_id_issued_at = DateTimeField(null=False)
     client_secret_expires_at = DateTimeField(null=True)
     client_metadata = JSONField()
+
+    deleted_at = DateTimeField(default=None, null=True)
 
     user = ForeignKeyField(User, null=False)
 
@@ -174,7 +178,11 @@ class OAuthClient(BaseModel):
 
     @classmethod
     def get_client(cls, client_id: str) -> typing.Optional["OAuthClient"]:
-        return OAuthClient.select().where(OAuthClient.client_id == client_id).first()
+        return (
+            OAuthClient.select()
+            .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .first()
+        )
 
     # Custom properties below
 
@@ -185,3 +193,27 @@ class OAuthClient(BaseModel):
     @property
     def verified(self) -> bool:
         return self.client_metadata.get("verified", False)
+
+    def soft_delete(self):
+        # For traceability, we want to soft-delete the OAuth client and revoke all related tokens and codes
+        from .oauth_authorization_code import OAuthAuthorizationCode
+        from .oauth_token import OAuthToken
+
+        with db.atomic():
+            OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
+                (OAuthToken.client_id == self.client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
+            ).execute()
+            OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
+                (OAuthToken.client_id == self.client_id)
+                & (OAuthToken.refresh_token.is_null(False))
+                & (OAuthToken.refresh_token_revoked_at.is_null(True))
+            ).execute()
+
+            # Unused authorization codes provide no value for traceability, so this can be hard-deleted instead
+            OAuthAuthorizationCode.delete().where(
+                (OAuthAuthorizationCode.client_id == self.client_id) & (OAuthAuthorizationCode.used_at.is_null(True))
+            ).execute()
+
+            OAuthClient.update(deleted_at=datetime.datetime.utcnow()).where(
+                OAuthClient.client_id == self.client_id
+            ).execute()

@@ -26,6 +26,29 @@ function regenerateClientSecret(event) {
     });
 }
 
+function createDeleteConfirmation(event) {
+    const confirmation = document.createElement("alert-confirm");
+    confirmation.setAttribute("data-title", "Are you sure?");
+    confirmation.setAttribute(
+        "data-body-text",
+        "This action cannot be undone. This OAuth application will be permanently deleted from our servers.",
+    );
+    confirmation.setAttribute("data-close-button-text", "Cancel");
+    confirmation.setAttribute("data-accept-button-text", "Delete");
+    confirmation.setAttribute("data-close-callback", null);
+    confirmation.setAttribute("data-accept-callback", "deleteClient");
+    document.body.appendChild(confirmation);
+}
+
+function deleteClient(event) {
+    _tfetch("DELETE", `/developers/clients/${clientID}`, {
+        errorTitle: "OAuth Client Deletion Failed",
+    }).then(() => {
+        window.location.href = "/developers/clients";
+    });
+}
+
 ready(() => {
     document.getElementById("regenerate-client-secret").addEventListener("click", regenerateClientSecret);
+    document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
 });

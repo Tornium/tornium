@@ -29,6 +29,11 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
+    "/developers/clients/<client_id>",
+    view_func=clients.delete_client,
+    methods=["DELETE"],
+)
+mod.add_url_rule(
     "/developers/clients/<client_id>/regenerate-secret",
     view_func=clients.regenerate_client_secret,
     methods=["POST"],

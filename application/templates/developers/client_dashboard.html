@@ -91,10 +91,13 @@ Tornium - Client Dashboard
 
         {# TODO: Add user count and revocation of all tokens #}
         {# TODO: Add application deletion #}
+
+        <button type="button" class="btn btn-outline-danger mt-3" id="delete-client">Delete Client</button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/alert-confirm.js"></script>
 <script src="/static/developers/client.js" data-client-id="{{ client.client_id }}"></script>
 {% endblock %}

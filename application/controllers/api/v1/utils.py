@@ -157,6 +157,12 @@ API_EXCEPTIONS = {
         "http": 404,
         "message": "Server failed to locate the parameters or a specific parameter for the notification trigger.",
     },
+    "1500": {
+        "code": 1500,
+        "name": "UnknownOAuthClient",
+        "http": 404,
+        "message": "Server failed to locate the request OAuth client.",
+    },
     "4000": {
         "code": 4000,
         "name": "TooManyRequests",

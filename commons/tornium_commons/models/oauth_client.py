@@ -44,6 +44,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import hashlib
 import secrets
 import typing
 
@@ -57,7 +58,7 @@ from .user import User
 
 class OAuthClient(BaseModel):
     client_id = FixedCharField(max_length=48, primary_key=True)
-    client_secret = FixedCharField(max_length=120)
+    client_secret = FixedCharField(max_length=120, default=None, null=True)
     client_id_issued_at = DateTimeField(null=False)
     client_secret_expires_at = DateTimeField(null=True)
     client_metadata = JSONField()
@@ -155,8 +156,9 @@ class OAuthClient(BaseModel):
     def check_redirect_uri(self, redirect_uri):
         return redirect_uri in self.redirect_uris
 
-    def check_client_secret(self, client_secret):
-        return secrets.compare_digest(self.client_secret, client_secret)
+    def check_client_secret(self, client_secret: str):
+        hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8"))
+        return secrets.compare_digest(self.client_secret, hashed_client_secret)
 
     def check_endpoint_auth_method(self, method, endpoint):
         if endpoint == "token":

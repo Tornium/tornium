@@ -13,4 +13,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-ready(() => {});
+const clientID = document.currentScript.getAttribute("data-client-id");
+
+function regenerateClientSecret(event) {
+    _tfetch("POST", `/developers/clients/${clientID}/regenerate-secret`, {
+        errorTitle: "Secret Regeneration Failed",
+    }).then((clientData) => {
+        const clientSecretOutput = document.getElementById("client-secret");
+        clientSecretOutput.classList.remove("d-none");
+        clientSecretOutput.classList.add("mb-2");
+        clientSecretOutput.value = clientData.client_secret;
+    });
+}
+
+ready(() => {
+    document.getElementById("regenerate-client-secret").addEventListener("click", regenerateClientSecret);
+});

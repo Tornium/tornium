@@ -28,3 +28,8 @@ mod.add_url_rule(
     view_func=clients.client_dashboard,
     methods=["GET"],
 )
+mod.add_url_rule(
+    "/developers/clients/<client_id>/regenerate-secret",
+    view_func=clients.regenerate_client_secret,
+    methods=["POST"],
+)

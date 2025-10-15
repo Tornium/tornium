@@ -57,12 +57,15 @@ Tornium - Client Dashboard
             {# TODO: Make this copy on click #}
         </div>
 
+        {% if client.token_endpoint_auth_method != "none" %}
         <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
-            <label for="client-id" class="form-label">Client Secret</label>
-            <input type="password" class="form-control disabled card-text text-nowrap" id="client-secret" value="{{ client.client_secret }}" disabled readonly></input>
+            <label for="client-secret" class="form-label">Client Secret</label>
+            <input type="text" class="form-control disabled card-text text-nowrap d-none" id="client-secret" disabled readonly></input>
             {# TODO: Make this copy on click #}
-            {# TODO: Add regeneration button #}
+
+            <button type="button" class="btn btn-outline-danger form-control" id="regenerate-client-secret">Regenerate Client Secret</button>
         </div>
+        {% endif %}
 
         <div class="row mt-4 mx-0">
             <div class="col-sm-12 col-md-6 col-lg-4 p-0 pe-4">
@@ -93,5 +96,5 @@ Tornium - Client Dashboard
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/developers/client.js"></script>
+<script src="/static/developers/client.js" data-client-id="{{ client.client_id }}"></script>
 {% endblock %}

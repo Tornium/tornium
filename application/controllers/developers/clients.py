@@ -15,10 +15,12 @@
 
 import datetime
 import json
+import hashlib
 import secrets
 
 from flask import render_template, request
 from flask_login import current_user, fresh_login_required, login_required
+from peewee import DoesNotExist
 from tornium_commons.models import OAuthClient
 
 from controllers.api.v1.utils import make_exception_response
@@ -67,7 +69,7 @@ def create_client():
 
     client: OAuthClient = OAuthClient.create(
         client_id=secrets.token_hex(24),  # Each byte is two characters
-        client_secret=secrets.token_hex(60),  # Each byte is two characters
+        client_secret=None,  # The client secret should be generated later so that it can be hashed in the database
         client_id_issued_at=datetime.datetime.utcnow(),
         client_secret_expires_at=None,
         client_metadata={
@@ -85,6 +87,24 @@ def create_client():
     )
 
     return {"client_id": client.client_id}, 201
+
+
+@fresh_login_required
+def regenerate_client_secret(client_id: str):
+    try:
+        client: OAuthClient = OAuthClient.select().where(OAuthClient.client_id == client_id).get()
+    except DoesNotExist:
+        return make_exception_response("1500")
+
+    if client.user_id != current_user.tid:
+        return make_exception_response("4022")
+
+    client_secret = secrets.token_hex(60)  # Each byte is two characters
+    hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8"))
+
+    OAuthClient.update(client_secret=hashed_client_secret).where(OAuthClient.client_id == client_id).execute()
+
+    return {"client_secret": client_secret}, 200
 
 
 @fresh_login_required

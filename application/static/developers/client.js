@@ -48,6 +48,43 @@ function deleteClient(event) {
     });
 }
 
+function createNewClientRedirectURI(event) {
+    const defaultItem = document.getElementById("client-redirect-uri-default");
+    if (!defaultItem.classList.contains("d-none")) {
+        defaultItem.classList.add("d-none");
+    }
+
+    const newURIItem = document.createElement("li");
+    newURIItem.classList.add("list-group-item", "d-flex", "justify-content-around", "align-items-center");
+
+    const newURIInput = document.createElement("input");
+    newURIInput.setAttribute("type", "url");
+    newURIInput.classList.add("form-control", "w-100", "me-2");
+    newURIItem.append(newURIInput);
+
+    const newURIButton = document.createElement("button");
+    newURIButton.setAttribute("type", "button");
+    newURIButton.classList.add("btn", "btn-sm", "btn-outline-danger", "remove-client-redirect-uri");
+    newURIButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+    newURIButton.addEventListener("click", removeClientRedirectButton);
+    newURIItem.append(newURIButton);
+
+    const clientRedirectURIList = document.getElementById("client-redirect-uri");
+    clientRedirectURIList.append(newURIItem);
+}
+
+function removeClientRedirectButton(event) {
+    const clientRedirectURIItem = this.parentNode;
+    clientRedirectURIItem.remove();
+
+    const clientRedirectURIList = document.getElementById("client-redirect-uri");
+
+    if (clientRedirectURIList.childElementCount == 1) {
+        const defaultItem = document.getElementById("client-redirect-uri-default");
+        defaultItem.classList.remove("d-none");
+    }
+}
+
 ready(() => {
     const regenerateClientSecretButton = document.getElementById("regenerate-client-secret");
 
@@ -56,4 +93,9 @@ ready(() => {
     }
 
     document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
+    document.getElementById("client-redirect-uri-new").addEventListener("click", createNewClientRedirectURI);
+
+    Array.from(document.getElementsByClassName("remove-client-redirect-uri")).forEach((removeClientRedirectButton) => {
+        removeClientRedirectButton.addEventListener("click", removeClientRedirectButton);
+    });
 });

@@ -63,26 +63,27 @@ Tornium - Client Dashboard
             <input type="text" class="form-control disabled card-text text-nowrap d-none" id="client-secret" disabled readonly></input>
             {# TODO: Make this copy on click #}
 
-            <button type="button" class="btn btn-outline-danger form-control" id="regenerate-client-secret">Regenerate Client Secret</button>
+            <button type="button" class="btn btn-outline-danger w-100" id="regenerate-client-secret">Regenerate Client Secret</button>
         </div>
         {% endif %}
 
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
                 <div class="card-header">Redirect URIs</div>
-                <ul class="list-group list-group-flush">
+                <ul class="list-group list-group-flush" id="client-redirect-uri">
                     {% for uri in client.redirect_uris %}
                     <li class="list-group-item d-flex justify-content-around align-items-center">
                         <span class="">{{ uri }}</span>
-                        <button type="button" class="btn btn-sm btn-outline-danger">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-client-redirect-uri">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </li>
+                    {% else %}
+                    <li class="list-group-item text-secondary" id="client-redirect-uri-default">No redirect URIs...</li>
                     {% endfor %}
                 </ul>
                 <div class="card-footer">
-                    <label for="new-redirect-uri" class="form-label">New Redirect URI</label>
-                    <input type="url" class="form-control w-100" id="new-redirect-uri" name="new-redirect-uri"></input>
+                    <button type="button" class="btn btn-outline-success w-100" id="client-redirect-uri-new">New Redirect URI</button>
                 </div>
             </div>
         </div>

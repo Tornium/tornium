@@ -51,7 +51,7 @@ import typing
 
 from authlib.oauth2.rfc6749 import list_to_scope, scope_to_list
 from peewee import DateTimeField, FixedCharField, ForeignKeyField
-from playhouse.postgres_ext import JSONField
+from playhouse.postgres_ext import BinaryJSONField
 
 from ..db_connection import db
 from .base_model import BaseModel
@@ -63,7 +63,7 @@ class OAuthClient(BaseModel):
     client_secret = FixedCharField(max_length=120, default=None, null=True)
     client_id_issued_at = DateTimeField(null=False)
     client_secret_expires_at = DateTimeField(null=True)
-    client_metadata = JSONField()
+    client_metadata = BinaryJSONField(null=False)
 
     deleted_at = DateTimeField(default=None, null=True)
 

@@ -59,7 +59,7 @@ function createNewClientRedirectURI(event) {
 
     const newURIInput = document.createElement("input");
     newURIInput.setAttribute("type", "url");
-    newURIInput.classList.add("form-control", "w-100", "me-2");
+    newURIInput.classList.add("form-control", "w-100", "me-2", "client-redirect-uri");
     newURIItem.append(newURIInput);
 
     const newURIButton = document.createElement("button");
@@ -85,6 +85,37 @@ function removeClientRedirectButton(event) {
     }
 }
 
+function updateClient(event) {
+    const clientName = document.getElementById("client-name").value;
+    const selectedClientRedirectURIs = document.getElementsByClassName("client-redirect-uri");
+    const selectedClientScopes = document.querySelectorAll(`input[name="client-scope-selector"]:checked`);
+    const clientURI = document.getElementById("client-uri").value;
+    const clientTermsURI = document.getElementById("client-tos-uri").value;
+    const clientPrivacyURI = document.getElementById("client-privacy-uri").value;
+
+    let clientRedirectURIs = [];
+    Array.from(selectedClientRedirectURIs).forEach((element) => {
+        clientRedirectURIs.push(element.value);
+    });
+
+    let clientScopes = [];
+    selectedClientScopes.forEach((element) => {
+        clientScopes.push(element.value);
+    });
+
+    _tfetch("PUT", `/developers/clients/${clientID}`, {
+        body: {
+            client_name: clientName,
+            client_redirect_uris: clientRedirectURIs,
+            client_scopes: clientScopes,
+            client_uri: clientURI,
+            client_terms_uri: clientTermsURI,
+            client_privacy_uri: clientPrivacyURI,
+        },
+        errorTitle: "Client Update Failed",
+    }).then((clientData) => window.location.reload());
+}
+
 ready(() => {
     const regenerateClientSecretButton = document.getElementById("regenerate-client-secret");
 
@@ -92,6 +123,7 @@ ready(() => {
         regenerateClientSecretButton.addEventListener("click", regenerateClientSecret);
     }
 
+    document.getElementById("update-client").addEventListener("click", updateClient);
     document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
     document.getElementById("client-redirect-uri-new").addEventListener("click", createNewClientRedirectURI);
 

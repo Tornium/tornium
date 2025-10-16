@@ -49,6 +49,11 @@ function deleteClient(event) {
 }
 
 ready(() => {
-    document.getElementById("regenerate-client-secret").addEventListener("click", regenerateClientSecret);
+    const regenerateClientSecretButton = document.getElementById("regenerate-client-secret");
+
+    if (regenerateClientSecretButton != null) {
+        regenerateClientSecretButton.addEventListener("click", regenerateClientSecret);
+    }
+
     document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
 });

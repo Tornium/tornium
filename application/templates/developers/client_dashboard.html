@@ -135,6 +135,21 @@ Tornium - Client Dashboard
             </div>
         </div>
 
+        <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+            <label for="client-uri" class="form-label">Client URI</label>
+            <input type="url" class="form-control card-text text-nowrap" id="client-uri" value="{{ client.client_uri or '' }}" />
+        </div>
+
+        <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+            <label for="client-tos-uri" class="form-label">Client T&S URI</label>
+            <input type="url" class="form-control card-text text-nowrap" id="client-tos-uri" value="{{ client.tos_uri or '' }} " />
+        </div>
+
+        <div class="mt-2 col-sm-12 col-md-6 col-lg-4">
+            <label for="client-policy-uri" class="form-label">Client Policy Privacy URI</label>
+            <input type="url" class="form-control card-text text-nowrap" id="client-privacy-uri" value="{{ client.policy_uri or '' }}" />
+        </div>
+
         {# TODO: Add user count and revocation of all tokens #}
 
         <div class="mt-3">

@@ -250,7 +250,11 @@ def regenerate_backup_codes(*args, **kwargs):
 @fresh_login_required
 @session_required
 def revoke_client(client_id: str, *args, **kwargs):
-    if not OAuthClient.select().where(OAuthClient.client_id == client_id).exists():
+    if (
+        not OAuthClient.select()
+        .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+        .exists()
+    ):
         return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})
 
     OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(

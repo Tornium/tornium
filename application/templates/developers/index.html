@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Developers
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/developers">Developers</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/developers/clients">
+                <i class="col-1 col-sm-2 fa-solid fa-file-invoice"></i> <span class="col">OAuth Clients</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container h-100">
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-robot"></i>
+                Tornium Developers
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Tornium supports an API for developers to use to interact with Tornium. Automated non-API requests are not allowed per Tornium's <a href="/terms">Terms of Service</a>. For information on using Tornium's API, see <a href="https://docs.tornium.com/">Tornium's documentation</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-list"></i>
+                Features
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            OAuth - OAuth-based authentication
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fa-solid fa-key"></i>
+                            Scopes - Scope API endpoints
+                        </li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

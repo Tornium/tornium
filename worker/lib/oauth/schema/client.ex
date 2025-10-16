@@ -22,10 +22,11 @@ defmodule Tornium.Schema.OAuthClient do
 
   @type t :: %__MODULE__{
           client_id: String.t(),
-          client_secret: String.t(),
+          client_secret: String.t() | nil,
           client_id_issued_at: DateTime.t(),
           client_secret_expires_at: DateTime.t() | nil,
           client_metadata: map(),
+          deleted_at: DateTime.t() | nil,
           user_id: integer(),
           user: Tornium.Schema.User.t()
         }
@@ -36,6 +37,8 @@ defmodule Tornium.Schema.OAuthClient do
     field(:client_id_issued_at, :utc_datetime)
     field(:client_secret_expires_at, :utc_datetime)
     field(:client_metadata, :map)
+
+    field(:deleted_at, :utc_datetime)
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
   end

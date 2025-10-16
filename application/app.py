@@ -126,7 +126,7 @@ def init__app():
     login_manager.message = ""
 
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
-    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
+    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
     oauth_server.register_grant(RefreshTokenGrant)
 
     with app.app_context():

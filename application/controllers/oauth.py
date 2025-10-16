@@ -36,6 +36,33 @@ valid_scopes = (
 )
 
 
+@mod.route("/.well-known/openid-configuration", methods=["GET"])
+def openid_configuration():
+    """
+    Endpoint to handle OpenID (and OAuth2) provider discovery.
+
+    See: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
+    """
+    # TODO: Add exact URI for the service documentation once docs are created
+    return (
+        flask.jsonify(
+            {
+                "issuer": "https://tornium.com",
+                "authorization_endpoint": "https://tornium.com/oauth/authorize",
+                "token_endpoint": "https://tornium.com/oauth/token",
+                "scopes_supported": list(valid_scopes),
+                "response_types_supported": ["code"],
+                "grant_types_supported": ["authorization_code"],
+                "service_documentatin": "https://docs.tornium.com",
+                "op_privacy_uri": "https://tornium.com/privacy",
+                "op_tos_uri": "https://tornium.com/terms",
+            }
+        ),
+        200,
+        {"Content-Type": "application/json"},
+    )
+
+
 @mod.route("/oauth/authorize", methods=["GET", "POST"])
 @flask_login.fresh_login_required
 def oauth_authorize():

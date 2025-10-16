@@ -30,6 +30,10 @@
     - [Overdose](reference/bot-overdose.md)
 - [Stat Datbase]()
     - [Chain List Generator](reference/stats-chain-list-generator.md)
+- [API]()
+    - [OAuth Provider](reference/api/oauth-provider.md)
+    - [Endpoints](reference/api/endpoints.md)
+    - [Errors](reference/api/errors.md)
 - [Two-Factor Authentication](reference/2fa.md)
 
 # Explanation

@@ -194,6 +194,9 @@ class OAuthClient(BaseModel):
     def verified(self) -> bool:
         return self.client_metadata.get("verified", False)
 
+    def scope_list(self) -> [str]:
+        return set(scope_to_list(self.scope))
+
     def soft_delete(self):
         # For traceability, we want to soft-delete the OAuth client and revoke all related tokens and codes
         from .oauth_authorization_code import OAuthAuthorizationCode

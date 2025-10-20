@@ -9,6 +9,6 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-[*.{lua,ex,exs}]
+[*.{lua,ex,exs,nix}]
 indent_style = space
 indent_size = 2

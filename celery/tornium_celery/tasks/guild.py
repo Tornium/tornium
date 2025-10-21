@@ -478,12 +478,19 @@ def verify_users(
     ).forget()
 
 
+class _VertificationNameEnvironment(liquid.Environment):
+    context_depth_limit = 5
+    local_namespace_limit = 1000
+    loop_iteration_limit = 100
+    output_stream_limit = 1000
+
+
 def member_verification_name(
     name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
 ) -> typing.Optional[str]:
     rendered_name: typing.Optional[str] = None
     if name_template != "":
-        rendered_name = liquid.render(name_template, name=name, tid=tid, tag=tag).strip()
+        rendered_name = _VertificationNameEnvironment().render(name_template, name=name, tid=tid, tag=tag).strip()
 
     return rendered_name
 

@@ -17,11 +17,12 @@ import datetime
 import inspect
 import logging
 import math
+import multiprocessing.connection
 import random
 import time
 import typing
 
-import jinja2
+import liquid
 from peewee import DoesNotExist, Expression
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -34,6 +35,7 @@ from tornium_commons.models import (
     User,
 )
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
+from tornium_commons.timeout import timeout
 
 import celery
 from celery.utils.log import get_task_logger
@@ -478,22 +480,27 @@ def verify_users(
     ).forget()
 
 
+@timeout(1)
 def member_verification_name(
-    name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
+    name: str,
+    tid: int,
+    tag: str,
+    name_template: str = "{{ name }} [{{ tid }}]",
+    snd: typing.Optional[multiprocessing.connection.Connection] = None,
 ) -> typing.Optional[str]:
+    # The `snd` parameter is for the timeout decorator
+
     if name_template == "":
         return None
 
-    return (
-        jinja2.Environment(autoescape=True)
-        .from_string(name_template)
-        .render(
-            name=name,
-            tid=tid,
-            tag=tag,
-        )
-        .lstrip()
-    )
+    rendered_name = liquid.render(name_template, name=name, tid=tid, tag=tag).strip()
+
+    if snd is not None:
+        # And if the `snd` parameter is included, the rendered template will be returned through that
+        snd.send(rendered_name)
+        snd.close()
+
+    return rendered_name
 
 
 def member_verified_roles(verified_roles: typing.List[int]) -> typing.Set[str]:

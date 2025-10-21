@@ -17,7 +17,6 @@ import datetime
 import inspect
 import logging
 import math
-import multiprocessing.connection
 import random
 import time
 import typing
@@ -35,7 +34,6 @@ from tornium_commons.models import (
     User,
 )
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
-from tornium_commons.timeout import timeout
 
 import celery
 from celery.utils.log import get_task_logger
@@ -480,25 +478,12 @@ def verify_users(
     ).forget()
 
 
-@timeout(1)
 def member_verification_name(
-    name: str,
-    tid: int,
-    tag: str,
-    name_template: str = "{{ name }} [{{ tid }}]",
-    snd: typing.Optional[multiprocessing.connection.Connection] = None,
+    name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
 ) -> typing.Optional[str]:
-    # The `snd` parameter is for the timeout decorator
-
-    if name_template == "":
-        return None
-
-    rendered_name = liquid.render(name_template, name=name, tid=tid, tag=tag).strip()
-
-    if snd is not None:
-        # And if the `snd` parameter is included, the rendered template will be returned through that
-        snd.send(rendered_name)
-        snd.close()
+    rendered_name: typing.Optional[str] = None
+    if name_template != "":
+        rendered_name = liquid.render(name_template, name=name, tid=tid, tag=tag).strip()
 
     return rendered_name
 

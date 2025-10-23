@@ -3,6 +3,7 @@
 {
   imports = [
     ../common/default.nix
+    ../modules/fail2ban-ssh.nix
   ];
 
   deployment.replaceUnknownProfiles = false;

@@ -31,7 +31,23 @@
   '';
 
   services.openssh.enable = true;
-  services.openssh.settings.PasswordAuthentication = false;
+  # services.openssh.settings.PasswordAuthentication = false;
+  # OpenSSH settings come from https://saylesss88.github.io/nix/hardening_NixOS.html#openssh-server
+  services.openssh.settings = {
+    PasswordAuthentication = false;
+    PermitEmptyPasswords = false;
+    PermitTunnel = false;
+    UseDns = false;
+    KbdInteractiveAuthentication = false;
+    MaxAuthTries = 3;
+    MaxSessions = 2;
+    ClientAliveInterval = 300;
+    ClientAliveCountMax = 0;
+    AllowUsers = ["root" "tiksan"];
+    TCPKeepAlive = false;
+    AllowTcpForwarding = false;
+    AllowAgentForwarding = false;
+  };
   networking.firewall.allowedTCPPorts = [ 22 ];
 
   users.users.root.openssh.authorizedKeys.keys = [

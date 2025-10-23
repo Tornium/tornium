@@ -12,6 +12,6 @@ Use [`nix-community/nixos-anywhere`](https://github.com/nix-community/nixos-anyw
 Run the following within `/infra` to set up in Hetzner cloud for x86.
 
 ```bash
-bash -c "nix run github:nix-community/nixos-anywhere -- --flake .#hetzner-cloud --targethost root@{{ host-ip }}"
+nix run github:nix-community/nixos-anywhere -- deploy --flake ".#hetzner-cloud" --target-host root@{{ host }}
 ```
 

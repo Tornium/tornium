@@ -17,6 +17,7 @@
 
 # User Guide
 - [How to setup 2FA?](guide/2fa.md)
+- [How to use the API?](guide/api.md)
 
 # Reference
 

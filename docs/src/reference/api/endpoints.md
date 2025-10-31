@@ -1,18 +1,202 @@
 # Endpoints
 The Tornium API supports the following resource APIs:
+- [Faction API](#faction-api)
 - [Stat API](#stat-api)
 - [Stocks API](#stocks-api)
 - [Users API](#users-api)
 
 All API endpoints require [OAuth authentication and authorization](./oauth-provider.md) against a registered application before performing any API calls.
 
+All API endpoints share a 250 per minute global ratelimit, however this ratelimit can change without notice. Therefore, clients **SHOULD** rely upon ratelimiting headers to determine calls remaining and the ratelimit expiration. The ratelimiting will use the following headers:
+- `X-RateLimit-Limit`: Maximum number of API calls until the ratelimit expires
+- `X-RateLimit-Remaining`: Number of API calls remaining until the ratelimit expires
+- `X-RateLimit-Reset`: Seconds until the ratelimit expires
+
 **WARNING:** API endpoints are subject to change, potentially without notice.
+
+## Faction API
+### Get Faction Retaliations
+Get all known, potential retaliations for the user's faction.
+
+**Scopes Required:** `faction:attacks` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/attacks/retaliations HTTP/1.1
+Authorization: Bearer {{ access_token }}
+
+[
+    {
+        "code": "bd80bb9c505a97ce7d66ddeee9433cf0",
+        "attack_ended": 1761708665,
+        "defender: {
+            "ID": 2383326,
+            "name": "tiksan"
+        },
+        "attacker": {
+            "ID": 1,
+            "name": "Chedburn"
+        }
+    }
+]
+```
+
+### Get Faction Member Balance
+Get the balance of the authenticated user in the vault of the user's faction.
+
+**Scopes Required:** `faction:banking` (or `faction`) and `torn_key:usage`
+
+```http
+GET /api/v1/faction/banking/vault HTTP/1.1
+Authorization: Bearer {{ access_token }}
+
+{
+    "player_id": 2383326,
+    "faction_id": 15644,
+    "money_balance": 123456,
+    "points_balance": 123
+}
+```
+
+### [DEPRECATED] Create Faction Vault Request
+Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
+
+This API endpoint has an additional ratelimit currently set to 1 per minute.
+
+```http
+POST /api/v1/faction/banking HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "amount_requested": "all"
+}
+
+{
+    "id": 1234,
+    "amount": 12345678,
+    "requester": 2383326,
+    "time_requested": 1761708665,
+    "withdrawal_message": 1433602346151313469
+}
+```
+
+### Get Organized Crimes Names
+Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.
+
+**Scopes Required:** none
+
+```http
+GET /api/v1/faction/crime/names HTTP/1.1
+Authorization: Bearer {{ access_token }}
+
+[
+    "Break the Bank",
+    "Market Forces",
+    "Clinical Precision"
+]
+```
+
+### Get Organized Crime Delays
+Get a list of members of the authenticated user's faction who have delayed organized crimes.
+
+**Scopes Required:** `faction:crimes` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/crime/delays HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "limit": 50
+}
+
+[
+    {
+        "oc_id": 1234,
+        "user_id": 2383326,
+        "oc_position": "Muscle",
+        "oc_position_index": 3,
+        "delay_reason": "Flying to Mexico'
+    }
+]
+```
+
+**Query String Parameters**
+
+| Field    | Type    | Description                  | Default | Required |
+| -------- | ------- | ---------------------------- | ------- | -------- |
+| `before` | Integer | Minimum OC ID for pagination |         | False    |
+| `after`  | Integer | Maximum OC ID for pagination |         | False    |
+| `limit`  | Integer | Maximum number of delays     | 100     | False    |
+
+
+### Get Faction Members
+Get a list of members of a specific faction.
+
+**Scopes Required:** none
+
+```http
+GET /api/v1/<int:faction_id>/members HTTP/1.1
+Authorization: Bearer {{ access_token }}
+
+[
+    {
+        "ID": 2383326,
+        "name": "tiksan",
+        "level": 100,
+        "discord_id": 695828257949352028
+    }
+]
+```
+
+### [DEPRECATED] Get Faction Positions
+Get a mapping of faction positions for the authenticated user's faction.
+
+**Scopes Required:** `faction`
+
+```http
+GET /api/v1/faction/positions HTTP/1.1
+Authorization: Bearer {{ access_token }}
+
+{
+    "positions": [
+        {
+            "_id": "2da1bfe9-d654-43a2-9733-ef76bfb6e500",
+            "name": "Crusader",
+            "faction_tid": 15644,
+            "default": True,
+            "use_medical_item: False,
+            "use_booster_item: False,
+            "use_drug_item: False,
+            "use_energy_refill: False,
+            "use_nerve_refill: False,
+            "loan_temporary_item: False,
+            "loan_weapon_armory: False,
+            "retrieve_loaned_armory: False,
+            "plan_init_oc: False,
+            "access_fac_api: False,
+            "give_item: False,
+            "give_money: False,
+            "give_points: False,
+            "manage_forums: False,
+            "manage_applications: False,
+            "kick_members: False,
+            "adjust_balances: False,
+            "manage_wars: False,
+            "manage_upgrades: False,
+            "send_newsletters: False,
+            "change_announcement: False,
+            "change_description: False
+        }
+    ]
+}
+```
 
 ## Stat API
 ### Generate Chain List
 Generate a chain list for the authenticated user. The authenticated user must have a stat score in the database, either from being logged into Tornium with an API key or through the faction's TornStats.
 
-This API endpoint has an addition ratelimit currently set to 5 per minute.
+This API endpoint has an additional ratelimit currently set to 5 per minute.
 
 **Scopes Required:** none
 

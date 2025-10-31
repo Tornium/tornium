@@ -14,6 +14,19 @@ All API endpoints share a 250 per minute global ratelimit, however this ratelimi
 
 **WARNING:** API endpoints are subject to change, potentially without notice.
 
+## API Errors
+All API errors will be of the format:
+```json
+{
+    "code": <integer>,
+    "name": <string>,
+    "message": <string>,
+    "details?": <object>
+}
+```
+
+If more information is available beyond the base API error, the `details` field will be populated (typically under `details.message`).
+
 ## Faction API
 ### Get Faction Retaliations
 Get all known, potential retaliations for the user's faction.

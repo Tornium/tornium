@@ -25,7 +25,7 @@ All API errors will be of the format:
 }
 ```
 
-If more information is available beyond the base API error, the `details` field will be populated (typically under `details.message`).
+If more information is available beyond the base API error, the `details` field will be populated (typically under `details.message`). A list of valid API errors can be found in the [source code](https://github.com/Tornium/tornium/blob/master/application/controllers/api/v1/utils.py#L23).
 
 ## Faction API
 ### Get Faction Retaliations

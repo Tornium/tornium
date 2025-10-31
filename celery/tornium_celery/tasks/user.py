@@ -126,6 +126,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif (
         user is not None
         and not update_self
+        and personal_stats is not None
         and personal_stats.timestamp != datetime.date.today() - datetime.timedelta(days=1)
     ):
         update_personal_stats = True

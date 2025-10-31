@@ -30,8 +30,8 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
           user_joined_at: DateTime.t() | nil,
           item_required: Tornium.Schema.Item.t() | Ecto.Association.NotLoaded.t() | nil,
           item_available: boolean() | nil,
-          delayer: boolean() | nil,
-          delayed_reason: String.t(),
+          delayer: boolean(),
+          delayed_reason: String.t() | nil,
           sent_tool_notification: boolean(),
           sent_delayer_notification: boolean(),
           sent_extra_range_notification: boolean()
@@ -151,7 +151,10 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
             Map.get(delayers, {oc_id, slot_index})
 
           Tornium.Schema.OrganizedCrimeSlot
-          |> where([s], s.oc_id == ^oc_id and s.slot_index == ^slot_index)
+          |> where(
+            [s],
+            s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.delayer == false and is_nil(s.delayed_reason)
+          )
           |> update([s], set: [delayer: ^delayer_new, delayed_reason: ^delayed_reason_new])
           |> Repo.update_all([])
 

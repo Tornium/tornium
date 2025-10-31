@@ -21,7 +21,7 @@ import random
 import time
 import typing
 
-import jinja2
+import liquid
 from peewee import DoesNotExist, Expression
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -478,22 +478,21 @@ def verify_users(
     ).forget()
 
 
+class _VertificationNameEnvironment(liquid.Environment):
+    context_depth_limit = 5
+    local_namespace_limit = 1000
+    loop_iteration_limit = 100
+    output_stream_limit = 1000
+
+
 def member_verification_name(
     name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
 ) -> typing.Optional[str]:
-    if name_template == "":
-        return None
+    rendered_name: typing.Optional[str] = None
+    if name_template != "":
+        rendered_name = _VertificationNameEnvironment().render(name_template, name=name, tid=tid, tag=tag).strip()
 
-    return (
-        jinja2.Environment(autoescape=True)
-        .from_string(name_template)
-        .render(
-            name=name,
-            tid=tid,
-            tag=tag,
-        )
-        .lstrip()
-    )
+    return rendered_name
 
 
 def member_verified_roles(verified_roles: typing.List[int]) -> typing.Set[str]:

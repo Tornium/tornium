@@ -55,10 +55,23 @@ defmodule Tornium.Guild.Verify.Logic do
         %Tornium.Schema.User{} = user
       ) do
     verified_string =
-      template
-      |> String.replace("{{ name }}", user.name)
-      |> String.replace("{{ tid }}", to_string(user.tid))
-      |> String.replace("{{ tag }}", user.faction.tag)
+      try do
+        template
+        |> Solid.parse!()
+        |> Solid.render!(%{
+          "name" => user.name,
+          "tid" => to_string(user.tid),
+          "tag" => user.faction.tag
+        })
+        |> Kernel.to_string()
+        |> String.replace(["\n", "\t"], "")
+      rescue
+        _e in Solid.TemplateError ->
+          "Template Error"
+
+        _e in Solid.RenderError ->
+          "Render Error"
+      end
 
     Map.put(state, :nick, verified_string)
   end

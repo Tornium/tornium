@@ -90,6 +90,7 @@ $(document).ready(function () {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                     plugins: ["remove_button"],
                 });
             });
@@ -113,6 +114,7 @@ $(document).ready(function () {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });

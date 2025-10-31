@@ -131,6 +131,7 @@ ready(() => {
         .finally(() => {
             new TomSelect(".discord-channel-selector", {
                 create: false,
+                maxOptions: null,
             });
         });
 

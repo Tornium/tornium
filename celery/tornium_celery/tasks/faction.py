@@ -898,6 +898,8 @@ def generate_retaliation_embed(
             .get()
         )
     except DoesNotExist:
+        # It is assumed that the attacker is in a faction
+        Faction.insert(tid=attack["attacker_faction"], name=attack["attacker_factionname"]).on_conflict_ignore()
         opponent = User.create(
             tid=attack["attacker_id"],
             name=attack["attacker_name"],

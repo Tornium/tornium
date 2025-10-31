@@ -16,8 +16,8 @@
 import Config
 
 config :tornium, Tornium.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "Tornium",
+  password: "password",
   hostname: "localhost",
   database: "tornium_test_#{:rand.uniform(1_000)}",
   pool: Ecto.Adapters.SQL.Sandbox,

@@ -35,7 +35,7 @@ The verification cron toggle will enable/disable automated daily verification of
 The verification-on-join toggle will enable/disable verification of new members when they join the Discord server. For more information, see [verification-on-join](verification-on-join).
 
 ### Name Template
-The verification name template is used to generate the nickname for all members in the Discord server. By default, the template is `{{ name }} [{{ tid }}]` such that the nickname of [Chedburn](https://www.torn.com/profiles.php?XID=1) would be `Chedburn [1]`. However, this can be customized with the name template at runtime through certain Jinja-like variables:
+The verification name template is used to generate the nickname for all members in the Discord server. By default, the template is `{{ name }} [{{ tid }}]` such that the nickname of [Chedburn](https://www.torn.com/profiles.php?XID=1) would be `Chedburn [1]`. However, this can be customized with the name template at runtime using the [Liquid](https://shopify.github.io/liquid/) templating language and the following variables:
 
 | Variable   | Description             | Example    |
 | ---------- | ----------------------- | ---------- |

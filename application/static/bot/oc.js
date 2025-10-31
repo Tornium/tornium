@@ -289,6 +289,7 @@ ready(() => {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });
@@ -313,6 +314,7 @@ ready(() => {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });

@@ -34,8 +34,9 @@ def test_default_verification_name(tid: int, name: str):
     assert member_verification_name(name=name, tid=tid, tag="")
 
 
-def test_empty_verified_roles():
-    assert member_verified_roles([]) == set()
+def test_verification_name():
+    assert member_verification_name("tiksan", 2383326, "NSO") == "tiksan [2383326]"
+    assert member_verification_name("Chedburn", 1, "SFD", name_template="{{ name }} [{{ tag }}]") == "Chedburn [SFD]"
 
 
 def test_small_verified_roles():

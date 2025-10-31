@@ -65,7 +65,7 @@ def clients_list():
     clients = [
         _client
         for _client in OAuthClient.select().where(
-            (OAuthClient.user_id == current_user.tid) & (OAuthClient.deleted_at.is_null(True))
+            (OAuthClient.user_id == current_user.tid) & (OAuthClient.deleted_at.is_null(False))
         )
     ]
 

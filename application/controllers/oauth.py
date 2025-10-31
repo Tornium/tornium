@@ -43,7 +43,6 @@ def openid_configuration():
 
     See: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
     """
-    # TODO: Add exact URI for the service documentation once docs are created
     return (
         flask.jsonify(
             {
@@ -53,7 +52,7 @@ def openid_configuration():
                 "scopes_supported": list(valid_scopes),
                 "response_types_supported": ["code"],
                 "grant_types_supported": ["authorization_code"],
-                "service_documentatin": "https://docs.tornium.com",
+                "service_documentation": "https://docs.tornium.com/reference/api/oauth-provider.html",
                 "op_privacy_uri": "https://tornium.com/privacy",
                 "op_tos_uri": "https://tornium.com/terms",
             }

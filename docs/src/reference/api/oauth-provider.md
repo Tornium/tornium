@@ -1,5 +1,5 @@
 # OAuth Provider
-Tornium includes an OAuth provider following [RFC 6479](https://datatracker.ietf.org/doc/html/rfc6479) to allow users to securely interact with Tornium's API. This document outlines supported flows, client registration, and general security considerations.
+Tornium includes an OAuth provider following [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) to allow users to securely interact with Tornium's API. This document outlines supported flows, client registration, and general security considerations.
 
 ## Supported Flows
 Tornium supports the following [OAuth flows](https://datatracker.ietf.org/doc/html/rfc6749#section-1.2):
@@ -100,7 +100,7 @@ This is a list of Tornium's OAuth2 scopes required for use of certain endpoints 
 | Name            | Description                                                             |
 | --------------- | ----------------------------------------------------------------------- |
 | `identity`        | allows access to information on a user's identity                       |
-| `faction`         | allows access to all infomration on the user's faction                  |
+| `faction`         | allows access to all information on the user's faction                  |
 | `faction:attacks` | allows access to information related to the attacks of a user's faction |
 | `faction:banking` | allows access to the Tornium banking of a user's faction                |
 | `faction:crimes`  | allows access to the organized crime information of the user's faction  |
@@ -108,7 +108,7 @@ This is a list of Tornium's OAuth2 scopes required for use of certain endpoints 
 
 
 ## Security Considerations
-- To help prevent cross-site request forgery and clickjacking, the `state` parameter ([RFC 6479](https://datatracker.ietf.org/doc/html/rfc6749)) is **REQUIRED** for all clients. The `state` parameter will bind the user's authorization request to their authenticated state and **MUST** be sent in the authorization request and will be returned in the response. The client **MUST** validate the redirection by matching the redirected `state`; a mismatched `state` parameter may be the result of an intercepted request or failed authorization and its request **MUST** be denied.
+- To help prevent cross-site request forgery and clickjacking, the `state` parameter ([RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749)) is **REQUIRED** for all clients. The `state` parameter will bind the user's authorization request to their authenticated state and **MUST** be sent in the authorization request and will be returned in the response. The client **MUST** validate the redirection by matching the redirected `state`; a mismatched `state` parameter may be the result of an intercepted request or failed authorization and its request **MUST** be denied.
 - PKCE ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)) is **REQUIRED** for all public clients and is **RECOMMENDED** for all clients.
 - All redirect URIs **MUST** use HTTPS.
 

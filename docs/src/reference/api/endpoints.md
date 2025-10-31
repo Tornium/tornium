@@ -129,7 +129,7 @@ Content-Type: application/json
         "user_id": 2383326,
         "oc_position": "Muscle",
         "oc_position_index": 3,
-        "delay_reason": "Flying to Mexico'
+        "delay_reason": "Flying to Mexico"
     }
 ]
 ```
@@ -312,7 +312,7 @@ Authorization: Bearer {{ access_token }}
     "tid": 2383326,
     "name": "tiksan",
     "username": "tiksan [2383326]",
-    "last_refresh: 1761708665,
+    "last_refresh": 1761708665,
     "discord_id": 695828257949352028,
     "factiontid": 15644,
     "last_action": 1761708665

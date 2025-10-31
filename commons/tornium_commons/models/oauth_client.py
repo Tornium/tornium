@@ -161,7 +161,7 @@ class OAuthClient(BaseModel):
         return redirect_uri in self.redirect_uris
 
     def check_client_secret(self, client_secret: str):
-        hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8"))
+        hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8")).hexdigest()
         return secrets.compare_digest(self.client_secret, hashed_client_secret)
 
     def check_endpoint_auth_method(self, method, endpoint):

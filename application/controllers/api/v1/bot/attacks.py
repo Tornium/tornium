@@ -15,7 +15,7 @@
 
 import json
 
-from flask import jsonify, request
+from flask import request
 from peewee import DoesNotExist
 from tornium_commons.models import Faction, Server, ServerAttackConfig
 

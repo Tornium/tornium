@@ -44,23 +44,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
+import hashlib
 import secrets
 import typing
 
 from authlib.oauth2.rfc6749 import list_to_scope, scope_to_list
 from peewee import DateTimeField, FixedCharField, ForeignKeyField
-from playhouse.postgres_ext import JSONField
+from playhouse.postgres_ext import BinaryJSONField
 
+from ..db_connection import db
 from .base_model import BaseModel
 from .user import User
 
 
 class OAuthClient(BaseModel):
     client_id = FixedCharField(max_length=48, primary_key=True)
-    client_secret = FixedCharField(max_length=120)
+    client_secret = FixedCharField(max_length=120, default=None, null=True)
     client_id_issued_at = DateTimeField(null=False)
     client_secret_expires_at = DateTimeField(null=True)
-    client_metadata = JSONField()
+    client_metadata = BinaryJSONField(null=False)
+
+    deleted_at = DateTimeField(default=None, null=True)
 
     user = ForeignKeyField(User, null=False)
 
@@ -155,8 +160,9 @@ class OAuthClient(BaseModel):
     def check_redirect_uri(self, redirect_uri):
         return redirect_uri in self.redirect_uris
 
-    def check_client_secret(self, client_secret):
-        return secrets.compare_digest(self.client_secret, client_secret)
+    def check_client_secret(self, client_secret: str):
+        hashed_client_secret = hashlib.sha256(client_secret.encode("utf-8")).hexdigest()
+        return secrets.compare_digest(self.client_secret, hashed_client_secret)
 
     def check_endpoint_auth_method(self, method, endpoint):
         if endpoint == "token":
@@ -172,7 +178,11 @@ class OAuthClient(BaseModel):
 
     @classmethod
     def get_client(cls, client_id: str) -> typing.Optional["OAuthClient"]:
-        return OAuthClient.select().where(OAuthClient.client_id == client_id).first()
+        return (
+            OAuthClient.select()
+            .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .first()
+        )
 
     # Custom properties below
 
@@ -183,3 +193,30 @@ class OAuthClient(BaseModel):
     @property
     def verified(self) -> bool:
         return self.client_metadata.get("verified", False)
+
+    def scope_list(self) -> [str]:
+        return set(scope_to_list(self.scope))
+
+    def soft_delete(self):
+        # For traceability, we want to soft-delete the OAuth client and revoke all related tokens and codes
+        from .oauth_authorization_code import OAuthAuthorizationCode
+        from .oauth_token import OAuthToken
+
+        with db.atomic():
+            OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
+                (OAuthToken.client_id == self.client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
+            ).execute()
+            OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
+                (OAuthToken.client_id == self.client_id)
+                & (OAuthToken.refresh_token.is_null(False))
+                & (OAuthToken.refresh_token_revoked_at.is_null(True))
+            ).execute()
+
+            # Unused authorization codes provide no value for traceability, so this can be hard-deleted instead
+            OAuthAuthorizationCode.delete().where(
+                (OAuthAuthorizationCode.client_id == self.client_id) & (OAuthAuthorizationCode.used_at.is_null(True))
+            ).execute()
+
+            OAuthClient.update(deleted_at=datetime.datetime.utcnow()).where(
+                OAuthClient.client_id == self.client_id
+            ).execute()

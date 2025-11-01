@@ -131,6 +131,7 @@ ready(() => {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });

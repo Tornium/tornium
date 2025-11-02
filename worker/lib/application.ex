@@ -54,7 +54,8 @@ defmodule Tornium.Application do
       Tornex.HTTP.FinchClient,
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
-      Tornium.Web.Endpoint
+      Tornium.Web.Endpoint,
+      Tornium.Item.NameCache
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)

@@ -93,3 +93,5 @@ wsgi.py
 
 # Docs
 docs/build/
+
+.tool-versions

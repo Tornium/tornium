@@ -64,12 +64,16 @@ defmodule Tornium.Workers.OverdoseUpdate do
             FactionContributorsResponse => %Torngen.Client.Schema.FactionContributorsResponse{
               contributors: overdose_data
             }
+          },
+          Torngen.Client.Path.Faction.News => %{
+            FactionNewsResponse => %Torngen.Client.Schema.FactionNewsResponse{news: armory_usage_news}
           }
         } =
           Tornex.SpecQuery.new()
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
+          |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
           |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-          |> Tornex.SpecQuery.put_parameter(:cat, "current")
+          |> Tornex.SpecQuery.put_parameter(:cat, "armoryAction")
           |> Tornex.SpecQuery.parse(result)
 
         original_overdoses =

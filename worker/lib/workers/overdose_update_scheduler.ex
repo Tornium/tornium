@@ -42,8 +42,11 @@ defmodule Tornium.Workers.OverdoseUpdateScheduler do
       query =
         Tornex.SpecQuery.new(key: api_key, key_owner: user_tid, nice: 10)
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
+        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
         |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-        |> Tornex.SpecQuery.put_parameter(:cat, "current")
+        |> Tornex.SpecQuery.put_parameter(:cat, "armoryAction")
+
+      # NOTE: faction/contributors will use the `current` cat which is currently the default value
 
       api_call_id = Ecto.UUID.generate()
       Tornium.API.Store.create(api_call_id, 300)

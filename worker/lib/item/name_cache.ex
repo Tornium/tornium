@@ -70,8 +70,9 @@ defmodule Tornium.Item.NameCache do
     if expired?(), do: rebuild()
   end
 
-  defp rebuild() do
-    Agent.cast(__MODULE__, fn %{ttl: ttl, ttl_unit: ttl_unit} = state ->
+  def rebuild() do
+    # TODO: Revert to defp and Agent.cast
+    Agent.update(__MODULE__, fn %{ttl: ttl, ttl_unit: ttl_unit} = state ->
       items_forward =
         Tornium.Schema.Item.all()
         |> Enum.map(fn %Tornium.Schema.Item{tid: item_id, name: item_name} -> {item_id, item_name} end)

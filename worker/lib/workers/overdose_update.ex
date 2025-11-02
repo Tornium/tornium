@@ -38,6 +38,9 @@ defmodule Tornium.Workers.OverdoseUpdate do
       states: :incomplete
     ]
 
+  @armory_news_category "armoryAction"
+  @drug_item_ids []
+
   @impl Oban.Worker
   def perform(
         %Oban.Job{
@@ -73,7 +76,7 @@ defmodule Tornium.Workers.OverdoseUpdate do
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
           |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-          |> Tornex.SpecQuery.put_parameter(:cat, "armoryAction")
+          |> Tornex.SpecQuery.put_parameter(:cat, @armory_news_category)
           |> Tornex.SpecQuery.parse(result)
 
         original_overdoses =
@@ -96,6 +99,15 @@ defmodule Tornium.Workers.OverdoseUpdate do
           Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} ->
             original_overdoses |> Map.get(user_id) |> is_nil() or
               original_overdoses |> Map.get(user_id) |> Kernel.==(count)
+          end)
+
+        # TODO: Fetch more data until the armory data encompasses the period of OD data
+        _drug_armory_usage =
+          @armory_news_category
+          |> Tornium.Faction.News.parse(armory_usage_news)
+          |> Enum.reject(fn %{item_id: item_id} -> is_nil(item_id) end)
+          |> Enum.filter(fn %{action: action, item_id: item_id} ->
+            action == :use and Enum.member?(@drug_item_ids, item_id)
           end)
 
         {_, overdose_events} =

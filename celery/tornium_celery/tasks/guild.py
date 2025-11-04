@@ -165,6 +165,9 @@ def refresh_guilds():
             except (DiscordError, NetworkingError, celery.exceptions.Retry):
                 continue
 
+    # We want to set the IDs to null to prevent a foreign key violation when deleting the server_attack_config and server_notification_config
+    Server.update(oc_config_id=None, notifictions_config_id=None).where(Server.sid << guilds_not_updated).execute()
+
     for deleted_guild in guilds_not_updated:
         # Delete certain rows that rely upon the server for the primary key
         try:

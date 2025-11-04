@@ -86,7 +86,6 @@ defmodule Tornium.Faction.News.ArmoryAction do
       text_remainder
       |> String.trim()
       |> text_action_item()
-      |> IO.inspect(label: text_remainder)
 
     item_id =
       case item_name do

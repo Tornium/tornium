@@ -85,6 +85,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       Tornium.Schema.ArmoryUsage
       |> where([u], u.faction_id == ^faction_id)
       |> order_by([u], desc: u.timestamp)
+      |> limit([u], 1)
       |> Repo.one()
 
     query =
@@ -95,6 +96,8 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
     query =
       case latest_faction_usage do
         %Tornium.Schema.ArmoryUsage{timestamp: timestamp} ->
+          # We do not want to increment the from parameter to avoid missing data occurring at the same second.
+          # Data already in the database will be handled by an on conflict statement.
           query
           |> Tornex.SpecQuery.put_parameter(:from, DateTime.to_unix(timestamp, :second))
           |> Tornex.SpecQuery.put_parameter(:sort, "asc")
@@ -115,7 +118,6 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
     %{
       user_id: user_id,
       faction_id: faction_id,
-      origin_job_id: job_id,
       api_call_id: api_call_id
     }
     |> Tornium.Workers.ArmoryNewsUpdate.new(schedule_in: _seconds = 15)

@@ -48,7 +48,7 @@ defmodule Tornium.Schema.ArmoryUsage do
         }
 
   @primary_key {:id, :string, autogenerate: false}
-  schema "armory_news" do
+  schema "armory_usage" do
     field(:timestamp, :utc_datetime)
     field(:action, Ecto.Enum, values: [:use, :loan, :return, :fill, :give])
 
@@ -77,12 +77,10 @@ defmodule Tornium.Schema.ArmoryUsage do
   @doc """
   Map an `ArmoryAction` struct to a `ArmoryUsage` Ecto struct.
   """
-  @spec map(news :: Tornium.Faction.News.ArmoryAction.t(), faction_id :: non_neg_integer()) :: t()
+  @spec map(news :: Tornium.Faction.News.ArmoryAction.t(), faction_id :: non_neg_integer()) :: map()
   def map(%Tornium.Faction.News.ArmoryAction{} = news, faction_id) when is_integer(faction_id) do
-    Repo.load(
-      __MODULE__,
-      news
-      |> Map.put(:faction_id, faction_id)
-    )
+    news
+    |> Map.put(:faction_id, faction_id)
+    |> Map.delete(:__struct__)
   end
 end

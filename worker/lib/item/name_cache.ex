@@ -41,6 +41,7 @@ defmodule Tornium.Item.NameCache do
   """
   @spec get_by_id(item_id :: non_neg_integer()) :: String.t()
   def get_by_id(item_id) when is_integer(item_id) do
+    ensure_fresh()
     Agent.get(__MODULE__, &Map.get(&1.forward, item_id))
   end
 
@@ -49,6 +50,7 @@ defmodule Tornium.Item.NameCache do
   """
   @spec get_by_name(item_name :: String.t()) :: non_neg_integer()
   def get_by_name(item_name) when is_binary(item_name) do
+    ensure_fresh()
     Agent.get(__MODULE__, &Map.get(&1.backward, item_name))
   end
 

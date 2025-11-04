@@ -18,9 +18,6 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
   Insert new armory news events.
   """
 
-  import Ecto.Query
-  alias Tornium.Repo
-
   use Oban.Worker,
     max_attempts: 3,
     priority: 0,

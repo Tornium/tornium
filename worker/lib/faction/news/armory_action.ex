@@ -23,17 +23,6 @@ defmodule Tornium.Faction.News.ArmoryAction do
   defstruct [:timestamp, :id, :action, :user_id, :item_id, :quantity]
 
   @typedoc """
-  Possible actions in the faction news with the following mapping:
-
-  "used" => `:use`
-  "loaned" => `:loan`
-  "returned" => `:return`
-  "filled" => `:fill`
-  "give" => `:give`
-  """
-  @type actions :: :use | :loan | :return | :fill | :give
-
-  @typedoc """
   The item ID of the item used from the armory or the type of refill used.
   """
   @type armory_item :: non_neg_integer() | :energy_refill | :nerve_refill
@@ -41,7 +30,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
   @type t :: %__MODULE__{
           timestamp: DateTime.t(),
           id: String.t(),
-          action: actions(),
+          action: Tornium.Schema.ArmoryUsage.actions(),
           user_id: non_neg_integer(),
           item_id: armory_item(),
           quantity: non_neg_integer()
@@ -71,7 +60,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
 
   @spec do_parse_text(tree :: Floki.html_tree()) :: %{
           user_id: non_neg_integer(),
-          action: actions(),
+          action: Tornium.Schema.ArmoryUsage.actions(),
           item_id: armory_item(),
           quantity: non_neg_integer()
         }
@@ -116,7 +105,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
 
   @spec text_action_item(text :: String.t()) ::
           %{
-            action: actions(),
+            action: Tornium.Schema.ArmoryUsage.actions(),
             quantity: non_neg_integer(),
             item_name: armory_item() | String.t()
           }
@@ -147,48 +136,31 @@ defmodule Tornium.Faction.News.ArmoryAction do
           quantity: String.to_integer(count),
           item_name: :nerve_refill
         }
-
-      unknown when is_list(unknown) ->
-        IO.inspect(unknown, label: "Unknown usage")
-        nil
     end
   end
 
   defp text_action_item("filled one of the faction's " <> suffixed_item_string = text) when is_binary(text) do
-    split_item_string = String.split(suffixed_item_string, " items", trim: true)
+    [item_name] = String.split(suffixed_item_string, " items", trim: true)
 
-    case split_item_string do
-      [item_name] ->
-        %{
-          action: :fill,
-          quantity: 1,
-          item_name: item_name
-        }
-
-      unknown when is_list(unknown) ->
-        IO.inspect(unknown, label: "Unknown usage")
-        nil
-    end
+    %{
+      action: :fill,
+      quantity: 1,
+      item_name: item_name
+    }
   end
 
   defp text_action_item("loaned " <> suffixed_item_string = text) when is_binary(text) do
-    split_item_string = String.split(suffixed_item_string, [" to ", " from the faction armory"], trim: true)
+    [item_name_quantity, _recipient] =
+      String.split(suffixed_item_string, [" to ", " from the faction armory"], trim: true)
 
-    case split_item_string do
-      [item_name_quantity, recipient] ->
-        # loaned 1x Thompson to themselves from the faction armory
-        [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+    # loaned 1x Thompson to themselves from the faction armory
+    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
 
-        %{
-          action: :loan,
-          quantity: String.to_integer(item_quantity),
-          item_name: item_name
-        }
-
-      unknown when is_list(unknown) ->
-        IO.inspect(unknown, label: "Unknown usage")
-        nil
-    end
+    %{
+      action: :loan,
+      quantity: String.to_integer(item_quantity),
+      item_name: item_name
+    }
   end
 
   defp text_action_item("returned " <> item_name_quantity = text) when is_binary(text) do
@@ -199,10 +171,5 @@ defmodule Tornium.Faction.News.ArmoryAction do
       quantity: String.to_integer(item_quantity),
       item_name: item_name
     }
-  end
-
-  defp text_action_item(unknown) do
-    IO.inspect(unknown, label: "Unknown usage")
-    nil
   end
 end

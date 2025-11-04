@@ -34,7 +34,7 @@ defmodule Tornium.Faction.News do
   end
 
   @doc """
-  Parse a faction news struct from Torn.
+  Parse a faction news struct from Torn for a specific category.
   """
   @callback parse(news :: Torngen.Client.Schema.FactionNews.t()) :: struct()
 end

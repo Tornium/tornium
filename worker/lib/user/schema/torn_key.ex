@@ -16,6 +16,8 @@
 defmodule Tornium.Schema.TornKey do
   use Ecto.Schema
 
+  @type access_levels() :: :public | :minimal | :limited | :full
+
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           api_key: String.t(),
@@ -23,7 +25,7 @@ defmodule Tornium.Schema.TornKey do
           default: boolean(),
           disabled: boolean(),
           paused: boolean(),
-          access_level: integer()
+          access_level: access_levels()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -33,6 +35,6 @@ defmodule Tornium.Schema.TornKey do
     field(:default, :boolean)
     field(:disabled, :boolean)
     field(:paused, :boolean)
-    field(:access_level, :integer)
+    field(:access_level, Ecto.Enum, values: [public: 1, minimal: 2, limited: 3, full: 4])
   end
 end

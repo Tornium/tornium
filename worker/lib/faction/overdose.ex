@@ -18,7 +18,34 @@ defmodule Tornium.Faction.Overdose do
   Functions to collate overdose data.
   """
 
+  import Ecto.Query
   alias Torngen.Client.Schema.FactionContributor
+  alias Tornium.Repo
+
+  @typedoc """
+  An overdose event map.
+  """
+  @type event :: %{
+          faction_id: non_neg_integer(),
+          user_id: non_neg_integer(),
+          created_at: DateTime.t(),
+          drug: non_neg_integer() | nil
+        }
+
+  @drug_items %{
+    196 => "Cannabis",
+    197 => "Ecstasy",
+    198 => "Ketamine",
+    199 => "LSD",
+    200 => "Opium",
+    201 => "PCP",
+    203 => "Shrooms",
+    204 => "Speed",
+    205 => "Vicodin",
+    206 => "Xanax",
+    870 => "Love Juice"
+  }
+  @drug_item_ids @drug_items |> Map.keys()
 
   @doc """
   Map the overdose count of faction members and their IDs.
@@ -62,11 +89,8 @@ defmodule Tornium.Faction.Overdose do
   @doc """
   Map the updated overdose counts to `Tornium.Schema.OverdoseEvent`.
   """
-  @spec map_events(overdosed_members :: [Tornium.Schema.OverdoseCount.t()], faction_id :: integer()) :: [
-          %{faction_id: integer(), user_id: integer(), created_at: DateTime.t(), drug: term()}
-        ]
+  @spec map_events(overdosed_members :: [Tornium.Schema.OverdoseCount.t()], faction_id :: integer()) :: [event()]
   def map_events([%Tornium.Schema.OverdoseCount{} | _] = overdosed_members, faction_id) when is_integer(faction_id) do
-    # TODO: Determine the drug used
     # TODO: Test this
 
     Enum.map(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
@@ -143,6 +167,58 @@ defmodule Tornium.Faction.Overdose do
       timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
     |> do_to_report_embed(events)
+  end
+
+  @doc """
+  Attempt to determine the drug used in an overdose event.
+
+  1) Check if there's a use event for the user in the faction armory logs.
+  2) Check the user's logs if enabled and the user has a full access API key
+  3) Set drug to `nil` as it is unknown. The drug can later be updated on the next pass of the armory news updater in case
+     the overdose updates run before the armory news is inserted into the database.
+  """
+  @spec set_drug_used(event :: event(), last_event :: non_neg_integer() | nil) :: event()
+  def set_drug_used(%{faction_id: faction_id, user_id: user_id, created_at: created_at} = event, last_event)
+      when is_integer(last_event) do
+    armory_usage_logs =
+      Tornium.Schema.ArmoryUsage
+      |> where([u], u.faction_id == ^faction_id and u.user_id == ^user_id and u.item_id in @drug_item_ids)
+      |> where([u], u.timestamp >= ^DateTime.from_unix!(last_event) and u.timestamp <= ^created_at)
+      |> Repo.all()
+
+    case armory_usage_logs do
+      [%Tornium.Schema.ArmoryUsage{item_id: item_id}] ->
+        # Set the drug used from the armory usage log since there's only one potential drug used log
+        Map.put(event, :drug, item_id)
+
+      _ ->
+        # There are either no or more than one armory usage log matching the timeframe. We should try to use 
+        # the user's logs if we are able to.
+        set_drug_used_logs(event, last_event)
+    end
+  end
+
+  def set_drug_used(event, last_event) when is_map(event) and is_nil(last_event) do
+    event
+  end
+
+  @spec set_drug_used_logs(event :: event(), last_event :: non_neg_integer()) :: event()
+  defp set_drug_used_logs(%{user_id: user_id, created_at: _created_at} = event, last_event)
+       when is_integer(user_id) and is_integer(last_event) do
+    api_key = Tornium.User.Key.get_by_user(user_id)
+
+    event =
+      if Tornium.Schema.UserSettings.od_drug?(user_id) and not is_nil(api_key) and api_key.access_level == :full do
+        # The user needs to have their `od_drug_enabled` set to true and to have a default full access API
+        # key for this to pull their overdose logs.
+
+        # TODO: Implement this
+        event
+      else
+        event
+      end
+
+    event
   end
 
   defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [

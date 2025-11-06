@@ -16,5 +16,9 @@ defmodule Tornium.Repo.Migrations.AddArmoryUsage do
 
       add :quantity, :integer, null: false
     end
+
+    alter table("user_settings") do
+      add :od_drug_enabled, :boolean, default: false, null: false
+    end
   end
 end

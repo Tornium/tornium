@@ -131,6 +131,13 @@ ready(() => {
         toggleSetting("stat-db", false);
     });
 
+    document.getElementById("od-drug-toggle-enable").addEventListener("click", (event) => {
+        toggleSetting("od-drug", true);
+    });
+    document.getElementById("od-drug-toggle-disable").addEventListener("click", (event) => {
+        toggleSetting("od-drug", false);
+    });
+
     Array.from(document.getElementsByClassName("revoke-client")).forEach((button) => {
         button.addEventListener("click", revokeClient);
     });

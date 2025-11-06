@@ -15,23 +15,35 @@
 
 defmodule Tornium.User.Key do
   import Ecto.Query
-
   alias Tornium.Repo
 
-  @spec get_by_user(user :: Tornium.Schema.User.t()) :: Tornium.Schema.TornKey.t() | nil
+  @doc """
+  Get the default API key for a specific user or a specific user ID.
+  """
+  @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer()) :: Tornium.Schema.TornKey.t() | nil
   def get_by_user(%Tornium.Schema.User{} = user) do
     pid = Process.whereis(Tornium.User.KeyStore)
     get_by_user(user, pid)
   end
 
-  @spec get_by_user(user :: Tornium.Schema.User.t(), pid :: pid()) :: Tornium.Schema.TornKey.t() | nil
-  def get_by_user(%Tornium.Schema.User{} = user, pid) when not is_nil(pid) do
-    case Tornium.User.KeyStore.get(pid, user.tid) do
+  def get_by_user(user_id) when is_integer(user_id) do
+    pid = Process.whereis(Tornium.User.KeyStore)
+    get_by_user(user_id, pid)
+  end
+
+  @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer(), pid :: pid()) ::
+          Tornium.Schema.TornKey.t() | nil
+  def get_by_user(%Tornium.Schema.User{tid: user_id} = _user, pid) when not is_nil(pid) do
+    get_by_user(user_id, pid)
+  end
+
+  def get_by_user(user_id, pid) when is_integer(user_id) and not is_nil(pid) do
+    case Tornium.User.KeyStore.get(pid, user_id) do
       nil ->
-        where = [user_id: user.tid, paused: false, disabled: false, default: true]
+        where = [user_id: user_id, paused: false, disabled: false, default: true]
         query = from(Tornium.Schema.TornKey, where: ^where)
         torn_key = Repo.one(query)
-        Tornium.User.KeyStore.put(pid, user.tid, torn_key)
+        Tornium.User.KeyStore.put(pid, user_id, torn_key)
         torn_key
 
       torn_key ->

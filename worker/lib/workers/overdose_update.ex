@@ -38,9 +38,6 @@ defmodule Tornium.Workers.OverdoseUpdate do
       states: :incomplete
     ]
 
-  @armory_news_category "armoryAction"
-  @drug_item_ids []
-
   @impl Oban.Worker
   def perform(
         %Oban.Job{
@@ -67,16 +64,11 @@ defmodule Tornium.Workers.OverdoseUpdate do
             FactionContributorsResponse => %Torngen.Client.Schema.FactionContributorsResponse{
               contributors: overdose_data
             }
-          },
-          Torngen.Client.Path.Faction.News => %{
-            FactionNewsResponse => %Torngen.Client.Schema.FactionNewsResponse{news: armory_usage_news}
           }
         } =
           Tornex.SpecQuery.new()
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
-          |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
           |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-          |> Tornex.SpecQuery.put_parameter(:cat, @armory_news_category)
           |> Tornex.SpecQuery.parse(result)
 
         original_overdoses =
@@ -96,24 +88,29 @@ defmodule Tornium.Workers.OverdoseUpdate do
           )
 
         overdosed_members =
-          Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} ->
-            original_overdoses |> Map.get(user_id) |> is_nil() or
-              original_overdoses |> Map.get(user_id) |> Kernel.==(count)
+          Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: original_count} ->
+            member_overdose_count = Map.get(original_overdoses, user_id)
+
+            is_nil(member_overdose_count) or original_count == member_overdose_count
           end)
 
-        # TODO: Fetch more data until the armory data encompasses the period of OD data
-        _drug_armory_usage =
-          @armory_news_category
-          |> Tornium.Faction.News.parse(armory_usage_news)
-          |> Enum.reject(fn %{item_id: item_id} -> is_nil(item_id) end)
-          |> Enum.filter(fn %{action: action, item_id: item_id} ->
-            action == :use and Enum.member?(@drug_item_ids, item_id)
-          end)
+        last_overdose =
+          Tornium.Schema.OverdoseEvent
+          |> select([e], e.created_at)
+          |> where([e], e.faction_id == ^faction_id)
+          |> order_by([e], desc: e.created_at)
+          |> first()
+          |> Repo.one()
+
+        mapped_overdose_events =
+          overdosed_members
+          |> Tornium.Faction.Overdose.map_events(faction_id)
+          |> Enum.map(fn event -> Tornium.Faction.Overdose.set_drug_used(event, last_overdose) end)
 
         {_, overdose_events} =
           Repo.insert_all(
             Tornium.Schema.OverdoseEvent,
-            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id),
+            mapped_overdose_events,
             returning: true
           )
 

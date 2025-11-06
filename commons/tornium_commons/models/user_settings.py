@@ -31,6 +31,7 @@ class UserSettings(BaseModel):
 
     cpr_enabled = BooleanField(default=True, null=False)
     stat_db_enabled = BooleanField(default=True, null=False)
+    od_drug_enabled = BooleanField(default=False, null=False)
 
     def create_or_update(user_id: int, **kwargs: dict):
         """

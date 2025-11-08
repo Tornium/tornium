@@ -158,6 +158,10 @@ defmodule Tornium.Faction.OC.Team do
     Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
   end
 
+  def team_member_ids(members) when members == [] do
+    []
+  end
+
   @doc """
   Execute the checks in `Tornium.Faction.OC.Team.Check`.
 

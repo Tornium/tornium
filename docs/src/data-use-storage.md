@@ -15,6 +15,11 @@ We collect the battle stats of users who are signed into Tornium and potentially
 ## User CPR
 We collect the Organized Crime 2.0 success chance of users with the "API Access" permission for each OC position for each OC type if the user's faction has migrated to Organized Crimes 2.0. This data can be accessed by your faction's members with the "Manage Organized Crimes" permission. This feature for your account can be disabled in Tornium's <a href="/settings">user settings</a>.
 
+## User Logs
+If you have a full access API key on Tornium, we may collect your user logs for the following log categories and reasons:
+
+**(category) Item use drug**: This data is used for overdose drug detection. The data on the drug overdosed on can be accessed by your faction's members with faction API access. This feature for your account can be disabled in Tornium's <a href="/settings">user settings</a>.
+
 ## Faction Attacks
 We may collect your faction attacks for potential retaliations, for the chain timer, for updating the stat database. This data (except for related data in the stat database) is not stored persistently. Your faction attacks cannot be accessed by anyone.
 
@@ -22,7 +27,7 @@ We may collect your faction attacks for potential retaliations, for the chain ti
 We collect your faction organized crimes for related notifications (e.g. when an organized crime is delayed). This data is stored persistently and can be accessed by any member of your faction with the "Manage Organized Crimes" permission.
 
 ## Faction Armory
-We collect your faction armory data for notifications when the armory is low on stock for specific item(s). This data is not stored persistently. Your faction armory data cannot be accessed by anyone.
+We collect your faction armory data for notifications when the armory is low on stock for specific item(s), for overdose drug detection, and for armory usage reporting. This data is stored persistently and can be accessed by any member of your faction with faction API access permissions.
 
 ## Faction Funds
 We collect your faction funds data to handle withdrawal requests for members against the faction's vault. This data (except for related data in withdrawal requests) is not stored persistently. Your faction funds cannot be accessed by anyone.

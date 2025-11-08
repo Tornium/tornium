@@ -1,7 +1,6 @@
 {
     "active": [
         "ping",
-        "bot/server",
         "bot/verify/verify",
         "bot/verify/verify-uc",
         "bot/verify/verifyall",

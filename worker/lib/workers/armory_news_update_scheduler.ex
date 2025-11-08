@@ -95,7 +95,15 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
 
     query =
       case latest_faction_usage do
-        %Tornium.Schema.ArmoryUsage{timestamp: timestamp} ->
+        %Tornium.Schema.ArmoryUsage{timestamp: %DateTime{} = timestamp} ->
+          # We want to ensure that the latest timestamp from the armory usage logs is within seven day of now to
+          # ensure we aren't pulling too much data from the API
+          timestamp =
+            DateTime.utc_now()
+            |> DateTime.add(-7, :day)
+            |> then(&[&1, timestamp])
+            |> Enum.max(DateTime)
+
           # We do not want to increment the from parameter to avoid missing data occurring at the same second.
           # Data already in the database will be handled by an on conflict statement.
           query

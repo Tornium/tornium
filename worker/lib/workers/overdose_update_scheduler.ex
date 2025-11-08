@@ -14,6 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OverdoseUpdateScheduler do
+  @moduledoc """
+  Scheduler to update every factions' overdose events.
+
+  NOTE: This is set to run every hour at 7 and 37 so that `Tornium.Workers.ArmoryNewsUpdateScheduler`
+  can finish updating the faction's armory news (or attempt to).
+  """
   alias Tornium.Repo
   import Ecto.Query
 

@@ -91,17 +91,18 @@ defmodule Tornium.Faction.Overdose do
   """
   @spec map_events(overdosed_members :: [Tornium.Schema.OverdoseCount.t()], faction_id :: integer()) :: [event()]
   def map_events([%Tornium.Schema.OverdoseCount{} | _] = overdosed_members, faction_id) when is_integer(faction_id) do
-    # TODO: Test this
-
-    Enum.map(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
-      %{
-        guid: Ecto.UUID.generate(),
-        faction_id: faction_id,
-        user_id: member_id,
-        created_at: DateTime.utc_now(:second),
-        drug: nil
-      }
-    end)
+    Enum.map(
+      overdosed_members,
+      fn %Tornium.Schema.OverdoseCount{user_id: member_id} when is_integer(member_id) ->
+        %{
+          guid: Ecto.UUID.generate(),
+          faction_id: faction_id,
+          user_id: member_id,
+          created_at: DateTime.utc_now(:second),
+          drug: nil
+        }
+      end
+    )
   end
 
   def map_events([] = _overdosed_members, faction_id) when is_integer(faction_id) do
@@ -321,7 +322,7 @@ defmodule Tornium.Faction.Overdose do
       {:error, _error} ->
         []
 
-      _ when is_map(response) or is_list(response) ->
+      _ ->
         %{
           Torngen.Client.Path.User.Log => %{
             UserLogsResponse => %Torngen.Client.Schema.UserLogsResponse{

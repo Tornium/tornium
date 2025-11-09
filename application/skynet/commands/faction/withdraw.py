@@ -137,7 +137,9 @@ def withdraw(interaction, *args, **kwargs):
     timeout = find_list(interaction["data"]["options"], "name", "timeout")
     timeout_datetime: typing.Optional[datetime.datetime] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
-    if timeout["value"] == "15m":
+    if timeout is None:
+        pass
+    elif timeout["value"] == "15m":
         timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
     elif timeout["value"] == "30m":
         timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)

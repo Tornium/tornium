@@ -68,7 +68,7 @@ class Withdrawal(BaseModel):
         Their faction balance must be greater than the sum of existing, non-fulfilled withdrawal requests and this request.
         """
 
-        aa_keys = Faction.select().where(Faction.tid == faction_id).aa_keys
+        aa_keys = Faction.select().where(Faction.tid == faction_id).get().aa_keys
 
         if len(aa_keys) == 0:
             raise MissingKeyError()

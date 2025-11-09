@@ -1,6 +1,6 @@
 defmodule Tornium.Item.NameCache do
   @moduledoc """
-  A bidirection item name cache for 
+  A bidirectional item name cache for mapping item IDs to item names and vice versa.
 
   ```
   Item ID <=> Item Name

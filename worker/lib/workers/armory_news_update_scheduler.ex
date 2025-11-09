@@ -33,7 +33,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
     ]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{id: job_id} = _job) do
+  def perform(%Oban.Job{} = _job) do
     Tornium.Schema.TornKey
     |> where([k], k.default == true and k.disabled == false and k.paused == false)
     |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)

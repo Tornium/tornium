@@ -210,35 +210,32 @@ defmodule Tornium.Faction.Overdose do
        when is_integer(user_id) do
     api_key = Tornium.User.Key.get_by_user(user_id)
 
-    event =
-      if Tornium.Schema.UserSettings.od_drug?(user_id) and not is_nil(api_key) and api_key.access_level == :full do
-        # The user needs to have their `od_drug_enabled` set to true and to have a default full access API
-        # key for this to pull their overdose logs.
+    if Tornium.Schema.UserSettings.od_drug?(user_id) and not is_nil(api_key) and api_key.access_level == :full do
+      # The user needs to have their `od_drug_enabled` set to true and to have a default full access API
+      # key for this to pull their overdose logs.
 
-        overdose_logs = get_user_overdoses(api_key, overdose_last_updated)
+      overdose_logs = get_user_overdoses(api_key, overdose_last_updated)
 
-        case overdose_logs do
-          [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}] ->
-            event
-            |> Map.put(:created_at, overdosed_at)
-            |> Map.put(:drug, overdosed_item_id)
+      case overdose_logs do
+        [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}] ->
+          event
+          |> Map.put(:created_at, overdosed_at)
+          |> Map.put(:drug, overdosed_item_id)
 
-          _ ->
-            # One of the following is true:
-            #  - There are no overdose logs
-            #  - The logs are of the wrong shape
-            #  - There are more than one logs, so we can not be sure what drug the user overdosed on.
-            Map.put(event, :drug, nil)
-        end
-
-        event
-      else
-        # Ensure the drug is set to `nil` so the armory usage logs can attempt to find a matching log
-        # during its next run
-        Map.put(event, :drug, nil)
+        _ ->
+          # One of the following is true:
+          #  - There are no overdose logs
+          #  - The logs are of the wrong shape
+          #  - There are more than one logs, so we can not be sure what drug the user overdosed on.
+          Map.put(event, :drug, nil)
       end
 
-    event
+      event
+    else
+      # Ensure the drug is set to `nil` so the armory usage logs can attempt to find a matching log
+      # during its next run
+      Map.put(event, :drug, nil)
+    end
   end
 
   defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [

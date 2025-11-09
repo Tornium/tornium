@@ -20,5 +20,15 @@ defmodule Tornium.Repo.Migrations.AddArmoryUsage do
     alter table("user_settings") do
       add :od_drug_enabled, :boolean, default: false, null: false
     end
+
+    execute("""
+      ALTER TABLE armory_usage
+      ADD CONSTRAINT armory_usage_item_or_refill
+      CHECK (
+      item_id IS NOT NULL
+      OR is_energy_refill = TRUE
+      OR is_nerve_refill = TRUE
+      )
+      """)
   end
 end

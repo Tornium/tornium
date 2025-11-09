@@ -20,7 +20,6 @@ import uuid
 
 from peewee import IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
-from tornium_commons import rds
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -154,27 +153,6 @@ def withdraw(interaction, *args, **kwargs):
         timeout_datetime = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
     elif timeout["value"] == "none":
         timeout_datetime = None
-
-    client = rds()
-    # TODO: Make this set of redis queries atomic
-    if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Ratelimit Reached",
-                        "description": f"You have reached the ratelimit on banking requests (once every minute). "
-                        f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    else:
-        client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
-        client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
 
     withdrawal_amount = find_list(interaction["data"]["options"], "name", "amount")
 

@@ -279,7 +279,7 @@ API_EXCEPTIONS = {
         "code": 4292,
         "name": "BankingRatelimit",
         "http": 429,
-        "message": "User has reached a ratelimit on banking.",
+        "message": "[DEPRECATED] User has reached a ratelimit on banking.",
     },
     "4300": {"code": 4300, "name": "OCMigrationError", "message": "Faction has not migrated to OCs 2.0."},
     "5000": {

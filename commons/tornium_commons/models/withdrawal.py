@@ -91,7 +91,7 @@ class Withdrawal(BaseModel):
         pending_user_withdrawals = (
             Withdrawal.select(Withdrawal.amount)
             .where(
-                (Withdrawal.request == user_id)
+                (Withdrawal.requester == user_id)
                 & (Withdrawal.faction_tid == faction_id)
                 & (Withdrawal.cash_request == (request_type == "money_balance") & (Withdrawal.status == 0))
             )

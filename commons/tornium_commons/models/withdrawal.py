@@ -88,14 +88,10 @@ class Withdrawal(BaseModel):
             # The user is requesting more than they have in their balance
             raise ValueError("You do not have sufficient balance in your faction.")
 
-        pending_user_withdrawals = (
-            Withdrawal.select(Withdrawal.amount)
-            .where(
-                (Withdrawal.requester == user_id)
-                & (Withdrawal.faction_tid == faction_id)
-                & (Withdrawal.cash_request == (request_type == "money_balance") & (Withdrawal.status == 0))
-            )
-            .all()
+        pending_user_withdrawals = Withdrawal.select(Withdrawal.amount).where(
+            (Withdrawal.requester == user_id)
+            & (Withdrawal.faction_tid == faction_id)
+            & (Withdrawal.cash_request == (request_type == "money_balance") & (Withdrawal.status == 0))
         )
 
         if len(pending_user_withdrawals) == 0:

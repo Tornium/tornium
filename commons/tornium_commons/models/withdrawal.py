@@ -73,8 +73,7 @@ class Withdrawal(BaseModel):
         if len(aa_keys) == 0:
             raise MissingKeyError()
 
-        aa_key = random.choice(aa_keys).api_key
-        faction_balances = tornget(f"faction/{faction_id}?selections=donations", aa_key)["donations"]
+        faction_balances = tornget(f"faction/{faction_id}?selections=donations", random.choice(aa_keys))["donations"]
 
         try:
             current_balance = faction_balances[str(user_id)][request_type]

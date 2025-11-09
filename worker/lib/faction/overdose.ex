@@ -29,7 +29,7 @@ defmodule Tornium.Faction.Overdose do
           faction_id: non_neg_integer(),
           user_id: non_neg_integer(),
           created_at: DateTime.t(),
-          drug: non_neg_integer() | nil
+          drug_id: non_neg_integer() | nil
         }
 
   @drug_items %{
@@ -99,7 +99,7 @@ defmodule Tornium.Faction.Overdose do
           faction_id: faction_id,
           user_id: member_id,
           created_at: DateTime.utc_now(:second),
-          drug: nil
+          drug_id: nil
         }
       end
     )
@@ -191,7 +191,7 @@ defmodule Tornium.Faction.Overdose do
     case armory_usage_logs do
       [%Tornium.Schema.ArmoryUsage{item_id: item_id}] ->
         # Set the drug used from the armory usage log since there's only one potential drug used log
-        Map.put(event, :drug, item_id)
+        Map.put(event, :drug_id, item_id)
 
       _ ->
         # One of the following is true:
@@ -222,21 +222,21 @@ defmodule Tornium.Faction.Overdose do
         [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}] ->
           event
           |> Map.put(:created_at, overdosed_at)
-          |> Map.put(:drug, overdosed_item_id)
+          |> Map.put(:drug_id, overdosed_item_id)
 
         _ ->
           # One of the following is true:
           #  - There are no overdose logs
           #  - The logs are of the wrong shape
           #  - There are more than one logs, so we can not be sure what drug the user overdosed on.
-          Map.put(event, :drug, nil)
+          Map.put(event, :drug_id, nil)
       end
 
       event
     else
       # Ensure the drug is set to `nil` so the armory usage logs can attempt to find a matching log
       # during its next run
-      Map.put(event, :drug, nil)
+      Map.put(event, :drug_id, nil)
     end
   end
 

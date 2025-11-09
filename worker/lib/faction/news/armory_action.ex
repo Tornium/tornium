@@ -51,7 +51,8 @@ defmodule Tornium.Faction.News.ArmoryAction do
         action: action,
         item_id: item_id,
         quantity: quantity
-      } when not is_nil(recipient_id) ->
+      }
+      when not is_nil(recipient_id) ->
         %__MODULE__{
           timestamp: DateTime.from_unix!(timestamp),
           id: id,

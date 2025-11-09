@@ -37,7 +37,7 @@ defmodule Tornium.Schema.UserSettings do
           user: Tornium.Schema.User.t(),
           cpr_enabled: boolean(),
           stat_db_enabled: boolean(),
-          od_drug_enabled: boolean(),
+          od_drug_enabled: boolean()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}

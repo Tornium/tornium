@@ -133,15 +133,17 @@ defmodule Tornium.Faction.Overdose do
 
   def to_embed(
         %Tornium.Schema.OverdoseEvent{
-          drug: drug,
+          drug: %Tornium.Schema.Item{tid: drug_id} = _drug,
           user: %Tornium.Schema.User{tid: user_id, name: user_name},
           faction: %Tornium.Schema.Faction{name: faction_name}
         } = _event
       ) do
+    drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
+
     %Nostrum.Struct.Embed{
       title: "Member Overdosed",
       description:
-        "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on #{drug}.",
+        "User [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) of the faction #{faction_name} has overdosed on #{drug_name}.",
       timestamp: DateTime.utc_now(:second) |> DateTime.to_iso8601()
     }
   end
@@ -258,18 +260,19 @@ defmodule Tornium.Faction.Overdose do
 
   defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [
          %Tornium.Schema.OverdoseEvent{
-           drug: drug,
+           drug: %Tornium.Schema.Item{tid: drug_id} = _drug,
            created_at: created_at,
            user: %Tornium.Schema.User{tid: user_tid, name: user_name}
          }
          | remaining_events
-       ])
-       when is_binary(drug) do
+       ]) do
+    drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
+
     embed
     |> Map.replace(
       :description,
       description <>
-        "\n#{user_name} [#{user_tid}]: #{DateTime.to_iso8601(created_at)} (on #{drug})"
+        "\n#{user_name} [#{user_tid}]: #{DateTime.to_iso8601(created_at)} (on #{drug_name})"
     )
     |> do_to_report_embed(remaining_events)
   end

@@ -30,7 +30,7 @@ defmodule Tornium.Schema.OverdoseEvent do
           user: Tornium.Schema.User.t(),
           created_at: DateTime.t(),
           notified_at: DateTime.t() | nil,
-          drug: String.t() | nil
+          drug: Tornium.Schema.Item.t() | nil
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -41,7 +41,7 @@ defmodule Tornium.Schema.OverdoseEvent do
     field(:created_at, :utc_datetime)
     field(:notified_at, :utc_datetime)
 
-    field(:drug, :string)
+    belongs_to(:drug, Tornium.Schema.Item, references: :tid)
   end
 
   @doc """

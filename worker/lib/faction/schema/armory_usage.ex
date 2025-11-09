@@ -38,6 +38,8 @@ defmodule Tornium.Schema.ArmoryUsage do
           action: actions(),
           user_id: non_neg_integer(),
           user: Tornium.Schema.User.t(),
+          recipient_id: non_neg_integer(),
+          recipient: Tornium.Schema.User.t(),
           faction_id: non_neg_integer(),
           faction: Tornium.Schema.Faction.t(),
           item_id: non_neg_integer() | nil,
@@ -53,6 +55,7 @@ defmodule Tornium.Schema.ArmoryUsage do
     field(:action, Ecto.Enum, values: [:use, :loan, :return, :fill, :give])
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
+    belongs_to(:recipient, Tornium.Schema.User, references: :tid)
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     belongs_to(:item, Tornium.Schema.Item, references: :tid)
@@ -72,6 +75,10 @@ defmodule Tornium.Schema.ArmoryUsage do
       Enum.map(news, fn %Tornium.Faction.News.ArmoryAction{} = armory_news -> map(armory_news, faction_id) end)
 
     Repo.insert_all(__MODULE__, mapped_news, on_conflict: :nothing, conflict_target: [:id])
+  end
+
+  def insert_all([] = _news, faction_id) when is_integer(faction_id) do
+    {0, []}
   end
 
   @doc """

@@ -95,8 +95,8 @@ defmodule Tornium.Workers.OverdoseUpdate do
             returning: true
           )
 
-        # We want to ensure that events are created for differences between extremely old data and current data.
-        if not old_data?(overdose_last_updated) do
+        if not is_nil(overdose_last_updated) and not old_data?(overdose_last_updated) do
+          # We want to ensure that events are created for differences between extremely old data and current data.
           overdosed_members =
             Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: original_count} ->
               member_overdose_count = Map.get(original_overdoses, user_id)

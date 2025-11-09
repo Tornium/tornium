@@ -20,7 +20,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
 
   @behaviour Tornium.Faction.News
 
-  defstruct [:timestamp, :id, :action, :user_id, :item_id, :quantity]
+  defstruct [:timestamp, :id, :action, :user_id, :recipient_id, :item_id, :quantity]
 
   @typedoc """
   The item ID of the item used from the armory or the type of refill used.
@@ -32,38 +32,50 @@ defmodule Tornium.Faction.News.ArmoryAction do
           id: String.t(),
           action: Tornium.Schema.ArmoryUsage.actions(),
           user_id: non_neg_integer(),
+          recipient_id: non_neg_integer(),
           item_id: armory_item(),
           quantity: non_neg_integer()
         }
 
   @impl Tornium.Faction.News
   def parse(%Torngen.Client.Schema.FactionNews{timestamp: timestamp, text: text, id: id} = _news) do
-    %{
-      user_id: user_id,
-      action: action,
-      item_id: item_id,
-      quantity: quantity
-    } =
+    parsed_text =
       text
       |> Floki.parse_fragment!()
       |> do_parse_text()
 
-    %__MODULE__{
-      timestamp: DateTime.from_unix!(timestamp),
-      id: id,
-      action: action,
-      user_id: user_id,
-      item_id: item_id,
-      quantity: quantity
-    }
+    case parsed_text do
+      %{
+        user_id: user_id,
+        recipient_id: recipient_id,
+        action: action,
+        item_id: item_id,
+        quantity: quantity
+      } when not is_nil(recipient_id) ->
+        %__MODULE__{
+          timestamp: DateTime.from_unix!(timestamp),
+          id: id,
+          action: action,
+          user_id: user_id,
+          recipient_id: recipient_id,
+          item_id: item_id,
+          quantity: quantity
+        }
+
+      nil ->
+        nil
+    end
   end
 
-  @spec do_parse_text(tree :: Floki.html_tree()) :: %{
-          user_id: non_neg_integer(),
-          action: Tornium.Schema.ArmoryUsage.actions(),
-          item_id: armory_item(),
-          quantity: non_neg_integer()
-        }
+  @spec do_parse_text(tree :: Floki.html_tree()) ::
+          %{
+            user_id: non_neg_integer(),
+            recipient_id: non_neg_integer(),
+            action: Tornium.Schema.ArmoryUsage.actions(),
+            item_id: armory_item(),
+            quantity: non_neg_integer()
+          }
+          | nil
   defp do_parse_text([{"a", [{"href", faction_member_link}], [_faction_member_name]}, text_remainder] = _tree) do
     # e.g. for "<a href = \"http://www.torn.com/profiles.php?XID=3870167\">Kagat</a> used one of the faction's Blood Bag : O+ items"
     # faction_member_link = http://www.torn.com/profiles.php?XID=3870167
@@ -99,7 +111,62 @@ defmodule Tornium.Faction.News.ArmoryAction do
           Tornium.Item.NameCache.get_by_name(item_name)
       end
 
-    %{user_id: user_id, action: action, item_id: item_id, quantity: quantity}
+    %{user_id: user_id, recipient_id: user_id, action: action, item_id: item_id, quantity: quantity}
+  end
+
+  defp do_parse_text([
+         {"a", [{"href", faction_member_link}], [_faction_member_name]},
+         text_remainder,
+         {"a", [{"href", recipient_member_link}], [_recipient_member_name]},
+         " from the faction armory"
+       ]) do
+    # This is for loaning or giving an item in the armory for a different user.
+
+    user_id =
+      faction_member_link
+      |> URI.parse()
+      |> Map.get(:query)
+      |> URI.decode_query()
+      |> Map.get("XID")
+      |> String.to_integer()
+
+    recipient_id =
+      recipient_member_link
+      |> URI.parse()
+      |> Map.get(:query)
+      |> URI.decode_query()
+      |> Map.get("XID")
+      |> String.to_integer()
+
+    %{
+      action: action,
+      quantity: quantity,
+      item_name: item_name
+    } =
+      text_remainder
+      |> String.trim()
+      |> text_action_item()
+
+    %{
+      user_id: user_id,
+      recipient_id: recipient_id,
+      action: action,
+      item_id: Tornium.Item.NameCache.get_by_name(item_name),
+      quantity: quantity
+    }
+  end
+
+  defp do_parse_text([
+         {"a", [{"href", _faction_member_link}], [_faction_member_name]},
+         " gave ",
+         {"a", [{"href", _recipient_member_link}], [_recipient_member_name]},
+         _text_remainder,
+         {"a", [{"href", _organized_crime_link}], ["view"]},
+         "]"
+       ]) do
+    # This is for when an item is given as part of an OC payout (eg a car). We can skip this as we don't
+    # care much about this as it came from the OC anyways.
+    nil
   end
 
   @spec text_action_item(text :: String.t()) ::
@@ -167,6 +234,25 @@ defmodule Tornium.Faction.News.ArmoryAction do
 
     %{
       action: :return,
+      quantity: String.to_integer(item_quantity),
+      item_name: item_name
+    }
+  end
+
+  defp text_action_item("gave " <> item_name_quantity = text) when is_binary(text) do
+    split_string = String.split(item_name_quantity, [" to ", " to", " from the faction armory"], trim: true)
+
+    item_name_quantity =
+      case split_string do
+        [item_name_quantity, "themselves"] -> item_name_quantity
+        [item_name_quantity] -> item_name_quantity
+      end
+
+    # gave 1x Armor Cache to themselves from the faction armory
+    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+
+    %{
+      action: :give,
       quantity: String.to_integer(item_quantity),
       item_name: item_name
     }

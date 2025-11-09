@@ -26,7 +26,9 @@ defmodule Tornium.Faction.News do
           news_data :: [Torngen.Client.Schema.FactionNews.t()]
         ) :: [struct()]
   def parse("armoryAction", [%Torngen.Client.Schema.FactionNews{} | _] = news_data) do
-    Enum.map(news_data, &Tornium.Faction.News.ArmoryAction.parse/1)
+    news_data
+    |> Enum.map(&Tornium.Faction.News.ArmoryAction.parse/1)
+    |> Enum.reject(&is_nil/1)
   end
 
   def parse(_category, [] = _news_data) do
@@ -36,5 +38,5 @@ defmodule Tornium.Faction.News do
   @doc """
   Parse a faction news struct from Torn for a specific category.
   """
-  @callback parse(news :: Torngen.Client.Schema.FactionNews.t()) :: struct()
+  @callback parse(news :: Torngen.Client.Schema.FactionNews.t()) :: struct() | nil
 end

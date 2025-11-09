@@ -13,34 +13,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Schema.Item do
-  use Ecto.Schema
-  alias Tornium.Repo
+defmodule Tornium.Faction.News do
+  @moduledoc """
+  Parser for faction news data from `faction/news`.
+  """
 
-  @type t :: %__MODULE__{
-          tid: integer(),
-          name: String.t(),
-          description: String.t(),
-          item_type: String.t(),
-          market_value: integer(),
-          circulation: integer()
-        }
+  @doc """
+  Parse a faction news for a specific category.
+  """
+  @spec parse(
+          category :: Torngen.Client.Schema.FactionNewsCategory.t(),
+          news_data :: [Torngen.Client.Schema.FactionNews.t()]
+        ) :: [struct()]
+  def parse("armoryAction", [%Torngen.Client.Schema.FactionNews{} | _] = news_data) do
+    Enum.map(news_data, &Tornium.Faction.News.ArmoryAction.parse/1)
+  end
 
-  @primary_key {:tid, :integer, autogenerate: false}
-  schema "item" do
-    field(:name, :string)
-    field(:description, :string)
-    field(:item_type, :string)
-    field(:market_value, :integer)
-    field(:circulation, :integer)
+  def parse(_category, [] = _news_data) do
+    []
   end
 
   @doc """
-  Get all items.
+  Parse a faction news struct from Torn for a specific category.
   """
-  @spec all() :: [t()]
-  def all() do
-    __MODULE__
-    |> Repo.all()
-  end
+  @callback parse(news :: Torngen.Client.Schema.FactionNews.t()) :: struct()
 end

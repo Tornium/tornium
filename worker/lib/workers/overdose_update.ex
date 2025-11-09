@@ -69,8 +69,15 @@ defmodule Tornium.Workers.OverdoseUpdate do
           Tornex.SpecQuery.new()
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
           |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-          |> Tornex.SpecQuery.put_parameter(:cat, "current")
           |> Tornex.SpecQuery.parse(result)
+
+        overdose_last_updated =
+          Tornium.Schema.OverdoseCount
+          |> select([c], c.updated_at)
+          |> where([c], c.faction_id == ^faction_id)
+          |> order_by([c], desc: c.updated_at)
+          |> first()
+          |> Repo.one()
 
         original_overdoses =
           Tornium.Schema.OverdoseCount
@@ -88,20 +95,29 @@ defmodule Tornium.Workers.OverdoseUpdate do
             returning: true
           )
 
-        overdosed_members =
-          Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} ->
-            original_overdoses |> Map.get(user_id) |> is_nil() or
-              original_overdoses |> Map.get(user_id) |> Kernel.==(count)
-          end)
+        # We want to ensure that events are created for differences between extremely old data and current data.
+        if not old_data?(overdose_last_updated) do
+          overdosed_members =
+            Enum.reject(overdosed_members, fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: original_count} ->
+              member_overdose_count = Map.get(original_overdoses, user_id)
 
-        {_, overdose_events} =
-          Repo.insert_all(
-            Tornium.Schema.OverdoseEvent,
-            Tornium.Faction.Overdose.map_events(overdosed_members, faction_id),
-            returning: true
-          )
+              is_nil(member_overdose_count) or original_count == member_overdose_count
+            end)
 
-        send_notifications(overdose_events, faction_id)
+          mapped_overdose_events =
+            overdosed_members
+            |> Tornium.Faction.Overdose.map_events(faction_id)
+            |> Enum.map(fn event -> Tornium.Faction.Overdose.set_drug_used(event, overdose_last_updated) end)
+
+          {_, overdose_events} =
+            Repo.insert_all(
+              Tornium.Schema.OverdoseEvent,
+              mapped_overdose_events,
+              returning: true
+            )
+
+          send_notifications(overdose_events, faction_id)
+        end
 
         :ok
     end
@@ -138,6 +154,13 @@ defmodule Tornium.Workers.OverdoseUpdate do
     #   - Server OD channel has not been set up
     #   - Faction is not linked to a server
     nil
+  end
+
+  @spec old_data?(last_update :: DateTime.t()) :: boolean()
+  defp old_data?(last_update) do
+    DateTime.utc_now()
+    |> DateTime.add(-1, :day)
+    |> DateTime.after?(last_update)
   end
 
   @impl Oban.Worker

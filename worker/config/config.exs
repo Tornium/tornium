@@ -80,8 +80,9 @@ config :tornium, Oban,
         {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
         {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
         {"0 0 * * *", Tornium.Workers.OAuthRevocation},
-        {"*/30 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
-        {"10 0 * * *", Tornium.Workers.OverdoseDailyReport}
+        {"7,37 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
+        {"15 0 * * *", Tornium.Workers.OverdoseDailyReport},
+        {"*/15 * * * *", Tornium.Workers.ArmoryNewsUpdateScheduler}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},

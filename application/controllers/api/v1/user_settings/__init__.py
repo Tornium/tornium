@@ -52,3 +52,19 @@ def toggle_stat_db(*args, **kwargs):
     settings = UserSettings.create_or_update(kwargs["user"].tid, stat_db_enabled=enabled)
 
     return jsonify(settings.to_dict()), api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def toggle_od_drug(*args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    enabled = data.get("enabled")
+
+    if not isinstance(enabled, bool):
+        return make_exception_response("0000", key)
+
+    settings = UserSettings.create_or_update(kwargs["user"].tid, od_drug_enabled=enabled)
+
+    return jsonify(settings.to_dict()), api_ratelimit_response(key)

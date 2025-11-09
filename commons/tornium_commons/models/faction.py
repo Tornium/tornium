@@ -98,7 +98,7 @@ class Faction(BaseModel):
             return "N/A"
 
     @cached_property
-    def aa_keys(self) -> typing.List[TornKey]:
+    def aa_keys(self) -> typing.List[str]:
         from .user import User
 
         return [

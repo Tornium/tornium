@@ -301,7 +301,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
   end
 
   defp text_action_item("retrieved " <> item_name_quantity_from = text) when is_binary(text) do
-    [item_name_quantity] = String.split(item_name_quantity_from, [" from "], trim: true)
+    [item_name_quantity] = String.split(item_name_quantity_from, [" from ", " from"], trim: true)
 
     [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
 

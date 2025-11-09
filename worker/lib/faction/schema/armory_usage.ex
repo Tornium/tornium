@@ -29,6 +29,7 @@ defmodule Tornium.Schema.ArmoryUsage do
   "returned" => `:return`
   "filled" => `:fill`
   "give" => `:give`
+  "retrieved" => `:retrieve`
   """
   @type actions :: :use | :loan | :return | :fill | :give
 
@@ -52,7 +53,7 @@ defmodule Tornium.Schema.ArmoryUsage do
   @primary_key {:id, :string, autogenerate: false}
   schema "armory_usage" do
     field(:timestamp, :utc_datetime)
-    field(:action, Ecto.Enum, values: [:use, :loan, :return, :fill, :give])
+    field(:action, Ecto.Enum, values: [:use, :loan, :return, :fill, :give, :retrieve])
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     belongs_to(:recipient, Tornium.Schema.User, references: :tid)

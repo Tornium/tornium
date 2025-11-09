@@ -158,6 +158,47 @@ defmodule Tornium.Faction.News.ArmoryAction do
   end
 
   defp do_parse_text([
+         {"a", [{"href", faction_member_link}], [_faction_member_name]},
+         text_remainder,
+         {"a", [{"href", recipient_member_link}], [_recipient_member_name]}
+       ]) do
+    # Member1 retrieved 1x Item from member2
+
+    user_id =
+      faction_member_link
+      |> URI.parse()
+      |> Map.get(:query)
+      |> URI.decode_query()
+      |> Map.get("XID")
+      |> String.to_integer()
+
+    recipient_id =
+      recipient_member_link
+      |> URI.parse()
+      |> Map.get(:query)
+      |> URI.decode_query()
+      |> Map.get("XID")
+      |> String.to_integer()
+
+    %{
+      action: action,
+      quantity: quantity,
+      item_name: item_name
+    } =
+      text_remainder
+      |> String.trim()
+      |> text_action_item()
+
+    %{
+      user_id: user_id,
+      recipient_id: recipient_id,
+      action: action,
+      item_id: Tornium.Item.NameCache.get_by_name(item_name),
+      quantity: quantity
+    }
+  end
+
+  defp do_parse_text([
          {"a", [{"href", _faction_member_link}], [_faction_member_name]},
          " gave ",
          {"a", [{"href", _recipient_member_link}], [_recipient_member_name]},
@@ -254,6 +295,18 @@ defmodule Tornium.Faction.News.ArmoryAction do
 
     %{
       action: :give,
+      quantity: String.to_integer(item_quantity),
+      item_name: item_name
+    }
+  end
+
+  defp text_action_item("retrieved " <> item_name_quantity_from = text) when is_binary(text) do
+    [item_name_quantity] = String.split(item_name_quantity_from, [" from "], trim: true)
+
+    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+
+    %{
+      action: :retrieve,
       quantity: String.to_integer(item_quantity),
       item_name: item_name
     }

@@ -25,7 +25,6 @@ from peewee import (
     SmallIntegerField,
     UUIDField,
 )
-from tornium_celery.tasks.api import tornget
 
 from ..errors import MissingKeyError
 from .base_model import BaseModel
@@ -67,6 +66,8 @@ class Withdrawal(BaseModel):
 
         Their faction balance must be greater than the sum of existing, non-fulfilled withdrawal requests and this request.
         """
+
+        from tornium_celery.tasks.api import tornget
 
         aa_keys = Faction.select().where(Faction.tid == faction_id).get().aa_keys
 

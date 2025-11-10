@@ -117,12 +117,12 @@ defmodule Tornium.Faction.Overdose do
   @spec to_embed(event :: Tornium.Schema.OverdoseEvent.t()) :: Nostrum.Struct.Embed.t()
   def to_embed(
         %Tornium.Schema.OverdoseEvent{
-          drug: drug,
+          drug_id: drug_id,
           user: %Tornium.Schema.User{tid: user_id, name: user_name},
           faction: %Tornium.Schema.Faction{name: faction_name}
         } = _event
       )
-      when is_nil(drug) do
+      when is_nil(drug_id) do
     %Nostrum.Struct.Embed{
       title: "Member Overdosed",
       description:
@@ -133,11 +133,11 @@ defmodule Tornium.Faction.Overdose do
 
   def to_embed(
         %Tornium.Schema.OverdoseEvent{
-          drug: %Tornium.Schema.Item{tid: drug_id} = _drug,
+          drug_id: drug_id,
           user: %Tornium.Schema.User{tid: user_id, name: user_name},
           faction: %Tornium.Schema.Faction{name: faction_name}
         } = _event
-      ) do
+      ) when is_integer(drug_id) do
     drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
 
     %Nostrum.Struct.Embed{
@@ -242,13 +242,13 @@ defmodule Tornium.Faction.Overdose do
 
   defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [
          %Tornium.Schema.OverdoseEvent{
-           drug: drug,
+           drug_id: drug_id,
            created_at: created_at,
            user: %Tornium.Schema.User{tid: user_tid, name: user_name}
          }
          | remaining_events
        ])
-       when is_nil(drug) do
+       when is_nil(drug_id) do
     embed
     |> Map.replace(
       :description,
@@ -260,12 +260,12 @@ defmodule Tornium.Faction.Overdose do
 
   defp do_to_report_embed(%Nostrum.Struct.Embed{description: description} = embed, [
          %Tornium.Schema.OverdoseEvent{
-           drug: %Tornium.Schema.Item{tid: drug_id} = _drug,
+           drug_id: drug_id,
            created_at: created_at,
            user: %Tornium.Schema.User{tid: user_tid, name: user_name}
          }
          | remaining_events
-       ]) do
+       ]) when is_integer(drug_id) do
     drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
 
     embed

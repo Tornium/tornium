@@ -258,8 +258,13 @@ defmodule Tornium.Faction.News.ArmoryAction do
   end
 
   defp text_action_item("loaned " <> suffixed_item_string = text) when is_binary(text) do
-    [item_name_quantity] =
-      String.split(suffixed_item_string, [" to ", " to", " from the faction armory"], trim: true)
+    split_item_string = String.split(suffixed_item_string, [" to ", " to", " from the faction armory"], trim: true)
+
+    item_name_quantity =
+      case split_item_string do
+        [item_name_quantity, _recipient] -> item_name_quantity
+        [item_name_quantity] -> item_name_quantity
+      end
 
     # loaned 1x Thompson to themselves from the faction armory
     [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)

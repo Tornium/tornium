@@ -137,7 +137,8 @@ defmodule Tornium.Faction.Overdose do
           user: %Tornium.Schema.User{tid: user_id, name: user_name},
           faction: %Tornium.Schema.Faction{name: faction_name}
         } = _event
-      ) when is_integer(drug_id) do
+      )
+      when is_integer(drug_id) do
     drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
 
     %Nostrum.Struct.Embed{
@@ -265,7 +266,8 @@ defmodule Tornium.Faction.Overdose do
            user: %Tornium.Schema.User{tid: user_tid, name: user_name}
          }
          | remaining_events
-       ]) when is_integer(drug_id) do
+       ])
+       when is_integer(drug_id) do
     drug_name = Tornium.Item.NameCache.get_by_id(drug_id)
 
     embed

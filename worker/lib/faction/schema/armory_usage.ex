@@ -90,5 +90,23 @@ defmodule Tornium.Schema.ArmoryUsage do
     news
     |> Map.put(:faction_id, faction_id)
     |> Map.delete(:__struct__)
+    |> remap_armory_item()
+  end
+
+  @spec remap_armory_item(news :: map()) :: map()
+  defp remap_armory_item(%{item_id: :energy_refill} = news) do
+    news
+    |> Map.put(:item_id, nil)
+    |> Map.put(:is_energy_refill, true)
+  end
+
+  defp remap_armory_item(%{item_id: :nerve_refill} = news) do
+    news
+    |> Map.put(:item_id, nil)
+    |> Map.put(:is_nerve_refill, true)
+  end
+
+  defp remap_armory_item(%{item_id: item_id} = news) when is_integer(item_id) do
+    news
   end
 end

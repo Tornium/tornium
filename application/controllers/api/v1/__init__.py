@@ -152,6 +152,11 @@ mod.add_url_rule(
     methods=["PATCH"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/missing-member/duration",
+    view_func=bot.crimes.set_missing_member_duration,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction",
     view_func=bot.faction.faction_setter,
     methods=["DELETE", "POST"],

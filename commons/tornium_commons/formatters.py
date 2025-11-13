@@ -470,3 +470,55 @@ def date_to_timestamp(date: datetime.date) -> int:
     """
 
     return int(datetime.datetime.combine(date, datetime.datetime.min.time()).timestamp())
+
+
+def str_to_duration(duration_string: str) -> datetime.timedelta:
+    """
+    Convert a duration string into a timedelta object.
+
+    Parameters
+    ----------
+    duration_string : str
+        A string representing a timedelta object through a single time unit
+
+    Returns
+    -------
+    datetime.timedelta
+        Duration represented by the string
+    """
+
+    duration_string = duration_string.lower()
+    duration_amount = duration_string[:-1]
+
+    try:
+        parsed_duration_amount = float(duration_amount)
+    except (ValueError, TypeError):
+        raise ValueError("Invalid duration string: must have a numeric time amount")
+
+    if duration_string.endswith("s"):
+        return datetime.timedelta(seconds=parsed_duration_amount)
+    elif duration_string.endswith("m"):
+        return datetime.timedelta(minutes=parsed_duration_amount)
+    elif duration_string.endswith("h"):
+        return datetime.timedelta(hours=parsed_duration_amount)
+    elif duration_string.endswith("d"):
+        return datetime.timedelta(days=parsed_duration_amount)
+    else:
+        raise ValueError("Invalid duration string: must end with s, m, h, or d")
+
+
+def duration_to_str(timedelta: datetime.timedelta) -> str:
+    """
+    Convert a timedelta object into a duration string.
+    """
+
+    total_seconds = int(timedelta.total_seconds())
+
+    if total_seconds % 86400 == 0:
+        return f"{total_seconds // 86400}d"
+    elif total_seconds % 3600 == 0:
+        return f"{total_seconds // 3600}h"
+    elif total_seconds % 60 == 0:
+        return f"{total_seconds // 60}m"
+    else:
+        return f"{total_seconds}s"

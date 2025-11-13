@@ -31,6 +31,9 @@ defmodule Tornium.Schema.ServerOCConfig do
           delayed_channel: integer() | nil,
           delayed_roles: [Tornium.Discord.role_assignable()],
           delayed_crimes: [String.t()],
+          missing_member_channel: integer() | nil,
+          missing_member_roles: [Tornium.Discord.role_assignable()],
+          missing_member_minimum_duration: Duration.t(),
           extra_range_channel: integer() | nil,
           extra_range_roles: [Tornium.Discord.role_assignable()],
           extra_range_global_min: integer(),
@@ -63,6 +66,10 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:delayed_channel, :integer)
     field(:delayed_roles, {:array, :integer})
     field(:delayed_crimes, {:array, :string})
+
+    field(:missing_member_channel, :integer)
+    field(:missing_member_roles, {:array, :integer})
+    field(:missing_member_minimum_duration, :duration)
 
     field(:extra_range_channel, :integer)
     field(:extra_range_roles, {:array, :integer})

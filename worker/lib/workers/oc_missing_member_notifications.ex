@@ -126,6 +126,32 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
     }
   end
 
+  defp generate_message(
+         %{
+           user_id: user_id,
+           user_name: user_name,
+           user_discord_id: user_discord_id,
+           user_faction_name: user_faction_name,
+           last_oc_executed_at: last_oc_executed_at
+         },
+         channel_id,
+         roles
+       )
+       when is_integer(channel_id) and channel_id != 0 and is_list(roles) and is_nil(last_oc_executed_at) do
+    %Nostrum.Struct.Message{
+      channel_id: channel_id,
+      content: Tornium.Discord.roles_to_string(roles, assigns: [{:user, user_discord_id}]),
+      embeds: [
+        %Nostrum.Struct.Embed{
+          title: "Member OC Join Required",
+          description:
+            "#{user_faction_name} member [#{user_name} [#{user_id}]](https://www.torn.com/profiles.php?XID=#{user_id}) has never been in an OC in the faction and needs to join an organized crime.",
+          color: Tornium.Discord.Constants.colors()[:warning]
+        }
+      ]
+    }
+  end
+
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
     :timer.minutes(1)

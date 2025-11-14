@@ -47,7 +47,6 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
     )
     |> select([c, s, f], [c.missing_member_channel, c.missing_member_roles, c.missing_member_minimum_duration, f.tid])
     |> Repo.all()
-    |> IO.inspect()
     |> Enum.each(fn [missing_member_channel, missing_member_roles, missing_member_minimum_duration, faction_id] ->
       latest_oc_subquery =
         Tornium.Schema.OrganizedCrimeSlot
@@ -86,12 +85,10 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
         last_oc_executed_at: oc.executed_at
       })
       |> Repo.all()
-      |> IO.inspect()
       |> Enum.map(fn missing_member when is_map(missing_member) ->
         generate_message(missing_member, missing_member_channel, missing_member_roles)
       end)
-      |> Tornium.Discord.send_messages(collect: true)
-      |> IO.inspect()
+      |> Tornium.Discord.send_messages()
     end)
 
     :ok

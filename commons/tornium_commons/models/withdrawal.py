@@ -25,7 +25,6 @@ from peewee import (
     SmallIntegerField,
     UUIDField,
 )
-from tornium_celery.tasks.api import tornget
 
 from ..errors import MissingKeyError
 from .base_model import BaseModel
@@ -68,6 +67,8 @@ class Withdrawal(BaseModel):
         Their faction balance must be greater than the sum of existing, non-fulfilled withdrawal requests and this request.
         """
 
+        from tornium_celery.tasks.api import tornget
+
         aa_keys = Faction.select().where(Faction.tid == faction_id).get().aa_keys
 
         if len(aa_keys) == 0:
@@ -81,7 +82,6 @@ class Withdrawal(BaseModel):
             raise ValueError("Failed to parse Torn response. You may not have a balance in your faction.")
 
         if amount == "all" and current_balance <= 0:
-
             # The user needs to have any positive balance when requesting everything.
             raise ValueError("You do not have a balance in your faction.")
         elif isinstance(amount, int) and amount > current_balance:
@@ -91,7 +91,8 @@ class Withdrawal(BaseModel):
         pending_user_withdrawals = Withdrawal.select(Withdrawal.amount).where(
             (Withdrawal.requester == user_id)
             & (Withdrawal.faction_tid == faction_id)
-            & (Withdrawal.cash_request == (request_type == "money_balance") & (Withdrawal.status == 0))
+            & (Withdrawal.cash_request == (request_type == "money_balance"))
+            & (Withdrawal.status == 0)
         )
 
         if len(pending_user_withdrawals) == 0:

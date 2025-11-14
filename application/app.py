@@ -48,7 +48,7 @@ from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, db, init_db
-from tornium_commons.formatters import commas, rel_time, torn_timestamp
+from tornium_commons.formatters import commas, duration_to_str, rel_time, torn_timestamp
 from tornium_commons.models import Faction, OAuthClient, OAuthToken
 from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
@@ -224,6 +224,11 @@ def faction_filter(tid):
         return f"N/A {tid}"
 
     return f"{faction.name} [{tid}]"
+
+
+@app.template_filter("duration_to_str")
+def duration_to_string_filter(duration: datetime.timedelta) -> str:
+    return duration_to_str(duration)
 
 
 @app.before_request

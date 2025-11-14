@@ -151,6 +151,60 @@ Tornium - OCs
                 </div>
 
                 <hr />
+                
+                <p class="card-text">
+                    <b>Missing Members:</b> Notifications regarding members of the faction not being in an OC for a minimum period of time.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Members Channel</div>
+                        <select
+                            class="discord-channel-selector oc-missing-member-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.missing_member_channel }}"
+                            data-feature="missing-member"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Members Roles</div>
+                        <select
+                            class="discord-role-selector oc-missing-member-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.missing_member_roles }}"
+                            data-feature="missing-member"
+                            multiple
+                        >
+                            <option value="-1">Missing Member(s)</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Minimum Alert Duration</div>
+                        <select
+                            class="oc-missing-member-duration w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Minimum Alert Duration"
+                            data-live-search="true"
+                            data-selected-duration="{{ faction.server_oc_config.missing_member_minimum_duration | duration_to_str }}"
+                            data-feature="missing-member"
+                        >
+                            <option value="12h">12 Hours</option>
+                            <option value="1d">1 Day</option>
+                            <option value="36h">1.5 Days</option>
+                            <option value="2d">2 Days</option>
+                            <option value="3d">3 Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
 
                 <p class="card-text">
                     <b>Initialized OCs:</b> Notifications regarding OCs being initialized.

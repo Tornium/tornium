@@ -1556,7 +1556,7 @@ def armory_check():
 
         tornget.signature(
             kwargs={
-                "endpoint": "faction/?selections=armor,boosters,drugs,medical,temporary,weapons",
+                "endpoint": "faction/?selections=armor,boosters,drugs,medical,temporary,utilities,weapons",
                 "key": random.choice(faction.aa_keys),
             },
             queue="api",

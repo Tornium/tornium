@@ -18,36 +18,42 @@ defmodule Tornium.User.KeyStore do
   Agent to cache API keys.
   """
 
-  # TODO: Add documentation
-
   use Agent
 
-  # 5 minutes
-  @ttl 300
-
+  @doc """
+  Start the API key cache.
+  """
+  @spec start_link(opts :: keyword()) :: Agent.on_start()
   def start_link(opts \\ [name: Tornium.User.KeyStore]) do
     Agent.start_link(fn -> %{} end, opts)
   end
 
-  @spec put(pid :: pid(), key :: integer(), value :: Tornium.Schema.TornKey.t() | nil, ttl :: integer()) :: :ok | :error
-  def put(pid, key, value, ttl \\ @ttl)
+  @doc """
+  Insert the API key for a user ID into the cache.
+  """
+  @spec put(pid :: pid(), user_id :: pos_integer(), api_key :: Tornium.Schema.TornKey.t() | nil, ttl :: Duration.t()) ::
+          :ok | :error
+  def put(pid, user_id, api_key, ttl \\ %Duration{minute: 5})
 
-  def put(_pid, _key, value, _ttl) when is_nil(value) do
+  def put(_pid, _user_id, api_key, %Duration{} = _ttl) when is_nil(api_key) do
     :error
   end
 
-  def put(pid, key, %Tornium.Schema.TornKey{} = value, ttl) do
-    Agent.update(pid, &Map.put(&1, key, %{value: value, expire: DateTime.add(DateTime.utc_now(), ttl, :second)}))
+  def put(pid, user_id, %Tornium.Schema.TornKey{} = api_key, %Duration{} = ttl) when is_integer(user_id) do
+    Agent.update(pid, &Map.put(&1, user_id, %{api_key: api_key, expire: DateTime.shift(DateTime.utc_now(), ttl)}))
   end
 
-  @spec get(pid :: pid(), key :: integer()) :: Tornium.Schema.TornKey.t() | nil
-  def get(pid, key) do
-    case Agent.get(pid, &Map.get(&1, key), :infinity) do
-      %{value: value, expire: expire} ->
+  @doc """
+  Get an API key for a user ID if it can be found in the cache and is not expired.
+  """
+  @spec get(pid :: Agent.agent(), user_id :: integer()) :: Tornium.Schema.TornKey.t() | nil
+  def get(pid, user_id) do
+    case Agent.get(pid, &Map.get(&1, user_id), :infinity) do
+      %{api_key: api_key, expire: expire} ->
         if DateTime.after?(DateTime.utc_now(), expire) do
           nil
         else
-          value
+          api_key
         end
 
       nil ->

@@ -40,7 +40,7 @@ defmodule Tornium.Test.User.Key do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -66,7 +66,7 @@ defmodule Tornium.Test.User.Key do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -93,7 +93,7 @@ defmodule Tornium.Test.User.Key do
         default: false,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -104,7 +104,7 @@ defmodule Tornium.Test.User.Key do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 

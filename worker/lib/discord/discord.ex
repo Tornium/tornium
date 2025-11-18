@@ -57,7 +57,8 @@ defmodule Tornium.Discord do
   defp send_each_message(
          [%Nostrum.Struct.Message{channel_id: channel_id} = message | remaining_messages],
          message_tasks
-       ) when is_list(message_tasks) do
+       )
+       when is_list(message_tasks) do
     opts =
       message
       |> Map.from_struct()

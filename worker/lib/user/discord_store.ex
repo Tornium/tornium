@@ -79,7 +79,7 @@ defmodule Tornium.User.DiscordStore do
   defp put(pid, user_id, user_discord_id, %Duration{} = ttl) when is_integer(user_id) and is_integer(user_discord_id) do
     Agent.update(
       pid,
-      &Map.put(&1, user_id, %{user_discord_id: user_discord_id, expire: DateTime.shift(DateTime.utc_now, ttl)})
+      &Map.put(&1, user_id, %{user_discord_id: user_discord_id, expire: DateTime.shift(DateTime.utc_now(), ttl)})
     )
   end
 

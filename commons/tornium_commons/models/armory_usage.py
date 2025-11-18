@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import DateTimeField, BooleanField, ForeignKeyField, IntegerField, TextField
+from peewee import BooleanField, DateTimeField, ForeignKeyField, IntegerField, TextField
 
 from .base_model import BaseModel
 from .faction import Faction

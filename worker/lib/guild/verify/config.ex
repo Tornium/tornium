@@ -52,8 +52,7 @@ defmodule Tornium.Guild.Verify.Config do
     - Server verification configuration struct if valid
     - Error reason if not valid
   """
-  @spec validate(guild :: Tornium.Schema.Server.t() | integer() | nil) ::
-          Tornium.Guild.Verify.Config.t() | {:error, String}
+  @spec validate(guild :: Tornium.Schema.Server.t() | integer() | nil) :: t() | {:error, String.t()}
   def validate(guild) when is_nil(guild) do
     {:error, "Invalid guild ID"}
   end

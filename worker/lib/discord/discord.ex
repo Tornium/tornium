@@ -37,7 +37,7 @@ defmodule Tornium.Discord do
     * `:timeout` - The timeout in milliseconds (default: `:infinity`).
   """
   @spec send_messages(messages :: [Nostrum.Struct.Message.t()], opts :: Keyword) ::
-          [Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}] | nil
+          [Nostrum.Api.error()] | [{:ok, Nostrum.Struct.Message.t()}] | nil
   def send_messages(messages, opts \\ []) when is_list(messages) do
     collect = Keyword.get(opts, :collect, false)
     timeout = Keyword.get(opts, :timeout, :infinity)
@@ -57,7 +57,8 @@ defmodule Tornium.Discord do
   defp send_each_message(
          [%Nostrum.Struct.Message{channel_id: channel_id} = message | remaining_messages],
          message_tasks
-       ) do
+       )
+       when is_list(message_tasks) do
     opts =
       message
       |> Map.from_struct()
@@ -72,7 +73,7 @@ defmodule Tornium.Discord do
     send_each_message(remaining_messages, [task | message_tasks])
   end
 
-  defp send_each_message([], message_tasks) do
+  defp send_each_message([], message_tasks) when is_list(message_tasks) do
     message_tasks
   end
 

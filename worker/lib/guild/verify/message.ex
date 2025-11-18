@@ -18,14 +18,14 @@ defmodule Tornium.Guild.Verify.Message do
   @spec message(
           {:ok, Nostrum.Struct.Guild.Member.t()}
           | {:error,
-             Nostrum.Error.ApiError
-             | Tornium.API.Error
+             Nostrum.Error.ApiError.t()
+             | Tornium.API.Error.t()
              | :unverified
              | :nochanges
              | :api_key
              | {:config, error :: String.t()}},
-          member :: Nostrum.Struct.Guild.Member
-        ) :: Nostrum.Struct.Embed
+          member :: Nostrum.Struct.Guild.Member.t()
+        ) :: Nostrum.Struct.Embed.t()
   def message({:error, %Nostrum.Error.ApiError{} = error}, %Nostrum.Struct.Guild.Member{} = member) do
     # TODO: Improve this error message to make it more readable
     %Nostrum.Struct.Embed{

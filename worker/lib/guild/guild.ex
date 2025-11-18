@@ -27,7 +27,7 @@ defmodule Tornium.Guild do
   ## Returns
     - List of API keys (Tornium.Schema.TornKey)
   """
-  @spec get_admin_keys(guild :: integer() | Tornium.Schema.Server.t()) :: List
+  @spec get_admin_keys(guild :: integer() | Tornium.Schema.Server.t()) :: [Tornium.Schema.TornKey.t()]
   def get_admin_keys(guild) when is_integer(guild) do
     # TODO: Convert to a single DB query
     guild = Repo.get(Tornium.Schema.Server, guild)
@@ -66,16 +66,17 @@ defmodule Tornium.Guild do
 
   def get_random_admin_key(%Tornium.Schema.Server{} = guild) do
     # TODO: Convert to a DB query that doesn't require querying all admin users and their keys
-    get_admin_keys(guild)
+    guild
+    |> get_admin_keys()
     |> select_random_key()
   end
 
-  @spec select_random_key(api_keys :: List) :: Tornium.Schema.TornKey.t() | nil
-  defp select_random_key(api_keys) when Kernel.length(api_keys) == 0 do
+  @spec select_random_key(api_keys :: [Tornium.Schema.TornKey.t()]) :: Tornium.Schema.TornKey.t() | nil
+  defp select_random_key([] = _api_keys) do
     nil
   end
 
-  defp select_random_key(api_keys) do
+  defp select_random_key([%Tornium.Schema.TornKey{} | _] = api_keys) do
     Enum.random(api_keys)
   end
 

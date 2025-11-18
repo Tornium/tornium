@@ -95,7 +95,14 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
   end
 
   @spec generate_message(
-          missing_member :: map(),
+          missing_member :: %{
+            user_id: pos_integer(),
+            user_name: String.t(),
+            user_discord_id: pos_integer() | nil,
+            user_faction_name: String.t(),
+            last_oc_id: pos_integer(),
+            last_oc_executed_at: DateTime.t() | nil
+          },
           channel_id :: pos_integer(),
           roles :: [Tornium.Discord.role_assignable()]
         ) :: Nostrum.Struct.Message.t()
@@ -111,7 +118,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
          channel_id,
          roles
        )
-       when is_integer(channel_id) and channel_id != 0 and is_list(roles) do
+       when is_integer(channel_id) and channel_id > 0 and is_list(roles) do
     %Nostrum.Struct.Message{
       channel_id: channel_id,
       content: Tornium.Discord.roles_to_string(roles, assigns: [{:user, user_discord_id}]),
@@ -132,12 +139,13 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
            user_name: user_name,
            user_discord_id: user_discord_id,
            user_faction_name: user_faction_name,
+           last_oc_id: _last_oc_id,
            last_oc_executed_at: last_oc_executed_at
          },
          channel_id,
          roles
        )
-       when is_integer(channel_id) and channel_id != 0 and is_list(roles) and is_nil(last_oc_executed_at) do
+       when is_integer(channel_id) and channel_id > 0 and is_list(roles) and is_nil(last_oc_executed_at) do
     %Nostrum.Struct.Message{
       channel_id: channel_id,
       content: Tornium.Discord.roles_to_string(roles, assigns: [{:user, user_discord_id}]),

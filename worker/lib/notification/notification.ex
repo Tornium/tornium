@@ -222,7 +222,7 @@ defmodule Tornium.Notification do
           resource :: trigger_resource(),
           selections :: [String.t()]
         ) :: map()
-  defp filter_response({:error, _}, resource, selections) do
+  defp filter_response({:error, _}, _resource, _selections) do
     # FIXME: Better handle this case
     :error
   end

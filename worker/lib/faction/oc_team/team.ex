@@ -56,7 +56,7 @@ defmodule Tornium.Faction.OC.Team do
     reassign_teams(remaining_teams, crimes, assignments)
   end
 
-  def reassign_teams(teams, [] = _crimes, assignments) when is_map(assignments) do
+  def reassign_teams(_teams, [] = _crimes, assignments) when is_map(assignments) do
     # Fallback for factions that have no OC 2.0 crimes stored in the database
     assignments
   end

@@ -58,8 +58,9 @@ defmodule Tornium.MixProject do
       {:torngen_elixir_client, ">= 3.0.0"},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.20"},
+      {:floki, "~> 0.38"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:floki, "~> 0.38"}
+      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false},
     ]
   end
 

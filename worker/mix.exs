@@ -60,7 +60,7 @@ defmodule Tornium.MixProject do
       {:finch, "~> 0.20"},
       {:floki, "~> 0.38"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false},
+      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false}
     ]
   end
 

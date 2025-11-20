@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Discord do
+  @moduledoc """
+  Utility functions related to Discord and the bot.
+  """
+
   @typedoc """
   Discord role ID.
   """
@@ -145,6 +149,38 @@ defmodule Tornium.Discord do
       end)
     else
       roles
+    end
+  end
+
+  @doc """
+  Fetch all Discord servers the bot is in.
+
+  ## Options
+    * `:before` - Get servers before this server ID
+    * `:after` - Get servers after this server ID
+    * `:limit` - Maximum number of servers to include in each API call
+    * `:with_counts` - Include the approximate number of members in the server
+  """
+  @spec fetch_all_guilds(guilds :: [Nostrum.Struct.Guild.t()], opts :: keyword()) :: [Nostrum.Struct.Guild.t()]
+  def fetch_all_guilds(guilds \\ [], opts \\ [])
+
+  def fetch_all_guilds(guilds, opts) when is_list(guilds) do
+    opts = Keyword.put_new(opts, :limit, 200)
+    {:ok, new_guilds} = Nostrum.Api.Self.guilds(opts)
+
+    cond do
+      new_guilds == [] ->
+        guilds
+
+      length(new_guilds) == Keyword.get(opts, :limit) ->
+        # There are as many guilds in the response as requested, so we need to get the next set of guilds to ensure we have all of them.
+        largest_guild_id = Enum.max_by(new_guilds, & &1.id)
+
+        fetch_all_guilds(new_guilds ++ guilds, opts)
+
+      true ->
+        # We know that there aren't the maximum number of guilds in this API response
+        new_guilds ++ guilds
     end
   end
 end

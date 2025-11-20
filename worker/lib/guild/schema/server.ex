@@ -15,6 +15,7 @@
 
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
+  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
@@ -80,5 +81,47 @@ defmodule Tornium.Schema.Server do
     |> Ecto.Changeset.put_change(:name, guild_name)
     |> Ecto.Changeset.change(opts)
     |> Repo.insert(on_conflict: {:replace_all_except, [:sid]}, conflict_target: :sid)
+  end
+
+  @doc """
+  Delete the server IDs listed and all associated records.
+
+  The linked server ID for the faction will be set to `nil` to avoid deleting faction data.
+  """
+  @spec delete_servers(server_ids :: [pos_integer()]) :: {non_neg_integer(), nil | [term()]}
+  def delete_servers(server_ids) when is_list(server_ids) and server_ids != [] do
+    Tornium.Schema.Faction
+    |> where([f], f.guild_id in ^server_ids)
+    |> update([f], set: [guild_id: nil])
+    |> Repo.update_all([])
+
+    Tornium.Schema.ServerAttackConfig
+    |> where([c], c.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.ServerNotificationsConfig
+    |> where([c], c.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.ServerOCRangeConfig
+    |> join(:inner, [r], c in assoc(r, :server_oc_config), on: r.server_oc_config_id == c.guid)
+    |> where([r, c], c.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.ServerOCConfig
+    |> where([c], c.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.ServerOverdoseConfig
+    |> where([c], c.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.Notification
+    |> where([n], n.server_id in ^server_ids)
+    |> Repo.delete_all()
+
+    Tornium.Schema.Server
+    |> where([s], s.sid in ^server_ids)
+    |> Repo.delete_all()
   end
 end

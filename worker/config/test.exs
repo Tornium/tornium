@@ -19,7 +19,7 @@ config :tornium, Tornium.Repo,
   username: "Tornium",
   password: "password",
   hostname: "localhost",
-  database: "tornium_test_#{:rand.uniform(1_000)}",
+  database: "tornium_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

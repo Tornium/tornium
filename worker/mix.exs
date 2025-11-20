@@ -66,9 +66,9 @@ defmodule Tornium.MixProject do
 
   defp aliases do
     [
-      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.setup": ["ecto.create --quiet", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.drop", "ecto.create", "ecto.migrate", "test", "ecto.drop"]
+      test: ["ecto.setup", "test --cover --trace"]
     ]
   end
 

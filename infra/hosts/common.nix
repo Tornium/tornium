@@ -9,7 +9,7 @@
   deployment.replaceUnknownProfiles = false;
 
   deployment.keys."sops-age-key.secret" = {
-    keyFile = ../age-key.txt;
+    keyFile = ../.age-key;
     destDir = "/run/keys";
     user = "root";
     group = "root";

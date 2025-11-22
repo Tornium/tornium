@@ -75,6 +75,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   // constants.js
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+  var ENABLE_LOGGING = true;
   var VERSION = "1.0.0-dev";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
@@ -181,10 +182,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
   // logging.js
   function log(string) {
-    if (!DEBUG) {
-      return;
+    if (ENABLE_LOGGING || DEBUG) {
+      console.log("[Tornium Estimate] " + window.location.pathname + " - " + string);
     }
-    console.log("[Tornium Estimate] " + window.location.pathname + " - " + string);
+  }
+
+  // pages/profile.js
+  function createProfileContainer() {
+    const parentContainer = document.querySelector("div.content-title");
+    const container = document.createElement("div");
+    container.classList.add("tornium-estimate-profile-container");
+    parentContainer.append(container);
+    const statsElement = document.createElement("p");
+    statsElement.innerText = "Stats: ";
+    container.append(statsElement);
+    const statsSpan = document.createElement("span");
+    statsSpan.setAttribute("id", "tornium-estimate-profile-stats");
+    statsSpan.innerText = "Loading...";
+    statsElement.append(statsSpan);
+    const estimateElement = document.createElement("p");
+    estimateElement.innerText = "Estimate: ";
+    container.append(estimateElement);
+    const estimateSpan = document.createElement("span");
+    estimateSpan.setAttribute("id", "tornium-estimate-profile-estimate");
+    estimateSpan.innerText = "Loading...";
+    estimateElement.append(estimateSpan);
+    return [statsSpan, estimateSpan];
   }
 
   // settings.js
@@ -275,7 +298,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     infoScriptDocs.innerHTML = `<strong>Docs: </strong> Not yet created`;
     infoScriptContainer.append(infoScriptDocs);
     const infoScriptTerms = document.createElement("p");
-    infoScriptTerms.innerHTML = `<strong>ToS: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">ToS</a>`;
+    infoScriptTerms.innerHTML = `<strong>Terms of Service: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">Terms of Service</a> and <a href="https://tornium.com/privacy">Privacy Policy</a>.`;
     infoScriptContainer.append(infoScriptTerms);
     infoContainer.append(infoScriptContainer);
     container.append(infoContainer);
@@ -321,17 +344,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // stats.js
-  function getSingleStats(userID) {
-    const statsPromise = torniumFetch(`user/${userID}/stat`, {}).then((stats) => {
-      console.log(stats);
-    });
-    const estimatePromise = torniumFetch(`user/estimate/${userID}`, {}).then((stats) => {
-      console.log(stats);
-    });
+  function getUserStats(userID) {
+    const statsPromise = torniumFetch(`user/${userID}/stat`, {});
+    const estimatePromise = torniumFetch(`user/estimate/${userID}`, {});
+    return [statsPromise, estimatePromise];
   }
 
   // entrypoint.js
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
+  var query = new URLSearchParams(document.location.search);
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const errorContainer = document.getElementsByClassName("main-wrap")[0];
     const errorContainerTitle = document.getElementById("skip-to-content");
@@ -355,8 +376,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       unsafeWindow.alert("Invalid security state. Try again.");
       window.location.href = "https://www.torn.com";
     }
-  } else if (window.location.pathname.startsWith("/profiles.php")) {
+  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired()) {
     createSettingsButton();
-    getSingleStats(2383326);
+  } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && !isAuthExpired()) {
+    const userID = parseInt(query.get("XID"));
+    createSettingsButton();
+    const [statsPromise, estimatePromise] = getUserStats(userID);
+    const [statsSpan, estimateSpan] = createProfileContainer();
+    statsPromise.then((statsData) => {
+      console.log(statsData);
+    });
+    estimatePromise.then((estimateData) => {
+      console.log(estimateData);
+    });
   }
 })();

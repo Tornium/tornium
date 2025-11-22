@@ -1,3 +1,18 @@
+/* Copyright (C) 2021-2025 tiksan
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
 import { APP_ID, BASE_URL, VERSION } from "./constants.js";
 import { log } from "./logging.js";
 import { accessToken, authorizationURL, authStatus, isAuthExpired } from "./oauth.js";
@@ -116,7 +131,7 @@ export function injectSettingsPage(container) {
     infoScriptDocs.innerHTML = `<strong>Docs: </strong> Not yet created`;
     infoScriptContainer.append(infoScriptDocs);
     const infoScriptTerms = document.createElement("p");
-    infoScriptTerms.innerHTML = `<strong>ToS: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">ToS</a>`;
+    infoScriptTerms.innerHTML = `<strong>Terms of Service: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">Terms of Service</a> and <a href="https://tornium.com/privacy">Privacy Policy</a>.`;
     infoScriptContainer.append(infoScriptTerms);
     infoContainer.append(infoScriptContainer);
 

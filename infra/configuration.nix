@@ -30,5 +30,12 @@
   ];
 
   system.stateVersion = "24.05";
-}
 
+  # This is added to the server by colmena in ./hosts/common.nix
+  sops.age.keyFile = "/run/keys/sops-age-key.secret";
+  sops.defaultSopsFile = ./secrets/secrets.yaml;
+  sops.defaultSopsFormat = "yaml";
+
+  # ---- SECRETS ---- #
+  sops.secrets."example_key" = {};
+}

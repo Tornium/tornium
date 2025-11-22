@@ -1,0 +1,9 @@
+keys:
+  - &admin_tiksan age1fgjd4dltc5kdf3784azfgc60a8ca2k7rfl2tfe2pqa82c806tq9s9l73w8
+  - &shared_servers age1vzxu44cax0zn8k3ymvuxnpe75wyt7xhqw95vr9l6y6j9lr5seasqmpm086
+creation_rules:
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      age:
+        - *admin_tiksan
+        - *shared_servers

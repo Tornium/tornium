@@ -30,3 +30,9 @@ An existing server that's already been setup can be updated with Colmena:
 colmena build
 colmena apply
 ```
+
+## Updating the Secrets File
+The secrets file can be configured in the `$EDITOR` assuming there is one of the keys in `./.sops.yaml` in the system.
+```sh
+nix-shell -p sops --run "sops secrets/secrets.yaml"
+```

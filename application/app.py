@@ -71,6 +71,8 @@ logger.addHandler(handler)
 
 
 def init__app():
+    from tornium_commons.redisconnection import load_scripts
+
     from controllers import mod as base_mod
     from controllers.adminroutes import mod as admin_mod
     from controllers.api import api_v1_mod
@@ -87,8 +89,6 @@ def init__app():
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
-
-    from tornium_commons.redisconnection import load_scripts
 
     init_db()
 

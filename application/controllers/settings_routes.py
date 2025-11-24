@@ -83,7 +83,7 @@ def settings(*args, **kwargs):
 
 @mod.route("/settings/application/<application_id>")
 @fresh_login_required
-@token_required(setnx=False)
+@token_required(setnx=True)
 def settings_application(application_id: str, *args, **kwargs):
     try:
         current_token: OAuthToken = (

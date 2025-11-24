@@ -88,6 +88,8 @@ def init__app():
     from controllers.torn import mod as torn_mod
     from skynet import mod as skynet_mod
 
+    from tornium_commons.redisconnection import load_scripts
+
     init_db()
 
     app = flask.Flask(__name__)
@@ -145,6 +147,8 @@ def init__app():
         app.register_blueprint(developers_mod)
         app.register_blueprint(notification_mod)
         app.register_blueprint(settings_mod)
+
+    load_scripts()
 
     return app
 

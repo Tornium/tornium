@@ -4,6 +4,6 @@ keys:
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
-      age:
-        - *admin_tiksan
-        - *shared_servers
+    - age:
+      - *admin_tiksan
+      - *shared_servers

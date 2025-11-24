@@ -60,5 +60,5 @@
   sops.defaultSopsFormat = "yaml";
 
   # ---- SECRETS ---- #
-  sops.secrets."example_key" = {};
+  sops.secrets."postgres/password" = {};
 }

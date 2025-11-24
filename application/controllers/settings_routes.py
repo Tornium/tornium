@@ -31,6 +31,14 @@ from controllers.decorators import session_required, token_required
 
 mod = Blueprint("settings_routes", __name__)
 
+def truncate_to_seconds(dt):
+    """Return datetime with microseconds removed (presentation only)."""
+    if dt is None:
+        return None
+    if isinstance(dt, datetime.datetime):
+        return dt.replace(microsecond=0)
+    return dt
+
 
 @mod.route("/settings")
 @fresh_login_required
@@ -116,6 +124,12 @@ def settings_application(application_id: str, *args, **kwargs):
         )
 
     scopes = current_token.scope.split()
+
+    # Truncate microseconds for display (presentation-only)
+    first_token.issued_at = truncate_to_seconds(first_token.issued_at)
+    current_token.issued_at = truncate_to_seconds(current_token.issued_at)
+    current_token.access_token_revoked_at = truncate_to_seconds(current_token.access_token_revoked_at)
+    current_token.refresh_token_revoked_at = truncate_to_seconds(current_token.refresh_token_revoked_at)
 
     return render_template(
         "settings/application.html", current_token=current_token, first_token=first_token, scopes=scopes

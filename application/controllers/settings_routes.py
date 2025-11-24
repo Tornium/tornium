@@ -31,12 +31,16 @@ from controllers.decorators import session_required, token_required
 
 mod = Blueprint("settings_routes", __name__)
 
-def truncate_to_seconds(dt):
-    """Return datetime with microseconds removed (presentation only)."""
+def truncate_to_seconds(dt: typing.Optional[datetime.datetime]) -> typing.Optional[datetime.datetime]:
+    """
+    Returns datetime with microseconds removed.
+    """
+    
     if dt is None:
         return None
-    if isinstance(dt, datetime.datetime):
+    elif isinstance(dt, datetime.datetime):
         return dt.replace(microsecond=0)
+    
     return dt
 
 

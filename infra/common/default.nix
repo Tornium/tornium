@@ -60,5 +60,6 @@
   sops.defaultSopsFormat = "yaml";
 
   # ---- SECRETS ---- #
-  sops.secrets."postgres/password" = {};
+  sops.secrets."postgres/password" = {owner = "postgres"; };
+  sops.secrets."postgres/admin_password" = { owner = "postgres"; };
 }

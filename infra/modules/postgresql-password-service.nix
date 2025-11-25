@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   systemd.services."postgresql-apply-password" = {
@@ -10,6 +10,7 @@
       "/run/secrets/postgres/password"
       "/run/secrets/postgres/admin_password"
     ];
+    path = [ pkgs.postgresql_16 ];
 
     serviceConfig = {
       Type = "oneshot";
@@ -23,12 +24,12 @@
 
       if [ -f /run/secrets/postgres/password ]; then
         PW="$(cat /run/secrets/postgres/password)"
-        echo "ALTER ROLE \"Tornium\" WITH PASSWORD '$\{PW\}';" | psql
+        echo "ALTER ROLE \"Tornium\" WITH PASSWORD '$PW';" | psql
       fi
 
       if [ -f /run/secrets/postgres/admin_password ]; then
         PW="$(cat /run/secrets/postgres/admin_password)"
-        echo "ALTER ROLE \"tiksan\" WITH PASSWORD '$\{PW\}';" | psql
+        echo "ALTER ROLE \"tiksan\" WITH PASSWORD '$PW';" | psql
       fi
     '';
   };

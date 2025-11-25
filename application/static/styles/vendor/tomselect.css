@@ -1,3 +1,7 @@
+.ts-wrapper {
+    width: 100%;
+}
+
 .ts-control {
     background-color: var(--primary-bg-color) !important;
     color: var(--text-color);

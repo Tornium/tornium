@@ -79,7 +79,7 @@ Tornium - Verification
                             Select the channel to which log messages regarding member verification are forwarded to.
                         </div>
 
-                        <select class="discord-channel-selector" id="verification-log-channel" aria-label="Verification Log Channel" data-live-search="true">
+                        <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-log-channel" aria-label="Verification Log Channel" data-live-search="true">
                             <option value="0">Disabled</option>
                         </select>
                     </div>
@@ -93,7 +93,7 @@ Tornium - Verification
                             Select the channel members that join a server will be locked within by default until they're verified.
                         </div>
 
-                        <select class="discord-channel-selector" id="verification-jail-channel" aria-label="Verification Jail Channel" data-live-search="true">
+                        <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-jail-channel" aria-label="Verification Jail Channel" data-live-search="true">
                             <option value="0">Disabled</option>
                         </select>
                     </div>
@@ -272,7 +272,15 @@ Tornium - Verification
                         </div>
 
                         <div class="form-floating px-3 py-3">
-                            <select class="discord-role-selector verification-faction-roles" data-faction="{{ faction }}" aria-label="Verification Faction Roles" data-live-search="true" data-selected-text-format="count > 2" multiple></select>
+                            <select
+                                class="discord-role-selector verification-faction-roles"
+                                data-faction="{{ faction }}"
+                                aria-label="Verification Faction Roles"
+                                data-live-search="true"
+                                data-selected-text-format="count > 2"
+                                multiple
+                            ></select>
+
                             <div class="form-text">
                                 The roles that are assigned to members of this faction.
                             </div>
@@ -316,6 +324,7 @@ Tornium - Verification
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/channel-selector.js"></script>
 <script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
 <script src="/static/bot/verify.js"></script>
 {% endblock %}

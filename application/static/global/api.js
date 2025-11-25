@@ -15,6 +15,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const csrfToken = document.currentScript.getAttribute("data-csrf-token");
 
+function generateTFetchErrorToast(jsonError, errorTitle) {
+    if (jsonError.details == undefined || jsonError.details.message == undefined) {
+        generateToast(
+            errorTitle == undefined ? "Tornium Error" : errorTitle,
+            `[${jsonError.code}] ${jsonError.message}`,
+            "error",
+        );
+    } else if (jsonError.details != undefined && jsonError.details.message != undefined) {
+        generateToast(
+            errorTitle == undefined ? "Tornium Error" : errorTitle,
+            `[${jsonError.code}] ${jsonError.message}<br /><br />${jsonError.details.message}`,
+            "error",
+        );
+    }
+}
+
 function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
     return window
         .fetch(endpoint, {
@@ -40,30 +56,11 @@ function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
         .then((jsonResponse) => {
             if (jsonResponse == 204) {
                 return;
+            } else if (jsonResponse.code !== undefined && errorHandler !== undefined) {
+                errorHandler(jsonResponse);
+                return Promise.reject();
             } else if (jsonResponse.code !== undefined) {
-                if (
-                    errorHandler == undefined &&
-                    (jsonResponse.details == undefined || jsonResponse.details.message == undefined)
-                ) {
-                    generateToast(
-                        errorTitle == undefined ? "Tornium Error" : errorTitle,
-                        `[${jsonResponse.code}] ${jsonResponse.message}`,
-                        "error",
-                    );
-                } else if (
-                    errorHandler == undefined &&
-                    jsonResponse.details != undefined &&
-                    jsonResponse.details.message != undefined
-                ) {
-                    generateToast(
-                        errorTitle == undefined ? "Tornium Error" : errorTitle,
-                        `[${jsonResponse.code}] ${jsonResponse.message}<br /><br />${jsonResponse.details.message}`,
-                        "error",
-                    );
-                } else {
-                    errorHandler(jsonResponse);
-                }
-
+                generateTFetchErrorToast(jsonResponse, errorTitle);
                 return Promise.reject();
             }
 

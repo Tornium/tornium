@@ -68,7 +68,8 @@ defmodule Tornium.MixProject do
     [
       "ecto.setup": ["ecto.create --quiet", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.setup", "test --cover --trace"]
+      "test.full": ["ecto.setup", "test --cover --trace"],
+      test: ["ecto.setup", "test"]
     ]
   end
 

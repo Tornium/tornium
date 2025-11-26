@@ -18,6 +18,9 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
   Insert new armory news events.
   """
 
+  import Ecto.Query
+  alias Tornium.Repo
+
   use Oban.Worker,
     max_attempts: 3,
     priority: 0,
@@ -37,7 +40,8 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
         %Oban.Job{
           args: %{
             "api_call_id" => api_call_id,
-            "faction_id" => faction_id
+            "faction_id" => faction_id,
+            "user_id" => user_id
           }
         } = _job
       ) do
@@ -51,6 +55,17 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
       :not_ready ->
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
+
+      %{"error" => %{"code" => 7}} ->
+        Tornium.Schema.User
+        |> update([u], set: [faction_aa: false])
+        |> where([u], u.tid == ^user_id)
+        |> Repo.update_all([])
+
+        :ok
+
+      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
+        {:cancel, {:api_error, error_code}}
 
       result when is_map(result) ->
         do_perform(result, faction_id)

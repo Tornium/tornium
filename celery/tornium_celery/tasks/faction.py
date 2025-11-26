@@ -190,7 +190,7 @@ def update_faction(faction_data):
             ).execute()
         else:
             User.insert(
-                tid=member["player_id"],
+                tid=member_id,
                 name=member["name"],
                 level=member["level"],
                 faction=faction_data["ID"],

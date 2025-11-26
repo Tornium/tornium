@@ -63,12 +63,12 @@ defmodule Tornium.Test.Faction.News.ArmoryAction do
     }
 
     assert %ArmoryAction{
-      id: "jDECKiHFkj9EKh7iLWG0",
-      action: :use,
-      user_id: 1,
-      recipient_id: 1,
-      item_id: 180,
-      quantity: 1,
-    } = ArmoryAction.parse(news)
+             id: "jDECKiHFkj9EKh7iLWG0",
+             action: :use,
+             user_id: 1,
+             recipient_id: 1,
+             item_id: 180,
+             quantity: 1
+           } = ArmoryAction.parse(news)
   end
 end

@@ -85,7 +85,7 @@ class TableViewer extends HTMLElement {
                 },
             })
                 .then((response) => {
-                    if (!(dataKey in response) || response[dataKey].length == 0) {
+                    if (dataKey == null || !(dataKey in response) || response[dataKey].length == 0) {
                         this.showError(`No data found in response for key ${dataKey}`, "No data found");
                         return;
                     }

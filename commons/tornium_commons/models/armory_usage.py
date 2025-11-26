@@ -40,3 +40,27 @@ class ArmoryUsage(BaseModel):
 
     class Meta:
         table_name = "armory_usage"
+
+    def to_dict(self) -> dict:
+        from ..formatters import timestamp
+
+        return {
+            "id": self.id,
+            "timestamp": timestamp(self.timestamp),
+            "action": self.action,
+            "user": {
+                "id": self.user_id,
+                "name": User.user_name(self.user_id),
+            },
+            "recipient": {
+                "id": self.recipient_id,
+                "name": User.user_name(self.recipient_id),
+            },
+            "item": {
+                "id": self.item_id,
+                "name": None if self.item_id is None else Item.item_name(self.item_id),
+                "is_nerve_refill": self.is_nerve_refill,
+                "is_energy_refill": self.is_energy_refill,
+                "quantity": self.quantity,
+            },
+        }

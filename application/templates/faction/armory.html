@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Tornium - Faction Bot Dashboard
+Tornium - Faction Armory
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -13,7 +13,7 @@ Tornium - Faction Bot Dashboard
         <a href="/faction">Faction</a>
     </li>
     <li class="breadcrumb-item active">
-        <a href="/faction/bot">Bot Configuration</a>
+        <a href="/faction/armory">Armory</a>
     </li>
 </ol>
 {% endblock %}
@@ -39,6 +39,7 @@ Tornium - Faction Bot Dashboard
                 <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
             </a>
         </div>
+
 
         {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
@@ -68,25 +69,41 @@ Tornium - Faction Bot Dashboard
 
 {% block content %}
 <div class="py-3 px-3">
-    <div class="card min-w-25 max-w-50">
+    <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Guild ID</h5>
+            <h5 class="card-title">Armory Usage Logs</h5>
             <p class="card-text">
-                The ID of the Discord guild/server in which the faction and bot is located. For more information on how to
-                retrieve the guild ID (and other Discord IDs), check out Discord Support
-                <a href="https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-" target="_blank" rel="noopener noreferrer">here</a>.
-                In order to set other bot configurations, please set the faction's guild ID first.
+                This lists all individual armory logs.
             </p>
 
-            <form class="form-floating" method="POST" action="/faction/bot">
-                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
-                <label for="guildid">Guild ID</label>
-            </form>
+            <table-viewer
+                id="usage-logs-viewer"
+                data-endpoint="faction/{{ current_user.faction_id }}/armory/logs"
+                data-key="logs"
+                data-error="Armory Logs Fetch Failed"
+                data-error-callback="viewerErrorCallback"
+                data-render-callback="addUsageLogToViewer"
+            >
+            </table-viewer>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Cumulative Armory Usage Logs</h5>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Armory Availability</h5>
+            <p class="card-text">This lists the armory's availability of items tracked by the linked server.</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/faction/guild.js"></script>
+<script src="/static/components/table-viewer.js"></script>
+<script src="/static/faction/armory.js"></script>
 {% endblock %}

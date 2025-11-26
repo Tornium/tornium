@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from .armory_usage import ArmoryUsage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition
@@ -46,6 +47,7 @@ from .withdrawal import Withdrawal
 # Otherwise the table won't be able to be generated
 
 __all__ = [
+    "ArmoryUsage",
     "AuthLog",
     "Faction",
     "FactionPosition",

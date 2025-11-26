@@ -31,6 +31,12 @@ Tornium - Faction
         </div>
 
         {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/armory">
+                <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
+            </a>
+        </div>
+
         {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
@@ -76,6 +82,9 @@ Tornium - Faction
                         </li>
                         <li class="list-group-item">
                             Organized Crimes - a collection of faction utilities to manage OCs
+                        </li>
+                        <li class="list-group-item">
+                            Armory - a faction utility that tracks armory usage
                         </li>
                         <li class="list-group-item">
                             And many more can be found under the <a href="/bot">bot dashboard</a>

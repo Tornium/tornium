@@ -13,12 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import (
-    armory,
-    attacks,
-    banking,
-    crime_team,
-    crimes,
-    faction,
-    positions,
-)
+from flask import render_template
+from flask_login import login_required
+
+from controllers.faction.decorators import fac_required
+
+
+@login_required
+@fac_required
+def armory(*args, **kwargs):
+    return render_template("faction/armory.html")

@@ -14,8 +14,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 class TableViewer extends HTMLElement {
-    // TODO: Need to add event handlers to handle button press on next and previous to change pages
-
     constructor() {
         super();
 
@@ -44,7 +42,8 @@ class TableViewer extends HTMLElement {
 
         const countContainer = document.createElement("div");
         countContainer.classList.add("col-sm-12", "col-md-6", "align-middle", "ps-3");
-        countContainer.innerHTML = '<span id="trigger-count">No</span> trigger(s) located';
+        countContainer.innerHTML =
+            'Page <span id="page-count">0</span> | <span id="viewer-count">None</span> element(s) located';
         footer.appendChild(countContainer);
 
         const buttonContainer = document.createElement("div");
@@ -55,19 +54,27 @@ class TableViewer extends HTMLElement {
         this.previousButton.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
         this.previousButton.setAttribute("disabled", "");
         this.previousButton.textContent = "Previous Page";
-
+        this.previousButton.addEventListener("click", (event) => {
+            this.offset = Math.max(0, this.offset - this.limit);
+            this.reload();
+        });
         buttonContainer.appendChild(this.previousButton);
+
         this.nextButton = document.createElement("button");
         this.nextButton.classList.add("btn", "btn-sm", "btn-outline-secondary");
         this.nextButton.setAttribute("disabled", "");
         this.nextButton.textContent = "Next Page";
+        this.nextButton.addEventListener("click", (event) => {
+            this.offset = this.offset + this.limit;
+            this.reload();
+        });
         buttonContainer.appendChild(this.nextButton);
 
         this.append(footer);
     }
 
     reload() {
-        this.showLoading();
+        // this.showLoading();
 
         const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
         const error = this.getAttribute("data-error");
@@ -138,12 +145,16 @@ class TableViewer extends HTMLElement {
     }
 
     showLoading() {
-        this.container.innerHTML = "Loading...";
+        // this.container.innerHTML = "Loading...";
+        // TODO: reimplement this
     }
 
     updateCount(text) {
-        const count = document.getElementById("trigger-count");
-        count.textContent = text;
+        const viewerCount = document.getElementById("viewer-count");
+        viewerCount.textContent = text;
+
+        const pageCount = document.getElementById("page-count");
+        pageCount.textContent = Math.floor(this.offset / this.limit);
     }
 
     updateButtons(count) {
@@ -153,15 +164,8 @@ class TableViewer extends HTMLElement {
             return;
         }
 
-        let previous = null;
-        let next = null;
-
-        if (this.offset <= 0) {
-            previous = false;
-        }
-        if (this.offset + this.limit >= count) {
-            next = false;
-        }
+        let previous = this.offset > 0;
+        let next = this.offset + this.limit < count;
 
         if (!previous) {
             this.previousButton.setAttribute("disabled", "");

@@ -24,7 +24,8 @@ defmodule Tornium.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      aliases: aliases()
+      aliases: aliases(),
+      preferred_cli_env: preferred_cli_env()
     ]
   end
 
@@ -70,6 +71,13 @@ defmodule Tornium.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "test.full": ["ecto.setup", "test --cover --trace"],
       test: ["ecto.setup", "test"]
+    ]
+  end
+
+  defp preferred_cli_env do
+    [
+      "test.full": :test,
+      test: :test
     ]
   end
 

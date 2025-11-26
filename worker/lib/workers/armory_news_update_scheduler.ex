@@ -63,6 +63,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       |> where([k, u], u.faction_id == ^faction_id and u.faction_aa == true)
       |> select([k, u, f], [k.api_key, u.tid])
       |> order_by(fragment("RANDOM()"))
+      |> first()
       |> Repo.one()
 
     case api_key_result do

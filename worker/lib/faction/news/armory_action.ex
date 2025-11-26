@@ -41,6 +41,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
   def parse(%Torngen.Client.Schema.FactionNews{timestamp: timestamp, text: text, id: id} = _news) do
     parsed_text =
       text
+      |> String.trim_trailing(".")
       |> Floki.parse_fragment!()
       |> do_parse_text()
 

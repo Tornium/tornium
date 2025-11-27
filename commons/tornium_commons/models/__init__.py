@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .armory_usage import ArmoryUsage
+from .armory_usage import ArmoryAction, ArmoryUsage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition

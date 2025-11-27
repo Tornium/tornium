@@ -84,6 +84,24 @@ Tornium - Faction Armory
                 data-error-callback="viewerErrorCallback"
                 data-render-callback="addUsageLogToViewer"
             >
+                <div class="viewer-filters px-2 pb-3">
+                    <select class="viewer-filter automatic-tom-select" data-filter-key="actions" data-filter-callback="filterTomSelectMultiple" data-live-search="true" aria-label="Action Filter" data-selected-text-format="count > 2" multiple autocomplete="off">
+                        <option value="use">Used an item</option>
+                        <option value="loan">Loaned an item</option>
+                        <option value="return">Returned an item</option>
+                        <option value="fill">Filled a blood bag</option>
+                        <option value="give">Gave an item</option>
+                        <option value="retrieve">Retrieved an item</option>
+                    </select>
+
+                    <select class="viewer-filter automatic-tom-select" data-filter-key="members" data-filter-callback="filterTomSelectMultiple" data-live-search="true" aria-label="Faction Member Filter" data-selected-text-format="count > 2" multiple autocomplete="off">
+                        {% for armory_action in armory_members %}
+                        <option value="{{ armory_action.user.tid }}">{{ armory_action.user.name }} [{{ armory_action.user.tid }}]</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="viewer-container"></div>
             </table-viewer>
         </div>
     </div>

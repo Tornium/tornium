@@ -85,3 +85,16 @@ window.addUsageLogToViewer = function (log, logContainer) {
     viewActionIcon.classList.add("fa-regular", "fa-eye");
     viewAction.append(viewActionIcon);
 };
+
+window.filterTomSelectMultiple = function (element) {
+    return Array.from(element.selectedOptions).map(({ value }) => value);
+};
+
+ready(() => {
+    document.querySelectorAll(".automatic-tom-select").forEach((element) => {
+        new TomSelect(element, {
+            create: false,
+            maxOptions: null,
+        });
+    });
+});

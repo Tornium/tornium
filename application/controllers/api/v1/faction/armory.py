@@ -14,10 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import request
-from tornium_commons.models import ArmoryUsage, User
+from tornium_commons.models import ArmoryAction, ArmoryUsage, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
-from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import (
+    api_ratelimit_response,
+    get_list,
+    make_exception_response,
+)
+
+armory_action_values = [action.value for action in ArmoryAction]
 
 
 @require_oauth("faction:armory", "faction")
@@ -35,6 +41,9 @@ def get_logs(faction_id: int, *args, **kwargs):
     except (TypeError, ValueError):
         return make_exception_response("1000", key)
 
+    members = get_list(request.args, "members", int)
+    actions = get_list(request.args, "actions", str)
+
     if limit < 0 or limit > 100:
         return make_exception_response(
             "0000", key, details={"element": "limit", "message": "The limit must be between 0 and 100."}
@@ -43,7 +52,16 @@ def get_logs(faction_id: int, *args, **kwargs):
         return make_exception_response(
             "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
         )
+    elif len(actions) > 0 and any([action not in armory_action_values for action in actions]):
+        return make_exception_response(
+            "0000", key, details={"element": "actions", "message": "There was an invalid action provided"}
+        )
 
     logs = ArmoryUsage.select().where(ArmoryUsage.faction_id == faction_id)
+
+    if len(members) != 0:
+        logs = logs.where(ArmoryUsage.user_id.in_(members))
+    if len(actions) != 0:
+        logs = logs.where(ArmoryUsage.action.in_(actions))
 
     return {"count": logs.count(), "logs": [log.to_dict() for log in logs.limit(limit).offset(offset)]}

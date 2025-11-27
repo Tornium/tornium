@@ -14,7 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template
-from flask_login import login_required
+from flask_login import current_user, login_required
+from tornium_commons.models import ArmoryUsage, User
 
 from controllers.faction.decorators import fac_required
 
@@ -22,4 +23,11 @@ from controllers.faction.decorators import fac_required
 @login_required
 @fac_required
 def armory(*args, **kwargs):
-    return render_template("faction/armory.html")
+    armory_members = (
+        ArmoryUsage.select(User.tid, User.name)
+        .distinct(User.tid)
+        .join(User)
+        .where(ArmoryUsage.faction_id == current_user.faction_id)
+    )
+
+    return render_template("faction/armory.html", armory_members=armory_members)

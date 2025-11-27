@@ -19,9 +19,12 @@ class TableViewer extends HTMLElement {
 
         this.offset = 0;
         this.limit = 10;
-        this.container = null;
+        this.container = this.querySelector(".viewer-container");
         this.previousButton = null;
         this.nextButton = null;
+        this.filters = this.registerFilters();
+
+        console.log(this.filters);
     }
 
     connectedCallback() {
@@ -31,6 +34,10 @@ class TableViewer extends HTMLElement {
     }
 
     buildContainer() {
+        if (this.container != null) {
+            return;
+        }
+
         this.container = document.createElement("div");
         this.showLoading();
         this.append(this.container);
@@ -74,11 +81,17 @@ class TableViewer extends HTMLElement {
     }
 
     reload() {
-        // this.showLoading();
+        this.showLoading();
 
         const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
         const error = this.getAttribute("data-error");
         const dataKey = this.getAttribute("data-key");
+
+        let apiEndpointSearch = new URLSearchParams(apiEndpoint.search);
+        apiEndpointSearch = this.applyFilters(apiEndpointSearch);
+        console.log(apiEndpointSearch);
+
+        apiEndpoint.search = apiEndpointSearch;
 
         apiEndpoint.searchParams.append("offset", this.offset);
         apiEndpoint.searchParams.append("limit", this.limit);
@@ -141,7 +154,7 @@ class TableViewer extends HTMLElement {
         }
 
         console.error(consoleError || error);
-        this.innerHTML = `${error}...`;
+        this.container.innerHTML = `${error}...`;
     }
 
     showLoading() {
@@ -179,6 +192,49 @@ class TableViewer extends HTMLElement {
             this.nextButton.removeAttribute("disabled");
         }
     }
+
+    registerFilters() {
+        const filters = Array.from(this.querySelectorAll("[data-filter-key]"));
+
+        if (filters.length === 0) {
+            return {};
+        }
+
+        const registerFilters = {};
+
+        for (const filter of filters) {
+            const filterKey = filter.getAttribute("data-filter-key");
+            const filterGetterCallback = filter.getAttribute("data-filter-callback");
+            console.log(filterGetterCallback);
+
+            if (filterGetterCallback && window[filterGetterCallback]) {
+                registerFilters[filterKey] = () => window[filterGetterCallback](filter);
+            } else {
+                registerFilters[filterKey] = () => filter.value;
+            }
+
+            filter.addEventListener("change", () => this.reload());
+        }
+
+        return registerFilters;
+    }
+
+    applyFilters(searchParams) {
+        for (const [filterKey, filter] of Object.entries(this.filters)) {
+            const value = filter();
+
+            if (value == null || value == "") {
+                continue;
+            }
+
+            console.log(filter());
+            searchParams.append(filterKey, value);
+        }
+
+        return searchParams;
+    }
 }
 
-customElements.define("table-viewer", TableViewer);
+ready(() => {
+    customElements.define("table-viewer", TableViewer);
+});

@@ -349,3 +349,28 @@ def make_exception_response(
             exception["http"],
             api_ratelimit_response(ratelimit_key, redis_client),
         )
+
+
+def get_list(data: dict, key: str, callable_type: typing.Callable | None) -> list:
+    """
+    Get a list of elements from a key in a dictionary. If a callable type is included, the values will be converted using that type.
+
+    Based upon https://github.com/pallets/werkzeug/blob/7d67f88e6c8ed49ab205e2b6b208aede8b9b27d7/src/werkzeug/datastructures/headers.py#L164
+    """
+
+    if data.get(key) is None or len(data.get(key)) == 0:
+        return []
+
+    result = [value_part for value_part in data.get(key, "").split(",")]
+
+    if callable_type is None:
+        return result
+
+    typed_result = []
+    for value_part in result:
+        try:
+            typed_result.append(callable_type(value_part))
+        except (TypeError, ValueError):
+            continue
+
+    return typed_result

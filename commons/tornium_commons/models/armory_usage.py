@@ -13,12 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import enum
+
 from peewee import BooleanField, DateTimeField, ForeignKeyField, IntegerField, TextField
 
 from .base_model import BaseModel
 from .faction import Faction
 from .item import Item
 from .user import User
+
+
+class ArmoryAction(enum.Enum):
+    USE = "use"
+    LOAN = "loan"
+    RETURN = "return"
+    FILL = "fill"
+    GIVE = "give"
 
 
 class ArmoryUsage(BaseModel):

@@ -5,7 +5,6 @@ description = "Documentation and guides covering Tornium and its official usersc
 src = "src/"
 language = "en"
 text-direction = "ltr"
-multilingual = false
 
 [build]
 build-dir = "build/"

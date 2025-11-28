@@ -24,7 +24,7 @@ import {
 } from "./common.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
-import { getUserStats } from "../stats.js";
+import { getUserEstimate, getUserStats } from "../stats.js";
 
 export function checkRankedWarToggleState(event) {
     // We need to ensure the element we're waiting on is far enough down the tree that the table will be inserted into the DOM 
@@ -41,7 +41,7 @@ export function checkRankedWarToggleState(event) {
     });
 }
 
-const concurrencyLimiter = limitConcurrency(3);
+const concurrencyLimiter = limitConcurrency(10);
 
 function transformRankedWarLevelNode(node) {
     if (node.innerText == "Level") {
@@ -69,18 +69,35 @@ function transformRankedWarLevelNode(node) {
             log(`OAuth Error: ${statsData.error_description}`);
             node.innerText = `ERR`;
         } else if (statsData.code === 1100) {
-            // There is no data on this user
-            // TODO: Use the estimate instead
-            node.innerText = "N/A";
+            // There is no data on this user. We want to use an estimate instead
+            transformRankedWarLevelNodeEstimate(node, userID);
         } else if (statsData.code != undefined) {
             log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
             node.innerText = `ERR`;
         } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * 30) {
             node.innerText = fairFight(statsData.stat_score);
         } else {
-            // The data is too old
-            // TODO: Use the estimate instead
+            // The data is too old. We want to use an estimate instead
+            transformRankedWarLevelNodeEstimate(node, userID);
+        }
+    });
+}
+
+function transformRankedWarLevelNodeEstimate(node, userID) {
+    concurrencyLimiter(() => {
+        return getUserEstimate(userID);
+    }).then((estimateData) => {
+        if (estimateData.error != undefined) {
+            log(`OAuth Error: ${estimateData.error_description}`);
+            node.innerText = `ERR`;
+        } else if (estimateData.code === 1100) {
+            // There is no data on this user
             node.innerText = "N/A";
+        } else if (estimateData.code != undefined) {
+            log(`Tornium Error: [${estimateData.code}] - ${estimateData.message}`);
+            node.innerText = `ERR`;
+        } else {
+            node.innerText = fairFight(estimateData.stat_score);
         }
     });
 }

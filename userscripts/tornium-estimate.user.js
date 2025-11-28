@@ -390,7 +390,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
     });
   }
-  var concurrencyLimiter = limitConcurrency(3);
+  var concurrencyLimiter = limitConcurrency(10);
   function transformRankedWarLevelNode(node) {
     if (node.innerText == "Level") {
       node.innerText = "FF";
@@ -412,14 +412,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         log(`OAuth Error: ${statsData.error_description}`);
         node.innerText = `ERR`;
       } else if (statsData.code === 1100) {
-        node.innerText = "N/A";
+        transformRankedWarLevelNodeEstimate(node, userID);
       } else if (statsData.code != void 0) {
         log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
         node.innerText = `ERR`;
       } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
         node.innerText = fairFight(statsData.stat_score);
       } else {
+        transformRankedWarLevelNodeEstimate(node, userID);
+      }
+    });
+  }
+  function transformRankedWarLevelNodeEstimate(node, userID) {
+    concurrencyLimiter(() => {
+      return getUserEstimate(userID);
+    }).then((estimateData) => {
+      if (estimateData.error != void 0) {
+        log(`OAuth Error: ${estimateData.error_description}`);
+        node.innerText = `ERR`;
+      } else if (estimateData.code === 1100) {
         node.innerText = "N/A";
+      } else if (estimateData.code != void 0) {
+        log(`Tornium Error: [${estimateData.code}] - ${estimateData.message}`);
+        node.innerText = `ERR`;
+      } else {
+        node.innerText = fairFight(estimateData.stat_score);
       }
     });
   }

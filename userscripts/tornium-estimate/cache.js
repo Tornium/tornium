@@ -13,20 +13,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-const CACHE_ENABLED = "caches" in window;
+import { CACHE_ENABLED } from "./constants.js";
+
 const CACHE_NAME = "tornium-estimate-cache";
-export const CACHE_EXPIRATION = 1000 * 15; // 15 seconds
+export const CACHE_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
 
 export async function getCache(url) {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(url);
 
     if (cachedResponse) {
-        const cachedTime = new Date(cachedResponse.headers.get("date")).getTime();
-        const expirationTime = new Date(cachedResponse.headers.get("cache-expiry")).getTime();
-        const now = Date.now();
+        const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
 
-        if (now < expirationTime) {
+        if (Date.now() < expirationTime) {
             return await cachedResponse.json();
         }
 

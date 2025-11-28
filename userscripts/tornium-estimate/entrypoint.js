@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
 import { Config } from "./config.js";
-import { APP_ID, DEBUG, VERSION } from "./constants.js";
+import { APP_ID, CACHE_ENABLED, DEBUG, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
@@ -24,7 +24,7 @@ import { checkRankedWarToggleState } from "./pages/faction-rw.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 import { getUserEstimate, getUserStats } from "./stats.js";
 
-log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
+log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
 
 function isEnabledOn(pageID) {
     return Config.pages.some((page) => page == pageID);

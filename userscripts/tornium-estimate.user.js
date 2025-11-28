@@ -38,18 +38,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
-  // cache.js
+  // constants.js
+  var DEBUG = false;
+  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+  var ENABLE_LOGGING = true;
+  var VERSION = "1.0.0-dev";
+  var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
+  var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
+  GM_setValue("tornium-estimate:test", "1");
+  var clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
+
+  // cache.js
   var CACHE_NAME = "tornium-estimate-cache";
-  var CACHE_EXPIRATION = 1e3 * 15;
+  var CACHE_EXPIRATION = 1e3 * 60 * 60 * 24;
   async function getCache(url) {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(url);
     if (cachedResponse) {
-      const cachedTime = new Date(cachedResponse.headers.get("date")).getTime();
-      const expirationTime = new Date(cachedResponse.headers.get("cache-expiry")).getTime();
-      const now = Date.now();
-      if (now < expirationTime) {
+      const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
+      if (Date.now() < expirationTime) {
         return await cachedResponse.json();
       }
       await cache.delete(url);
@@ -72,16 +80,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
     return headers;
   }
-
-  // constants.js
-  var DEBUG = false;
-  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
-  var ENABLE_LOGGING = true;
-  var VERSION = "1.0.0-dev";
-  var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
-  var APP_SCOPE = "torn_key:usage";
-  GM_setValue("tornium-estimate:test", "1");
-  var clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
 
   // oauth.js
   var accessToken = GM_getValue("tornium-estimate:access-token", null);
@@ -613,7 +611,7 @@ margin: 8px 6px 0 0;
   }
 
   // entrypoint.js
-  log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
+  log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
   function isEnabledOn(pageID) {
     return Config.pages.some((page) => page == pageID);
   }

@@ -19,6 +19,7 @@ export const PAGE_OPTIONS = [
     { id: "profile", label: "Profile Page" },
     { id: "faction-rw", label: "Faction Ranked War" },
     { id: "search", label: "Advanced Search" },
+    { id: "attack-loader", label: "Attack Loader" },
 ];
 
 export const Config = new Proxy(

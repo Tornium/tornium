@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      1.0.0-dev
+// @version      0.5.0-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -42,7 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "1.0.0-dev";
+  var VERSION = "0.5.0-dev";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
@@ -231,7 +231,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var PAGE_OPTIONS = [
     { id: "profile", label: "Profile Page" },
     { id: "faction-rw", label: "Faction Ranked War" },
-    { id: "search", label: "Advanced Search" }
+    { id: "search", label: "Advanced Search" },
+    { id: "attack-loader", label: "Attack Loader" }
   ];
   var Config = new Proxy(
     class {
@@ -338,12 +339,81 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   }
 
+  // pages/profile.js
+  function createProfileContainer() {
+    const parentContainer = document.querySelector("div.content-title");
+    const container = document.createElement("div");
+    container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
+    parentContainer.append(container);
+    const statsElement = document.createElement("p");
+    statsElement.innerText = "Stats: ";
+    container.append(statsElement);
+    const statsSpan = document.createElement("span");
+    statsSpan.setAttribute("id", "tornium-estimate-profile-stats");
+    statsSpan.innerText = "Loading...";
+    statsElement.append(statsSpan);
+    const estimateElement = document.createElement("p");
+    estimateElement.innerText = "Estimate: ";
+    container.append(estimateElement);
+    const estimateSpan = document.createElement("span");
+    estimateSpan.setAttribute("id", "tornium-estimate-profile-estimate");
+    estimateSpan.innerText = "Loading...";
+    estimateElement.append(estimateSpan);
+    return [statsSpan, estimateSpan];
+  }
+  function updateProfileStatsSpan(statsData, statsSpan) {
+    if (statsData.error != void 0) {
+      statsSpan.innerText = formatOAuthError(statsData);
+    } else if (statsData.code != void 0) {
+      statsSpan.innerText = formatTorniumError(statsData);
+    } else {
+      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
+    }
+  }
+  function updateProfileEstimateSpan(estimateData, estimateSpan) {
+    if (estimateData.error != void 0) {
+      estimateSpan.innerText = formatOAuthError(estimateData);
+    } else if (estimateData.code != void 0) {
+      estimateSpan.innerText = formatTorniumError(estimateData);
+    } else {
+      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
+    }
+  }
+
   // stats.js
   function getUserStats(userID) {
     return torniumFetch(`user/${userID}/stat`, {});
   }
   function getUserEstimate(userID) {
     return torniumFetch(`user/estimate/${userID}`, {});
+  }
+
+  // pages/attack-loader.js
+  function injectAttackLoaderStats(userID) {
+    waitForElement(`div[class^="playersModelWrap_"] div[class^="dialog_"]`).then((container) => {
+      const statsSpan = document.createElement("span");
+      statsSpan.id = "tornium-estimate-user-attack-loader-span";
+      statsSpan.innerText = "Loading...";
+      container.append(statsSpan);
+      injectStats(statsSpan, userID);
+    });
+  }
+  function injectStats(statsSpan, userID) {
+    getUserStats(userID).then((statsData) => {
+      if (statsData.code === 1100) {
+        injectEstimate(statsSpan, userID);
+      } else if (new Date(statsData.timestamp * 1e3) <= Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+        injectEstimate(statsSpan, userID);
+      } else {
+        updateProfileStatsSpan(statsData, statsSpan);
+      }
+    });
+  }
+  function injectEstimate(statsSpan, userID) {
+    getUserEstimate(userID).then((estimateData) => {
+      updateProfileEstimateSpan(estimateData, statsSpan);
+    });
   }
 
   // pages/faction-rw.js
@@ -411,48 +481,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
 
-  // pages/profile.js
-  function createProfileContainer() {
-    const parentContainer = document.querySelector("div.content-title");
-    const container = document.createElement("div");
-    container.classList.add("tornium-estimate-profile-container");
-    container.style.marginTop = "10px";
-    parentContainer.append(container);
-    const statsElement = document.createElement("p");
-    statsElement.innerText = "Stats: ";
-    container.append(statsElement);
-    const statsSpan = document.createElement("span");
-    statsSpan.setAttribute("id", "tornium-estimate-profile-stats");
-    statsSpan.innerText = "Loading...";
-    statsElement.append(statsSpan);
-    const estimateElement = document.createElement("p");
-    estimateElement.innerText = "Estimate: ";
-    container.append(estimateElement);
-    const estimateSpan = document.createElement("span");
-    estimateSpan.setAttribute("id", "tornium-estimate-profile-estimate");
-    estimateSpan.innerText = "Loading...";
-    estimateElement.append(estimateSpan);
-    return [statsSpan, estimateSpan];
-  }
-  function updateProfileStatsSpan(statsData, statsSpan) {
-    if (statsData.error != void 0) {
-      statsSpan.innerText = formatOAuthError(statsData);
-    } else if (statsData.code != void 0) {
-      statsSpan.innerText = formatTorniumError(statsData);
-    } else {
-      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
-    }
-  }
-  function updateProfileEstimateSpan(estimateData, estimateSpan) {
-    if (estimateData.error != void 0) {
-      estimateSpan.innerText = formatOAuthError(estimateData);
-    } else if (estimateData.code != void 0) {
-      estimateSpan.innerText = formatTorniumError(estimateData);
-    } else {
-      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
-    }
-  }
-
   // pages/search.js
   function startSearchUserListObserver() {
     window.addEventListener("hashchange", hashChangeCallback);
@@ -462,11 +490,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   function hashChangeCallback(event) {
     waitForElement(`ul.user-info-list-wrap li[class^="user"] div.expander`).then(() => {
       const userNodes = document.querySelectorAll(`li[class^="user"]`);
-      Array.from(userNodes).forEach(injectStats);
+      Array.from(userNodes).forEach(injectStats2);
     });
   }
   var concurrencyLimiter2 = limitConcurrency(10);
-  function injectStats(addedNode) {
+  function injectStats2(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {
       return;
     } else if ("last" in addedNode.classList) {
@@ -491,18 +519,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         log(`OAuth Error: ${statsData.error_description}`);
         statSpan.innerText = `ERR`;
       } else if (statsData.code === 1100) {
-        injectEstimate(statSpan, userID);
+        injectEstimate2(statSpan, userID);
       } else if (statsData.code != void 0) {
         log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
         statSpan.innerText = `ERR`;
       } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
         statSpan.innerText = fairFight(statsData.stat_score);
       } else {
-        injectEstimate(statSpan, userID);
+        injectEstimate2(statSpan, userID);
       }
     });
   }
-  function injectEstimate(statSpan, userID) {
+  function injectEstimate2(statSpan, userID) {
     concurrencyLimiter2(() => {
       return getUserEstimate(userID);
     }).then((estimateData) => {
@@ -781,5 +809,11 @@ margin: 8px 6px 0 0;
     }
   } else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
     startSearchUserListObserver();
+  } else if (window.location.pathname == "/loader.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
+    const userID = parseInt(query.get("user2ID"));
+    if (!isNaN(userID) && userID != null) {
+      console.log(userID);
+      injectAttackLoaderStats(userID);
+    }
   }
 })();

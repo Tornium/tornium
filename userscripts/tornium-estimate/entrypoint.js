@@ -19,6 +19,7 @@ import { APP_ID, CACHE_ENABLED, DEBUG, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
+import { injectAttackLoaderStats } from "./pages/attack-loader.js";
 import { checkRankedWarToggleState } from "./pages/faction-rw.js";
 import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
 import { startSearchUserListObserver } from "./pages/search.js";
@@ -108,4 +109,11 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     }
 } else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
     startSearchUserListObserver();
+} else if (window.location.pathname == "/loader.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
+    const userID = parseInt(query.get("user2ID"));
+
+    if (!isNaN(userID) && userID != null) {
+        console.log(userID);
+        injectAttackLoaderStats(userID);
+    }
 }

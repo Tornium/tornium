@@ -14,14 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { limitConcurrency } from "../api.js";
-import {
-    fairFight,
-    formatEstimate,
-    formatOAuthError,
-    formatStats,
-    formatTorniumError,
-    relativeTime,
-} from "./common.js";
+import { fairFight } from "./common.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { getUserEstimate, getUserStats } from "../stats.js";

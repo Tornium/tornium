@@ -15,7 +15,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { log } from "./logging.js";
 
-export const PAGE_OPTIONS = [{ id: "profile", label: "Profile Page" }];
+export const PAGE_OPTIONS = [
+    { id: "profile", label: "Profile Page" },
+    { id: "faction-rw", label: "Faction Ranked War" },
+];
 
 export const Config = new Proxy(
     class {

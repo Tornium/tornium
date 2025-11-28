@@ -11,6 +11,7 @@
 // @match        https://www.torn.com/gym.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/page.php?sid=UserList*
+// @match        https://www.torn.com/factions.php*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -157,8 +158,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         onload: async (response) => {
           let responseJSON = response.response;
           if (response.responseType === void 0) {
-            responseJSON = JSON.parse(response.responseText);
-            response.responseType = "json";
+            try {
+              responseJSON = JSON.parse(response.responseText);
+              response.responseType = "json";
+            } catch (err) {
+              console.log(response.responseText);
+              console.log(err);
+              reject(err);
+              return;
+            }
           }
           if (responseJSON.error !== void 0) {
             GM_deleteValue("tornium-retaliations:access-token");
@@ -179,6 +187,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       });
     });
   }
+  function limitConcurrency(limit) {
+    let active = 0;
+    const queue = [];
+    const next = () => {
+      if (active >= limit || queue.length === 0) return;
+      const { fn, resolve, reject } = queue.shift();
+      active++;
+      fn().then(
+        (value) => {
+          active--;
+          resolve(value);
+          next();
+        },
+        (err) => {
+          active--;
+          reject(err);
+          next();
+        }
+      );
+    };
+    return function run(fn) {
+      return new Promise((resolve, reject) => {
+        queue.push({ fn, resolve, reject });
+        next();
+      });
+    };
+  }
 
   // logging.js
   function log(string) {
@@ -188,7 +223,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // config.js
-  var PAGE_OPTIONS = [{ id: "profile", label: "Profile Page" }];
+  var PAGE_OPTIONS = [
+    { id: "profile", label: "Profile Page" },
+    { id: "faction-rw", label: "Faction Ranked War" }
+  ];
   var Config = new Proxy(
     class {
       static defaults = {
@@ -318,7 +356,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     return [statsSpan, estimateSpan];
   }
   function updateProfileStatsSpan(statsData, statsSpan) {
-    console.log(statsData);
     if (statsData.error != void 0) {
       statsSpan.innerText = formatOAuthError(statsData);
     } else if (statsData.code != void 0) {
@@ -328,7 +365,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   }
   function updateProfileEstimateSpan(estimateData, estimateSpan) {
-    console.log(estimateData);
     if (estimateData.error != void 0) {
       estimateSpan.innerText = formatOAuthError(estimateData);
     } else if (estimateData.code != void 0) {
@@ -336,6 +372,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     } else {
       estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
     }
+  }
+
+  // stats.js
+  function getUserStats(userID) {
+    return torniumFetch(`user/${userID}/stat`, {});
+  }
+  function getUserEstimate(userID) {
+    return torniumFetch(`user/estimate/${userID}`, {});
+  }
+
+  // pages/faction-rw.js
+  function checkRankedWarToggleState(event) {
+    waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then((rankedWarDescription) => {
+      console.log(rankedWarDescription);
+      if (rankedWarDescription == null) {
+        return false;
+      }
+      document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
+    });
+  }
+  var concurrencyLimiter = limitConcurrency(3);
+  function transformRankedWarLevelNode(node) {
+    if (node.innerText == "Level") {
+      node.innerText = "FF";
+      return;
+    }
+    const userLinkNode = node.parentElement.querySelector(`div[class*="userInfoBox_"] div[class^="honorWrap_"] a[class^="linkWrap_"]`);
+    const userLink = new URL(userLinkNode.href);
+    const userLinkSearch = new URLSearchParams(userLink.search);
+    const userID = userLinkSearch.get("XID");
+    if (userID == null) {
+      node.innerText = "ERR";
+      return;
+    }
+    node.innerText = "...";
+    concurrencyLimiter(() => {
+      return getUserStats(userID);
+    }).then((statsData) => {
+      if (statsData.error != void 0) {
+        log(`OAuth Error: ${statsData.error_description}`);
+        node.innerText = `ERR`;
+      } else if (statsData.code === 1100) {
+        node.innerText = "N/A";
+      } else if (statsData.code != void 0) {
+        log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
+        node.innerText = `ERR`;
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+        node.innerText = fairFight(statsData.stat_score);
+      } else {
+        node.innerText = "N/A";
+      }
+    });
   }
 
   // settings.js
@@ -524,13 +612,6 @@ margin: 8px 6px 0 0;
     window.location.reload();
   }
 
-  // stats.js
-  function getUserStats(userID) {
-    const statsPromise = torniumFetch(`user/${userID}/stat`, {});
-    const estimatePromise = torniumFetch(`user/estimate/${userID}`, {});
-    return [statsPromise, estimatePromise];
-  }
-
   // entrypoint.js
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
   function isEnabledOn(pageID) {
@@ -565,12 +646,11 @@ margin: 8px 6px 0 0;
   } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && isEnabledOn("profile") && !isAuthExpired()) {
     const userID = parseInt(query.get("XID"));
     createSettingsButton();
-    const [statsPromise, estimatePromise] = getUserStats(userID);
     const [statsSpan, estimateSpan] = createProfileContainer();
-    statsPromise.then((statsData) => {
+    const statsPromise = getUserStats(userID).then((statsData) => {
       updateProfileStatsSpan(statsData, statsSpan);
     });
-    estimatePromise.then((estimateData) => {
+    const estimatePromise = getUserEstimate(userID).then((estimateData) => {
       updateProfileEstimateSpan(estimateData, estimateSpan);
     });
   } else if (window.location.pathname.startsWith("/gym.php")) {
@@ -587,5 +667,12 @@ margin: 8px 6px 0 0;
         Math.sqrt(strength) + Math.sqrt(defense) + Math.sqrt(speed) + Math.sqrt(dexterity)
       );
     });
+  } else if (window.location.pathname.startsWith("/factions.php")) {
+    if (isEnabledOn("faction-rw")) {
+      waitForElement(`div[class^="rankBox_"]`).then((rankedWarBox) => {
+        rankedWarBox.addEventListener("click", checkRankedWarToggleState);
+      });
+      checkRankedWarToggleState();
+    }
   }
 })();

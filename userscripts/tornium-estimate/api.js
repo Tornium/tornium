@@ -38,8 +38,15 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
                 let responseJSON = response.response;
 
                 if (response.responseType === undefined) {
-                    responseJSON = JSON.parse(response.responseText);
-                    response.responseType = "json";
+                    try {
+                        responseJSON = JSON.parse(response.responseText);
+                        response.responseType = "json";
+                    } catch (err) {
+                        console.log(response.responseText)
+                        console.log(err);
+                        reject(err)
+                        return;
+                    }
                 }
 
                 if (responseJSON.error !== undefined) {
@@ -65,4 +72,28 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
             },
         });
     });
+}
+
+
+export function limitConcurrency(limit) {
+    let active = 0;
+    const queue = [];
+
+    const next = () => {
+        if (active >= limit || queue.length === 0) return;
+
+        const { fn, resolve, reject } = queue.shift();
+        active++;
+        fn().then(
+            value => { active--; resolve(value); next(); },
+            err   => { active--; reject(err);  next(); },
+        );
+    };
+
+    return function run(fn) {
+        return new Promise((resolve, reject) => {
+            queue.push({ fn, resolve, reject });
+            next();
+        });
+    };
 }

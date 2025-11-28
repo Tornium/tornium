@@ -52,8 +52,6 @@ export function createProfileContainer() {
 }
 
 export function updateProfileStatsSpan(statsData, statsSpan) {
-    console.log(statsData);
-
     if (statsData.error != undefined) {
         statsSpan.innerText = formatOAuthError(statsData);
     } else if (statsData.code != undefined) {
@@ -64,8 +62,6 @@ export function updateProfileStatsSpan(statsData, statsSpan) {
 }
 
 export function updateProfileEstimateSpan(estimateData, estimateSpan) {
-    console.log(estimateData);
-
     if (estimateData.error != undefined) {
         estimateSpan.innerText = formatOAuthError(estimateData);
     } else if (estimateData.code != undefined) {

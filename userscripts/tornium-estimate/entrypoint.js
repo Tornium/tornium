@@ -20,8 +20,9 @@ import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
+import { checkRankedWarToggleState } from "./pages/faction-rw.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
-import { getUserStats } from "./stats.js";
+import { getUserEstimate, getUserStats } from "./stats.js";
 
 log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
 
@@ -70,14 +71,12 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
 ) {
     const userID = parseInt(query.get("XID"));
     createSettingsButton();
-
-    const [statsPromise, estimatePromise] = getUserStats(userID);
     const [statsSpan, estimateSpan] = createProfileContainer();
 
-    statsPromise.then((statsData) => {
+    const statsPromise = getUserStats(userID).then((statsData) => {
         updateProfileStatsSpan(statsData, statsSpan);
     });
-    estimatePromise.then((estimateData) => {
+    const estimatePromise = getUserEstimate(userID).then((estimateData) => {
         updateProfileEstimateSpan(estimateData, estimateSpan);
     });
 } else if (window.location.pathname.startsWith("/gym.php")) {
@@ -98,4 +97,12 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
             Math.sqrt(strength) + Math.sqrt(defense) + Math.sqrt(speed) + Math.sqrt(dexterity),
         );
     });
+} else if (window.location.pathname.startsWith("/factions.php")) {
+    if (isEnabledOn("faction-rw")) {
+        waitForElement(`div[class^="rankBox_"]`).then((rankedWarBox) => {
+            rankedWarBox.addEventListener("click", checkRankedWarToggleState);
+        });
+
+        checkRankedWarToggleState();
+    }
 }

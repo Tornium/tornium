@@ -11,6 +11,7 @@
 // @match        https://www.torn.com/gym.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/page.php?sid=UserList*
+// @match        https://www.torn.com/factions.php*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue

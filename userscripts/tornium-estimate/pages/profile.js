@@ -13,7 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-import { formatEstimate, formatOAuthError, formatStats, formatTorniumError, relativeTime } from "./common.js";
+import {
+    fairFight,
+    formatEstimate,
+    formatOAuthError,
+    formatStats,
+    formatTorniumError,
+    relativeTime,
+} from "./common.js";
 
 export function createProfileContainer() {
     const parentContainer = document.querySelector("div.content-title");
@@ -52,7 +59,7 @@ export function updateProfileStatsSpan(statsData, statsSpan) {
     } else if (statsData.code != undefined) {
         statsSpan.innerText = formatTorniumError(statsData);
     } else {
-        statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: TBA)`;
+        statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
     }
 }
 
@@ -64,6 +71,6 @@ export function updateProfileEstimateSpan(estimateData, estimateSpan) {
     } else if (estimateData.code != undefined) {
         estimateSpan.innerText = formatTorniumError(estimateData);
     } else {
-        estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: TBA)`;
+        estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
     }
 }

@@ -22,6 +22,7 @@ export const Config = new Proxy(
         static defaults = {
             exactStat: false,
             pages: [],
+            statScore: null,
         };
     },
     {

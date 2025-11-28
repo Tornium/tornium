@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { torniumFetch } from "./api.js";
 import { Config } from "./config.js";
 import { APP_ID, DEBUG, VERSION } from "./constants.js";
+import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
@@ -78,5 +79,23 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     });
     estimatePromise.then((estimateData) => {
         updateProfileEstimateSpan(estimateData, estimateSpan);
+    });
+} else if (window.location.pathname.startsWith("/gym.php")) {
+    // We're waiting for dexterity as we're assuming it's the last node to be injected into the DOM.
+    waitForElement(`li[class^="dexterity_"]`).then((parent) => {
+        const strengthNode = document.querySelector(`li[class^="strength_"] span[class^="propertyValue_"]`);
+        const defenseNode = document.querySelector(`li[class^="defense_"] span[class^="propertyValue_"]`);
+        const speedNode = document.querySelector(`li[class^="speed_"] span[class^="propertyValue_"]`);
+        const dexterityNode = document.querySelector(`li[class^="dexterity_"] span[class^="propertyValue_"]`);
+
+        const strength = parseInt(strengthNode.innerText.split(",").join(""));
+        const defense = parseInt(defenseNode.innerText.split(",").join(""));
+        const speed = parseInt(speedNode.innerText.split(",").join(""));
+        const dexterity = parseInt(dexterityNode.innerText.split(",").join(""));
+
+        // We're using a naive rounding instead of rounding to two decimal places as the difference in precision is insignificant
+        Config.statScore = Math.round(
+            Math.sqrt(strength) + Math.sqrt(defense) + Math.sqrt(speed) + Math.sqrt(dexterity),
+        );
     });
 }

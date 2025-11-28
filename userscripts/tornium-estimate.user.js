@@ -193,7 +193,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     class {
       static defaults = {
         exactStat: false,
-        pages: []
+        pages: [],
+        statScore: null
       };
     },
     {
@@ -216,6 +217,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   );
 
+  // dom.js
+  async function waitForElement(querySelector, timeout) {
+    const existingElement = document.querySelector(querySelector);
+    if (existingElement) return existingElement;
+    return new Promise((resolve) => {
+      let timer;
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(querySelector);
+        if (element) {
+          cleanup();
+          resolve(element);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      if (timeout) {
+        timer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, timeout);
+      }
+      function cleanup() {
+        observer.disconnect();
+        if (timer) clearTimeout(timer);
+      }
+    });
+  }
+
   // pages/common.js
   function commas(value) {
     if (value === null) {
@@ -225,6 +256,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
   function shortNum(value) {
     return Intl.NumberFormat("en-us", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+  }
+  function fairFight(statScore) {
+    const userStatScore = Config.statScore;
+    return userStatScore == null ? "GYM" : (1 + 8 / 3 * statScore / userStatScore).toFixed(2);
   }
   function formatStats(statsData) {
     const formatter = Config.exactStat ? commas : shortNum;
@@ -289,7 +324,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     } else if (statsData.code != void 0) {
       statsSpan.innerText = formatTorniumError(statsData);
     } else {
-      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: TBA)`;
+      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
     }
   }
   function updateProfileEstimateSpan(estimateData, estimateSpan) {
@@ -299,7 +334,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     } else if (estimateData.code != void 0) {
       estimateSpan.innerText = formatTorniumError(estimateData);
     } else {
-      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: TBA)`;
+      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
     }
   }
 
@@ -537,6 +572,20 @@ margin: 8px 6px 0 0;
     });
     estimatePromise.then((estimateData) => {
       updateProfileEstimateSpan(estimateData, estimateSpan);
+    });
+  } else if (window.location.pathname.startsWith("/gym.php")) {
+    waitForElement(`li[class^="dexterity_"]`).then((parent) => {
+      const strengthNode = document.querySelector(`li[class^="strength_"] span[class^="propertyValue_"]`);
+      const defenseNode = document.querySelector(`li[class^="defense_"] span[class^="propertyValue_"]`);
+      const speedNode = document.querySelector(`li[class^="speed_"] span[class^="propertyValue_"]`);
+      const dexterityNode = document.querySelector(`li[class^="dexterity_"] span[class^="propertyValue_"]`);
+      const strength = parseInt(strengthNode.innerText.split(",").join(""));
+      const defense = parseInt(defenseNode.innerText.split(",").join(""));
+      const speed = parseInt(speedNode.innerText.split(",").join(""));
+      const dexterity = parseInt(dexterityNode.innerText.split(",").join(""));
+      Config.statScore = Math.round(
+        Math.sqrt(strength) + Math.sqrt(defense) + Math.sqrt(speed) + Math.sqrt(dexterity)
+      );
     });
   }
 })();

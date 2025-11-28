@@ -27,6 +27,12 @@ function shortNum(value) {
     return Intl.NumberFormat("en-us", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
+export function fairFight(statScore) {
+    const userStatScore = Config.statScore;
+
+    return userStatScore == null ? "GYM" : (1 + ((8 / 3) * statScore) / userStatScore).toFixed(2);
+}
+
 export function formatStats(statsData) {
     const formatter = Config.exactStat ? commas : shortNum;
 

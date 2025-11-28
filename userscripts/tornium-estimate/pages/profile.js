@@ -13,11 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+import { formatEstimate, formatOAuthError, formatStats, formatTorniumError, relativeTime } from "./common.js";
+
 export function createProfileContainer() {
     const parentContainer = document.querySelector("div.content-title");
 
     const container = document.createElement("div");
     container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
     parentContainer.append(container);
 
     const statsElement = document.createElement("p");
@@ -39,4 +42,28 @@ export function createProfileContainer() {
     estimateElement.append(estimateSpan);
 
     return [statsSpan, estimateSpan];
+}
+
+export function updateProfileStatsSpan(statsData, statsSpan) {
+    console.log(statsData);
+
+    if (statsData.error != undefined) {
+        statsSpan.innerText = formatOAuthError(statsData);
+    } else if (statsData.code != undefined) {
+        statsSpan.innerText = formatTorniumError(statsData);
+    } else {
+        statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: TBA)`;
+    }
+}
+
+export function updateProfileEstimateSpan(estimateData, estimateSpan) {
+    console.log(estimateData);
+
+    if (estimateData.error != undefined) {
+        estimateSpan.innerText = formatOAuthError(estimateData);
+    } else if (estimateData.code != undefined) {
+        estimateSpan.innerText = formatTorniumError(estimateData);
+    } else {
+        estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: TBA)`;
+    }
 }

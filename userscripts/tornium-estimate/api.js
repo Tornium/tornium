@@ -47,8 +47,9 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
                     GM_deleteValue("tornium-retaliations:access-token");
                     GM_deleteValue("tornium-retaliations:access-token-expires");
 
-                    reject(responseJSON.error);
-                    return;
+                    // TODO: Determine how this could use .reject but still have the response processed normally
+                    resolve(responseJSON);
+                    return responseJSON;
                 }
 
                 if (!("code" in responseJSON)) {

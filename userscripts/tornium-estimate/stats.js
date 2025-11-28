@@ -14,7 +14,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
-import { log } from "./logging.js";
 
 export function getUserStats(userID) {
     const statsPromise = torniumFetch(`user/${userID}/stat`, {});

@@ -163,8 +163,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
           if (responseJSON.error !== void 0) {
             GM_deleteValue("tornium-retaliations:access-token");
             GM_deleteValue("tornium-retaliations:access-token-expires");
-            reject(responseJSON.error);
-            return;
+            resolve(responseJSON);
+            return responseJSON;
           }
           if (!("code" in responseJSON)) {
             putCache(endpoint, response, options.ttl);
@@ -187,11 +187,84 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   }
 
+  // config.js
+  var PAGE_OPTIONS = [{ id: "profile", label: "Profile Page" }];
+  var Config = new Proxy(
+    class {
+      static defaults = {
+        exactStat: false,
+        pages: []
+      };
+    },
+    {
+      get(target, prop, receiver) {
+        if (prop in target && typeof target[prop] === "function") return Reflect.get(target, prop, receiver);
+        if (prop === "defaults" || prop === "name" || prop === "prototype")
+          return Reflect.get(target, prop, receiver);
+        const defaults = target.defaults || {};
+        const def = prop in defaults ? defaults[prop] : void 0;
+        return GM_getValue(prop, def);
+      },
+      set(target, prop, value, receiver) {
+        log(`Set ${prop} to ${value}`);
+        GM_setValue(prop, value);
+        return true;
+      },
+      ownKeys(target) {
+        return Reflect.ownKeys(target.defaults || {});
+      }
+    }
+  );
+
+  // pages/common.js
+  function commas(value) {
+    if (value === null) {
+      return "Unknown";
+    }
+    return value.toLocaleString("en-US");
+  }
+  function shortNum(value) {
+    return Intl.NumberFormat("en-us", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+  }
+  function formatStats(statsData) {
+    const formatter = Config.exactStat ? commas : shortNum;
+    return `${formatter(statsData.min)} to ${formatter(statsData.max)}`;
+  }
+  function formatEstimate(estimateData) {
+    const formatter = Config.exactStat ? commas : shortNum;
+    return `${formatter(estimateData.min_bs)} to ${formatter(estimateData.max_bs)}`;
+  }
+  function formatOAuthError(responseJSON) {
+    return `[${responseJSON.error}] OAuth Error - ${responseJSON.error_description}`;
+  }
+  function formatTorniumError(responseJSON) {
+    return `[${responseJSON.code}] Tornium Error - ${responseJSON.message}`;
+  }
+  var TIME_UNITS = {
+    // For use in the relative time function
+    year: 24 * 60 * 60 * 1e3 * 365,
+    month: 24 * 60 * 60 * 1e3 * 365 / 12,
+    day: 24 * 60 * 60 * 1e3,
+    hour: 60 * 60 * 1e3,
+    minute: 60 * 1e3,
+    second: 1e3
+  };
+  var rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  function relativeTime(timestamp) {
+    const elapsed = timestamp * 1e3 - Date.now();
+    for (var u in TIME_UNITS) {
+      if (Math.abs(elapsed) > TIME_UNITS[u] || u == "second") {
+        return rtf.format(Math.round(elapsed / TIME_UNITS[u]), u);
+      }
+    }
+  }
+
   // pages/profile.js
   function createProfileContainer() {
     const parentContainer = document.querySelector("div.content-title");
     const container = document.createElement("div");
     container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
     parentContainer.append(container);
     const statsElement = document.createElement("p");
     statsElement.innerText = "Stats: ";
@@ -208,6 +281,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     estimateSpan.innerText = "Loading...";
     estimateElement.append(estimateSpan);
     return [statsSpan, estimateSpan];
+  }
+  function updateProfileStatsSpan(statsData, statsSpan) {
+    console.log(statsData);
+    if (statsData.error != void 0) {
+      statsSpan.innerText = formatOAuthError(statsData);
+    } else if (statsData.code != void 0) {
+      statsSpan.innerText = formatTorniumError(statsData);
+    } else {
+      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: TBA)`;
+    }
+  }
+  function updateProfileEstimateSpan(estimateData, estimateSpan) {
+    console.log(estimateData);
+    if (estimateData.error != void 0) {
+      estimateSpan.innerText = formatOAuthError(estimateData);
+    } else if (estimateData.code != void 0) {
+      estimateSpan.innerText = formatTorniumError(estimateData);
+    } else {
+      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: TBA)`;
+    }
   }
 
   // settings.js
@@ -281,6 +374,59 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     const configLegend = document.createElement("legend");
     configLegend.innerText = "Configuration";
     configSection.append(configLegend);
+    const configExactStatLabel = document.createElement("label");
+    configExactStatLabel.for = "tornium-estimate-settings-exact-stat";
+    configExactStatLabel.innerText = "Show exact values instead of shortened: ";
+    configExactStatLabel.style.display = "inline";
+    configSection.append(configExactStatLabel);
+    const configExactStatCheckbox = document.createElement("input");
+    configExactStatCheckbox.id = "tornium-estimate-settings-exact-stat";
+    configExactStatCheckbox.type = "checkbox";
+    configExactStatCheckbox.checked = Config.exactStat;
+    configExactStatCheckbox.addEventListener("change", (event) => {
+      Config.exactStat = configExactStatCheckbox.checked;
+    });
+    configSection.append(configExactStatCheckbox);
+    const configPagesLabel = document.createElement("label");
+    configPagesLabel.for = "tornium-estimate-settings-pages";
+    configPagesLabel.innerText = "Enable stats/estimated stats on the following pages: ";
+    configPagesLabel.style.display = "block";
+    configPagesLabel.style.marginTop = "10px";
+    configSection.append(configPagesLabel);
+    const configPagesListGroup = document.createElement("div");
+    configPagesListGroup.style.borderTop = "1px solid #444";
+    configPagesListGroup.style.borderBottom = "1px solid #444";
+    configPagesListGroup.style.marginTop = "5px";
+    configSection.append(configPagesListGroup);
+    PAGE_OPTIONS.forEach((page) => {
+      const row = document.createElement("label");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.padding = "8px 10px";
+      row.style.borderBottom = "1px solid #333";
+      row.style.cursor = "pointer";
+      row.style.userSelect = "none";
+      row.addEventListener("mouseover", () => row.style.background = "rgba(255,255,255,0.05)");
+      row.addEventListener("mouseout", () => row.style.background = "transparent");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = Config.pages.includes(page.id);
+      checkbox.style.marginRight = "10px";
+      checkbox.addEventListener("change", () => {
+        let pages = Config.pages;
+        if (checkbox.checked && !pages.includes(page.id)) {
+          pages.push(page.id);
+        } else if (!checkbox.checked) {
+          pages = pages.filter((x) => x !== page.id);
+        }
+        Config.pages = pages;
+      });
+      const text = document.createElement("span");
+      text.innerText = page.id;
+      row.append(checkbox);
+      row.append(text);
+      configPagesListGroup.append(row);
+    });
     container.append(configSection);
     const infoContainer = document.createElement("fieldset");
     const infoLegend = document.createElement("legend");
@@ -305,37 +451,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
   function injectSettingsStyles() {
     GM_addStyle(`
-        .tornium-estimate-settings {
-            margin-top: 10px;
-        }
+.tornium-estimate-settings {
+margin-top: 10px;
+}
 
-        .tornium-estimate-settings hr {
-            border: none;
-            border-top: 1px solid #444;
-            margin-top: 20px !important;
-            margin-bottom: 20px !important;
-        }
+.tornium-estimate-settings hr {
+border: none;
+border-top: 1px solid #444;
+margin-top: 20px !important;
+margin-bottom: 20px !important;
+}
 
-        .tornium-estimate-settings fieldset {
-            border: 1px solid #555;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.25);
-        }
+.tornium-estimate-settings fieldset {
+border: 1px solid #555;
+border-radius: 6px;
+padding: 16px;
+margin-bottom: 20px;
+background: rgba(0, 0, 0, 0.25);
+}
 
-        .tornium-estimate-settings legend {
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 0 6px;
-            color: #fff;
-        }
+.tornium-estimate-settings legend {
+font-size: 1.2rem;
+font-weight: bold;
+padding: 0 6px;
+color: #fff;
+}
 
-        .tornium-estimate-settings .torn-btn {
-            display: inline-block;
-            margin: 8px 6px 0 0;
-        }
-    `);
+.tornium-estimate-settings .torn-btn {
+display: inline-block;
+margin: 8px 6px 0 0;
+}
+`);
   }
   function deleteOAuthToken() {
     GM_deleteValue("tornium-estimate:access-token");
@@ -352,6 +498,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
   // entrypoint.js
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
+  function isEnabledOn(pageID) {
+    return Config.pages.some((page) => page == pageID);
+  }
   var query = new URLSearchParams(document.location.search);
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const errorContainer = document.getElementsByClassName("main-wrap")[0];
@@ -376,18 +525,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       unsafeWindow.alert("Invalid security state. Try again.");
       window.location.href = "https://www.torn.com";
     }
-  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired()) {
+  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() | !isEnabledOn("profile")) {
     createSettingsButton();
-  } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && !isAuthExpired()) {
+  } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && isEnabledOn("profile") && !isAuthExpired()) {
     const userID = parseInt(query.get("XID"));
     createSettingsButton();
     const [statsPromise, estimatePromise] = getUserStats(userID);
     const [statsSpan, estimateSpan] = createProfileContainer();
     statsPromise.then((statsData) => {
-      console.log(statsData);
+      updateProfileStatsSpan(statsData, statsSpan);
     });
     estimatePromise.then((estimateData) => {
-      console.log(estimateData);
+      updateProfileEstimateSpan(estimateData, estimateSpan);
     });
   }
 })();

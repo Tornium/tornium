@@ -13,6 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+import { PAGE_OPTIONS, Config } from "./config.js";
 import { APP_ID, BASE_URL, VERSION } from "./constants.js";
 import { log } from "./logging.js";
 import { accessToken, authorizationURL, authStatus, isAuthExpired } from "./oauth.js";
@@ -103,16 +104,82 @@ export function injectSettingsPage(container) {
 
     container.append(document.createElement("hr"));
 
+    // === Config
     const configSection = document.createElement("fieldset");
     const configLegend = document.createElement("legend");
     configLegend.innerText = "Configuration";
     configSection.append(configLegend);
 
-    // TODO: Add configuration for whether it shows an exact value or shortened forms (eg 2.3B)
-    // TODO: Add filter to determine the pages it will run on
+    // === Config: Show exact stat instead of showing a shortened form of the stat (3.2B)
+    const configExactStatLabel = document.createElement("label");
+    configExactStatLabel.for = "tornium-estimate-settings-exact-stat";
+    configExactStatLabel.innerText = "Show exact values instead of shortened: ";
+    configExactStatLabel.style.display = "inline";
+    configSection.append(configExactStatLabel);
+
+    const configExactStatCheckbox = document.createElement("input");
+    configExactStatCheckbox.id = "tornium-estimate-settings-exact-stat";
+    configExactStatCheckbox.type = "checkbox";
+    configExactStatCheckbox.checked = Config.exactStat;
+    configExactStatCheckbox.addEventListener("change", (event) => {
+        Config.exactStat = configExactStatCheckbox.checked;
+    });
+    configSection.append(configExactStatCheckbox);
+
+    // === Config: Select the pages for the stat estimates to be shown on
+    const configPagesLabel = document.createElement("label");
+    configPagesLabel.for = "tornium-estimate-settings-pages";
+    configPagesLabel.innerText = "Enable stats/estimated stats on the following pages: ";
+    configPagesLabel.style.display = "block";
+    configPagesLabel.style.marginTop = "10px";
+    configSection.append(configPagesLabel);
+
+    const configPagesListGroup = document.createElement("div");
+    configPagesListGroup.style.borderTop = "1px solid #444";
+    configPagesListGroup.style.borderBottom = "1px solid #444";
+    configPagesListGroup.style.marginTop = "5px";
+    configSection.append(configPagesListGroup);
+
+    PAGE_OPTIONS.forEach((page) => {
+        const row = document.createElement("label");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.padding = "8px 10px";
+        row.style.borderBottom = "1px solid #333";
+        row.style.cursor = "pointer";
+        row.style.userSelect = "none";
+
+        row.addEventListener("mouseover", () => (row.style.background = "rgba(255,255,255,0.05)"));
+        row.addEventListener("mouseout", () => (row.style.background = "transparent"));
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = Config.pages.includes(page.id);
+        checkbox.style.marginRight = "10px";
+
+        checkbox.addEventListener("change", () => {
+            let pages = Config.pages;
+
+            if (checkbox.checked && !pages.includes(page.id)) {
+                pages.push(page.id);
+            } else if (!checkbox.checked) {
+                pages = pages.filter((x) => x !== page.id);
+            }
+
+            Config.pages = pages;
+        });
+
+        const text = document.createElement("span");
+        text.innerText = page.id;
+
+        row.append(checkbox);
+        row.append(text);
+        configPagesListGroup.append(row);
+    });
 
     container.append(configSection);
 
+    // === Info
     const infoContainer = document.createElement("fieldset");
     const infoLegend = document.createElement("legend");
     infoLegend.innerText = "About and Privacy";
@@ -120,6 +187,7 @@ export function injectSettingsPage(container) {
 
     container.append(document.createElement("hr"));
 
+    // == Info: Links such as ToS
     const infoScriptContainer = document.createElement("div");
     const infoScriptVersion = document.createElement("p");
     infoScriptVersion.innerHTML = `<strong>Version: </strong> v${VERSION}`;
@@ -140,37 +208,37 @@ export function injectSettingsPage(container) {
 
 export function injectSettingsStyles() {
     GM_addStyle(`
-        .tornium-estimate-settings {
-            margin-top: 10px;
-        }
+.tornium-estimate-settings {
+margin-top: 10px;
+}
 
-        .tornium-estimate-settings hr {
-            border: none;
-            border-top: 1px solid #444;
-            margin-top: 20px !important;
-            margin-bottom: 20px !important;
-        }
+.tornium-estimate-settings hr {
+border: none;
+border-top: 1px solid #444;
+margin-top: 20px !important;
+margin-bottom: 20px !important;
+}
 
-        .tornium-estimate-settings fieldset {
-            border: 1px solid #555;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.25);
-        }
+.tornium-estimate-settings fieldset {
+border: 1px solid #555;
+border-radius: 6px;
+padding: 16px;
+margin-bottom: 20px;
+background: rgba(0, 0, 0, 0.25);
+}
 
-        .tornium-estimate-settings legend {
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 0 6px;
-            color: #fff;
-        }
+.tornium-estimate-settings legend {
+font-size: 1.2rem;
+font-weight: bold;
+padding: 0 6px;
+color: #fff;
+}
 
-        .tornium-estimate-settings .torn-btn {
-            display: inline-block;
-            margin: 8px 6px 0 0;
-        }
-    `);
+.tornium-estimate-settings .torn-btn {
+display: inline-block;
+margin: 8px 6px 0 0;
+}
+`);
 }
 
 function deleteOAuthToken() {

@@ -14,14 +14,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
+import { Config } from "./config.js";
 import { APP_ID, DEBUG, VERSION } from "./constants.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
-import { createProfileContainer } from "./pages/profile.js";
+import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 import { getUserStats } from "./stats.js";
 
 log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}...`);
+
+function isEnabledOn(pageID) {
+    return Config.pages.some((page) => page == pageID);
+}
 
 const query = new URLSearchParams(document.location.search);
 
@@ -54,11 +59,12 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
         unsafeWindow.alert("Invalid security state. Try again.");
         window.location.href = "https://www.torn.com";
     }
-} else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired()) {
+} else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() | !isEnabledOn("profile")) {
     createSettingsButton();
 } else if (
     window.location.pathname.startsWith("/profiles.php") &&
     !isNaN(parseInt(query.get("XID"))) &&
+    isEnabledOn("profile") &&
     !isAuthExpired()
 ) {
     const userID = parseInt(query.get("XID"));
@@ -68,9 +74,9 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const [statsSpan, estimateSpan] = createProfileContainer();
 
     statsPromise.then((statsData) => {
-        console.log(statsData);
+        updateProfileStatsSpan(statsData, statsSpan);
     });
     estimatePromise.then((estimateData) => {
-        console.log(estimateData);
+        updateProfileEstimateSpan(estimateData, estimateSpan);
     });
 }

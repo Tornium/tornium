@@ -42,9 +42,9 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
                         responseJSON = JSON.parse(response.responseText);
                         response.responseType = "json";
                     } catch (err) {
-                        console.log(response.responseText)
+                        console.log(response.responseText);
                         console.log(err);
-                        reject(err)
+                        reject(err);
                         return;
                     }
                 }
@@ -74,7 +74,6 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
     });
 }
 
-
 export function limitConcurrency(limit) {
     let active = 0;
     const queue = [];
@@ -85,8 +84,16 @@ export function limitConcurrency(limit) {
         const { fn, resolve, reject } = queue.shift();
         active++;
         fn().then(
-            value => { active--; resolve(value); next(); },
-            err   => { active--; reject(err);  next(); },
+            (value) => {
+                active--;
+                resolve(value);
+                next();
+            },
+            (err) => {
+                active--;
+                reject(err);
+                next();
+            },
         );
     };
 

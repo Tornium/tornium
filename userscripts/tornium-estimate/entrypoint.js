@@ -19,8 +19,9 @@ import { APP_ID, CACHE_ENABLED, DEBUG, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
-import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
 import { checkRankedWarToggleState } from "./pages/faction-rw.js";
+import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
+import { startSearchUserListObserver } from "./pages/search.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 import { getUserEstimate, getUserStats } from "./stats.js";
 
@@ -105,4 +106,6 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
 
         checkRankedWarToggleState();
     }
+} else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
+    startSearchUserListObserver();
 }

@@ -22,86 +22,97 @@ import {
     formatTorniumError,
     relativeTime,
 } from "./common.js";
+import { clientMobile } from "../constants.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { getUserEstimate, getUserStats } from "../stats.js";
 
-export function checkRankedWarToggleState(event) {
-    // We need to ensure the element we're waiting on is far enough down the tree that the table will be inserted into the DOM
-    // before the callback is executed.
-    waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then(
-        (rankedWarDescription) => {
-            // FIXME: rename variable
-            console.log(rankedWarDescription);
-            if (rankedWarDescription == null) {
-                // This element only exists when the ranked war section has been toggled.
-                return false;
-            }
+export function startSearchUserListObserver() {
+    window.addEventListener("hashchange", hashChangeCallback);
 
-            document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
-        },
-    );
+    hashChangeCallback();
+    injectStyles();
+}
+
+function hashChangeCallback(event) {
+    waitForElement(`ul.user-info-list-wrap li[class^="user"] div.expander`).then(() => {
+        const userNodes = document.querySelectorAll(`li[class^="user"]`);
+        Array.from(userNodes).forEach(injectStats);
+    });
 }
 
 const concurrencyLimiter = limitConcurrency(10);
 
-function transformRankedWarLevelNode(node) {
-    if (node.innerText == "Level") {
-        // This is the node in the header in the table.
-        node.innerText = "FF";
+function injectStats(addedNode) {
+    if (addedNode.nodeName.toLowerCase() != "li") {
+        return;
+    } else if ("last" in addedNode.classList) {
         return;
     }
 
-    const userLinkNode = node.parentElement.querySelector(
-        `div[class*="userInfoBox_"] div[class^="honorWrap_"] a[class^="linkWrap_"]`,
-    );
-    const userLink = new URL(userLinkNode.href);
-    const userLinkSearch = new URLSearchParams(userLink.search);
-    const userID = userLinkSearch.get("XID");
-
-    if (userID == null) {
-        node.innerText = "ERR";
+    const userContainer = addedNode.querySelector(".expander");
+    if (userContainer == null) {
         return;
     }
 
-    node.innerText = "...";
+    const userNode = userContainer.querySelector(".user.name");
+    const userURL = new URL(userNode.href);
+    const userID = new URLSearchParams(userURL.search).get("XID");
+
+    const statSpan = document.createElement("span");
+    statSpan.classList.add("tornium-estimate-search-user-stat");
+    statSpan.id = `tornium-estimate-search-user-stat-${userID}`;
+    statSpan.innerText = "...";
+    userContainer.append(statSpan);
 
     concurrencyLimiter(() => {
         return getUserStats(userID);
     }).then((statsData) => {
         if (statsData.error != undefined) {
             log(`OAuth Error: ${statsData.error_description}`);
-            node.innerText = `ERR`;
+            statSpan.innerText = `ERR`;
         } else if (statsData.code === 1100) {
             // There is no data on this user. We want to use an estimate instead
-            transformRankedWarLevelNodeEstimate(node, userID);
+            injectEstimate(statSpan, userID);
         } else if (statsData.code != undefined) {
             log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
-            node.innerText = `ERR`;
+            statSpan.innerText = `ERR`;
         } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * 30) {
-            node.innerText = fairFight(statsData.stat_score);
+            statSpan.innerText = fairFight(statsData.stat_score);
         } else {
             // The data is too old. We want to use an estimate instead
-            transformRankedWarLevelNodeEstimate(node, userID);
+            injectEstimate(statSpan, userID);
         }
     });
 }
 
-function transformRankedWarLevelNodeEstimate(node, userID) {
+function injectEstimate(statSpan, userID) {
     concurrencyLimiter(() => {
         return getUserEstimate(userID);
     }).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
-            node.innerText = `ERR`;
+            statSpan.innerText = `ERR`;
         } else if (estimateData.code === 1100) {
             // There is no data on this user
-            node.innerText = "N/A";
+            statSpan.innerText = "N/A";
         } else if (estimateData.code != undefined) {
             log(`Tornium Error: [${estimateData.code}] - ${estimateData.message}`);
-            node.innerText = `ERR`;
+            statSpan.innerText = `ERR`;
         } else {
-            node.innerText = fairFight(estimateData.stat_score);
+            statSpan.innerText = fairFight(estimateData.stat_score);
         }
     });
+}
+
+function injectStyles() {
+    if (clientMobile) {
+        GM_addStyle(
+            ".tornium-estimate-search-user-stat {font-size: 12px; display: inline-block; right: 0px; position: absolute; padding-right: 40px;}",
+        );
+    } else {
+        GM_addStyle(
+            ".tornium-estimate-search-user-stat {font-size: 12px; display: inline-block; right: 0px; position: absolute; padding-right: 15px;}",
+        );
+    }
 }

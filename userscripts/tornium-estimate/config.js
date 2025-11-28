@@ -18,6 +18,7 @@ import { log } from "./logging.js";
 export const PAGE_OPTIONS = [
     { id: "profile", label: "Profile Page" },
     { id: "faction-rw", label: "Faction Ranked War" },
+    { id: "search", label: "Advanced Search" },
 ];
 
 export const Config = new Proxy(

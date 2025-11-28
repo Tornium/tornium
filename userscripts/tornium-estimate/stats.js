@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { torniumFetch } from "./api.js";
 
 export function getUserStats(userID) {
-    return  torniumFetch(`user/${userID}/stat`, {});
+    return torniumFetch(`user/${userID}/stat`, {});
 }
 
 export function getUserEstimate(userID) {

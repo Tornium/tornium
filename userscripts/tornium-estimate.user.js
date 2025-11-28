@@ -48,6 +48,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var CACHE_ENABLED = "caches" in window;
   GM_setValue("tornium-estimate:test", "1");
   var clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
+  var clientMobile = (() => {
+    let check = false;
+    (function(a) {
+      if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+    })(navigator.userAgent || navigator.vendor || window.opera);
+    return check;
+  })();
 
   // cache.js
   var CACHE_NAME = "tornium-estimate-cache";
@@ -223,7 +230,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   // config.js
   var PAGE_OPTIONS = [
     { id: "profile", label: "Profile Page" },
-    { id: "faction-rw", label: "Faction Ranked War" }
+    { id: "faction-rw", label: "Faction Ranked War" },
+    { id: "search", label: "Advanced Search" }
   ];
   var Config = new Proxy(
     class {
@@ -330,48 +338,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   }
 
-  // pages/profile.js
-  function createProfileContainer() {
-    const parentContainer = document.querySelector("div.content-title");
-    const container = document.createElement("div");
-    container.classList.add("tornium-estimate-profile-container");
-    container.style.marginTop = "10px";
-    parentContainer.append(container);
-    const statsElement = document.createElement("p");
-    statsElement.innerText = "Stats: ";
-    container.append(statsElement);
-    const statsSpan = document.createElement("span");
-    statsSpan.setAttribute("id", "tornium-estimate-profile-stats");
-    statsSpan.innerText = "Loading...";
-    statsElement.append(statsSpan);
-    const estimateElement = document.createElement("p");
-    estimateElement.innerText = "Estimate: ";
-    container.append(estimateElement);
-    const estimateSpan = document.createElement("span");
-    estimateSpan.setAttribute("id", "tornium-estimate-profile-estimate");
-    estimateSpan.innerText = "Loading...";
-    estimateElement.append(estimateSpan);
-    return [statsSpan, estimateSpan];
-  }
-  function updateProfileStatsSpan(statsData, statsSpan) {
-    if (statsData.error != void 0) {
-      statsSpan.innerText = formatOAuthError(statsData);
-    } else if (statsData.code != void 0) {
-      statsSpan.innerText = formatTorniumError(statsData);
-    } else {
-      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
-    }
-  }
-  function updateProfileEstimateSpan(estimateData, estimateSpan) {
-    if (estimateData.error != void 0) {
-      estimateSpan.innerText = formatOAuthError(estimateData);
-    } else if (estimateData.code != void 0) {
-      estimateSpan.innerText = formatTorniumError(estimateData);
-    } else {
-      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
-    }
-  }
-
   // stats.js
   function getUserStats(userID) {
     return torniumFetch(`user/${userID}/stat`, {});
@@ -382,13 +348,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
   // pages/faction-rw.js
   function checkRankedWarToggleState(event) {
-    waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then((rankedWarDescription) => {
-      console.log(rankedWarDescription);
-      if (rankedWarDescription == null) {
-        return false;
+    waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then(
+      (rankedWarDescription) => {
+        console.log(rankedWarDescription);
+        if (rankedWarDescription == null) {
+          return false;
+        }
+        document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
       }
-      document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
-    });
+    );
   }
   var concurrencyLimiter = limitConcurrency(10);
   function transformRankedWarLevelNode(node) {
@@ -396,7 +364,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       node.innerText = "FF";
       return;
     }
-    const userLinkNode = node.parentElement.querySelector(`div[class*="userInfoBox_"] div[class^="honorWrap_"] a[class^="linkWrap_"]`);
+    const userLinkNode = node.parentElement.querySelector(
+      `div[class*="userInfoBox_"] div[class^="honorWrap_"] a[class^="linkWrap_"]`
+    );
     const userLink = new URL(userLinkNode.href);
     const userLinkSearch = new URLSearchParams(userLink.search);
     const userID = userLinkSearch.get("XID");
@@ -439,6 +409,126 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         node.innerText = fairFight(estimateData.stat_score);
       }
     });
+  }
+
+  // pages/profile.js
+  function createProfileContainer() {
+    const parentContainer = document.querySelector("div.content-title");
+    const container = document.createElement("div");
+    container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
+    parentContainer.append(container);
+    const statsElement = document.createElement("p");
+    statsElement.innerText = "Stats: ";
+    container.append(statsElement);
+    const statsSpan = document.createElement("span");
+    statsSpan.setAttribute("id", "tornium-estimate-profile-stats");
+    statsSpan.innerText = "Loading...";
+    statsElement.append(statsSpan);
+    const estimateElement = document.createElement("p");
+    estimateElement.innerText = "Estimate: ";
+    container.append(estimateElement);
+    const estimateSpan = document.createElement("span");
+    estimateSpan.setAttribute("id", "tornium-estimate-profile-estimate");
+    estimateSpan.innerText = "Loading...";
+    estimateElement.append(estimateSpan);
+    return [statsSpan, estimateSpan];
+  }
+  function updateProfileStatsSpan(statsData, statsSpan) {
+    if (statsData.error != void 0) {
+      statsSpan.innerText = formatOAuthError(statsData);
+    } else if (statsData.code != void 0) {
+      statsSpan.innerText = formatTorniumError(statsData);
+    } else {
+      statsSpan.innerText = `${formatStats(statsData)} [${relativeTime(statsData.timestamp)}] (FF: ${fairFight(statsData.stat_score)})`;
+    }
+  }
+  function updateProfileEstimateSpan(estimateData, estimateSpan) {
+    if (estimateData.error != void 0) {
+      estimateSpan.innerText = formatOAuthError(estimateData);
+    } else if (estimateData.code != void 0) {
+      estimateSpan.innerText = formatTorniumError(estimateData);
+    } else {
+      estimateSpan.innerText = `${formatEstimate(estimateData)} (FF: ${fairFight(estimateData.stat_score)})`;
+    }
+  }
+
+  // pages/search.js
+  function startSearchUserListObserver() {
+    window.addEventListener("hashchange", hashChangeCallback);
+    hashChangeCallback();
+    injectStyles();
+  }
+  function hashChangeCallback(event) {
+    waitForElement(`ul.user-info-list-wrap li[class^="user"] div.expander`).then(() => {
+      const userNodes = document.querySelectorAll(`li[class^="user"]`);
+      Array.from(userNodes).forEach(injectStats);
+    });
+  }
+  var concurrencyLimiter2 = limitConcurrency(10);
+  function injectStats(addedNode) {
+    if (addedNode.nodeName.toLowerCase() != "li") {
+      return;
+    } else if ("last" in addedNode.classList) {
+      return;
+    }
+    const userContainer = addedNode.querySelector(".expander");
+    if (userContainer == null) {
+      return;
+    }
+    const userNode = userContainer.querySelector(".user.name");
+    const userURL = new URL(userNode.href);
+    const userID = new URLSearchParams(userURL.search).get("XID");
+    const statSpan = document.createElement("span");
+    statSpan.classList.add("tornium-estimate-search-user-stat");
+    statSpan.id = `tornium-estimate-search-user-stat-${userID}`;
+    statSpan.innerText = "...";
+    userContainer.append(statSpan);
+    concurrencyLimiter2(() => {
+      return getUserStats(userID);
+    }).then((statsData) => {
+      if (statsData.error != void 0) {
+        log(`OAuth Error: ${statsData.error_description}`);
+        statSpan.innerText = `ERR`;
+      } else if (statsData.code === 1100) {
+        injectEstimate(statSpan, userID);
+      } else if (statsData.code != void 0) {
+        log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
+        statSpan.innerText = `ERR`;
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+        statSpan.innerText = fairFight(statsData.stat_score);
+      } else {
+        injectEstimate(statSpan, userID);
+      }
+    });
+  }
+  function injectEstimate(statSpan, userID) {
+    concurrencyLimiter2(() => {
+      return getUserEstimate(userID);
+    }).then((estimateData) => {
+      if (estimateData.error != void 0) {
+        log(`OAuth Error: ${estimateData.error_description}`);
+        statSpan.innerText = `ERR`;
+      } else if (estimateData.code === 1100) {
+        statSpan.innerText = "N/A";
+      } else if (estimateData.code != void 0) {
+        log(`Tornium Error: [${estimateData.code}] - ${estimateData.message}`);
+        statSpan.innerText = `ERR`;
+      } else {
+        statSpan.innerText = fairFight(estimateData.stat_score);
+      }
+    });
+  }
+  function injectStyles() {
+    if (clientMobile) {
+      GM_addStyle(
+        ".tornium-estimate-search-user-stat {font-size: 12px; display: inline-block; right: 0px; position: absolute; padding-right: 40px;}"
+      );
+    } else {
+      GM_addStyle(
+        ".tornium-estimate-search-user-stat {font-size: 12px; display: inline-block; right: 0px; position: absolute; padding-right: 15px;}"
+      );
+    }
   }
 
   // settings.js
@@ -560,7 +650,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         Config.pages = pages;
       });
       const text = document.createElement("span");
-      text.innerText = page.id;
+      text.innerText = page.label;
       row.append(checkbox);
       row.append(text);
       configPagesListGroup.append(row);
@@ -689,5 +779,7 @@ margin: 8px 6px 0 0;
       });
       checkRankedWarToggleState();
     }
+  } else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
+    startSearchUserListObserver();
   }
 })();

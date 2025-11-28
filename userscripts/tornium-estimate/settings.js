@@ -170,7 +170,7 @@ export function injectSettingsPage(container) {
         });
 
         const text = document.createElement("span");
-        text.innerText = page.id;
+        text.innerText = page.label;
 
         row.append(checkbox);
         row.append(text);

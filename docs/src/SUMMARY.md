@@ -14,6 +14,7 @@
     - [Setup Banking](tutorial/discord-server-banking.md)
     - [Setup Overdose Reporting](tutorial/discord-server-overdose.md)
 - [Generating a Chain List](tutorial/chain-list.md)
+- [Install Tornium Estimate Userscript](tutorial/tornium-estimate.md)
 
 # User Guide
 - [How to setup 2FA?](guide/2fa.md)
@@ -31,5 +32,7 @@
 - [Stat Datbase]()
     - [Chain List Generator](reference/stats-chain-list-generator.md)
 - [Two-Factor Authentication](reference/2fa.md)
+- [Userscripts]()
+    - [Tornium Estimate](reference/tornium-estimate.md)
 
 # Explanation

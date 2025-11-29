@@ -49,9 +49,11 @@ def load_scripts() -> dict:
     client.script_flush()
 
     script: pathlib.Path
-    for script in importlib.resources.files("rds_lua").iterdir():
-        script_data = script.read_text()
+    for script in importlib.resources.files("tornium_commons.rds_lua").iterdir():
+        if not script.name.endswith(".lua"):
+            continue
 
+        script_data = script.read_text()
         scripts[script.name[:-4]] = client.script_load(script_data)
 
     return scripts

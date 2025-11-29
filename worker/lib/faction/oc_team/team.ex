@@ -56,7 +56,7 @@ defmodule Tornium.Faction.OC.Team do
     reassign_teams(remaining_teams, crimes, assignments)
   end
 
-  def reassign_teams(teams, [] = _crimes, assignments) when is_map(assignments) do
+  def reassign_teams(_teams, [] = _crimes, assignments) when is_map(assignments) do
     # Fallback for factions that have no OC 2.0 crimes stored in the database
     assignments
   end
@@ -156,6 +156,10 @@ defmodule Tornium.Faction.OC.Team do
   @spec team_member_ids(members :: [Tornium.Schema.OrganizedCrimeTeamMember.t()]) :: [non_neg_integer() | nil]
   def team_member_ids([%Tornium.Schema.OrganizedCrimeTeamMember{} | _remaining_members] = members) do
     Enum.map(members, fn %Tornium.Schema.OrganizedCrimeTeamMember{user_id: user_id} -> user_id end)
+  end
+
+  def team_member_ids(members) when members == [] do
+    []
   end
 
   @doc """

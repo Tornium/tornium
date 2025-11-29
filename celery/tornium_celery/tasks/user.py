@@ -20,7 +20,7 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import DoesNotExist, IntegrityError
+from peewee import DoesNotExist
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
@@ -107,9 +107,14 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif user is not None and not refresh_existing:
         return
 
-    personal_stats: typing.Optional[PersonalStats] = (
-        PersonalStats.select(PersonalStats.timestamp).order_by(-PersonalStats.timestamp).first()
-    )
+    personal_stats: typing.Optional[PersonalStats] = None
+    if user is not None:
+        personal_stats = (
+            PersonalStats.select(PersonalStats.timestamp)
+            .where(PersonalStats.user == user.tid)
+            .order_by(-PersonalStats.timestamp)
+            .first()
+        )
 
     if (
         user is not None
@@ -121,6 +126,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif (
         user is not None
         and not update_self
+        and personal_stats is not None
         and personal_stats.timestamp != datetime.date.today() - datetime.timedelta(days=1)
     ):
         update_personal_stats = True
@@ -242,14 +248,11 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         user_data_kwargs["faction_aa"] = False
 
     if "personalstats" in user_data:
-        try:
-            PersonalStats.create(
-                user=user_data["player_id"],
-                timestamp=datetime.date.today(),
-                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-            )
-        except IntegrityError:
-            pass
+        PersonalStats.insert(
+            user=user_data["player_id"],
+            timestamp=datetime.date.today(),
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict_ignore().execute()
 
     User.insert(
         tid=user_data["player_id"],
@@ -375,14 +378,11 @@ def update_user_other(user_data):
 
     if "personalstats" in user_data:
         # /user/personalstats upon other users uses data from the end of the previous day
-        try:
-            PersonalStats.create(
-                user=user_data["player_id"],
-                timestamp=datetime.date.today() - datetime.timedelta(days=1),
-                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-            )
-        except IntegrityError:
-            pass
+        PersonalStats.insert(
+            user=user_data["player_id"],
+            timestamp=datetime.date.today() - datetime.timedelta(days=1),
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict_ignore().execute()
 
     User.insert(
         tid=user_data["player_id"],

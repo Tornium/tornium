@@ -55,10 +55,23 @@ defmodule Tornium.Guild.Verify.Logic do
         %Tornium.Schema.User{} = user
       ) do
     verified_string =
-      template
-      |> String.replace("{{ name }}", user.name)
-      |> String.replace("{{ tid }}", to_string(user.tid))
-      |> String.replace("{{ tag }}", user.faction.tag)
+      try do
+        template
+        |> Solid.parse!()
+        |> Solid.render!(%{
+          "name" => user.name,
+          "tid" => to_string(user.tid),
+          "tag" => user.faction.tag
+        })
+        |> Kernel.to_string()
+        |> String.replace(["\n", "\t"], "")
+      rescue
+        _e in Solid.TemplateError ->
+          "Template Error"
+
+        _e in Solid.RenderError ->
+          "Render Error"
+      end
 
     Map.put(state, :nick, verified_string)
   end
@@ -199,7 +212,7 @@ defmodule Tornium.Guild.Verify.Logic do
       when is_nil(user) do
     roles_to_remove =
       faction_verify
-      |> Enum.flat_map(fn {faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
+      |> Enum.flat_map(fn {_faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
         if enabled do
           faction_roles
         else
@@ -300,7 +313,7 @@ defmodule Tornium.Guild.Verify.Logic do
       faction_verify
       |> Enum.flat_map(fn {_faction_tid,
                            _faction_verify_config = %{"positions" => position_config, "enabled" => enabled}} ->
-        Enum.flat_map(position_config, fn {position_pid, position_roles} ->
+        Enum.flat_map(position_config, fn {_position_pid, position_roles} ->
           if enabled do
             position_roles
           else

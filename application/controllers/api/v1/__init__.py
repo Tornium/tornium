@@ -102,6 +102,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/attacks/chain-alert/<int:faction_tid>/minimum",
+    view_func=bot.attacks.faction_chain_alert_minimum,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/<feature>/channel",
     view_func=bot.crimes.set_oc_config_channel,
     methods=["POST"],
@@ -145,6 +150,11 @@ mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
     view_func=bot.crimes.patch_extra_range_local,
     methods=["PATCH"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/missing-member/duration",
+    view_func=bot.crimes.set_missing_member_duration,
+    methods=["POST"],
 )
 mod.add_url_rule(
     "/api/v1/bot/<int:guild_id>/faction",
@@ -205,6 +215,9 @@ mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>/channels",
     view_func=bot.utils.get_channels,
     methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/bot/server/<int:guild_id>/channels/<int:channel_id>", view_func=bot.utils.test_channel, methods=["POST"]
 )
 mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>/roles",
@@ -355,6 +368,7 @@ mod.add_url_rule("/api/v1/user", view_func=user.get_user, methods=["GET"])
 mod.add_url_rule("/api/v1/user/guilds", view_func=user.get_admin_guilds, methods=["GET"])
 mod.add_url_rule("/api/v1/user/settings/cpr", view_func=user_settings.toggle_cpr, methods=["PUT"])
 mod.add_url_rule("/api/v1/user/settings/stat-db", view_func=user_settings.toggle_stat_db, methods=["PUT"])
+mod.add_url_rule("/api/v1/user/settings/od-drug", view_func=user_settings.toggle_od_drug, methods=["PUT"])
 mod.add_url_rule("/api/v1/user/<int:tid>", view_func=user.get_specific_user, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/user/estimate/<int:tid>",

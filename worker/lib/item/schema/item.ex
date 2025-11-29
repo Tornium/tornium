@@ -15,6 +15,7 @@
 
 defmodule Tornium.Schema.Item do
   use Ecto.Schema
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           tid: integer(),
@@ -32,5 +33,14 @@ defmodule Tornium.Schema.Item do
     field(:item_type, :string)
     field(:market_value, :integer)
     field(:circulation, :integer)
+  end
+
+  @doc """
+  Get all items.
+  """
+  @spec all() :: [t()]
+  def all() do
+    __MODULE__
+    |> Repo.all()
   end
 end

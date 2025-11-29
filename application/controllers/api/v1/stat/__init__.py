@@ -22,12 +22,13 @@ from tornium_celery.tasks.user import update_user
 from tornium_commons import db
 from tornium_commons.models import Faction, Stat, User
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import ratelimit, require_oauth, scoped_ratelimit
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @require_oauth()
 @ratelimit
+@scoped_ratelimit(lambda user: f"tornium:ratelimit:chain-list:{user.tid}", 5)
 def generate_chain_list(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     sort = request.args.get("sort", "timestamp")
@@ -91,6 +92,7 @@ def generate_chain_list(*args, **kwargs):
 
 @require_oauth()
 @ratelimit
+@scoped_ratelimit(lambda user: f"tornium:ratelimit:chain-list:{user.tid}", 5)
 def generate_chain_list_v2(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

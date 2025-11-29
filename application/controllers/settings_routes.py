@@ -32,6 +32,19 @@ from controllers.decorators import session_required, token_required
 mod = Blueprint("settings_routes", __name__)
 
 
+def truncate_to_seconds(dt: typing.Optional[datetime.datetime]) -> typing.Optional[datetime.datetime]:
+    """
+    Returns datetime with microseconds removed.
+    """
+
+    if dt is None:
+        return None
+    elif isinstance(dt, datetime.datetime):
+        return dt.replace(microsecond=0)
+
+    return dt
+
+
 @mod.route("/settings")
 @fresh_login_required
 @token_required(setnx=True)
@@ -83,7 +96,7 @@ def settings(*args, **kwargs):
 
 @mod.route("/settings/application/<application_id>")
 @fresh_login_required
-@token_required(setnx=False)
+@token_required(setnx=True)
 def settings_application(application_id: str, *args, **kwargs):
     try:
         current_token: OAuthToken = (
@@ -116,6 +129,12 @@ def settings_application(application_id: str, *args, **kwargs):
         )
 
     scopes = current_token.scope.split()
+
+    # Truncate microseconds for display (presentation-only)
+    first_token.issued_at = truncate_to_seconds(first_token.issued_at)
+    current_token.issued_at = truncate_to_seconds(current_token.issued_at)
+    current_token.access_token_revoked_at = truncate_to_seconds(current_token.access_token_revoked_at)
+    current_token.refresh_token_revoked_at = truncate_to_seconds(current_token.refresh_token_revoked_at)
 
     return render_template(
         "settings/application.html", current_token=current_token, first_token=first_token, scopes=scopes
@@ -250,7 +269,11 @@ def regenerate_backup_codes(*args, **kwargs):
 @fresh_login_required
 @session_required
 def revoke_client(client_id: str, *args, **kwargs):
-    if not OAuthClient.select().where(OAuthClient.client_id == client_id).exists():
+    if (
+        not OAuthClient.select()
+        .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+        .exists()
+    ):
         return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})
 
     OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(

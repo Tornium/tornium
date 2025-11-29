@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import uuid
 
 from peewee import (
@@ -22,7 +23,7 @@ from peewee import (
     ForeignKeyField,
     SmallIntegerField,
 )
-from playhouse.postgres_ext import ArrayField, UUIDField
+from playhouse.postgres_ext import ArrayField, IntervalField, UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
@@ -47,6 +48,11 @@ class ServerOCConfig(BaseModel):
     delayed_channel = BigIntegerField(default=None, null=True)
     delayed_roles = ArrayField(BigIntegerField, index=False, default=[])
     delayed_crimes = ArrayField(CharField, index=False, default=[])
+
+    # Members not in an OC
+    missing_member_channel = BigIntegerField(default=None, null=True)
+    missing_member_roles = ArrayField(BigIntegerField, index=False, default=[])
+    missing_member_minimum_duration = IntervalField(default=datetime.timedelta(days=1), null=False)
 
     # Extra-range OCs
     extra_range_channel = BigIntegerField(default=None, null=True)

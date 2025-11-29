@@ -18,6 +18,7 @@
 
 # User Guide
 - [How to setup 2FA?](guide/2fa.md)
+- [How to use the API?](guide/api.md)
 
 # Reference
 
@@ -31,6 +32,9 @@
     - [Overdose](reference/bot-overdose.md)
 - [Stat Datbase]()
     - [Chain List Generator](reference/stats-chain-list-generator.md)
+- [API]()
+    - [OAuth Provider](reference/api/oauth-provider.md)
+    - [Endpoints](reference/api/endpoints.md)
 - [Two-Factor Authentication](reference/2fa.md)
 - [Userscripts]()
     - [Tornium Estimate](reference/tornium-estimate.md)

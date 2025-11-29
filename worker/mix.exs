@@ -24,7 +24,8 @@ defmodule Tornium.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      aliases: aliases()
+      aliases: aliases(),
+      preferred_cli_env: preferred_cli_env()
     ]
   end
 
@@ -50,24 +51,33 @@ defmodule Tornium.MixProject do
       # Required for oban_web
       {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
-      {:bandit, "~> 1.2"},
+      {:bandit, "~> 1.8"},
       {:luerl, "~> 1.2.3"},
       {:solid, "~> 0.18"},
-      {:logger_file_backend, "~> 0.0.14"},
       {:logger_json, "~> 7.0"},
       {:tornex, "~> 0.4"},
       {:torngen_elixir_client, ">= 3.0.0"},
       # Required for tornex's default HTTP adapater
-      {:finch, "~> 0.19"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:finch, "~> 0.20"},
+      {:floki, "~> 0.38"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp aliases do
     [
-      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.setup": ["ecto.create --quiet", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.drop", "ecto.create", "ecto.migrate", "test", "ecto.drop"]
+      "test.full": ["ecto.setup", "test --cover --trace"],
+      test: ["ecto.setup", "test"]
+    ]
+  end
+
+  defp preferred_cli_env do
+    [
+      "test.full": :test,
+      test: :test
     ]
   end
 

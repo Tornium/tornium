@@ -165,7 +165,7 @@ defmodule Tornium.Faction.OC.Check do
 
   defp check_slot_extra_range(
          [
-           %Tornium.Schema.OrganizedCrimeSlot{user_id: nil} = slot
+           %Tornium.Schema.OrganizedCrimeSlot{user_id: nil} = _slot
            | remaining_slots
          ],
          %Tornium.Faction.OC.Check.Struct{} = state,

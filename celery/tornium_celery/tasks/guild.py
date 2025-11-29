@@ -21,7 +21,7 @@ import random
 import time
 import typing
 
-import jinja2
+import liquid
 from peewee import DoesNotExist, Expression
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
@@ -118,7 +118,7 @@ def refresh_guild(guild: dict):
     name="tasks.guild.refresh_guilds",
     routing_key="default.refresh_guilds",
     queue="default",
-    time_limit=1200,
+    time_limit=3000,
 )
 @with_db_connection
 def refresh_guilds():
@@ -164,6 +164,9 @@ def refresh_guilds():
                 refresh_guild(discordget(f"guilds/{guild['id']}"))
             except (DiscordError, NetworkingError, celery.exceptions.Retry):
                 continue
+
+    # We want to set the IDs to null to prevent a foreign key violation when deleting the server_attack_config and server_notification_config
+    Server.update(notifications_config_id=None).where(Server.sid << guilds_not_updated).execute()
 
     for deleted_guild in guilds_not_updated:
         # Delete certain rows that rely upon the server for the primary key
@@ -255,9 +258,14 @@ def verify_users(
         admin: int
         for admin in guild.admins:
             try:
-                admin_keys.append(User.select(User.tid).where(User.tid == admin).get().key)
+                api_key = User.select(User.tid).where(User.tid == admin).get().key
             except DoesNotExist:
                 continue
+
+            if api_key is None:
+                continue
+
+            admin_keys.append(api_key)
 
     if len(admin_keys) == 0:
         raise ValueError("No admin keys are available to use")
@@ -473,22 +481,21 @@ def verify_users(
     ).forget()
 
 
+class _VertificationNameEnvironment(liquid.Environment):
+    context_depth_limit = 5
+    local_namespace_limit = 1000
+    loop_iteration_limit = 100
+    output_stream_limit = 1000
+
+
 def member_verification_name(
     name: str, tid: int, tag: str, name_template: str = "{{ name }} [{{ tid }}]"
 ) -> typing.Optional[str]:
-    if name_template == "":
-        return None
+    rendered_name: typing.Optional[str] = None
+    if name_template != "":
+        rendered_name = _VertificationNameEnvironment().render(name_template, name=name, tid=tid, tag=tag).strip()
 
-    return (
-        jinja2.Environment(autoescape=True)
-        .from_string(name_template)
-        .render(
-            name=name,
-            tid=tid,
-            tag=tag,
-        )
-        .lstrip()
-    )
+    return rendered_name
 
 
 def member_verified_roles(verified_roles: typing.List[int]) -> typing.Set[str]:

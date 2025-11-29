@@ -83,17 +83,19 @@ defmodule Tornium.Test.Faction.OC.Parser do
       [
         %{
           "position" => "Enforcer",
+          "position_number" => 0,
           "item_requirement" => %{"id" => 1080, "is_reusable" => true, "is_available" => true},
           "user_id" => 1,
           "user" => %{"id" => 1, "joined_at" => 1_741_114_140, "progress" => 44.89},
-          "success_chance" => 75
+          "checkpoint_pass_rate" => 75
         },
         %{
           "position" => "Muscle",
+          "position_number" => 0,
           "item_requirement" => nil,
           "user_id" => 2,
           "user" => %{"id" => 2, "joined_at" => 1_741_111_258, "progress" => 100},
-          "success_chance" => 71
+          "checkpoint_pass_rate" => 71
         }
       ]
       |> Tornium.Faction.OC.parse_slots(@members, 380_813, false, [])
@@ -146,24 +148,27 @@ defmodule Tornium.Test.Faction.OC.Parser do
       [
         %{
           "position" => "Enforcer",
+          "position_number" => 0,
           "item_requirement" => %{"id" => 1080, "is_reusable" => true, "is_available" => true},
           "user_id" => 1,
           "user" => %{"id" => 1, "joined_at" => 1_741_114_140, "progress" => 100},
-          "success_chance" => 75
+          "checkpoint_pass_rate" => 75
         },
         %{
           "position" => "Muscle",
+          "position_number" => 0,
           "item_requirement" => nil,
           "user_id" => 2,
           "user" => %{"id" => 2, "joined_at" => 1_741_111_258, "progress" => 100},
-          "success_chance" => 71
+          "checkpoint_pass_rate" => 71
         },
         %{
           "position" => "Muscle",
+          "position_number" => 1,
           "item_requirement" => nil,
           "user_id" => 3,
           "user" => %{"id" => 3, "joined_at" => 1_741_111_258, "progress" => 100},
-          "success_chance" => 70
+          "checkpoint_pass_rate" => 70
         }
       ]
       |> Tornium.Faction.OC.parse_slots(@members, 380_813, true, [])

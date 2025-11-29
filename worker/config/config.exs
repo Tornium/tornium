@@ -20,6 +20,8 @@ config :tornium,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   env: config_env()
 
+config :tornium, Tornium.Repo, types: Tornium.PostgrexTypes
+
 config :tornium, :logger, [
   {
     :handler,
@@ -80,8 +82,10 @@ config :tornium, Oban,
         {"*/5 * * * *", Tornium.Workers.OCUpdateScheduler},
         {"0 12 * * *", Tornium.Workers.OCCPRUpdateScheduler},
         {"0 0 * * *", Tornium.Workers.OAuthRevocation},
-        {"*/30 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
-        {"10 0 * * *", Tornium.Workers.OverdoseDailyReport}
+        {"7,37 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
+        {"15 0 * * *", Tornium.Workers.OverdoseDailyReport},
+        {"*/15 * * * *", Tornium.Workers.ArmoryNewsUpdateScheduler},
+        {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},

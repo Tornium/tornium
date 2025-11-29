@@ -157,11 +157,17 @@ API_EXCEPTIONS = {
         "http": 404,
         "message": "Server failed to locate the parameters or a specific parameter for the notification trigger.",
     },
+    "1500": {
+        "code": 1500,
+        "name": "UnknownOAuthClient",
+        "http": 404,
+        "message": "Server failed to locate the request OAuth client.",
+    },
     "4000": {
         "code": 4000,
         "name": "TooManyRequests",
         "http": 429,
-        "message": "Too many requests were received from this user.",
+        "message": "Too many requests were received from this user/scope.",
     },
     "4001": {
         "code": 4001,
@@ -273,7 +279,7 @@ API_EXCEPTIONS = {
         "code": 4292,
         "name": "BankingRatelimit",
         "http": 429,
-        "message": "User has reached a ratelimit on banking.",
+        "message": "[DEPRECATED] User has reached a ratelimit on banking.",
     },
     "4300": {"code": 4300, "name": "OCMigrationError", "message": "Faction has not migrated to OCs 2.0."},
     "5000": {

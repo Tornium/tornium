@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import json
 import uuid
 
 from flask import request
 from peewee import DoesNotExist
+from tornium_commons.formatters import str_to_duration
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
@@ -40,6 +42,7 @@ def set_oc_config_channel(guild_id: int, faction_tid: int, feature: str, *args, 
     if feature not in (
         "tool",
         "delayed",
+        "missing_member",
         "extra_range",
         "team_spawn_required",
         "team_member_join_required",
@@ -94,6 +97,7 @@ def set_oc_config_roles(guild_id: int, faction_tid: int, feature: str, *args, **
     if feature not in (
         "tool",
         "delayed",
+        "missing_member",
         "extra_range",
         "team_spawn_required",
         "team_member_join_required",
@@ -417,3 +421,48 @@ def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args
     )
 
     return range_config.to_dict(), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def set_missing_member_duration(guild_id: int, faction_tid: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        minimum_duration: datetime.timedelta = str_to_duration(data["minimum_duration"])
+    except KeyError:
+        return make_exception_response("0000", key, details={"message": "No minimum duration was included."})
+    except ValueError as e:
+        return make_exception_response("0000", key, details={"message": str(e)})
+
+    if minimum_duration.total_seconds() < 43200:
+        return make_exception_response(
+            "0000", key, details={"message": "The minimum duration must be at least 6 hours."}
+        )
+
+    try:
+        guild: Server = Server.select(Server.sid, Server.admins, Server.factions).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif faction_tid not in guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        faction: Faction = (
+            Faction.select(Faction.guild, Faction.has_migrated_oc).where(Faction.tid == faction_tid).get()
+        )
+    except DoesNotExist:
+        return make_exception_response("1102", key)
+
+    if guild.sid != faction.guild_id:
+        return make_exception_response("4021", key)
+    elif not faction.has_migrated_oc:
+        return make_exception_response("4300", key)
+
+    oc_config = ServerOCConfig.create_or_update(guild_id, faction_tid, missing_member_minimum_duration=minimum_duration)
+
+    return oc_config.to_dict(), 200, api_ratelimit_response(key)

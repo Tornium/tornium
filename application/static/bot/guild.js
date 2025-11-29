@@ -34,6 +34,17 @@ function handleRetalWarsToggle(e) {
     });
 }
 
+function setChainAlertMinimum(e) {
+    tfetch("POST", `bot/${guildid}/attacks/chain-alert/${this.getAttribute("data-faction")}/minimum`, {
+        body: {
+            minimum: this.options[this.selectedIndex].value,
+        },
+        errorTitle: "Chain Alert Minimum Set Failed",
+    }).then((response) => {
+        generateToast("Chain Alert Minimum Set Successful", "The minimum chain duration has been set successfully.");
+    });
+}
+
 function setOverdoseChannel(event) {
     const channelID = this.value == "0" ? null : this.value;
     const factionID = this.getAttribute("data-faction");
@@ -81,6 +92,16 @@ ready(() => {
                 }
             }
 
+            const chainAlertMinimumOption = document.querySelector(
+                `.faction-alert-minimum[data-faction="${factionid}"] option[value="${factionConfig.chain_alert.minimum}"]`,
+            );
+            if (chainAlertMinimumOption) {
+                document
+                    .querySelector(`.faction-alert-minimum[data-faction="${factionid}"] option[value="60"]`)
+                    .removeAttribute("selected");
+                chainAlertMinimumOption.setAttribute("selected", "");
+            }
+
             const factionRetalWarToggle = document.querySelector(
                 `#faction-retal-wars-${factionConfig.retal.wars ? "enable" : "disable"}-${factionid}`,
             );
@@ -92,6 +113,7 @@ ready(() => {
         document.querySelectorAll(".automatic-tom-select").forEach((element) => {
             new TomSelect(element, {
                 create: false,
+                maxOptions: null,
             });
         });
     });
@@ -152,6 +174,7 @@ ready(() => {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });
@@ -209,6 +232,7 @@ ready(() => {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                     plugins: ["remove_button"],
                 });
             });
@@ -350,6 +374,10 @@ ready(() => {
         }).then((response) => {
             generateToast("Chain Alert Role Add Successful");
         });
+    });
+
+    Array.from(document.getElementsByClassName("faction-alert-minimum")).forEach((selector) => {
+        selector.addEventListener("change", setChainAlertMinimum);
     });
 
     $(".faction-banking-channel").on("change", function () {

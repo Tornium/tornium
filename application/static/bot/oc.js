@@ -52,6 +52,18 @@ function setDelayedCrimes(event) {
     });
 }
 
+function setMissingMembersDuration(event) {
+    tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/missing-member/duration`, {
+        body: { minimum_duration: this.value },
+        errorTitle: "OC Missing Members Minimum Duration Set Failed",
+    }).then(() => {
+        generateToast(
+            "OC Missing Members Minimum Duration Set successful",
+            "The minimum duration for OC missing member notifications has been successfully set.",
+        );
+    });
+}
+
 function setRangeGlobalMin(event) {
     tfetch("POST", `bot/${guildid}/crimes/${this.getAttribute("data-faction")}/extra-range/minimum`, {
         body: { minimum: this.value },
@@ -289,6 +301,7 @@ ready(() => {
             document.querySelectorAll(".discord-channel-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });
@@ -313,6 +326,7 @@ ready(() => {
             document.querySelectorAll(".discord-role-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    maxOptions: null,
                 });
             });
         });
@@ -354,6 +368,20 @@ ready(() => {
             });
         });
 
+    document.querySelectorAll(".oc-missing-member-duration").forEach((element) => {
+        const selectedDuration = element.getAttribute("data-selected-duration");
+        const options = element.querySelectorAll(`option[value="${selectedDuration}"]`);
+
+        if (options.length === 1) {
+            options[0].setAttribute("selected", "");
+        }
+
+        new TomSelect(element, {
+            create: false,
+            maxOptions: null,
+        });
+    });
+
     document.querySelectorAll(".discord-channel-selector").forEach((element) => {
         element.addEventListener("change", setFeatureChannel);
     });
@@ -365,6 +393,9 @@ ready(() => {
     });
     document.querySelectorAll(".oc-delayed-crimes").forEach((element) => {
         element.addEventListener("change", setDelayedCrimes);
+    });
+    document.querySelectorAll(".oc-missing-member-duration").forEach((element) => {
+        element.addEventListener("change", setMissingMembersDuration);
     });
     document.querySelectorAll(".oc-range-global-min").forEach((element) => {
         element.addEventListener("change", setRangeGlobalMin);

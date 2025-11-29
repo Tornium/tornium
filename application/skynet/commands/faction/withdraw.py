@@ -14,19 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import random
 import typing
 import uuid
 
 from peewee import IntegrityError
-from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
-from tornium_commons import rds
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
 from skynet.decorators import invoker_required
-from skynet.skyutils import get_faction_keys
 
 
 @invoker_required
@@ -155,27 +152,6 @@ def withdraw(interaction, *args, **kwargs):
     elif timeout["value"] == "none":
         timeout_datetime = None
 
-    client = rds()
-    # TODO: Make this set of redis queries atomic
-    if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Ratelimit Reached",
-                        "description": f"You have reached the ratelimit on banking requests (once every minute). "
-                        f"Please try again in {client.ttl(f'tornium:banking-ratelimit:{user.tid}')} seconds.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    else:
-        client.set(f"tornium:banking-ratelimit:{user.tid}", 1)
-        client.expire(f"tornium:banking-ratelimit:{user.tid}", 60)
-
     withdrawal_amount = find_list(interaction["data"]["options"], "name", "amount")
 
     if withdrawal_amount is None:
@@ -195,39 +171,46 @@ def withdraw(interaction, *args, **kwargs):
 
     withdrawal_amount = withdrawal_amount["value"]
 
-    if isinstance(withdrawal_amount, str):
-        if withdrawal_amount.lower() == "all":
-            withdrawal_amount = "all"
-        else:
-            try:
-                withdrawal_amount = text_to_num(withdrawal_amount)
-            except ValueError:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Invalid Withdrawal Amount",
-                                "description": f"You have tried to withdraw `{withdrawal_amount}`, but this is not a "
-                                f"valid amount. For proper formatting, take a look at the "
-                                f"[documentation](https://docs.tornium.com/en/latest/reference/bot-banking.html#withdraw-command)",
-                            }
-                        ],
-                        "flags": 64,
-                    },
-                }
+    if isinstance(withdrawal_amount, str) and withdrawal_amount.lower() == "all":
+        withdrawal_amount = "all"
+    elif isinstance(withdrawal_amount, str):
+        try:
+            withdrawal_amount = text_to_num(withdrawal_amount)
+        except ValueError:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "Invalid Withdrawal Amount",
+                            "description": f"You have tried to withdraw `{withdrawal_amount}`, but this is not a "
+                            f"valid amount. For proper formatting, take a look at the "
+                            f"[documentation](https://docs.tornium.com/en/latest/reference/bot-banking.html#withdraw-command)",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
-    aa_keys = get_faction_keys(interaction, user.faction)
+    if withdrawal_option == 1:
+        withdrawal_option_str = "points_balance"
+    else:
+        withdrawal_option_str = "money_balance"
 
-    if len(aa_keys) == 0:
+    try:
+        validated_withdrawal_amount = Withdrawal.has_sufficient_balance(
+            user.tid, user.faction_id, withdrawal_amount, withdrawal_option_str
+        )
+        # Other errors will be handled by the overall error handler
+    except ValueError as e:
         return {
             "type": 4,
             "data": {
                 "embeds": [
                     {
-                        "title": "No API Keys",
-                        "description": "No AA API keys were found to be run for this command. Please sign into "
-                        "Tornium or ask a faction AA member to sign into Tornium.",
+                        "title": "Withdrawal Failed",
+                        "description": f"The withdrawal request failed. {str(e)}",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -238,69 +221,6 @@ def withdraw(interaction, *args, **kwargs):
     # Creating a followup message is necessary due to increased Torn and Discord API latencies
     # causing sometimes frequent client-side timeouts of withdrawal slash commands.
     discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
-
-    faction_balances = tornget("faction/?selections=donations", random.choice(aa_keys))["donations"]
-
-    if str(user.tid) not in faction_balances:
-        followup_return(
-            {
-                "embeds": [
-                    {
-                        "title": "Faction Error",
-                        "description": (
-                            f"{discord_escaper(user.name)} [{user.tid}] is not in {user.faction.name}'s donations list. This may "
-                            f"indicate that they are not in the faction or that they don't have any funds in the "
-                            f"faction vault."
-                        ),
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            }
-        )
-        return {}
-
-    if withdrawal_option == 1:
-        withdrawal_option_str = "points_balance"
-    else:
-        withdrawal_option_str = "money_balance"
-
-    if withdrawal_amount != "all" and withdrawal_amount > faction_balances[str(user.tid)][withdrawal_option_str]:
-        followup_return(
-            {
-                "embeds": [
-                    {
-                        "title": "Not Enough",
-                        "description": "You do not have enough of the requested currency in the faction vault.",
-                        "fields": [
-                            {"name": "Amount Requested", "value": withdrawal_amount},
-                            {
-                                "name": "Amount Available",
-                                "value": faction_balances[str(user.tid)][withdrawal_option_str],
-                            },
-                        ],
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            }
-        )
-        return {}
-    elif withdrawal_amount == "all" and faction_balances[str(user.tid)][withdrawal_option_str] <= 0:
-        followup_return(
-            {
-                "embeds": [
-                    {
-                        "title": "Not Enough",
-                        "description": "You have requested all of your currency, but have zero or a negative vault "
-                        "balance.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            }
-        )
-        return {}
 
     last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
@@ -315,10 +235,11 @@ def withdraw(interaction, *args, **kwargs):
         message_payload = {
             "embeds": [
                 {
-                    "title": f"Vault Request #{request_id}",
-                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting {commas(withdrawal_amount)} "
-                    f"in {'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
-                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
+                    "title": f"Vault Request #{commas(request_id)}",
+                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
+                    f"{f'${commas(validated_withdrawal_amount)}' if withdrawal_option == 0 else f'{commas(withdrawal_amount)} in points '} "
+                    f"from the faction vault. The request expires "
+                    f"{'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ],
@@ -358,9 +279,9 @@ def withdraw(interaction, *args, **kwargs):
         message_payload = {
             "embeds": [
                 {
-                    "title": f"Vault Request #{request_id}",
+                    "title": f"Vault Request #{commas(request_id)}",
                     "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
-                    f"{commas(faction_balances[str(user.tid)][withdrawal_option_str])} in "
+                    f"{commas(validated_withdrawal_amount)} in "
                     f"{'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
                     f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -415,11 +336,7 @@ def withdraw(interaction, *args, **kwargs):
             wid=request_id,
             guid=guid,
             faction_tid=user.faction_id,
-            amount=(
-                withdrawal_amount
-                if withdrawal_amount != "all"
-                else faction_balances[str(user.tid)][withdrawal_option_str]
-            ),
+            amount=validated_withdrawal_amount,
             cash_request=not bool(withdrawal_option),
             requester=user.tid,
             time_requested=datetime.datetime.utcnow(),
@@ -453,7 +370,7 @@ def withdraw(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": f"Vault Request #{request_id}",
-                    "description": "Your vault request has been forwarded to the faction leadership. The request "
+                    "description": "Your vault request has been forwarded to the faction bankers. The request "
                     f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "fields": [
                         {

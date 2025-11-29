@@ -10,7 +10,7 @@
                 {
                     "type": 1,
                     "name": "missing-members",
-                    "description": "Lists members of the faction not in an OC",
+                    "description": "Lists members not in an OC",
                     "options": [
                         {
                             "type": 3,
@@ -62,7 +62,7 @@
                 {
                     "type": 1,
                     "name": "online",
-                    "description": "Lists online players in the specified faction",
+                    "description": "Lists online members",
                     "options": [
                         {
                             "type": 3,
@@ -75,7 +75,7 @@
                 {
                     "type": 1,
                     "name": "offline",
-                    "description": "Lists offline players in the specified faction",
+                    "description": "Lists offline members",
                     "options": [
                         {
                             "type": 3,
@@ -88,7 +88,7 @@
                 {
                     "type": 1,
                     "name": "flying",
-                    "description": "Lists players currently flying or abroad in the specified faction",
+                    "description": "Lists flying/abroad members",
                     "options": [
                         {
                             "type": 3,
@@ -101,7 +101,7 @@
                 {
                     "type": 1,
                     "name": "okay",
-                    "description": "Lists players currently okay in the specified faction",
+                    "description": "Lists okay members",
                     "options": [
                         {
                             "type": 3,
@@ -114,7 +114,7 @@
                 {
                     "type": 1,
                     "name": "hospital",
-                    "description": "Lists players currently in the Torn hospital in the specified faction",
+                    "description": "Lists hospitalized members",
                     "options": [
                         {
                             "type": 3,
@@ -127,7 +127,7 @@
                 {
                     "type": 1,
                     "name": "inactive",
-                    "description": "Lists players currently more than a specified days inactive in the specified faction",
+                    "description": "Lists inactive members",
                     "options": [
                         {
                             "type": 4,
@@ -146,7 +146,7 @@
                 {
                     "type": 1,
                     "name": "revivable",
-                    "description": "Lists players currently revivable in the specified faction",
+                    "description": "Lists revivable members",
                     "options": [
                         {
                             "type": 3,
@@ -159,7 +159,7 @@
                 {
                     "type": 1,
                     "name": "revivable-ping",
-                    "description": "Ping all members of a faction set up in the server",
+                    "description": "Ping revivable members",
                     "options": [
                         {
                             "type": 3,
@@ -188,7 +188,7 @@
                 {
                     "type": 1,
                     "name": "discord",
-                    "description": "Lists players currently not in the Discord server in the specified faction",
+                    "description": "Lists members not in the Discord server",
                     "options": [
                         {
                             "type": 5,

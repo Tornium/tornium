@@ -62,6 +62,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Missing Tools Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-tool-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="Missing Tools Channel"
@@ -110,6 +111,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Delayed Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-delayed-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="Delayed OC Channel"
@@ -151,6 +153,61 @@ Tornium - OCs
                 </div>
 
                 <hr />
+                
+                <p class="card-text">
+                    <b>Missing Members:</b> Notifications regarding members of the faction not being in an OC for a minimum period of time.
+                </p>
+
+                <div class="row w-100 ps-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Members Channel</div>
+                        <select
+                            is="channel-selector"
+                            class="discord-channel-selector oc-missing-member-channel w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Channel"
+                            data-live-search="true"
+                            data-selected-channel="{{ faction.server_oc_config.missing_member_channel }}"
+                            data-feature="missing-member"
+                        >
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Missing Members Roles</div>
+                        <select
+                            class="discord-role-selector oc-missing-member-roles w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Role"
+                            data-live-search="true"
+                            data-selected-text-format="count > 2"
+                            data-selected-roles="{{ faction.server_oc_config.missing_member_roles }}"
+                            data-feature="missing-member"
+                            multiple
+                        >
+                            <option value="-1">Missing Member(s)</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="ms-2 mt-1 fw-bold">Minimum Alert Duration</div>
+                        <select
+                            class="oc-missing-member-duration w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Missing OC Members Minimum Alert Duration"
+                            data-live-search="true"
+                            data-selected-duration="{{ faction.server_oc_config.missing_member_minimum_duration | duration_to_str }}"
+                            data-feature="missing-member"
+                        >
+                            <option value="12h">12 Hours</option>
+                            <option value="1d">1 Day</option>
+                            <option value="36h">1.5 Days</option>
+                            <option value="2d">2 Days</option>
+                            <option value="3d">3 Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
 
                 <p class="card-text">
                     <b>Initialized OCs:</b> Notifications regarding OCs being initialized.
@@ -180,6 +237,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Extra-Range Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-range-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="Extra-Range OC Channel"
@@ -262,7 +320,7 @@ Tornium - OCs
                                         autocomplete="off"
                                     >
 
-                                    <span class="input-group-text">Min</span>
+                                    <span class="input-group-text">Max</span>
                                     <input
                                         type="number"
                                         class="form-control oc-range-local-max"
@@ -292,6 +350,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Spawn Required Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-spawn-required-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Spawn Required Channel"
@@ -327,6 +386,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Member Join Required Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-member-join-required-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Member Join Required Channel"
@@ -364,6 +424,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Member Incorrect Crime Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-member-incorrect-crime-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Member Incorrect Crime Channel"
@@ -401,6 +462,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Incorrect Member Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-incorrect-member-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Incorrect Member Channel"
@@ -438,6 +500,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Member Incorrect Slot Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-member-incorrect-slot-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Member Incorrect Slot Channel"
@@ -475,6 +538,7 @@ Tornium - OCs
                     <div class="col-sm-12 col-md-6">
                         <div class="ms-2 mt-1 fw-bold">Team Assigned Channel</div>
                         <select
+                            is="channel-selector"
                             class="discord-channel-selector oc-team-assigned-channel w-100"
                             data-faction="{{ faction.tid }}"
                             aria-label="OC Team Assigned Channel"
@@ -517,6 +581,7 @@ Tornium - OCs
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/channel-selector.js"></script>
 <script src="/static/global/discord.js" data-guildid="{{ guildid }}"></script>
 <script src="/static/global/oc.js"></script>
 <script src="/static/bot/oc.js"></script>

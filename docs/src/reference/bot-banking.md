@@ -1,5 +1,5 @@
 # Banking
-Tornium's banking allows faction members to request money and faction bankers to fulfill/cancel vault requests. Once a vault request is marked as fulfilled, the banker needs to be fulfilled within ten minutes; without a vault log indicating the vault request has been fulfilled, the bot will mark the vault request as not fulfilled and cancel it. If a vault request is not fulfilled within ~60 minutes, the bot will automatically cancel the request in an attempt to prevent the requester of the vault request from being mugged after going offline.
+Tornium's banking allows faction members to request money and faction bankers to fulfill/cancel vault requests. Once a vault request is marked as fulfilled, the banker needs to be fulfilled within ten minutes; without a vault log indicating the vault request has been fulfilled, the bot will mark the vault request as not fulfilled and cancel it. By default, if a vault request is not fulfilled within ~60 minutes, the bot will automatically cancel the request in an attempt to prevent the requester of the vault request from being mugged after going offline. This can be configured by the member making the request though.
 
 ## Banking Configuration
 Under the `Faction Banking` section of the faction's linked Discord server, the faction's banking channel and optional role(s) can be configured. The banking channel is the location vault requests will be sent to. If the optional banking role(s) are configured, the roles will be mentioned in the request sent to the banking channel.
@@ -29,12 +29,13 @@ If this slash command is invoked in a Discord server and the invoker of the comm
 /withdraw (amount) [option]
 ```
 
-The `/withdraw` slash command will send a vault request for the specified amount of money or points to the banking channel mentioning the banking role as configured for the faction of the invoker. Before sending the vault request to the banking channel, the bot will verify the member has a sufficient balance of money or points in the faction vault.
+The `/withdraw` slash command will send a vault request for the specified amount of money or points to the banking channel mentioning the banking role as configured for the faction of the invoker. Before sending the vault request to the banking channel, the bot will verify the member has a sufficient balance of money or points in the faction vault. Additionally, the member can not have pending requests of which the balance would go over the member's balance with the request being made.
 
 | Argument  | Description                                     | Required | Default |
 | --------- | ----------------------------------------------- | -------- | ------- |
 | `amount`  | Amount of money/points to be withdrawn          | True     | None    |
 | `option`  | Flag to request money or points to be withdrawn | False    | Money   |
+| `timeout` | Amount of time before the request will time out | False    | 1 hour  |
 
 
 The `(amount)` parameter allows for the suffixes used by Torn for ease-of-use as shown below (e.g. `4.3m` represents `4,300,000`). Additionally, `all` can be used in place of a numeric amount to request all of the member's vault balance.

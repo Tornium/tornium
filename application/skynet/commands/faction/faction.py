@@ -203,21 +203,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-    if user.faction_id == faction.tid and not user.can_manage_crimes():
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Permission Denied",
-                        "description": "You must have the manage crimes permission to use this slash command.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    elif user.faction_id != faction.tid and (
+    if user.faction_id != faction.tid and (
         interaction.get("guild_id") is None or int(interaction["guild_id"]) != faction.guild_id
     ):
         return {
@@ -261,20 +247,6 @@ def crimes_switchboard(interaction, *args, **kwargs):
                         {
                             "title": "Permission Denied",
                             "description": "For factions that are not your own faction, you must be in the faction's linked Discord server.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-        elif user.tid not in server.admins:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Permission Denied",
-                            "description": "For factions that are not your own faction, you must be an admin in the faction's linked Discord server.",
                             "color": SKYNET_ERROR,
                         }
                     ],

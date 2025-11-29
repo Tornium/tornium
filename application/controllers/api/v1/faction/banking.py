@@ -22,7 +22,6 @@ import uuid
 from flask import jsonify, request
 from tornium_celery.tasks.api import discordpost, tornget
 from tornium_celery.tasks.user import update_user
-from tornium_commons import rds
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import commas
 from tornium_commons.models import Server, User, Withdrawal
@@ -91,29 +90,17 @@ def vault_balance(*args, **kwargs):
 @ratelimit
 def banking_request(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    client = rds()
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user: User = kwargs["user"]
     amount_requested = data.get("amount_requested")
 
     if user.key is None:
-        return make_exception_response("1200", None, redis_client=client)
+        return make_exception_response("1200", None)
 
     if amount_requested is None:
-        return make_exception_response("1000", key, details={"element": "amount_requested"}, redis_client=client)
+        return make_exception_response("1000", key, details={"element": "amount_requested"})
     elif amount_requested <= 0:
-        return make_exception_response(
-            "0000",
-            key,
-            details={"message": "Illegal amount requested."},
-            redis_client=client,
-        )
-
-    if client.exists(f"tornium:banking-ratelimit:{user.tid}"):
-        return make_exception_response("4292", key, redis_client=client)
-    else:
-        client.set(f"tornium:banking-ratelimit:{user.tid}", 1, ex=60)
-        # TODO: Make this one redis call and check response
+        return make_exception_response("0000", key, details={"message": "Illegal amount requested."})
 
     amount_requested = str(amount_requested)
 
@@ -125,43 +112,29 @@ def banking_request(*args, **kwargs):
     update_user(key=user.key, tid=user.tid)
 
     if user.faction is None:
-        return make_exception_response("1102", key, redis_client=client)
+        return make_exception_response("1102", key)
     elif user.faction.guild is None:
-        return make_exception_response("1001", key, redis_client=client)
+        return make_exception_response("1001", key)
     elif len(user.faction.aa_keys) == 0:
-        return make_exception_response("1201", key, redis_client=client)
+        return make_exception_response("1201", key)
 
     server: Server = user.faction.guild
 
     if server is None:
-        return make_exception_response("1001", key, redis_client=client)
+        return make_exception_response("1001", key)
     elif user.faction_id not in server.factions:
-        return make_exception_response("4021", key, redis_client=client)
+        return make_exception_response("4021", key)
 
     if (
         str(user.faction_id) not in server.banking_config
         or server.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
-        return make_exception_response(
-            "0000",
-            key,
-            details={"message": "Faction vault configuration needs to be set."},
-            redis_client=client,
-        )
+        return make_exception_response("0000", key, details={"message": "Faction vault configuration needs to be set."})
 
     try:
         vault_balances = tornget("faction/?selections=donations", random.choice(user.faction.aa_keys))
     except TornError as e:
-        return make_exception_response(
-            "4100",
-            key,
-            details={
-                "code": e.code,
-                "error": e.error,
-                "message": e.message,
-            },
-            redis_client=client,
-        )
+        return make_exception_response("4100", key, details={"code": e.code, "error": e.error, "message": e.message})
     except NetworkingError as e:
         return make_exception_response(
             "4101",
@@ -174,19 +147,9 @@ def banking_request(*args, **kwargs):
 
     if str(user.tid) in vault_balances["donations"]:
         if amount_requested != "all" and amount_requested > vault_balances["donations"][str(user.tid)]["money_balance"]:
-            return make_exception_response(
-                "0000",
-                key,
-                details={"message": "Illegal amount requested."},
-                redis_client=client,
-            )
+            return make_exception_response("0000", key, details={"message": "Illegal amount requested."})
         elif amount_requested == "all" and vault_balances["donations"][str(user.tid)]["money_balance"] <= 0:
-            return make_exception_response(
-                "0000",
-                key,
-                details={"message": "Illegal amount requested."},
-                redis_client=client,
-            )
+            return make_exception_response("0000", key, details={"message": "Illegal amount requested."})
 
         last_request: typing.Optional[Withdrawal] = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
 
@@ -327,4 +290,4 @@ def banking_request(*args, **kwargs):
             api_ratelimit_response(key),
         )
     else:
-        return make_exception_response("1102", key, redis_client=client)
+        return make_exception_response("1102", key)

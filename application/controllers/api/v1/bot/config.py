@@ -73,6 +73,7 @@ def jsonified_server_config(guild: Server):
                 "chain_alert": {
                     "channel": ("0" if config.chain_alert_channel is None else str(config.chain_alert_channel)),
                     "roles": list(map(str, config.chain_alert_roles)),
+                    "minimum": config.chain_alert_minimum,
                 },
             }
             for config in guild.attacks_config

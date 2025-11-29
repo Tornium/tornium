@@ -14,6 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.RepoCase do
+  @moduledoc """
+  A sandboxed version of the normal Ecto Repo for testing.
+
+  See https://hexdocs.pm/ecto/testing-with-ecto.html
+  """
+
   use ExUnit.CaseTemplate
 
   using do

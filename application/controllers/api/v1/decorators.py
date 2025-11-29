@@ -44,15 +44,46 @@ def ratelimit(func):
         key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
         current_count = int(client.incr(key))
+        client.expireat(key, int(time.time()) // 60 * 60 + 60)
 
-        if current_count <= 1:
-            client.expireat(key, int(time.time()) // 60 * 60 + 60)
-        elif current_count > 250:
+        if current_count > 250:
             return make_exception_response("4000", key)
 
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def scoped_ratelimit(scope, maximum):
+    """
+    A scoped ratelimiting decorator.
+
+    The `scope` is either a string or a lambda function. The lambda function will take the authenticated user
+    as the argument. The `maximum` is the maximum number of API calls to this scope per minute.
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if isinstance(scope, str):
+                key = scope
+            elif isinstance(scope, typing.Callable):
+                key = scope(kwargs["user"])
+            else:
+                raise Exception("Invalid scope type")
+
+            client = rds()
+            current_count = int(client.incr(key))
+            client.expireat(key, int(time.time()) // 60 * 60 + 60)
+
+            if current_count > maximum:
+                return make_exception_response("4000", key, details={"scope": key})
+
+            return f(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def session_required(func):

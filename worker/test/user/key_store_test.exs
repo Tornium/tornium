@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Test.User.KeyStore do
-  use Tornium.RepoCase
+  use Tornium.RepoCase, async: false
 
   test "test_invalid_key" do
     pid = ExUnit.Callbacks.start_link_supervised!(Tornium.User.KeyStore)
@@ -67,10 +67,10 @@ defmodule Tornium.Test.User.KeyStore do
       access_level: 3
     }
 
-    assert Tornium.User.KeyStore.put(pid, 1, api_key, 1) == :ok
+    assert Tornium.User.KeyStore.put(pid, 1, api_key, %Duration{second: 1}) == :ok
     assert Tornium.User.KeyStore.get(pid, 1) == api_key
 
-    Process.sleep(1000)
+    Process.sleep(2000)
     assert is_nil(Tornium.User.KeyStore.get(pid, 1))
 
     Agent.stop(pid)

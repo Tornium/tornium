@@ -47,7 +47,7 @@ def get_oc_names(*args, **kwargs):
     return jsonify(oc_names), 200, api_ratelimit_response(key)
 
 
-@require_oauth("faction:crimes")
+@require_oauth("faction:crimes", "faction")
 @ratelimit
 def get_delays(faction_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

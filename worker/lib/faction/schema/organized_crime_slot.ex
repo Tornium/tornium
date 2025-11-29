@@ -20,18 +20,20 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          oc: Tornium.Schema.OrganizedCrime.t() | Ecto.Association.NotLoaded.t(),
+          oc_id: non_neg_integer(),
+          oc: Tornium.Schema.OrganizedCrime.t(),
           slot_index: integer(),
           crime_position: String.t(),
           crime_position_index: integer(),
           user_id: integer() | nil,
-          user: Tornium.Schema.User.t() | Ecto.Association.NotLoaded.t() | nil,
+          user: Tornium.Schema.User.t() | nil,
           user_success_chance: integer() | nil,
           user_joined_at: DateTime.t() | nil,
-          item_required: Tornium.Schema.Item.t() | Ecto.Association.NotLoaded.t() | nil,
+          item_required_id: non_neg_integer() | nil,
+          item_required: Tornium.Schema.Item.t() | nil,
           item_available: boolean() | nil,
-          delayer: boolean() | nil,
-          delayed_reason: String.t(),
+          delayer: boolean(),
+          delayed_reason: String.t() | nil,
           sent_tool_notification: boolean(),
           sent_delayer_notification: boolean(),
           sent_extra_range_notification: boolean()
@@ -99,6 +101,11 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     |> upsert_all(delayers)
   end
 
+  def upsert_all([] = _entries) do
+    # Fallback
+    []
+  end
+
   def upsert_all([entry | _] = entries, delayers) when is_list(entries) and is_map(entry) and is_map(delayers) do
     # Find all slots where the user ID for the slot does not match the user ID in the API response.
     # Indicates that the user left the slot.
@@ -151,7 +158,10 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
             Map.get(delayers, {oc_id, slot_index})
 
           Tornium.Schema.OrganizedCrimeSlot
-          |> where([s], s.oc_id == ^oc_id and s.slot_index == ^slot_index)
+          |> where(
+            [s],
+            s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.delayer == false and is_nil(s.delayed_reason)
+          )
           |> update([s], set: [delayer: ^delayer_new, delayed_reason: ^delayed_reason_new])
           |> Repo.update_all([])
 
@@ -166,11 +176,6 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   end
 
   def upsert_all([] = _entries, _delayers) do
-    # Fallback
-    []
-  end
-
-  def upsert_all([] = _entries) do
     # Fallback
     []
   end

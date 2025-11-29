@@ -48,7 +48,7 @@ from flask_cors import CORS
 from flask_login import LoginManager, current_user
 from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, db, init_db
-from tornium_commons.formatters import commas, rel_time, torn_timestamp
+from tornium_commons.formatters import commas, duration_to_str, rel_time, torn_timestamp
 from tornium_commons.models import Faction, OAuthClient, OAuthToken
 from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
@@ -71,6 +71,8 @@ logger.addHandler(handler)
 
 
 def init__app():
+    from tornium_commons.redisconnection import load_scripts
+
     from controllers import mod as base_mod
     from controllers.adminroutes import mod as admin_mod
     from controllers.api import api_v1_mod
@@ -126,7 +128,7 @@ def init__app():
     login_manager.message = ""
 
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
-    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=False)])
+    oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
     oauth_server.register_grant(RefreshTokenGrant)
 
     with app.app_context():
@@ -145,6 +147,8 @@ def init__app():
         app.register_blueprint(developers_mod)
         app.register_blueprint(notification_mod)
         app.register_blueprint(settings_mod)
+
+    load_scripts()
 
     return app
 
@@ -224,6 +228,11 @@ def faction_filter(tid):
         return f"N/A {tid}"
 
     return f"{faction.name} [{tid}]"
+
+
+@app.template_filter("duration_to_str")
+def duration_to_string_filter(duration: datetime.timedelta) -> str:
+    return duration_to_str(duration)
 
 
 @app.before_request

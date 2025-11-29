@@ -17,4 +17,5 @@ defmodule Tornium.Test.Discord do
   use Tornium.RepoCase
 
   doctest Tornium.Discord, only: [{:roles_to_string, 2}]
+  doctest Tornium.Discord.Constants
 end

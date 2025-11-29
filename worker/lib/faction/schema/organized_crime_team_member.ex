@@ -59,6 +59,10 @@ defmodule Tornium.Schema.OrganizedCrimeTeamMember do
     end)
   end
 
+  def find_slot_member([] = _members, slot_type, slot_index) when is_binary(slot_type) and is_integer(slot_index) do
+    nil
+  end
+
   @doc """
   Determine if the OC team member is a wildcard member.
 

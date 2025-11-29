@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.0-dev
+// @version      0.5.0
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -42,7 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.0-dev";
+  var VERSION = "0.5.0";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
@@ -697,7 +697,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     infoScriptLink.innerHTML = `<strong>Link: </strong> <a href="https://github.com/Tornium/tornium/blob/master/userscripts/tornium-estimate.user.js">GitHub</a>`;
     infoScriptContainer.append(infoScriptLink);
     const infoScriptDocs = document.createElement("p");
-    infoScriptDocs.innerHTML = `<strong>Docs: </strong> Not yet created`;
+    infoScriptDocs.innerHTML = `<strong>Documentation: </strong> <a href="https://docs.tornium.com/en/latest/reference/tornium-estimate.html">docs.tornium.com</a>`;
     infoScriptContainer.append(infoScriptDocs);
     const infoScriptTerms = document.createElement("p");
     infoScriptTerms.innerHTML = `<strong>Terms of Service: </strong> This userscript falls under Tornium's <a href="https://tornium.com/terms">Terms of Service</a> and <a href="https://tornium.com/privacy">Privacy Policy</a>.`;

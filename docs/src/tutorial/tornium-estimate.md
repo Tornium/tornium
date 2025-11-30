@@ -10,7 +10,7 @@ Before starting, ensure you have a userscript manager installed on your browser.
 
 Once the userscript manager has been installed, on the browser with the userscript manager, navigate to the [userscript](https://github.com/Tornium/tornium/blob/master/userscripts/tornium-estimate.user.js) and press the `Raw` button (or visit [this link](https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-estimate.user.js)). If your userscript manager is installed properly, this will automatically install the userscript and show a confirmation page from the userscript manager. If you’re installing the userscript onto TornPDA, make sure that the injection time is set to the end.
 
-You can ensure the userscript has been installed by visiting any user's profile page and pressing the `Estimate Settings` button (see the below image).
+You can ensure the userscript has been installed by visiting any user's profile page and pressing the `Estimate Settings` button (see the below image). If you are on a mobile device, the label on the button will be hidden by Torn and only the icon on the image will be shown.
 
 ![Estimate settings button](../images/tornium-estimate-profile-settings.png)
 

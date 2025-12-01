@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   imports = [
@@ -7,25 +7,34 @@
 
   services.postgresql.enable = true;
   services.postgresql.package = pkgs.postgresql_16;
+  services.postgresql.settings = {
+    wal_level = "replica";
+    max_wal_senders = "10";
+    max_replication_slots = "10";
+    wal_keep_size = "1GB";
+    primary_conninfo = "host=10.0.0.3 port=5432 user=replicator";
+    hot_standby = "on";
+  };
   services.postgresql.ensureDatabases = [ "Tornium" ];
   services.postgresql.ensureUsers = [
     {
       name = "Tornium";
       ensureDBOwnership = true;
+      ensureClauses = { superuser = true; };
     }
     {
-      name = "tiksan";
-      ensureClauses = { superuser = true; };
+      name = "replicator";
+      ensureClauses = { replication = true; };
     }
   ];
   services.postgresql.authentication = pkgs.lib.mkOverride 10 ''
     # Allow local superuser
     # type database user auth-method
-    local all tiksan scram-sha-256
-    local all postgres peer
+    local all Tornium scram-sha-256
 
     # Allow local IPv4 and IPv6 loopback
     # type database user address auth-method
+    host all postgres peer
     host Tornium Tornium 127.0.0.1/32 scram-sha-256
     host Tornium Tornium ::1/128 scram-sha-256
 

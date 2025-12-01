@@ -27,9 +27,15 @@
         echo "ALTER ROLE \"Tornium\" WITH PASSWORD '$PW';" | psql
       fi
 
+      if [ -f /run/secrets/postgres/replicator_password ]; then
+        PW="$(cat /run/secrets/postgres/replicator_password)"
+        echo "ALTER ROLE \"replicator\" WITH PASSWORD '$PW';" | psql
+      fi
+
       if [ -f /run/secrets/postgres/admin_password ]; then
         PW="$(cat /run/secrets/postgres/admin_password)"
         echo "ALTER ROLE \"tiksan\" WITH PASSWORD '$PW';" | psql
+        echo "ALTER ROLE \"postgres\" WITH PASSWORD '$PW';" | psql
       fi
     '';
   };

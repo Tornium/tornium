@@ -61,5 +61,6 @@
 
   # ---- SECRETS ---- #
   sops.secrets."postgres/password" = {owner = "postgres"; };
+  sops.secrets."postgres/replicator_password" = {owner = "postgres"; };
   sops.secrets."postgres/admin_password" = { owner = "postgres"; };
 }

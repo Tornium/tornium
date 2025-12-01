@@ -6,6 +6,7 @@
     ../modules/nginx-proxy.nix
     ../modules/nginx-prometheus-exporter.nix
     ../modules/nginx-status.nix
+    ../modules/postgresql-replica.nix
     ../modules/prometheus.nix
     ../common/default.nix
     ../common/users/default.nix

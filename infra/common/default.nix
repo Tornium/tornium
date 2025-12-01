@@ -53,4 +53,14 @@
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
   ];
+
+  # This is added to the server by colmena in ../hosts/common.nix
+  sops.age.keyFile = "/run/keys/sops-age-key.secret";
+  sops.defaultSopsFile = ../secrets/secrets.yaml;
+  sops.defaultSopsFormat = "yaml";
+
+  # ---- SECRETS ---- #
+  sops.secrets."postgres/password" = {owner = "postgres"; };
+  sops.secrets."postgres/replicator_password" = {owner = "postgres"; };
+  sops.secrets."postgres/admin_password" = { owner = "postgres"; };
 }

@@ -54,7 +54,7 @@ defmodule Tornium.Test.Guild do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -87,7 +87,7 @@ defmodule Tornium.Test.Guild do
         default: false,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -98,7 +98,7 @@ defmodule Tornium.Test.Guild do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -139,7 +139,7 @@ defmodule Tornium.Test.Guild do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 
@@ -150,7 +150,7 @@ defmodule Tornium.Test.Guild do
         default: true,
         paused: false,
         disabled: false,
-        access_level: 3
+        access_level: :limited
       }
       |> Repo.insert()
 

@@ -90,18 +90,9 @@ defmodule Tornium.Workers.OCUpdate do
     end)
     |> Tornium.Schema.OrganizedCrimeCPR.upsert_all()
 
-    collected_messages =
-      check_state
-      |> Tornium.Faction.OC.Render.render_all(config)
-      |> Tornium.Discord.send_messages(collect: Application.get_env(:tornium, :env) == :dev)
-
-    case collected_messages do
-      nil ->
-        nil
-
-      _ when is_list(collected_messages) ->
-        IO.inspect(collected_messages, label: "Collected messages")
-    end
+    check_state
+    |> Tornium.Faction.OC.Render.render_all(config)
+    |> Tornium.Discord.send_messages()
 
     # Perform this after the attempting to send the messages to avoid a flag being updated despite the message not being sent (e.g. from a rendering issue)
     Tornium.Schema.OrganizedCrimeSlot.update_sent_state(check_state)

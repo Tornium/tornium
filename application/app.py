@@ -71,6 +71,8 @@ logger.addHandler(handler)
 
 
 def init__app():
+    from tornium_commons.redisconnection import load_scripts
+
     from controllers import mod as base_mod
     from controllers.adminroutes import mod as admin_mod
     from controllers.api import api_v1_mod
@@ -145,6 +147,8 @@ def init__app():
         app.register_blueprint(developers_mod)
         app.register_blueprint(notification_mod)
         app.register_blueprint(settings_mod)
+
+    load_scripts()
 
     return app
 

@@ -212,7 +212,7 @@ defmodule Tornium.Guild.Verify.Logic do
       when is_nil(user) do
     roles_to_remove =
       faction_verify
-      |> Enum.flat_map(fn {faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
+      |> Enum.flat_map(fn {_faction_tid, _faction_verify_config = %{"roles" => faction_roles, "enabled" => enabled}} ->
         if enabled do
           faction_roles
         else
@@ -313,7 +313,7 @@ defmodule Tornium.Guild.Verify.Logic do
       faction_verify
       |> Enum.flat_map(fn {_faction_tid,
                            _faction_verify_config = %{"positions" => position_config, "enabled" => enabled}} ->
-        Enum.flat_map(position_config, fn {position_pid, position_roles} ->
+        Enum.flat_map(position_config, fn {_position_pid, position_roles} ->
           if enabled do
             position_roles
           else

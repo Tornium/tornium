@@ -15,6 +15,8 @@
 
 defmodule Tornium.Workers.OCCPRUpdate do
   require Logger
+  import Ecto.Query
+  alias Tornium.Repo
 
   use Oban.Worker,
     max_attempts: 3,
@@ -48,6 +50,17 @@ defmodule Tornium.Workers.OCCPRUpdate do
       :not_ready ->
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
+
+      %{"error" => %{"code" => 7}} ->
+        Tornium.Schema.User
+        |> update([u], set: [faction_aa: false])
+        |> where([u], u.tid == ^user_tid)
+        |> Repo.update_all([])
+
+        :ok
+
+      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
+        {:cancel, {:api_error, error_code}}
 
       %{} = result ->
         now = DateTime.utc_now() |> DateTime.truncate(:second)

@@ -15,8 +15,10 @@
 
 from flask import jsonify
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import discordget
+from tornium_celery.tasks.api import discordget, discordpost
+from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.models import Server
+from tornium_commons.skyutils import SKYNET_INFO
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -40,6 +42,41 @@ def get_channels(guild_id, *args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@session_required
+@ratelimit
+def test_channel(guild_id, channel_id, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    try:
+        discordpost(
+            f"channels/{channel_id}/messages",
+            payload={
+                "content": "TEST!",
+                "embeds": [
+                    {
+                        "title": "Test Message",
+                        "description": f"This is a test message from Tornium for <#{channel_id}> in guild {guild_id}.",
+                        "color": SKYNET_INFO,
+                    }
+                ],
+            },
+        )
+    except DiscordError as e:
+        return make_exception_response("0000", key, details={"code": e.code, "message": e.message})
+    except NetworkingError as e:
+        return make_exception_response("4102", key, details={"code": e.code})
+
+    return make_exception_response("0001", key)
 
 
 @session_required

@@ -10,7 +10,7 @@ defmodule Tornium.Repo.Migrations.AddArmoryUsage do
       add :user_id, references(:user, column: :tid, type: :integer), null: false
       add :faction_id, references(:faction, column: :tid, type: :integer), null: false
 
-      add :item_id, references(:item, column: :tid, type: :integer), null: false
+      add :item_id, references(:item, column: :tid, type: :integer), null: true
       add :is_energy_refill, :boolean, default: false, null: false
       add :is_nerve_refill, :boolean, default: false, null: false
 

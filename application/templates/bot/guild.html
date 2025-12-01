@@ -103,7 +103,7 @@ Tornium - Bot Dashboard
                             <div class="row w-100 ps-3">
                                 <div class="col-sm-12 col-md-6">
                                     <div class="ms-2 mt-1 fw-bold">Retaliation Channel</div>
-                                    <select class="discord-channel-selector faction-retal-channel w-100" data-faction="{{ faction.tid }}" aria-label="Retal Channel" data-live-search="true">
+                                    <select is="channel-selector" class="discord-channel-selector faction-retal-channel w-100" data-faction="{{ faction.tid }}" aria-label="Retal Channel" data-live-search="true">
                                         <option value="0">Disabled</option>
                                     </select>
                                 </div>
@@ -147,7 +147,7 @@ Tornium - Bot Dashboard
                             <div class="row w-100 ps-3">
                                 <div class="col-sm-12 col-md-6">
                                     <div class="ms-2 mt-1 fw-bold">Chain Bonus Channel</div>
-                                    <select class="discord-channel-selector faction-bonus-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Bonus Channel" data-live-search="true">
+                                    <select is="channel-selector" class="discord-channel-selector faction-bonus-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Bonus Channel" data-live-search="true">
                                         <option value="0">Disabled</option>
                                     </select>
                                 </div>
@@ -184,7 +184,7 @@ Tornium - Bot Dashboard
                             <div class="row w-100 ps-3">
                                 <div class="col-sm-12 col-md-6">
                                     <div class="ms-2 mt-1 fw-bold">Chain Alert Channel</div>
-                                    <select class="discord-channel-selector faction-alert-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Channel" data-live-search="true">
+                                    <select is="channel-selector" class="discord-channel-selector faction-alert-channel w-100" data-faction="{{ faction.tid }}" aria-label="Chain Alert Channel" data-live-search="true">
                                         <option value="0">Disabled</option>
                                     </select>
                                 </div>
@@ -229,7 +229,7 @@ Tornium - Bot Dashboard
                                 <p>{{ faction.name }} [{{ faction.tid }}]</p>
                             </div>
                             <div class="col-sm-12 col-md-6 col-xl-4">
-                                <select class="discord-channel-selector faction-banking-channel w-100" data-faction="{{ faction.tid }}" aria-label="Faction Banking Channel" data-live-search="true">
+                                <select is="channel-selector" class="discord-channel-selector faction-banking-channel w-100" data-faction="{{ faction.tid }}" aria-label="Faction Banking Channel" data-live-search="true">
                                     <option value="0">Disabled</option>
                                 </select>
                             </div>
@@ -267,7 +267,7 @@ Tornium - Bot Dashboard
                                 <p>{{ faction.name }} [{{ faction.tid }}]</p>
                             </div>
                             <div class="col-sm-12 col-md-6 col-xl-4">
-                                <select class="discord-channel-selector faction-overdose-channel w-100" data-faction="{{ faction.tid }}" aria-label="Faction Overdose Channel" data-live-search="true">
+                                <select is="channel-selector" class="discord-channel-selector faction-overdose-channel w-100" data-faction="{{ faction.tid }}" aria-label="Faction Overdose Channel" data-live-search="true">
                                     <option value="0">Disabled</option>
                                 </select>
                             </div>
@@ -341,6 +341,7 @@ Tornium - Bot Dashboard
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/channel-selector.js"></script>
 <script src="/static/global/discord.js" data-guildid="{{ guildid }}"></script>
 <script src="/static/bot/guild.js"></script>
 {% endblock %}

@@ -217,6 +217,9 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/server/<int:guild_id>/channels/<int:channel_id>", view_func=bot.utils.test_channel, methods=["POST"]
+)
+mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>/roles",
     view_func=bot.utils.get_roles,
     methods=["GET"],

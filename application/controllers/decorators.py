@@ -49,7 +49,7 @@ def token_required(f=None, setnx=False):
                 ex=300,
             )
 
-            return redirect(url_for(request.url_rule.endpoint, token=client_token))
+            return redirect(url_for(request.url_rule.endpoint, token=client_token, **request.view_args))
         elif request.args.get("token") is None and not setnx:
             return abort(401)
 
@@ -58,11 +58,11 @@ def token_required(f=None, setnx=False):
         client_token_redis = redis_client.get(f"tornium:token:{client_token}")
 
         if client_token_redis is None:
-            return redirect(url_for(request.url_rule.endpoint))
+            return redirect(url_for(request.url_rule.endpoint, **request.view_args))
         elif int(client_token_redis.split("|")[1]) != int(current_user.tid):
             redis_client.delete(f"tornium:token:{client_token}")
 
-            return redirect(url_for(request.url_rule.endpoint))
+            return redirect(url_for(request.url_rule.endpoint, **request.view_args))
 
         kwargs["token"] = client_token
 

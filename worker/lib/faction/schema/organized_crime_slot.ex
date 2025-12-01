@@ -101,6 +101,11 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     |> upsert_all(delayers)
   end
 
+  def upsert_all([] = _entries) do
+    # Fallback
+    []
+  end
+
   def upsert_all([entry | _] = entries, delayers) when is_list(entries) and is_map(entry) and is_map(delayers) do
     # Find all slots where the user ID for the slot does not match the user ID in the API response.
     # Indicates that the user left the slot.
@@ -171,11 +176,6 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   end
 
   def upsert_all([] = _entries, _delayers) do
-    # Fallback
-    []
-  end
-
-  def upsert_all([] = _entries) do
     # Fallback
     []
   end

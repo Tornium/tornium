@@ -106,7 +106,7 @@ def load_scripts(verbose=False):
         click.echo("Redis connection established")
 
     client.script_flush()
-    client.echo("Existing Redis scripts flushed")
+    click.echo("Existing Redis scripts flushed")
 
     path = pathlib.Path.joinpath(importlib.resources.files("tornium_commons"), "rds_lua")
 

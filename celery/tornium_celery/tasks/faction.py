@@ -190,7 +190,7 @@ def update_faction(faction_data):
             ).execute()
         else:
             User.insert(
-                tid=member["player_id"],
+                tid=member_id,
                 name=member["name"],
                 level=member["level"],
                 faction=faction_data["ID"],
@@ -1556,7 +1556,7 @@ def armory_check():
 
         tornget.signature(
             kwargs={
-                "endpoint": "faction/?selections=armor,boosters,drugs,medical,temporary,weapons",
+                "endpoint": "faction/?selections=armor,boosters,drugs,medical,temporary,utilities,weapons",
                 "key": random.choice(faction.aa_keys),
             },
             queue="api",

@@ -135,6 +135,6 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
 
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
-    :timer.minutes(1)
+    :timer.minutes(5)
   end
 end

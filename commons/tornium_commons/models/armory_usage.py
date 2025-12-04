@@ -29,6 +29,7 @@ class ArmoryAction(enum.Enum):
     RETURN = "return"
     FILL = "fill"
     GIVE = "give"
+    RETRIEVE = "retrieve"
 
 
 class ArmoryUsage(BaseModel):

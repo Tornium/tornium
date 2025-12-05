@@ -52,7 +52,7 @@ defmodule Tornium.MixProject do
       {:plug_cowboy, "~> 2.7"},
       {:oban_web, "~> 2.11"},
       {:bandit, "~> 1.8"},
-      {:luerl, "~> 1.2.3"},
+      {:luerl, "~> 1.5.1"},
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
       {:tornex, "~> 0.4"},

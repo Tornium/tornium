@@ -26,7 +26,7 @@ defmodule Tornium.User.Key do
   @doc """
   Get the default API key for a specific user or a specific user ID.
   """
-  @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer()) :: Tornium.Schema.TornKey.t() | nil
+  @spec get_by_user(user :: Tornium.Schema.User.t() | pos_integer()) :: Tornium.Schema.TornKey.t() | nil
   def get_by_user(%Tornium.Schema.User{} = user) do
     pid = Process.whereis(Tornium.User.KeyStore)
     get_by_user(user, pid)

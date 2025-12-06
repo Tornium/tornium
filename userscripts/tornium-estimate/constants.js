@@ -22,9 +22,11 @@ export const APP_SCOPE = "torn_key:usage";
 export const CACHE_ENABLED = "caches" in window;
 
 // Tampermonkey will store data from GM_setValue separately in its userscript storage,
-// however TPDA, violentmonkey, and others will store data from GM_setValue in localStorage
+// however TPDA, violentmonkey, and others will store data from GM_setValue in localStorage.
+// NOTE: TPDA prefixes keys set with GM_setValue with `GMV2_`. This may change in the future.
 GM_setValue("tornium-estimate:test", "1");
-export const clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
+const localGMValue = localStorage.getItem("tornium-estimate:test");
+export const clientLocalGM = localGMValue === "1" || localGMValue === "GMV2_1";
 
 // Code taken from https://stackoverflow.com/a/11381730/12941872
 // biome-ignore format: This function isn't readable anyways

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.0
+// @version      0.5.1
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -47,7 +47,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
   GM_setValue("tornium-estimate:test", "1");
-  var clientLocalGM = localStorage.getItem("tornium-estimate:test") === "1";
+  var localGMValue = localStorage.getItem("tornium-estimate:test");
+  var clientLocalGM = localGMValue === "1" || localGMValue === "GMV2_1";
   var clientMobile = (() => {
     let check = false;
     (function(a) {

@@ -14,6 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.User.Key do
+  @moduledoc """
+  Utilities to get API keys of users.
+
+  This will cache the API key in the `KeyStore`.
+  """
+
   import Ecto.Query
   alias Tornium.Repo
 
@@ -49,5 +55,17 @@ defmodule Tornium.User.Key do
       torn_key ->
         torn_key
     end
+  end
+
+  @doc """
+  Get a random user's default API key.
+  """
+  @spec get_random_key() :: Tornium.Schema.TornKey.t()
+  def get_random_key() do
+    Tornium.Schema.TornKey
+    |> where([k], k.paused == false and k.disabled == false and k.default == true)
+    |> order_by(fragment("RANDOM()"))
+    |> first()
+    |> Repo.one!()
   end
 end

@@ -225,7 +225,8 @@ defmodule Tornium.Elimination do
 
   This assumes that the user has an API key, so this should be checked beforehand.
   """
-  @spec update_self(pos_integer() | Tornium.Schema.TornKey.t()) :: {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
+  @spec update_self(pos_integer() | Tornium.Schema.TornKey.t()) ::
+          {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
   def update_self(user_id) when is_integer(user_id) do
     case Tornium.User.Key.get_by_user(user_id) do
       %Tornium.Schema.TornKey{} = api_key ->

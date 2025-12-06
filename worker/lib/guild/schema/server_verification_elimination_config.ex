@@ -13,28 +13,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Schema.EliminationRecord do
+defmodule Tornium.Schema.ServerVerificationEliminationConfig do
   @moduledoc """
-  The records of an elimination member's performance at a point in time.
+  Configuration in a server for an elimination team.
   """
 
   use Ecto.Schema
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
-          member_id: Ecto.UUID.t(),
-          member: Tornium.Schema.EliminationMember.t(),
-          timestamp: DateTime.t(),
-          score: pos_integer(),
-          attacks: pos_integer()
+          server_id: pos_integer(),
+          server: Tornium.Schema.Server.t(),
+          team_id: Ecto.UUID.t(),
+          team: Tornium.Schema.EliminationTeam.t(),
+          roles: [Tornium.Discord.role()]
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
-  schema "elimination_record" do
-    belongs_to(:member, Tornium.Schema.EliminationMember, references: :guid)
-    field(:timestamp, :utc_datetime)
+  schema "server_verification_elimination_config" do
+    belongs_to(:server, Tornium.Schema.Server, references: :sid)
+    belongs_to(:team, Tornium.Schema.EliminationTeam, references: :guid)
 
-    field(:score, :integer)
-    field(:attacks, :integer)
+    field(:roles, {:array, :integer})
   end
 end

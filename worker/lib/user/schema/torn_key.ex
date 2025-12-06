@@ -21,6 +21,7 @@ defmodule Tornium.Schema.TornKey do
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           api_key: String.t(),
+          user_id: pos_integer(),
           user: Tornium.Schema.User.t(),
           default: boolean(),
           disabled: boolean(),

@@ -15,10 +15,22 @@
 
 defmodule Tornium.Elimination do
   @moduledoc """
-  TODO
+  Utilities related to the elimination event.
   """
 
+  import Ecto.Query
   alias Tornium.Repo
+
+  @doc """
+  Determine if the Elimination event is active.
+  """
+  @spec active?() :: boolean()
+  def active?() do
+    # FIXME: This needs to be based upon the calendar in the future as the dates will change.
+    %DateTime{month: month, day: day} = DateTime.utc_now()
+
+    month == 12 and day < 30
+  end
 
   @doc """
   Update all current elimination teams from API data.
@@ -64,5 +76,17 @@ defmodule Tornium.Elimination do
       )
 
     teams
+  end
+
+  @doc """
+  Update a member of an Elimination team by user ID.
+  """
+  @spec update_member(member :: Tornium.Schema.EliminationMember.t(), api_key :: Tornium.Schema.TornKey.t()) ::
+          {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
+  def update_member(
+        %Tornium.Schema.EliminationMember{user_id: user_id} = member,
+        %Tornium.Schema.TornKey{paused: false, disabled: false} = api_key
+      ) do
+    # TODO: add typespec for error
   end
 end

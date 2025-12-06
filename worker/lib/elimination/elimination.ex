@@ -94,7 +94,7 @@ defmodule Tornium.Elimination do
       Tornium.Schema.EliminationMember
       |> where([m], m.user_id == ^user_id)
       |> join(:inner, [m], t in assoc(m, :team), on: m.team_id == t.guid)
-      |> where([m, t], m.year == ^year)
+      |> where([m, t], t.year == ^year)
       |> first()
       |> Repo.one()
 
@@ -191,7 +191,7 @@ defmodule Tornium.Elimination do
         Tornium.Schema.EliminationMember
         |> where([m], m.user_id in ^server_admins)
         |> join(:inner, [m], t in assoc(m, :team), on: m.team_id == t.guid)
-        |> where([m, t], m.year == ^year)
+        |> where([m, t], t.year == ^year)
         |> select([m, t], {m.user_id, t.name})
         |> Repo.all()
         |> Enum.map(fn {user_id, team_name} -> {user_id, team_name, Tornium.User.Key.get_by_user(user_id)} end)
@@ -230,7 +230,12 @@ defmodule Tornium.Elimination do
   def update_self(user_id) when is_integer(user_id) do
     case Tornium.User.Key.get_by_user(user_id) do
       %Tornium.Schema.TornKey{} = api_key ->
-        update_self(api_key)
+        try do
+          update_self(api_key)
+        rescue
+          # TODO: Add an error to this
+          _ -> {:error, nil}
+        end
 
       nil ->
         {:error, :no_api_key}

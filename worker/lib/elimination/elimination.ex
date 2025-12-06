@@ -20,6 +20,7 @@ defmodule Tornium.Elimination do
 
   import Ecto.Query
   alias Tornium.Repo
+  alias Torngen.Client.Schema.UserCompetitionElimination
 
   @doc """
   Determine if the Elimination event is active.
@@ -80,6 +81,8 @@ defmodule Tornium.Elimination do
 
   @doc """
   Update a member of an Elimination team by user ID.
+
+  This updates the user against a server's admins.
   """
   @spec update_member(user_id :: pos_integer(), server_id :: pos_integer()) ::
           {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
@@ -104,6 +107,14 @@ defmodule Tornium.Elimination do
     update_member(user_id, member, server)
   end
 
+  @doc """
+  Update a member of an Elimination team by their user ID and how the user is stored as participating in elimination this year.
+
+  If the user has a known Elimination team, we can try to use an admin of the server that's on the same team; if there isn't an
+  admin on the same team, we should just use a random admin. If there is not a known Elimination team for the user, we should
+  iterate through admins' teams until we find an admin that can show the data (either they are on the same team or Torn is showing
+  the data for everyone); if no data can be found, we can assume that the user isn't on an Elimintion team.
+  """
   @spec update_member(
           user_id :: pos_integer(),
           member :: Tornium.Schema.EliminationMember.t() | nil,
@@ -111,96 +122,146 @@ defmodule Tornium.Elimination do
         ) :: {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
   def update_member(
         user_id,
-        %Tornium.Schema.EliminationMember{team: team} = member,
+        %Tornium.Schema.EliminationMember{team_id: team_id} = _member,
         %Tornium.Schema.Server{admins: server_admins} = server
       )
       when is_integer(user_id) do
-    # The user is in the database, so we can try to find a server admin that's also in the same team
-    %DateTime{year: year} = DateTime.utc_now()
+    case Tornium.User.Key.get_by_user(user_id) do
+      %Tornium.Schema.TornKey{} = api_key ->
+        # The user is in the database and has an API key. We should use their API key as it'll always have the correct data.
+        update_self(api_key)
 
-    api_keys =
-      Tornium.Schema.EliminationMember
-      |> where([m], m.user_id in server_admins)
-      |> join(:inner, [m], t in assoc(m, :team), on: m.team_id == t.guid)
-      |> where([m, t], m.year == ^year)
-      |> select([m, t], m.user_id)
-      |> Repo.all()
-      |> Enum.map(&Tornium.User.Key.get_by_user/1)
-      |> Enum.reject(&is_nil/1)
+      nil ->
+        # The user is in the database, so we can try to find a server admin that's also in the same team.
+        %DateTime{year: year} = DateTime.utc_now()
 
-    %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner} =
-      case api_keys do
-        [] ->
-          # We should try to use a random admin's API key if we can't find one from an admin on the same team
-          # because after the initial registration period, anyone can see anyone else's team.
-          Tornium.Guild.get_random_admin_key(server)
+        api_keys =
+          Tornium.Schema.EliminationMember
+          |> where([m], m.user_id in ^server_admins and m.team_id == ^team_id)
+          |> join(:inner, [m], t in assoc(m, :team), on: m.team_id == t.guid)
+          |> where([m, t], t.year == ^year)
+          |> select([m, t], m.user_id)
+          |> Repo.all()
+          |> Enum.map(&Tornium.User.Key.get_by_user/1)
+          |> Enum.reject(&is_nil/1)
 
-        _ when is_list(keys) and keys != [] ->
-          # Since there's an API key from a server admin that's on the same team, we should just use that in case
-          # Torn changes the API response in the future.
-          Enum.random(api_keys)
-      end
+        %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner} =
+          case api_keys do
+            [] ->
+              # We should try to use a random admin's API key if we can't find one from an admin on the same team
+              # because after the initial registration period, anyone can see anyone else's team.
+              Tornium.Guild.get_random_admin_key(server)
 
+            _ when is_list(api_keys) and api_keys != [] ->
+              # Since there's an API key from a server admin that's on the same team, we should just use that in case
+              # Torn changes the API response in the future.
+              Enum.random(api_keys)
+          end
+
+        query =
+          Tornex.SpecQuery.new(nice: -20)
+          |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Competition)
+          |> Tornex.SpecQuery.put_parameter(:id, user_id)
+          |> Tornex.SpecQuery.put_key(api_key)
+          |> Tornex.SpecQuery.put_key_owner(api_key_owner)
+
+        response = Tornex.API.get(query)
+
+        %{UserCompetitionResponse => %{competition: %UserCompetitionElimination{} = elimination_data}} =
+          Tornex.SpecQuery.parse(query, response)
+
+        update_elimination_data(user_id, elimination_data)
+    end
+  end
+
+  def update_member(user_id, member, %Tornium.Schema.Server{admins: server_admins} = _server)
+      when is_integer(user_id) and is_nil(member) and is_list(server_admins) do
+    # The user is not currently in the database for Elimination, so we should try to use their API key since that will
+    # always show the correct data. If the user is not signd into Tornium, we should try to find a random admin's key
+    # that can show the team.
+
+    case Tornium.User.Key.get_by_user(user_id) do
+      %Tornium.Schema.TornKey{} = api_key ->
+        update_self(api_key)
+
+      nil ->
+        # Since the user does not have an API key, we should try various server admins until we find one that works
+        %DateTime{year: year} = DateTime.utc_now()
+
+        Tornium.Schema.EliminationMember
+        |> where([m], m.user_id in ^server_admins)
+        |> join(:inner, [m], t in assoc(m, :team), on: m.team_id == t.guid)
+        |> where([m, t], m.year == ^year)
+        |> select([m, t], {m.user_id, t.name})
+        |> Repo.all()
+        |> Enum.map(fn {user_id, team_name} -> {user_id, team_name, Tornium.User.Key.get_by_user(user_id)} end)
+        |> Enum.reject(fn {_user_id, _team_name, api_key} -> is_nil(api_key) end)
+        |> Enum.group_by(fn {_user_id, team_name, _api_key} -> team_name end)
+        |> Map.values()
+        |> Enum.find_value({:error, :no_team_found}, fn {user_id, _team_name, api_key} ->
+          try do
+            query =
+              Tornex.SpecQuery.new(nice: -20)
+              |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Competition)
+              |> Tornex.SpecQuery.put_key(api_key)
+              |> Tornex.SpecQuery.put_key_owner(user_id)
+
+            response = Tornex.API.get(query)
+
+            %{UserCompetitionResponse => %{competition: %UserCompetitionElimination{} = elimination_data}} =
+              Tornex.SpecQuery.parse(query, response)
+
+            update_elimination_data(user_id, elimination_data)
+          rescue
+            # We need to handle cases such as 
+            _ -> false
+          end
+        end)
+    end
+  end
+
+  @doc """
+  Update a user's elimination data with their own API key by the user ID or by their API key.
+
+  This assumes that the user has an API key, so this should be checked beforehand.
+  """
+  @spec update_self(pos_integer() | Tornium.Schema.TornKey.t()) :: {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
+  def update_self(user_id) when is_integer(user_id) do
+    case Tornium.User.Key.get_by_user(user_id) do
+      %Tornium.Schema.TornKey{} = api_key ->
+        update_self(api_key)
+
+      nil ->
+        {:error, :no_api_key}
+    end
+  end
+
+  def update_self(%Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner}) do
+    # As the user is signed into Tornium, we can use their API key which is guaranteed to provide their elimination team
+    # if that data is available and if they have joined a team.
     query =
       Tornex.SpecQuery.new(nice: -20)
-      |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Competition)
-      |> Tornex.SpecQuery.put_parameter(:id, user_id)
+      |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Competition)
       |> Tornex.SpecQuery.put_key(api_key)
       |> Tornex.SpecQuery.put_key_owner(api_key_owner)
 
     response = Tornex.API.get(query)
 
-    %{
-      UserCompetitionResponse => %{
-        competition: %Torngen.Client.Schema.UserCompetitionElimination{} = elimination_data
-      }
-    } = Tornex.SpecQuery.parse(query, response)
+    %{UserCompetitionResponse => %{competition: %UserCompetitionElimination{} = elimination_data}} =
+      Tornex.SpecQuery.parse(query, response)
 
-    update_member_data(user_id, elimination_data)
-  end
-
-  def update_member(user_id, member, %Tornium.Schema.Server{} = server) when is_integer(user_id) and is_nil(member) do
-    # The user is not currently in the database for Elimination
-
-    case Tornium.User.Key.get_by_user(user_id) do
-      %Tornium.Schema.TornKey{user_id: ^user_id, api_key: api_key} ->
-        # As the user is signed into Tornium, we can use their API key which is guaranteed to provide their elimination team
-        # if that data is available and if they have joined a team.
-        query =
-          Tornex.SpecQuery.new(nice: -20)
-          |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Competition)
-          |> Tornex.SpecQuery.put_key(api_key)
-          |> Tornex.SpecQuery.put_key_owner(user_id)
-
-        response = Tornex.API.get(query)
-
-        %{
-          UserCompetitionResponse => %{
-            competition: %Torngen.Client.Schema.UserCompetitionElimination{} = elimination_data
-          }
-        } = Tornex.SpecQuery.parse(query, response)
-
-        update_member_data(user_id, elimination_data)
-
-      nil ->
-        # Since the user does not have an API key, we should try various server admins until we find one that works
-        # TODO: Implement this
-        nil
-    end
+    update_elimination_data(api_key_owner, elimination_data)
   end
 
   @spec update_elimination_data(
           user_id :: pos_integer(),
-          elimination_data :: Torngen.Client.Schema.UserCompetitionElimination.t()
-        ) :: Tornium.Schema.EliminationMember.t()
-  defp update_elimination_data(
-         user_id,
-         %Torngen.Client.Schema.UserCompetitionElimination{
-           team: team_name,
-           score: member_score,
-           attacks: member_attacks
-         } = elimination_data
-       )
+          elimination_data :: UserCompetitionElimination.t()
+        ) :: {:ok, Tornium.Schema.EliminationMember.t()} | {:error, term()}
+  defp update_elimination_data(user_id, %UserCompetitionElimination{
+         team: team_name,
+         score: member_score,
+         attacks: member_attacks
+       })
        when is_integer(user_id) do
     %DateTime{year: year} = DateTime.utc_now()
 
@@ -228,6 +289,6 @@ defmodule Tornium.Elimination do
     }
     |> Repo.insert()
 
-    member
+    {:ok, member}
   end
 end

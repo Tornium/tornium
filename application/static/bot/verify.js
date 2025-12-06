@@ -29,14 +29,34 @@ function setUnverifiedRoles(event) {
     });
 }
 
-$(document).ready(function () {
+function setEliminationTeamRoles(event) {
+    const teamID = this.getAttribute("data-team-id");
+    const selectedOptions = this.querySelectorAll(":checked");
+    let selectedRoles = [];
+
+    selectedOptions.forEach((element) => {
+        selectedRoles.push(element.getAttribute("value"));
+    });
+
+    tfetch("POST", `bot/${guildid}/verify/elimination/${teamID}/roles`, {
+        body: { roles: selectedRoles },
+        errorTitle: "Elimination Team Role Add Failed",
+    }).then(() => {
+        generateToast(
+            "Elimination Team Role Add Successful",
+            "The roles for the selected Elimination team have successfully updated.",
+        );
+    });
+}
+
+ready(() => {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
     });
 
-    let configPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Failed to Load Server Config" });
-    let rolesPromise = rolesRequest();
-    let channelsPromise = channelsRequest();
+    const configPromise = tfetch("GET", `bot/server/${guildid}`, { errorTitle: "Failed to Load Server Config" });
+    const rolesPromise = rolesRequest();
+    const channelsPromise = channelsRequest();
 
     let serverConfig;
 
@@ -83,6 +103,21 @@ $(document).ready(function () {
                     }
 
                     option.attr("selected", "");
+                });
+            });
+        })
+        .then(() => {
+            document.querySelectorAll(".discord-role-selector").forEach((element) => {
+                let roles = parseIntArray(element.getAttribute("data-selected-roles"));
+
+                roles.forEach((roleID) => {
+                    const options = element.querySelectorAll(`option[value="${roleID}"]`);
+
+                    if (options.length !== 1) {
+                        return;
+                    }
+
+                    options[0].setAttribute("selected", "");
                 });
             });
         })
@@ -487,5 +522,9 @@ $(document).ready(function () {
 
         let modal = new bootstrap.Modal($("#verify-settings-modal"));
         modal.show();
+    });
+
+    Array.from(document.getElementsByClassName("elimination-team-roles")).forEach((selector) => {
+        selector.addEventListener("change", setEliminationTeamRoles);
     });
 });

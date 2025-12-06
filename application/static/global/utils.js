@@ -87,7 +87,7 @@ function debounce(func, delay) {
 }
 
 function parseIntArray(inputString) {
-    if (inputString == "") {
+    if (inputString == "" || inputString == null) {
         return [];
     } else if (!inputString.startsWith("[") || !inputString.endsWith("]")) {
         return [];

@@ -25,7 +25,7 @@ Tornium - Verification
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/bot/dashboard">
@@ -316,6 +316,45 @@ Tornium - Verification
                     {% endfor %}
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Elimination Verification</h5>
+            <p class="card-text">
+                Verifies users in a Torn Discord server by their Elimination team.
+            </p>
+
+            <p class="card-text">
+                <b>WARNING:</b> Due to limitations with the <a href="https://www.torn.com/forums.php#/p=threads&f=19&t=16521960&b=0&a=0&to=26716411">Torn API</a>, 
+                not all team data will be available immediately upon the start of the event.
+            </p>
+
+            {% if elimination_team_configurations | length == 0 %}
+            <p class="card-text">
+                <b>NOTE:</b> There are no known elimination teams currently.
+            </p>
+            {% else %}
+            <div class="row">
+                {% for team_id, team in elimination_team_configurations.items() %}
+                <div class="col-sm-12 col-md-6">
+                    <span class="ms-2 mt-1 fw-bold">{{ team.name }}</span>
+                    <div class="d-flex">
+                        <select
+                            class="discord-role-selector elimination-team-roles"
+                            data-team-id="{{ team_id }}"
+                            aria-label="Elimination team {{ team.name }} roles"
+                            data-live-search="true"
+                            data-selected-roles="{{ team.config.roles }}"
+                            data-selected-text-format="count > 2"
+                            multiple
+                        ></select>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

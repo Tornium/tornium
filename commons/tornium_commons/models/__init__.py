@@ -14,6 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .auth_log import AuthAction, AuthLog
+from .elimination_member import EliminationMember
+from .elimination_record import EliminationRecord
+from .elimination_team import EliminationTeam
 from .faction import Faction
 from .faction_position import FactionPosition
 from .item import Item
@@ -35,6 +38,7 @@ from .server_notifications_config import ServerNotificationsConfig
 from .server_oc_config import ServerOCConfig
 from .server_oc_range_config import ServerOCRangeConfig
 from .server_overdose_config import ServerOverdoseConfig
+from .server_verification_elimination_config import ServerVerificationEliminationConfig
 from .stat import Stat
 from .stock_tick import StockTick
 from .torn_key import TornKey
@@ -47,6 +51,9 @@ from .withdrawal import Withdrawal
 
 __all__ = [
     "AuthLog",
+    "EliminationMember",
+    "EliminationRecord",
+    "EliminationTeam",
     "Faction",
     "FactionPosition",
     "Item",
@@ -68,6 +75,7 @@ __all__ = [
     "ServerOCConfig",
     "ServerOCRangeConfig",
     "ServerOverdoseConfig",
+    "ServerVerificationEliminationConfig",
     "Stat",
     "StockTick",
     "TornKey",

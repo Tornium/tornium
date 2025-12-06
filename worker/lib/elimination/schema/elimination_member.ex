@@ -13,29 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Schema.TornKey do
-  use Ecto.Schema
+defmodule Tornium.Schema.EliminationMember do
+  @moduledoc """
+  A user participating in the eliminations event under a specific team.
+  """
 
-  @type access_levels() :: :public | :minimal | :limited | :full
+  use Ecto.Schema
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
-          api_key: String.t(),
           user_id: pos_integer(),
           user: Tornium.Schema.User.t(),
-          default: boolean(),
-          disabled: boolean(),
-          paused: boolean(),
-          access_level: access_levels()
+          team_id: Ecto.UUID.t(),
+          team: Tornium.Schema.EliminationTeam.t()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
-  schema "tornkey" do
-    field(:api_key, :string)
+  schema "elimination_member" do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
-    field(:default, :boolean)
-    field(:disabled, :boolean)
-    field(:paused, :boolean)
-    field(:access_level, Ecto.Enum, values: [public: 1, minimal: 2, limited: 3, full: 4])
+    belongs_to(:team, Tornium.Schema.EliminationTeam, references: :guid)
   end
 end

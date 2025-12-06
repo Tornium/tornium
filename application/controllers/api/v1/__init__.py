@@ -207,6 +207,11 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
+    "/api/v1/bot/<int:guild_id>/verify/elimination/<team_guid>/roles",
+    view_func=bot.verify.elimination_team_roles,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>",
     view_func=bot.config.server_config,
     methods=["GET"],

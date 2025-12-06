@@ -13,10 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
+
 from flask import render_template
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
-from tornium_commons.models import Server
+from tornium_commons.models import (
+    EliminationTeam,
+    Server,
+    ServerVerificationEliminationConfig,
+)
 
 
 @login_required
@@ -55,7 +61,21 @@ def verify_dashboard(guild_id: int):
             403,
         )
 
+    year = datetime.datetime.utcnow().year
+    elimination_teams_ids = [
+        (team.guid, team.name) for team in EliminationTeam.select().where(EliminationTeam.year == year)
+    ]
+    configs = ServerVerificationEliminationConfig.select().where(
+        (ServerVerificationEliminationConfig.team.in_([t[0] for t in elimination_teams_ids]))
+        & (ServerVerificationEliminationConfig.server_id == guild_id)
+    )
+    existing_elimination_team_configurations = {config.team_id: config for config in configs}
+    elimination_team_configurations = {
+        team[0]: {"name": team[1], "config": existing_elimination_team_configurations.get(team[0])}
+        for team in elimination_teams_ids
+    }
+    print(elimination_team_configurations)
+
     return render_template(
-        "bot/verify.html",
-        guild=guild,
+        "bot/verify.html", guild=guild, elimination_team_configurations=elimination_team_configurations
     )

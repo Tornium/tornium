@@ -13,11 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import json
 
 from flask import jsonify, request
 from peewee import DoesNotExist
-from tornium_commons.models import Faction, Server
+from tornium_commons.models import (
+    EliminationTeam,
+    Faction,
+    Server,
+    ServerVerificationEliminationConfig,
+)
 
 from controllers.api.v1.decorators import ratelimit, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -515,3 +521,33 @@ def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
     Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def elimination_team_roles(guild_id: int, team_guid: str, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        roles = [int(role) for role in data["roles"]]
+    except (KeyError, ValueError, TypeError):
+        return make_exception_response("1003", key)
+
+    try:
+        guild: Server = Server.select().where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+    elif (
+        not EliminationTeam.select()
+        .where((EliminationTeam.year == datetime.datetime.utcnow().year) & (EliminationTeam.guid == team_guid))
+        .exists()
+    ):
+        return make_exception_response("1600", key)
+
+    ServerVerificationEliminationConfig.create_or_update(guild_id, team_guid, roles=roles)
+
+    return "", 204, api_ratelimit_response(key)

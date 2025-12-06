@@ -16,6 +16,10 @@
 # TODO: Store personal stats in user updates
 
 defmodule Tornium.User do
+  @moduledoc """
+  Utilities related to fetching and updating user data.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
 
@@ -25,12 +29,12 @@ defmodule Tornium.User do
 
   # TODO: Convert update_user to perform pattern matching against the struct instead of the value
   @spec update_user(
-          {:user | :key, key_or_user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t()},
-          {id_type :: :tid | :discord_id | :self, id :: integer()},
+          {type :: :user | :key, key_or_user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t()},
+          {id_type :: :tid | :discord_id | :self, id :: pos_integer()},
           refresh_existing :: boolean(),
           priority :: integer()
         ) :: {:ok, boolean()} | {:error, Tornium.API.Error.t()}
-  def update_user({type, key_or_user}, {id_type, id}, refresh_existing \\ true, priority \\ 10) do
+  def update_user({type, key_or_user}, {id_type, id}, refresh_existing \\ true, priority \\ -10) do
     if should_update_user?({id_type, id}, refresh_existing) do
       execute_update({type, key_or_user}, {id_type, id}, priority)
     else

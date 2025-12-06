@@ -161,7 +161,13 @@ API_EXCEPTIONS = {
         "code": 1500,
         "name": "UnknownOAuthClient",
         "http": 404,
-        "message": "Server failed to locate the request OAuth client.",
+        "message": "Server failed to locate the requested OAuth client.",
+    },
+    "1600": {
+        "code": 1600,
+        "name": "UnknownEliminationTeam",
+        "http": 404,
+        "message": "Server failed to locate the requested Elimination team.",
     },
     "4000": {
         "code": 4000,

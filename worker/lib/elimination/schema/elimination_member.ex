@@ -25,7 +25,7 @@ defmodule Tornium.Schema.EliminationMember do
           user_id: pos_integer(),
           user: Tornium.Schema.User.t(),
           team_id: Ecto.UUID.t(),
-          team: Tornium.Schema.EliminationTeam.t(),
+          team: Tornium.Schema.EliminationTeam.t()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}

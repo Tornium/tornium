@@ -35,7 +35,9 @@ defmodule Tornium.Workers.CompetitionUpdate do
   def perform(%Oban.Job{} = _job) do
     %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner} = Tornium.User.Key.get_random_key()
 
-    %Tornex.Query{resource: "torn", key: api_key, selections: ["competition"], key_owner: api_key_owner, nice: 0} |> Tornex.API.get() |> handle_competition_data()
+    %Tornex.Query{resource: "torn", key: api_key, selections: ["competition"], key_owner: api_key_owner, nice: 0}
+    |> Tornex.API.get()
+    |> handle_competition_data()
 
     :ok
   end

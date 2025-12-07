@@ -26,7 +26,7 @@ export const CACHE_ENABLED = "caches" in window;
 // NOTE: TPDA prefixes keys set with GM_setValue with `GMV2_`. This may change in the future.
 GM_setValue("tornium-estimate:test", "1");
 const localGMValue = localStorage.getItem("tornium-estimate:test");
-export const clientLocalGM = localGMValue === "1" || localGMValue === "GMV2_1";
+export const clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
 
 // Code taken from https://stackoverflow.com/a/11381730/12941872
 // biome-ignore format: This function isn't readable anyways

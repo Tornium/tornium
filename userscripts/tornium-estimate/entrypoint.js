@@ -63,7 +63,7 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
         unsafeWindow.alert("Invalid security state. Try again.");
         window.location.href = "https://www.torn.com";
     }
-} else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() | !isEnabledOn("profile")) {
+} else if ((window.location.pathname.startsWith("/profiles.php") && isAuthExpired()) || !isEnabledOn("profile")) {
     createSettingsButton();
 } else if (
     window.location.pathname.startsWith("/profiles.php") &&

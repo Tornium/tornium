@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.1
+// @version      0.5.2
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -48,7 +48,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var CACHE_ENABLED = "caches" in window;
   GM_setValue("tornium-estimate:test", "1");
   var localGMValue = localStorage.getItem("tornium-estimate:test");
-  var clientLocalGM = localGMValue === "1" || localGMValue === "GMV2_1";
+  var clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
   var clientMobile = (() => {
     let check = false;
     (function(a) {
@@ -775,7 +775,7 @@ margin: 8px 6px 0 0;
       unsafeWindow.alert("Invalid security state. Try again.");
       window.location.href = "https://www.torn.com";
     }
-  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() | !isEnabledOn("profile")) {
+  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() || !isEnabledOn("profile")) {
     createSettingsButton();
   } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && isEnabledOn("profile") && !isAuthExpired()) {
     const userID = parseInt(query.get("XID"));

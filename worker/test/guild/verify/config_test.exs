@@ -17,10 +17,20 @@ defmodule Tornium.Test.Guild.Verify.Config do
   use Tornium.RepoCase
 
   test "test_config_validation" do
-    assert Tornium.Guild.Verify.Config.validate(%Tornium.Schema.Server{
-             sid: 1,
-             name: "Test server",
-             admins: [1],
+    Tornium.Schema.Server.new(1, "Test server",
+      admins: [1],
+      verify_enabled: true,
+      auto_verify_enabled: true,
+      gateway_verify_enabled: true,
+      verify_template: "{{ name }} [{{ tid }}]",
+      verified_roles: [123],
+      exclusion_roles: [],
+      faction_verify: %{},
+      verify_log_channel: 0,
+      verify_jail_channel: 0
+    )
+
+    assert %Tornium.Guild.Verify.Config{
              verify_enabled: true,
              auto_verify_enabled: true,
              gateway_verify_enabled: true,
@@ -30,16 +40,6 @@ defmodule Tornium.Test.Guild.Verify.Config do
              faction_verify: %{},
              verify_log_channel: 0,
              verify_jail_channel: 0
-           }) == %Tornium.Guild.Verify.Config{
-             verify_enabled: true,
-             auto_verify_enabled: true,
-             gateway_verify_enabled: true,
-             verify_template: "{{ name }} [{{ tid }}]",
-             verified_roles: [123],
-             exclusion_roles: [],
-             faction_verify: %{},
-             verify_log_channel: 0,
-             verify_jail_channel: 0
-           }
+           } = Tornium.Guild.Verify.Config.validate(1)
   end
 end

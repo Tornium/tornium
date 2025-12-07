@@ -32,7 +32,7 @@ defmodule Tornium.Guild.Verify do
     - OK with the updated member struct
     - Error with the error reason
   """
-  @spec handle(guild :: integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
+  @spec handle(guild :: pos_integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
           {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
           | {:error,
              Nostrum.Error.ApiError
@@ -44,7 +44,10 @@ defmodule Tornium.Guild.Verify do
              | {:config, String.t()}, Tornium.Schema.Server.t()}
   def handle(guild, %Nostrum.Struct.Guild.Member{} = member) when is_integer(guild) do
     Tornium.Schema.Server
-    |> Repo.get(guild)
+    |> where([s], s.sid == ^guild)
+    |> preload([s], verify_elimination_config: :team)
+    |> first()
+    |> Repo.one()
     |> handle(member)
   end
 
@@ -174,6 +177,7 @@ defmodule Tornium.Guild.Verify do
       |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
       |> where([u, f], u.discord_id == ^discord_id)
       |> preload([u, f], faction: f)
+      |> Tornium.Schema.User.preload_elimination_member()
       |> Repo.one()
 
     case user do
@@ -183,6 +187,7 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_elimination_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, user)
           |> Map.update!(:roles, &MapSet.to_list/1)
 
@@ -194,10 +199,12 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.remove_invalid_unverified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_elimination_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_verified_name(config, user)
           |> Tornium.Guild.Verify.Logic.set_verified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_elimination_roles(config, user)
           |> validate_changes_made(roles, nick)
 
         {:verified, changes}

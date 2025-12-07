@@ -31,8 +31,8 @@ defmodule Tornium.Schema.ServerVerificationEliminationConfig do
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "server_verification_elimination_config" do
-    belongs_to(:server, Tornium.Schema.Server, references: :sid)
-    belongs_to(:team, Tornium.Schema.EliminationTeam, references: :guid)
+    belongs_to(:server, Tornium.Schema.Server, references: :sid, type: :integer)
+    belongs_to(:team, Tornium.Schema.EliminationTeam, references: :guid, type: Ecto.UUID)
 
     field(:roles, {:array, :integer})
   end

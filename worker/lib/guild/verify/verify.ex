@@ -167,11 +167,12 @@ defmodule Tornium.Guild.Verify do
           config :: Tornium.Guild.Verify.Config.t(),
           member :: Nostrum.Struct.Guild.Member.t()
         ) :: {:verified, map()} | Tornium.API.Error.t() | {:unverified, map()} | :nochanges
-  defp build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
-         roles: roles,
-         nick: nick,
-         user_id: discord_id
-       }) do
+  defp build_changes(
+         {:ok, _},
+         %Tornium.Guild.Verify.Config{guild_id: guild_id, verify_elimination_config: verify_elimination_config} =
+           config,
+         %Nostrum.Struct.Guild.Member{roles: roles, nick: nick, user_id: discord_id}
+       ) do
     user =
       Tornium.Schema.User
       |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
@@ -193,7 +194,15 @@ defmodule Tornium.Guild.Verify do
 
         {:unverified, changes}
 
-      user ->
+      %Tornium.Schema.User{tid: user_id} = user ->
+        if Tornium.Elimination.active?() and verify_elimination_config == [] do
+          # We only want to update elimination data when the elimination event is active and
+          # when the server has verification set up. Otherwise, it's a significant waste of 
+          # time and can cause latency issues.
+          # TODO: Make a better method of updating elimination data when verifying users
+          Tornium.Elimination.update_member(user_id, guild_id)
+        end
+
         changes =
           %{roles: MapSet.new(roles), nick: nick}
           |> Tornium.Guild.Verify.Logic.remove_invalid_unverified_roles(config, user)

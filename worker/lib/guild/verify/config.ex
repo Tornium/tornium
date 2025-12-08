@@ -18,6 +18,7 @@ defmodule Tornium.Guild.Verify.Config do
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
+          guild_id: pos_integer(),
           verify_enabled: boolean(),
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
@@ -32,6 +33,7 @@ defmodule Tornium.Guild.Verify.Config do
         }
 
   defstruct [
+    :guild_id,
     :verify_enabled,
     :auto_verify_enabled,
     :gateway_verify_enabled,
@@ -92,6 +94,7 @@ defmodule Tornium.Guild.Verify.Config do
       validate(guild.sid)
     else
       %Tornium.Guild.Verify.Config{
+        guild_id: guild.sid,
         verify_enabled: guild.verify_enabled,
         auto_verify_enabled: guild.auto_verify_enabled,
         gateway_verify_enabled: guild.gateway_verify_enabled,

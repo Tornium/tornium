@@ -70,7 +70,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 50, user_processing: 20, notifications: 20, scheduler: 5],
+  queues: [faction_processing: 50, guild_processing: 20, user_processing: 20, notifications: 20, scheduler: 5],
   repo: Tornium.Repo,
   shutdown_grace_period: :timer.seconds(30),
   plugins: [

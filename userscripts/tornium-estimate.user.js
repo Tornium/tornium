@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.2
+// @version      0.5.3
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
 // @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
-// @match        https://www.torn.com/tornium/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
+// @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/oauth/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/settings
 // @match        https://www.torn.com/gym.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
@@ -771,12 +771,13 @@ margin: 8px 6px 0 0;
     const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier");
     if (callbackState === localState) {
       resolveToken(callbackCode, callbackState, localCodeVerifier);
+      log("Succesfully authenticated the OAuth token");
     } else {
       unsafeWindow.alert("Invalid security state. Try again.");
-      window.location.href = "https://www.torn.com";
+      log("Callback state: " + callbackState);
+      log("Local state: " + localState);
     }
-  } else if (window.location.pathname.startsWith("/profiles.php") && isAuthExpired() || !isEnabledOn("profile")) {
-    createSettingsButton();
+    window.location.href = "https://www.torn.com";
   } else if (window.location.pathname.startsWith("/profiles.php") && !isNaN(parseInt(query.get("XID"))) && isEnabledOn("profile") && !isAuthExpired()) {
     const userID = parseInt(query.get("XID"));
     createSettingsButton();
@@ -787,6 +788,8 @@ margin: 8px 6px 0 0;
     const estimatePromise = getUserEstimate(userID).then((estimateData) => {
       updateProfileEstimateSpan(estimateData, estimateSpan);
     });
+  } else if (window.location.pathname.startsWith("/profiles.php")) {
+    createSettingsButton();
   } else if (window.location.pathname.startsWith("/gym.php")) {
     waitForElement(`li[class^="dexterity_"]`).then((parent) => {
       const strengthNode = document.querySelector(`li[class^="strength_"] span[class^="propertyValue_"]`);

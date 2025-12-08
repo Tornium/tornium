@@ -57,14 +57,17 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
 
     const localState = GM_getValue("tornium-estimate:state");
     const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier");
+
     if (callbackState === localState) {
         resolveToken(callbackCode, callbackState, localCodeVerifier);
+        log("Succesfully authenticated the OAuth token");
     } else {
         unsafeWindow.alert("Invalid security state. Try again.");
-        window.location.href = "https://www.torn.com";
+        log("Callback state: " + callbackState);
+        log("Local state: " + localState);
     }
-} else if ((window.location.pathname.startsWith("/profiles.php") && isAuthExpired()) || !isEnabledOn("profile")) {
-    createSettingsButton();
+
+    window.location.href = "https://www.torn.com";
 } else if (
     window.location.pathname.startsWith("/profiles.php") &&
     !isNaN(parseInt(query.get("XID"))) &&
@@ -81,6 +84,12 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const estimatePromise = getUserEstimate(userID).then((estimateData) => {
         updateProfileEstimateSpan(estimateData, estimateSpan);
     });
+} else if (window.location.pathname.startsWith("/profiles.php")) {
+    // Fallback on the profile page to ensure the settings button is created regardless of:
+    //  - the profile URI being malformed and not including a user ID
+    //  - estimates not being enabled on the profile page
+    //  - the OAuth token being expired
+    createSettingsButton();
 } else if (window.location.pathname.startsWith("/gym.php")) {
     // We're waiting for dexterity as we're assuming it's the last node to be injected into the DOM.
     waitForElement(`li[class^="dexterity_"]`).then((parent) => {

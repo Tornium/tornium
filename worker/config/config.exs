@@ -86,7 +86,7 @@ config :tornium, Oban,
         {"15 0 * * *", Tornium.Workers.OverdoseDailyReport},
         {"*/15 * * * *", Tornium.Workers.ArmoryNewsUpdateScheduler},
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications},
-        {"10 * * * *", Tornium.Workers.CompetitionUpdate}
+        {"20 0 * * *", Tornium.Workers.CompetitionUpdate}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},

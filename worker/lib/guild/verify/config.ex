@@ -14,9 +14,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Config do
+  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
+          guild_id: pos_integer(),
           verify_enabled: boolean(),
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),
@@ -26,10 +28,12 @@ defmodule Tornium.Guild.Verify.Config do
           exclusion_roles: [Tornium.Discord.role()],
           faction_verify: map(),
           verify_log_channel: integer(),
-          verify_jail_channel: integer()
+          verify_jail_channel: integer(),
+          verify_elimination_config: [Tornium.Schema.ServerVerificationEliminationConfig.t()]
         }
 
   defstruct [
+    :guild_id,
     :verify_enabled,
     :auto_verify_enabled,
     :gateway_verify_enabled,
@@ -39,11 +43,14 @@ defmodule Tornium.Guild.Verify.Config do
     :exclusion_roles,
     :faction_verify,
     :verify_log_channel,
-    :verify_jail_channel
+    :verify_jail_channel,
+    :verify_elimination_config
   ]
 
   @doc """
   Validate a server's configuration for the purposes of user verification
+
+  If the elimination event is active, the elimination data will be loaded also if it already isn't loaded.
 
   ## Parameters
     - guild: Ecto struct of the server or the server ID
@@ -59,7 +66,10 @@ defmodule Tornium.Guild.Verify.Config do
 
   def validate(guild_id) when is_integer(guild_id) do
     Tornium.Schema.Server
-    |> Repo.get(guild_id)
+    |> where([s], s.sid == ^guild_id)
+    |> preload([s], verify_elimination_config: :team)
+    |> first()
+    |> Repo.one()
     |> validate()
   end
 
@@ -78,17 +88,25 @@ defmodule Tornium.Guild.Verify.Config do
   end
 
   def validate(%Tornium.Schema.Server{} = guild) do
-    %Tornium.Guild.Verify.Config{
-      verify_enabled: guild.verify_enabled,
-      auto_verify_enabled: guild.auto_verify_enabled,
-      gateway_verify_enabled: guild.gateway_verify_enabled,
-      verify_template: guild.verify_template,
-      verified_roles: guild.verified_roles,
-      unverified_roles: guild.unverified_roles,
-      exclusion_roles: guild.exclusion_roles,
-      faction_verify: guild.faction_verify,
-      verify_log_channel: guild.verify_log_channel,
-      verify_jail_channel: guild.verify_jail_channel
-    }
+    if Tornium.Elimination.active?() and not Ecto.assoc_loaded?(guild.verify_elimination_config) do
+      # Since the elimination event is active and the elimination verification configuration is not loaded into
+      # the struct, we should reload the struct from the database.
+      validate(guild.sid)
+    else
+      %Tornium.Guild.Verify.Config{
+        guild_id: guild.sid,
+        verify_enabled: guild.verify_enabled,
+        auto_verify_enabled: guild.auto_verify_enabled,
+        gateway_verify_enabled: guild.gateway_verify_enabled,
+        verify_template: guild.verify_template,
+        verified_roles: guild.verified_roles,
+        unverified_roles: guild.unverified_roles,
+        exclusion_roles: guild.exclusion_roles,
+        faction_verify: guild.faction_verify,
+        verify_log_channel: guild.verify_log_channel,
+        verify_jail_channel: guild.verify_jail_channel,
+        verify_elimination_config: guild.verify_elimination_config
+      }
+    end
   end
 end

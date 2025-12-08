@@ -15,6 +15,7 @@
 
 defmodule Tornium.Schema.User do
   use Ecto.Schema
+  import Ecto.Query
 
   @type t :: %__MODULE__{
           tid: integer(),
@@ -37,7 +38,8 @@ defmodule Tornium.Schema.User do
           security: integer(),
           otp_secret: String.t(),
           otp_backups: [String.t()],
-          settings: Tornium.Schema.UserSettings.t() | nil
+          settings: Tornium.Schema.UserSettings.t() | nil,
+          current_elimination_member: Tornium.Schema.EliminationMember.t() | nil
         }
 
   @primary_key {:tid, :integer, autogenerate: false}
@@ -69,5 +71,20 @@ defmodule Tornium.Schema.User do
     field(:otp_backups, {:array, :string})
 
     belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid, type: :binary_id)
+
+    has_one(:current_elimination_member, Tornium.Schema.EliminationMember, foreign_key: :user_id, references: :tid)
+  end
+
+  @doc """
+  Join and preload the elimination data for the user for the most recent team they were on.
+  """
+  @spec preload_elimination_member(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  def preload_elimination_member(query) do
+    %DateTime{year: year} = DateTime.utc_now()
+
+    query
+    |> join(:left, [u], em in assoc(u, :current_elimination_member), on: em.user_id == u.tid)
+    |> join(:inner, [u, em], et in assoc(em, :team), on: et.guid == em.team_id)
+    |> where([u, em, et], et.year == ^year)
   end
 end

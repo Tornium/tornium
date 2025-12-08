@@ -59,6 +59,11 @@ defmodule Tornium.Schema.Server do
     field(:verify_log_channel, :integer)
     field(:verify_jail_channel, :integer)
 
+    has_many(:verify_elimination_config, Tornium.Schema.ServerVerificationEliminationConfig,
+      foreign_key: :server_id,
+      references: :sid
+    )
+
     field(:banking_config, :map)
 
     field(:armory_enabled, :boolean)

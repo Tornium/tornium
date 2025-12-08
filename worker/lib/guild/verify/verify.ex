@@ -32,7 +32,7 @@ defmodule Tornium.Guild.Verify do
     - OK with the updated member struct
     - Error with the error reason
   """
-  @spec handle(guild :: integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
+  @spec handle(guild :: pos_integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
           {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
           | {:error,
              Nostrum.Error.ApiError
@@ -44,7 +44,10 @@ defmodule Tornium.Guild.Verify do
              | {:config, String.t()}, Tornium.Schema.Server.t()}
   def handle(guild, %Nostrum.Struct.Guild.Member{} = member) when is_integer(guild) do
     Tornium.Schema.Server
-    |> Repo.get(guild)
+    |> where([s], s.sid == ^guild)
+    |> preload([s], verify_elimination_config: :team)
+    |> first()
+    |> Repo.one()
     |> handle(member)
   end
 
@@ -164,16 +167,18 @@ defmodule Tornium.Guild.Verify do
           config :: Tornium.Guild.Verify.Config.t(),
           member :: Nostrum.Struct.Guild.Member.t()
         ) :: {:verified, map()} | Tornium.API.Error.t() | {:unverified, map()} | :nochanges
-  defp build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
-         roles: roles,
-         nick: nick,
-         user_id: discord_id
-       }) do
+  defp build_changes(
+         {:ok, _},
+         %Tornium.Guild.Verify.Config{guild_id: guild_id, verify_elimination_config: verify_elimination_config} =
+           config,
+         %Nostrum.Struct.Guild.Member{roles: roles, nick: nick, user_id: discord_id}
+       ) do
     user =
       Tornium.Schema.User
       |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
       |> where([u, f], u.discord_id == ^discord_id)
       |> preload([u, f], faction: f)
+      |> Tornium.Schema.User.preload_elimination_member()
       |> Repo.one()
 
     case user do
@@ -183,21 +188,32 @@ defmodule Tornium.Guild.Verify do
           |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_elimination_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_unverified_roles(config, user)
           |> Map.update!(:roles, &MapSet.to_list/1)
 
         {:unverified, changes}
 
-      user ->
+      %Tornium.Schema.User{tid: user_id} = user ->
+        if Tornium.Elimination.active?() and verify_elimination_config == [] do
+          # We only want to update elimination data when the elimination event is active and
+          # when the server has verification set up. Otherwise, it's a significant waste of 
+          # time and can cause latency issues.
+          # TODO: Make a better method of updating elimination data when verifying users
+          Tornium.Elimination.update_member(user_id, guild_id)
+        end
+
         changes =
           %{roles: MapSet.new(roles), nick: nick}
           |> Tornium.Guild.Verify.Logic.remove_invalid_unverified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.remove_invalid_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.remove_invalid_elimination_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_verified_name(config, user)
           |> Tornium.Guild.Verify.Logic.set_verified_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_faction_roles(config, user)
           |> Tornium.Guild.Verify.Logic.set_faction_position_roles(config, user)
+          |> Tornium.Guild.Verify.Logic.set_elimination_roles(config, user)
           |> validate_changes_made(roles, nick)
 
         {:verified, changes}

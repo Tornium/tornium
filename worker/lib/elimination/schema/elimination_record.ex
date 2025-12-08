@@ -13,29 +13,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Schema.TornKey do
-  use Ecto.Schema
+defmodule Tornium.Schema.EliminationRecord do
+  @moduledoc """
+  The records of an elimination member's performance at a point in time.
+  """
 
-  @type access_levels() :: :public | :minimal | :limited | :full
+  use Ecto.Schema
 
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
-          api_key: String.t(),
-          user_id: pos_integer(),
-          user: Tornium.Schema.User.t(),
-          default: boolean(),
-          disabled: boolean(),
-          paused: boolean(),
-          access_level: access_levels()
+          member_id: Ecto.UUID.t(),
+          member: Tornium.Schema.EliminationMember.t(),
+          timestamp: DateTime.t(),
+          score: pos_integer(),
+          attacks: pos_integer()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
-  schema "tornkey" do
-    field(:api_key, :string)
-    belongs_to(:user, Tornium.Schema.User, references: :tid)
-    field(:default, :boolean)
-    field(:disabled, :boolean)
-    field(:paused, :boolean)
-    field(:access_level, Ecto.Enum, values: [public: 1, minimal: 2, limited: 3, full: 4])
+  schema "elimination_record" do
+    belongs_to(:member, Tornium.Schema.EliminationMember, references: :guid)
+    field(:timestamp, :utc_datetime)
+
+    field(:score, :integer)
+    field(:attacks, :integer)
   end
 end

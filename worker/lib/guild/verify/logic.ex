@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Logic do
+  @moduledoc """
+  Module containing the logic required for user verification on Discord.
+  """
+
   # TODO: Add shared state struct for the roles and nick instead of an untyped map
 
   @spec insert_update_roles(state :: map(), new_values :: list(String.t())) :: map()
@@ -384,6 +388,101 @@ defmodule Tornium.Guild.Verify.Logic do
       )
     else
       state
+    end
+  end
+
+  @doc """
+  Update a state map to remove the elimination team roles that are invalid for the team the user is currently on.
+
+  ## Parameters
+    - state: State map
+    - server_config: Server verification configuration struct
+    - user: Ecto struct of the user to be verified or nil
+
+  ## Returns
+    - State map
+  """
+  @spec remove_invalid_elimination_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User.t() | nil
+        ) :: map()
+  def remove_invalid_elimination_roles(
+        state,
+        %Tornium.Guild.Verify.Config{verify_elimination_config: verify_elimination_config} = _server_config,
+        %Tornium.Schema.User{current_elimination_member: elimination_member} = _user
+      ) do
+    roles_to_remove =
+      verify_elimination_config
+      |> Enum.flat_map(fn %Tornium.Schema.ServerVerificationEliminationConfig{team_id: team_id, roles: team_roles} ->
+        if not is_nil(elimination_member) and team_id == elimination_member.team_id do
+          []
+        else
+          team_roles
+        end
+      end)
+      |> MapSet.new()
+
+    Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
+  end
+
+  def remove_invalid_elimination_roles(
+        state,
+        %Tornium.Guild.Verify.Config{verify_elimination_config: verify_elimination_config} = _server_config,
+        user
+      )
+      when is_nil(user) do
+    roles_to_remove =
+      verify_elimination_config
+      |> Enum.flat_map(fn %Tornium.Schema.ServerVerificationEliminationConfig{roles: roles} -> roles end)
+      |> MapSet.new()
+
+    Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
+  end
+
+  @doc """
+  Update a state map with the elimination team roles for the user based on the server's configuration and the
+  team the user is currently on.
+
+  ## Parameters
+    - state: State map
+    - server_config: Server verification configuration struct
+    - user: Ecto struct of the user to be verified
+
+  ## Returns
+    - State map
+  """
+  @spec set_faction_position_roles(
+          state :: map(),
+          server_config :: Tornium.Guild.Verify.Config.t(),
+          user :: Tornium.Schema.User.t()
+        ) :: map()
+  def set_elimination_roles(
+        state,
+        %Tornium.Guild.Verify.Config{} = _server_config,
+        %Tornium.Schema.User{current_elimination_member: current_elimination_member} = _user
+      )
+      when is_nil(current_elimination_member) do
+    state
+  end
+
+  def set_elimination_roles(
+        state,
+        %Tornium.Guild.Verify.Config{verify_elimination_config: verify_elimination_config} = _server_config,
+        %Tornium.Schema.User{current_elimination_member: %Tornium.Schema.EliminationMember{team_id: team_id}} = _user
+      ) do
+    config =
+      verify_elimination_config
+      |> Enum.find(fn %Tornium.Schema.ServerVerificationEliminationConfig{team_id: config_team_id} ->
+        config_team_id == team_id
+      end)
+
+    case config do
+      nil ->
+        state
+
+      %Tornium.Schema.ServerVerificationEliminationConfig{roles: roles} ->
+        insert_update_roles(state, roles)
     end
   end
 end

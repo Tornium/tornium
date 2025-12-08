@@ -40,7 +40,8 @@ end
 config :nostrum,
   ffmpeg: nil,
   youtubedl: nil,
-  streamlink: nil
+  streamlink: nil,
+  application_id: System.get_env("BOT_APPLICATION_ID")
 
 if config_env() == :prod do
   database_url =

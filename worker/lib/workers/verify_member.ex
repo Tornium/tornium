@@ -20,6 +20,8 @@ defmodule Tornium.Workers.VerifyMember do
   WARNING: This is a temporary worker until all verification is migrated to Elixir.
   """
 
+  @application_id Application.compile_env(:nostrum, :application_id)
+
   use Oban.Worker,
     max_attempts: 3,
     priority: 0,
@@ -34,12 +36,15 @@ defmodule Tornium.Workers.VerifyMember do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args: %{"user_id" => user_id, "server_id" => server_id, "output_channel_id" => output_channel_id}
-      })
-      when is_nil(output_channel_id) or is_integer(output_channel_id) do
+        args: %{
+          "user_id" => user_id,
+          "server_id" => server_id,
+          "output_channel_id" => [output_channel_type, output_channel_id]
+        }
+      }) do
     {:ok, %Nostrum.Struct.Guild.Member{} = member} = Nostrum.Api.Guild.member(server_id, user_id)
 
-    if not is_nil(output_channel_id) and output_channel_id != 0 do
+    embed =
       case Tornium.Guild.Verify.handle_on_join(server_id, member) do
         {:error, :api_key} ->
           nil
@@ -51,8 +56,13 @@ defmodule Tornium.Workers.VerifyMember do
           nil
 
         {status_atom, result, _server} when is_atom(status_atom) ->
-          embed = Tornium.Guild.Verify.Message.message({status_atom, result}, member)
-          Nostrum.Api.Message.create(output_channel_id, %{embeds: [embed]})
+          Tornium.Guild.Verify.Message.message({status_atom, result}, member)
+      end
+
+    if not is_nil(output_channel_id) and output_channel_id != 0 do
+      case output_channel_type do
+        "channel" -> Nostrum.Api.Message.create(output_channel_id, %{embeds: [embed]})
+        "interaction" -> Nostrum.Api.Webhook.modify_with_token(@application_id, output_channel_id, %{embeds: [embed]})
       end
     end
 

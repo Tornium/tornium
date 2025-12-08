@@ -61,13 +61,13 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     if (callbackState === localState) {
         resolveToken(callbackCode, callbackState, localCodeVerifier);
         log("Succesfully authenticated the OAuth token");
+        // NOTE: The redirect will occur inside the resolveToken callback
     } else {
         unsafeWindow.alert("Invalid security state. Try again.");
         log("Callback state: " + callbackState);
         log("Local state: " + localState);
+        window.location.href = "https://www.torn.com";
     }
-
-    window.location.href = "https://www.torn.com";
 } else if (
     window.location.pathname.startsWith("/profiles.php") &&
     !isNaN(parseInt(query.get("XID"))) &&

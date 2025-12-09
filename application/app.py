@@ -246,7 +246,13 @@ def before_request():
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.tid in config.banned_users:
+        return flask.render_template(
+            "errors/error.html",
+            title="User Banned",
+            error=f"User {current_user.name} [{current_user.tid}] has been permanently banned from Tornium due to {config.banned_users[current_user.tid]}",
+        )
+    elif current_user.is_authenticated:
         flask.session.setdefault("csrf_token", secrets.token_urlsafe(nbytes=64))
         flask.session.setdefault("logout_token", secrets.token_urlsafe(nbytes=64))
 

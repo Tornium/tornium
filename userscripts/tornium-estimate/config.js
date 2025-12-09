@@ -47,7 +47,7 @@ export const Config = new Proxy(
 
         set(target, prop, value, receiver) {
             log(`Set ${prop} to ${value}`);
-            GM_setValue(prop, value);
+            GM_setValue(`tornium-estimate:config:${prop}`, value);
 
             return true;
         },

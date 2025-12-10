@@ -613,8 +613,9 @@ def members_switchboard(interaction, *args, **kwargs):
                         "embeds": [
                             {
                                 "title": "No API Keys",
-                                "description": "No API keys of admins could be located. Please sign into Tornium or ask a "
-                                "server admin to sign in.",
+                                "description": "No API keys of admins could be located. Either you or one of the server "
+                                "admins must be signed into Tornium and have revives unlocked. Please sign into Tornium "
+                                "or ask a server admin to sign in.",
                                 "color": SKYNET_ERROR,
                             }
                         ],
@@ -848,8 +849,9 @@ def members_switchboard(interaction, *args, **kwargs):
                         "embeds": [
                             {
                                 "title": "No API Keys",
-                                "description": "No API keys of admins could be located. Please sign into Tornium or ask a "
-                                "server admin to sign in.",
+                                "description": "No API keys of admins could be located. Either you or one of the server "
+                                "admins must be signed into Tornium and have revives unlocked. Please sign into Tornium "
+                                "or ask a server admin to sign in.",
                                 "color": SKYNET_ERROR,
                             }
                         ],

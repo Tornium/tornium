@@ -23,8 +23,6 @@ class TableViewer extends HTMLElement {
         this.previousButton = null;
         this.nextButton = null;
         this.filters = this.registerFilters();
-
-        console.log(this.filters);
     }
 
     connectedCallback() {
@@ -89,7 +87,6 @@ class TableViewer extends HTMLElement {
 
         let apiEndpointSearch = new URLSearchParams(apiEndpoint.search);
         apiEndpointSearch = this.applyFilters(apiEndpointSearch);
-        console.log(apiEndpointSearch);
 
         apiEndpoint.search = apiEndpointSearch;
 
@@ -106,6 +103,9 @@ class TableViewer extends HTMLElement {
             })
                 .then((response) => {
                     if (dataKey == null || !(dataKey in response) || response[dataKey].length == 0) {
+                        this.updateCount(0);
+                        this.updateButtons(0);
+
                         this.showError(`No data found in response for key ${dataKey}`, "No data found");
                         return;
                     }
@@ -205,7 +205,6 @@ class TableViewer extends HTMLElement {
         for (const filter of filters) {
             const filterKey = filter.getAttribute("data-filter-key");
             const filterGetterCallback = filter.getAttribute("data-filter-callback");
-            console.log(filterGetterCallback);
 
             if (filterGetterCallback && window[filterGetterCallback]) {
                 registerFilters[filterKey] = () => window[filterGetterCallback](filter);
@@ -213,7 +212,15 @@ class TableViewer extends HTMLElement {
                 registerFilters[filterKey] = () => filter.value;
             }
 
-            filter.addEventListener("change", () => this.reload());
+            filter.addEventListener("change", () => {
+                // We need to go to the first page when the filters change, otherwise it may try to
+                // render past the end of the filtered data.
+                this.offset = 0;
+                this.previousButton.setAttribute("disabled", "");
+                this.nextButton.removeAttribute("disabled");
+
+                this.reload();
+            });
         }
 
         return registerFilters;
@@ -227,7 +234,6 @@ class TableViewer extends HTMLElement {
                 continue;
             }
 
-            console.log(filter());
             searchParams.append(filterKey, value);
         }
 

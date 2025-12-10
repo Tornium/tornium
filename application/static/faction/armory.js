@@ -97,4 +97,11 @@ ready(() => {
             maxOptions: null,
         });
     });
+    itemsRequest().finally(() => {
+        document.querySelectorAll(".item-selector").forEach((element) => {
+            new TomSelect(element, {
+                create: false,
+            });
+        });
+    });
 });

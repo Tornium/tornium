@@ -76,6 +76,8 @@ Tornium - Faction Armory
                 This lists all individual armory logs.
             </p>
 
+            <hr />
+
             <table-viewer
                 id="usage-logs-viewer"
                 data-endpoint="faction/{{ current_user.faction_id }}/armory/logs"
@@ -85,20 +87,88 @@ Tornium - Faction Armory
                 data-render-callback="addUsageLogToViewer"
             >
                 <div class="viewer-filters px-2 pb-3">
-                    <select class="viewer-filter automatic-tom-select" data-filter-key="actions" data-filter-callback="filterTomSelectMultiple" data-live-search="true" aria-label="Action Filter" data-selected-text-format="count > 2" multiple autocomplete="off">
-                        <option value="use">Used an item</option>
-                        <option value="loan">Loaned an item</option>
-                        <option value="return">Returned an item</option>
-                        <option value="fill">Filled a blood bag</option>
-                        <option value="give">Gave an item</option>
-                        <option value="retrieve">Retrieved an item</option>
-                    </select>
+                    <div class="row">
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-action-filter">Armory Action</label>
+                            <select
+                                id="usage-logs-viewer-action-filter"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="actions"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Action Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            >
+                                <option value="use">Used an item</option>
+                                <option value="loan">Loaned an item</option>
+                                <option value="return">Returned an item</option>
+                                <option value="fill">Filled a blood bag</option>
+                                <option value="give">Gave an item</option>
+                                <option value="retrieve">Retrieved an item</option>
+                            </select>
+                        </fieldset>
 
-                    <select class="viewer-filter automatic-tom-select" data-filter-key="members" data-filter-callback="filterTomSelectMultiple" data-live-search="true" aria-label="Faction Member Filter" data-selected-text-format="count > 2" multiple autocomplete="off">
-                        {% for armory_action in armory_members %}
-                        <option value="{{ armory_action.user.tid }}">{{ armory_action.user.name }} [{{ armory_action.user.tid }}]</option>
-                        {% endfor %}
-                    </select>
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-member-filter">Faction Member</label>
+                            <select
+                                id="usage-logs-viewer-member-filter"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="members"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Faction Member Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            >
+                                {% for armory_action in armory_members %}
+                                <option value="{{ armory_action.user.tid }}">{{ armory_action.user.name }} [{{ armory_action.user.tid }}]</option>
+                                {% endfor %}
+                            </select>
+                        </fieldset>
+
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-item-filter">Armory Item</label>
+                            <select
+                                id="usage-logs-viewer-item-filter"
+                                class="viewer-filter item-selector"
+                                data-filter-key="items"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Armory Item Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            ><select>
+                        </fieldset>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-sm-12 col-md-6 col-lg-4">
+                            <datetime-input data-legend="From (YYYY-MM-DD HH:MM TCT)" id="usage-logs-viewer-from-filter" data-filter-key="from">
+                        </div>
+
+                        <div class="col-sm-12 col-md-6 col-lg-4">
+                            <datetime-input data-legend="To (YYYY-MM-DD HH:MM TCT)" id="usage-logs-viewer-to-filter" data-filter-key="to">
+                        </div>
+
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-order">Sort By</label>
+                            <select
+                                id="usage-logs-viewer-order"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="sort"
+                                data-live-search="true"
+                                aria-label="Sort Order"
+                                autocomplete="off"
+                            >
+                                <option value="timestamp-desc" selected>Timestamp (Desc)</option>
+                                <option value="timestamp-asc">Timestamp (Asc)</option>
+                            </select>
+                        </fieldset>
+                    </div>
                 </div>
 
                 <div class="viewer-container"></div>
@@ -109,6 +179,11 @@ Tornium - Faction Armory
     <div class="card mt-3">
         <div class="card-body">
             <h5 class="card-title">Cumulative Armory Usage Logs</h5>
+            <p class="card-text">This lists the cumulative usage by members of armory items.</p>
+
+            <hr />
+
+            <p class="card-text">Not Yet Implemented</p>
         </div>
     </div>
 
@@ -116,12 +191,18 @@ Tornium - Faction Armory
         <div class="card-body">
             <h5 class="card-title">Armory Availability</h5>
             <p class="card-text">This lists the armory's availability of items tracked by the linked server.</p>
+
+            <hr />
+
+            <p class="card-text">Not Yet Implemented</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/datetime-input.js"></script>
 <script src="/static/components/table-viewer.js"></script>
+<script src="/static/global/items.js"></script>
 <script src="/static/faction/armory.js"></script>
 {% endblock %}

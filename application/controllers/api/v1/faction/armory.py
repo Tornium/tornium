@@ -16,6 +16,7 @@
 import datetime
 
 from flask import request
+from peewee import fn
 from tornium_commons.models import ArmoryAction, ArmoryUsage, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
@@ -111,8 +112,13 @@ def get_logs(faction_id: int, *args, **kwargs):
             },
         )
 
+    total_count_expression = fn.COUNT(ArmoryUsage.id).over()
+    logs = logs.select(ArmoryUsage, total_count_expression.alias("total_count"))
+    paged_logs = list(logs.limit(limit).offset(offset))
+    total_count = paged_logs[0].total_count if paged_logs else 0
+
     return (
-        {"count": logs.count(), "logs": [log.to_dict() for log in logs.limit(limit).offset(offset)]},
+        {"count": total_count, "logs": [log.to_dict() for log in paged_logs]},
         200,
         api_ratelimit_response(key),
     )

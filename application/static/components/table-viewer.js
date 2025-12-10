@@ -14,16 +14,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 class TableViewer extends HTMLElement {
-    // TODO: Need to add event handlers to handle button press on next and previous to change pages
-
     constructor() {
         super();
 
         this.offset = 0;
         this.limit = 10;
-        this.container = null;
+        this.container = this.querySelector(".viewer-container");
         this.previousButton = null;
         this.nextButton = null;
+        this.filters = this.registerFilters();
     }
 
     connectedCallback() {
@@ -33,6 +32,10 @@ class TableViewer extends HTMLElement {
     }
 
     buildContainer() {
+        if (this.container != null) {
+            return;
+        }
+
         this.container = document.createElement("div");
         this.showLoading();
         this.append(this.container);
@@ -44,7 +47,8 @@ class TableViewer extends HTMLElement {
 
         const countContainer = document.createElement("div");
         countContainer.classList.add("col-sm-12", "col-md-6", "align-middle", "ps-3");
-        countContainer.innerHTML = '<span id="trigger-count">No</span> trigger(s) located';
+        countContainer.innerHTML =
+            'Page <span id="page-count">0</span> | <span id="viewer-count">None</span> element(s) located';
         footer.appendChild(countContainer);
 
         const buttonContainer = document.createElement("div");
@@ -55,12 +59,20 @@ class TableViewer extends HTMLElement {
         this.previousButton.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
         this.previousButton.setAttribute("disabled", "");
         this.previousButton.textContent = "Previous Page";
-
+        this.previousButton.addEventListener("click", (event) => {
+            this.offset = Math.max(0, this.offset - this.limit);
+            this.reload();
+        });
         buttonContainer.appendChild(this.previousButton);
+
         this.nextButton = document.createElement("button");
         this.nextButton.classList.add("btn", "btn-sm", "btn-outline-secondary");
         this.nextButton.setAttribute("disabled", "");
         this.nextButton.textContent = "Next Page";
+        this.nextButton.addEventListener("click", (event) => {
+            this.offset = this.offset + this.limit;
+            this.reload();
+        });
         buttonContainer.appendChild(this.nextButton);
 
         this.append(footer);
@@ -72,6 +84,11 @@ class TableViewer extends HTMLElement {
         const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
         const error = this.getAttribute("data-error");
         const dataKey = this.getAttribute("data-key");
+
+        let apiEndpointSearch = new URLSearchParams(apiEndpoint.search);
+        apiEndpointSearch = this.applyFilters(apiEndpointSearch);
+
+        apiEndpoint.search = apiEndpointSearch;
 
         apiEndpoint.searchParams.append("offset", this.offset);
         apiEndpoint.searchParams.append("limit", this.limit);
@@ -85,7 +102,10 @@ class TableViewer extends HTMLElement {
                 },
             })
                 .then((response) => {
-                    if (!(dataKey in response) || response[dataKey].length == 0) {
+                    if (dataKey == null || !(dataKey in response) || response[dataKey].length == 0) {
+                        this.updateCount(0);
+                        this.updateButtons(0);
+
                         this.showError(`No data found in response for key ${dataKey}`, "No data found");
                         return;
                     }
@@ -134,16 +154,20 @@ class TableViewer extends HTMLElement {
         }
 
         console.error(consoleError || error);
-        this.innerHTML = `${error}...`;
+        this.container.innerHTML = `${error}...`;
     }
 
     showLoading() {
-        this.container.innerHTML = "Loading...";
+        // this.container.innerHTML = "Loading...";
+        // TODO: reimplement this
     }
 
     updateCount(text) {
-        const count = document.getElementById("trigger-count");
-        count.textContent = text;
+        const viewerCount = document.getElementById("viewer-count");
+        viewerCount.textContent = text;
+
+        const pageCount = document.getElementById("page-count");
+        pageCount.textContent = Math.floor(this.offset / this.limit);
     }
 
     updateButtons(count) {
@@ -153,15 +177,8 @@ class TableViewer extends HTMLElement {
             return;
         }
 
-        let previous = null;
-        let next = null;
-
-        if (this.offset <= 0) {
-            previous = false;
-        }
-        if (this.offset + this.limit >= count) {
-            next = false;
-        }
+        let previous = this.offset > 0;
+        let next = this.offset + this.limit < count;
 
         if (!previous) {
             this.previousButton.setAttribute("disabled", "");
@@ -175,6 +192,55 @@ class TableViewer extends HTMLElement {
             this.nextButton.removeAttribute("disabled");
         }
     }
+
+    registerFilters() {
+        const filters = Array.from(this.querySelectorAll("[data-filter-key]"));
+
+        if (filters.length === 0) {
+            return {};
+        }
+
+        const registerFilters = {};
+
+        for (const filter of filters) {
+            const filterKey = filter.getAttribute("data-filter-key");
+            const filterGetterCallback = filter.getAttribute("data-filter-callback");
+
+            if (filterGetterCallback && window[filterGetterCallback]) {
+                registerFilters[filterKey] = () => window[filterGetterCallback](filter);
+            } else {
+                registerFilters[filterKey] = () => filter.value;
+            }
+
+            filter.addEventListener("change", () => {
+                // We need to go to the first page when the filters change, otherwise it may try to
+                // render past the end of the filtered data.
+                this.offset = 0;
+                this.previousButton.setAttribute("disabled", "");
+                this.nextButton.removeAttribute("disabled");
+
+                this.reload();
+            });
+        }
+
+        return registerFilters;
+    }
+
+    applyFilters(searchParams) {
+        for (const [filterKey, filter] of Object.entries(this.filters)) {
+            const value = filter();
+
+            if (value == null || value == "") {
+                continue;
+            }
+
+            searchParams.append(filterKey, value);
+        }
+
+        return searchParams;
+    }
 }
 
-customElements.define("table-viewer", TableViewer);
+ready(() => {
+    customElements.define("table-viewer", TableViewer);
+});

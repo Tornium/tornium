@@ -47,6 +47,55 @@
     --secondary-bg-color: var(--secondary-grey);
 }
 
+:root {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
+}
+
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
+    --primary-bg-color: white;
+}
+
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
 a {
     color: var(--text-color) !important;
     background-color: inherit !important;
@@ -176,4 +225,41 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     width: 1px;
 }
 
-/*# sourceMappingURL=base.css.map */
+.datetime-fieldset legend.datetime-legend {
+    font-size: initial;
+}
+.datetime-fieldset .datetime-group {
+    display: inline-flex;
+    vertical-align: middle;
+    align-items: center;
+    border: 1px solid var(--text-color);
+    border-radius: 0.375rem;
+    padding: 4px 8px;
+    width: fit-content;
+    margin-right: 8px;
+    background: inherit;
+}
+.datetime-fieldset .datetime-group input {
+    border: none;
+    outline: none;
+    text-align: center;
+    width: 2.6rem;
+    background: transparent;
+    font-size: 14px;
+}
+.datetime-fieldset .datetime-group label span.label-text {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+.datetime-fieldset .datetime-group span.datetime-group-seperator {
+    padding-left: 3px;
+    color: var(--text-alternate-color);
+}
+
+/*# sourceMappingURL=datetime.css.map */

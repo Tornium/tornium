@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Faction Armory
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/armory">Armory</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/members">
+                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/banking">
+                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/armory">
+                <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
+            </a>
+        </div>
+
+
+        {% if current_user.can_manage_crimes() %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes">
+                <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bot">
+                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Armory Usage Logs</h5>
+            <p class="card-text">
+                This lists all individual armory logs.
+            </p>
+
+            <hr />
+
+            <table-viewer
+                id="usage-logs-viewer"
+                data-endpoint="faction/{{ current_user.faction_id }}/armory/logs"
+                data-key="logs"
+                data-error="Armory Logs Fetch Failed"
+                data-error-callback="viewerErrorCallback"
+                data-render-callback="addUsageLogToViewer"
+            >
+                <div class="viewer-filters px-2 pb-3">
+                    <div class="row">
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-action-filter">Armory Action</label>
+                            <select
+                                id="usage-logs-viewer-action-filter"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="actions"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Action Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            >
+                                <option value="use">Used an item</option>
+                                <option value="loan">Loaned an item</option>
+                                <option value="return">Returned an item</option>
+                                <option value="fill">Filled a blood bag</option>
+                                <option value="give">Gave an item</option>
+                                <option value="retrieve">Retrieved an item</option>
+                            </select>
+                        </fieldset>
+
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-member-filter">Faction Member</label>
+                            <select
+                                id="usage-logs-viewer-member-filter"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="members"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Faction Member Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            >
+                                {% for armory_action in armory_members %}
+                                <option value="{{ armory_action.user.tid }}">{{ armory_action.user.name }} [{{ armory_action.user.tid }}]</option>
+                                {% endfor %}
+                            </select>
+                        </fieldset>
+
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-item-filter">Armory Item</label>
+                            <select
+                                id="usage-logs-viewer-item-filter"
+                                class="viewer-filter item-selector"
+                                data-filter-key="items"
+                                data-filter-callback="filterTomSelectMultiple"
+                                data-live-search="true"
+                                aria-label="Armory Item Filter"
+                                data-selected-text-format="count > 2"
+                                multiple
+                                autocomplete="off"
+                            ><select>
+                        </fieldset>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-sm-12 col-md-6 col-lg-4">
+                            <datetime-input data-legend="From (YYYY-MM-DD HH:MM TCT)" id="usage-logs-viewer-from-filter" data-filter-key="from">
+                        </div>
+
+                        <div class="col-sm-12 col-md-6 col-lg-4">
+                            <datetime-input data-legend="To (YYYY-MM-DD HH:MM TCT)" id="usage-logs-viewer-to-filter" data-filter-key="to">
+                        </div>
+
+                        <fieldset class="col-sm-12 col-md-6 col-lg-4">
+                            <label for="usage-logs-viewer-order">Sort By</label>
+                            <select
+                                id="usage-logs-viewer-order"
+                                class="viewer-filter automatic-tom-select"
+                                data-filter-key="sort"
+                                data-live-search="true"
+                                aria-label="Sort Order"
+                                autocomplete="off"
+                            >
+                                <option value="timestamp-desc" selected>Timestamp (Desc)</option>
+                                <option value="timestamp-asc">Timestamp (Asc)</option>
+                            </select>
+                        </fieldset>
+                    </div>
+                </div>
+
+                <div class="viewer-container"></div>
+            </table-viewer>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Cumulative Armory Usage Logs</h5>
+            <p class="card-text">This lists the cumulative usage by members of armory items.</p>
+
+            <hr />
+
+            <p class="card-text">Not Yet Implemented</p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Armory Availability</h5>
+            <p class="card-text">This lists the armory's availability of items tracked by the linked server.</p>
+
+            <hr />
+
+            <p class="card-text">Not Yet Implemented</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/components/datetime-input.js"></script>
+<script src="/static/components/table-viewer.js"></script>
+<script src="/static/global/items.js"></script>
+<script src="/static/faction/armory.js"></script>
+{% endblock %}

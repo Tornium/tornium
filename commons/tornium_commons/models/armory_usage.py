@@ -13,12 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import enum
+
 from peewee import BooleanField, DateTimeField, ForeignKeyField, IntegerField, TextField
 
 from .base_model import BaseModel
 from .faction import Faction
 from .item import Item
 from .user import User
+
+
+class ArmoryAction(enum.Enum):
+    USE = "use"
+    LOAN = "loan"
+    RETURN = "return"
+    FILL = "fill"
+    GIVE = "give"
+    RETRIEVE = "retrieve"
 
 
 class ArmoryUsage(BaseModel):
@@ -40,3 +51,27 @@ class ArmoryUsage(BaseModel):
 
     class Meta:
         table_name = "armory_usage"
+
+    def to_dict(self) -> dict:
+        from ..formatters import timestamp
+
+        return {
+            "id": self.id,
+            "timestamp": timestamp(self.timestamp),
+            "action": self.action,
+            "user": {
+                "id": self.user_id,
+                "name": User.user_name(self.user_id),
+            },
+            "recipient": {
+                "id": self.recipient_id,
+                "name": User.user_name(self.recipient_id),
+            },
+            "item": {
+                "id": self.item_id,
+                "name": None if self.item_id is None else Item.item_name(self.item_id),
+                "is_nerve_refill": self.is_nerve_refill,
+                "is_energy_refill": self.is_energy_refill,
+                "quantity": self.quantity,
+            },
+        }

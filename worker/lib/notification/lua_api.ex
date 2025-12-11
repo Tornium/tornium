@@ -24,8 +24,19 @@ defmodule Tornium.Notification.Lua.API do
   Get a user's Discord ID by their Torn ID.
   """
   deflua get_discord_id(user_id) do
-    user_id
-    |> trunc()
-    |> Tornium.User.DiscordStore.get()
+    case user_id do
+      _ when is_integer(user_id) ->
+        Tornium.User.DiscordStore.get(user_id)
+
+      _ when is_number(user_id) or is_float(user_id) ->
+        user_id
+        |> trunc()
+        |> get_discord_id()
+
+      _ when is_binary(user_id) ->
+        user_id
+        |> String.to_float()
+        |> get_discord_id()
+    end
   end
 end

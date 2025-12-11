@@ -257,7 +257,7 @@ defmodule Tornium.Notification do
 
   defp handle_api_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
-      Tornium.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
+      Tornium.Notification.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
       |> update_passthrough_state(notification)
       |> handle_lua_states(notification)
     end)
@@ -313,15 +313,13 @@ defmodule Tornium.Notification do
   end
 
   defp handle_lua_states({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
-    IO.inspect(reason)
+    IO.inspect(reason, label: "Notification error reason")
     # TODO: Handle this error
     {:error, reason}
   end
 
   defp handle_lua_states(trigger_return, notification) do
     # Invalid response
-    IO.inspect(trigger_return)
-    IO.inspect(notification)
     throw(Exception)
   end
 
@@ -340,11 +338,11 @@ defmodule Tornium.Notification do
       |> String.replace(["\n", "\t"], "")
     rescue
       e in Solid.TemplateError ->
-        IO.inspect(e)
+        IO.inspect(e, label: "Template parse error")
         {:error, :template_parse_error, e.message}
 
       e in Solid.RenderError ->
-        IO.inspect(e)
+        IO.inspect(e, label: "Template render error")
         {:error, :template_render_error, e.message}
     end
   end
@@ -381,16 +379,22 @@ defmodule Tornium.Notification do
     error
   end
 
-  defp try_message(%{} = message, :send, %Tornium.Schema.Notification{nid: nid, channel_id: channel_id} = notification) do
+  defp try_message(
+         %{} = message,
+         :send,
+         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, one_shot: one_shot?} = notification
+       ) do
     # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
     case Nostrum.Api.Message.create(channel_id, message) do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully sent...
         # Thus the notification should be deleted as one-shot notifications are deleted once triggered
 
-        Tornium.Schema.Notification
-        |> where(nid: ^nid)
-        |> Repo.delete()
+        if one_shot? do
+          Tornium.Schema.Notification
+          |> where(nid: ^nid)
+          |> Repo.delete_all()
+        end
 
         {:ok, resp_message}
 

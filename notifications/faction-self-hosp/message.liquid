@@ -1,0 +1,9 @@
+{
+"content": "{% for index in (1..members_leaving_hosp.size) limit: 25 %}{% if members_leaving_hosp[index].discord_id != 0 and members_leaving_hosp[index].discord_id != nil %}<@{{ members_leaving_hosp[index].discord_id}}> {% endif %}{% endfor %}Self hospitalize!",
+	"embeds": [
+		{
+			"title": "Members Leaving Hospital",
+			"description": "The following members are leaving the hospital within the next {{ configured_minutes }} minute(s) and need to self-hospitalize.\n\n{% for index in (1..members_leaving_hosp.size) limit:25 %}[{{ members_leaving_hosp[index].name }}](https://torn.com/profiles.php?XID={{ members_leaving_hosp[index].id }}) - <t:{{ members_leaving_hosp[index].status.until }}:R>\n{% endfor %}"
+		}
+	]
+}

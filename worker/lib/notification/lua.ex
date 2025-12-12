@@ -49,7 +49,7 @@ defmodule Tornium.Notification.Lua do
   Set up a sandboxed Lua VM with necessary data and functions injected into it.
   """
   @spec setup_vm(input_state :: map()) :: Lua.t()
-  def setup_vm(input_state) when is_map(input_state) do
+  def setup_vm(input_state \\ %{}) when is_map(input_state) do
     input_state
     |> Enum.reduce(Lua.new(), fn {key, value}, accumulated_state -> Lua.set!(accumulated_state, [key], value) end)
     |> Lua.load_api(Tornium.Notification.Lua.API)

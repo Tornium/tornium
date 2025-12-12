@@ -34,8 +34,10 @@ defmodule Tornium.Notification.Lua.API do
         |> get_discord_id()
 
       _ when is_binary(user_id) ->
-        user_id
-        |> String.to_float()
+        {parsed_user_id, _binary_rest} = Float.parse(user_id)
+
+        parsed_user_id
+        |> trunc()
         |> get_discord_id()
     end
   end

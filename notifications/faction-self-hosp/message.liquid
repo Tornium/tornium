@@ -1,5 +1,5 @@
 {
-"content": "{% for index in (1..members_leaving_hosp.size) limit: 25 %}{% if members_leaving_hosp[index].discord_id != 0 and members_leaving_hosp[index].discord_id != nil %}<@{{ members_leaving_hosp[index].discord_id}}> {% endif %}{% endfor %}Self hospitalize!",
+"content": "{% for index in (1..members_leaving_hosp.size) limit: 25 %}{{ members_leaving_hosp[index].discord }} {% endfor %}Self hospitalize!",
 	"embeds": [
 		{
 			"title": "Members Leaving Hospital",

@@ -68,7 +68,7 @@ for member_id, member in pairs(faction.members) do
     if discord_id == 0 or discord_id == nil then
       member.discord = ""
     else
-      member.discord = "<&" .. discord_id .. ">"
+      member.discord = "<@" .. discord_id .. ">"
     end
 
     members_leaving_hosp[leaving_hospital_count] = member

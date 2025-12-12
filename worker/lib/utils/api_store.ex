@@ -123,7 +123,7 @@ defmodule Tornium.API.Store do
           {_, updated_state} = Map.pop(state, api_call_id)
           {value, updated_state}
 
-        _ ->
+        response when is_nil(response) ->
           {nil, state}
       end
 

@@ -42,7 +42,7 @@ export const Config = new Proxy(
             const defaults = target.defaults || {};
             const def = prop in defaults ? defaults[prop] : undefined;
 
-            return GM_getValue(prop, def);
+            return GM_getValue(`tornium-estimate:config:${prop}`, def);
         },
 
         set(target, prop, value, receiver) {

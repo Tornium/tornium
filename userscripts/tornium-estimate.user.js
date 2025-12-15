@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.5-dev
+// @version      0.5.5
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.5-dev";
+  var VERSION = "0.5.5";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;

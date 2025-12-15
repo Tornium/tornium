@@ -31,7 +31,7 @@ defmodule Tornium.Schema.ArmoryUsage do
   "give" => `:give`
   "retrieved" => `:retrieve`
   """
-  @type actions :: :use | :loan | :return | :fill | :give
+  @type actions :: :use | :loan | :return | :fill | :give | :retrieve
 
   @type t :: %__MODULE__{
           timestamp: DateTime.t(),

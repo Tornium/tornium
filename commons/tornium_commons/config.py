@@ -19,7 +19,7 @@ import typing
 
 from pydantic import AnyUrl, BaseModel, Field, PostgresDsn, RedisDsn
 
-from .altjson import load
+from .altjson import dumps, load, loads
 
 _T = typing.TypeVar("_T")
 
@@ -43,6 +43,8 @@ class Config(BaseModel):
     admin_passphrase: typing.Optional[str] = Field()
 
     torn_api_uri: typing.Optional[AnyUrl] = Field(default="https://api.torn.com")
+
+    banned_users: typing.Dict[int, str] = Field(default={})
 
     # Internal Data
     _file: typing.Optional[pathlib.Path] = None
@@ -73,7 +75,10 @@ class Config(BaseModel):
                 data_value = int(data_value)
 
             if not disable_cache:
-                rds().set(f"tornium:settings:{data_key}", data_value)
+                if isinstance(data_value, (dict, list)):
+                    rds().set(f"tornium:settings:{data_key}", dumps(data_value))
+                else:
+                    rds().set(f"tornium:settings:{data_key}", data_value)
 
         self = cls(**loaded_data)
         self._file = file
@@ -91,7 +96,12 @@ class Config(BaseModel):
             if settings_key.startswith("_"):
                 continue
 
-            _cached_data[settings_key] = rds().get(f"tornium:settings:{settings_key}")
+            value = rds().get(f"tornium:settings:{settings_key}")
+
+            try:
+                _cached_data[settings_key] = loads(value)
+            except Exception:
+                _cached_data[settings_key] = value
 
         self = cls(**_cached_data)
         self._file = None
@@ -134,7 +144,10 @@ class Config(BaseModel):
             value = int(value)
 
         if not disable_cache:
-            rds().set(key, value)
+            if isinstance(value, (dict, list)):
+                rds().set(f"tornium:settings:{key}", dumps(value))
+            else:
+                rds().set(f"tornium:settings:{key}", value)
 
         self.save()
 
@@ -152,7 +165,10 @@ class Config(BaseModel):
                 data_value = int(data_value)
 
             if not disable_cache:
-                rds().set(f"tornium:settings:{data_key}", data_value)
+                if isinstance(data_value, (dict, list)):
+                    rds().set(f"tornium:settings:{data_key}", dumps(data_value))
+                else:
+                    rds().set(f"tornium:settings:{data_key}", data_value)
 
             setattr(self, data_key, data_value)
 

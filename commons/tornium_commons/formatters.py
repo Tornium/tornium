@@ -341,7 +341,7 @@ def discord_escaper(value: str) -> str:
 
 
 def timestamp(dt: datetime.datetime) -> int:
-    return dt.replace(tzinfo=datetime.timezone.utc).timestamp()
+    return int(dt.replace(tzinfo=datetime.timezone.utc).timestamp())
 
 
 @dataclasses.dataclass

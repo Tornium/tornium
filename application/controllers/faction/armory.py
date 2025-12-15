@@ -13,12 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import (
-    armory,
-    attacks,
-    banking,
-    crime_team,
-    crimes,
-    faction,
-    positions,
-)
+from flask import render_template
+from flask_login import current_user, login_required
+from tornium_commons.models import ArmoryUsage, User
+
+from controllers.faction.decorators import fac_required
+
+
+@login_required
+@fac_required
+def armory(*args, **kwargs):
+    armory_members = (
+        ArmoryUsage.select(User.tid, User.name)
+        .distinct(User.tid)
+        .join(User)
+        .where(ArmoryUsage.faction_id == current_user.faction_id)
+    )
+
+    return render_template("faction/armory.html", armory_members=armory_members)

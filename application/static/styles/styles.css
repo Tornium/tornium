@@ -165,6 +165,17 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
     filter: invert(100%);
 }
 
+.visually-hidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
 :root {
     --white: rgb(229, 229, 229);
     --primary-grey: inherit;
@@ -289,6 +300,270 @@ html[data-bs-theme="neon-dark"] #tornium-icon {
 }
 #top-nav .navbar-toggler {
     border-color: var(--text-color);
+}
+
+:root {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
+}
+
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
+    --primary-bg-color: white;
+}
+
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
+:root {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: rgb(320, 320, 320);
+    --error: inherit;
+    --text-color: black;
+    --text-alternate-color: black;
+    --text-alternate-contrast-color: black;
+    --border-color: var(--white);
+    --primary-bg-color: inherit;
+    --secondary-bg-color: inherit;
+}
+
+:root[data-bs-theme="custom-dark"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --off-white: rgb(175, 175, 175);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--white);
+    --text-alternate-color: var(--off-white);
+    --text-alternate-contrast-color: var(--white);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
+:root[data-bs-theme="light"] {
+    --white: rgb(229, 229, 229);
+    --primary-grey: inherit;
+    --secondary-grey: inherit;
+    --off-white: inherit;
+    --error: inherit;
+    --primary-bg-color: white;
+}
+
+:root[data-bs-theme="neon-dark"] {
+    --white: rgb(229, 229, 229);
+    --neon: rgb(57, 255, 20);
+    --primary-grey: rgb(35, 35, 35);
+    --secondary-grey: rgb(25, 25, 25);
+    --error: rgb(225, 10, 10);
+    --text-color: var(--neon);
+    --text-alternate-color: var(--neon);
+    --text-alternate-contrast-color: var(--neon);
+    --primary-bg-color: var(--primary-grey);
+    --secondary-bg-color: var(--secondary-grey);
+}
+
+a {
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+    text-decoration: none !important;
+}
+a:visited {
+    color: var(--text-color);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--text-alternate-color);
+    text-decoration: none;
+}
+a:active {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+input {
+    color: var(--text-color) !important;
+    border-color: var(--text-color);
+}
+input::focus {
+    color: var(--text-color) !important;
+}
+input::placeholder {
+    color: var(--text-color) !important;
+}
+
+select {
+    color: var(--text-color) !important;
+    background-color: var(--primary-bg-color) !important;
+    border-color: var(--text-color) !important;
+}
+
+p {
+    color: var(--text-color);
+}
+
+thead th {
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+}
+
+tbody th,
+tbody td {
+    color: var(--text-color) !important;
+    background-color: inherit !important;
+}
+tbody th a,
+tbody td a {
+    color: inherit;
+}
+
+.card-table tbody label {
+    display: none;
+}
+@media (max-width: 768px) {
+    .card-table thead {
+        /* Required to keep the width of the card correct */
+        display: none;
+    }
+    .card-table tbody {
+        display: block;
+        width: 100%;
+    }
+    .card-table tbody tr {
+        float: left;
+        width: 100%;
+        margin: 0.75rem 0;
+        border: 1px solid var(--text-alternate-color);
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    .card-table tbody td {
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+    .card-table tbody td:last-child {
+        margin-bottom: 0;
+        border: none;
+    }
+    .card-table tbody label {
+        display: block;
+        position: relative;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-alternate-color);
+        min-width: 4rem;
+        margin-right: 1rem;
+        margin-bottom: 0.2rem;
+    }
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/static/fonts/JetBrainsMono-Light.woff2") format("woff");
+}
+body {
+    font-family: "JetBrains Mono", serif;
+    height: 100dvh;
+    overflow: auto;
+    background-color: var(--secondary-bg-color) !important;
+}
+
+html {
+    height: 100dvh;
+    overflow: hidden;
+}
+
+html[data-bs-theme="custom-dark"] #tornium-icon {
+    filter: invert(100%);
+}
+
+html[data-bs-theme="neon-dark"] #tornium-icon {
+    filter: invert(100%);
+}
+
+.visually-hidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.datetime-fieldset legend.datetime-legend {
+    font-size: initial;
+}
+.datetime-fieldset .datetime-group {
+    display: inline-flex;
+    vertical-align: middle;
+    align-items: center;
+    border: 1px solid var(--text-color);
+    border-radius: 0.375rem;
+    padding: 4px 8px;
+    width: fit-content;
+    margin-right: 8px;
+    background: inherit;
+}
+.datetime-fieldset .datetime-group input {
+    border: none;
+    outline: none;
+    text-align: center;
+    width: 2.6rem;
+    background: transparent;
+    font-size: 14px;
+}
+.datetime-fieldset .datetime-group label span.label-text {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+.datetime-fieldset .datetime-group span.datetime-group-seperator {
+    padding-left: 3px;
+    color: var(--text-alternate-color);
 }
 
 .card {

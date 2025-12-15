@@ -41,7 +41,7 @@ defmodule Tornium.User.DiscordStore do
   @spec get(user_id :: pos_integer()) :: pos_integer() | nil
   def get(user_id) when is_integer(user_id) do
     case get(Tornium.User.DiscordStore, user_id) do
-      discord_id when is_integer(discord_id) -> nil
+      discord_id when is_integer(discord_id) -> discord_id
       _ -> put(user_id)
     end
   end

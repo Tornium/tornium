@@ -119,8 +119,8 @@ function injectUpdatedHeader() {
         return;
     }
 
-    const right = document.createElement('span');
-    right.className = 'tornium-estimate-abroad-header-right';
-    right.textContent = 'Fair Fight';
+    const right = document.createElement("span");
+    right.className = "tornium-estimate-abroad-header-right";
+    right.textContent = "Fair Fight";
     iconsHeader.append(right);
 }

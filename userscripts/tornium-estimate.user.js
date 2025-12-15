@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.4
+// @version      0.5.5-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -12,6 +12,7 @@
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @match        https://www.torn.com/page.php?sid=UserList*
 // @match        https://www.torn.com/factions.php*
+// @match        https://www.torn.com/index.php?page=people*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -42,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.4";
+  var VERSION = "0.5.5-dev";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
@@ -175,8 +176,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
             }
           }
           if (responseJSON.error !== void 0) {
-            GM_deleteValue("tornium-retaliations:access-token");
-            GM_deleteValue("tornium-retaliations:access-token-expires");
+            GM_deleteValue("tornium-estimate:access-token");
+            GM_deleteValue("tornium-estimate:access-token-expires");
             resolve(responseJSON);
             return responseJSON;
           }
@@ -233,7 +234,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     { id: "profile", label: "Profile Page" },
     { id: "faction-rw", label: "Faction Ranked War" },
     { id: "search", label: "Advanced Search" },
-    { id: "attack-loader", label: "Attack Loader" }
+    { id: "attack-loader", label: "Attack Loader" },
+    { id: "people-abroad", label: "People Abroad" }
   ];
   var Config = new Proxy(
     class {
@@ -250,11 +252,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
           return Reflect.get(target, prop, receiver);
         const defaults = target.defaults || {};
         const def = prop in defaults ? defaults[prop] : void 0;
-        return GM_getValue(prop, def);
+        return GM_getValue(`tornium-estimate:config:${prop}`, def);
       },
       set(target, prop, value, receiver) {
         log(`Set ${prop} to ${value}`);
-        GM_setValue(prop, value);
+        GM_setValue(`tornium-estimate:config:${prop}`, value);
         return true;
       },
       ownKeys(target) {
@@ -420,9 +422,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   // pages/faction-rw.js
   function checkRankedWarToggleState(event) {
     waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then(
-      (rankedWarDescription) => {
-        console.log(rankedWarDescription);
-        if (rankedWarDescription == null) {
+      (rankedWarMembersContainer) => {
+        if (rankedWarMembersContainer == null) {
           return false;
         }
         document.querySelectorAll(`div.level[class*="level_"]`).forEach(transformRankedWarLevelNode);
@@ -482,37 +483,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
 
-  // pages/search.js
-  function startSearchUserListObserver() {
+  // pages/people-abroad.js
+  function startAbroadUserListObserver() {
     window.addEventListener("hashchange", hashChangeCallback);
     hashChangeCallback();
     injectStyles();
   }
   function hashChangeCallback(event) {
-    waitForElement(`ul.user-info-list-wrap li[class^="user"] div.expander`).then(() => {
-      const userNodes = document.querySelectorAll(`li[class^="user"]`);
-      Array.from(userNodes).forEach(injectStats2);
+    waitForElement("ul.users-list li.last").then(() => {
+      injectUpdatedHeader();
+      const userNodes = document.querySelectorAll("li a.user.name");
+      Array.from(userNodes).forEach((userNode) => {
+        const userNodeContainer = userNode.closest("li");
+        if (userNodeContainer == null) {
+          return;
+        }
+        injectStats2(userNodeContainer);
+      });
     });
   }
   var concurrencyLimiter2 = limitConcurrency(10);
   function injectStats2(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {
       return;
-    } else if ("last" in addedNode.classList) {
+    }
+    const statContainer = addedNode.querySelector("div.center-side-bottom.left");
+    if (statContainer == null) {
       return;
     }
-    const userContainer = addedNode.querySelector(".expander");
-    if (userContainer == null) {
-      return;
-    }
-    const userNode = userContainer.querySelector(".user.name");
+    const userNode = addedNode.querySelector("a.user.name");
     const userURL = new URL(userNode.href);
     const userID = new URLSearchParams(userURL.search).get("XID");
     const statSpan = document.createElement("span");
-    statSpan.classList.add("tornium-estimate-search-user-stat");
-    statSpan.id = `tornium-estimate-search-user-stat-${userID}`;
+    statSpan.classList.add("tornium-estimate-abroad-user-stat");
     statSpan.innerText = "...";
-    userContainer.append(statSpan);
+    statContainer.append(statSpan);
     concurrencyLimiter2(() => {
       return getUserStats(userID);
     }).then((statsData) => {
@@ -549,6 +554,87 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function injectStyles() {
+    GM_addStyle(".tornium-estimate-abroad-user-stat {font-size: 12px; padding-right: 10px; float: right;}");
+    GM_addStyle(".tornium-estimate-abroad-header-right {float: right; padding-right: 10px;}");
+  }
+  function injectUpdatedHeader() {
+    const iconsHeader = document.querySelector("div.users-list-title div.icons-b");
+    if (iconsHeader == null) {
+      return;
+    }
+    const right = document.createElement("span");
+    right.className = "tornium-estimate-abroad-header-right";
+    right.textContent = "Fair Fight";
+    iconsHeader.append(right);
+  }
+
+  // pages/search.js
+  function startSearchUserListObserver() {
+    window.addEventListener("hashchange", hashChangeCallback2);
+    hashChangeCallback2();
+    injectStyles2();
+  }
+  function hashChangeCallback2(event) {
+    waitForElement(`ul.user-info-list-wrap li[class^="user"] div.expander`).then(() => {
+      const userNodes = document.querySelectorAll(`li[class^="user"]`);
+      Array.from(userNodes).forEach(injectStats3);
+    });
+  }
+  var concurrencyLimiter3 = limitConcurrency(10);
+  function injectStats3(addedNode) {
+    if (addedNode.nodeName.toLowerCase() != "li") {
+      return;
+    } else if ("last" in addedNode.classList) {
+      return;
+    }
+    const userContainer = addedNode.querySelector(".expander");
+    if (userContainer == null) {
+      return;
+    }
+    const userNode = userContainer.querySelector(".user.name");
+    const userURL = new URL(userNode.href);
+    const userID = new URLSearchParams(userURL.search).get("XID");
+    const statSpan = document.createElement("span");
+    statSpan.classList.add("tornium-estimate-search-user-stat");
+    statSpan.id = `tornium-estimate-search-user-stat-${userID}`;
+    statSpan.innerText = "...";
+    userContainer.append(statSpan);
+    concurrencyLimiter3(() => {
+      return getUserStats(userID);
+    }).then((statsData) => {
+      if (statsData.error != void 0) {
+        log(`OAuth Error: ${statsData.error_description}`);
+        statSpan.innerText = `ERR`;
+      } else if (statsData.code === 1100) {
+        injectEstimate3(statSpan, userID);
+      } else if (statsData.code != void 0) {
+        log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
+        statSpan.innerText = `ERR`;
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+        statSpan.innerText = fairFight(statsData.stat_score);
+      } else {
+        injectEstimate3(statSpan, userID);
+      }
+    });
+  }
+  function injectEstimate3(statSpan, userID) {
+    concurrencyLimiter3(() => {
+      return getUserEstimate(userID);
+    }).then((estimateData) => {
+      if (estimateData.error != void 0) {
+        log(`OAuth Error: ${estimateData.error_description}`);
+        statSpan.innerText = `ERR`;
+      } else if (estimateData.code === 1100) {
+        statSpan.innerText = "N/A";
+      } else if (estimateData.code != void 0) {
+        log(`Tornium Error: [${estimateData.code}] - ${estimateData.message}`);
+        statSpan.innerText = `ERR`;
+      } else {
+        statSpan.innerText = fairFight(estimateData.stat_score);
+      }
+    });
+  }
+  function injectStyles2() {
     if (clientMobile) {
       GM_addStyle(
         ".tornium-estimate-search-user-stat {font-size: 12px; display: inline-block; right: 0px; position: absolute; padding-right: 40px;}"
@@ -782,10 +868,10 @@ margin: 8px 6px 0 0;
     const userID = parseInt(query.get("XID"));
     createSettingsButton();
     const [statsSpan, estimateSpan] = createProfileContainer();
-    const statsPromise = getUserStats(userID).then((statsData) => {
+    getUserStats(userID).then((statsData) => {
       updateProfileStatsSpan(statsData, statsSpan);
     });
-    const estimatePromise = getUserEstimate(userID).then((estimateData) => {
+    getUserEstimate(userID).then((estimateData) => {
       updateProfileEstimateSpan(estimateData, estimateSpan);
     });
   } else if (window.location.pathname.startsWith("/profiles.php")) {
@@ -816,8 +902,9 @@ margin: 8px 6px 0 0;
   } else if (window.location.pathname == "/loader.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
     const userID = parseInt(query.get("user2ID"));
     if (!isNaN(userID) && userID != null) {
-      console.log(userID);
       injectAttackLoaderStats(userID);
     }
+  } else if (window.location.pathname == "/index.php" && query.get("page") == "people" && isEnabledOn("people-abroad")) {
+    startAbroadUserListObserver();
   }
 })();

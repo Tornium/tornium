@@ -21,6 +21,7 @@ import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { injectAttackLoaderStats } from "./pages/attack-loader.js";
 import { checkRankedWarToggleState } from "./pages/faction-rw.js";
+import { startAbroadUserListObserver } from "./pages/people-abroad.js";
 import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
 import { startSearchUserListObserver } from "./pages/search.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
@@ -78,10 +79,10 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     createSettingsButton();
     const [statsSpan, estimateSpan] = createProfileContainer();
 
-    const statsPromise = getUserStats(userID).then((statsData) => {
+    getUserStats(userID).then((statsData) => {
         updateProfileStatsSpan(statsData, statsSpan);
     });
-    const estimatePromise = getUserEstimate(userID).then((estimateData) => {
+    getUserEstimate(userID).then((estimateData) => {
         updateProfileEstimateSpan(estimateData, estimateSpan);
     });
 } else if (window.location.pathname.startsWith("/profiles.php")) {
@@ -122,7 +123,9 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const userID = parseInt(query.get("user2ID"));
 
     if (!isNaN(userID) && userID != null) {
-        console.log(userID);
         injectAttackLoaderStats(userID);
     }
+} else if (window.location.pathname == "/index.php" && query.get("page") == "people" && isEnabledOn("people-abroad")) {
+    // This is the entrypoint for the page listing users who are abroad in a specific country
+    startAbroadUserListObserver();
 }

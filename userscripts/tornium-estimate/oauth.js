@@ -29,7 +29,6 @@ export function isAuthExpired() {
         return true;
     }
 
-    // TODO: Maybe check the API to determine if the access token is expired or revoked
     return false;
 }
 
@@ -40,7 +39,6 @@ export function authStatus() {
         return "Expired";
     }
 
-    // TODO: Maybe check the API to determine if the access token is expired or revoked
     return "Connected";
 }
 

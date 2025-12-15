@@ -20,6 +20,7 @@ export const PAGE_OPTIONS = [
     { id: "faction-rw", label: "Faction Ranked War" },
     { id: "search", label: "Advanced Search" },
     { id: "attack-loader", label: "Attack Loader" },
+    { id: "people-abroad", label: "People Abroad" },
 ];
 
 export const Config = new Proxy(
@@ -42,12 +43,12 @@ export const Config = new Proxy(
             const defaults = target.defaults || {};
             const def = prop in defaults ? defaults[prop] : undefined;
 
-            return GM_getValue(prop, def);
+            return GM_getValue(`tornium-estimate:config:${prop}`, def);
         },
 
         set(target, prop, value, receiver) {
             log(`Set ${prop} to ${value}`);
-            GM_setValue(prop, value);
+            GM_setValue(`tornium-estimate:config:${prop}`, value);
 
             return true;
         },

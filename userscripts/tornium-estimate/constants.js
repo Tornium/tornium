@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 export const DEBUG = false;
 export const BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
 export const ENABLE_LOGGING = true;
-export const VERSION = "0.5.4";
+export const VERSION = "0.5.5";
 export const APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 export const APP_SCOPE = "torn_key:usage";
 export const CACHE_ENABLED = "caches" in window;

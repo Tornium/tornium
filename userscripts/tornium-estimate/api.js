@@ -51,8 +51,8 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
 
                 if (responseJSON.error !== undefined) {
                     // TODO: Replace check with WWW-Authenticate header
-                    GM_deleteValue("tornium-retaliations:access-token");
-                    GM_deleteValue("tornium-retaliations:access-token-expires");
+                    GM_deleteValue("tornium-estimate:access-token");
+                    GM_deleteValue("tornium-estimate:access-token-expires");
 
                     // TODO: Determine how this could use .reject but still have the response processed normally
                     resolve(responseJSON);

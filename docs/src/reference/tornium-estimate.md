@@ -12,6 +12,7 @@ Currently, the userscript supports the following in-game pages:
 - [Faction RW](#faction-rw)
 - [Advanced Search](#advanced-search)
 - [Attack Loader](#attack-loader)
+- [Abroad Users](#abroad-people)
 
 ### Profile
 On both your and other users' profiles, the userscript will show both the last accessible stat for the user according the stat DB and the user's stat estimate. Additionally, here you can access userscript's settings by pressing the `Estimate Settings` button.
@@ -34,3 +35,8 @@ For in-game donators/subscribers, you can use the advanced search to filter and 
 On attack loaders, Tornium will show the user's stats from the stat DB or stat estimate underneath the `Start Fight` button.
 
 ![Tornium estimate attack loader](../images/tornium-estimate-attack-loader.png)
+
+### Abroad People
+When abroad in a different country, Tornium will show the fair fights of the users next to the targets' icons.
+
+![Tornium estimate abroad users](../images/tornium-estimate-abroad-users.png)

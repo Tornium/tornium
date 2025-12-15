@@ -23,10 +23,8 @@ export function checkRankedWarToggleState(event) {
     // We need to ensure the element we're waiting on is far enough down the tree that the table will be inserted into the DOM
     // before the callback is executed.
     waitForElement(`div.desc-wrap[class*="warDesc"] div.faction-war div.members-cont`, 2500).then(
-        (rankedWarDescription) => {
-            // FIXME: rename variable
-            console.log(rankedWarDescription);
-            if (rankedWarDescription == null) {
+        (rankedWarMembersContainer) => {
+            if (rankedWarMembersContainer == null) {
                 // This element only exists when the ranked war section has been toggled.
                 return false;
             }

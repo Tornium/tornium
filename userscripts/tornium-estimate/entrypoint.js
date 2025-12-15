@@ -78,10 +78,10 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     createSettingsButton();
     const [statsSpan, estimateSpan] = createProfileContainer();
 
-    const statsPromise = getUserStats(userID).then((statsData) => {
+    getUserStats(userID).then((statsData) => {
         updateProfileStatsSpan(statsData, statsSpan);
     });
-    const estimatePromise = getUserEstimate(userID).then((estimateData) => {
+    getUserEstimate(userID).then((estimateData) => {
         updateProfileEstimateSpan(estimateData, estimateSpan);
     });
 } else if (window.location.pathname.startsWith("/profiles.php")) {
@@ -122,7 +122,6 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const userID = parseInt(query.get("user2ID"));
 
     if (!isNaN(userID) && userID != null) {
-        console.log(userID);
         injectAttackLoaderStats(userID);
     }
 }

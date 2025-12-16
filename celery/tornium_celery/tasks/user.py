@@ -662,7 +662,7 @@ def stat_db_attacks_user(user_data):
     name="tasks.user.check_api_keys",
     routing_key="quick.check_api_keys",
     queue="quick",
-    time_limit=5,
+    time_limit=30,
 )
 @with_db_connection
 def check_api_keys():
@@ -689,7 +689,7 @@ def check_api_keys():
         )(check_api_key_sub.signature(kwargs={"guid": key.guid}))
 
     for key_user in (
-        TornKey.select(TornKey.user)
+        TornKey.select()
         .join(User)
         .distinct(TornKey.user)
         .where((TornKey.disabled == False) & (TornKey.paused == False))

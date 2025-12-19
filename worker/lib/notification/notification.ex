@@ -598,8 +598,11 @@ defmodule Tornium.Notification do
     |> Map.put(:state, state)
   end
 
-  @spec update_passthrough_state(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) ::
-          Tornium.Lua.trigger_return()
+  @spec update_passthrough_state(
+          Tornium.Notification.Lua.trigger_return(),
+          notification :: Tornium.Schema.Notification.t()
+        ) ::
+          Tornium.Notification.Lua.trigger_return()
   defp update_passthrough_state(
          {:ok, [triggered?: true, render_state: %{} = _render_state, passthrough_state: %{} = passthrough_state]} =
            trigger_return,

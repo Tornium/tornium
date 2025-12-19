@@ -78,15 +78,17 @@ Tornium - Faction Bot Dashboard
                 In order to set other bot configurations, please set the faction's guild ID first.
             </p>
 
-            <form class="form-floating" method="POST" action="/faction/bot">
-                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
-                <label for="guildid">Guild ID</label>
-            </form>
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <form class="form-floating input-group" method="POST" action="/faction/bot">
+                        <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
+                        <label for="guildid">Guild ID</label>
+                        <button type="submit" class="btn btn-outline-success">Set</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="/static/faction/guild.js"></script>
-{% endblock %}

@@ -14,10 +14,31 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Logic do
-  # TODO: Add shared state struct for the roles and nick instead of an untyped map
+  @moduledoc """
+  The logic funcitons for verifying a user.
 
-  @spec insert_update_roles(state :: map(), new_values :: list(String.t())) :: map()
+  This module contains the functions required to modify the `state()` for each step of
+  verifying a user regardless of whether the user is verified or unverified. Each
+  verification step funciton either adds or removes roles depending on if they're valid
+  for the user's faction, verification status, etc. or updates the user's nickname.
+  """
+
+  @typedoc """
+  State of the verification logic.
+
+  This stores the nickname and roles of the user being verified to be passed between the
+  intermediate logic functions.
+  """
+  @type state :: %{roles: MapSet.t(Tornium.Discord.role()), nick: String.t()}
+
+  # TODO: Determine if the type for new_values in the DB is actually String.t() or 
+  # Tornium.Discord.role()
+  @spec insert_update_roles(state :: state(), new_values :: [String.t()]) :: state()
   defp insert_update_roles(state, new_values) do
+    # Inserts or updates the :roles key in the state for the list of roles. If there is
+    # no :roles key, the new values will be used as the existing list of values. Otherwise,
+    # the new values will be inserted into the existing list of roles (with duplicates
+    # removed).
     Map.update(state, :roles, MapSet.new(new_values), fn existing_roles ->
       MapSet.union(existing_roles, MapSet.new(new_values))
     end)
@@ -35,11 +56,10 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec set_verified_name(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
-        ) ::
-          map()
+        ) :: state()
   def set_verified_name(
         state,
         %Tornium.Guild.Verify.Config{} = _server_config = %{verify_template: template},
@@ -88,15 +108,17 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec set_verified_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
-        ) :: map()
-  def set_verified_roles(
-        state,
-        %Tornium.Guild.Verify.Config{verified_roles: roles} = _server_config,
-        %Tornium.Schema.User{} = _user
-      ) do
+        ) :: state()
+  def(
+    set_verified_roles(
+      state,
+      %Tornium.Guild.Verify.Config{verified_roles: roles} = _server_config,
+      %Tornium.Schema.User{} = _user
+    )
+  ) do
     insert_update_roles(state, roles)
   end
 
@@ -111,14 +133,13 @@ defmodule Tornium.Guild.Verify.Logic do
   ## Returns
     - State map
   """
-  @spec remove_invalid_verified_roles(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: nil) ::
-          map()
+  @spec remove_invalid_verified_roles(state :: state(), server_config :: Tornium.Guild.Verify.Config.t(), user :: nil) ::
+          state()
   def remove_invalid_verified_roles(
         state,
         %Tornium.Guild.Verify.Config{verified_roles: verified_roles} = _server_config,
-        user
-      )
-      when is_nil(user) do
+        nil = _user
+      ) do
     updated_roles =
       state
       |> Map.get(:roles)
@@ -138,7 +159,7 @@ defmodule Tornium.Guild.Verify.Logic do
   ## Returns
     - State map
   """
-  @spec set_unverified_roles(state :: map(), server_config :: Tornium.Guild.Verify.Config.t(), user :: nil) :: map()
+  @spec set_unverified_roles(state :: state(), server_config :: Tornium.Guild.Verify.Config.t(), user :: nil) :: state()
   def set_unverified_roles(
         state,
         %Tornium.Guild.Verify.Config{unverified_roles: unverified_roles} = _server_config,
@@ -152,10 +173,10 @@ defmodule Tornium.Guild.Verify.Logic do
   Updates a state map to remove unverified roles that are invalid for users that are verified based on the server's configuration.
   """
   @spec remove_invalid_unverified_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
-        ) :: map()
+        ) :: state()
   def remove_invalid_unverified_roles(
         state,
         %Tornium.Guild.Verify.Config{unverified_roles: unverified_roles} = _server_config,
@@ -181,10 +202,10 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec remove_invalid_faction_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t() | nil
-        ) :: map()
+        ) :: state()
   def remove_invalid_faction_roles(
         state,
         %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
@@ -224,7 +245,7 @@ defmodule Tornium.Guild.Verify.Logic do
     Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
   end
 
-  @spec can_set_faction_roles?(faction_verify :: map(), user :: Tornium.Schema.User.t()) :: boolean()
+  @spec can_set_faction_roles?(faction_verify :: state(), user :: Tornium.Schema.User.t()) :: boolean()
   defp can_set_faction_roles?(faction_verify, user) do
     faction_config = Map.get(faction_verify, Integer.to_string(user.faction.tid || 0), %{})
     Map.get(faction_config, "enabled", false)
@@ -242,11 +263,11 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec set_faction_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
         ) ::
-          map()
+          state()
   def set_faction_roles(
         %{} = state,
         %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
@@ -276,10 +297,10 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec remove_invalid_faction_position_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t() | nil
-        ) :: map()
+        ) :: state()
   def remove_invalid_faction_position_roles(
         state,
         %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,
@@ -326,7 +347,7 @@ defmodule Tornium.Guild.Verify.Logic do
     Map.replace(state, :roles, MapSet.difference(Map.get(state, :roles), roles_to_remove))
   end
 
-  @spec can_set_faction_position_roles?(faction_verify :: map(), user :: Tornium.Schema.User.t()) :: boolean()
+  @spec can_set_faction_position_roles?(faction_verify :: state(), user :: Tornium.Schema.User.t()) :: boolean()
   defp can_set_faction_position_roles?(faction_verify, user) do
     cond do
       user.faction.tid == 0 or is_nil(user.faction.tid) ->
@@ -365,10 +386,10 @@ defmodule Tornium.Guild.Verify.Logic do
     - State map
   """
   @spec set_faction_position_roles(
-          state :: map(),
+          state :: state(),
           server_config :: Tornium.Guild.Verify.Config.t(),
           user :: Tornium.Schema.User.t()
-        ) :: map()
+        ) :: state()
   def set_faction_position_roles(
         state,
         %Tornium.Guild.Verify.Config{faction_verify: faction_verify} = _server_config,

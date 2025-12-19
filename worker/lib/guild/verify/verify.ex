@@ -14,12 +14,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify do
+  @moduledoc """
+  Module to process the verification of users according to a server's configuration and 
+  the user's current roles and nick, the user's Torn/Discord ID, and the user's Torn
+  data.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
   require Logger
 
   # TODO: Comment the private methods
   # TODO: Combine some of the types with pre-defined types
+
+  @typedoc """
+  The state of the verification process after resolving the `MapSet` of roles
+  into a list.
+  """
+  @type resolved_state :: %{roles: [Tornium.Discord.role()], nick: String.t()}
 
   @doc """
   Handle verification of a user in a server
@@ -144,13 +156,22 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
-  @spec validate_changes_made(new_roles_nick :: map(), original_roles :: List, original_nick :: String) ::
-          map() | :nochanges
-  defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick) do
+  @spec validate_changes_made(
+          new_roles_nick :: Tornium.Guild.Verify.Logic.state(),
+          original_roles :: [Tornium.Discord.role()],
+          original_nick :: String.t()
+        ) ::
+          resolved_state() | :nochanges
+  defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick)
+       when is_list(original_roles) and is_binary(original_nick) do
     patched_map =
       %{roles: MapSet.to_list(roles), nick: nick}
-      |> then(fn patched_map -> if roles == original_roles, do: Map.delete(patched_map, :roles), else: patched_map end)
-      |> then(fn patched_map -> if nick == original_nick, do: Map.delete(patched_map, :nick), else: patched_map end)
+      |> then(fn patched_map ->
+        if Map.get(patched_map, :roles) == original_roles, do: Map.delete(patched_map, :roles), else: patched_map
+      end)
+      |> then(fn patched_map ->
+        if Map.get(patched_map, :nick) == original_nick, do: Map.delete(patched_map, :nick), else: patched_map
+      end)
 
     if Kernel.map_size(patched_map) == 0 do
       :nochanges
@@ -163,7 +184,7 @@ defmodule Tornium.Guild.Verify do
           {:ok, boolean()} | {:error, Tornium.API.Error.t()},
           config :: Tornium.Guild.Verify.Config.t(),
           member :: Nostrum.Struct.Guild.Member.t()
-        ) :: {:verified, map()} | Tornium.API.Error.t() | {:unverified, map()} | :nochanges
+        ) :: {:verified, resolved_state()} | Tornium.API.Error.t() | {:unverified, resolved_state()} | :nochanges
   defp build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
          roles: roles,
          nick: nick,
@@ -229,7 +250,8 @@ defmodule Tornium.Guild.Verify do
   end
 
   @spec perform_changes(
-          changeset :: {:verified, map()} | {:unverified, map()} | :nochanges | Tornium.API.Error.t(),
+          changeset ::
+            {:verified, resolved_state()} | {:unverified, resolved_state()} | :nochanges | Tornium.API.Error.t(),
           guild :: Tornium.Schema.Server.t(),
           member :: Nostrum.Struct.Guild.Member.t()
         ) ::

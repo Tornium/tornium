@@ -12,8 +12,8 @@ state = state
 state.last_triggered = state.last_triggered or {}
 
 -- Preprocessed variables
----@type integer
-MINUTES = MINUTES or 5
+---@type number
+MINUTES = tonumber(MINUTES) or 5
 
 function string.starts_with(match_string, starts)
   return string.sub(match_string, 1, #starts) == starts

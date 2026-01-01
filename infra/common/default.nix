@@ -63,4 +63,7 @@
   sops.secrets."postgres/password" = {owner = "postgres"; };
   sops.secrets."postgres/replicator_password" = {owner = "postgres"; };
   sops.secrets."postgres/admin_password" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/aes_encryption_key" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/backblaze_key_id" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/backblaze_key" = { owner = "postgres"; };
 }

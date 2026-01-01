@@ -7,6 +7,7 @@
     ../modules/nginx-prometheus-exporter.nix
     ../modules/nginx-status.nix
     ../modules/postgresql-replica.nix
+    ../modules/postgresql-pgbackrest.nix
     ../modules/prometheus.nix
     ../common/default.nix
     ../common/users/default.nix

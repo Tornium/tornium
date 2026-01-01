@@ -22,7 +22,7 @@ defmodule Tornium.Notification do
 
   @type trigger_resource() :: :user | :faction
   @type render_errors() :: {:error, :template_parse_error | :template_render_error, String.t()}
-  @type render_validation_errors :: {:error, :template_decode_error, Jason.DecodeError.t()}
+  @type render_validation_errors() :: {:error, :template_decode_error, Jason.DecodeError.t()}
 
   @doc """
   Execute all notifications against a specific resource (e.g. a certain user ID) with a single API call to retrieve the union.
@@ -31,7 +31,7 @@ defmodule Tornium.Notification do
           resource :: trigger_resource(),
           resource_id :: integer(),
           notifications :: [Tornium.Schema.Notification.t()]
-        ) :: [Tornium.Lua.trigger_return()] | nil
+        ) :: [Tornium.Notification.Lua.trigger_return()] | nil
   def execute_resource(resource, resource_id, notifications) when is_list(notifications) do
     # Determine the union of selections and users for all notifications against a specific resource and resource ID
     {selections, users} =
@@ -227,6 +227,13 @@ defmodule Tornium.Notification do
     :error
   end
 
+  defp filter_response(%{"error" => _error} = response, _resource, _selections) do
+    # When the response is a Torn error, the error should be passed through this so that the
+    # error doesn't get filtered out as an invalid key.
+
+    response
+  end
+
   defp filter_response(response, resource, selections) when is_list(selections) do
     valid_keys =
       Enum.reduce(selections, MapSet.new([]), fn selection, acc ->
@@ -238,7 +245,7 @@ defmodule Tornium.Notification do
 
   # Handle the API response by running the notification's Lua code and generate the message
   @spec handle_api_response(
-          response :: map(),
+          response :: :error | map(),
           trigger :: Tornium.Schema.Trigger.t(),
           notifications :: [Tornium.Schema.Notification.t()]
         ) :: {:error, Tornium.API.Error.t()} | list(nil)
@@ -265,7 +272,10 @@ defmodule Tornium.Notification do
 
   # Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the states will be used
   # to create the message to be sent/updated. If there's an error from the Lua code, the notification will be disabled.
-  @spec handle_lua_states(Tornium.Lua.trigger_return(), notification :: Tornium.Schema.Notification.t()) :: nil
+  @spec handle_lua_states(
+          Tornium.Notification.Lua.trigger_return(),
+          notification :: Tornium.Schema.Notification.t()
+        ) :: nil
   defp handle_lua_states(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{
@@ -313,12 +323,15 @@ defmodule Tornium.Notification do
   end
 
   defp handle_lua_states({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
-    IO.inspect(reason, label: "Notification error reason")
+    reason
+    |> inspect(label: "Notification error reason")
+    |> Logger.info()
+
     # TODO: Handle this error
     {:error, reason}
   end
 
-  defp handle_lua_states(trigger_return, notification) do
+  defp handle_lua_states(_trigger_return, _notification) do
     # Invalid response
     throw(Exception)
   end

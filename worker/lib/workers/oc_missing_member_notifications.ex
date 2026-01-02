@@ -137,7 +137,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
          %{
            user_id: user_id,
            user_name: user_name,
-           user_discord_id: user_discord_id,
+           user_discord_id: _user_discord_id,
            user_faction_name: user_faction_name,
            last_oc_id: _last_oc_id,
            last_oc_executed_at: last_oc_executed_at
@@ -148,7 +148,9 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
        when is_integer(channel_id) and channel_id > 0 and is_list(roles) and is_nil(last_oc_executed_at) do
     %Nostrum.Struct.Message{
       channel_id: channel_id,
-      content: Tornium.Discord.roles_to_string(roles, assigns: [{:user, user_discord_id}]),
+      # TODO: Role and missing user pings are disabled until the feature can check that the member isn't
+      # in recruit status
+      # content: Tornium.Discord.roles_to_string(roles, assigns: [{:user, user_discord_id}]),
       embeds: [
         %Nostrum.Struct.Embed{
           title: "Member OC Join Required",

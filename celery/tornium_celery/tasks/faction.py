@@ -642,7 +642,7 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
                 opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
             else:
                 opponent_score = (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user.battlescore
-        except DivisionByZero:
+        except (DivisionByZero, ZeroDivisionError):
             continue
 
         if opponent_score == 0:
@@ -820,7 +820,7 @@ def generate_retaliation_embed(
         ):  # Three days
             try:
                 opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
-            except DivisionByZero:
+            except (DivisionByZero, ZeroDivisionError):
                 opponent_score = 0
 
             if opponent_score != 0:

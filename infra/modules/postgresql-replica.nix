@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -30,11 +30,11 @@
   services.postgresql.authentication = pkgs.lib.mkOverride 10 ''
     # Allow local superuser
     # type database user auth-method
+    local all postgres peer
     local all Tornium scram-sha-256
 
     # Allow local IPv4 and IPv6 loopback
     # type database user address auth-method
-    host all postgres peer
     host Tornium Tornium 127.0.0.1/32 scram-sha-256
     host Tornium Tornium ::1/128 scram-sha-256
 

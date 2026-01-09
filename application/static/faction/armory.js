@@ -25,13 +25,15 @@ window.viewerErrorCallback = function (jsonError, container) {
     container.appendChild(errorNode);
 };
 
-function itemToString(item) {
+function itemToString(item, quantity = null) {
+    quantity = quantity == null ? item.quantity : quantity;
+
     if (item.id != null) {
-        return `${item.quantity}x ${item.name}`;
+        return `${quantity}x ${item.name}`;
     } else if (item.is_nerve_refill) {
-        return `${item.quantity}x nerve refill`;
+        return `${quantity}x nerve refill`;
     } else if (item.is_energy_refill) {
-        return `${item.quantity}x energy refill`;
+        return `${quantity}x energy refill`;
     } else {
         return "Unknown";
     }
@@ -84,6 +86,39 @@ window.addUsageLogToViewer = function (log, logContainer) {
     const viewActionIcon = document.createElement("i");
     viewActionIcon.classList.add("fa-regular", "fa-eye");
     viewAction.append(viewActionIcon);
+};
+
+window.addCumulativeToViewer = function (group, groupContainer) {
+    const groupNode = document.createElement("div");
+    groupNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
+    groupContainer.append(groupNode);
+
+    const groupRow = document.createElement("div");
+    groupRow.classList.add("row", "p-2", "align-middle");
+    groupNode.append(groupRow);
+
+    const groupNameElement = document.createElement("div");
+    groupNameElement.classList.add("col-sm-12", "col-md-4");
+    groupNameElement.textContent = `${group.user.name} [${group.user.id}]`;
+    groupRow.append(groupNameElement);
+
+    const groupActionElement = document.createElement("div");
+    groupActionElement.classList.add("col-sm-12", "col-md-2");
+    groupActionElement.textContent = group.action;
+    groupRow.append(groupActionElement);
+
+    const groupItemElement = document.createElement("div");
+    groupItemElement.classList.add("col-sm-12", "col-md-3", "text-truncate");
+    groupItemElement.textContent = itemToString(group.item, group.cumulative_quantity);
+    groupRow.append(groupItemElement);
+
+    const groupActionsContainer = document.createElement("div");
+    groupActionsContainer.classList.add("col-sm-12", "col-md-1", "mt-2", "mt-md-0");
+    groupRow.append(groupActionsContainer);
+
+    const groupActions = document.createElement("div");
+    groupActions.classList.add("w-100", "justify-content-end", "d-flex");
+    groupActionsContainer.append(groupActions);
 };
 
 window.filterTomSelectMultiple = function (element) {

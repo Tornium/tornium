@@ -29,11 +29,11 @@ function itemToString(item, quantity = null) {
     quantity = quantity == null ? item.quantity : quantity;
 
     if (item.id != null) {
-        return `${quantity}x ${item.name}`;
+        return `${commas(quantity)}x ${item.name}`;
     } else if (item.is_nerve_refill) {
-        return `${quantity}x nerve refill`;
+        return `${commas(quantity)}x nerve refill`;
     } else if (item.is_energy_refill) {
-        return `${quantity}x energy refill`;
+        return `${commas(quantity)}x energy refill`;
     } else {
         return "Unknown";
     }

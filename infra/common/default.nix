@@ -5,11 +5,13 @@
     ./users
   ];
 
+  system.stateVersion = "25.11";
+
   # Clean /tmp on boot
-  boot.cleanTmpDir = true;
+  boot.tmp.cleanOnBoot = true;
 
   # Hard-link identical files together to save storage space
-  nix.autoOptimiseStore = true;
+  nix.settings.auto-optimise-store = true;
 
   time.timeZone = "UTC";
 

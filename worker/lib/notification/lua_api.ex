@@ -47,7 +47,7 @@ defmodule Tornium.Notification.Lua.API do
   will fallback to `nil`.
   """
   deflua to_boolean(value) do
-    case value do
+    case String.downcase(value) do
       _ when value in ["true", 1] ->
         true
 

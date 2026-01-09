@@ -41,4 +41,21 @@ defmodule Tornium.Notification.Lua.API do
         |> get_discord_id()
     end
   end
+
+  @doc """
+  Convert a string of "true" or "false" into their boolean equivalents. If it does not match, it
+  will fallback to `nil`.
+  """
+  deflua to_boolean(value) do
+    case value do
+      _ when value in ["true", 1] ->
+        true
+
+      _ when value in ["false", 0] ->
+        false
+
+      _ ->
+        nil
+    end
+  end
 end

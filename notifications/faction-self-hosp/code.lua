@@ -1,9 +1,12 @@
 ---@alias MemberStatus {color: "blue" | "green" | "red", until: integer, state: "Abroad" | "Fallen" | "Federal" | "Hospital" | "Jail" | "Okay" | "Traveling", details: string, description: string}
 ---@alias Member {status: MemberStatus, name: string, id: integer | nil, discord: string | nil}
+---@alias RankedWarStatus {start: integer, end: integer, target: integer, winner: integer}
+---@alias RankedWar {war: RankedWarStatus}
 
 -- `faction` is the API response for the series of selections used
 ---@class Faction
 ---@field members table<string, Member>
+---@field ranked_wars table<string, RankedWar>
 faction = faction
 
 ---@class State
@@ -14,6 +17,8 @@ state.last_triggered = state.last_triggered or {}
 -- Preprocessed variables
 ---@type number
 MINUTES = tonumber(MINUTES) or 5
+---@type boolean
+ONLY_RW = tornium.to_boolean(ONLY_RW) or false
 
 function string.starts_with(match_string, starts)
   return string.sub(match_string, 1, #starts) == starts
@@ -22,6 +27,20 @@ end
 local members_leaving_hosp = {}
 local leaving_hospital_count = 0
 local now_timestamp = math.floor(os.time(os.date("!*t")))
+
+if ONLY_RW then
+  local ranked_war_id, ranked_war = next(faction.ranked_wars)
+
+  if ranked_war_id == nil or ranked_war == nil then
+    return false, {}, state
+  elseif ranked_war.war.start > now_timestamp then
+    -- Ranked war has not begun yet
+    return false, {}, state
+  elseif ranked_war.war["end"] < now_timestamp then
+    -- Ranked war has ended
+    return false, {}, state
+  end
+end
 
 ---@param member_id string
 ---@return boolean

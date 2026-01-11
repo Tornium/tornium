@@ -46,7 +46,7 @@ defmodule Tornium.Notification.Lua.API do
   Convert a string of "true" or "false" into their boolean equivalents. If it does not match, it
   will fallback to `nil`.
   """
-  deflua to_boolean(value) do
+  deflua to_boolean(value) when is_binary(value) do
     case String.downcase(value) do
       _ when value in ["true", 1] ->
         true
@@ -57,5 +57,9 @@ defmodule Tornium.Notification.Lua.API do
       _ ->
         nil
     end
+  end
+
+  deflua to_boolean(_value) do
+    nil
   end
 end

@@ -72,6 +72,15 @@ defmodule Tornium.Schema.ArmoryUsage do
   @spec insert_all(news :: [Tornium.Faction.News.ArmoryAction.t()], faction_id :: non_neg_integer()) ::
           {non_neg_integer(), nil | [term()]}
   def insert_all([%Tornium.Faction.News.ArmoryAction{} | _] = news, faction_id) when is_integer(faction_id) do
+    # We want to ensure that the users and recipients of the armory news are already in the database before
+    # inserting the news to prevent foreign key violations.
+    news
+    |> Enum.flat_map(fn %Tornium.Faction.News.ArmoryAction{user_id: user_id, recipient_id: recipient_id} ->
+      [user_id, recipient_id]
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Tornium.Schema.User.ensure_exists()
+
     mapped_news =
       Enum.map(news, fn %Tornium.Faction.News.ArmoryAction{} = armory_news -> map(armory_news, faction_id) end)
 

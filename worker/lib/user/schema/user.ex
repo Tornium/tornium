@@ -14,31 +14,38 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.User do
+  @moduledoc """
+  Schema representing a Torn user.
+  """
+
   use Ecto.Schema
   import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
-          tid: integer(),
-          name: String.t(),
-          level: integer(),
-          discord_id: integer(),
-          battlescore: float(),
-          strength: integer(),
-          defense: integer(),
-          speed: integer(),
-          dexterity: integer(),
-          faction: Tornium.Schema.Faction.t(),
+          tid: pos_integer(),
+          name: String.t() | nil,
+          level: 0..100 | nil,
+          discord_id: non_neg_integer() | nil,
+          battlescore: float() | nil,
+          strength: pos_integer() | nil,
+          defense: pos_integer() | nil,
+          speed: pos_integer() | nil,
+          dexterity: pos_integer() | nil,
+          faction_id: pos_integer() | nil,
+          faction: Tornium.Schema.Faction.t() | nil,
           faction_aa: boolean(),
-          faction_position: Tornium.Schema.FactionPosition.t(),
-          status: String.t(),
-          last_action: DateTime.t(),
-          last_refresh: DateTime.t(),
-          last_attacks: DateTime.t(),
-          battlescore_update: DateTime.t(),
-          security: integer(),
-          otp_secret: String.t(),
+          faction_position_id: Ecto.UUID.t() | nil,
+          faction_position: Tornium.Schema.FactionPosition.t() | nil,
+          status: String.t() | nil,
+          last_action: DateTime.t() | nil,
+          last_refresh: DateTime.t() | nil,
+          last_attacks: DateTime.t() | nil,
+          battlescore_update: DateTime.t() | nil,
+          security: 0..1 | nil,
+          otp_secret: String.t() | nil,
           otp_backups: [String.t()],
+          settings_id: Ecto.UUID.t() | nil,
           settings: Tornium.Schema.UserSettings.t() | nil
         }
 
@@ -66,6 +73,7 @@ defmodule Tornium.Schema.User do
     field(:last_attacks, :utc_datetime_usec)
     field(:battlescore_update, :utc_datetime_usec)
 
+    # TODO: Convert `:security` into an Ecto Enum
     field(:security, :integer)
     field(:otp_secret, :string)
     field(:otp_backups, {:array, :string})

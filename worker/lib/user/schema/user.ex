@@ -19,7 +19,6 @@ defmodule Tornium.Schema.User do
   """
 
   use Ecto.Schema
-  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{

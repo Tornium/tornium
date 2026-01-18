@@ -23,6 +23,11 @@ state = state
 ---@type integer
 TRAVEL_METHOD = tonumber(TRAVEL_METHOD) or 1 -- Defaults to standard travel
 
+if type(TRAVEL_METHOD) ~= "number" or TRAVEL_METHOD % 1 ~= 0 or TRAVEL_METHOD < 1 or TRAVEL_METHOD > 4 then
+  -- The TRAVEL_METHOD must be an integer between 1 and 4
+  return false, {}, state
+end
+
 if state.members == nil then
   state.members = {}
 end

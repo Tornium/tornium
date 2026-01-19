@@ -76,9 +76,10 @@ defmodule Tornium.Schema.ArmoryUsage do
     # inserting the news to prevent foreign key violations.
     news
     |> Enum.flat_map(fn %Tornium.Faction.News.ArmoryAction{user_id: user_id, recipient_id: recipient_id} ->
-      {user_id, recipient_id}
+      [user_id, recipient_id]
     end)
     |> Enum.reject(&is_nil/1)
+    |> Enum.map(&{&1, nil})
     |> Tornium.Schema.User.ensure_exists()
 
     mapped_news =

@@ -88,11 +88,20 @@ Tornium - Faction OC CPRs
             <div class="row">
                 <div class="col-sm-12">
                     <div class="card mt-3">
-                        <div class="card-header d-lg-flex justify-content-lg-between">
-                            <span id="viewer-title" class="mb-2 mb-lg-0">CPR Viewer</span>
+                        <div class="card-header d-lg-flex">
+                            <div class="row w-100 align-items-center">
+                                <div class="col-12 col-lg-2">
+                                    <span id="viewer-title" class="mb-2 mb-lg-0 me-2">CPR Viewer</span>
+                                </div>
 
-                            <select class="oc-name-selector" id="oc-cpr-selector" aria-label="Select OC" data-live-search="true"></select>
+                                <div class="d-hidden d-lg-flex col-6"></div>
+
+                                <div class="col-12 col-lg-4">
+                                    <select class="oc-name-selector" id="oc-cpr-selector" aria-label="Select OC" data-live-search="true"></select>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="card-body" id="viewer"></div>
                     </div>
                 </div>

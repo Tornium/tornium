@@ -82,7 +82,7 @@ defmodule Tornium.Notification.FactionSelfHosp.Test do
           "1" => %{
             "war" => %{
               "start" => @yesterday,
-              "end" => @tomorrow,
+              "end" => 0,
               "target" => 99999,
               "winner" => 0
             }

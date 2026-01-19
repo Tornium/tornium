@@ -30,6 +30,5 @@ def crimes(*args, **kwargs):
 
 @login_required
 @fac_required
-@manage_crimes_required
 def crimes_cpr(*args, **kwargs):
     return render_template("faction/crime_cpr.html", crime_names=OrganizedCrime.oc_names())

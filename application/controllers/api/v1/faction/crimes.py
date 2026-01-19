@@ -153,8 +153,6 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
         return make_exception_response("1105", key)
     elif kwargs["user"].faction_id != faction_id:
         return make_exception_response("4022", key)
-    elif not kwargs["user"].can_manage_crimes():
-        return make_exception_response("4006", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
 

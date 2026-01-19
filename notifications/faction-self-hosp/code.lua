@@ -36,8 +36,8 @@ if ONLY_RW then
   elseif ranked_war.war.start > now_timestamp then
     -- Ranked war has not begun yet
     return false, {}, state
-  elseif ranked_war.war["end"] < now_timestamp then
-    -- Ranked war has ended
+  elseif ranked_war.war["end"] ~= 0 and ranked_war.war["end"] < now_timestamp then
+    -- Ranked war has ended (equals 0 when the RW isn't over yet)
     return false, {}, state
   end
 end

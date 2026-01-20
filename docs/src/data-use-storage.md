@@ -39,7 +39,7 @@ We collect your faction positions to handle permissions on Tornium and to determ
 We collect your faction overdoses for overdose notifications. This data is stored persistently. Your faction overdoses cannot be accessed by anyone, but notifications for faction overdoses may be sent to the linked Discord server.
 
 ## General Geolocation
-We log the full IP addresses used to log in to accounts and retain that data for account security. This data is stored persistently. We also log IP addresses for all requests on a rolling basis for monitoring purposes. This data can only be accessed by Tornium administartor(s).
+We log the full IP addresses used to log in to accounts and to authorize access to the Tornium API and Tornium Gateway; and we retain that data for account security. This data is stored persistently. We also log IP addresses for all requests on a rolling basis for monitoring purposes. This data can only be accessed by Tornium administartor(s).
 
 ## General Torn Data
 We collect general, public Torn data (such as all items) to keep our database up-to-date using random users' API keys. This data is stored on a persistent basis. This data can be accessed any user.

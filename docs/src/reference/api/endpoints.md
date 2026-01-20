@@ -1,6 +1,7 @@
 # Endpoints
 The Tornium API supports the following resource APIs:
 - [Faction API](#faction-api)
+- [Gateway API](#gateway-api)
 - [Stat API](#stat-api)
 - [Stocks API](#stocks-api)
 - [Users API](#users-api)
@@ -202,6 +203,39 @@ Authorization: Bearer {{ access_token }}
             "change_description: False
         }
     ]
+}
+```
+
+## Gateway API
+### Create a Gateway Token
+Create a Gateway token for the authenticated user. This token can be used to connect to the Tornium **S**erver-**S**ent **E**vents (SSE) Gateway.
+
+**Scopes Required:** `gateway`
+
+```http
+POST /api/v1/gateway/token HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "token": "c107172687379c43e959d4601593a3e8035f45146632d136ce4f22fa8a140c4d",
+    "expires_at": 1768886936,
+    "gateway_url": "https://gateway.tornium.com/"
+}
+```
+
+### Revoke a Gateway Token
+Revoke a specific Gateway token for the authenticated user. If successful, this endpoint returns HTTP 204 with no further information.
+
+**Scopes Required:** `gateway`
+
+```http
+POST /api/v1/gateway/token/revoke HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "token": "c107172687379c43e959d4601593a3e8035f45146632d136ce4f22fa8a140c4d"
 }
 ```
 

@@ -100,11 +100,12 @@ This is a list of Tornium's OAuth2 scopes required for use of certain endpoints 
 | Name            | Description                                                             |
 | --------------- | ----------------------------------------------------------------------- |
 | `identity`        | allows access to information on a user's identity                       |
+| `gateway`         | allows access to the Tornium Gateway                                    |
 | `faction`         | allows access to all information on the user's faction                  |
 | `faction:attacks` | allows access to information related to the attacks of a user's faction |
 | `faction:banking` | allows access to the Tornium banking of a user's faction                |
 | `faction:crimes`  | allows access to the organized crime information of the user's faction  |
-| `torn_key:usage`  | allows the usage of the user's API key |
+| `torn_key:usage`  | allows the usage of the user's API key                                  |
 
 
 ## Security Considerations

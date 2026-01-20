@@ -12,3 +12,7 @@ message_type = "update"
 
 [implementation.parameters]
 TRAVEL_METHOD = "(integer) method of travel used"
+
+[templates]
+discord = "message.discord.liquid"
+gateway = "message.gateway.liquid"

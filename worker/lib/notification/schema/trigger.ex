@@ -36,10 +36,10 @@ defmodule Tornium.Schema.Trigger do
           resource: :user | :faction | :company | :torn | :faction_v2,
           selections: [String.t()],
           code: String.t(),
-          # TODO: Determine the right hand side type (it may be integer() | string.t())
-          parameters: %{String.t() => term()},
+          parameters: %{String.t() => String.t()},
           message_type: :update | :send,
-          message_template: String.t(),
+          message_template: String.t() | nil,
+          gateway_template: String.t() | nil,
           restricted_data: boolean(),
           official: boolean()
         }
@@ -58,8 +58,12 @@ defmodule Tornium.Schema.Trigger do
     field(:code, :string)
     field(:parameters, :map)
 
+    # Delivery: Discord
     field(:message_type, Ecto.Enum, values: [:update, :send])
     field(:message_template, :string)
+
+    # Delivery: SSE Gateway
+    field(:gateway_template, :string)
 
     field(:restricted_data, :boolean)
     field(:official, :boolean)

@@ -1,4 +1,5 @@
 defmodule Tornium.Notification.Delivery.Discord do
+  require Logger
   import Ecto.Query
   alias Tornium.Repo
 

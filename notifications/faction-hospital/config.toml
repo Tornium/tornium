@@ -12,3 +12,7 @@ message_type = "update"
 
 [implementation.parameters]
 MEMBER_LIMIT = "(integer) Number of members to show in the message"
+
+[templates]
+discord = "message.discord.liquid"
+gateway = "message.gateway.liquid"

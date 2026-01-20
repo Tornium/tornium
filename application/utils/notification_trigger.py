@@ -277,8 +277,16 @@ def load_trigger(path: pathlib.Path, official: bool = False):
     with open(f"{path}/code.lua", "r") as f:
         code: str = f.read()
 
-    with open(f"{path}/message.liquid", "r") as f:
-        template: str = f.read()
+    templates = {}
+
+    for template_type, template_file in config_data["templates"]:
+        if template_type not in ("discord", "gateway"):
+            raise ValueError(
+                f"When loading the {config_data['trigger']['name']} template, there was an invalid template type: {template_type}"
+            )
+
+        with open(f"{path}/message.liquid", "r") as f:
+            templates[template_type] = f.read()
 
     # TODO: Validate data provided by files
 
@@ -293,7 +301,8 @@ def load_trigger(path: pathlib.Path, official: bool = False):
         code=code,
         parameters=config_data["implementation"].get("parameters", {}),
         message_type=config_data["implementation"]["message_type"],
-        message_template=template,
+        message_template=templates.get("discord"),
+        gateway_template=templates.get("gateway"),
         restricted_data=has_restricted_selection(code, config_data["implementation"]["resource"]),
         official=official,
     ).on_conflict(
@@ -309,6 +318,7 @@ def load_trigger(path: pathlib.Path, official: bool = False):
             NotificationTrigger.parameters,
             NotificationTrigger.message_type,
             NotificationTrigger.message_template,
+            NotificationTrigger.gateway_template,
             NotificationTrigger.restricted_data,
             NotificationTrigger.official,
         ],

@@ -13,3 +13,7 @@ message_type = "send"
 [implementation.parameters]
 MINUTES = "(integer) Number of minutes left in the hospital"
 ONLY_RW = "(string: True or False) Only during RWs"
+
+[templates]
+discord = "message.discord.liquid"
+gateway = "message.gateway.liquid"

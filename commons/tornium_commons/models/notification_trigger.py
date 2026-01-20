@@ -43,8 +43,12 @@ class NotificationTrigger(BaseModel):
     code = TextField(null=False)
     parameters = JSONField(default={}, null=False)
 
+    # Delivery: Discord
     message_type = CharField(null=False, choices=["update", "send"])
-    message_template = TextField(null=False)
+    message_template = TextField(null=True)
+
+    # Delivery: SSE Gateway
+    gateway_template = TextField(null=True)
 
     restricted_data = BooleanField(default=False, null=False)
     official = BooleanField(default=False, null=False)

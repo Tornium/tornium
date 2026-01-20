@@ -15,15 +15,15 @@
 
 import datetime
 import json
-import secrets
 import os
+import secrets
 import uuid
 
 from flask import request
 from peewee import DoesNotExist
 from tornium_commons.models import GatewayToken
 
-from controllers.api.v1.decorators import ratelimit, session_required, require_oauth
+from controllers.api.v1.decorators import ratelimit, require_oauth, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 from controllers.authroutes import _log_auth
 

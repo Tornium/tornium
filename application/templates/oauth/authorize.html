@@ -61,6 +61,14 @@
                                     </div>
                                 </li>
                                 {% endif %}
+                                {% if scope == "gateway" %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold"><i class="fa-solid fa-network-wired"></i> Gateway</div>
+                                        This application will be able to access the Tornium Gateway.
+                                    </div>
+                                </li>
+                                {% endif %}
                                 {% if scope == "faction" %}
                                 <li class="list-group-item d-flex justify-content-between align-items-start">
                                     <div class="ms-2 me-auto">

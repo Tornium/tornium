@@ -26,6 +26,7 @@ oauth_server = AuthorizationServer()
 
 valid_scopes = (
     "identity",
+    "gateway",
     # Faction scopes
     "faction",
     "faction:attacks",

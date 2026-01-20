@@ -135,9 +135,9 @@ API_EXCEPTIONS = {
     },
     "1300": {
         "code": 1300,
-        "name": "UnknownGatewayClient",
-        "http": 404,
-        "message": "[DEPRECATED] Server failed to locate the requested gateway client.",
+        "name": "InvalidGatewayToken",
+        "http": 401,
+        "message": "The provided gateway token was invalid.",
     },
     "1400": {
         "code": 1400,

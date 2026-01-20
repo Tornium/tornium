@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Tornium - Faction OC CPRs
+Tornium - Ranked War Tracker
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -12,11 +12,11 @@ Tornium - Faction OC CPRs
     <li class="breadcrumb-item">
         <a href="/faction">Faction</a>
     </li>
-    <li class="breadcrumb-item">
-        <a href="/faction/crimes">Organized Crimes</a>
+    <li class="breadcrumb-item disabled">
+        <a href="faction/ranked-war" disabled>Ranked War</a>
     </li>
     <li class="breadcrumb-item active">
-        <a href="/faction/crimes/cpr"> Organized Crime CPR</a>
+        <a href="/faction/ranked-war/tracker">Ranked War Tracker</a>
     </li>
 </ol>
 {% endblock %}
@@ -54,7 +54,7 @@ Tornium - Faction OC CPRs
                 <i class="col-1 col-sm-2 fa-solid fa-location-crosshairs"></i> <span class="col">Ranked War Tracker</span>
             </a>
         </div>
-        
+
         {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
@@ -85,45 +85,23 @@ Tornium - Faction OC CPRs
 <div class="py-3 px-3">
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Organized Crimes CPR</h5>
+            <h5 class="card-title">Ranked War Tracker</h5>
+
             <p class="card-text">
-                This lists the Organized Crime CPRs for members in various OC slots. This data is collected from members participating in OCs, members with AA perms sharing that data with Tornium, and a userscript (coming soon). For more information, see the documentation (not yet created).
+                TBA
             </p>
 
-            {% if current_user.faction.has_migrated_oc %}
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="card mt-3">
-                        <div class="card-header d-lg-flex">
-                            <div class="row w-100 align-items-center">
-                                <div class="col-12 col-lg-2">
-                                    <span id="viewer-title" class="mb-2 mb-lg-0 me-2">CPR Viewer</span>
-                                </div>
-
-                                <div class="d-hidden d-lg-flex col-6"></div>
-
-                                <div class="col-12 col-lg-4">
-                                    <select class="oc-name-selector" id="oc-cpr-selector" aria-label="Select OC" data-live-search="true"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body" id="viewer"></div>
-                    </div>
-                </div>
-            </div>
-            {% else %}
             <p class="card-text">
-                <b>NOTE:</b> This faction has not yet migrated to Organized Crimes 2.0; Tornium only supports Organized Crimes 1.0 at the moment. If this faction has recently migrated to OCs 2.0, it may take up to an hour for this change to be reflected on Tornium.
+                For information on using this tool, see the <a href="https://docs.tornium.com/en/latest/reference/faction-ranked-war-tracker.html">tool's documentation page</a>.
             </p>
-            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">Monitoring: NYI</div>
+        <div class="card-body">
+            <p class="card-text">This feature has not been implemented yet.</p>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="/static/global/oc.js"></script>
-<script src="/static/components/alert-confirm.js"></script>
-<script src="/static/faction/crime-cpr.js" data-faction-id="{{ current_user.faction_id }}"></script>
 {% endblock %}

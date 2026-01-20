@@ -14,294 +14,263 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Notification do
+  @moduledoc """
+  Notification engine built upon `Lua` and `Solid`.
+  """
+
   require Logger
-  alias Tornium.Repo
   import Ecto.Query
+  alias Tornium.Repo
 
   @api_call_priority 10
 
+  @typedoc """
+  Resources that triggers can be built on top of. These resources represent an in-game "object".
+  """
   @type trigger_resource() :: :user | :faction
-  @type render_errors() :: {:error, :template_parse_error | :template_render_error, String.t()}
+
+  @type render_errors() :: {:error, Solid.TemplateError.t() | Solid.RenderError.t()}
   @type render_validation_errors() :: {:error, :template_decode_error, Jason.DecodeError.t()}
 
   @doc """
-  Execute all notifications against a specific resource (e.g. a certain user ID) with a single API call to retrieve the union.
+  Retrieve a random API key for a set of notifications. If no keys are available, or there is a permissions
+  issue, `nil` will be returned.
+
+  If `:restricted?` is true, then only a resource owner's API key will be returned and all notifications that
+  don't belong to a resource owner will be disabled.
+
+  Otherwise, depending on the resource type, a random server admin or the resourec owner can be utilized.
+
+  If a notification is disabled due to a permissions issue, all notifications in the group will be skipped
+  with a `:skip` return value until the next execution to ensure that only currently enabled notifications
+  are executed.
   """
-  @spec execute_resource(
-          resource :: trigger_resource(),
-          resource_id :: integer(),
-          notifications :: [Tornium.Schema.Notification.t()]
-        ) :: [Tornium.Notification.Lua.trigger_return()] | nil
-  def execute_resource(resource, resource_id, notifications) when is_list(notifications) do
-    # Determine the union of selections and users for all notifications against a specific resource and resource ID
-    {selections, users} =
-      Enum.reduce(notifications, {MapSet.new([]), MapSet.new([])}, fn notification, {s, u} ->
-        # Use the IDs of admins when the notification is for a Discord server as to avoid issues with missing API keys
-
-        case notification.server do
-          nil ->
-            # Use this when the notification is not for a server and is intended to be sent through the SSE gateway
-            # NOTE: This chunk of the codebase is not implemented yet
-            {
-              MapSet.union(s, MapSet.new(notification.trigger.selections)),
-              MapSet.put(u, notification.user_id)
-            }
-
-          guild ->
-            {
-              MapSet.union(s, MapSet.new(notification.trigger.selections)),
-              MapSet.union(u, MapSet.new(guild.admins))
-            }
-        end
-      end)
-
-    restricted = restricted_notification?(notifications)
-    api_key = get_api_key(users, resource, resource_id, restricted, notifications)
-
-    case api_key do
-      nil ->
-        # All notifications need to be disabled at this stage instead of specific notifications
-        # given the overall lack of API keys
-
-        nids =
-          Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
-            Tornium.Notification.Audit.log(:no_api_keys, notification)
-
-            notification.nid
-          end)
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid in ^nids)
-        |> Repo.update_all(set: [enabled: false, error: "No API keys to use"])
-
-        nil
-
-      %Tornium.Schema.TornKey{} ->
-        api_response = resource_data(resource, resource_id, MapSet.to_list(selections), api_key)
-        # TODO: Better handle Torn error messages before entering each notification
-
-        notifications
-        |> Enum.group_by(& &1.trigger)
-        |> Enum.map(fn {%Tornium.Schema.Trigger{} = trigger, trigger_notifications} ->
-          api_response
-          |> filter_response(trigger.resource, trigger.selections)
-          |> handle_api_response(trigger, trigger_notifications)
-        end)
-
-      {:error, :restricted} ->
-        notifications_to_disable =
-          Enum.filter(notifications, fn %Tornium.Schema.Notification{} = notification ->
-            notification.trigger.restricted_data
-          end)
-
-        notification_nids =
-          Enum.map(notifications_to_disable, fn %Tornium.Schema.Notification{} = notification ->
-            Tornium.Notification.Audit.log(:restricted, notification)
-
-            notification.nid
-          end)
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid in ^notification_nids)
-        |> Repo.update_all(set: [enabled: false, error: ":restricted"])
-    end
-  end
-
   @spec get_api_key(
-          admins :: [integer()],
           resource :: trigger_resource(),
           resource_id :: integer(),
-          restricted :: boolean(),
+          restricted? :: boolean(),
           notifications :: [Tornium.Schema.Notification.t()]
-        ) :: Tornium.Schema.TornKey.t() | nil | {:error, :restricted}
-  defp get_api_key(_admins, :faction, resource_id, true, [
-         %Tornium.Schema.Notification{server: %Tornium.Schema.Server{} = server} = _notification | _notifications
-       ]) do
-    faction =
+        ) :: Tornium.Schema.TornKey.t() | nil | :skip
+  def get_api_key(:faction, resource_id, true, notifications) when is_list(notifications) do
+    # For notifications against the faction resource utilizing restricted data, all the notifications must be
+    # sent to servers that are linked with the faction to avoid the leakage of potentially sensitive data. All
+    # other notifications will be disabled with the `:restricted` reason.
+
+    linked_server_id =
       Tornium.Schema.Faction
       |> where([f], f.tid == ^resource_id)
-      |> select([:guild_id])
+      |> join(:inner, [f], s in assoc(f, :guild), on: f.guild_id == s.tid)
+      |> where([f, s], f.tid in s.factions)
+      |> select([f, s], f.guild_id)
       |> Repo.one()
 
-    if Enum.member?(server.factions, resource_id) and not is_nil(faction) and faction.guild_id == server.sid do
-      Tornium.Schema.TornKey
-      |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
-      |> where([k, u], k.default == true)
-      |> where([k, u], k.disabled == false)
-      |> where([k, u], k.paused == false)
-      |> where([k, u], u.faction_id == ^resource_id)
-      |> where([k, u], u.faction_aa == true)
-      |> select([:api_key, :user_id])
-      |> first()
-      |> Repo.one()
+    if is_nil(linked_server_id) do
+      # There is no linked server or the faction ID does not exist so all notifications must be disabled.
+      Tornium.Schema.Notification.disable(notifications, ":restricted")
+      # TODO: Send audit message
+
+      nil
     else
-      {:error, :restricted}
+      {_valid_notifications, notifications_to_disable} =
+        Enum.split_with(notifications, fn notification -> notification.server_id == linked_server_id end)
+
+      # We need to disable notifications that are not for the linked server just so that they don't keep
+      # running. Server admins can re-enable them if they want to do so.
+      Tornium.Schema.Notification.disable(notifications_to_disable, ":restricted")
+      # TODO: Send audit message
+
+      if notifications_to_disable == [] do
+        api_keys = Tornium.Schema.Faction.get_api_keys(resource_id)
+
+        case api_keys do
+          [] -> nil
+          _ -> Enum.random(api_keys)
+        end
+      else
+        :skip
+      end
     end
   end
 
-  defp get_api_key(admins, :user, resource_id, true, _notifications) do
-    if Enum.member?(admins, resource_id) do
+  def get_api_key(:user, resource_id, true, notifications) do
+    # For notifications against the user resource utilizing restricted data, all notifications must be created
+    # by the resource owner to avoid potentially leaking sensitive data of the user.
+
+    {_valid_notifications, notifications_to_disable} =
+      Enum.split_with(notifications, fn notification -> notification.owner_id == resource_id end)
+
+    Tornium.Schema.Notification.disable(notifications_to_disable, ":restricted")
+    # TODO: Send audit message
+
+    if notifications_to_disable == [] do
       Tornium.Schema.TornKey
       |> where([k], k.user_id == ^resource_id)
       |> where([k, u], k.default == true)
       |> where([k, u], k.disabled == false)
       |> where([k, u], k.paused == false)
-      |> select([:api_key, :user_id])
       |> first()
       |> Repo.one()
     else
-      {:error, :restricted}
+      :skip
     end
   end
 
-  defp get_api_key(admins, _resource, _resource_id, false, _notifications) when Kernel.length(admins) == 1 do
-    Tornium.Schema.TornKey
-    |> where([k], k.user_id == ^Enum.at(admins, 0))
-    |> where([k, u], k.default == true)
-    |> where([k, u], k.disabled == false)
-    |> where([k, u], k.paused == false)
-    |> select([:api_key, :user_id])
-    |> first()
-    |> Repo.one()
-  end
+  def get_api_key(_resource, _resource_id, false, notifications) do
+    # This is the fallback for all notifications that should operate upon any admin of the server as
+    # the data is public and does not reveal non-public information depending on the caller.
 
-  defp get_api_key(admins, _resource, _resource_id, false, _notifications) do
+    api_key_users =
+      notifications
+      |> Enum.flat_map(fn
+        %Tornium.Schema.Notification{server_id: nil, user_id: user_id} ->
+          user_id
+
+        %Tornium.Schema.Notification{server: %Tornium.Schema.Server{admins: server_admins}}
+        when is_list(server_admins) ->
+          server_admins
+      end)
+      |> Enum.uniq()
+
     Tornium.Schema.TornKey
-    |> where([k], k.user_id in ^MapSet.to_list(admins))
+    |> where([k], k.user_id in ^api_key_users)
     |> where([k, u], k.default == true)
     |> where([k, u], k.disabled == false)
     |> where([k, u], k.paused == false)
-    |> select([:api_key, :user_id])
     |> order_by(fragment("RANDOM()"))
     |> first()
     |> Repo.one()
   end
 
-  # Determine if any of the notifications for this resource + resource ID requires restricted data
-  @spec restricted_notification?(notifications :: [Tornium.Schema.Notification.t()]) :: boolean()
-  defp restricted_notification?(notifications) do
-    Enum.any?(notifications, fn %Tornium.Schema.Notification{
-                                  trigger: %Tornium.Schema.Trigger{restricted_data: restricted}
-                                } ->
-      restricted
-    end)
+  # TODO: Add tests
+  @doc """
+  Determine a list of selections corresponding to the list of notifications.
+  """
+  @spec get_selections(notifications :: [Tornium.Schema.Notification.t()]) :: [String.t()]
+  def get_selections([%Tornium.Schema.Notification{} | _] = notifications) do
+    notifications
+    |> Enum.map(& &1.trigger.selections)
+    |> List.flatten()
+    |> Enum.uniq()
   end
 
-  @spec resource_data(
+  # TODO: Add tests
+  @doc """
+  Convert the data from notification(s) to a `Tornex.Query` to fetch the data for the notification(s).
+  """
+  @spec to_query(
           resource :: trigger_resource(),
           resource_id :: integer(),
           selections :: [String.t()],
           api_key :: Tornium.Schema.TornKey.t()
-        ) :: map() | {:error, any()}
-  defp resource_data(:user, resource_id, selections, api_key) do
-    # TODO: Create and use types in Tornex for return types
-    Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
+        ) :: Tornex.Query.t()
+  def to_query(
+        :user,
+        resource_id,
+        selections,
+        %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner}
+      )
+      when is_list(selections) and is_binary(api_key) and is_integer(api_key_owner) do
+    %Tornex.Query{
       resource: "user",
       resource_id: resource_id,
       selections: selections,
-      key: api_key.api_key,
-      key_owner: api_key.user_id,
+      key: api_key,
+      key_owner: api_key_owner,
       nice: @api_call_priority
-    })
+    }
   end
 
-  defp resource_data(:faction, resource_id, selections, api_key) do
-    Tornex.Scheduler.Bucket.enqueue(%Tornex.Query{
+  def to_query(
+        :faction,
+        resource_id,
+        selections,
+        %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner}
+      )
+      when is_list(selections) and is_binary(api_key) and is_integer(api_key_owner) do
+    %Tornex.Query{
       resource: "faction",
       resource_id: resource_id,
       selections: selections,
-      key: api_key.api_key,
-      key_owner: api_key.user_id,
+      key: api_key,
+      key_owner: api_key_owner,
       nice: @api_call_priority
-    })
+    }
   end
 
-  # Filter the API response to only the keys required for the trigger's selection(s).
+  # TODO: Test this
+  @doc """
+  Filter the API response to only the keys required for the trigger's selection(s).
+  """
   @spec filter_response(
-          response :: map(),
+          response :: %{String.t() => term()},
           resource :: trigger_resource(),
           selections :: [String.t()]
-        ) :: map()
-  defp filter_response({:error, _}, _resource, _selections) do
-    # FIXME: Better handle this case
-    :error
-  end
-
-  defp filter_response(%{"error" => _error} = response, _resource, _selections) do
-    # When the response is a Torn error, the error should be passed through this so that the
-    # error doesn't get filtered out as an invalid key.
-
-    response
-  end
-
-  defp filter_response(response, resource, selections) when is_list(selections) do
+        ) :: %{String.t() => term()}
+  def filter_response(response, resource, selections) when is_list(selections) do
     valid_keys =
-      Enum.reduce(selections, MapSet.new([]), fn selection, acc ->
-        MapSet.union(acc, MapSet.new(Tornium.Notification.Selections.get_selection_keys(resource, selection)))
-      end)
+      selections
+      |> Enum.map(&Tornium.Notification.Selections.get_selection_keys(resource, &1))
+      |> List.flatten()
+      |> Enum.uniq()
 
     Map.filter(response, fn {key, _value} -> Enum.member?(valid_keys, key) end)
   end
 
-  # Handle the API response by running the notification's Lua code and generate the message
+  @doc """
+  Handle the API response by running the notification's Lua code and generate the message.
+
+  For each notification, this will perform the following steps:
+    - Configure a Lua VM with the API response, notification parameters, and the current notification state
+    - Execute the notification trigger's Lua code in the Lua VM
+    - Update the passthrough state of the notification
+    - Render the message from the render state
+    - Validate the rendered message JSON
+    - Attempt to send/update the message
+  """
   @spec handle_api_response(
-          response :: :error | map(),
+          response :: %{String.t() => term()},
           trigger :: Tornium.Schema.Trigger.t(),
           notifications :: [Tornium.Schema.Notification.t()]
-        ) :: {:error, Tornium.API.Error.t()} | list(nil)
-  defp handle_api_response(:error, _trigger, _notifications) do
-    # NOTE: Temporary solution to unknown errors from Tornex
-    {:error, :unknown}
-  end
-
-  defp handle_api_response(
-         %{"error" => %{"code" => code, "error" => error}} = _response,
-         _trigger,
-         _notifications
-       ) do
-    {:error, Tornium.API.Error.construct(code, error)}
-  end
-
-  defp handle_api_response(%{} = response, trigger, notifications) when is_list(notifications) do
-    Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
+        ) :: :ok
+  def handle_api_response(%{} = response, trigger, notifications) when is_list(notifications) do
+    Enum.each(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Notification.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
       |> update_passthrough_state(notification)
       |> handle_lua_states(notification)
     end)
   end
 
-  # Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the states will be used
-  # to create the message to be sent/updated. If there's an error from the Lua code, the notification will be disabled.
+  # Handle the returned states (or errors) from the Lua trigger code. If successfully executed, the
+  # states will be used to create the message to be sent/updated. If there's an error from the
+  # Lua code, the notification will be disabled.
   @spec handle_lua_states(
           Tornium.Notification.Lua.trigger_return(),
           notification :: Tornium.Schema.Notification.t()
         ) :: nil
   defp handle_lua_states(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
-         %Tornium.Schema.Notification{
-           trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :update}
-         } = notification
-       ) do
-    render_message(trigger_message_template, render_state)
-    |> validate_message()
-    |> try_message(:update, notification)
+         %Tornium.Schema.Notification{server_id: server_id} = notification
+       )
+       when not is_nil(server_id) do
+    with {:ok, rendered} <- Tornium.Notification.Delivery.Discord.render(render_state, notification),
+         {:ok, validated} <- Tornium.Notification.Delivery.Discord.validate(rendered),
+         {:ok, output} <- Tornium.Notification.Delivery.Discord.deliver(validated, notification) do
+      {:ok, output}
+    end
   end
 
   defp handle_lua_states(
          {:ok, [triggered?: true, render_state: %{} = render_state, passthrough_state: %{} = _passthrough_state]},
-         %Tornium.Schema.Notification{
-           trigger: %Tornium.Schema.Trigger{message_template: trigger_message_template, message_type: :send}
-         } = notification
-       ) do
-    render_message(trigger_message_template, render_state)
-    |> validate_message()
-    |> try_message(:send, notification)
+         %Tornium.Schema.Notification{server_id: server_id} = notification
+       )
+       when not is_nil(server_id) do
   end
 
   defp handle_lua_states(
          {:ok, [triggered?: false, render_state: %{} = _render_state, passthrough_state: %{} = _passthrough_state]},
          %Tornium.Schema.Notification{} = _notification
        ) do
+    # Since the Lua code did not trigger the notification, we are not going to do anything here and ignore everything.
     nil
   end
 
@@ -315,13 +284,6 @@ defmodule Tornium.Notification do
     |> Repo.update_all([])
   end
 
-  defp handle_lua_states(
-         {:error, %Tornium.API.Error{} = _torn_error},
-         %Tornium.Schema.Notification{} = _notification
-       ) do
-    # TODO: Handle this error
-  end
-
   defp handle_lua_states({:error, reason}, %Tornium.Schema.Notification{} = _notification) do
     reason
     |> inspect(label: "Notification error reason")
@@ -329,221 +291,6 @@ defmodule Tornium.Notification do
 
     # TODO: Handle this error
     {:error, reason}
-  end
-
-  defp handle_lua_states(_trigger_return, _notification) do
-    # Invalid response
-    throw(Exception)
-  end
-
-  @spec render_message(template :: String.t(), state :: map()) :: String.t() | render_errors()
-  def render_message(template, %{} = state) do
-    # Attempt to render the JSON message for a notification provided the render state and the Solid template.
-    # TODO: Improve the error handling upon errors from Solid
-    # TODO: Test this
-    # TODO: Document this
-
-    try do
-      template
-      |> Solid.parse!()
-      |> Solid.render!(state)
-      |> Kernel.to_string()
-      |> String.replace(["\n", "\t"], "")
-    rescue
-      e in Solid.TemplateError ->
-        IO.inspect(e, label: "Template parse error")
-        {:error, :template_parse_error, e.message}
-
-      e in Solid.RenderError ->
-        IO.inspect(e, label: "Template render error")
-        {:error, :template_render_error, e.message}
-    end
-  end
-
-  @spec validate_message(message :: String.t() | render_errors()) ::
-          map() | render_validation_errors() | render_errors()
-  defp validate_message({:error, _, _} = error) do
-    error
-  end
-
-  defp validate_message(message) when is_binary(message) do
-    # Validate the rendered JSON Discord message to avoid unnecessary Discord API calls.
-
-    case Jason.decode(message) do
-      {:ok, parsed_message} ->
-        parsed_message
-
-      {:error, reason} ->
-        {:error, :template_decode_error, reason}
-    end
-  end
-
-  # Attempt to send or update a message for a notification depending on the notification's configuration
-  @spec try_message(
-          message :: map() | render_errors() | render_validation_errors(),
-          action_type :: :send | :update,
-          notification :: Tornium.Schema.Notification.t()
-        ) ::
-          {:ok, Nostrum.Struct.Message.t()}
-          | {:error, :discord_error, Nostrum.Error.ApiError.t()}
-          | render_errors()
-          | render_validation_errors()
-  defp try_message({:error, _, _} = error, _action_type, _notification) do
-    error
-  end
-
-  defp try_message(
-         %{} = message,
-         :send,
-         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, one_shot: one_shot?} = notification
-       ) do
-    # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.Message.create(channel_id, message) do
-      {:ok, %Nostrum.Struct.Message{} = resp_message} ->
-        # The message was successfully sent...
-        # Thus the notification should be deleted as one-shot notifications are deleted once triggered
-
-        if one_shot? do
-          Tornium.Schema.Notification
-          |> where(nid: ^nid)
-          |> Repo.delete_all()
-        end
-
-        {:ok, resp_message}
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
-        # Discord Opcode 10003: Unknown channel
-        # The message could be updated as the channel does not exist, so
-        #   - Disable the notification
-        #   - Send a message to the audit channel if possible
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [channel_id: nil, enabled: false, error: "Unknown channel"])
-        |> Repo.update_all([])
-
-        Tornium.Notification.Audit.log(:invalid_channel, notification)
-        {:error, :discord_error, error}
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
-        # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
-
-        error_msg = "Nostrum error #{code}"
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false, error: ^error_msg])
-        |> Repo.update_all([])
-
-        Tornium.Notification.Audit.log(:discord_error, notification, false, error: error)
-        {:error, :discord_error, error}
-    end
-  end
-
-  # TODO: Handle when the channel_id is nil
-
-  defp try_message(
-         %{} = message,
-         :update,
-         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = notification
-       )
-       when is_nil(message_id) do
-    # This should only occur the first time the notification is triggered
-
-    # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.Message.create(channel_id, message) do
-      {:ok, %Nostrum.Struct.Message{} = resp_message} ->
-        # The message was successfully sent...
-        # The notification should be updated to include the message ID
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [message_id: ^resp_message.id, channel_id: ^resp_message.channel_id, enabled: true])
-        |> Repo.update_all([])
-
-        {:ok, resp_message}
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
-        # Discord Opcode 10003: Unknown channel
-        # The message could be updated as the channel does not exist, so
-        #   - Disable the notification
-        #   - Send a message to the audit channel if possible
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [channel_id: nil, enabled: false, error: "Unknown channel"])
-        |> Repo.update_all([])
-
-        Tornium.Notification.Audit.log(:invalid_channel, notification)
-        {:error, :discord_error, error}
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
-        # Upon an error, the notification should be disabled with an audit message sent if possible to avoid additional Discord API load
-
-        error_msg = "Nostrum error #{code}"
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false, error: ^error_msg])
-        |> Repo.update_all([])
-
-        Tornium.Notification.Audit.log(:discord_error, notification, false, error: error)
-        {:error, :discord_error, error}
-    end
-  end
-
-  defp try_message(
-         %{} = message,
-         :update,
-         %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, message_id: message_id} = notification
-       ) do
-    # Once the notification is created, the notification's pre-existing message will be updated
-    # with the new message. If the message is deleted or can't be updated, a new message will be created.
-
-    case Nostrum.Api.Message.edit(channel_id, message_id, message) do
-      {:ok, %Nostrum.Struct.Message{} = resp_message} ->
-        # The message was successfully updated and no further action is required
-        resp_message
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10_003}} = error} ->
-        # Discord Opcode 10003: Unknown channel
-        # The message could be updated as the channel does not exist, so
-        #   - Disable the notification
-        #   - Send a message to the audit channel if possible
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [message_id: nil, channel_id: nil, enabled: false, error: "Unknown channel"])
-        |> Repo.update_all([])
-
-        Tornium.Notification.Audit.log(:invalid_channel, notification)
-        {:error, :discord_error, error}
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: 10_008}} = _error} ->
-        # Discord Opcode 10008: Unknown message
-        # The message couldn't be updated so
-        #   - The message ID should be set to nil
-        #   - The message should be recreated
-
-        {1, [notification]} =
-          Tornium.Schema.Notification
-          |> select([n], n)
-          |> where([n], n.nid == ^nid)
-          |> update([n], set: [message_id: nil, enabled: false, error: "Unknown message"])
-          |> Repo.update_all([])
-
-        try_message(message, :update, notification)
-
-      {:error, %Nostrum.Error.ApiError{response: %{code: code}} = error} ->
-        error_msg = "Nostrum error #{code}"
-
-        Tornium.Schema.Notification
-        |> where([n], n.nid == ^nid)
-        |> update([n], set: [enabled: false, error: ^error_msg])
-        |> Repo.update_all([])
-
-        {:error, :discord_error, error}
-    end
   end
 
   @doc """
@@ -583,7 +330,6 @@ defmodule Tornium.Notification do
     |> Map.put(:state, state)
   end
 
-  @spec generate_lua_state_map(notification :: Tornium.Schema.Notification.t(), response :: map()) :: map()
   defp generate_lua_state_map(
          %Tornium.Schema.Notification{
            parameters: parameters,
@@ -594,20 +340,6 @@ defmodule Tornium.Notification do
        ) do
     parameters
     |> Map.put(:faction, response)
-    |> Map.put(:state, state)
-  end
-
-  @spec generate_lua_state_map(notification :: Tornium.Schema.Notification.t(), response :: map()) :: map()
-  defp generate_lua_state_map(
-         %Tornium.Schema.Notification{
-           parameters: parameters,
-           trigger: %Tornium.Schema.Trigger{resource: _resource} = _trigger,
-           previous_state: state
-         } = _notification,
-         _response
-       ) do
-    # TODO: Add the remaining resources for `generate_lua_state_map/2`
-    parameters
     |> Map.put(:state, state)
   end
 

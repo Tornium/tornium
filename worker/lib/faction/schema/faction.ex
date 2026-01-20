@@ -15,6 +15,8 @@
 
 defmodule Tornium.Schema.Faction do
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           tid: integer(),
@@ -54,5 +56,27 @@ defmodule Tornium.Schema.Faction do
     field(:last_members, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)
     field(:has_migrated_oc, :boolean)
+  end
+
+  @doc """
+  Get a list of AA API keys for a specific faction.
+
+  This will only retrieve default API keys that are not disabled or paused belonging to members of
+  the specified faction ID with faction AA permissions.
+  """
+  @spec get_api_keys(faction_id :: pos_integer() | __MODULE__.t()) :: [Tornium.Schema.TornKey.t()]
+  def get_api_keys(%__MODULE__{tid: faction_id}) do
+    get_api_keys(faction_id)
+  end
+
+  def get_api_keys(faction_id) when is_integer(faction_id) do
+    Tornium.Schema.TornKey
+    |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+    |> where([k, u], k.default == true)
+    |> where([k, u], k.disabled == false)
+    |> where([k, u], k.paused == false)
+    |> where([k, u], u.faction_id == ^faction_id)
+    |> where([k, u], u.faction_aa == true)
+    |> Repo.all()
   end
 end

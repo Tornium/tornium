@@ -18,6 +18,7 @@ from flask import Blueprint
 from controllers.api.v1 import (
     bot,
     faction,
+    gateway,
     items,
     key,
     notification,
@@ -407,3 +408,7 @@ mod.add_url_rule(
     view_func=notification.notification.toggle_guild_notification,
     methods=["POST"],
 )
+
+# /api/v1/gateway
+mod.add_url_rule("/api/v1/gateway/token", view_func=gateway.create_token, methods=["POST"])
+mod.add_url_rule("/api/v1/gateway/token/revoke", view_func=gateway.revoke_token, methods=["POST"])

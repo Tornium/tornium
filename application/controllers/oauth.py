@@ -26,6 +26,7 @@ oauth_server = AuthorizationServer()
 
 valid_scopes = (
     "identity",
+    "gateway",
     # Faction scopes
     "faction",
     "faction:attacks",
@@ -48,7 +49,7 @@ def openid_configuration():
             {
                 "issuer": "https://tornium.com",
                 "authorization_endpoint": "https://tornium.com/oauth/authorize",
-                "token_endpoint": "https://tornium.com/oauth/token",
+                "token_endpoint": "https://tornium.com/oauth/token",  # nosec
                 "scopes_supported": list(valid_scopes),
                 "response_types_supported": ["code"],
                 "grant_types_supported": ["authorization_code"],

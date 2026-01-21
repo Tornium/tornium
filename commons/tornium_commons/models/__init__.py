@@ -17,6 +17,7 @@ from .armory_usage import ArmoryAction, ArmoryUsage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
 from .faction_position import FactionPosition
+from .gateway_token import GatewayToken
 from .item import Item
 from .notification import Notification
 from .notification_trigger import NotificationTrigger
@@ -51,6 +52,7 @@ __all__ = [
     "AuthLog",
     "Faction",
     "FactionPosition",
+    "GatewayToken",
     "Item",
     "Notification",
     "NotificationTrigger",

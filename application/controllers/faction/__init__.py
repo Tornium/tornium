@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.faction import armory, banking, bot, crimes, members
+from controllers.faction import armory, banking, bot, crimes, members, ranked_war
 
 mod = Blueprint("factionroutes", __name__)
 
@@ -38,6 +38,9 @@ mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])
 
 # Armory Routes
 mod.add_url_rule("/faction/armory", view_func=armory.armory, methods=["GET"])
+
+# Ranked War Routes
+mod.add_url_rule("/faction/ranked-war/tracker", view_func=ranked_war.tracker, methods=["GET"])
 
 
 @mod.route("/faction")

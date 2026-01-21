@@ -14,21 +14,32 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.Trigger do
+  # TODO: Add a summary for the moduledoc
+  @moduledoc """
+  TODO
+
+  If there is no `:next_execution` value, the notification trigger will be executed immediately to determine
+  when the notification trigger should next be triggered. Otherwise, the notification trigger will be executed
+  at the next `:next_execution` value as determined by `:cron` during the previous execution.
+  """
+
   use Ecto.Schema
 
   @type t :: %__MODULE__{
           tid: Ecto.UUID.t(),
           name: String.t(),
           description: String.t(),
+          owner_id: pos_integer(),
           owner: Tornium.Schema.User.t(),
           cron: String.t(),
-          next_execution: DateTime.t(),
+          next_execution: DateTime.t() | nil,
           resource: :user | :faction | :company | :torn | :faction_v2,
           selections: [String.t()],
           code: String.t(),
-          parameters: map(),
+          parameters: %{String.t() => String.t()},
           message_type: :update | :send,
-          message_template: String.t(),
+          message_template: String.t() | nil,
+          gateway_template: String.t() | nil,
           restricted_data: boolean(),
           official: boolean()
         }
@@ -47,8 +58,12 @@ defmodule Tornium.Schema.Trigger do
     field(:code, :string)
     field(:parameters, :map)
 
+    # Delivery: Discord
     field(:message_type, Ecto.Enum, values: [:update, :send])
     field(:message_template, :string)
+
+    # Delivery: SSE Gateway
+    field(:gateway_template, :string)
 
     field(:restricted_data, :boolean)
     field(:official, :boolean)

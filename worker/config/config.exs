@@ -88,7 +88,7 @@ config :tornium, Oban,
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications}
       ]
     },
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 

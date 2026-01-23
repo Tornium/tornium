@@ -106,30 +106,33 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     []
   end
 
-  def upsert_all([entry | _] = entries, delayers) when is_list(entries) and is_map(entry) and is_map(delayers) do
+  def upsert_all([entry | _] = entries, delayers) when is_map(entry) and is_map(delayers) do
     # Find all slots where the user ID for the slot does not match the user ID in the API response.
     # Indicates that the user left the slot.
     # The slot should be deleted to avoid bad/old data from polluting the current user of the slot.
+    potential_deletions = Enum.reject(entries, &is_nil(&1.user_id))
 
-    dynamic_query =
-      Enum.reduce(entries, false, fn %{oc_id: oc_id, slot_index: slot_index, user_id: user_id}, acc ->
-        if is_nil(user_id) do
-          # Skip slots where there's no one in it
-          # We only need to remove data from slots where someone left
-          acc
-        else
-          dynamic([s], ^acc or (s.oc_id == ^oc_id and s.slot_index == ^slot_index and s.user_id != ^user_id))
-        end
-      end)
-
-    Tornium.Schema.OrganizedCrimeSlot
-    |> where(^dynamic_query)
-    |> Repo.delete_all()
+    if length(potential_deletions) != [] do
+      Tornium.Schema.OrganizedCrimeSlot
+      |> join(
+        :inner,
+        [s],
+        data in fragment(
+          "SELECT * FROM unnest(?::int[], ?::int[], ?::int[]) AS data(oc_id, slot_index, user_id)",
+          ^Enum.map(potential_deletions, & &1.oc_id),
+          ^Enum.map(potential_deletions, & &1.slot_index),
+          ^Enum.map(potential_deletions, & &1.user_id)
+        ),
+        on: s.oc_id == data.oc_id and s.slot_index == data.slot_index
+      )
+      |> where([s, data], not is_nil(s.user_id) and s.user_id != data.user_id)
+      |> Repo.delete_all()
+    end
 
     # NOTE: Don't replace certain data that doesn't originate from the Torn API as the data will not exist until checks run
     # The data should be used if the slot does not already exist though
     # TODO: Make the query replace only certain targets instead of all except
-    {_, returned_slot_entries} =
+    |> {_, returned_slot_entries} =
       Repo.insert_all(Tornium.Schema.OrganizedCrimeSlot, entries,
         on_conflict:
           {:replace_all_except,

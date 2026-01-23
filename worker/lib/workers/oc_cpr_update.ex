@@ -22,13 +22,7 @@ defmodule Tornium.Workers.OCCPRUpdate do
     max_attempts: 3,
     priority: 9,
     queue: :user_processing,
-    tags: ["user", "oc"],
-    unique: [
-      period: :infinity,
-      fields: [:worker, :args],
-      keys: [:api_call_id],
-      states: :incomplete
-    ]
+    tags: ["user", "oc"]
 
   @impl Oban.Worker
   def perform(

@@ -25,13 +25,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
     max_attempts: 3,
     priority: 0,
     queue: :faction_processing,
-    tags: ["faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker, :args],
-      keys: [:api_call_id],
-      states: :incomplete
-    ]
+    tags: ["faction"]
 
   @armory_news_category "armoryAction"
 

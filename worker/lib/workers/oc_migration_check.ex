@@ -25,7 +25,7 @@ defmodule Tornium.Workers.OCMigrationCheck do
     tags: ["scheduler", "oc"],
     unique: [
       period: :infinity,
-      fields: [:worker, :args],
+      fields: [:worker],
       states: :incomplete
     ]
 

@@ -113,6 +113,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     potential_deletions = Enum.reject(entries, &is_nil(&1.user_id))
 
     if potential_deletions != [] do
+      # Source: https://geekmonkey.org/updating-multiple-records-with-different-values-in-ecto-repo-update_all/
       Tornium.Schema.OrganizedCrimeSlot
       |> join(
         :inner,

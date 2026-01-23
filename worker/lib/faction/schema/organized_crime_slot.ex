@@ -112,7 +112,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
     # The slot should be deleted to avoid bad/old data from polluting the current user of the slot.
     potential_deletions = Enum.reject(entries, &is_nil(&1.user_id))
 
-    if length(potential_deletions) != [] do
+    if potential_deletions != [] do
       Tornium.Schema.OrganizedCrimeSlot
       |> join(
         :inner,

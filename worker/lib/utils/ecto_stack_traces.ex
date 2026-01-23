@@ -26,6 +26,9 @@ defmodule Tornium.EctoStacktraces do
   end
 
   def handle_event([:tornium, :repo, :query], measurements, metadata, _config) do
-    :ets.insert(:queries_and_stacktraces, {metadata[:query], metadata[:stacktrace], metadata[:cast_params], measurements})
+    :ets.insert(
+      :queries_and_stacktraces,
+      {metadata[:query], metadata[:stacktrace], metadata[:cast_params], measurements}
+    )
   end
 end

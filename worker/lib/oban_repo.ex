@@ -13,16 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Tornium.Repo do
+defmodule Tornium.ObanRepo do
+  @moduledoc """
+  A pool of database connections meant for Oban workers.
+
+  See https://hexdocs.pm/oban/scaling.html#pooling
+  """
+
   use Ecto.Repo,
     otp_app: :tornium,
     adapter: Ecto.Adapters.Postgres
-
-  def oban_repo do
-    if in_transaction?() do
-      Tornium.Repo
-    else
-      Tornium.ObanRepo
-    end
-  end
 end

@@ -37,6 +37,7 @@ defmodule Tornium.Application do
     # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [
       Tornium.PromEx,
+      Tornium.ObanRepo,
       Tornium.Repo,
       {
         Nostrum.Bot,

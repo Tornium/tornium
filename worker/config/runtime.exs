@@ -15,22 +15,6 @@
 
 import Config
 
-# config/runtime.exs is executed for all environments, including
-# during releases. It is executed after compilation and before the
-# system starts, so it is typically used to load production configuration
-# and secrets from environment variables or elsewhere. Do not define
-# any compile-time configuration in here, as it won't be applied.
-# The block below contains prod specific runtime configuration.
-
-# ## Using releases
-#
-# If you use `mix release`, you need to explicitly enable the server
-# by passing the PHX_SERVER=true when you start it:
-#
-#     PHX_SERVER=true bin/tornium start
-#
-# Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
-# script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
   config :tornium, Tornium.Web.Endpoint,
     http: [ip: {127, 0, 0, 1}, port: 4000],
@@ -55,6 +39,11 @@ if config_env() == :prod do
   config :tornium, Tornium.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "25"),
+    socket_options: maybe_ipv6
+
+  config :tornium, Tornium.ObanRepo,
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("OBAN_POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 end

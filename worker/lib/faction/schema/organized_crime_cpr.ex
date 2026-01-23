@@ -75,7 +75,7 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
 
     {:ok, _} =
       Repo.query(query, [
-        Enum.map(entries, & &1.guid),
+        Enum.map(entries, &Ecto.UUID.dump!(&1.guid)),
         Enum.map(entries, & &1.user_id),
         Enum.map(entries, & &1.oc_name),
         Enum.map(entries, & &1.oc_position),

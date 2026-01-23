@@ -51,6 +51,7 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
   @spec upsert_all(entries :: [t()]) :: :ok
   def upsert_all([%__MODULE__{} | _] = entries) do
     entries
+    |> Enum.sort_by(& &1.user_id)
     |> Enum.chunk_every(200)
     |> Enum.each(&do_upsert_all/1)
 

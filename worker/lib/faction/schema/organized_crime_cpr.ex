@@ -48,31 +48,41 @@ defmodule Tornium.Schema.OrganizedCrimeCPR do
     field(:updated_at, :utc_datetime)
   end
 
-  @spec upsert_all(entries :: [t()]) :: [t()]
-  def upsert_all([%__MODULE__{} | _] = entries) when is_list(entries) do
-    {_, returned_entries} =
-      entries
-      |> Enum.map(
-        &%{
-          guid: &1.guid,
-          user_id: &1.user_id,
-          oc_name: &1.oc_name,
-          oc_position: &1.oc_position,
-          cpr: &1.cpr,
-          updated_at: &1.updated_at
-        }
-      )
-      |> (&Repo.insert_all(__MODULE__, &1,
-            on_conflict: {:replace, [:cpr, :updated_at]},
-            conflict_target: [:user_id, :oc_name, :oc_position],
-            returning: true
-          )).()
+  @spec upsert_all(entries :: [t()]) :: :ok
+  def upsert_all([%__MODULE__{} | _] = entries) do
+    entries
+    |> Enum.chunk_every(200)
+    |> Enum.each(&do_upsert_all/1)
 
-    returned_entries
+    :ok
   end
 
   def upsert_all(_entries) do
     # Fallback for API error
-    []
+    :ok
+  end
+
+  defp do_upsert_all([%__MODULE__{} | _] = entries) do
+    query = """
+    INSERT INTO organized_crime_cpr
+      (guid, user_id, oc_name, oc_position, cpr, updated_at)
+    SELECT *
+    FROM unnest($1::uuid[], $2::integer[], $3::text[], $4::text[], $5::integer[], $6::timestamp[])
+      AS data(guid, user_id, oc_name, oc_position, cpr, updated_at)
+    ON CONFLICT (user_id, oc_name, oc_position)
+    DO UPDATE SET cpr = EXCLUDED.cpr, updated_at = EXCLUDED.updated_at
+    """
+
+    {:ok, _} =
+      Repo.query(query, [
+        Enum.map(entries, & &1.guid),
+        Enum.map(entries, & &1.user_id),
+        Enum.map(entries, & &1.oc_name),
+        Enum.map(entries, & &1.oc_position),
+        Enum.map(entries, & &1.cpr),
+        Enum.map(entries, & &1.updated_at)
+      ])
+
+    :ok
   end
 end

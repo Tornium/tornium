@@ -256,6 +256,8 @@ def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=F
     time_limit=10,
 )
 def discordget(self: celery.Task, endpoint, *args, **kwargs):
+    raise Exception()
+
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {"Authorization": f'Bot {config["bot_token"]}'}
 
@@ -307,6 +309,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     time_limit=10,
 )
 def discordpatch(self, endpoint, payload, *args, **kwargs):
+    raise Exception()
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
         "Authorization": f'Bot {config["bot_token"]}',
@@ -366,6 +369,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
     time_limit=10,
 )
 def discordpost(self, endpoint, payload, *args, **kwargs):
+    raise Exception()
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
         "Authorization": f'Bot {config["bot_token"]}',
@@ -425,6 +429,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
     queue="api",
 )
 def discordput(self, endpoint, payload, *args, **kwargs):
+    raise Exception()
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
         "Authorization": f'Bot {config["bot_token"]}',
@@ -485,6 +490,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
     time_limit=5,
 )
 def discorddelete(self, endpoint, *args, **kwargs):
+    raise Exception()
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {
         "Authorization": f'Bot {config["bot_token"]}',

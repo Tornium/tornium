@@ -16,4 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-BHASH_CALL = "c6ff43a247e1d85e6d20a19f5d714321c7afd3b7"
+BHASH_CALL = "50fb5d478248a75bb17770cf36dc0c62650f6bb1"

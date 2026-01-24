@@ -279,9 +279,9 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     url = f"https://discord.com/api/v10/{endpoint}"
     headers = {"Authorization": f'Bot {config["bot_token"]}'}
 
-    bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
+    # bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
     request = requests.get(url, headers=headers)
-    bucket.update_bucket(request.headers, "GET", endpoint)
+    # bucket.update_bucket(request.headers, "GET", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -333,7 +333,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
         "Content-Type": "application/json",
     }
 
-    bucket = discord_ratelimit_pre(self, "PATCH", endpoint, backoff_var=kwargs.get("backoff", True))
+    # bucket = discord_ratelimit_pre(self, "PATCH", endpoint, backoff_var=kwargs.get("backoff", True))
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -341,7 +341,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.patch(url, headers=headers, data=payload)
-    bucket.update_bucket(request.headers, "PATCH", endpoint)
+    # bucket.update_bucket(request.headers, "PATCH", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -393,7 +393,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         "Content-Type": "application/json",
     }
 
-    bucket = discord_ratelimit_pre(self, "POST", endpoint, backoff_var=kwargs.get("backoff", True))
+    # bucket = discord_ratelimit_pre(self, "POST", endpoint, backoff_var=kwargs.get("backoff", True))
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -401,7 +401,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.post(url, headers=headers, data=payload)
-    bucket.update_bucket(request.headers, "POST", endpoint)
+    # bucket.update_bucket(request.headers, "POST", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -452,7 +452,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         "Content-Type": "application/json",
     }
 
-    bucket = discord_ratelimit_pre(self, "PUT", endpoint, backoff_var=kwargs.get("backoff", True))
+    # bucket = discord_ratelimit_pre(self, "PUT", endpoint, backoff_var=kwargs.get("backoff", True))
 
     if globals().get("orjson:loaded"):
         payload = orjson.dumps(payload)
@@ -460,7 +460,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         payload = json.dumps(payload)
 
     request = requests.put(url, headers=headers, data=payload)
-    bucket.update_bucket(request.headers, "PUT", endpoint)
+    # bucket.update_bucket(request.headers, "PUT", endpoint)
 
     if request.status_code == 429:
         raise self.retry(
@@ -512,9 +512,9 @@ def discorddelete(self, endpoint, *args, **kwargs):
         "Content-Type": "application/json",
     }
 
-    bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
+    # bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
     request = requests.delete(url, headers=headers)
-    bucket.update_bucket(request.headers, "DELETE", endpoint)
+    # bucket.update_bucket(request.headers, "DELETE", endpoint)
 
     if request.status_code == 429:
         raise self.retry(

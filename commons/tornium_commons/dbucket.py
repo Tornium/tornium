@@ -196,7 +196,7 @@ class DBucket:
 
         if "X-RateLimit-Remaining" in headers:
             client.set(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Remaining"]), nx=True)
-            client.expireat(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Reset"]), gt=True)
+            client.expireat(f"{PREFIX}:{bhash}:remaining", int(float(headers["X-RateLimit-Reset"])), gt=True)
             self.remaining = int(headers["X-RateLimit-Remaining"])
 
 
@@ -269,5 +269,5 @@ class DBucketNull(DBucket):
                 int(headers["X-RateLimit-Remaining"]),
                 nx=True,
             )
-            client.expireat(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Reset"]), gt=True)
+            client.expireat(f"{PREFIX}:{bhash}:remaining", int(float(headers["X-RateLimit-Reset"])), gt=True)
             self.remaining = int(headers["X-RateLimit-Remaining"])

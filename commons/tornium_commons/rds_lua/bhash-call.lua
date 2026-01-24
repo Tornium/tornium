@@ -43,7 +43,7 @@ else
 end
 
 if remaining == false then
-    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", 2)
+    redis.call("SET", KEYS[1], limit - 1, "NX", "EX", 10)
     remaining = limit - 1
 else
     remaining = tonumber(remaining)

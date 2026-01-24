@@ -153,7 +153,7 @@ class DBucket:
 
         if rds().ttl(f"{self.prefix}:{self.id}:remaining") == -1:
             # Fixes issue with non-existent TTL
-            rds().delete(f"{self.prefix}:{self.id}:remaining", f"{self.prefix}:{self.id}:limit")
+            rds().delete(f"{self.prefix}:{self.id}:remaining")
 
         # bhash-call.lua
         response = rds().evalsha(BHASH_CALL, 2, f"{self.prefix}:{self.id}:remaining", f"{self.prefix}:{self.id}:limit")
@@ -195,12 +195,8 @@ class DBucket:
             self.limit = headers["X-RateLimit-Limit"]
 
         if "X-RateLimit-Remaining" in headers:
-            client.set(
-                f"{PREFIX}:{bhash}:remaining",
-                int(headers["X-RateLimit-Remaining"]),
-                nx=True,
-                pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
-            )
+            client.set(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Remaining"]), nx=True)
+            client.expireat(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Reset"]), gt=True)
             self.remaining = int(headers["X-RateLimit-Remaining"])
 
 
@@ -272,6 +268,6 @@ class DBucketNull(DBucket):
                 f"{PREFIX}:{bhash}:remaining",
                 int(headers["X-RateLimit-Remaining"]),
                 nx=True,
-                pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
             )
+            client.expireat(f"{PREFIX}:{bhash}:remaining", int(headers["X-RateLimit-Reset"]), gt=True)
             self.remaining = int(headers["X-RateLimit-Remaining"])

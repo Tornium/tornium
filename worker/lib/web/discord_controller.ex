@@ -27,6 +27,7 @@ defmodule Tornium.Web.DiscordController do
       :ok ->
         conn
         |> put_status(204)
+        |> send_resp("")
 
       {:ok, response_blob} when is_binary(response_blob) ->
         conn

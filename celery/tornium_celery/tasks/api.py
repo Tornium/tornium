@@ -270,7 +270,7 @@ def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=F
 @celery.shared_task(
     name="tasks.api.discordget",
     bind=True,
-    max_retries=5,
+    max_retries=2,
     routing_key="api.discordget",
     queue="api",
     time_limit=10,
@@ -321,7 +321,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
 @celery.shared_task(
     name="tasks.api.discordpatch",
     bind=True,
-    max_retries=5,
+    max_retries=2,
     routing_key="api.discordpatch",
     queue="api",
     time_limit=10,
@@ -381,7 +381,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
 @celery.shared_task(
     name="tasks.api.discordpost",
     bind=True,
-    max_retries=5,
+    max_retries=2,
     routing_key="api.discordpost",
     queue="api",
     time_limit=10,
@@ -441,7 +441,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
 @celery.shared_task(
     name="tasks.api.discordput",
     bind=True,
-    max_retries=5,
+    max_retries=2,
     routing_key="api.discordput",
     queue="api",
 )
@@ -500,7 +500,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
 @celery.shared_task(
     name="tasks.api.discorddelete",
     bind=True,
-    max_retries=5,
+    max_retries=2,
     routing_key="api.discorddelete",
     queue="api",
     time_limit=5,

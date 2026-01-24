@@ -247,6 +247,20 @@ def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=F
     return request
 
 
+def discord_do(method, endpoint, body=None):
+    payload = {"method": method, "endpoint": "/" + endpoint}
+
+    if body is not None:
+        payload["body"] = body
+
+    if globals().get("orjson:loaded"):
+        payload = orjson.dumps(payload)
+    else:
+        payload = json.dumps(payload)
+
+    return requests.post("http://localhost:4000/discord", headers={"Content-Type": "application/json"}, data=payload)
+
+
 @celery.shared_task(
     name="tasks.api.discordget",
     bind=True,
@@ -256,20 +270,7 @@ def tornget(endpoint, key, tots=0, fromts=0, stat="", session=None, pass_error=F
     time_limit=10,
 )
 def discordget(self: celery.Task, endpoint, *args, **kwargs):
-    raise Exception()
-
-    url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {"Authorization": f'Bot {config["bot_token"]}'}
-
-    # bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
-    request = requests.get(url, headers=headers)
-    # bucket.update_bucket(request.headers, "GET", endpoint)
-
-    if request.status_code == 429:
-        raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=RatelimitError(),
-        )
+    request = discord_do("GET", endpoint)
 
     try:
         if globals().get("orjson:loaded"):
@@ -278,7 +279,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            raise NetworkingError(code=request.status_code, url=url)
+            raise NetworkingError(code=request.status_code, url=endpoint)
         elif request.status_code == 204:
             return
         else:
@@ -295,7 +296,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
         handle_discord_error(error)
         raise error
     elif request.status_code // 100 != 2:
-        raise NetworkingError(code=request.status_code, url=url)
+        raise NetworkingError(code=request.status_code, url=endpoint)
 
     return request_json
 
@@ -309,27 +310,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     time_limit=10,
 )
 def discordpatch(self, endpoint, payload, *args, **kwargs):
-    raise Exception()
-    url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {
-        "Authorization": f'Bot {config["bot_token"]}',
-        "Content-Type": "application/json",
-    }
-
-    # bucket = discord_ratelimit_pre(self, "PATCH", endpoint, backoff_var=kwargs.get("backoff", True))
-
-    if globals().get("orjson:loaded"):
-        payload = orjson.dumps(payload)
-    else:
-        payload = json.dumps(payload)
-
-    request = requests.patch(url, headers=headers, data=payload)
-    # bucket.update_bucket(request.headers, "PATCH", endpoint)
-
-    if request.status_code == 429:
-        raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(), exc=RatelimitError()
-        )
+    request = discord_do("PATCH", endpoint, payload)
 
     try:
         if globals().get("orjson:loaded"):
@@ -338,7 +319,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            raise NetworkingError(code=request.status_code, url=url)
+            raise NetworkingError(code=request.status_code, url=endpoint)
         elif request.status_code == 204:
             return
         else:
@@ -355,7 +336,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
         handle_discord_error(error)
         raise error
     elif request.status_code // 100 != 2:
-        raise NetworkingError(code=request.status_code, url=url)
+        raise NetworkingError(code=request.status_code, url=endpoint)
 
     return request_json
 
@@ -369,28 +350,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
     time_limit=10,
 )
 def discordpost(self, endpoint, payload, *args, **kwargs):
-    raise Exception()
-    url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {
-        "Authorization": f'Bot {config["bot_token"]}',
-        "Content-Type": "application/json",
-    }
-
-    # bucket = discord_ratelimit_pre(self, "POST", endpoint, backoff_var=kwargs.get("backoff", True))
-
-    if globals().get("orjson:loaded"):
-        payload = orjson.dumps(payload)
-    else:
-        payload = json.dumps(payload)
-
-    request = requests.post(url, headers=headers, data=payload)
-    # bucket.update_bucket(request.headers, "POST", endpoint)
-
-    if request.status_code == 429:
-        raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=RatelimitError(),
-        )
+    request = discord_do("POST", endpoint, payload)
 
     try:
         if globals().get("orjson:loaded"):
@@ -399,7 +359,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            raise NetworkingError(code=request.status_code, url=url)
+            raise NetworkingError(code=request.status_code, url=endpoint)
         elif request.status_code == 204:
             return
         else:
@@ -416,7 +376,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
         handle_discord_error(error)
         raise error
     elif request.status_code // 100 != 2:
-        raise NetworkingError(code=request.status_code, url=url)
+        raise NetworkingError(code=request.status_code, url=endpoint)
 
     return request_json
 
@@ -429,28 +389,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
     queue="api",
 )
 def discordput(self, endpoint, payload, *args, **kwargs):
-    raise Exception()
-    url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {
-        "Authorization": f'Bot {config["bot_token"]}',
-        "Content-Type": "application/json",
-    }
-
-    # bucket = discord_ratelimit_pre(self, "PUT", endpoint, backoff_var=kwargs.get("backoff", True))
-
-    if globals().get("orjson:loaded"):
-        payload = orjson.dumps(payload)
-    else:
-        payload = json.dumps(payload)
-
-    request = requests.put(url, headers=headers, data=payload)
-    # bucket.update_bucket(request.headers, "PUT", endpoint)
-
-    if request.status_code == 429:
-        raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=RatelimitError(),
-        )
+    request = discord_do("PUT", endpoint, payload)
 
     try:
         if globals().get("orjson:loaded"):
@@ -459,7 +398,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            raise NetworkingError(code=request.status_code, url=url)
+            raise NetworkingError(code=request.status_code, url=endpoint)
         elif request.status_code == 204:
             return
         else:
@@ -476,7 +415,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
         handle_discord_error(error)
         raise error
     elif request.status_code // 100 != 2:
-        raise NetworkingError(code=request.status_code, url=url)
+        raise NetworkingError(code=request.status_code, url=endpoint)
 
     return request_json
 
@@ -490,22 +429,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
     time_limit=5,
 )
 def discorddelete(self, endpoint, *args, **kwargs):
-    raise Exception()
-    url = f"https://discord.com/api/v10/{endpoint}"
-    headers = {
-        "Authorization": f'Bot {config["bot_token"]}',
-        "Content-Type": "application/json",
-    }
-
-    # bucket = discord_ratelimit_pre(self, "GET", endpoint, backoff_var=kwargs.get("backoff", True))
-    request = requests.delete(url, headers=headers)
-    # bucket.update_bucket(request.headers, "DELETE", endpoint)
-
-    if request.status_code == 429:
-        raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=RatelimitError(),
-        )
+    request = discord_do("DELETE", endpoint)
 
     try:
         if globals().get("orjson:loaded"):
@@ -514,7 +438,7 @@ def discorddelete(self, endpoint, *args, **kwargs):
             request_json = request.json()
     except Exception as e:
         if request.status_code // 100 != 2:
-            raise NetworkingError(code=request.status_code, url=url)
+            raise NetworkingError(code=request.status_code, url=endpoint)
         elif request.status_code == 204:
             return
         else:
@@ -531,7 +455,7 @@ def discorddelete(self, endpoint, *args, **kwargs):
         handle_discord_error(error)
         raise error
     elif request.status_code // 100 != 2:
-        raise NetworkingError(code=request.status_code, url=url)
+        raise NetworkingError(code=request.status_code, url=endpoint)
 
     return request_json
 

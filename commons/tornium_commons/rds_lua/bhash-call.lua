@@ -29,7 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -- NOTE: redis.call("GET", ...) == false states that the key doesn't exist
 
 -- Sets the global ratelimit if doesn't exist
-if redis.call("SET", KEYS[3], 50, "NX", "EX", 2) ~= "OK" then
+if redis.call("SET", KEYS[3], 50, "NX", "EX", 5) ~= "OK" then
     redis.call("DECR", KEYS[3])
 end
 
@@ -41,8 +41,8 @@ local limit = redis.call("GET", KEYS[2])
 
 if limit == false then
     -- no stored limit for the bucket
-    limit = 1
-    remaining = 1
+    limit = 10
+    remaining = 10
     redis.call("SET", KEYS[2], limit, "NX", "EX", 2)
 else
     limit = tonumber(limit)

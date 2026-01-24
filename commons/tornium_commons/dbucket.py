@@ -22,8 +22,8 @@ import typing
 
 import requests.structures
 
-from .errors import RatelimitError
-from .rds_lua_hashes import BHASH, BHASH_CALL
+from .errors import DiscordRatelimitError
+from .rds_lua_hashes import BHASH_CALL
 from .redisconnection import rds
 
 
@@ -81,7 +81,12 @@ class DBucket:
     https://wumpy.readthedocs.io/en/latest/extending/rest-ratelimiter/
     """
 
-    def __init__(self, bhash: typing.Optional[str]):
+    def __init__(
+        self,
+        bhash: typing.Optional[str],
+        method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
+        endpoint: str,
+    ):
         """
         Initialize a new Discord ratelimiting bucket from the per-route bucket hash.
 
@@ -89,11 +94,15 @@ class DBucket:
         ----------
         bhash : str, optional
             Discord per-route bucket hash
+        method : str
+        endpoint : str
         """
 
         self._id = bhash
-        self.remaining = 1  # Default value in case hash is not found
-        self.limit = 1  # Default value in case hash is not found
+        self.method = method
+        self.endpoint = endpoint
+        self.remaining = 10  # Default value in case hash is not found
+        self.limit = 10  # Default value in case hash is not found
 
     @property
     def id(self):
@@ -125,19 +134,12 @@ class DBucket:
             Discord ratelimiting bucket
         """
 
-        # bhash.lua
-        bhash = rds().evalsha(
-            BHASH,
-            1,
-            f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}",
-        )
+        bhash: typing.Optional[str] = rds().get(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}")
 
-        if bhash == -1:
-            raise RatelimitError  # Prevents requests from being made on new endpoints that are currently being called and updated
-        elif bhash is None:
+        if bhash is None:
             return DBucketNull(method, endpoint)
-        else:
-            return cls(bhash)
+
+        return cls(bhash, method, endpoint)
 
     def call(self):
         """
@@ -145,9 +147,13 @@ class DBucket:
 
         Raises
         ------
-        RatelimitError
+        DiscordRatelimitError
             If the bucket has reached a ratelimit.
         """
+
+        if rds().ttl(f"{self.prefix}:{self.id}:remaining") == -1:
+            # Fixes issue with non-existent TTL
+            rds().delete(f"{self.prefix}:{self.id}:remaining", f"{self.prefix}:{self.id}:limit")
 
         # bhash-call.lua
         response = rds().evalsha(
@@ -159,7 +165,7 @@ class DBucket:
         )
 
         if response is None:
-            raise RatelimitError
+            raise DiscordRatelimitError(self.method, self.endpoint, source="DBucket.call")
 
         self.remaining = response[0]
         self.limit = response[1]
@@ -197,10 +203,10 @@ class DBucket:
         if "X-RateLimit-Remaining" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining",
-                min(int(headers["X-RateLimit-Remaining"]), self.remaining),
+                int(headers["X-RateLimit-Remaining"]),
                 pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
             )
-            self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
+            self.remaining = int(headers["X-RateLimit-Remaining"])
 
         # rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")
         # Isn't need as there shouldn't be a lock on a DBucket that is not an object of the DBucketNull child class
@@ -229,10 +235,7 @@ class DBucketNull(DBucket):
             Request endpoint as passed to Celery tasks
         """
 
-        super().__init__(bhash=None)
-
-        self.method = method
-        self.endpoint = _strip_endpoint(endpoint)
+        super().__init__(bhash=None, method=method, endpoint=endpoint)
 
     @property
     def id(self):
@@ -275,9 +278,9 @@ class DBucketNull(DBucket):
         if "X-RateLimit-Remaining" in headers:
             client.set(
                 f"{PREFIX}:{bhash}:remaining",
-                min(int(headers["X-RateLimit-Remaining"]), self.remaining),
+                int(headers["X-RateLimit-Remaining"]),
                 pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
             )
-            self.remaining = min(int(headers["X-RateLimit-Remaining"]), self.remaining)
+            self.remaining = int(headers["X-RateLimit-Remaining"])
 
         rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")

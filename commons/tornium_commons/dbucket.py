@@ -156,13 +156,7 @@ class DBucket:
             rds().delete(f"{self.prefix}:{self.id}:remaining", f"{self.prefix}:{self.id}:limit")
 
         # bhash-call.lua
-        response = rds().evalsha(
-            BHASH_CALL,
-            3,
-            f"{self.prefix}:{self.id}:remaining",
-            f"{self.prefix}:{self.id}:limit",
-            f"tornium:discord:ratelimit:global:{int(time.time())}",
-        )
+        response = rds().evalsha(BHASH_CALL, 2, f"{self.prefix}:{self.id}:remaining", f"{self.prefix}:{self.id}:limit")
 
         if response is None:
             raise DiscordRatelimitError(self.method, self.endpoint, source="DBucket.call")
@@ -204,12 +198,10 @@ class DBucket:
             client.set(
                 f"{PREFIX}:{bhash}:remaining",
                 int(headers["X-RateLimit-Remaining"]),
+                nx=True,
                 pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
             )
             self.remaining = int(headers["X-RateLimit-Remaining"])
-
-        # rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")
-        # Isn't need as there shouldn't be a lock on a DBucket that is not an object of the DBucketNull child class
 
 
 class DBucketNull(DBucket):
@@ -279,8 +271,7 @@ class DBucketNull(DBucket):
             client.set(
                 f"{PREFIX}:{bhash}:remaining",
                 int(headers["X-RateLimit-Remaining"]),
+                nx=True,
                 pxat=int(float(headers["X-RateLimit-Reset"]) * 1000),
             )
             self.remaining = int(headers["X-RateLimit-Remaining"])
-
-        rds().delete(f"{PREFIX}:{method}|{_strip_endpoint(endpoint)}:lock")

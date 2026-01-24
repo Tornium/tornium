@@ -21,17 +21,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 -- KEYS[1] -> key for calls remaining on route
 -- KEYS[2] -> key for route limit
--- KEYS[3] -> key for global ratelimit
 --
 -- Returns false if call is rate-limited
 -- Returns [remaining, limit] if call is OK
 --
 -- NOTE: redis.call("GET", ...) == false states that the key doesn't exist
-
--- Sets the global ratelimit if doesn't exist
-if redis.call("SET", KEYS[3], 50, "NX", "EX", 5) ~= "OK" then
-    redis.call("DECR", KEYS[3])
-end
 
 -- Gets remaining calls for the bucket
 local remaining = redis.call("GET", KEYS[1])
@@ -61,5 +55,4 @@ else
     redis.call("DECR", KEYS[1])
 end
 
--- OK
 return {remaining, limit}

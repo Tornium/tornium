@@ -24,7 +24,7 @@ defmodule Tornium.Web.DiscordController do
       end
 
     case response do
-      {:ok, ""} ->
+      :ok ->
         conn
         |> put_status(204)
 

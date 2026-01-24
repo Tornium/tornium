@@ -22,10 +22,9 @@ if globals().get("orjson:loaded"):
     import orjson
 
 import requests
-from tornium_commons import Config, DBucket, rds, with_db_connection
+from tornium_commons import Config, rds, with_db_connection
 from tornium_commons.errors import (
     DiscordError,
-    DiscordRatelimitError,
     MissingKeyError,
     NetworkingError,
     RatelimitError,
@@ -48,25 +47,6 @@ def backoff(self: celery.Task):
 
 def countdown_wo():
     return random.randint(1, 3)
-
-
-def discord_ratelimit_pre(
-    self: celery.Task,
-    method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"],
-    endpoint: str,
-    backoff_var: typing.Optional[bool] = True,
-):
-    if backoff_var is None:
-        backoff_var = True
-
-    try:
-        bucket = DBucket.from_endpoint(method=method, endpoint=endpoint)
-        bucket.call()
-    except DiscordRatelimitError:
-        logger.error("Discord ratelimit (pre)", exc_info=True)
-        raise self.retry(countdown=backoff(self) if backoff_var else countdown_wo())
-
-    return bucket
 
 
 def handle_discord_error(e: DiscordError):
@@ -286,7 +266,7 @@ def discordget(self: celery.Task, endpoint, *args, **kwargs):
     if request.status_code == 429:
         raise self.retry(
             countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=DiscordRatelimitError(method="GET", endpoint=endpoint, source="HTTP 429"),
+            exc=RatelimitError(),
         )
 
     try:
@@ -345,8 +325,7 @@ def discordpatch(self, endpoint, payload, *args, **kwargs):
 
     if request.status_code == 429:
         raise self.retry(
-            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=DiscordRatelimitError(method="PATCH", endpoint=endpoint, source="HTTP 429"),
+            countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(), exc=RatelimitError()
         )
 
     try:
@@ -406,7 +385,7 @@ def discordpost(self, endpoint, payload, *args, **kwargs):
     if request.status_code == 429:
         raise self.retry(
             countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=DiscordRatelimitError(method="POST", endpoint=endpoint, source="HTTP 429"),
+            exc=RatelimitError(),
         )
 
     try:
@@ -465,7 +444,7 @@ def discordput(self, endpoint, payload, *args, **kwargs):
     if request.status_code == 429:
         raise self.retry(
             countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=DiscordRatelimitError(method="PUT", endpoint=endpoint, source="HTTP 429"),
+            exc=RatelimitError(),
         )
 
     try:
@@ -519,7 +498,7 @@ def discorddelete(self, endpoint, *args, **kwargs):
     if request.status_code == 429:
         raise self.retry(
             countdown=backoff(self) if kwargs.get("backoff", True) else countdown_wo(),
-            exc=DiscordRatelimitError(method="DELETE", endpoint=endpoint, source="HTTP 429"),
+            exc=RatelimitError(),
         )
 
     try:

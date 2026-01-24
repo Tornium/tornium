@@ -19,7 +19,7 @@ from .discord import DiscordError
 from .networking import NetworkingError
 from .torn import MissingKeyError, TornError
 
-__all__ = ["DiscordError", "DiscordRatelimitError", "NetworkingError", "MissingKeyError", "TornError", "RatelimitError"]
+__all__ = ["DiscordError", "NetworkingError", "MissingKeyError", "TornError", "RatelimitError"]
 
 
 class RatelimitError(Exception):
@@ -28,20 +28,3 @@ class RatelimitError(Exception):
     """
 
     pass
-
-
-class DiscordRatelimitError(RatelimitError):
-    """
-    The Discord API call has resulted in a ratelimit. This ratelimit can either occur before the API call
-    has been performed or after the fact.
-    """
-
-    def __init__(self, method: typing.Literal["GET", "PATCH", "POST", "PUT", "DELETE"], endpoint: str, source: str):
-        super().__init__()
-
-        self.method = method
-        self.endpoint = endpoint
-        self.source = source
-
-    def __str__(self):
-        return f"Discord API ratelimit ({self.source}): {self.method} {self.endpoint}"

@@ -2,24 +2,30 @@ defmodule Tornium.Web.DiscordController do
   use Tornium.Web, :controller
 
   def connect(%Plug.Conn{body_params: body_params} = conn, _params) do
+    %URI{path: path, query: query} =
+      body_params
+      |> Map.fetch!("endpoint")
+      |> URI.parse()
+
     response =
-      if Map.has_key?(body_params, "body") do
+      if is_nil(query) do
         Nostrum.Api.request(
           body_params
           |> Map.fetch!("method")
           |> method(),
-          body_params
-          |> Map.fetch!("endpoint"),
-          body_params
-          |> Map.get("body")
+          path,
+          Map.get(body_params, "body", "")
         )
       else
         Nostrum.Api.request(
           body_params
           |> Map.fetch!("method")
           |> method(),
-          body_params
-          |> Map.fetch!("endpoint")
+          path,
+          Map.get(body_params, "body", ""),
+          query
+          |> URI.decode_query()
+          |> Enum.into([], fn {k, v} -> {String.to_atom(k), v} end)
         )
       end
 

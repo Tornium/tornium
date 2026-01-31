@@ -819,7 +819,7 @@ def members_switchboard(interaction, *args, **kwargs):
             "type": 4,
             "data": {
                 "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
-                + " Turn off your revives.",
+                + " Turn off your revives. You can do so through [Torn's settings](https://www.torn.com/preferences.php) even when you're flying.",
             },
         }
 
@@ -955,7 +955,7 @@ def members_switchboard(interaction, *args, **kwargs):
             "type": 4,
             "data": {
                 "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
-                + " Turn off your revives.",
+                + " Turn off your revives. You can do so through [Torn's settings](https://www.torn.com/preferences.php) even when you're flying.",
             },
         }
 

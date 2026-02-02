@@ -232,8 +232,6 @@ defmodule Tornium.Faction.Overdose do
           #  - There are more than one logs, so we can not be sure what drug the user overdosed on.
           Map.put(event, :drug_id, nil)
       end
-
-      event
     else
       # Ensure the drug is set to `nil` so the armory usage logs can attempt to find a matching log
       # during its next run

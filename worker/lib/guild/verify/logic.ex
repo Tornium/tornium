@@ -31,16 +31,27 @@ defmodule Tornium.Guild.Verify.Logic do
   """
   @type state :: %{roles: MapSet.t(Tornium.Discord.role()), nick: String.t()}
 
-  # TODO: Determine if the type for new_values in the DB is actually String.t() or 
-  # Tornium.Discord.role()
-  @spec insert_update_roles(state :: state(), new_values :: [String.t()]) :: state()
+  @spec insert_update_roles(state :: state(), new_values :: [String.t() | Tornium.Discord.role()]) :: state()
   defp insert_update_roles(state, new_values) do
     # Inserts or updates the :roles key in the state for the list of roles. If there is
     # no :roles key, the new values will be used as the existing list of values. Otherwise,
     # the new values will be inserted into the existing list of roles (with duplicates
     # removed).
-    Map.update(state, :roles, MapSet.new(new_values), fn existing_roles ->
-      MapSet.union(existing_roles, MapSet.new(new_values))
+
+    # We need to ensure that the role IDs are integers as some places in the database store
+    # the role ID as a string. Otherwise, "1234" != 1234 and it will not be unique in the
+    # MapSet which will cause an error from Discord.
+    new_values =
+      new_values
+      |> Enum.map(fn
+        value when is_integer(value) -> value
+        value when is_binary(value) -> Tornium.Utils.string_to_integer(value)
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> MapSet.new()
+
+    Map.update(state, :roles, new_values, fn existing_roles ->
+      MapSet.union(existing_roles, new_values)
     end)
   end
 

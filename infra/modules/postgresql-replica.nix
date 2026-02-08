@@ -1,12 +1,18 @@
 { pkgs, ... }:
 
 {
+  # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
   imports = [
     ./postgresql-password-service.nix
   ];
 
+  systemd.tmpfiles.rules = [
+    "d /var/lib/postgresql/16/replica 0700 postgres postgres -"
+  ];
+
   services.postgresql.enable = true;
   services.postgresql.package = pkgs.postgresql_16;
+  services.postgresql.dataDir = "/var/lib/postgresql/16/replica";
   services.postgresql.settings = {
     wal_level = "replica";
     max_wal_senders = "10";
@@ -14,6 +20,7 @@
     wal_keep_size = "1GB";
     primary_conninfo = "host=10.0.0.3 port=5432 user=replicator";
     hot_standby = "on";
+    max_connections = "150";
   };
   services.postgresql.ensureDatabases = [ "Tornium" ];
   services.postgresql.ensureUsers = [

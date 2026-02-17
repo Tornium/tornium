@@ -1360,7 +1360,7 @@ def auto_cancel_requests():
     name="tasks.faction.verify_faction_withdrawals",
     routing_key="quick.verify_faction_withdrawals",
     queue="quick",
-    time_limit=5,
+    time_limit=15,
 )
 @with_db_connection
 def verify_faction_withdrawals(funds_news: dict, withdrawals):

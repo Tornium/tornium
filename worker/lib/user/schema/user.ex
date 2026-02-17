@@ -16,6 +16,10 @@
 defmodule Tornium.Schema.User do
   @moduledoc """
   Schema representing a Torn user.
+
+  ## Fields
+  - `:fedded_until` - The date the user is fedded until if not `nil`. If the date is 9999-12-31,
+    the user is fedded forever. This includes fallen users who should have the date of 9999-12-31
   """
 
   use Ecto.Schema
@@ -38,6 +42,7 @@ defmodule Tornium.Schema.User do
           faction_position: Tornium.Schema.FactionPosition.t() | nil,
           status: String.t() | nil,
           last_action: DateTime.t() | nil,
+          fedded_until: Date.t() | nil,
           last_refresh: DateTime.t() | nil,
           last_attacks: DateTime.t() | nil,
           battlescore_update: DateTime.t() | nil,
@@ -67,6 +72,7 @@ defmodule Tornium.Schema.User do
 
     field(:status, :string)
     field(:last_action, :utc_datetime)
+    field(:fedded_until, :date)
 
     field(:last_refresh, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)

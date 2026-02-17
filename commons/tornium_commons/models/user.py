@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import inspect
 import typing
 from functools import cached_property, lru_cache
@@ -21,6 +22,7 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     CharField,
+    DateField,
     DateTimeField,
     DeferredForeignKey,
     DoesNotExist,
@@ -64,6 +66,7 @@ class User(BaseModel):
     # User status
     status = TextField(null=True)
     last_action = DateTimeField(null=True)
+    fedded_until = DateField(null=True)
 
     # Internal data
     last_refresh = DateTimeField(null=True)
@@ -205,13 +208,11 @@ class User(BaseModel):
                         "fields": [
                             {
                                 "name": "Overview",
-                                "value": inspect.cleandoc(
-                                    f"""
+                                "value": inspect.cleandoc(f"""
                                     Level: {self.level}
                                     Last Action: <t:{int(self.last_action.timestamp())}:R>
                                     Last Update: <t:{int(self.last_refresh.timestamp())}:R>
-                                """
-                                ),
+                                """),
                             },
                         ],
                     },
@@ -237,13 +238,27 @@ class User(BaseModel):
             embed["data"]["embeds"][0]["fields"].append(
                 {
                     "name": "Faction",
-                    "value": inspect.cleandoc(
-                        f"""
+                    "value": inspect.cleandoc(f"""
                         Faction: [{self.faction.name} [{self.faction_id}]](https://www.torn.com/factions.php?step=profile&ID={self.faction_id}&referredFrom={self.tid})
                         Faction Position: {self.user_position_str()}
-                    """
-                    ),
+                    """),
                 }
             )
 
         return embed
+
+    @staticmethod
+    def get_fedded_until(user_data: dict) -> typing.Optional[datetime.date]:
+        """
+        Get the date object representing when a user would leave federal jail.
+        """
+
+        if user_data["status"]["state"] == "Fallen":
+            # A fallen user should be set to the maximum fed value of 9999-12-31
+            return datetime.date(year=9999, month=12, day=31)
+        elif user_data["status"]["state"] == "Federal" and "permanently" in user_data["status"]["description"]:
+            return datetime.date(year=9999, month=12, day=31)
+        elif user_data["status"]["state"] == "Federal":
+            return datetime.date.fromtimestamp(user_data["status"]["until"])
+
+        return None

@@ -175,7 +175,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
 )
 @with_db_connection
 def update_user_self(user_data: dict, key: typing.Optional[str] = None):
-    user_data_kwargs = {"faction_aa": False}
+    user_data_kwargs = {"faction_aa": False, "fedded_until": User.get_fedded_until(user_data)}
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
@@ -320,8 +320,8 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     time_limit=5,
 )
 @with_db_connection
-def update_user_other(user_data):
-    user_data_kwargs = {"faction_aa": False}
+def update_user_other(user_data: dict):
+    user_data_kwargs = {"faction_aa": False, "fedded_until": User.get_fedded_until(user_data)}
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:

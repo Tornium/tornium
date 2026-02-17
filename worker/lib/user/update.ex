@@ -16,6 +16,10 @@
 # TODO: Store personal stats in user updates
 
 defmodule Tornium.User do
+  @moduledoc """
+  Functionality related to updating users' data' data' data' data.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
 
@@ -136,6 +140,7 @@ defmodule Tornium.User do
 
     {:ok, last_action} = DateTime.from_unix(last_action)
 
+    # TODO: Replace set in the on_conflict clause with replace
     {:ok, _} =
       Repo.insert(
         %Tornium.Schema.User{
@@ -146,6 +151,7 @@ defmodule Tornium.User do
           faction_id: faction_tid,
           status: status,
           last_action: last_action,
+          fedded_until: fedded_until(user_data),
           last_refresh: DateTime.utc_now()
         },
         on_conflict: [
@@ -156,6 +162,7 @@ defmodule Tornium.User do
             faction_id: faction_tid,
             status: status,
             last_action: last_action,
+            fedded_until: fedded_until(user_data),
             last_refresh: DateTime.utc_now()
           ]
         ],
@@ -176,6 +183,7 @@ defmodule Tornium.User do
          %{"faction" => %{"faction_id" => tid, "faction_name" => name, "faction_tag" => tag}} =
            _user_data
        ) do
+    # TODO: Replace set in the on_conflict clause with replace
     Repo.insert(
       %Tornium.Schema.Faction{
         tid: tid,
@@ -285,5 +293,52 @@ defmodule Tornium.User do
       _ ->
         true
     end
+  end
+
+  @doc """
+  Determine when a user's fedding will end.
+
+  If a user is fallen or permanently fedded, their fedding will expire in the year 9999 as Elixir does not
+  support infinite timestamps. If a user is temporarily fedded, it will be the date of the `:until`
+  timestamp in the API response. Otherwise, if a user is not fedded, `nil` will be returned.
+  """
+  @spec fedded_until(user_data :: map()) :: Date.t() | nil
+  def fedded_until(%{"status" => %{"state" => "Fallen"}} = _user_data) do
+    # Since the user is fallen, we'll want to treat them as permanently fedded.
+    %Date{
+      calendar: Calendar.ISO,
+      year: 9999,
+      month: 12,
+      day: 31
+    }
+  end
+
+  def fedded_until(%{
+        "status" => %{"state" => "Federal", "description" => federal_description, "until" => federal_until}
+      })
+      when is_binary(federal_description) and is_integer(federal_until) do
+    permanent_federal? =
+      federal_description
+      |> String.downcase()
+      |> String.contains?("permanently")
+
+    if permanent_federal? do
+      # This is the largest date supported by Elixir/OTP
+      %Date{
+        calendar: Calendar.ISO,
+        year: 9999,
+        month: 12,
+        day: 31
+      }
+    else
+      federal_until
+      |> DateTime.from_unix!()
+      |> DateTime.to_date()
+    end
+  end
+
+  def fedded_until(user_data) when is_map(user_data) do
+    # The user is not fedded or fallen
+    nil
   end
 end

@@ -174,6 +174,7 @@ def update_faction(faction_data):
                 last_action=datetime.datetime.fromtimestamp(
                     member["last_action"]["timestamp"], tz=datetime.timezone.utc
                 ),
+                fedded_until=User.get_fedded_until(member),
                 last_refresh=datetime.datetime.utcnow(),
             ).on_conflict(
                 conflict_target=[User.tid],
@@ -185,6 +186,7 @@ def update_faction(faction_data):
                     User.faction_position,
                     User.status,
                     User.last_action,
+                    User.fedded_until,
                     User.last_refresh,
                 ],
             ).execute()
@@ -198,6 +200,7 @@ def update_faction(faction_data):
                 last_action=datetime.datetime.fromtimestamp(
                     member["last_action"]["timestamp"], tz=datetime.timezone.utc
                 ),
+                fedded_until=User.get_fedded_until(member),
                 last_refresh=datetime.datetime.utcnow(),
             ).on_conflict(
                 conflict_target=[User.tid],
@@ -207,6 +210,7 @@ def update_faction(faction_data):
                     User.faction,
                     User.status,
                     User.last_action,
+                    User.fedded_until,
                     User.last_refresh,
                 ],
             ).execute()
@@ -911,16 +915,14 @@ def generate_retaliation_embed(
         fields.append(
             {
                 "name": "Personal Stats",
-                "value": inspect.cleandoc(
-                    f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
+                "value": inspect.cleandoc(f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
                     SEs Used: {commas(opponents_personal_stats.statenhancersused)}
                     E-Cans Used: {commas(opponents_personal_stats.energydrinkused)}
                     Books Read: {commas(opponents_personal_stats.booksread)}
 
                     ELO: {commas(opponents_personal_stats.elo)}
                     Average Respect: {commas(opponents_personal_stats.respectforfaction / opponents_personal_stats.attackswon, stock_price=True)}
-                    """
-                ),
+                    """),
             }
         )
 

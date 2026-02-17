@@ -93,4 +93,51 @@ defmodule Tornium.Test.User.Update do
     assert db_user.strength == 10
     assert db_user.battlescore == 4 * :math.sqrt(10)
   end
+
+  test "fedded_status" do
+    assert is_nil(
+             Tornium.User.fedded_until(%{
+               "status" => %{
+                 "description" => "Okay",
+                 "details" => "",
+                 "state" => "Okay",
+                 "color" => "green",
+                 "until" => 0
+               }
+             })
+           )
+
+    assert ~D[2026-03-05] ==
+             Tornium.User.fedded_until(%{
+               "status" => %{
+                 "description" => "In federal jail for 16 days",
+                 "details" => "Staff see notes",
+                 "state" => "Federal",
+                 "color" => "red",
+                 "until" => 1_772_668_800
+               }
+             })
+
+    assert ~D[9999-12-31] ==
+             Tornium.User.fedded_until(%{
+               "status" => %{
+                 "description" => "In federal jail permanently",
+                 "details" => "Account marked for deletion",
+                 "state" => "Federal",
+                 "color" => "red",
+                 "until" => 1_857_600_000
+               }
+             })
+
+    assert ~D[9999-12-31] ==
+             Tornium.User.fedded_until(%{
+               "status" => %{
+                 "description" => "Fallen",
+                 "details" => "Resting in Peace",
+                 "state" => "Fallen",
+                 "color" => "red",
+                 "until" => 0
+               }
+             })
+  end
 end

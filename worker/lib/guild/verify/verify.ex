@@ -276,10 +276,11 @@ defmodule Tornium.Guild.Verify do
   end
 
   defp perform_changes(
-         {:verified, %{roles: roles, nick: nick} = _changeset},
+         {:verified, changeset},
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       ) do
-    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
+       )
+       when is_map(changeset) do
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, changeset)
   end
 end

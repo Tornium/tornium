@@ -18,7 +18,6 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
   Notifications for factions with members who should be in an OC but aren't. 
   """
 
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 
@@ -35,6 +34,9 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
+    now = DateTime.utc_now()
+    today = DateTime.to_date(now)
+
     Tornium.Schema.ServerOCConfig
     |> where([c], not is_nil(c.missing_member_channel) and c.missing_member_channel != 0)
     |> join(:inner, [c], s in assoc(c, :server), on: c.server_id == s.sid)
@@ -42,8 +44,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
     |> join(:inner, [c, s], f in assoc(c, :faction), on: c.faction_id == f.tid)
     |> where(
       [c, s, f],
-      f.guild_id == s.sid and f.has_migrated_oc == true and
-        ^DateTime.utc_now() - f.last_members < ^Duration.new!(day: 1)
+      f.guild_id == s.sid and f.has_migrated_oc == true and ^now - f.last_members < ^Duration.new!(day: 1)
     )
     |> select([c, s, f], [c.missing_member_channel, c.missing_member_roles, c.missing_member_minimum_duration, f.tid])
     |> Repo.all()
@@ -69,12 +70,12 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
         |> Repo.one()
 
       Tornium.Schema.User
-      |> where([u], u.faction_id == ^faction_id)
+      |> where([u], u.faction_id == ^faction_id and (is_nil(u.fedded_until) or u.fedded_until <= ^today))
       |> join(:left, [u], oc in subquery(latest_oc_subquery), on: oc.user_id == u.tid and oc.faction_id == u.faction_id)
       |> where(
         [u, oc],
         is_nil(oc.user_id) or
-          (not is_nil(oc.executed_at) and ^DateTime.utc_now() - oc.executed_at > ^missing_member_minimum_duration)
+          (not is_nil(oc.executed_at) and ^now - oc.executed_at > ^missing_member_minimum_duration)
       )
       |> select([u, oc], %{
         user_id: u.tid,
@@ -164,6 +165,6 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
 
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
-    :timer.minutes(1)
+    :timer.minutes(5)
   end
 end

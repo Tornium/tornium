@@ -135,8 +135,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
         # `is_nil(user_discord_id)` is to ensure we aren't pinging a user's non-existent Discord account
         is_nil(user_discord_id) or user_discord_id == 0 or is_nil(last_oc_executed_at)
       end)
-      |> Enum.map(fn %{user_discord_id: user_discord_id} -> user_discord_id end)
-      |> Enum.map(fn discord_id -> {:user, user_discord_id} end)
+      |> Enum.map(fn %{user_discord_id: user_discord_id} -> {:user, user_discord_id} end)
 
     %Nostrum.Struct.Message{
       channel_id: channel_id,

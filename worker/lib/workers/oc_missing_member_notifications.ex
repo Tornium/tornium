@@ -149,7 +149,6 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
          %{
            user_id: user_id,
            user_name: user_name,
-           user_discord_id: user_discord_id,
            user_faction_name: user_faction_name,
            last_oc_id: last_oc_id,
            last_oc_executed_at: %DateTime{} = last_oc_executed_at
@@ -167,7 +166,6 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
          %{
            user_id: user_id,
            user_name: user_name,
-           user_discord_id: _user_discord_id,
            user_faction_name: user_faction_name,
            last_oc_id: _last_oc_id,
            last_oc_executed_at: last_oc_executed_at

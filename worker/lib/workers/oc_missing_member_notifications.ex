@@ -96,13 +96,15 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
       })
       |> Repo.all()
       |> Enum.chunk_every(10)
-      |> Enum.map(fn members_chunk ->
+      |> Enum.each(fn members_chunk ->
         # Discord limits messages to 10 embeds per message, so we want to chunk it by every 10 members not
         # in an OC to stay within these limits.
+        # We want to enable `:collect` to throttle the Discord API calls to prevent the bot from being 
+        # ratelimited.
         members_chunk
         |> generate_message(missing_member_channel, missing_member_roles)
         |> then(fn message -> [message] end)
-        |> Tornium.Discord.send_messages()
+        |> Tornium.Discord.send_messages(collect: true)
       end)
     end)
 

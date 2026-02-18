@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Discord do
+  @moduledoc """
+  Functinality related to Discord built on top of Nostrum.
+  """
+
   @typedoc """
   Discord role ID.
   """

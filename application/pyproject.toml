@@ -28,6 +28,7 @@ dependencies = [
     "psycopg2",
     "pynacl ~= 1.6.0",
     "xgboost",
+    "git+https://github.com/Tornium/tornium_oc_graph.git"
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]

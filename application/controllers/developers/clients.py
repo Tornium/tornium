@@ -215,7 +215,7 @@ def update_client(client_id: str):
             "1000", details={"message": "At least one of the provided scopes was not valid."}
         )
     elif isinstance(client_uri, str) and client_uri != "" and not validate_oauth_redirect_uri(client_uri)[0]:
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client URI was not valid as {invalid_reason}"}
         )
@@ -226,7 +226,7 @@ def update_client(client_id: str):
         and client_terms_uri != ""
         and not validate_oauth_redirect_uri(client_terms_uri)[0]
     ):
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_terms_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_terms_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client terms of service URI was not valid as {invalid_reason}"}
         )
@@ -237,7 +237,7 @@ def update_client(client_id: str):
         and client_privacy_uri != ""
         and not validate_oauth_redirect_uri(client_privacy_uri)[0]
     ):
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_privacy_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_privacy_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client privacy policy URI was not valid as {invalid_reason}"}
         )

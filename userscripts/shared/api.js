@@ -25,7 +25,7 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
             resolve(cachedResponse);
             return cachedResponse;
         }
-        
+
         return GM_xmlhttpRequest({
             method: options.method,
             url: `${BASE_URL}/api/v1/${endpoint}`,

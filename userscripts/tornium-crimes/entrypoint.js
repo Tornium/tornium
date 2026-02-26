@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
+import { injectMemberSelector, updateMemberOptimus } from "./crime-page.js";
 import { APP_ID, CACHE_ENABLED, DEBUG, GM_PREFIX, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
@@ -23,6 +24,34 @@ import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "
 log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
 
 const query = new URLSearchParams(document.location.search);
+
+function executeCrimes() {
+    createSettingsButton();
+
+    torniumFetch("user", { ttl: 1000 * 60 * 60 })
+        .then((identityData) => {
+            return [identityData.factiontid, identityData.tid];
+        })
+        .then(([factionID, userID]) => {
+            GM_setValue(`${GM_PREFIX}:userID`, userID);
+
+            return Promise.all([
+                torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 }),
+                userID,
+                factionID,
+                waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`),
+            ]);
+        })
+        .then(([data, userID, factionID, memberSelectorContainer]) => {
+            if (memberSelectorContainer == null) {
+                log("Failed to load container .buttonsContainer for the memberSelector");
+                throw new Error("Failed to find container for memberSelector");
+            }
+
+            injectMemberSelector(memberSelectorContainer, userID, factionID);
+            updateMemberOptimus(data);
+        });
+}
 
 if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const errorContainer = document.getElementsByClassName("main-wrap")[0];
@@ -64,24 +93,45 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     window.location.hash == "#/tab=crimes" &&
     !isAuthExpired()
 ) {
-    createSettingsButton();
+    // TODO: Clean this up
+    executeCrimes();
 
-    torniumFetch("user", { ttl: 1000 * 60 * 60 })
-        .then((identityData) => {
-            return [identityData.factiontid, identityData.tid];
-        })
-        .then(([factionID, userID]) => {
-            GM_setValue(`${GM_PREFIX}:userID`, userID);
-            return torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 });
-        }).then((data) => {
-            console.log(data);
-            // TODO: inject crimes data
-        })
+    window.addEventListener("hashchange", (event) => {
+        const newURL = new URL(event.newURL);
+        if (!newURL.pathname.startsWith("/factions.php")) {
+            return;
+        } else if (newURL.hash != "#/tab=crimes") {
+            return;
+        }
+
+        const newQuery = new URLSearchParams(newURL.search);
+
+        if (newQuery.get("step") != "your") {
+            return;
+        }
+
+        executeCrimes();
+    });
 } else if (window.location.pathname.startsWith("/factions.php")) {
     // Fallback on the faction page to ensure the settings button is created regardless of:
     //  - the faction URI being malformed
     //  - the OAuth token being expired
     createSettingsButton();
 
-    // TODO: Create listener to detect page change to the faction crimes page
+    window.addEventListener("hashchange", (event) => {
+        const newURL = new URL(event.newURL);
+        if (!newURL.pathname.startsWith("/factions.php")) {
+            return;
+        } else if (newURL.hash != "#/tab=crimes") {
+            return;
+        }
+
+        const newQuery = new URLSearchParams(newURL.search);
+
+        if (newQuery.get("step") != "your") {
+            return;
+        }
+
+        executeCrimes();
+    });
 }

@@ -202,6 +202,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
   }
 
+  // crime-page.js
+  function injectMemberSelector(container, userID, factionID) {
+    if (container == null) {
+      return;
+    }
+    const wrapper = document.createElement("div");
+    container.after(wrapper);
+    const seperator = document.createElement("hr");
+    seperator.classList.add("page-head-delimiter", "m-top10", "m-bottom10");
+    wrapper.append(seperator);
+    torniumFetch(`faction/${factionID}/members`, {}).then((memberData) => {
+      const label = document.createElement("label");
+      label.setAttribute("for", "tornium-crimes-optimum-member");
+      label.textContent = "Faction Member (Optimum OC): ";
+      wrapper.append(label);
+      const selector = document.createElement("select");
+      selector.setAttribute("name", "tornium-crimes-optimum-member");
+      wrapper.append(selector);
+      for (const member of memberData) {
+        const option = document.createElement("option");
+        option.setAttribute("value", member.ID);
+        option.textContent = member.name;
+        selector.append(option);
+      }
+      selector.value = userID;
+      selector.addEventListener("change", onSelectedMemberChange);
+    });
+  }
+  function updateMemberOptimums(optimumData) {
+  }
+  function onSelectedMemberChange(event) {
+    torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
+      return identityData.factiontid;
+    }).then((factionID) => {
+      return torniumFetch(`faction/${factionID}/crime/member/${event.target.value}/optimum`, { ttl: 60 });
+    }).then((optimumData) => {
+      return updateMemberOptimums(optimumData);
+    });
+  }
+
+  // dom.js
+  async function waitForElement(querySelector, timeout) {
+    const existingElement = document.querySelector(querySelector);
+    if (existingElement) return existingElement;
+    return new Promise((resolve) => {
+      let timer;
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(querySelector);
+        if (element) {
+          cleanup();
+          resolve(element);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      if (timeout) {
+        timer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, timeout);
+      }
+      function cleanup() {
+        observer.disconnect();
+        if (timer) clearTimeout(timer);
+      }
+    });
+  }
+
   // settings.js
   function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -338,6 +408,27 @@ margin: 8px 6px 0 0;
   // entrypoint.js
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
   var query = new URLSearchParams(document.location.search);
+  function executeCrimes() {
+    createSettingsButton();
+    torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
+      return [identityData.factiontid, identityData.tid];
+    }).then(([factionID, userID]) => {
+      GM_setValue(`${GM_PREFIX}:userID`, userID);
+      return Promise.all([
+        torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 }),
+        userID,
+        factionID,
+        waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`)
+      ]);
+    }).then(([data, userID, factionID, memberSelectorContainer]) => {
+      if (memberSelectorContainer == null) {
+        log("Failed to load container .buttonsContainer for the memberSelector");
+        throw new Error("Failed to find container for memberSelector");
+      }
+      injectMemberSelector(memberSelectorContainer, userID, factionID);
+      console.log(data);
+    });
+  }
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const errorContainer = document.getElementsByClassName("main-wrap")[0];
     const errorContainerTitle = document.getElementById("skip-to-content");
@@ -365,16 +456,34 @@ margin: 8px 6px 0 0;
       window.location.href = "https://www.torn.com";
     }
   } else if (window.location.pathname.startsWith("/factions.php") && query.get("step") == "your" && window.location.hash == "#/tab=crimes" && !isAuthExpired()) {
-    createSettingsButton();
-    torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
-      return [identityData.factiontid, identityData.tid];
-    }).then(([factionID, userID]) => {
-      GM_setValue(`${GM_PREFIX}:userID`, userID);
-      return torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 });
-    }).then((data) => {
-      console.log(data);
+    executeCrimes();
+    window.addEventListener("hashchange", (event) => {
+      const newURL = new URL(event.newURL);
+      if (!newURL.pathname.startsWith("/factions.php")) {
+        return;
+      } else if (newURL.hash != "#/tab=crimes") {
+        return;
+      }
+      const newQuery = new URLSearchParams(newURL.search);
+      if (newQuery.get("step") != "your") {
+        return;
+      }
+      executeCrimes();
     });
   } else if (window.location.pathname.startsWith("/factions.php")) {
     createSettingsButton();
+    window.addEventListener("hashchange", (event) => {
+      const newURL = new URL(event.newURL);
+      if (!newURL.pathname.startsWith("/factions.php")) {
+        return;
+      } else if (newURL.hash != "#/tab=crimes") {
+        return;
+      }
+      const newQuery = new URLSearchParams(newURL.search);
+      if (newQuery.get("step") != "your") {
+        return;
+      }
+      executeCrimes();
+    });
   }
 })();

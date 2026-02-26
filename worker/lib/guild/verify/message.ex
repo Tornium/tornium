@@ -54,7 +54,7 @@ defmodule Tornium.Guild.Verify.Message do
       description:
         "<@#{member.user_id}> may not be verified on Torn. To verify on Torn, the user can link their Discord " <>
           "and Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or through a " <>
-          "[direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify). " <>
+          "[direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify)." <>
           "Once the user is verified, use `/verify force:true` to verify the user.",
       color: 0xC83F49
     }

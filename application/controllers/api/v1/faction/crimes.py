@@ -274,7 +274,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         for slot in slots:
             try:
                 slot_cpr = user_cprs[(oc_name, slot.crime_position)]
-            except Exception:
+            except KeyError:
                 possible_slots.append(
                     {
                         "oc_id": oc_id,

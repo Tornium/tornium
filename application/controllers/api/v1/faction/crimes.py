@@ -287,7 +287,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                     else OrganizedCrimeSlot(
                         crime_position=set_slot.crime_position,
                         crime_position_index=set_slot.crime_position_index,
-                        user_success_chance=slot_cpr.cpr,
+                        user_success_chance=slot_cpr,
                     )
                 )
                 for set_slot in slots
@@ -304,7 +304,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                     "oc_id": slot.oc_id,
                     "oc_position": slot.crime_position,
                     "oc_position_index": slot.crime_position_index,
-                    "crime_success_probability": slot_cpr.cpr,
+                    "crime_success_probability": slot_cpr,
                     "expected_value": expected_value,
                     "probability": probability,
                     "team_expected_value_change": (

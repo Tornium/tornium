@@ -50,7 +50,9 @@ export function injectMemberSelector(container, userID, factionID) {
     });
 }
 
-export function updateMemberOptimums(optimumData) {}
+export function updateMemberOptimums(optimumData) {
+    console.log(optimumData);
+}
 
 function onSelectedMemberChange(event) {
     torniumFetch("user", { ttl: 1000 * 60 * 60 })

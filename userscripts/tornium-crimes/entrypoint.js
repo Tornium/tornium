@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
-import { injectMemberSelector, updateMemberOptimus } from "./crime-page.js";
+import { injectMemberSelector, updateMemberOptimums } from "./crime-page.js";
 import { APP_ID, CACHE_ENABLED, DEBUG, GM_PREFIX, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
@@ -49,7 +49,7 @@ function executeCrimes() {
             }
 
             injectMemberSelector(memberSelectorContainer, userID, factionID);
-            updateMemberOptimus(data);
+            updateMemberOptimums(data);
         });
 }
 

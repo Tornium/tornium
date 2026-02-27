@@ -231,6 +231,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function updateMemberOptimums(optimumData) {
+    console.log(optimumData);
   }
   function onSelectedMemberChange(event) {
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
@@ -426,7 +427,7 @@ margin: 8px 6px 0 0;
         throw new Error("Failed to find container for memberSelector");
       }
       injectMemberSelector(memberSelectorContainer, userID, factionID);
-      console.log(data);
+      updateMemberOptimums(data);
     });
   }
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {

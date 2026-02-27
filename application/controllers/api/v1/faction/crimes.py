@@ -233,9 +233,19 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
             return make_exception_response("0000", key, details={"message": str(e)})
 
     all_slots: typing.List[OrganizedCrimeSlot] = list(
-        OrganizedCrimeSlot.select()
+        OrganizedCrimeSlot.select(
+            OrganizedCrimeSlot.oc_id,
+            OrganizedCrimeSlot.crime_position,
+            OrganizedCrimeSlot.crime_position_index,
+            OrganizedCrimeSlot.user_success_chance,
+            OrganizedCrime.oc_name,
+        )
         .join(OrganizedCrime)
-        .where((OrganizedCrime.executed_at.is_null(True)) & (OrganizedCrime.status.in_(["planning", "recruiting"])))
+        .where(
+            (OrganizedCrime.faction_id == faction_id)
+            & (OrganizedCrime.executed_at.is_null(True))
+            & (OrganizedCrime.status.in_(["planning", "recruiting"]))
+        )
     )
 
     oc_slots = {}

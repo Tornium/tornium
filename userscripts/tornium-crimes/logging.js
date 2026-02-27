@@ -1,1 +1,1 @@
-/home/deekshans/tornium/tornium-mono/userscripts/shared/logging.js
+../shared/logging.js

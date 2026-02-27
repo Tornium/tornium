@@ -1,1 +1,1 @@
-/home/deekshans/tornium/tornium-mono/userscripts/shared/config.js
+../shared/config.js

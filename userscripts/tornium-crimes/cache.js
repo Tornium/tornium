@@ -1,1 +1,1 @@
-/home/deekshans/tornium/tornium-mono/userscripts/shared/cache.js
+../shared/cache.js

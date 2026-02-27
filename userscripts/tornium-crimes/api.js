@@ -1,1 +1,1 @@
-/home/deekshans/tornium/tornium-mono/userscripts/shared/api.js
+../shared/api.js

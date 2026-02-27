@@ -1,1 +1,1 @@
-/home/deekshans/tornium/tornium-mono/userscripts/shared/dom.js
+../shared/dom.js

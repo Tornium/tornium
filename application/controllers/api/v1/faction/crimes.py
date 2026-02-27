@@ -220,7 +220,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         .order_by(OrganizedCrimeSlot.user_joined_at.desc())
         .first()
     )
-    # current_ev = None
+    current_ev = None
 
     if current_slot is not None:
         current_oc_slots: typing.List[OrganizedCrimeSlot] = list(
@@ -245,7 +245,8 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
 
     for oc_id, slots in oc_slots.items():
         oc_name = slots[0].oc.oc_name
-        # current_oc_ev = OrganizedCrime.expected_value(oc_name, slots, default=0.7)
+        current_oc_ev = round(OrganizedCrime.expected_value(oc_name, slots, default=0.7))
+        current_oc_probability = round(OrganizedCrime.probability(oc_name, slots, default=0.7), 3)
 
         slot: OrganizedCrimeSlot
         for slot in slots:
@@ -266,6 +267,9 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                         "crime_success_probability": None,
                         "expected_value": None,
                         "probability": None,
+                        "team_expected_value_change": None,
+                        "team_probability_change": None,
+                        "user_expected_value_change": None,
                     }
                 )
                 continue
@@ -283,14 +287,21 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                 for set_slot in slots
             ]
 
+            expected_value = round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7))
+            probability = round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3)
             possible_slots.append(
                 {
                     "oc_id": slot.oc_id,
                     "oc_position": slot.crime_position,
                     "oc_position_index": slot.crime_position_index,
                     "crime_success_probability": slot_cpr.cpr,
-                    "expected_value": round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7)),
-                    "probability": round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3),
+                    "expected_value": expected_value,
+                    "probability": probability,
+                    "team_expected_value_change": round((expected_value - current_oc_ev) / current_oc_ev, 4),
+                    "team_probability_change": round(
+                        (probability - current_oc_probability) / current_oc_probability, 4
+                    ),
+                    "user_expected_value_change": round((expected_value - current_ev) / current_ev, 4),
                 }
             )
 

@@ -244,7 +244,12 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
     for slot in all_slots:
         oc_slots.setdefault(slot.oc_id, []).append(slot)
 
-    user_cpr = OrganizedCrimeCPR.select().where(OrganizedCrimeCPR.user_id == user_id)
+    user_cprs = {
+        (cpr.oc_name, cpr.oc_position): cpr.cpr
+        for cpr in OrganizedCrimeCPR.select(
+            OrganizedCrimeCPR.oc_name, OrganizedCrimeCPR.oc_position, OrganizedCrimeCPR.cpr
+        ).where(OrganizedCrimeCPR.user_id == user_id)
+    }
     possible_slots = []
 
     for oc_id, slots in oc_slots.items():
@@ -258,14 +263,8 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         slot: OrganizedCrimeSlot
         for slot in slots:
             try:
-                slot_cpr = (
-                    user_cpr.select(OrganizedCrimeCPR.cpr)
-                    .where(
-                        (OrganizedCrimeCPR.oc_name == oc_name) & (OrganizedCrimeCPR.oc_position == slot.crime_position)
-                    )
-                    .get()
-                )
-            except DoesNotExist:
+                slot_cpr = user_cprs[(oc_name, slot.crime_position)]
+            except Exception:
                 possible_slots.append(
                     {
                         "oc_id": slot.oc_id,

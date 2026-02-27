@@ -102,7 +102,7 @@ class OrganizedCrime(BaseModel):
             if slot.user_id is None and default is None:
                 raise ValueError(f"{slot.crime_position} #{slot.crime_position_index} is not filled")
 
-            position = f"{"_".join(slot.crime_position.lower().split(" "))}_{slot.crime_position_index}"
+            position = f"{'_'.join(slot.crime_position.lower().split(' '))}_{slot.crime_position_index}"
             succcess_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
 
         return calculate_probability(oc_name, succcess_map)

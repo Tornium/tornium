@@ -226,7 +226,11 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         current_oc_slots: typing.List[OrganizedCrimeSlot] = list(
             OrganizedCrimeSlot.select().where(OrganizedCrimeSlot.oc_id == current_slot.oc_id)
         )
-        current_ev = OrganizedCrime.expected_value(current_slot.oc.oc_name, current_oc_slots, default=1.0)
+
+        try:
+            current_ev = OrganizedCrime.expected_value(current_slot.oc.oc_name, current_oc_slots, default=1.0)
+        except KeyError as e:
+            return make_exception_response("0000", key, details={"message": str(e)})
 
     all_slots: typing.List[OrganizedCrimeSlot] = list(
         OrganizedCrimeSlot.select()
@@ -245,8 +249,11 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
 
     for oc_id, slots in oc_slots.items():
         oc_name = slots[0].oc.oc_name
-        current_oc_ev = round(OrganizedCrime.expected_value(oc_name, slots, default=0.7))
-        current_oc_probability = round(OrganizedCrime.probability(oc_name, slots, default=0.7), 3)
+        try:
+            current_oc_ev = round(OrganizedCrime.expected_value(oc_name, slots, default=0.7))
+            current_oc_probability = round(OrganizedCrime.probability(oc_name, slots, default=0.7), 3)
+        except KeyError:
+            continue
 
         slot: OrganizedCrimeSlot
         for slot in slots:
@@ -287,8 +294,12 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                 for set_slot in slots
             ]
 
-            expected_value = round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7))
-            probability = round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3)
+            try:
+                expected_value = round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7))
+                probability = round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3)
+            except KeyError:
+                continue
+
             possible_slots.append(
                 {
                     "oc_id": slot.oc_id,

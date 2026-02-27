@@ -277,7 +277,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
             except Exception:
                 possible_slots.append(
                     {
-                        "oc_id": slot.oc_id,
+                        "oc_id": oc_id,
                         "oc_position": slot.crime_position,
                         "oc_position_index": slot.crime_position_index,
                         "crime_success_probability": None,
@@ -311,7 +311,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
 
             possible_slots.append(
                 {
-                    "oc_id": slot.oc_id,
+                    "oc_id": oc_id,
                     "oc_position": slot.crime_position,
                     "oc_position_index": slot.crime_position_index,
                     "crime_success_probability": slot_cpr,

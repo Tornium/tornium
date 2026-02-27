@@ -261,6 +261,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function updateMemberOptimums(optimumData) {
+    console.log(optimumData);
     Promise.any([
       waitForElement(".tt-oc2-list"),
       waitForElement(`#faction-crimes-root hr.page-head-delimiter + div:has(> div[class^="wrapper___"][data-oc-id])`)
@@ -280,6 +281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         for (const slotElement of slotElements) {
           const titleElement = slotElement.querySelector(`span[class*="title___"]`);
           const badgeContainer = slotElement.querySelector(`[class*="badgeContainer___"]`);
+          badgeContainer.classList.add("tornium-crimes-slot-badge-container");
           if (badgeContainer == null || titleElement == null) {
             continue;
           }
@@ -291,7 +293,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
           }
           const slotInfo = document.createElement("div");
           slotInfo.classList.add("tornium-crimes-slot-info");
-          slotInfo.textContent = `EV: ${slotData.expected_value}; P: ${slotData.probability * 100}%`;
+          slotInfo.textContent = `\u0394EV: ${(slotData.team_expected_value_change * 100).toFixed(2)}%; \u0394EV': ${(slotData.user_expected_value_change * 100).toFixed(2)}%; \u0394P: ${(slotData.team_probability_change * 100).toFixed(2)}%`;
           badgeContainer.prepend(slotInfo);
         }
       }
@@ -305,6 +307,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }).then((optimumData) => {
       return updateMemberOptimums(optimumData);
     });
+  }
+  function injectStyles() {
+    GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
+    GM_addStyle(".tornium-crimes-slot-badge-container {flex-wrap: wrap; padding-bottom: 0.25em;}");
+    GM_addStyle(`div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`);
   }
 
   // settings.js
@@ -445,6 +452,7 @@ margin: 8px 6px 0 0;
   var query = new URLSearchParams(document.location.search);
   function executeCrimes() {
     createSettingsButton();
+    injectStyles();
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
       return [identityData.factiontid, identityData.tid];
     }).then(([factionID, userID]) => {

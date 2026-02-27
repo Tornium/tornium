@@ -234,10 +234,11 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
 
     all_slots: typing.List[OrganizedCrimeSlot] = list(
         OrganizedCrimeSlot.select(
-            OrganizedCrimeSlot.oc_id,
+            OrganizedCrimeSlot.user_id,
             OrganizedCrimeSlot.crime_position,
             OrganizedCrimeSlot.crime_position_index,
             OrganizedCrimeSlot.user_success_chance,
+            OrganizedCrime.oc_id,
             OrganizedCrime.oc_name,
         )
         .join(OrganizedCrime)
@@ -290,23 +291,44 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                 )
                 continue
 
-            modified_slots = [
-                (
-                    set_slot
-                    if set_slot != slot
-                    else OrganizedCrimeSlot(
-                        crime_position=set_slot.crime_position,
-                        crime_position_index=set_slot.crime_position_index,
-                        user_success_chance=slot_cpr,
+            modified_slots = []
+
+            # We want a list of slots corresponding to this OC ID where the current `slot` is replaced with a slot the user would be in
+            set_slot: OrganizedCrimeSlot
+            for set_slot in slots:
+                if (
+                    set_slot.crime_position == slot.crime_position
+                    and set_slot.crime_position_index == slot.crime_position_index
+                ):
+                    modified_slots.append(
+                        OrganizedCrimeSlot(
+                            crime_position=set_slot.crime_position,
+                            crime_position_index=set_slot.crime_position_index,
+                            user_success_chance=slot_cpr,
+                            user_id=user_id,
+                        )
                     )
-                )
-                for set_slot in slots
-            ]
+                    continue
+
+                modified_slots.append(set_slot)
 
             try:
                 expected_value = round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7))
                 probability = round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3)
             except KeyError:
+                possible_slots.append(
+                    {
+                        "oc_id": oc_id,
+                        "oc_position": slot.crime_position,
+                        "oc_position_index": slot.crime_position_index,
+                        "crime_success_probability": slot_cpr,
+                        "expected_value": None,
+                        "probability": None,
+                        "team_expected_value_change": None,
+                        "team_probability_change": None,
+                        "user_expected_value_change": None,
+                    }
+                )
                 continue
 
             possible_slots.append(

@@ -52,6 +52,7 @@ export function injectMemberSelector(container, userID, factionID) {
 }
 
 export function updateMemberOptimums(optimumData) {
+    console.log(optimumData);
     // If the user has TT enabled, TT may inject .tt-oc2-list
     // See https://github.com/Mephiles/torntools_extension/blob/501eba808e20354f748563e8692da418267c6c48/extension/scripts/content/factions/ttFactions.ts#L89
     Promise.any([
@@ -79,6 +80,7 @@ export function updateMemberOptimums(optimumData) {
             for (const slotElement of slotElements) {
                 const titleElement = slotElement.querySelector(`span[class*="title___"]`);
                 const badgeContainer = slotElement.querySelector(`[class*="badgeContainer___"]`);
+                badgeContainer.classList.add("tornium-crimes-slot-badge-container");
 
                 if (badgeContainer == null || titleElement == null) {
                     continue;
@@ -98,12 +100,8 @@ export function updateMemberOptimums(optimumData) {
 
                 const slotInfo = document.createElement("div");
                 slotInfo.classList.add("tornium-crimes-slot-info");
-                slotInfo.textContent = `EV: ${slotData.expected_value}; P: ${slotData.probability * 100}%`;
+                slotInfo.textContent = `ΔEV: ${(slotData.team_expected_value_change * 100).toFixed(2)}%; ΔEV': ${(slotData.user_expected_value_change * 100).toFixed(2)}%; ΔP: ${(slotData.team_probability_change * 100).toFixed(2)}%`;
                 badgeContainer.prepend(slotInfo);
-
-                // TODO: Create something to inject the CSS. Should probably be a singleton that can also inject the mutation observer
-                // .tornium-crimes-slot-info should have padding-bottom and margin
-                // .badgeContainer___* should have `flex-wrap: wrap`
             }
         }
     });
@@ -120,4 +118,10 @@ function onSelectedMemberChange(event) {
         .then((optimumData) => {
             return updateMemberOptimums(optimumData);
         });
+}
+
+export function injectStyles() {
+    GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
+    GM_addStyle(".tornium-crimes-slot-badge-container {flex-wrap: wrap; padding-bottom: 0.25em;}");
+    GM_addStyle(`div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`);
 }

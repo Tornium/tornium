@@ -297,11 +297,17 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
                     "crime_success_probability": slot_cpr.cpr,
                     "expected_value": expected_value,
                     "probability": probability,
-                    "team_expected_value_change": round((expected_value - current_oc_ev) / current_oc_ev, 4),
-                    "team_probability_change": round(
-                        (probability - current_oc_probability) / current_oc_probability, 4
+                    "team_expected_value_change": (
+                        None if current_oc_ev == 0 else round((expected_value - current_oc_ev) / current_oc_ev, 4)
                     ),
-                    "user_expected_value_change": round((expected_value - current_ev) / current_ev, 4),
+                    "team_probability_change": (
+                        None
+                        if current_oc_probability == 0
+                        else round((probability - current_oc_probability) / current_oc_probability, 4)
+                    ),
+                    "user_expected_value_change": (
+                        None if current_ev == 0 else round((expected_value - current_ev) / current_ev, 4)
+                    ),
                 }
             )
 

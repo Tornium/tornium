@@ -195,6 +195,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
 
+  // dom.js
+  async function waitForElement(querySelector, timeout) {
+    const existingElement = document.querySelector(querySelector);
+    if (existingElement) return existingElement;
+    return new Promise((resolve) => {
+      let timer;
+      const observer = new MutationObserver(() => {
+        const element = document.querySelector(querySelector);
+        if (element) {
+          cleanup();
+          resolve(element);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      if (timeout) {
+        timer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, timeout);
+      }
+      function cleanup() {
+        observer.disconnect();
+        if (timer) clearTimeout(timer);
+      }
+    });
+  }
+
   // logging.js
   function log(string) {
     if (ENABLE_LOGGING || DEBUG) {
@@ -231,7 +261,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function updateMemberOptimums(optimumData) {
-    console.log(optimumData);
+    Promise.any([
+      waitForElement(".tt-oc2-list"),
+      waitForElement(`#faction-crimes-root hr.page-head-delimiter + div:has(> div[class^="wrapper___"][data-oc-id])`)
+    ]).then((root) => {
+      if (!root.classList.contains("tt-oc2-list")) {
+        root.classList.add("tt-oc2-list");
+      }
+      const crimeElements = root.querySelectorAll(`[class*="wrapper___"][data-oc-id]`);
+      for (const crimeElement of crimeElements) {
+        const crimeID = parseInt(crimeElement.getAttribute("data-oc-id"));
+        const slotElements = crimeElement.querySelectorAll(
+          `[class*="wrapper___"]:has(> button[class*="slotHeader___"])`
+        );
+        if (crimeID == null || slotElements.length === 0) {
+          continue;
+        }
+        for (const slotElement of slotElements) {
+          const titleElement = slotElement.querySelector(`span[class*="title___"]`);
+          const badgeContainer = slotElement.querySelector(`[class*="badgeContainer___"]`);
+          if (badgeContainer == null || titleElement == null) {
+            continue;
+          }
+          const slotData = optimumData.find((optimumSlotData) => {
+            return optimumSlotData.oc_id == crimeID && `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` == titleElement.textContent;
+          });
+          if (slotData == null) {
+            continue;
+          }
+          const slotInfo = document.createElement("div");
+          slotInfo.classList.add("tornium-crimes-slot-info");
+          slotInfo.textContent = `EV: ${slotData.expected_value}; P: ${slotData.probability * 100}%`;
+          badgeContainer.prepend(slotInfo);
+        }
+      }
+    });
   }
   function onSelectedMemberChange(event) {
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
@@ -240,36 +304,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       return torniumFetch(`faction/${factionID}/crime/member/${event.target.value}/optimum`, { ttl: 60 });
     }).then((optimumData) => {
       return updateMemberOptimums(optimumData);
-    });
-  }
-
-  // dom.js
-  async function waitForElement(querySelector, timeout) {
-    const existingElement = document.querySelector(querySelector);
-    if (existingElement) return existingElement;
-    return new Promise((resolve) => {
-      let timer;
-      const observer = new MutationObserver(() => {
-        const element = document.querySelector(querySelector);
-        if (element) {
-          cleanup();
-          resolve(element);
-        }
-      });
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-      if (timeout) {
-        timer = setTimeout(() => {
-          cleanup();
-          resolve(null);
-        }, timeout);
-      }
-      function cleanup() {
-        observer.disconnect();
-        if (timer) clearTimeout(timer);
-      }
     });
   }
 

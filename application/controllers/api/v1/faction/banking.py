@@ -96,11 +96,8 @@ def banking_request(*args, **kwargs):
 
     if user.key is None:
         return make_exception_response("1200", None)
-
-    if amount_requested is None:
+    elif amount_requested is None:
         return make_exception_response("1000", key, details={"element": "amount_requested"})
-    elif amount_requested <= 0:
-        return make_exception_response("0000", key, details={"message": "Illegal amount requested."})
 
     amount_requested = str(amount_requested)
 
@@ -108,6 +105,9 @@ def banking_request(*args, **kwargs):
         amount_requested = int(amount_requested)
     else:
         amount_requested = "all"
+
+    if isinstance(amount_requested, int) and amount_requested <= 0:
+        return make_exception_response("0000", key, details={"message": "Illegal amount requested."})
 
     update_user(key=user.key, tid=user.tid)
 

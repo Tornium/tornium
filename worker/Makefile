@@ -30,3 +30,5 @@ migrate:
 rollback:
 	_build/$(MIX_ENV)/rel/tornium/bin/tornium eval "Tornium.Release.rollback"
 
+run-tests:
+	MIX_ENV=test mix test

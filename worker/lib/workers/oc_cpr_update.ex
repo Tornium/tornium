@@ -14,9 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCCPRUpdate do
-  require Logger
-  import Ecto.Query
-  alias Tornium.Repo
+  @moduledoc """
+  Upsert organized crime CPR data from faction OCs in the `Recruiting` status.
+  """
 
   use Oban.Worker,
     max_attempts: 3,
@@ -28,49 +28,15 @@ defmodule Tornium.Workers.OCCPRUpdate do
   def perform(
         %Oban.Job{
           args: %{
-            "user_tid" => user_tid,
-            "faction_tid" => faction_tid,
+            "user_tid" => user_id,
+            "faction_tid" => faction_id,
             "api_call_id" => api_call_id
           }
         } = _job
       ) do
-    case Tornium.API.Store.pop(api_call_id) do
-      nil ->
-        {:cancel, :invalid_call_id}
-
-      :expired ->
-        {:cancel, :expired}
-
-      :not_ready ->
-        # This uses :error instead of :snooze to allow for an easy cap on the number of retries
-        {:error, :not_ready}
-
-      %{"error" => %{"code" => 7}} ->
-        Tornium.Schema.User
-        |> update([u], set: [faction_aa: false])
-        |> where([u], u.tid == ^user_tid)
-        |> Repo.update_all([])
-
-        :ok
-
-      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
-        {:cancel, {:api_error, error_code}}
-
-      %{} = result ->
-        now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-        result
-        |> Tornium.Faction.OC.parse(faction_tid)
-        |> Enum.sort_by(fn %Tornium.Schema.OrganizedCrime{created_at: created_at} -> created_at end, :desc)
-        |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrime{oc_name: oc_name} -> oc_name end)
-        |> flatten_crimes()
-        |> Enum.map(fn %Tornium.Schema.OrganizedCrimeCPR{} = cpr ->
-          %Tornium.Schema.OrganizedCrimeCPR{cpr | user_id: user_tid, updated_at: now}
-        end)
-        |> Tornium.Schema.OrganizedCrimeCPR.upsert_all()
-
-        :ok
-    end
+    api_call_id
+    |> Tornium.API.Store.pop()
+    |> handle_response(user_id, faction_id)
   end
 
   @impl Oban.Worker
@@ -78,29 +44,62 @@ defmodule Tornium.Workers.OCCPRUpdate do
     :timer.seconds(5)
   end
 
-  @spec flatten_crimes(crimes :: [Tornium.Schema.OrganizedCrime.t()], acc :: [Tornium.Schema.OrganizedCrimeCPR.t()]) ::
-          [Tornium.Schema.OrganizedCrimeCPR.t()]
-  defp flatten_crimes(crimes, acc \\ [])
+  @spec handle_response(
+          response :: map() | :not_ready | :expired | nil,
+          user_id :: pos_integer(),
+          faction_id :: pos_integer()
+        ) :: Oban.Worker.result()
+  def handle_response(response, _user_id, _faction_id) when is_nil(response) do
+    {:cancel, :invalid_call_id}
+  end
 
-  defp flatten_crimes([%Tornium.Schema.OrganizedCrime{oc_name: oc_name, slots: slots} | remaining_crimes], acc) do
-    slot_cpr =
+  def handle_response(:expired = _response, _user_id, _faction_id) do
+    {:cancel, :expired}
+  end
+
+  def handle_response(:not_ready = _response, _user_id, _faction_id) do
+    # This uses :error instead of :snooze to allow for an easy cap on the number of retries
+    {:error, :not_ready}
+  end
+
+  def handle_response(%{"error" => %{"code" => error_code}}, _user_id, _faction_id) when is_integer(error_code) do
+    {:cancel, {:api_error, error_code}}
+  end
+
+  def handle_response(response, user_id, faction_id)
+      when is_map(response) and is_integer(user_id) and is_integer(faction_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    query = Tornex.SpecQuery.put_path(Tornex.SpecQuery.new(), Torngen.Client.Path.User.Organizedcrimes)
+
+    %{
+      Torngen.Client.Path.User.Organizedcrimes => %{
+        UserOrganizedCrimesResponse => %Torngen.Client.Schema.UserOrganizedCrimesResponse{
+          organizedcrimes: crimes
+        }
+      }
+    } = Tornex.SpecQuery.parse(query, response)
+
+    crimes
+    |> Enum.sort_by(fn %Torngen.Client.Schema.FactionCrime{created_at: created_at} -> created_at end, :desc)
+    |> Enum.flat_map(fn %Torngen.Client.Schema.FactionCrime{name: oc_name, slots: slots} ->
+      # The slots data in this API response only lists unfilled slots
       slots
-      |> Enum.reject(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> not is_nil(user_id) end)
-      |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: position} -> position end)
-      |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{crime_position: position, user_success_chance: cpr} ->
+      |> Enum.map(fn %Torngen.Client.Schema.FactionCrimeSlot{position: slot_position, checkpoint_pass_rate: slot_cpr} ->
         %Tornium.Schema.OrganizedCrimeCPR{
           guid: Ecto.UUID.generate(),
           oc_name: oc_name,
-          oc_position: position,
-          cpr: cpr
+          oc_position: slot_position,
+          cpr: slot_cpr,
+          user_id: user_id,
+          updated_at: now
         }
       end)
-      |> Enum.concat(acc)
+    end)
+    |> Enum.uniq_by(fn %Tornium.Schema.OrganizedCrimeCPR{oc_name: oc_name, oc_position: oc_position} ->
+      {oc_name, oc_position}
+    end)
+    |> Tornium.Schema.OrganizedCrimeCPR.upsert_all()
 
-    flatten_crimes(remaining_crimes, slot_cpr)
-  end
-
-  defp flatten_crimes([], acc) do
-    acc
+    :ok
   end
 end

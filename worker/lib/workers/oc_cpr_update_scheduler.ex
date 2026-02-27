@@ -14,7 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCCPRUpdateScheduler do
-  require Logger
+  @moduledoc """
+  Schedule `Tornium.Workers.OCCPRUpdateScheduler` for each applicable user in batches of `@batch_limit`.
+
+  An applicable user for this scheduler is any user with a default API key in Tornium that is in a faction
+  that has migrated to organized crimes 2.0 and has enabled that feature in their `Tornium.Schema.UserSettings`.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
 
@@ -38,7 +44,6 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
       |> where([k], k.default == true)
       |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
       |> where([k, u], not is_nil(u.faction_id) and u.faction_id != 0)
-      |> where([k, u], u.faction_aa == true)
       |> join(:inner, [k, u], f in assoc(u, :faction), on: f.tid == u.faction_id)
       |> where([k, u, f], f.has_migrated_oc == true)
       |> join(:left, [k, u, f], s in assoc(u, :settings), on: s.guid == u.settings_id)
@@ -51,21 +56,17 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
 
     Enum.each(users, fn [api_key, user_tid, faction_tid]
                         when is_binary(api_key) and is_integer(user_tid) and is_integer(faction_tid) ->
-      request = %Tornex.Query{
-        resource: "v2/faction",
-        resource_id: faction_tid,
-        key: api_key,
-        selections: ["crimes", "members"],
-        key_owner: user_tid,
-        nice: 20,
-        params: [cat: "recruiting"]
-      }
+      query =
+        Tornex.SpecQuery.new(nice: 20)
+        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Organizedcrimes)
+        |> Tornex.SpecQuery.put_key(api_key)
+        |> Tornex.SpecQuery.put_key_owner(user_tid)
 
       api_call_id = Ecto.UUID.generate()
       Tornium.API.Store.create(api_call_id, 300)
 
       Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
-        request
+        query
         |> Tornex.Scheduler.Bucket.enqueue()
         |> Tornium.API.Store.insert(api_call_id)
       end)

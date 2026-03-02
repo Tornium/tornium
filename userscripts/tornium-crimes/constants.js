@@ -14,8 +14,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 export const DEBUG = true;
-export const BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
-// export const BASE_URL = "https://tornium.com";
+// export const BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+export const BASE_URL = "https://tornium.com";
 export const ENABLE_LOGGING = true;
 export const VERSION = "0.1.0";
 export const APP_ID = "97884c32bb18b41224f482390d9f712268e1240082cdc6b9";

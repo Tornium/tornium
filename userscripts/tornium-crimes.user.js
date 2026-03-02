@@ -37,7 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
   // constants.js
   var DEBUG = true;
-  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+  var BASE_URL = "https://tornium.com";
   var ENABLE_LOGGING = true;
   var VERSION = "0.1.0";
   var APP_ID = "97884c32bb18b41224f482390d9f712268e1240082cdc6b9";
@@ -286,7 +286,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
             continue;
           }
           const slotData = optimumData.find((optimumSlotData) => {
-            return optimumSlotData.oc_id == crimeID && `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` == titleElement.textContent;
+            return optimumSlotData.oc_id == crimeID && `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` == titleElement.textContent || optimumSlotData.oc_position == titleElement.textContent;
           });
           if (slotData == null) {
             continue;
@@ -311,7 +311,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   function injectStyles() {
     GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
     GM_addStyle(".tornium-crimes-slot-badge-container {flex-wrap: wrap; padding-bottom: 0.25em;}");
-    GM_addStyle(`div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`);
+    GM_addStyle(
+      `div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`
+    );
   }
 
   // settings.js

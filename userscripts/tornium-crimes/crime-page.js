@@ -88,9 +88,10 @@ export function updateMemberOptimums(optimumData) {
 
                 const slotData = optimumData.find((optimumSlotData) => {
                     return (
-                        optimumSlotData.oc_id == crimeID &&
-                        `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` ==
-                            titleElement.textContent
+                        (optimumSlotData.oc_id == crimeID &&
+                            `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` ==
+                                titleElement.textContent) ||
+                        optimumSlotData.oc_position == titleElement.textContent
                     );
                 });
 
@@ -123,5 +124,7 @@ function onSelectedMemberChange(event) {
 export function injectStyles() {
     GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
     GM_addStyle(".tornium-crimes-slot-badge-container {flex-wrap: wrap; padding-bottom: 0.25em;}");
-    GM_addStyle(`div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`);
+    GM_addStyle(
+        `div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`,
+    );
 }

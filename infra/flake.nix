@@ -8,38 +8,54 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = { nixpkgs, disko, colmena, sops-nix, ... }: {
-    colmenaHive = colmena.lib.makeHive {
-      meta = {
-        nixpkgs = import nixpkgs {
-          system = "x86_64-linux";
-          overlays = [];
-        };
+  outputs = { nixpkgs, disko, colmena, sops-nix, ... }: 
+    let
+      # overlay that bumps only pgbackrest to 2.58.0
+      pgbackrestOverlay = final: prev: {
+        pgbackrest = prev.pgbackrest.overrideAttrs (old: rec {
+          version = "2.58.0";
+
+          src = prev.fetchFromGitHub {
+            owner = "pgbackrest";
+            repo = "pgbackrest";
+            rev = "release/${version}";
+            hash = "sha256-RxvVqThfGnTCWTaM54Job+2HgJ7baf6ciFYTz496aKQ=";
+          };
+        });
       };
-      defaults = {
-        imports = [
-          sops-nix.nixosModules.sops
+    in
+      {
+      colmenaHive = colmena.lib.makeHive {
+        meta = {
+          nixpkgs = import nixpkgs {
+            system = "x86_64-linux";
+            overlays = [ pgbackrestOverlay ];
+          };
+        };
+        defaults = {
+          imports = [
+            sops-nix.nixosModules.sops
+            disko.nixosModules.disko
+          ];
+        };
+        tornium-proxy-db = import ./hosts/proxy-db.nix;
+      };
+
+      nixosConfigurations.hetzner-cloud = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
           disko.nixosModules.disko
+          sops-nix.nixosModules.sops
+          ./configuration.nix
         ];
       };
-      tornium-proxy-db = import ./hosts/proxy-db.nix;
+      nixosConfigurations.hetzner-cloud-aarch64 = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          disko.nixosModules.disko
+          sops-nix.nixosModules.sops
+          ./configuration.nix
+        ];
+      };
     };
-
-    nixosConfigurations.hetzner-cloud = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        disko.nixosModules.disko
-        sops-nix.nixosModules.sops
-        ./configuration.nix
-      ];
-    };
-    nixosConfigurations.hetzner-cloud-aarch64 = nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux";
-      modules = [
-        disko.nixosModules.disko
-        sops-nix.nixosModules.sops
-        ./configuration.nix
-      ];
-    };
-  };
 }

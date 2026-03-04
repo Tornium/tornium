@@ -2,6 +2,11 @@
 
 {
   services.pgbackrest.enable = true;
+  services.pgbackrest.settings = {
+    backup-standby = "y";
+    start-fast = "y";
+    delta = "y";
+  };
   services.pgbackrest.repos = {
     b2 = {
       type = "s3";
@@ -14,15 +19,21 @@
 
       cipher-type = "aes-256-cbc";
 
-      path = "/var/lib/postgresql/16";
+      path = "/var/lib/pgbackrest";
     };
   };
   services.pgbackrest.stanzas = {
     pg1 = {
+      settings = {
+        recovery-option = "primary_conninfo=10.0.0.3 user=replicator";
+      };
       instances = {
+        pg1.host = "10.0.0.3";
+        pg1.user = "postgres";
+        pg1.path = "/var/lib/postgresql/16/main";
         localhost.database = "Tornium";
         localhost.user = "postgres";
-        localhost.path = "/var/lib/postgresql/16";
+        localhost.path = "/var/lib/postgresql/16/replica";
       };
     };
   };
@@ -36,10 +47,15 @@
     owner = "pgbackrest";
   };
 
+  programs.ssh.extraConfig = ''
+    Host 10.0.0.3
+      User postgres
+      IdentityFile /etc/ssh/pgbackrest_ed25519
+      IdentitiesOnly yes
+  '';
+
   systemd.services."postgresql-pgbackrest-backup" = {
-    serviceConfig = {
-      EnvironmentFile = config.sops.templates."pgbackrest.env".path;
-    };
+    path = [ pkgs.pgbackrest ];
 
     description = "Backup the PostgreSQL database using pgbackrest";
     after = [ "postgresql.service" "network-online.target" ];
@@ -57,14 +73,15 @@
       Type = "oneshot";
       User = "postgres";
       Group = "postgres";
+      EnvironmentFile = config.sops.templates."pgbackrest.env".path;
       ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
     };
 
     script = ''
       set -e
 
-      ${pkgs.pgbackrest}/bin/pgbackrest --stanza=pg1 stanza-create
-      ${pkgs.pgbackrest}/bin/pgbackrest --stanza=pg1 --type=full backup
+      pgbackrest --stanza=pg1 stanza-create
+      pgbackrest --stanza=pg1 --type=full backup
     '';
   };
 

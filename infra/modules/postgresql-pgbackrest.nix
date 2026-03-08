@@ -9,6 +9,11 @@
     repo1-retention-full = 1;
   };
   services.pgbackrest.repos = {
+    localhost = {
+      type = "posix";
+      path = "/var/lib/pgbackrest";
+      retention-full = 2;
+    };
     b2 = {
       type = "s3";
       bundle = true;
@@ -21,6 +26,7 @@
       cipher-type = "aes-256-cbc";
 
       path = "/var/lib/pgbackrest";
+      retention-full = 2;
     };
   };
   services.pgbackrest.stanzas = {
@@ -29,14 +35,19 @@
         recovery-option = "primary_conninfo=host=10.0.0.3 user=replicator";
       };
       instances = {
-        localhost.database = "Tornium";
-        localhost.user = "postgres";
-        localhost.path = "/var/lib/postgresql/16/replica";
+        # localhost.database = "Tornium";
+        # localhost.user = "postgres";
+        # localhost.path = "/var/lib/postgresql/16/replica";
 
-        pg2.host = "10.0.0.3";
-        pg2.host-cmd = "pgbackrest";
-        pg2.user = "postgres";
-        pg2.path = "/var/lib/postgresql/16/main";
+        # pg2.host = "10.0.0.3";
+        # pg2.host-cmd = "pgbackrest";
+        # pg2.user = "postgres";
+        # pg2.path = "/var/lib/postgresql/16/main";
+
+        pg1.host = "10.0.0.3";
+        pg1.host-cmd = "pgbackrest";
+        pg1.user = "postgres";
+        pg1.path = "/var/lib/postgresql/16/main";
       };
     };
   };
@@ -62,14 +73,8 @@
 
     description = "Backup the PostgreSQL database using pgbackrest";
     after = [ "postgresql.service" "network-online.target" ];
-    # requires = [ "postgresql.service" ];
     wants = [ "network-online.target" ];
-    reloadTriggers = [
-      "/run/secrets/postgres/password"
-      config.sops.templates."pgbackrest.env".path
-      "/run/secrets/pgbackrest/backblaze_key"
-      "/run/secrets/pgbackrest/backblaze_key_id"
-    ];
+    # reloadTriggers = [ config.sops.templates."pgbackrest.env".path ];
 
     serviceConfig = {
       Type = "oneshot";
@@ -81,6 +86,9 @@
 
     script = ''
       set -e
+      
+      chown pgbackrest:pgbackrest /var/lib/pgbackrest
+      chmod 770 /var/lib/pgbackrest
 
       pgbackrest --stanza=tornium stanza-create
       pgbackrest --stanza=tornium --type=full --backup-standby backup

@@ -33,7 +33,6 @@
   '';
 
   services.openssh.enable = true;
-  # services.openssh.settings.PasswordAuthentication = false;
   # OpenSSH settings come from https://saylesss88.github.io/nix/hardening_NixOS.html#openssh-server
   services.openssh.settings = {
     PasswordAuthentication = false;
@@ -45,7 +44,7 @@
     MaxSessions = 2;
     ClientAliveInterval = 300;
     ClientAliveCountMax = 0;
-    AllowUsers = ["root" "tiksan"];
+    AllowUsers = ["root" "tiksan" "postgres"];
     TCPKeepAlive = false;
     AllowTcpForwarding = false;
     AllowAgentForwarding = false;
@@ -54,6 +53,9 @@
 
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
+  ];
+  users.users.postgres.openssh.authorizedKeys.keys =[
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQAa9SHSLhyXx/E2mHPNFEFBiyAKCvIKsJqz6KeWsSs postgres@ubuntu-16gb-fsn1-1"
   ];
 
   # This is added to the server by colmena in ../hosts/common.nix

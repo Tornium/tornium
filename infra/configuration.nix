@@ -28,6 +28,9 @@
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
   ];
+  users.users.postgres.openssh.authorizedKeys.keys =[
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQAa9SHSLhyXx/E2mHPNFEFBiyAKCvIKsJqz6KeWsSs postgres@ubuntu-16gb-fsn1-1"
+  ];
 
   system.stateVersion = "24.05";
 

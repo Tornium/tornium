@@ -5,7 +5,8 @@
   services.pgbackrest.settings = {
     backup-standby = "y";
     start-fast = "y";
-    delta = "y";
+    compress-type = "gz";
+    repo1-retention-full = 1;
   };
   services.pgbackrest.repos = {
     b2 = {
@@ -23,17 +24,19 @@
     };
   };
   services.pgbackrest.stanzas = {
-    pg1 = {
+    tornium = {
       settings = {
-        recovery-option = "primary_conninfo=10.0.0.3 user=replicator";
+        recovery-option = "primary_conninfo=host=10.0.0.3 user=replicator";
       };
       instances = {
-        pg1.host = "10.0.0.3";
-        pg1.user = "postgres";
-        pg1.path = "/var/lib/postgresql/16/main";
         localhost.database = "Tornium";
         localhost.user = "postgres";
         localhost.path = "/var/lib/postgresql/16/replica";
+
+        pg2.host = "10.0.0.3";
+        pg2.host-cmd = "pgbackrest";
+        pg2.user = "postgres";
+        pg2.path = "/var/lib/postgresql/16/main";
       };
     };
   };
@@ -44,7 +47,7 @@
       PGBACKREST_REPO1_S3_KEY="${config.sops.placeholder."pgbackrest/backblaze_key_id"}"
       PGBACKREST_REPO1_S3_KEY_SECRET="${config.sops.placeholder."pgbackrest/backblaze_key"}"
     '';
-    owner = "pgbackrest";
+    owner = "postgres";
   };
 
   programs.ssh.extraConfig = ''
@@ -59,9 +62,8 @@
 
     description = "Backup the PostgreSQL database using pgbackrest";
     after = [ "postgresql.service" "network-online.target" ];
-    requires = [ "postgresql.service" ];
+    # requires = [ "postgresql.service" ];
     wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
     reloadTriggers = [
       "/run/secrets/postgres/password"
       config.sops.templates."pgbackrest.env".path
@@ -80,8 +82,8 @@
     script = ''
       set -e
 
-      pgbackrest --stanza=pg1 stanza-create
-      pgbackrest --stanza=pg1 --type=full backup
+      pgbackrest --stanza=tornium stanza-create
+      pgbackrest --stanza=tornium --type=full --backup-standby backup
     '';
   };
 
@@ -93,4 +95,11 @@
       Persistent = true;
     };
   };
+
+  environment.systemPackages = [
+    (pkgs.writeShellScriptBin "pgbackrest" ''
+      export $(cat ${config.sops.templates."pgbackrest.env".path} | xargs)
+      exec ${pkgs.pgbackrest}/bin/pgbackrest "$@"
+    '')
+  ];
 }

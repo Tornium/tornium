@@ -20,10 +20,11 @@ import typing
 import uuid
 
 from flask import jsonify, request
+from peewee import IntegrityError
 from tornium_celery.tasks.api import discordpost, tornget
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, TornError
-from tornium_commons.formatters import commas
+from tornium_commons.formatters import commas, text_to_num
 from tornium_commons.models import Server, User, Withdrawal
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
@@ -84,6 +85,81 @@ def vault_balance(*args, **kwargs):
         )
     else:
         return make_exception_response("1100", key)
+
+
+@require_oauth(["faction:banking", "faction"])
+@ratelimit
+def new_banking_request(faction_id: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    user: User = kwargs["user"]
+
+    amount = data.get("amount")
+    withdrawal_option = data.get("type")
+    timeout = data.get("timeout")
+
+    if withdrawal_option is None or withdrawal_option not in ("points_balance", "money_balance"):
+        return make_exception_response(
+            "1000", key, details={"message": "The request `type` must be either `cash_balance` or `points_balance`."}
+        )
+
+    now = datetime.datetime.utcnow()
+    timeout_datetime = now + datetime.timedelta(hours=1)
+
+    if isinstance(timeout, int):
+        timeout_datetime = datetime.datetime.fromtimestamp(timeout, tz=datetime.timezone.utc)
+    if timeout_datetime >= now:
+        return make_exception_response(
+            "1000", key, details={"message": "The provided timeout value must be greater than the current timestamp."}
+        )
+
+    if amount is None:
+        return make_exception_response("1000", key, details={"message": "The `amount` parameter is required."})
+    elif amount.lower() == "all":
+        parsed_amount = "all"
+    elif isinstance(amount, int):
+        parsed_amount = int(amount)
+    elif isinstance(amount, str) and amount.isnumeric():
+        parsed_amount = int(amount)
+    elif isinstance(amount, str):
+        try:
+            parsed_amount = text_to_num(amount)
+        except ValueError:
+            return make_exception_response("1000", key, details={"message": "The provided amount is not valid."})
+    else:
+        return make_exception_response("1000", key, details={"message": "The provided amount is not valid."})
+
+    try:
+        validated_withdrawal_amount = Withdrawal.has_sufficient_balance(
+            user.tid, user.faction_id, parsed_amount, withdrawal_option
+        )
+    except ValueError as e:
+        return make_exception_response("1000", key, details={"message": str(e)})
+
+    if user is None:
+        return make_exception_response("1100", key)
+    elif user.faction is None:
+        return make_exception_response("1102", key)
+    elif user.faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif user.faction.guild is None:
+        return make_exception_response("1001", key)
+    elif len(user.faction.aa_keys) == 0:
+        return make_exception_response("1201", key)
+    elif user.faction_id not in user.faction.guild.factions:
+        return make_exception_response("4021", key)
+    if (
+        str(user.faction_id) not in user.faction.guild.banking_config
+        or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
+    ):
+        return make_exception_response("0000", key, details={"message": "Faction vault configuration needs to be set."})
+
+    try:
+        withdrawal: Withdrawal = Withdrawal.new(user, validated_withdrawal_amount, withdrawal_option, timeout_datetime)
+    except IntegrityError:
+        return make_exception_response("5000", key, details={"message": "There was an integrity error. Try again."})
+
+    return withdrawal.to_dict(), 200, api_ratelimit_response(key)
 
 
 @require_oauth(["faction:banking torn_key:usage", "faction torn_key:usage"])

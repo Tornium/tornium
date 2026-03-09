@@ -15,10 +15,9 @@
 
 import datetime
 import typing
-import uuid
 
 from peewee import IntegrityError
-from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
+from tornium_celery.tasks.api import discordpatch, discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -31,21 +30,6 @@ def withdraw(interaction, *args, **kwargs):
     def followup_return(response):
         discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
         return
-
-    if "options" not in interaction["data"]:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Options Required",
-                        "description": "This command requires that options be passed.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
 
     user: User = kwargs["invoker"]
 
@@ -115,9 +99,9 @@ def withdraw(interaction, *args, **kwargs):
     withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
     if withdrawal_option is None or withdrawal_option["value"] == "Cash":
-        withdrawal_option = 0
+        withdrawal_option_str = "cash_balance"
     elif withdrawal_option["value"] == "Points":
-        withdrawal_option = 1
+        withdrawal_option_str = "points_balance"
     else:
         return {
             "type": 4,
@@ -193,11 +177,6 @@ def withdraw(interaction, *args, **kwargs):
                 },
             }
 
-    if withdrawal_option == 1:
-        withdrawal_option_str = "points_balance"
-    else:
-        withdrawal_option_str = "money_balance"
-
     try:
         validated_withdrawal_amount = Withdrawal.has_sufficient_balance(
             user.tid, user.faction_id, withdrawal_amount, withdrawal_option_str
@@ -209,7 +188,7 @@ def withdraw(interaction, *args, **kwargs):
             "data": {
                 "embeds": [
                     {
-                        "title": "Withdrawal Failed",
+                        "title": "Withdrawal Request Failed",
                         "description": f"The withdrawal request failed. {str(e)}",
                         "color": SKYNET_ERROR,
                     }
@@ -222,140 +201,16 @@ def withdraw(interaction, *args, **kwargs):
     # causing sometimes frequent client-side timeouts of withdrawal slash commands.
     discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
 
-    last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
-
-    if last_request is None:
-        request_id = 0
-    else:
-        request_id = last_request.wid + 1
-
-    guid = uuid.uuid4().hex
-
-    if withdrawal_amount != "all":
-        message_payload = {
-            "embeds": [
-                {
-                    "title": f"Vault Request #{commas(request_id)}",
-                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
-                    f"{f'${commas(validated_withdrawal_amount)}' if withdrawal_option == 0 else f'{commas(withdrawal_amount)} in points '} "
-                    f"from the faction vault. The request expires "
-                    f"{'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
-                        },
-                        {
-                            "type": 2,
-                            "style": 3,
-                            "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill",
-                        },
-                        {
-                            "type": 2,
-                            "style": 4,
-                            "label": "Cancel",
-                            "custom_id": "faction:vault:cancel",
-                        },
-                    ],
-                }
-            ],
-        }
-    else:
-        message_payload = {
-            "embeds": [
-                {
-                    "title": f"Vault Request #{commas(request_id)}",
-                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
-                    f"{commas(validated_withdrawal_amount)} in "
-                    f"{'points' if withdrawal_option == 1 else 'cash'} from the faction vault. The request "
-                    f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
-                        },
-                        {
-                            "type": 2,
-                            "style": 3,
-                            "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill",
-                        },
-                        {
-                            "type": 2,
-                            "style": 4,
-                            "label": "Cancel",
-                            "custom_id": "faction:vault:cancel",
-                        },
-                    ],
-                }
-            ],
-        }
-
-    for role in user.faction.guild.banking_config[str(user.faction_id)]["roles"]:
-        if "content" not in message_payload:
-            message_payload["content"] = ""
-
-        message_payload["content"] += f"<@&{role}>"
-
-    message = discordpost(
-        f'channels/{user.faction.guild.banking_config[str(user.faction_id)]["channel"]}/messages',
-        payload=message_payload,
-    )
-
     try:
-        Withdrawal.create(
-            wid=request_id,
-            guid=guid,
-            faction_tid=user.faction_id,
-            amount=validated_withdrawal_amount,
-            cash_request=not bool(withdrawal_option),
-            requester=user.tid,
-            time_requested=datetime.datetime.utcnow(),
-            expires_at=timeout_datetime,
-            status=0,
-            fulfiller=None,
-            time_fulfilled=None,
-            withdrawal_message=message["id"],
+        withdrawal: Withdrawal = Withdrawal.new(
+            user, validated_withdrawal_amount, withdrawal_option_str, timeout_datetime
         )
     except IntegrityError:
-        discorddelete.delay(
-            f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
-        ).forget()
-
         followup_return(
             {
                 "embeds": [
                     {
-                        "title": "Withdrawal Failure",
+                        "title": "Withdrawal Request Failed",
                         "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
                         "color": SKYNET_ERROR,
                     }
@@ -369,7 +224,7 @@ def withdraw(interaction, *args, **kwargs):
         {
             "embeds": [
                 {
-                    "title": f"Vault Request #{request_id}",
+                    "title": f"Vault Request #{withdrawal.wid}",
                     "description": "Your vault request has been forwarded to the faction bankers. The request "
                     f"expires {'never' if timeout_datetime is None else f'<t:{int(timeout_datetime.timestamp())}:R>'}.",
                     "fields": [
@@ -377,7 +232,7 @@ def withdraw(interaction, *args, **kwargs):
                             "name": "Request Type",
                             "value": "Cash" if withdrawal_option == 0 else "Points",
                         },
-                        {"name": "Amount Requested", "value": withdrawal_amount},
+                        {"name": "Amount Requested", "value": commas(validated_withdrawal_amount)},
                     ],
                 }
             ],

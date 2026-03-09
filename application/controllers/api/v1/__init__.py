@@ -296,6 +296,9 @@ mod.add_url_rule(
     view_func=faction.banking.vault_balance,
     methods=["GET"],
 )
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/banking", view_func=faction.banking.new_banking_request, methods=["POST"]
+)
 mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/armory/cumulative", view_func=faction.armory.get_cumulative, methods=["GET"]

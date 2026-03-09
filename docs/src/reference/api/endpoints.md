@@ -93,10 +93,46 @@ Content-Type: application/json
 }
 ```
 
+### Create Faction Vault Request
+Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
+
+The `amount` parameter supports the same values as the [slash command](../bot-banking.md#withdraw-command) including values such as `"all"`, `"1m"`, and `1000000`.
+
+**Scopes Required:** `faction:banking` (or `faction`)
+
+```http
+POST /api/v1/faction/<int:faction_id>/banking/vault HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "amount": "all",
+    "type": "money_balance",
+    "timeout": 1761708665
+}
+
+{
+    "id": 1234,
+    "guid": "dc79b83b-2ece-4ce9-9324-59464e89baaa",
+    "user_id": 2383326,
+    "faction_id": 15644,
+    "amount": 12345678,
+    "type": "money_balance",
+    "expires_at": 1761708665
+}
+```
+
+**Body Parameters**
+
+| Field     | Type              | Description                                          | Default   | Required |
+| --------- | ----------------- | ---------------------------------------------------- | --------- | -------- |
+| `amount`  | Integer or String | Amount to withdraw                                   |           | True     |
+| `type`    | String            | Type of request: `money_balance` or `points_balance` |           | True     |
+| `timeout` | Unix Timestamp    | Earliest expiration timestamp                        | in 1 hour | False    |
+
 ### Get Organized Crimes Names
 Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.
 
-**Scopes Required:** none
 
 ```http
 GET /api/v1/faction/crime/names HTTP/1.1

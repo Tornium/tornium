@@ -46,16 +46,13 @@
     ClientAliveCountMax = 0;
     AllowUsers = ["root" "tiksan" "postgres"];
     TCPKeepAlive = false;
-    AllowTcpForwarding = false;
+    AllowTcpForwarding = true;
     AllowAgentForwarding = false;
   };
   networking.firewall.allowedTCPPorts = [ 22 ];
 
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
-  ];
-  users.users.postgres.openssh.authorizedKeys.keys =[
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEQAa9SHSLhyXx/E2mHPNFEFBiyAKCvIKsJqz6KeWsSs postgres@ubuntu-16gb-fsn1-1"
   ];
 
   # This is added to the server by colmena in ../hosts/common.nix

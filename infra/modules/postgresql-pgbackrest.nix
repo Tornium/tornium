@@ -52,6 +52,10 @@
     };
   };
 
+  environment.etc."pgbackrest/pgbackrest.conf".owner = "postgres";
+  environment.etc."pgbackrest/pgbackrest.conf".text = ''
+  '';
+
   sops.templates."pgbackrest.env" = {
     content = ''
       PGBACKREST_REPO1_CIPHER_PASS="${config.sops.placeholder."pgbackrest/aes_encryption_key"}"

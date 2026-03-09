@@ -34,7 +34,6 @@
 
       if [ -f /run/secrets/postgres/admin_password ]; then
         PW="$(cat /run/secrets/postgres/admin_password)"
-        echo "ALTER ROLE \"tiksan\" WITH PASSWORD '$PW';" | psql
         echo "ALTER ROLE \"postgres\" WITH PASSWORD '$PW';" | psql
       fi
     '';

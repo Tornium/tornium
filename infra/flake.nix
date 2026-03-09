@@ -38,7 +38,10 @@
             disko.nixosModules.disko
           ];
         };
+
+        # List of nodes in the cluster managed by colmena
         tornium-proxy-db = import ./hosts/proxy-db.nix;
+        tornium-primary = import ./hosts/primary.nix;
       };
 
       nixosConfigurations.hetzner-cloud = nixpkgs.lib.nixosSystem {

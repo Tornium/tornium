@@ -4,6 +4,7 @@
   # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
   imports = [
     ./postgresql-password-service.nix
+    ./postgresql-prometheus-exporter.nix
   ];
 
   services.postgresql.enable = true;

@@ -29,7 +29,7 @@
 
   services.prometheus.exporters.redis.enable = true;
   services.prometheus.exporters.redis.listenAddress = "127.0.0.1";
-  services.prometheus.exporters.redis.extraFlags = [ "--redis.password-file=${config.sops.templates."prometheus-redis-exporter.json".path}" ];
+  services.prometheus.exporters.redis.extraFlags = [ "-redis.password-file=${config.sops.templates."prometheus-redis-exporter.json".path}" ];
   services.prometheus.exporters.redis.user = "redis-tornium";
   services.prometheus.exporters.redis.group = "redis-tornium";
 

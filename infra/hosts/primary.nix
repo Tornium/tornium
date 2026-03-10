@@ -8,6 +8,7 @@
     ../modules/nginx-status.nix
     ../modules/postgresql.nix
     # ../modules/postgresql-pgbackrest.nix
+    ../modules/redis.nix
     ../modules/prometheus.nix
     ../common/default.nix
     ../common/users/default.nix

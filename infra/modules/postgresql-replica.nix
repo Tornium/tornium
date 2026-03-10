@@ -18,7 +18,7 @@
     max_wal_senders = "10";
     max_replication_slots = "10";
     wal_keep_size = "1GB";
-    primary_conninfo = "host=10.0.0.3 port=5432 user=replicator";
+    primary_conninfo = "host=10.0.0.5 port=5432 user=replicator";
     hot_standby = "on";
     max_connections = "150";
   };

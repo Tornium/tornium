@@ -1,6 +1,10 @@
 { ... }:
 
 {
+  imports = [
+    ./node-prometheus-exporter.nix
+  ];
+
   services.prometheus.enable = true;
   services.prometheus.port = 9090;
   services.prometheus.scrapeConfigs = [];

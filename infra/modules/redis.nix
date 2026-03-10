@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
   users.groups."redis-tornium" = {};
@@ -17,4 +17,17 @@
     port = 6379;
     requirePassFile = config.sops.secrets."redis/password".path;
   };
+
+  services.prometheus.exporters.redis.enable = true;
+  services.prometheus.exporters.redis.listenAddress = "127.0.0.1";
+
+  services.prometheus.scrapeConfigs = lib.mkAfter [
+    {
+      job_name = "Redis";
+      static_configs = [
+        { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.redis.port}" ]; }
+      ];
+      scrape_interval = "15s";
+    }
+  ];
 }

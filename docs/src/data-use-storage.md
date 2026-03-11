@@ -13,7 +13,7 @@ We collect user attacks to calculate the stat scores of the opponent for the sta
 We collect the battle stats of users who are signed into Tornium and potentially their faction members through <a href="https://www.tornstats.com">TornStats</a> to calculate stat scores from attacks and to calculate estimated respect for the chain list generator and stat database. All users' battle stats are NOT shared publicly with anyone nor do we view them. This data is stored persistently.
 
 ## User CPR
-We collect the Organized Crime 2.0 success chance of users with the "API Access" permission for each OC position for each OC type if the user's faction has migrated to Organized Crimes 2.0. This data can be accessed by your faction's members with the "Manage Organized Crimes" permission. This feature for your account can be disabled in Tornium's <a href="/settings">user settings</a>.
+We collect the Organized Crime 2.0 success chance of users for each OC position for each OC type if the user's faction has migrated to Organized Crimes 2.0. This data can be accessed by your faction's members with the "Manage Organized Crimes" permission. This feature for your account can be disabled in Tornium's <a href="/settings">user settings</a>.
 
 ## User Logs
 If you have a full access API key on Tornium, we may collect your user logs for the following log categories and reasons:

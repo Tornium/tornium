@@ -4,9 +4,8 @@ In this tutorial, we will be installing and setting up the Tornium stat estimati
 Before starting, ensure you have a userscript manager installed on your browser. The recommended and tested userscript managers are the following:
 - [Tampermonkey](https://www.tampermonkey.net/) - Chrome, Firefox, Edge, Opera, Safari, etc.
 - [Violentmonkey](https://violentmonkey.github.io/) - Chrome, Firefox, Edge, etc
-- [TornPDA](https://www.torn.com/forums.php?p=threads&t=16163503) - iOS and Android
 
-**NOTE:** For TornPDA, there is not a separate userscript manger as it is built into the application.
+**NOTE:** TornPDA may work for you on the built-in userscript manager, but some people will have issues with TPDA injecting the userscript due to a bug with TPDA. Due to this and the lack of development tooling to debug issues on TPDA, support for TPDA is as-is. I will try to keep it running, but I can only say that it only works for me on my phone.
 
 Once the userscript manager has been installed, on the browser with the userscript manager, navigate to the [userscript](https://github.com/Tornium/tornium/blob/master/userscripts/tornium-estimate.user.js) and press the `Raw` button (or visit [this link](https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-estimate.user.js)). If your userscript manager is installed properly, this will automatically install the userscript and show a confirmation page from the userscript manager. If you’re installing the userscript onto TornPDA, make sure that the injection time is set to the end.
 

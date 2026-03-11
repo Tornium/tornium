@@ -28,12 +28,7 @@ defmodule Tornium.Workers.OverdoseDailyReport do
     max_attempts: 3,
     priority: 0,
     queue: :faction_processing,
-    tags: ["faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["faction"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

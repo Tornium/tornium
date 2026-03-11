@@ -1,6 +1,7 @@
 .ts-wrapper {
     // Used for <channel-selector> to fill the width it should
-    width: 100%;
+    // width: 100%;
+    flex-grow: 100;
 }
 
 .ts-control {

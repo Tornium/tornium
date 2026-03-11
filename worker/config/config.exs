@@ -16,7 +16,7 @@
 import Config
 
 config :tornium,
-  ecto_repos: [Tornium.Repo],
+  ecto_repos: [Tornium.Repo, Tornium.ObanRepo],
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   env: config_env()
 
@@ -71,7 +71,8 @@ config :tornium, Tornium.PromEx,
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
   queues: [faction_processing: 50, user_processing: 20, notifications: 20, scheduler: 5],
-  repo: Tornium.Repo,
+  repo: Tornium.ObanRepo,
+  get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
     {
@@ -88,7 +89,7 @@ config :tornium, Oban,
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications}
       ]
     },
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 

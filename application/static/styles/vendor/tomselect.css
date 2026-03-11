@@ -1,5 +1,5 @@
 .ts-wrapper {
-    width: 100%;
+    flex-grow: 100;
 }
 
 .ts-control {

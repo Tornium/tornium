@@ -1,5 +1,4 @@
---[[
-Copyright (C) 2021-2025 tiksan
+/* Copyright (C) 2021-2025 tiksan
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -12,23 +11,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
---]]
+along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
--- Utilized by DBucket.from_endpoint()
---
--- Creates a lock if the bucket hash for the method + endpoint is not already cached.
--- Otherwise, returns the bucket bash.
+import { DEBUG, ENABLE_LOGGING, GM_PREFIX } from "./constants.js";
 
-if redis.call("EXISTS", KEYS[1] .. ":lock") == true then
-    return -1
-end
-
-local bhash = redis.call("GET", KEYS[1])
-
-if bhash == false then
-    redis.call("SET", KEYS[1] .. ":lock", 1, "NX", "EX", 5)
-    return bhash
-end
-
-return bhash
+export function log(string) {
+    if (ENABLE_LOGGING || DEBUG) {
+        console.log(`[${GM_PREFIX}] ${window.location.pathname} - ${string}`);
+    }
+}

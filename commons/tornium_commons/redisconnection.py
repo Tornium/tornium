@@ -13,9 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import importlib.resources
-import pathlib
-
 import redis
 
 from .config import Config
@@ -32,32 +29,3 @@ def rds() -> redis.Redis:
 
     redis_dsn = Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
     return redis.from_url(str(redis_dsn), decode_responses=True)
-
-
-def load_scripts() -> dict:
-    """
-    Loads Lua scripts into Redis server
-
-    Returns
-    -------
-    scripts : mapping of script names to hashes
-    """
-
-    scripts = {}
-    client = rds()
-
-    client.script_flush()
-
-    script: pathlib.Path
-    for script in importlib.resources.files("tornium_commons.rds_lua").iterdir():
-        if not script.name.endswith(".lua"):
-            continue
-
-        script_data = script.read_text()
-        scripts[script.name[:-4]] = client.script_load(script_data)
-
-    return scripts
-
-
-if __name__ == "__main__":
-    load_scripts()

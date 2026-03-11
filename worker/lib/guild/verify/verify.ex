@@ -159,11 +159,11 @@ defmodule Tornium.Guild.Verify do
   @spec validate_changes_made(
           new_roles_nick :: Tornium.Guild.Verify.Logic.state(),
           original_roles :: [Tornium.Discord.role()],
-          original_nick :: String.t()
+          original_nick :: String.t() | nil
         ) ::
           resolved_state() | :nochanges
   defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick)
-       when is_list(original_roles) and is_binary(original_nick) do
+       when is_list(original_roles) do
     patched_map =
       %{roles: MapSet.to_list(roles), nick: nick}
       |> then(fn patched_map ->
@@ -276,10 +276,11 @@ defmodule Tornium.Guild.Verify do
   end
 
   defp perform_changes(
-         {:verified, %{roles: roles, nick: nick} = _changeset},
+         {:verified, changeset},
          %Tornium.Schema.Server{sid: guild_id} = _guild,
          %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       ) do
-    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
+       )
+       when is_map(changeset) do
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, changeset)
   end
 end

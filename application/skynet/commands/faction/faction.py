@@ -588,42 +588,25 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
     def revivable_other_faction():
-        api_user: User
-        if user.personal_stats.revives >= 1 and user.key is not None:
-            api_user = user
-        else:
-            try:
-                # TODO: Convert to subquery
-                # TODO: Optimize these queries
-                api_users = User.select(User.tid, User.name).where(
-                    User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
-                )
-                api_users = {u.tid: u for u in api_users}
-                api_user = api_users[
-                    random.choice(
-                        PersonalStats.select(PersonalStats.user).where(
-                            (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
-                        )
-                    ).user_id
-                ]
-            except IndexError:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "No API Keys",
-                                "description": "No API keys of admins could be located. Either you or one of the server "
-                                "admins must be signed into Tornium and have revives unlocked. Please sign into Tornium "
-                                "or ask a server admin to sign in.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,
-                    },
-                }
-
-        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
+        try:
+            member_data = tornget(
+                f"faction/{faction.tid}?selections=basic,members", random.choice(kwargs["admin_keys"]), version=2
+            )
+        except IndexError:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys of admins could be located. Either you or one of the "
+                            "server admins must be signed into Tornium.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
         payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
         not_revivable_count = 0
@@ -650,7 +633,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
             payload[-1]["description"] += line_payload
 
-        payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}; Based on {api_user.tid}"}
+        payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
 
         return {
             "type": 4,
@@ -819,46 +802,11 @@ def members_switchboard(interaction, *args, **kwargs):
             "type": 4,
             "data": {
                 "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
-                + " Turn off your revives.",
+                + " Turn off your revives. You can do so through [Torn's settings](https://www.torn.com/preferences.php) even when you're flying.",
             },
         }
 
     def revivable_ping_other_faction():
-        api_user: User
-        if user.personal_stats.revives >= 1 and user.key is not None:
-            api_user = user
-        else:
-            try:
-                # TODO: Convert to subquery
-                # TODO: Optimize these queries
-                api_users = User.select(User.tid, User.name).where(
-                    User.tid.in_(Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get().admins)
-                )
-                api_users = {u.tid: u for u in api_users}
-                api_user = api_users[
-                    random.choice(
-                        PersonalStats.select(PersonalStats.user).where(
-                            (PersonalStats.revives >= 1) & (PersonalStats.user.in_([u.tid for u in api_users.values()]))
-                        )
-                    ).user_id
-                ]
-            except IndexError:
-                return {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "No API Keys",
-                                "description": "No API keys of admins could be located. Either you or one of the server "
-                                "admins must be signed into Tornium and have revives unlocked. Please sign into Tornium "
-                                "or ask a server admin to sign in.",
-                                "color": SKYNET_ERROR,
-                            }
-                        ],
-                        "flags": 64,
-                    },
-                }
-
         if faction.guild_id is None or faction.guild_id != int(interaction["guild_id"]):
             return {
                 "type": 4,
@@ -920,7 +868,25 @@ def members_switchboard(interaction, *args, **kwargs):
                 },
             }
 
-        member_data = tornget(f"faction/{faction.tid}?selections=basic,members", api_user.key, version=2)
+        try:
+            member_data = tornget(
+                f"faction/{faction.tid}?selections=basic,members", random.choice(kwargs["admin_keys"]), version=2
+            )
+        except IndexError:
+            return {
+                "type": 4,
+                "data": {
+                    "embeds": [
+                        {
+                            "title": "No API Keys",
+                            "description": "No API keys of admins could be located. Either you or one of the "
+                            "server admins must be signed into Tornium.",
+                            "color": SKYNET_ERROR,
+                        }
+                    ],
+                    "flags": 64,
+                },
+            }
 
         revivable_users = []
         for member in member_data["members"]:
@@ -955,7 +921,7 @@ def members_switchboard(interaction, *args, **kwargs):
             "type": 4,
             "data": {
                 "content": "".join([f"<@{discord_id}>" for discord_id in revivable_users_discord_ids])
-                + " Turn off your revives.",
+                + " Turn off your revives. You can do so through [Torn's settings](https://www.torn.com/preferences.php) even when you're flying.",
             },
         }
 

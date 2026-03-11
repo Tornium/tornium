@@ -26,7 +26,20 @@ defmodule Tornium.Faction.News do
           news_data :: [Torngen.Client.Schema.FactionNews.t()]
         ) :: [struct()]
   def parse("armoryAction", [%Torngen.Client.Schema.FactionNews{} | _] = news_data) do
+    now = DateTime.utc_now()
+
     news_data
+    |> Enum.reject(fn %Torngen.Client.Schema.FactionNews{timestamp: news_timestamp} ->
+      # We want to reject extremely old faction news as the format changed at some point
+      # and we don't need to support this.
+      seconds_diff =
+        news_timestamp
+        |> DateTime.from_unix!()
+        |> DateTime.diff(now)
+        |> abs()
+
+      seconds_diff / 3600 / 24 / 365 > 2
+    end)
     |> Enum.map(&Tornium.Faction.News.ArmoryAction.parse/1)
     |> Enum.reject(&is_nil/1)
   end

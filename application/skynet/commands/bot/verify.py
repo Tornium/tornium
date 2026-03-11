@@ -209,7 +209,7 @@ def verify(interaction, *args, **kwargs):
                             "description": "This user may not be verified on Torn. Please make sure that the user is officially verified by Torn. "
                             "To verify on Torn, the user can link their Discord and Torn accounts through the "
                             "[official Torn Discord server](https://www.torn.com/discord) or through a "
-                            "[direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify). "
+                            "[direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify)."
                             "Once the user is verified, user `/verify force:true` to verify the user.",
                             "color": SKYNET_ERROR,
                         }
@@ -250,7 +250,7 @@ def verify(interaction, *args, **kwargs):
                         "description": "No Discord ID found. Please verify that the user is officially verified by Torn. "
                         "Otherwise, try forcing the verification. To verify on Torn, the user can link their Discord and "
                         "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
-                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
+                        "through a [direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
                         "color": SKYNET_ERROR,
                     }
                 ],
@@ -504,7 +504,7 @@ def verify_uc(interaction, *args, **kwargs):
                             "description": "This user may not be verified on Torn. Please make sure that the user is officially verified by Torn. "
                             "To verify on Torn, the user can link their Discord and Torn accounts through the "
                             "[official Torn Discord server](https://www.torn.com/discord) or through a "
-                            "[direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify). "
+                            "[direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify)."
                             "Once the user is verified, user `/verify force:true` to verify the user.",
                             "color": SKYNET_ERROR,
                         }
@@ -545,7 +545,7 @@ def verify_uc(interaction, *args, **kwargs):
                         "description": "No Discord ID found. Please verify that the user is officially verified by Torn. "
                         "Otherwise, try forcing the verification. To verify on Torn, the user can link their Discord and "
                         "Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or "
-                        "through a [direct OAuth link](https://discordapp.com/api/oauth2/authorize?client_id=441210177971159041&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
+                        "through a [direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify).",
                         "color": SKYNET_ERROR,
                     }
                 ],

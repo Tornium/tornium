@@ -41,4 +41,33 @@ defmodule Tornium.Notification.Lua.API do
         |> get_discord_id()
     end
   end
+
+  @doc """
+  Convert a string of "true" or "false" into their boolean equivalents. If it does not match, it
+  will fallback to `nil`.
+  """
+  deflua to_boolean(value) when is_binary(value) do
+    value = String.downcase(value)
+
+    case value do
+      _ when value in ["true", "1"] ->
+        true
+
+      _ when value in ["false", "0"] ->
+        false
+
+      _ ->
+        nil
+    end
+  end
+
+  deflua to_boolean(value) when value in [0, 1] do
+    value
+    |> Integer.to_string()
+    |> to_boolean()
+  end
+
+  deflua to_boolean(_value) do
+    nil
+  end
 end

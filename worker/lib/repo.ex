@@ -17,4 +17,12 @@ defmodule Tornium.Repo do
   use Ecto.Repo,
     otp_app: :tornium,
     adapter: Ecto.Adapters.Postgres
+
+  def oban_repo do
+    if in_transaction?() do
+      Tornium.Repo
+    else
+      Tornium.ObanRepo
+    end
+  end
 end

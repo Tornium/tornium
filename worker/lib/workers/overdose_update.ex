@@ -30,13 +30,7 @@ defmodule Tornium.Workers.OverdoseUpdate do
     max_attempts: 3,
     priority: 0,
     queue: :faction_processing,
-    tags: ["faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker, :args],
-      keys: [:api_call_id],
-      states: :incomplete
-    ]
+    tags: ["faction"]
 
   @impl Oban.Worker
   def perform(
@@ -98,10 +92,18 @@ defmodule Tornium.Workers.OverdoseUpdate do
           |> Enum.map(fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} -> {user_id, count} end)
           |> Map.new()
 
+        overdose_counts = Tornium.Faction.Overdose.map_counts(overdose_data, faction_id)
+
+        overdose_counts
+        |> Enum.map(fn %{user_id: user_id} -> user_id end)
+        |> Enum.uniq()
+        |> Enum.map(fn user_id -> {user_id, nil} end)
+        |> Tornium.Schema.User.ensure_exists()
+
         {_, overdosed_members} =
           Repo.insert_all(
             Tornium.Schema.OverdoseCount,
-            Tornium.Faction.Overdose.map_counts(overdose_data, faction_id),
+            overdose_counts,
             on_conflict: {:replace, [:count, :updated_at]},
             conflict_target: [:user_id, :faction_id],
             returning: true

@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Discord do
+  @moduledoc """
+  Functinality related to Discord built on top of Nostrum.
+  """
+
   @typedoc """
   Discord role ID.
   """
@@ -27,18 +31,21 @@ defmodule Tornium.Discord do
   """
   @type role_assignable :: role() | -1
 
-  @doc ~S"""
+  @doc """
   Asynchronously send a list of messages with the option of returning the responses.
 
-  This function must be used to send the messages asynchronously as the underlying API is synchronous. The `collect` option must be `true` to synchronously collect and return the API responses.
+  This function must be used to send the messages asynchronously as the underlying API is synchronous. The
+  `:collect` option must be `true` to synchronously collect and return the API responses.
 
   ## Options
     * `:collect` - A boolean to get the responses from all message create requests (default: `false`).
     * `:timeout` - The timeout in milliseconds (default: `:infinity`).
   """
-  @spec send_messages(messages :: [Nostrum.Struct.Message.t()], opts :: Keyword) ::
+  @spec send_messages(messages :: [Nostrum.Struct.Message.t()], opts :: keyword()) ::
           [Nostrum.Api.error()] | [{:ok, Nostrum.Struct.Message.t()}] | nil
-  def send_messages(messages, opts \\ []) when is_list(messages) do
+  def send_messages(messages, opts \\ [])
+
+  def send_messages([%Nostrum.Struct.Message{} | _] = messages, opts) do
     collect = Keyword.get(opts, :collect, false)
     timeout = Keyword.get(opts, :timeout, :infinity)
 
@@ -49,6 +56,10 @@ defmodule Tornium.Discord do
     else
       nil
     end
+  end
+
+  def send_messages([] = _messages, _opts) do
+    nil
   end
 
   @spec send_each_message(messages :: [Nostrum.Struct.Message.t()], message_tasks :: [Task.t()]) :: [Task.t()]

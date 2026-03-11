@@ -297,6 +297,9 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/armory/cumulative", view_func=faction.armory.get_cumulative, methods=["GET"]
+)
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/armory/logs", view_func=faction.armory.get_logs, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(
@@ -338,6 +341,11 @@ mod.add_url_rule(
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
     view_func=faction.crimes.get_members_cpr_slot,
+    methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/member/<int:user_id>/optimum",
+    view_func=faction.crimes.get_optimum_slots,
     methods=["GET"],
 )
 mod.add_url_rule(

@@ -16,7 +16,7 @@
 import typing
 
 from flask import jsonify, request
-from peewee import fn
+from peewee import DoesNotExist, fn
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
@@ -153,8 +153,6 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
         return make_exception_response("1105", key)
     elif kwargs["user"].faction_id != faction_id:
         return make_exception_response("4022", key)
-    elif not kwargs["user"].can_manage_crimes():
-        return make_exception_response("4006", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
 
@@ -189,3 +187,170 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
         200,
         api_ratelimit_response(key),
     )
+
+
+@require_oauth("faction:crimes", "faction")
+@ratelimit
+def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    try:
+        user = User.select().where(User.tid == user_id).get()
+    except DoesNotExist:
+        return make_exception_response("1100", key)
+
+    try:
+        default_cpr = round(int(request.args.get("default_cpr", 75)) / 100, 3)
+    except (TypeError, ValueError):
+        return make_exception_response("0000", key, details={"message": "Invalid default CPR"})
+
+    if default_cpr > 1 or default_cpr < 0:
+        return make_exception_response("0000", key, details={"message": "The default CPR must be between 0 and 100"})
+    elif user.faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    current_slot: typing.Optional[OrganizedCrimeSlot] = (
+        OrganizedCrimeSlot.select(OrganizedCrime.oc_id, OrganizedCrime.oc_name)
+        .join(OrganizedCrime)
+        .where((OrganizedCrimeSlot.user_id == user_id) & (OrganizedCrime.executed_at.is_null(True)))
+        .order_by(OrganizedCrimeSlot.user_joined_at.desc())
+        .first()
+    )
+    current_ev = None
+
+    if current_slot is not None:
+        current_oc_slots: typing.List[OrganizedCrimeSlot] = list(
+            OrganizedCrimeSlot.select().where(OrganizedCrimeSlot.oc_id == current_slot.oc_id)
+        )
+
+        try:
+            current_ev = OrganizedCrime.expected_value(current_slot.oc.oc_name, current_oc_slots, default=1.0)
+        except KeyError as e:
+            return make_exception_response("0000", key, details={"message": str(e)})
+
+    all_slots: typing.List[OrganizedCrimeSlot] = list(
+        OrganizedCrimeSlot.select(
+            OrganizedCrimeSlot.user_id,
+            OrganizedCrimeSlot.crime_position,
+            OrganizedCrimeSlot.crime_position_index,
+            OrganizedCrimeSlot.user_success_chance,
+            OrganizedCrime.oc_id,
+            OrganizedCrime.oc_name,
+        )
+        .join(OrganizedCrime)
+        .where(
+            (OrganizedCrime.faction_id == faction_id)
+            & (OrganizedCrime.executed_at.is_null(True))
+            & (OrganizedCrime.status.in_(["planning", "recruiting"]))
+        )
+    )
+
+    oc_slots = {}
+
+    slot: OrganizedCrimeSlot
+    for slot in all_slots:
+        oc_slots.setdefault(slot.oc_id, []).append(slot)
+
+    user_cprs = {
+        (cpr.oc_name, cpr.oc_position): cpr.cpr
+        for cpr in OrganizedCrimeCPR.select(
+            OrganizedCrimeCPR.oc_name, OrganizedCrimeCPR.oc_position, OrganizedCrimeCPR.cpr
+        ).where(OrganizedCrimeCPR.user_id == user_id)
+    }
+    possible_slots = []
+
+    for oc_id, slots in oc_slots.items():
+        oc_name = slots[0].oc.oc_name
+        try:
+            current_oc_ev = round(OrganizedCrime.expected_value(oc_name, slots, default=0.7))
+            current_oc_probability = round(OrganizedCrime.probability(oc_name, slots, default=0.7), 3)
+        except KeyError:
+            continue
+
+        slot: OrganizedCrimeSlot
+        for slot in slots:
+            try:
+                slot_cpr = user_cprs[(oc_name, slot.crime_position)]
+            except KeyError:
+                possible_slots.append(
+                    {
+                        "oc_id": oc_id,
+                        "oc_position": slot.crime_position,
+                        "oc_position_index": slot.crime_position_index,
+                        "crime_success_probability": None,
+                        "expected_value": None,
+                        "probability": None,
+                        "team_expected_value_change": None,
+                        "team_probability_change": None,
+                        "user_expected_value_change": None,
+                    }
+                )
+                continue
+
+            modified_slots = []
+
+            # We want a list of slots corresponding to this OC ID where the current `slot` is replaced with a slot the user would be in
+            set_slot: OrganizedCrimeSlot
+            for set_slot in slots:
+                if (
+                    set_slot.crime_position == slot.crime_position
+                    and set_slot.crime_position_index == slot.crime_position_index
+                ):
+                    modified_slots.append(
+                        OrganizedCrimeSlot(
+                            crime_position=set_slot.crime_position,
+                            crime_position_index=set_slot.crime_position_index,
+                            user_success_chance=slot_cpr,
+                            user_id=user_id,
+                        )
+                    )
+                    continue
+
+                modified_slots.append(set_slot)
+
+            try:
+                expected_value = round(OrganizedCrime.expected_value(oc_name, modified_slots, default=0.7))
+                probability = round(OrganizedCrime.probability(oc_name, modified_slots, default=0.7), 3)
+            except KeyError:
+                possible_slots.append(
+                    {
+                        "oc_id": oc_id,
+                        "oc_position": slot.crime_position,
+                        "oc_position_index": slot.crime_position_index,
+                        "crime_success_probability": slot_cpr,
+                        "expected_value": None,
+                        "probability": None,
+                        "team_expected_value_change": None,
+                        "team_probability_change": None,
+                        "user_expected_value_change": None,
+                    }
+                )
+                continue
+
+            possible_slots.append(
+                {
+                    "oc_id": oc_id,
+                    "oc_position": slot.crime_position,
+                    "oc_position_index": slot.crime_position_index,
+                    "crime_success_probability": slot_cpr,
+                    "expected_value": expected_value,
+                    "probability": probability,
+                    "team_expected_value_change": (
+                        None if current_oc_ev == 0 else round((expected_value - current_oc_ev) / current_oc_ev, 4)
+                    ),
+                    "team_probability_change": (
+                        None
+                        if current_oc_probability == 0
+                        else round((probability - current_oc_probability) / current_oc_probability, 4)
+                    ),
+                    "user_expected_value_change": (
+                        None if current_ev == 0 else round((expected_value - current_ev) / current_ev, 4)
+                    ),
+                }
+            )
+
+    return possible_slots, 200, api_ratelimit_response(key)

@@ -23,3 +23,6 @@ config :tornium, Tornium.Web.Endpoint,
   check_origin: false,
   debug_errors: true,
   secret_key_base: "XxDP9g/UoipgQSvTqSqFus7TvlSn40KYFVlshlKM7Ey3YsUHjBweDP1r43tsS4Fa"
+
+# Disable logging from Phoenix
+config :phoenix, :logger, false

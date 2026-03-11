@@ -113,11 +113,23 @@ defmodule Tornium.Notification.Audit do
 
   def log(:discord_error = action, %Tornium.Schema.Notification{} = notification, channel_id, opts)
       when channel_id == false do
-    %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
+    %Nostrum.Error.ApiError{response: %{code: error_code}} = Keyword.fetch!(opts, :error)
 
     "A Discord error (#{error_code}) occurred while making an API call"
     |> format_log(notification, action)
     |> Logger.info()
+
+    if error_code == 50_035 do
+      opts
+      |> Keyword.fetch!(:error)
+      |> inspect(label: "[50035 error]")
+      |> Logger.warning()
+
+      opts
+      |> Keyword.fetch!(:message)
+      |> inspect(label: "[50035 message]")
+      |> Logger.warning()
+    end
 
     audit_channel = get_audit_channel(notification)
     log(action, notification, audit_channel, opts)
@@ -127,7 +139,7 @@ defmodule Tornium.Notification.Audit do
 
   def log(:discord_error = action, %Tornium.Schema.Notification{nid: nid} = _notification, channel_id, opts)
       when is_integer(channel_id) do
-    %Nostrum.Error.ApiError{response: %{code: error_code}} = opts.error
+    %Nostrum.Error.ApiError{response: %{code: error_code}} = Keyword.fetch!(opts, :error)
 
     create_audit_message(
       channel_id,

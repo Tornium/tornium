@@ -1,7 +1,7 @@
 {config, pkgs, lib, ... }:
 
 let
-  cfg = config.services.tornium-celery;
+  cfg = config.services.tornium-celery-beat;
 
   tornium_commons_pkg = pkgs.callPackage ../../commons/package.nix {
     python3Packages = pkgs.python313Packages;
@@ -15,13 +15,8 @@ let
     src = ../../celery;
   };
 in {
-  options.services.tornium-celery = {
+  options.services.tornium-celery-beat = {
     enable = lib.mkEnableOption "Tornium Celery workers";
-    concurrency = lib.mkOption {
-      type = lib.types.int;
-      default = 24;
-      description = "Number of Celery workers running";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -30,9 +25,9 @@ in {
       group = "tornium";
     };
 
-    systemd.services.tornium-celery = {
-      description = "Tornium Celery workers";
-      after = [ "network-online.target" "postgresql.service" ];
+    systemd.services.tornium-celery-beat = {
+      description = "Tornium Celery scheduler";
+      after = [ "network-online.target" "postgresql.service" "tornium-celery.service" ];
       wants = [ "network-online.target" ];
       restartTriggers = [ config.sops.templates."tornium-settings.json".path ];
 
@@ -53,7 +48,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        ExecStart = "${tornium_celery.pythonEnv}/bin/celery -A celery_app worker -c ${toString cfg.concurrency} --queues=api,quick,default --loglevel=WARNING --max-tasks-per-child=200";
+        ExecStart = "${tornium_celery.pythonEnv}/bin/celery -A celery_app beat -s /run/tornium-celery/celerybeat-schedule";
 
         NoNewPrivileges = true;
         PrivateTmp = true;

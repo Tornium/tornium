@@ -2,7 +2,6 @@
 
 let
   cfg = config.services.tornium-web;
-  # src = "/srv/tornium";
 
   tornium_commons_pkg = pkgs.callPackage ../../commons/package.nix {
     python3Packages = pkgs.python313Packages;
@@ -46,36 +45,39 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    sops.templates."tornium-web-settings.json" = {
-      content = ''
-        {
-          "bot_token": "${config.sops.placeholder."tornium/discord/bot_token"}",
-          "bot_application_id": ${config.sops.placeholder."tornium/discord/bot_application_id"},
-          "bot_application_public": "${config.sops.placeholder."tornium/discord/bot_application_public"}",
-          "bot_client_secret": "${config.sops.placeholder."tornium/discord/bot_client_secret"}",
-          "flask_secret": "${config.sops.placeholder."tornium/flask/secret"}",
-          "flask_domain": "${cfg.hostname}",
-          "flask_admin_passphrase": "${config.sops.placeholder."tornium/flask/admin_passphrase"}",
-          "db_dsn": "postgresql://Tornium:${config.sops.placeholder."postgres/password"}@127.0.0.1:5432/Tornium",
-          "redis_dsn": "redis://:${config.sops.placeholder."redis/password"}@127.0.0.1",
-          "admin_passphrase": "${config.sops.placeholder."tornium/flask/admin_passphrase"}",
-          "torn_api_uri": "${cfg.torn_api_uri}",
-          "admin_users": [2383326],
-          "banned_users": {}
-        }
-      '';
-      owner = "tornium-web";
-    };
-
     users.users.tornium-web = {
       isSystemUser = true;
       group = "tornium";
+    };
+
+    sops.templates."tornium-settings.json" = {
+      content = ''
+      {
+        "bot_token": "${config.sops.placeholder."tornium/discord/bot_token"}",
+        "bot_application_id": ${config.sops.placeholder."tornium/discord/bot_application_id"},
+        "bot_application_public": "${config.sops.placeholder."tornium/discord/bot_application_public"}",
+        "bot_client_secret": "${config.sops.placeholder."tornium/discord/bot_client_secret"}",
+        "flask_secret": "${config.sops.placeholder."tornium/flask/secret"}",
+        "flask_domain": "${cfg.hostname}",
+        "flask_admin_passphrase": "${config.sops.placeholder."tornium/flask/admin_passphrase"}",
+        "db_dsn": "postgresql://Tornium:${config.sops.placeholder."postgres/password"}@127.0.0.1:5432/Tornium",
+        "redis_dsn": "redis://:${config.sops.placeholder."redis/password"}@127.0.0.1",
+        "admin_passphrase": "${config.sops.placeholder."tornium/flask/admin_passphrase"}",
+        "torn_api_uri": "${cfg.torn_api_uri}",
+        "admin_users": [2383326],
+        "banned_users": {}
+      }
+      '';
+      owner = "tornium";
+      group = "tornium";
+      mode = "0440";
     };
 
     systemd.services.tornium-web = {
       description = "Tornium Flask application";
       after = [ "network-online.target" "postgresql.service" ];
       wants = [ "network-online.target" ];
+      restartTriggers = [ config.sops.templates."tornium-settings.json".path ];
 
       serviceConfig = {
         Type = "simple";
@@ -83,12 +85,12 @@ in {
         Group = "tornium";
 
         Environment = [
-          "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-web-settings.json".path}"
+          "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-settings.json".path}"
           "PYTHONPATH=${tornium_application.srcDir}/${pkgs.python313.sitePackages}"
         ];
 
         WorkingDirectory = "${tornium_application.srcDir}";
-        RuntimeDirectory = "tornium";
+        RuntimeDirectory = "tornium-web";
         RuntimeDirectoryMode = "0755";
 
         Restart = "on-failure";
@@ -103,7 +105,7 @@ in {
         LockPersonality = true;
         RestrictSUIDSGID = true;
 
-        ReadWritePaths = [ "/run/tornium" ];
+        ReadWritePaths = [ "/run/tornium-web" ];
       };
     };
   };

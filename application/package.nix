@@ -1,4 +1,4 @@
-{ lib, python3, python3Packages, tornium_commons, tornium_celery, src, ...}:
+{ python3, tornium_commons, tornium_celery, src, ...}:
 
 let 
   pythonEnv = python3.withPackages (packages: with packages; [

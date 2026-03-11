@@ -10,6 +10,7 @@
     # ../modules/postgresql-pgbackrest.nix
     ../modules/redis.nix
     ../modules/tornium-web.nix
+    ../modules/tornium-celery.nix
     ../modules/prometheus.nix
     ../common/default.nix
     ../common/users/default.nix
@@ -28,6 +29,8 @@
 
   services.tornium-web.enable = true;
   services.tornium-web.hostname = "tornium.com";
+
+  services.tornium-celery.enable = true;
 
   deployment.tags = ["tornium-primary" "prod" "db" "prometheus"];
 }

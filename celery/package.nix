@@ -1,4 +1,4 @@
-{ lib, python3Packages, src, tornium_commons, python-liquid, ...}:
+{ lib, python3, python3Packages, src, tornium_commons, python-liquid, ...}:
 
 python3Packages.buildPythonPackage {
   pname = "tornium_celery";
@@ -12,6 +12,7 @@ python3Packages.buildPythonPackage {
 
   build-system = with python3Packages; [ setuptools wheel ];
   propagatedBuildInputs = with python3Packages; [
+    authlib
     celery
     redis
     requests
@@ -29,4 +30,16 @@ python3Packages.buildPythonPackage {
     description = "Tornium Celery tasks and worker";
     license = licenses.gpl3Only;
   };
+
+  pythonEnv = python3.withPackages (packages: with packages; [
+    authlib
+    celery
+    redis
+    requests
+    python-liquid
+    orjson
+
+    tornium_commons
+  ]);
+  srcDir = src;
 }

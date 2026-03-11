@@ -24,7 +24,8 @@ dependencies = [
     "celery",
     "redis",
     "requests ~= 2.32.0",
-    "python-liquid ~= 2.1.0"
+    "python-liquid ~= 2.1.0",
+    "authlib"
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]

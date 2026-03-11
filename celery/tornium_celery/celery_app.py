@@ -22,7 +22,7 @@ for module in ("orjson",):
         globals()[f"{module}:loaded"] = False
 
 
-import json
+import logging
 import typing
 
 import kombu
@@ -34,48 +34,17 @@ from celery.schedules import crontab
 from celery.signals import after_setup_logger
 
 config = Config.from_json()
-
-_LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "simple": {
-            "format": "%(asctime)s %(levelname)s [%(name)s] - %(message)s",
-        },
-        "expanded": {
-            "format": "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-        },
-    },
-    "handlers": {
-        "celery_handler": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": "celery.log",
-            "formatter": "expanded",
-        },
-        "console_handler": {
-            "level": "WARNING",
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-    },
-    "loggers": {
-        "celery_app": {
-            "handlers": ["celery_handler", "console_handler"],
-            "level": "DEBUG",
-        }
-    },
-}
-
-
 celery_app: typing.Optional[Celery] = None
 
 
-@after_setup_logger.connect
-def config_loggers(logger, *args, **kwargs):
-    from logging.config import dictConfig
-
-    dictConfig(_LOGGING)
+@after_setup_logger.connect()
+def setup_handler(logger, loglevel, **kwargs):
+    handler = logging.handlers.SysLogHandler(address="/dev/log")
+    handler.setFormatter(
+        logging.Formatter("[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s")
+    )
+    handler.setLevel(loglevel or logging.INFO)
+    logger.addHandler(handler)
 
 
 if celery_app is None:
@@ -139,7 +108,7 @@ if celery_app is None:
         },
     }
 
-    redis_dsn = Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
+    redis_dsn = str(Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True))
     celery_app = Celery(
         "tasks",
         backend=redis_dsn,

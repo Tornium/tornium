@@ -1,4 +1,4 @@
-{ lib, python3Packages, src, ...}:
+{ lib, python3Packages, src, tornium_oc_graph, ...}:
 
 python3Packages.buildPythonPackage {
   pname = "tornium_commons";
@@ -18,6 +18,8 @@ python3Packages.buildPythonPackage {
     psycopg2
     redis
     requests
+
+    tornium_oc_graph
   ];
 
   pythonImportsCheck = [ "tornium_commons" ];

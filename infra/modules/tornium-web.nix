@@ -5,6 +5,7 @@ let
 
   tornium_commons_pkg = pkgs.callPackage ../../commons/package.nix {
     python3Packages = pkgs.python313Packages;
+    tornium_oc_graph = pkgs.python313Packages.tornium_oc_graph;
     src = ../../commons;
   };
 

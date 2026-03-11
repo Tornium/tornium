@@ -51,6 +51,12 @@
   };
   networking.firewall.allowedTCPPorts = [ 22 ];
 
+  users.groups.tornium = {};
+  users.users.tornium = {
+    isSystemUser = true;
+    group = "tornium";
+  };
+
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
   ];
@@ -67,4 +73,10 @@
   sops.secrets."pgbackrest/aes_encryption_key" = { owner = "postgres"; };
   sops.secrets."pgbackrest/backblaze_key_id" = { owner = "postgres"; };
   sops.secrets."pgbackrest/backblaze_key" = { owner = "postgres"; };
+  sops.secrets."tornium/discord/bot_token" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_application_id" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_application_public" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_client_secret" = { owner = "tornium"; };
+  sops.secrets."tornium/flask/secret" = { owner = "tornium"; };
+  sops.secrets."tornium/flask/admin_passphrase" = { owner = "tornium"; };
 }

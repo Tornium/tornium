@@ -911,16 +911,14 @@ def generate_retaliation_embed(
         fields.append(
             {
                 "name": "Personal Stats",
-                "value": inspect.cleandoc(
-                    f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
+                "value": inspect.cleandoc(f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
                     SEs Used: {commas(opponents_personal_stats.statenhancersused)}
                     E-Cans Used: {commas(opponents_personal_stats.energydrinkused)}
                     Books Read: {commas(opponents_personal_stats.booksread)}
 
                     ELO: {commas(opponents_personal_stats.elo)}
                     Average Respect: {commas(opponents_personal_stats.respectforfaction / opponents_personal_stats.attackswon, stock_price=True)}
-                    """
-                ),
+                    """),
             }
         )
 

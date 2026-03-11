@@ -21,9 +21,8 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 dependencies = [
-    "celery ~= 5.4.0",
-    "pynacl ~= 1.6.0",
-    "redis ~= 5.0.0",
+    "celery",
+    "redis",
     "requests ~= 2.32.0",
     "python-liquid ~= 2.1.0"
 ]
@@ -53,7 +52,6 @@ ci = [
 ]
 extra = [
     "orjson",
-    "pytoml"
 ]
 
 [project.urls]

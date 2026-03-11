@@ -21,7 +21,7 @@
   sops.templates."prometheus-redis-exporter.json" = {
     content = ''
       {
-        "redis://127.0.0.1:6379": "${config.sops.placeholder."redis/password"}"
+        "redis://tornium@127.0.0.1:6379": "${config.sops.placeholder."redis/password"}"
       }
     '';
     owner = "redis-tornium";

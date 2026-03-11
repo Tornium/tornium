@@ -1,9 +1,5 @@
-{
-  modulesPath,
-  lib,
-  pkgs,
-  ...
-} @ args:
+{ modulesPath, lib, pkgs, ... }:
+
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -23,6 +19,7 @@
   environment.systemPackages = map lib.lowPrio [
     pkgs.curl
     pkgs.gitMinimal
+    pkgs.python313Packages.gunicorn
   ];
 
   users.users.root.openssh.authorizedKeys.keys = [

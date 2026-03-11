@@ -81,78 +81,69 @@ def config_loggers(logger, *args, **kwargs):
 if celery_app is None:
     init_db()
 
-    try:
-        file = open("celery.json")
-        file.close()
-    except FileNotFoundError:
-        beat_data = {  # Faction tasks
-            "refresh-factions": {
-                "task": "tasks.faction.refresh_factions",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "5", "hour": "*"},
-            },
-            "fetch-attacks-runner": {
-                "task": "tasks.faction.fetch_attacks_runner",
-                "enabled": True,
-                "schedule": {"type": "periodic", "second": "10"},
-            },
-            "armory-check": {
-                "task": "tasks.faction.armory_check",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
-            },
-            "auto-cancel-requests": {
-                "task": "tasks.faction.auto_cancel_requests",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
-            },  # Guild tasks
-            "refresh-guilds": {
-                "task": "tasks.guild.refresh_guilds",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "0", "hour": "*"},
-            },
-            "verify-guilds": {
-                "task": "tasks.guild.verify_guilds",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
-            },  # User tasks
-            "refresh-users": {
-                "task": "tasks.user.refresh_users",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
-            },
-            "fetch-attacks-user-runner": {
-                "task": "tasks.user.fetch_attacks_user_runner",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
-            },
-            "check-api-keys": {
-                "task": "tasks.user.check_api_keys",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },  # Stock tasks
-            "stocks-prefetch": {
-                "task": "tasks.stocks.stocks_prefetch",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "*", "hour": "*"},
-            },  # Item tasks
-            "update-items": {
-                "task": "tasks.items.update_items",
-                "enabled": True,
-                "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
-            },
-        }
+    beat_data = {  # Faction tasks
+        "refresh-factions": {
+            "task": "tasks.faction.refresh_factions",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "5", "hour": "*"},
+        },
+        "fetch-attacks-runner": {
+            "task": "tasks.faction.fetch_attacks_runner",
+            "enabled": True,
+            "schedule": {"type": "periodic", "second": "10"},
+        },
+        "armory-check": {
+            "task": "tasks.faction.armory_check",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
+        },
+        "auto-cancel-requests": {
+            "task": "tasks.faction.auto_cancel_requests",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
+        },  # Guild tasks
+        "refresh-guilds": {
+            "task": "tasks.guild.refresh_guilds",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "0", "hour": "*"},
+        },
+        "verify-guilds": {
+            "task": "tasks.guild.verify_guilds",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*/15", "hour": "*"},
+        },  # User tasks
+        "refresh-users": {
+            "task": "tasks.user.refresh_users",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
+        },
+        "fetch-attacks-user-runner": {
+            "task": "tasks.user.fetch_attacks_user_runner",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+        },
+        "check-api-keys": {
+            "task": "tasks.user.check_api_keys",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+        },  # Stock tasks
+        "stocks-prefetch": {
+            "task": "tasks.stocks.stocks_prefetch",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+        },  # Item tasks
+        "update-items": {
+            "task": "tasks.items.update_items",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "0", "hour": "*/4"},
+        },
+    }
 
-        with open("celery.json", "w") as file:
-            json.dump(beat_data, file, indent=4)
-
-    with open("celery.json", "r") as file:
-        beat_data: dict = json.load(file)
-
+    redis_dsn = Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
     celery_app = Celery(
         "tasks",
-        backend="redis://localhost:6379/0",
-        broker="redis://localhost:6379/0",
+        backend=redis_dsn,
+        broker=redis_dsn,
         include=[
             "tasks.api",
             "tasks.faction",

@@ -144,7 +144,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             scope=scope,
             include_refresh_token=client.check_grant_type("refresh_token"),
         )
-        logging.getLogger(__name__).debug("Issue token %r to %r", token, client)
+        # logging.getLogger(__name__).debug("Issue token %r to %r", token, client)
 
         saved_token = self.save_token(token)
         authorization_code.mark_created(saved_token)

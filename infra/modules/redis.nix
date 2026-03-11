@@ -21,7 +21,7 @@
   sops.templates."prometheus-redis-exporter.json" = {
     content = ''
       {
-        "redis://tornium@127.0.0.1:6379": "${config.sops.placeholder."redis/password"}"
+        "redis://localhost:6379": "${config.sops.placeholder."redis/password"}"
       }
     '';
     owner = "redis-tornium";
@@ -29,7 +29,7 @@
 
   services.prometheus.exporters.redis.enable = true;
   services.prometheus.exporters.redis.listenAddress = "127.0.0.1";
-  services.prometheus.exporters.redis.extraFlags = [ "-redis.password-file=${config.sops.templates."prometheus-redis-exporter.json".path}" ];
+  services.prometheus.exporters.redis.extraFlags = [ "--redis.password-file=${config.sops.templates."prometheus-redis-exporter.json".path}" ];
   services.prometheus.exporters.redis.user = "redis-tornium";
   services.prometheus.exporters.redis.group = "redis-tornium";
 

@@ -26,8 +26,8 @@ from tornium_commons.formatters import date_to_timestamp
 from tornium_commons.models import PersonalStats
 
 
-def model() -> xgboost.XGBRegressor:
-    local_model = xgboost.XGBRegressor()
+def model() -> xgboost.Booster:
+    local_model = xgboost.Booster()
 
     if pathlib.Path("estimate/models/base-model.json").exists():
         local_model.load_model("estimate/models/base-model.json")
@@ -38,7 +38,7 @@ def model() -> xgboost.XGBRegressor:
 
 
 def model_features() -> typing.List[str]:
-    return list(_model.feature_names_in_)
+    return list(_model.feature_names)
 
 
 _model: typing.Optional[xgboost.XGBRegressor] = model()

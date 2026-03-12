@@ -12,6 +12,7 @@
     ../modules/tornium-web.nix
     ../modules/tornium-celery.nix
     ../modules/tornium-celery-beat.nix
+    ../modules/tornium-worker.nix
     ../modules/prometheus.nix
     ../common/default.nix
     ../common/users/default.nix
@@ -33,6 +34,9 @@
 
   services.tornium-celery.enable = true;
   services.tornium-celery-beat.enable = true;
+
+  services.tornium-worker.enable = true;
+  services.tornium-worker.environment = "prod";
 
   deployment.tags = ["tornium-primary" "prod" "db" "prometheus"];
 }

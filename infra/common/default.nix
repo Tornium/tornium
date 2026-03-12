@@ -79,4 +79,5 @@
   sops.secrets."tornium/discord/bot_client_secret" = { owner = "tornium"; };
   sops.secrets."tornium/flask/secret" = { owner = "tornium"; };
   sops.secrets."tornium/flask/admin_passphrase" = { owner = "tornium"; };
+  sops.secrets."tornium/worker/cookie" = { owner = "tornium"; };
 }

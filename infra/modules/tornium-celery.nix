@@ -44,6 +44,7 @@ in {
 
         Environment = [
           "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-settings.json".path}"
+          "TORNIUM_OC_GRAPH_LIB=${pkgs.python313Packages.tornium_oc_graph.outPath}/lib/python3.13/site-packages/tornium_oc_graph/libtornium_oc_graph_core.so"
           "PYTHONPATH=${tornium_celery.srcDir}/${pkgs.python313.sitePackages}"
         ];
 

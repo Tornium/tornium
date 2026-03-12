@@ -86,6 +86,7 @@ in {
         Group = "tornium";
 
         Environment = [
+          "TORNIUM_OC_GRAPH_LIB=${pkgs.python313Packages.tornium_oc_graph.outPath}/lib/python3.13/site-packages/tornium_oc_graph/libtornium_oc_graph_core.so"
           "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-settings.json".path}"
           "PYTHONPATH=${tornium_application.srcDir}/${pkgs.python313.sitePackages}"
         ];

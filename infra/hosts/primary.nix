@@ -3,9 +3,8 @@
 {
   imports = [
     ./common.nix
-    ../modules/nginx-proxy.nix
+    ../modules/nginx.nix
     ../modules/nginx-prometheus-exporter.nix
-    ../modules/nginx-status.nix
     ../modules/postgresql.nix
     # ../modules/postgresql-pgbackrest.nix
     ../modules/redis.nix
@@ -27,6 +26,10 @@
   networking.hostName = "tornium-primary";
 
   services.nginx.enable = true;
+  services.tornium-nginx.enable-proxy = true;
+  services.tornium-nginx.enable-proxy-gateway = true;
+  services.tornium-nginx.enable-status = true;
+
   services.prometheus.enable = true;
 
   services.tornium-web.enable = true;

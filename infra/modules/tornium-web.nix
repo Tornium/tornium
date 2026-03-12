@@ -98,7 +98,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        ExecStart = "${tornium_application.gunicornCmd} ${tornium_application.wsgi}";
+        ExecStart = "${tornium_application.gunicornCmd} --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
 
         NoNewPrivileges = true;
         PrivateTmp = true;
@@ -109,6 +109,42 @@ in {
 
         ReadWritePaths = [ "/run/tornium-web" ];
       };
+    };
+
+    systemd.sockets.tornium-web = {
+      description = "UNIX socket for tornium-web.service";
+      partOf = [ "tornium-web.service" ];
+
+      listenStreams = ["/run/tornium-web/gunicorn.sock"];
+    };
+
+    services.nginx.virtualHosts."tornium-web" = {
+      serverName = "tornium.com www.tornium.com";
+      listen = [
+        {
+          addr = "0.0.0.0";
+          port = 443;
+        }
+        {
+          addr = "[::]";
+          port = 443;
+        }
+      ];
+
+      locations."/" = {
+        proxyPass = "http://unix:/run/tornium-web/gunicorn.sock";
+        recommendedProxySettings = true;
+        extraConfig = ''
+          keepalive_timeout 30;
+
+          proxy_buffering off;
+          proxy_request_buffering off;
+        '';
+      };
+
+      extraConfig = ''
+        charset utf-8;
+      '';
     };
   };
 }

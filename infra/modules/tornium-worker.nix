@@ -79,5 +79,15 @@ in {
         ReadOnlyPaths = [ config.sops.templates."tornium-worker.env".path ];
       };
     };
+
+    services.prometheus.scrapeConfigs = lib.mkAfter [
+      {
+        job_name = "Tornium Worker";
+        static_configs = [
+          { targets = [ "127.0.0.1:4021" ]; }
+        ];
+        scrape_interval = "15s";
+      }
+    ];
   };
 }

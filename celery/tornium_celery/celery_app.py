@@ -23,6 +23,7 @@ for module in ("orjson",):
 
 
 import logging
+import os
 import typing
 
 import kombu
@@ -50,7 +51,12 @@ def setup_handler(logger, loglevel, **kwargs):
 if celery_app is None:
     init_db()
 
-    beat_data = {  # Faction tasks
+    beat_data = {
+        "celery.backend_cleanup": {
+            "task": "celery.backend_cleanup",
+            "enabled": True,
+            "schedule": {"type": "cron", "minute": "*", "hour": "*"},
+        },  # Faction tasks
         "refresh-factions": {
             "task": "tasks.faction.refresh_factions",
             "enabled": True,
@@ -59,7 +65,7 @@ if celery_app is None:
         "fetch-attacks-runner": {
             "task": "tasks.faction.fetch_attacks_runner",
             "enabled": True,
-            "schedule": {"type": "periodic", "second": "10"},
+            "schedule": {"type": "periodic", "second": "20"},
         },
         "armory-check": {
             "task": "tasks.faction.armory_check",
@@ -84,12 +90,12 @@ if celery_app is None:
         "refresh-users": {
             "task": "tasks.user.refresh_users",
             "enabled": True,
-            "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
+            "schedule": {"type": "cron", "minute": "*/30", "hour": "*"},
         },
         "fetch-attacks-user-runner": {
             "task": "tasks.user.fetch_attacks_user_runner",
             "enabled": True,
-            "schedule": {"type": "cron", "minute": "*/5", "hour": "*"},
+            "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
         },
         "check-api-keys": {
             "task": "tasks.user.check_api_keys",
@@ -109,9 +115,14 @@ if celery_app is None:
     }
 
     redis_dsn = str(Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True))
+    backend = redis_dsn
+
+    if os.environ.get("RESULT_BACKEND_CELERY") == "file" and os.environ.get("RESULT_FILE_CELERY") is not None:
+        backend = f"file://{os.environ['RESULT_FILE_CELERY']}"
+
     celery_app = Celery(
         "tasks",
-        backend=redis_dsn,
+        backend=backend,
         broker=redis_dsn,
         include=[
             "tasks.api",

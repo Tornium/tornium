@@ -77,7 +77,7 @@ in {
 
     systemd.services.tornium-web = {
       description = "Tornium Flask application";
-      after = [ "network-online.target" "postgresql.service" ];
+      after = [ "network-online.target" "postgresql.service" "tornium-celery.service" ];
       wants = [ "network-online.target" ];
       restartTriggers = [ config.sops.templates."tornium-settings.json".path ];
 
@@ -87,6 +87,8 @@ in {
         Group = "tornium";
 
         Environment = [
+          "RESULT_BACKEND_CELERY=file"
+          "RESULT_FILE_CELERY=/run/tornium-celery"
           "TORNIUM_OC_GRAPH_LIB=${pkgs.python313Packages.tornium_oc_graph.outPath}/lib/python3.13/site-packages/tornium_oc_graph/libtornium_oc_graph_core.so"
           "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-settings.json".path}"
           "PYTHONPATH=${tornium_application.srcDir}/${pkgs.python313.sitePackages}"
@@ -94,7 +96,7 @@ in {
 
         WorkingDirectory = "${tornium_application.srcDir}";
         RuntimeDirectory = "tornium-web";
-        RuntimeDirectoryMode = "0755";
+        RuntimeDirectoryMode = "0775";
 
         Restart = "on-failure";
         RestartSec = "2s";
@@ -108,7 +110,7 @@ in {
         LockPersonality = true;
         RestrictSUIDSGID = true;
 
-        ReadWritePaths = [ "/run/tornium-web" ];
+        ReadWritePaths = [ "/run/tornium-web" "/run/tornium-celery" ];
       };
     };
 

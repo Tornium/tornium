@@ -199,10 +199,10 @@ def verify_guilds():
         & (Server.auto_verify_enabled)
         & (_modulo(Server.sid, 96) == (int(time.time()) % 86400 // 900))
     ):
-        verify_users.delay(
+        verify_users.s(
             guild_id=guild.sid,
             force=True,
-        ).forget()
+        ).apply_async(ignore_result=True)
 
 
 @celery.shared_task(
@@ -292,7 +292,7 @@ def verify_users(
 
     if log_channel > 0 and highest_id == 0:
         try:
-            discordpost.delay(
+            discordpost.s(
                 endpoint=f"channels/{log_channel}/messages",
                 payload={
                     "embeds": [
@@ -310,7 +310,7 @@ def verify_users(
                         }
                     ]
                 },
-            ).forget()
+            ).apply_async(ignore_result=True)
         except (DiscordError, NetworkingError):
             pass
 
@@ -322,7 +322,7 @@ def verify_users(
         or int(redis_client.get(f"tornium:verify:{guild.sid}:member_fetch_runs")) >= 50
     ):
         if log_channel > 0:
-            discordpost.delay(
+            discordpost.s(
                 endpoint=f"channels/{log_channel}/messages",
                 payload={
                     "embeds": [
@@ -342,7 +342,7 @@ def verify_users(
                         }
                     ]
                 },
-            ).forget()
+            ).apply_async(ignore_result=True)
 
         return
 
@@ -352,7 +352,7 @@ def verify_users(
         )
     except DiscordError as e:
         if log_channel > 0:
-            discordpost.delay(
+            discordpost.s(
                 endpoint=f"channels/{log_channel}/messages",
                 payload={
                     "embeds": [
@@ -364,12 +364,12 @@ def verify_users(
                     ]
                 },
                 channel=log_channel,
-            ).forget()
+            ).apply_async(ignore_result=True)
 
         raise e
     except NetworkingError as e:
         if log_channel > 0:
-            discordpost.delay(
+            discordpost.s(
                 endpoint=f"channels/{log_channel}/messages",
                 payload={
                     "embeds": [
@@ -381,7 +381,7 @@ def verify_users(
                     ]
                 },
                 channel=log_channel,
-            ).forget()
+            ).apply_async(ignore_result=True)
 
         raise e
 
@@ -475,10 +475,7 @@ def verify_users(
             "highest_id": highest_id,
             "log_channel": log_channel,
         }
-    ).apply_async(
-        countdown=60,
-        expires=300,
-    ).forget()
+    ).apply_async(countdown=60, expires=300, ignore_result=True)
 
 
 class _VertificationNameEnvironment(liquid.Environment):
@@ -596,16 +593,15 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
             patch_json["roles"] = list(patch_json["roles"])
 
         if len(patch_json) != 0:
-            discordpatch.delay(
+            discordpatch.s(
                 endpoint=f"guilds/{guild_id}/members/{member['id']}",
                 payload=patch_json,
-                countdown=math.floor(random.uniform(0, 30)),
-            ).forget()
+            ).apply_async(countdown=math.floor(random.uniform(0, 30)), ignore_result=True)
 
         if log_channel <= 0:
             return
 
-        discordpost.delay(
+        discordpost.s(
             endpoint=f"channels/{log_channel}/messages",
             payload={
                 "embeds": [
@@ -616,8 +612,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
                     }
                 ],
             },
-            countdown=math.floor(random.uniform(0, 15)),
-        ).forget()
+        ).apply_async(countdown=math.floor(random.uniform(0, 15)), ignore_result=True)
 
         if gateway and guild.verify_jail_channel != 0:
             discordpost.delay(
@@ -693,11 +688,10 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
     if len(patch_json) == 0:
         return
 
-    discordpatch.delay(
+    discordpatch.s(
         endpoint=f"guilds/{guild_id}/members/{user.discord_id}",
         payload=patch_json,
-        countdown=math.floor(random.uniform(0, 30)),
-    ).forget()
+    ).apply_async(countdown=math.floor(random.uniform(0, 30)), ignore_result=True)
 
     if gateway and guild.verify_jail_channel != 0:
         payload = {
@@ -711,7 +705,9 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
             ],
         }
 
-        discordpost.delay(endpoint=f"channels/{guild.verify_jail_channel}/messages", payload=payload).forget()
+        discordpost.s(endpoint=f"channels/{guild.verify_jail_channel}/messages", payload=payload).apply_async(
+            ignore_result=True
+        )
 
     if log_channel > 0:
         roles_added = set(patch_json["roles"]) - set(member["roles"]) if "roles" in patch_json else set()
@@ -757,8 +753,7 @@ def verify_member_sub(log_channel: int, member: dict, guild_id: int, gateway: bo
             ]
         }
 
-        discordpost.delay(
+        discordpost.s(
             endpoint=f"channels/{log_channel}/messages",
             payload=payload,
-            countdown=math.floor(random.uniform(0, 15)),
-        ).forget()
+        ).apply_async(countdown=math.floor(random.uniform(0, 15)), ignore_result=True)

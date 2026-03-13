@@ -73,7 +73,7 @@ def send_security_alert(api_user_discord_id: int, api_user_id: int, invoker_user
         ],
     }
 
-    send_dm.delay(api_user_discord_id, discord_payload).forget()
+    send_dm.s(api_user_discord_id, discord_payload).apply_async(ignore_result=True)
 
 
 @session_required

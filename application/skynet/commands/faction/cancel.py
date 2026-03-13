@@ -241,7 +241,7 @@ def cancel_command(interaction, *args, **kwargs):
                 },
             }
 
-        discordpost.delay(
+        discordpost.s(
             f"channels/{dm_channel['id']}/messages",
             payload={
                 "embeds": [
@@ -253,7 +253,7 @@ def cancel_command(interaction, *args, **kwargs):
                     }
                 ]
             },
-        ).forget()
+        ).apply_async(ignore_result=True)
 
     return {
         "type": 4,
@@ -518,7 +518,7 @@ def cancel_button(interaction, *args, **kwargs):
                 },
             }
 
-        discordpost.delay(
+        discordpost.s(
             f"channels/{dm_channel['id']}/messages",
             payload={
                 "embeds": [
@@ -530,7 +530,7 @@ def cancel_button(interaction, *args, **kwargs):
                     }
                 ]
             },
-        ).forget()
+        ).apply_async(ignore_result=True)
 
     return {
         "type": 4,

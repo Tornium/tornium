@@ -347,9 +347,9 @@ def withdraw(interaction, *args, **kwargs):
             withdrawal_message=message["id"],
         )
     except IntegrityError:
-        discorddelete.delay(
+        discorddelete.s(
             f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
-        ).forget()
+        ).apply_async(ignore_result=True)
 
         followup_return(
             {

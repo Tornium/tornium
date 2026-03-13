@@ -36,3 +36,8 @@ The secrets file can be configured in the `$EDITOR` assuming there is one of the
 ```sh
 nix-shell -p sops --run "sops secrets/secrets.yaml"
 ```
+
+# Internal Network
+`10.0.0.2` => tornium-proxy-1
+`10.0.0.4` => tornium-proxy-db
+`10.0.0.5` => tornium-primary

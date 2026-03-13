@@ -80,4 +80,6 @@
   sops.secrets."tornium/flask/secret" = { owner = "tornium"; };
   sops.secrets."tornium/flask/admin_passphrase" = { owner = "tornium"; };
   sops.secrets."tornium/worker/cookie" = { owner = "tornium"; };
+  sops.secrets."nginx/cloudflare_origin_cert" = { owner = "nginx"; };
+  sops.secrets."nginx/cloudflare_origin_key" = { owner = "nginx"; };
 }

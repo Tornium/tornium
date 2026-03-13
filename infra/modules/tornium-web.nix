@@ -2,6 +2,7 @@
 
 let
   cfg = config.services.tornium-web;
+  cloudflare = import ./cloudflare.nix { inherit lib; };
 
   tornium_commons_pkg = pkgs.callPackage ../../commons/package.nix {
     python3Packages = pkgs.python313Packages;
@@ -120,25 +121,33 @@ in {
 
     services.nginx.virtualHosts."tornium-web" = {
       serverName = "tornium.com www.tornium.com";
+      onlySSL = true;
       listen = [
         {
           addr = "0.0.0.0";
           port = 443;
+          ssl = true;
         }
         {
           addr = "[::]";
           port = 443;
+          ssl = true;
         }
       ];
 
+      sslCertificate = config.sops.secrets."nginx/cloudflare_origin_cert".path;
+      sslCertificateKey = config.sops.secrets."nginx/cloudflare_origin_key".path;
+
       locations."/" = {
         proxyPass = "http://unix:/run/tornium-web/gunicorn.sock";
-        recommendedProxySettings = true;
+        recommendedProxySettings = false;
         extraConfig = ''
           keepalive_timeout 30;
 
           proxy_buffering off;
           proxy_request_buffering off;
+
+          ${cloudflare.nginxRealIpRules}
         '';
       };
 
@@ -146,5 +155,8 @@ in {
         charset utf-8;
       '';
     };
+
+    networking.firewall.allowedTCPPorts = lib.mkAfter [ 443 ];
+    networking.firewall.extraCommands = cloudflare.firewallRules;
   };
 }

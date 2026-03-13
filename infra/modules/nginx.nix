@@ -81,13 +81,13 @@ in {
     enable-status = lib.mkEnableOption "NGINX Prometheus exporter";
   };
 
-  # TODO: Block requests not proxied by CF
   config = lib.mkMerge [
     {
       services.nginx = {
         enable = true;
-        recommendedProxySettings = true;
+        recommendedProxySettings = false;
         recommendedTlsSettings = true;
+        recommendedGzipSettings = true;
       };
 
       networking.firewall.allowedTCPPorts = [ 80 ];

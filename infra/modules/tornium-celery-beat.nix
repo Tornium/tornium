@@ -47,7 +47,7 @@ in {
 
         WorkingDirectory = "${tornium_celery.srcDir}/tornium_celery";
         RuntimeDirectory = "tornium-celery";
-        RuntimeDirectoryMode = "0755";
+        RuntimeDirectoryMode = "0775";
 
         Restart = "on-failure";
         RestartSec = "2s";

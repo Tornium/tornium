@@ -23,7 +23,7 @@ dependencies = [
     "flask-login ~= 0.6.2",
     "scikit-learn",
     "pandas",
-    "peewee ~= 3.18.1",
+    "peewee ~= 4.0.0",
     "psycopg2",
     "pynacl",
     "xgboost",

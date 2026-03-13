@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import dataclasses
 import datetime
 import html.parser
@@ -23,7 +25,8 @@ from decimal import Decimal
 
 from boltons.timeutils import relative_time
 
-from .models import Item
+if typing.TYPE_CHECKING:
+    from .models import Item
 
 
 def get_tid(name: str) -> int:
@@ -299,6 +302,8 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[Item]]:
     >>> parse_item_str("1x Random Property")
     (1, None)
     """
+
+    from .models import Item
 
     input_str_split = input_str.split("x ")
 

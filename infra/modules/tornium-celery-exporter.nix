@@ -104,7 +104,7 @@ in {
         Group = "tornium";
 
         EnvironmentFile = config.sops.templates."tornium-celery-exporter.env".path;
-        ExecStart = ''${pkgs.bash}/bin/bash -c "${pythonEnv}/bin/python3.13 -c \"from src.cli import cli; cli()\" --broker-url=$CE_BROKER_URL"'';
+        ExecStart = ''${pkgs.bash}/bin/bash -c "${pythonEnv}/bin/python3.13 -c \"from src.cli import cli; cli()\" --broker-url=$CE_BROKER_URL --queues=celery,default,api,quick"'';
 
         Restart = "on-failure";
         RestartSec = "2s";

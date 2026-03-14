@@ -18,6 +18,7 @@ python3Packages.buildPythonPackage {
     requests
     python-liquid
     orjson
+    flower
 
     tornium_commons
   ];
@@ -38,6 +39,7 @@ python3Packages.buildPythonPackage {
     requests
     python-liquid
     orjson
+    flower
 
     tornium_commons
   ]);

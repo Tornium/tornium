@@ -11,6 +11,7 @@
     ../modules/tornium-web.nix
     ../modules/tornium-celery.nix
     ../modules/tornium-celery-beat.nix
+    ../modules/tornium-celery-exporter.nix
     ../modules/tornium-worker.nix
     ../modules/prometheus.nix
     ../common/default.nix
@@ -37,6 +38,7 @@
 
   services.tornium-celery.enable = true;
   services.tornium-celery-beat.enable = true;
+  services.tornium-celery-exporter.enable = true;
 
   services.tornium-worker.enable = true;
   services.tornium-worker.environment = "prod";

@@ -57,7 +57,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        ExecStart = "${tornium_celery.pythonEnv}/bin/celery -A celery_app worker -c ${toString cfg.concurrency} --queues=api,quick,default --loglevel=WARNING --max-tasks-per-child=200";
+        ExecStart = "${tornium_celery.pythonEnv}/bin/celery -A celery_app worker -E -c ${toString cfg.concurrency} --queues=api,quick,default --loglevel=WARNING --max-tasks-per-child=200";
 
         NoNewPrivileges = true;
         PrivateTmp = true;

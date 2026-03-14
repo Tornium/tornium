@@ -65,7 +65,7 @@ if celery_app is None:
         "fetch-attacks-runner": {
             "task": "tasks.faction.fetch_attacks_runner",
             "enabled": True,
-            "schedule": {"type": "periodic", "second": "20"},
+            "schedule": {"type": "periodic", "second": "30"},
         },
         "armory-check": {
             "task": "tasks.faction.armory_check",

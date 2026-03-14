@@ -186,74 +186,7 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[User]
-    try:
-        requester = User.get_by_id(withdrawal.requester)
-    except DoesNotExist:
-        requester = None
-
-    discordpatch(
-        f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
-        {
-            "embeds": [
-                {
-                    "title": f"Vault Request #{withdrawal.wid}",
-                    "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
-                    "fields": [
-                        {
-                            "name": "Original Request Amount",
-                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                        },
-                        {
-                            "name": "Original Requester",
-                            "value": (
-                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                            ),
-                        },
-                    ],
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "color": SKYNET_ERROR,
-                }
-            ],
-            "components": [],
-        },
-    )
-
-    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
-        Withdrawal.wid == withdrawal.wid
-    ).execute()
-
-    if requester.discord_id not in (None, 0):
-        try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except Exception:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Banking Request Cancelled",
-                            "description": f"You have cancelled banking request #{withdrawal.wid}.",
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
-        discordpost.delay(
-            f"channels/{dm_channel['id']}/messages",
-            payload={
-                "embeds": [
-                    {
-                        "title": "Vault Request Cancelled",
-                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {discord_escaper(user.name)} [{user.tid}]",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        ).forget()
+    withdrawal.cancel(user)
 
     return {
         "type": 4,
@@ -463,74 +396,7 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[User]
-    try:
-        requester = User.get_by_id(withdrawal.requester)
-    except DoesNotExist:
-        requester = None
-
-    discordpatch(
-        f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
-        {
-            "embeds": [
-                {
-                    "title": f"Vault Request #{withdrawal.wid}",
-                    "description": f"This request has been cancelled by {discord_escaper(user.name)} [{user.tid}].",
-                    "fields": [
-                        {
-                            "name": "Original Request Amount",
-                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                        },
-                        {
-                            "name": "Original Requester",
-                            "value": (
-                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                            ),
-                        },
-                    ],
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "color": SKYNET_ERROR,
-                }
-            ],
-            "components": [],
-        },
-    )
-
-    Withdrawal.update(status=2, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
-        Withdrawal.wid == withdrawal.wid
-    ).execute()
-
-    if requester.discord_id not in (None, 0):
-        try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except Exception:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Banking Request Cancelled",
-                            "description": f"You have cancelled banking request #{withdrawal.wid}.",
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
-        discordpost.delay(
-            f"channels/{dm_channel['id']}/messages",
-            payload={
-                "embeds": [
-                    {
-                        "title": "Vault Request Cancelled",
-                        "description": f"Your vault request #{withdrawal.wid} has been cancelled by {discord_escaper(user.name)} [{user.tid}]",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_ERROR,
-                    }
-                ]
-            },
-        ).forget()
+    withdrawal.cancel(user)
 
     return {
         "type": 4,

@@ -20,7 +20,7 @@ import typing
 import uuid
 
 from flask import jsonify, request
-from peewee import IntegrityError
+from peewee import DataError, DoesNotExist, IntegrityError
 from tornium_celery.tasks.api import discordpost, tornget
 from tornium_celery.tasks.user import update_user
 from tornium_commons.errors import NetworkingError, TornError
@@ -31,20 +31,14 @@ from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@require_oauth(["faction:banking torn_key:usage", "faction torn_key:usage"])
+@require_oauth(["faction:banking", "faction"])
 @ratelimit
 def vault_balance(*args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
     user: User = kwargs["user"]
 
-    if user.key is None:
-        return make_exception_response("1200", None)
-
     if user.faction is None:
-        update_user(key=user.key, tid=user.tid)
-
-        if user.faction is None:
-            return make_exception_response("1102", key)
+        return make_exception_response("1102", key)
     elif len(user.faction.aa_keys) == 0:
         return make_exception_response("1201", key)
 
@@ -148,7 +142,7 @@ def new_banking_request(faction_id: int, *args, **kwargs):
         return make_exception_response("1201", key)
     elif user.faction_id not in user.faction.guild.factions:
         return make_exception_response("4021", key)
-    if (
+    elif (
         str(user.faction_id) not in user.faction.guild.banking_config
         or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
     ):
@@ -160,6 +154,128 @@ def new_banking_request(faction_id: int, *args, **kwargs):
         return make_exception_response("5000", key, details={"message": "There was an integrity error. Try again."})
 
     return withdrawal.to_dict(), 200, api_ratelimit_response(key)
+
+
+@require_oauth(["faction:banking", "faction"])
+@ratelimit
+def all_requests(faction_id: int, *args, **kwargs):
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    user: User = kwargs["user"]
+    now = int(datetime.datetime.utcnow().timestamp())
+
+    if user is None:
+        return make_exception_response("1100", key)
+    elif user.faction is None:
+        return make_exception_response("1102", key)
+    elif user.faction_id != faction_id:
+        return make_exception_response("4022", key)
+
+    search_type = request.args.get("type", "pending")
+    scope = request.args.get("scope", "user")
+
+    try:
+        limit = int(request.args.get("limit", 100))
+    except (TypeError, ValueError):
+        return make_exception_response(
+            "1000", key, details={"message": "The request `limit` must be an integer between 1 and 100."}
+        )
+
+    try:
+        before = int(request.args.get("before", now))
+    except (TypeError, ValueError):
+        return make_exception_response(
+            "1000",
+            key,
+            details={"message": "The request `before` must be a UNIX timestamp less than the current timestamp."},
+        )
+
+    if search_type not in ("pending", "all"):
+        return make_exception_response(
+            "1000", key, details={"message": "The request `type` must be either `pending` or `all`."}
+        )
+    elif scope not in ("user", "faction"):
+        return make_exception_response(
+            "1000", key, details={"message": "The request `scope must be either `user` or `faction`."}
+        )
+    elif scope == "faction" and user.tid not in user.faction.get_bankers():
+        return make_exception_response("4007", key)
+    elif limit > 100 or limit <= 0:
+        return make_exception_response(
+            "1000", key, details={"message": "The request `limit` must be an integer between 1 and 100."}
+        )
+    elif before > now:
+        return make_exception_response(
+            "1000",
+            key,
+            details={"message": "The request `before` must be a UNIX timestamp less than the current timestamp."},
+        )
+
+    withdrawal_query = (
+        Withdrawal.select()
+        .where(Withdrawal.faction_tid == faction_id)
+        .order_by(Withdrawal.time_requested.desc())
+        .limit(limit)
+    )
+
+    if scope == "user":
+        withdrawal_query.where(Withdrawal.requester == user.tid)
+    if search_type == "pending":
+        withdrawal_query = withdrawal_query.where(Withdrawal.status == 0)
+    if before != now:
+        withdrawal_query = withdrawal_query.where(Withdrawal.time_requested < before)
+
+    return [withdrawal.to_dict() for withdrawal in withdrawal_query], 200, api_ratelimit_response(key)
+
+
+@require_oauth(["faction:banking", "faction"])
+@ratelimit
+def cancel_request(faction_id: int, request_id: str, *args, **kwargs):
+    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    user: User = kwargs["user"]
+
+    if user is None:
+        return make_exception_response("1100", key)
+    elif user.faction is None:
+        return make_exception_response("1102", key)
+    elif user.faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif user.faction.guild is None:
+        return make_exception_response("1001", key)
+    elif len(user.faction.aa_keys) == 0:
+        return make_exception_response("1201", key)
+    elif user.faction_id not in user.faction.guild.factions:
+        return make_exception_response("4021", key)
+    elif (
+        str(user.faction_id) not in user.faction.guild.banking_config
+        or user.faction.guild.banking_config[str(user.faction_id)]["channel"] == "0"
+    ):
+        return make_exception_response("0000", key, details={"message": "Faction vault configuration needs to be set."})
+
+    withdrawal_query = Withdrawal.select().where(Withdrawal.faction_tid == faction_id)
+
+    try:
+        withdrawal_query = withdrawal_query.where(Withdrawal.guid == uuid.UUID(request_id))
+    except ValueError:
+        # If there is a value error, the request_id is the wid not the GUID as it isn't formatted as a UUID
+        withdrawal_query = withdrawal_query.where(Withdrawal.wid == request_id)
+
+    try:
+        withdrawal: Withdrawal = withdrawal_query.get()
+    except (DoesNotExist, DataError):
+        return make_exception_response("1000", key)
+
+    if withdrawal.status != 0:
+        return make_exception_response(
+            "0000",
+            key,
+            details={"message": "The request must be unfulfilled, but it has already been fulfilled or cancelled."},
+        )
+    elif withdrawal.requester != user.tid and user.tid not in user.faction.get_bankers():
+        return make_exception_response("4007", key)
+
+    withdrawal.cancel(user)
+
+    return "", 204, api_ratelimit_response(key)
 
 
 @require_oauth(["faction:banking torn_key:usage", "faction torn_key:usage"])

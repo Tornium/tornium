@@ -28,12 +28,13 @@ from peewee import (
     SmallIntegerField,
     UUIDField,
 )
-from tornium_celery.tasks.api import discorddelete, discordpost
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
 
 from tornium_commons.formatters import commas, discord_escaper
 from tornium_commons.models import User
 
 from ..errors import MissingKeyError
+from ..skyutils import SKYNET_ERROR, SKYNET_GOOD
 from .base_model import BaseModel
 from .faction import Faction
 
@@ -216,3 +217,70 @@ class Withdrawal(BaseModel):
             raise e
 
         return withdrawal
+
+    def cancel(self, canceller: User):
+        requester: typing.Optional[User] = User.select().where(User.tid == self.requester).first()
+
+        discordpatch(
+            f"channels/{requester.faction.guild.banking_config[str(requester.faction_id)]['channel']}/messages/{self.withdrawal_message}",
+            {
+                "embeds": [
+                    {
+                        "title": f"Vault Request #{self.wid}",
+                        "description": f"This request has been cancelled by {discord_escaper(canceller.name)} [{canceller.tid}].",
+                        "fields": [
+                            {
+                                "name": "Original Request Amount",
+                                "value": f"{commas(self.amount)} {'Cash' if self.cash_request else 'Points'}",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": (
+                                    f"N/A [{self.requester}]" if requester is None else requester.user_str_self()
+                                ),
+                            },
+                        ],
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "components": [],
+            },
+        )
+
+        self.status = 2
+        self.fulfiller = canceller.tid
+        self.time_fulfilled = datetime.datetime.utcnow()
+        self.save()
+
+        if requester.discord_id not in (None, 0):
+            try:
+                dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+            except Exception:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Banking Request Cancelled",
+                                "description": f"You have cancelled banking request #{self.wid}.",
+                                "color": SKYNET_GOOD,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
+            discordpost.delay(
+                f"channels/{dm_channel['id']}/messages",
+                payload={
+                    "embeds": [
+                        {
+                            "title": "Vault Request Cancelled",
+                            "description": f"Your vault request #{self.wid} has been cancelled by {discord_escaper(requester.name)} [{requester.tid}]",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "color": SKYNET_ERROR,
+                        }
+                    ]
+                },
+            ).forget()

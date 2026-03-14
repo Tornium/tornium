@@ -73,65 +73,88 @@ Tornium - Faction Banking
 {% endblock %}
 
 {% block content %}
-{% if current_user.factiontid != 0 and banking_enabled %}
+{% if current_user.faction_id != 0 and banking_enabled %}
 <div class="row px-3 pt-3">
-    <div class="col-12">
+    <div class="col-sm-12 col-md-6 col-lg-4">
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Faction Vault Withdrawal</h5>
-
                 <p class="card-text">
-                    You currently have $<span id="money-balance"></span> in the {{ faction.name }} [{{ faction.tid }}] vault.
-                    <br />
-                    You currently have <span id="points-balance"></span> point(s) in the {{ faction.name }} [{{ faction.tid }}] vault.
+                    {# TODO: Add docs page for this #}
+                    For information on how to create vault requests, see the <a href="#">documentation</a>.
                 </p>
 
-                <div class="row">
-                    <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                        <form class="form-floating row g-3" id="request-form">
-                            <div class="col-auto">
-                                <input class="form-control" id="request-amount" name="request-amount" placeholder="Request Amount" inputmode="numeric">
-                            </div>
-                            <div class="col-auto">
-                                <button type="submit" class="btn btn-primary mb-3">Submit</button>
-                            </div>
-                            <div class="form-text">
-                                Please enter the amount of cash you wish to withdraw from the faction vault. Acceptable
-                                formats include integer only (e.g. "100000"), Torn-suffixes such as "m"
-                                (e.g. "1m", "1k", "1b"), and decimals with Torn-suffixes (e.g. "1.35b"). This request
-                                will be forwarded to a faction banker. If the request has not been fulfilled within an
-                                hour, the request will automatically be cancelled.
-                            </div>
-                        </form>
+                <div class="row text-center">
+                    <div class="col-sm-12 col-lg-6">
+                        <div class="stat-label">Money</div>
+                        <div class="stat-value placeholder-glow">$<span class="placeholder" id="money-balance"></span></div>
+                    </div>
+
+                    <div class="col-sm-12 col-lg-6 mt-2 mt-lg-0">
+                        <div class="stat-label">Points</div>
+                        <div class="stat-value placeholder-glow"><span class="placeholder" id="points-balance"></span></div>
+                    </div>
+                </div>
+
+                <div class="row form-floating mt-2">
+                    <fieldset class="w-100">
+                        {# TODO: Add CSS styling to legend.form-label that copies label.form-label #}
+                        <legend>Request Type</legend>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="request-type" id="points-request" value="points_balance">
+                            <label class="form-check-label" for="points-request">Points</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="request-type" id="money-request" value="money_balance" selected>
+                            <label class="form-check-label" for="money-request">Money</label>
+                        </div>
+                    </fieldset>
+
+                    <div class="w-100">
+                        <label for="request-amount" class="form-label">Request Amount</label>
+                        <input class="form-control" id="request-amount" name="request-amount" inputmode="numeric">
+                    </div>
+
+                    <div class="w-100">
+                        <label for="request-timeout" class="form-label">Request Timeout</label>
+                        <select class="form-select" aria-label="Vault request timeout" id="request-timeout">
+                            <option value="900">15 minutes</option>
+                            <option value="1800">30 minutes</option>
+                            <option value="3600" selected>1 hour</option>
+                            <option value="7200">2 hour</option>
+                            <option value="14400">4 hour</option>
+                            <option value="28800">8 hour</option>
+                            <option value="">Never</option>
+                        </select>
+                    </div>
+
+                    <div class="w-100 mt-2">
+                        <button type="submit" class="btn btn-primary" id="request-submit">Submit Request</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endif %}
 
-<div class="row px-3 pt-3">
-    <div class="col-xs-12 col-md-10 col-lg-6 col-xl-4 mb-3">
+    <div class="col-sm-12 col-md-6 col-lg-8">
         <div class="card">
-            <div class="card-header">
-                List of Bankers
-            </div>
+            <div class="card-header">Active Bankers</div>
 
             <ul class="list-group list-group-flush">
                 {% for banker in bankers %}
                 <li class="list-group-item">
-                    <span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ banker["last_action"]|reltime }}">{{ banker["name"] }} [{{ banker["tid"] }}]</span>
+                    <span data-bs-toggle="tooltip" data-bs-placement="right" title="Last Action: {{ banker.last_action|reltime }}">{{ banker.name }} [{{ banker.tid }}]</span>
 
-                    {% if banker["money"] %}
+                    {% if banker.money %}
                     <i class="fa-solid fa-circle-dollar-to-slot" data-bs-toggle="tooltip" data-bs-placement="right" title="Can give money."></i>
                     {% endif %}
 
-                    {% if banker["points"] %}
+                    {% if banker.points %}
                     <i class="fa-solid fa-circle-dot" data-bs-toggle="tooltip" data-bs-placement="right" title="Can give points."></i>
                     {% endif %}
 
-                    {% if banker["adjust"] %}
+                    {% if banker.adjust %}
                     <i class="fa-solid fa-money-check-dollar" data-bs-toggle="tooltip" data-bs-placement="right" title="Can adjust balances."></i>
                     {% endif %}
                 </li>
@@ -141,9 +164,30 @@ Tornium - Faction Banking
                 <li class="list-group-item">No bankers located...</li>
                 {% endif %}
             </ul>
+
+            <div class="card-footer small text-secondary">
+                Only shows bankers active in the last 15 minutes.
+            </div>
         </div>
     </div>
 </div>
+{% elif current_user.faction_id != 0 and not banking_enabled %}
+<div class="row px-3 pt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Faction Vault Withdrawal</h5>
+
+                <p class="card-text">
+                    Faction banking is not enabled for your faction. Your faction's leadership can set up a Discord
+                    server and set up banking on it. For more information, see the
+                    <a href="https://docs.tornium.com/en/latest/tutorial/discord-server-banking.html">documentation</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div class="row p-3">
     <div class="col-12">
@@ -160,14 +204,12 @@ Tornium - Faction Banking
                             <th>Time Fulfilled</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<script src="/static/faction/banking.js" data-banking-enabled="{{ banking_enabled }}"></script>
+<script src="/static/faction/banking.js" data-banking-enabled="{{ banking_enabled }}" data-faction-id="{{ current_user.faction_id }}"></script>
 {% endblock %}

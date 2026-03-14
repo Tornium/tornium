@@ -107,40 +107,27 @@ def banking():
     if current_user.faction is None:
         return render_template("faction/banking.html", banking_enabled=False)
 
-    bankers = []
+    fifteen_minutes_ago = datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
 
-    for banker in current_user.faction.get_bankers():
-        banker_user: typing.Optional[User] = (
-            User.select(
-                User.name,
-                User.tid,
-                User.last_action,
-                User.faction_position,
-            )
-            .join(FactionPosition, JOIN.LEFT_OUTER)
-            .where(User.tid == banker)
-            .first()
-        )
-
-        if banker_user is None:
-            continue
-
-        bankers.append(
-            {
-                "name": banker_user.name,
-                "tid": banker_user.tid,
-                "last_action": int(banker_user.last_action.timestamp()),
-                "money": (
-                    banker_user.faction_position.give_money if banker_user.faction_position is not None else True
-                ),
-                "points": (
-                    banker_user.faction_position.give_points if banker_user.faction_position is not None else True
-                ),
-                "adjust": (
-                    banker_user.faction_position.adjust_balances if banker_user.faction_position is not None else True
-                ),
-            }
-        )
+    banker_users = (
+        User.select(User.tid, User.name, User.last_action, User.faction_position)
+        .join(FactionPosition, JOIN.LEFT_OUTER)
+        .order_by(User.last_action.desc())
+        .where((User.tid.in_(current_user.faction.get_bankers())) & (User.last_action >= fifteen_minutes_ago))
+    )
+    bankers_data = [
+        {
+            "name": banker_user.name,
+            "tid": banker_user.tid,
+            "last_action": int(banker_user.last_action.timestamp()),
+            "money": (banker_user.faction_position.give_money if banker_user.faction_position is not None else True),
+            "points": (banker_user.faction_position.give_points if banker_user.faction_position is not None else True),
+            "adjust": (
+                banker_user.faction_position.adjust_balances if banker_user.faction_position is not None else True
+            ),
+        }
+        for banker_user in banker_users
+    ]
 
     try:
         guild: typing.Optional[Server] = current_user.faction.guild
@@ -156,7 +143,7 @@ def banking():
         "faction/banking.html",
         banking_enabled=banking_enabled,
         faction=current_user.faction,
-        bankers=bankers,
+        bankers=bankers_data,
     )
 
 

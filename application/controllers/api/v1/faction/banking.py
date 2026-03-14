@@ -100,15 +100,15 @@ def new_banking_request(faction_id: int, *args, **kwargs):
 
     if withdrawal_option is None or withdrawal_option not in ("points_balance", "money_balance"):
         return make_exception_response(
-            "1000", key, details={"message": "The request `type` must be either `cash_balance` or `points_balance`."}
+            "1000", key, details={"message": "The request `type` must be either `money_balance` or `points_balance`."}
         )
 
-    now = datetime.datetime.utcnow()
-    timeout_datetime = now + datetime.timedelta(hours=1)
+    now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+    timeout_datetime = None
 
     if isinstance(timeout, int):
         timeout_datetime = datetime.datetime.fromtimestamp(timeout, tz=datetime.timezone.utc)
-    if timeout_datetime >= now:
+    if timeout is not None and timeout_datetime <= now:
         return make_exception_response(
             "1000", key, details={"message": "The provided timeout value must be greater than the current timestamp."}
         )

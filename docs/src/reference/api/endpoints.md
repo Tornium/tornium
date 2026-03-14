@@ -96,12 +96,17 @@ Content-Type: application/json
 ### Create Faction Vault Request
 Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
 
-The `amount` parameter supports the same values as the [slash command](../bot-banking.md#withdraw-command) including values such as `"all"`, `"1m"`, and `1000000`.
+The `amount` parameter supports the same values as the [slash command](../bot-banking.md#withdraw-command) including values such as `"all"`, `"1m"`, and `1000000`. If the `timeout` parameter is `null`, the request will never time out.
+
+The `guid` in the vault request response can be used to create a fulfillment link of the form:
+```
+https://tornium.com/faction/banking/fulfill/<guid>
+```
 
 **Scopes Required:** `faction:banking` (or `faction`)
 
 ```http
-POST /api/v1/faction/<int:faction_id>/banking/vault HTTP/1.1
+POST /api/v1/faction/<int:faction_id>/banking HTTP/1.1
 Authorization: Bearer {{ access_token }}
 Content-Type: application/json
 
@@ -124,11 +129,11 @@ Content-Type: application/json
 
 **Body Parameters**
 
-| Field     | Type              | Description                                          | Default   | Required |
-| --------- | ----------------- | ---------------------------------------------------- | --------- | -------- |
-| `amount`  | Integer or String | Amount to withdraw                                   |           | True     |
-| `type`    | String            | Type of request: `money_balance` or `points_balance` |           | True     |
-| `timeout` | Unix Timestamp    | Earliest expiration timestamp                        | in 1 hour | False    |
+| Field     | Type                      | Description                                          | Default   | Required |
+| --------- | ------------------------- | ---------------------------------------------------- | --------- | -------- |
+| `amount`  | Integer or String         | Amount to withdraw                                   |           | True     |
+| `type`    | String                    | Type of request: `money_balance` or `points_balance` |           | True     |
+| `timeout` | Unix Timestamp or null    | Earliest expiration timestamp                        | Never     | False    |
 
 ### Get Organized Crimes Names
 Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.

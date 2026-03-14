@@ -14,8 +14,44 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const bankingEnabled = document.currentScript.getAttribute("data-banking-enabled");
+const factionID = document.currentScript.getAttribute("data-faction-id");
 
-$(document).ready(function () {
+function updateBalance(vaultData) {
+    const moneyBalanceSpan = document.getElementById("money-balance");
+    const pointsBalanceSpan = document.getElementById("points-balance");
+
+    if (vaultData.error) {
+        moneyBalanceSpan.textContent = "ERR";
+        pointsBalanceSpan.textContent = "ERR";
+    } else {
+        moneyBalanceSpan.textContent = commas(vaultData.money_balance);
+        pointsBalanceSpan.textContent = commas(vaultData.points_balance);
+    }
+
+    moneyBalanceSpan.classList.remove("placeholder");
+    pointsBalanceSpan.classList.remove("placeholder");
+}
+
+function submitRequest(event) {
+    event.preventDefault();
+
+    const requestType = document.querySelector(`input[name="request-type"]:checked`).value;
+    const requestAmount = document.getElementById("request-amount").value;
+    const requestTimeout = document.getElementById("request-timeout").value;
+    const parsedRequestTimeout = requestTimeout == "" ? null : Math.floor(Date.now() / 1000) + parseInt(requestTimeout);
+
+    tfetch("POST", `faction/${factionID}/banking`, {
+        body: { type: requestType, amount: requestAmount, timeout: parsedRequestTimeout },
+        errorTitle: "Banking Request Failed",
+    }).then((response) => {
+        generateToast(
+            "Banking Request Successfully Sent",
+            `Banking Request ${response.id} for ${commas(response.amount)} ${requestType == "points_balance" ? "points" : "money"} has been successfully submitted.`,
+        );
+    });
+}
+
+ready(() => {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
     });
@@ -39,42 +75,7 @@ $(document).ready(function () {
         return;
     }
 
-    tfetch("GET", "faction/banking/vault", { errorTitle: "Balance Request Failed" })
-        .then((response) => {
-            $("#money-balance").text(commas(response["money_balance"]));
-            $("#points-balance").text(commas(response["points_balance"]));
-        })
-        .catch((err) => {
-            $("#money-balance").val("ERROR");
-            $("#points-balance").val("ERROR");
-        });
+    tfetch("GET", "faction/banking/vault", { errorTitle: "Balance Request Failed" }).then(updateBalance);
 
-    $("#request-form").submit(function (e) {
-        e.preventDefault();
-        let value = $("#request-amount").val();
-        value = value.toLowerCase();
-
-        if (value !== "all") {
-            const stringValue = value.replace(",", "");
-            value = Number(stringValue.replace(/[^0-9\.]+/g, ""));
-
-            if (stringValue.endsWith("k")) {
-                value *= 1000;
-            } else if (stringValue.endsWith("m")) {
-                value *= 1000000;
-            } else if (stringValue.endsWith("b")) {
-                value *= 1000000000;
-            }
-        }
-
-        tfetch("POST", "faction/banking", {
-            body: { amount_requested: value },
-            errorTitle: "Banking Request Failed",
-        }).then((response) => {
-            generateToast(
-                "Banking Request Successfully Sent",
-                `Banking Request ${response.id} for ${response.amount} has been successfully submitted to the server.`,
-            );
-        });
-    });
+    document.getElementById("request-submit").addEventListener("click", submitRequest);
 });

@@ -69,7 +69,7 @@ class Withdrawal(BaseModel):
             "faction_id": self.faction_tid,
             "amount": self.amount,
             "type": "money_balance" if self.cash_request else "points_balance",
-            "expires_at": self.expires_at.timestamp(),
+            "expires_at": None if self.expires_at is None else self.expires_at.timestamp(),
         }
 
     def has_sufficient_balance(
@@ -132,7 +132,7 @@ class Withdrawal(BaseModel):
         timeout: typing.Optional[datetime.datetime],
     ):
         try:
-            last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).first()
+            last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).get()
             request_id = last_request.wid + 1
         except DoesNotExist:
             request_id = 0
@@ -199,7 +199,7 @@ class Withdrawal(BaseModel):
                 guid=guid,
                 faction_tid=user.faction_id,
                 amount=amount,
-                cash_request=request_type == "cash_request",
+                cash_request=request_type == "money_balance",
                 requester=user.tid,
                 time_requested=datetime.datetime.utcnow(),
                 expires_at=timeout,

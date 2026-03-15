@@ -105,8 +105,8 @@ defmodule Tornium.API.Store do
 
   @impl true
   def handle_cast({:insert, result, api_call_id}, %{} = state) do
-    stored_response = Map.get(state, api_call_id)
-    {:noreply, Map.put(state, api_call_id, %StoredResponse{stored_response | response: result})}
+    %StoredResponse{} = stored_response = Map.fetch!(state, api_call_id)
+    {:noreply, Map.put(state, api_call_id, %{stored_response | response: result})}
   end
 
   @impl true

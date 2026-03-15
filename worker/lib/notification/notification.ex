@@ -386,6 +386,7 @@ defmodule Tornium.Notification do
         ) ::
           {:ok, Nostrum.Struct.Message.t()}
           | {:error, :discord_error, Nostrum.Error.ApiError.t()}
+          | {:error, :gun_error, nil}
           | render_errors()
           | render_validation_errors()
   defp try_message({:error, _, _} = error, _action_type, _notification) do
@@ -397,8 +398,20 @@ defmodule Tornium.Notification do
          :send,
          %Tornium.Schema.Notification{nid: nid, channel_id: channel_id, one_shot: one_shot?} = notification
        ) do
-    # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.Message.create(channel_id, message) do
+    create_message_response =
+      try do
+        # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
+        Nostrum.Api.Message.create(channel_id, message)
+      rescue
+        FunctionClauseError ->
+          # We can assume this to be a gun error as there frequently is not a matching clause when
+          # there is {:badstate, ~c"The stream cannot be found."} but we can't just ignore the error
+          # as it seems that the error will just continue until something unknown occurs or until
+          # the Elixir worker is restarted. But for now, we can just let it error.
+          {:error, :gun_error}
+      end
+
+    case create_message_response do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully sent...
         # Thus the notification should be deleted as one-shot notifications are deleted once triggered
@@ -437,6 +450,9 @@ defmodule Tornium.Notification do
 
         Tornium.Notification.Audit.log(:discord_error, notification, false, error: error, message: message)
         {:error, :discord_error, error}
+
+      {:error, :gun_error} ->
+        {:error, :gun_error, nil}
     end
   end
 
@@ -450,8 +466,20 @@ defmodule Tornium.Notification do
        when is_nil(message_id) do
     # This should only occur the first time the notification is triggered
 
-    # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
-    case Nostrum.Api.Message.create(channel_id, message) do
+    create_message_response =
+      try do
+        # Valid keys are listed in https://kraigie.github.io/nostrum/Nostrum.Api.html#create_message/2-options
+        Nostrum.Api.Message.create(channel_id, message)
+      rescue
+        FunctionClauseError ->
+          # We can assume this to be a gun error as there frequently is not a matching clause when
+          # there is {:badstate, ~c"The stream cannot be found."} but we can't just ignore the error
+          # as it seems that the error will just continue until something unknown occurs or until
+          # the Elixir worker is restarted. But for now, we can just let it error.
+          {:error, :gun_error}
+      end
+
+    case create_message_response do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully sent...
         # The notification should be updated to include the message ID
@@ -489,6 +517,9 @@ defmodule Tornium.Notification do
 
         Tornium.Notification.Audit.log(:discord_error, notification, false, error: error, message: message)
         {:error, :discord_error, error}
+
+      {:error, :gun_error} ->
+        {:error, :gun_error, nil}
     end
   end
 
@@ -500,7 +531,19 @@ defmodule Tornium.Notification do
     # Once the notification is created, the notification's pre-existing message will be updated
     # with the new message. If the message is deleted or can't be updated, a new message will be created.
 
-    case Nostrum.Api.Message.edit(channel_id, message_id, message) do
+    edit_message_response =
+      try do
+        Nostrum.Api.Message.edit(channel_id, message_id, message)
+      rescue
+        FunctionClauseError ->
+          # We can assume this to be a gun error as there frequently is not a matching clause when
+          # there is {:badstate, ~c"The stream cannot be found."} but we can't just ignore the error
+          # as it seems that the error will just continue until something unknown occurs or until
+          # the Elixir worker is restarted. But for now, we can just let it error.
+          {:error, :gun_error}
+      end
+
+    case edit_message_response do
       {:ok, %Nostrum.Struct.Message{} = resp_message} ->
         # The message was successfully updated and no further action is required
         resp_message
@@ -543,6 +586,9 @@ defmodule Tornium.Notification do
         |> Repo.update_all([])
 
         {:error, :discord_error, error}
+
+      {:error, :gun_error} ->
+        {:error, :gun_error, nil}
     end
   end
 

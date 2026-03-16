@@ -112,6 +112,40 @@ Content-Type: application/json
 | `type`    | String                    | Type of request: `money_balance` or `points_balance` |           | True     |
 | `timeout` | Unix Timestamp or null    | Earliest expiration timestamp                        | Never     | False    |
 
+
+### Cancel Faction Vault Request
+Cancel a vault request against the authenticated user's faction. If the user has banking permissions, the user can cancel any faction members' vault request. If the use does not have banking permissions, they can only cancel their own vault requests.
+
+The `request_id` path parameter can either be the `wid` of the request or the `guid` of the request. This API endpoint return HTTP 204 with no response body if the request has been successfully cancelled.
+
+**Scopes Required:** `faction:banking` (or `faction`)
+
+```http
+DELETE /api/v1/faction/<int:faction_id>/banking/<request_id> HTTP/1.1
+Authorization: Bearer {{ access_token }}
+```
+
+### List Vault Requests
+List all applicable vault requests against the authenticated user's faction.
+
+If the `search_type` is `pending`, this endpoint will return all requests that have not been fulfilled or cancelled; otherwise, the endpoint will return all requests. If the `scope` is `faction` and the user has banking permisions, this endpoint will return either the pending or all requests for all faction members; otherwise, if the `scope` is `user`, the endpoint will return the pending or all requests for the authenticated user.
+
+**Scopes Required:** `faction:banking` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/banking HTTP/1.1
+Authorization: Bearer {{ access_token }}
+```
+
+**Query Parameters**
+
+| Field          | Type             | Description                            | Default   | Required |
+| -------------- | ---------------- | -------------------------------------- | --------- | -------- |
+| `search_type`  | String           | Type of request: `pending` or `all`    | `pending` | False    |
+| `scope`        | String           | Scope of requests: `user` or `faction` | `user`    | False    |
+| `limit`        | Integer          | Response limit (1-100)                 | 100       | False    |
+| `before`       | UNIX timestamp   | Latest timestamp to return             |           | False    |
+
 ### Get Organized Crimes Names
 Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.
 

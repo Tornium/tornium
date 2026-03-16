@@ -19,7 +19,8 @@ dependencies = [
     "boltons",
     "pydantic",
     "peewee",
-    "redis ~= 5.0.0"
+    "redis",
+    "tornium_oc_graph @ git+https://github.com/Tornium/tornium_oc_graph.git"
 ]
 description = "Reusable components for Tornium"
 keywords = ["tornium"]

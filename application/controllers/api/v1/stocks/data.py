@@ -18,9 +18,9 @@ import typing
 
 from flask import jsonify
 from peewee import DoesNotExist
-from redis.commands.json.path import Path
 from tornium_celery.tasks.api import tornget
 from tornium_commons import rds
+from tornium_commons.altjson import dumps, loads
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
 from tornium_commons.models import Item, StockTick
@@ -35,7 +35,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def stocks_data(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    stocks_map = rds().json().get("tornium:stocks")
+    stocks_map = rds().get("tornium:stocks")
 
     if stocks_map is None:
         try:
@@ -45,7 +45,7 @@ def stocks_data(*args, **kwargs):
 
         ticks: typing.Iterable[StockTick] = StockTick.select().where(StockTick.timestamp == last_tick.timestamp)
     else:
-        stock_id_list = [int(stock_id) for stock_id in stocks_map.keys()]
+        stock_id_list = [int(stock_id) for stock_id in loads(stocks_map).keys()]
         now = datetime.datetime.utcnow()
 
         if now.second <= 6:
@@ -83,7 +83,7 @@ def stocks_data(*args, **kwargs):
 @global_cache(duration=86400)
 def stock_benefits(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
-    stock_benefits_data: dict = rds().json().get("tornium:stocks:benefits")
+    stock_benefits_data: dict = rds().get("tornium:stocks:benefits")
 
     if stock_benefits_data is None:
         stock_benefits_data = {}
@@ -98,12 +98,14 @@ def stock_benefits(*args, **kwargs):
         for stock in stocks_api_data["stocks"].values():
             stock_benefits_data[stock["stock_id"]] = stock["benefit"]
 
-        rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits_data)
+        rds().set("tornium:stocks:benefits", dumps({str(k): v for k, v in stock_benefits_data.items()}))
         rds().set(
             "tornium:points-value",
             stocks_api_data["stats"]["points_averagecost"],
             ex=86400,
         )
+    else:
+        stock_benefits_data = loads(stock_benefits_data)
 
     Item.update_items(tornget, kwargs["user"].key)
     stock_benefits_json = {"active": [], "non_rev": [], "passive": []}

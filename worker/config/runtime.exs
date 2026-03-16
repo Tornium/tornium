@@ -24,7 +24,8 @@ end
 config :nostrum,
   ffmpeg: nil,
   youtubedl: nil,
-  streamlink: nil
+  streamlink: nil,
+  force_http1: true
 
 if config_env() == :prod do
   database_url =

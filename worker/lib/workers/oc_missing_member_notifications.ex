@@ -104,7 +104,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
         members_chunk
         |> generate_message(missing_member_channel, missing_member_roles)
         |> then(fn message -> [message] end)
-        |> Tornium.Discord.send_messages(collect: true)
+        |> Tornium.Discord.send_messages()
       end)
     end)
 

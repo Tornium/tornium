@@ -111,8 +111,7 @@ def global_cache(func=None, duration=3600):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # TODO: Migrate this redis call back into tornium-commons
-        client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=False)
+        client = rds()
 
         cached_response = client.get(f"tornium:cache:{request.url_rule}")
 
@@ -133,6 +132,7 @@ def global_cache(func=None, duration=3600):
             )
 
             endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
+            endpoint_response[0].headers["X-Cache"] = "MISS"
             return endpoint_response
 
         unpacked_response: dict = loads(cached_response)
@@ -144,6 +144,7 @@ def global_cache(func=None, duration=3600):
             {
                 "Content-Type": "application/json",
                 "Cache-Control": f"max-age={cache_ttl}, public",
+                "X-Cache": "HIT",
                 **api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}", client),
             },
         )

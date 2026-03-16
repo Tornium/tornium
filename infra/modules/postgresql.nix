@@ -4,23 +4,26 @@
   # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
   imports = [
     ./postgresql-password-service.nix
-  ];
-
-  systemd.tmpfiles.rules = [
-    "d /var/lib/postgresql/16/replica 0700 postgres postgres -"
+    ./postgresql-prometheus-exporter.nix
   ];
 
   services.postgresql.enable = true;
   services.postgresql.package = pkgs.postgresql_16;
-  services.postgresql.dataDir = "/var/lib/postgresql/16/replica";
+  services.postgresql.dataDir = "/var/lib/postgresql/16";
   services.postgresql.settings = {
     wal_level = "replica";
     max_wal_senders = "10";
     max_replication_slots = "10";
     wal_keep_size = "1GB";
-    primary_conninfo = "host=10.0.0.5 port=5432 user=replicator";
-    hot_standby = "on";
+    min_wal_size = "80MB";
+    max_wal_size = "1GB";
     max_connections = "150";
+
+    # TODO: Add listen address
+
+    # archive_mode = "on";
+    # archive_command = "${pkgs.pgbackrest}/bin/pgbackrest --stanza=tornium archive-push %p";
+    # archive_timeout = "300";
   };
   services.postgresql.ensureDatabases = [ "Tornium" ];
   services.postgresql.ensureUsers = [
@@ -47,6 +50,7 @@
 
     # Allow 10.0.0.0/24
     # host Tornium Tornium 10.0.0.0/24 scram-sha-256
+    host replication replicator 10.0.0.0/24 scram-sha-256
 
     # Reject all external requests
     host all all 0.0.0.0/0 reject

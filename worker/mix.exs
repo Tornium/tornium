@@ -32,18 +32,17 @@ defmodule Tornium.MixProject do
   def application do
     [
       mod: {Tornium.Application, []},
-      extra_applications: [:logger, :plug_cowboy, :runtime_tools]
+      extra_applications: [:logger, :plug_cowboy, :runtime_tools, :sasl]
     ]
   end
 
   def deps do
     [
-      # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.21.0 requires certifi ~> 2.14
-      {:certifi, "~> 2.14", override: true},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
       # {:nostrum, "~> 0.10"},
-      {:nostrum, github: "Kraigie/nostrum", ref: "c95d702e476513253a0eff3910fa88fb52e91602"},
+      # {:nostrum, github: "Kraigie/nostrum", ref: "c95d702e476513253a0eff3910fa88fb52e91602"},
+      {:nostrum, github: "dssecret/nostrum", branch: "test"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
@@ -62,7 +61,8 @@ defmodule Tornium.MixProject do
       {:floki, "~> 0.38"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:deps_nix, "~> 2.0", only: :dev}
     ]
   end
 

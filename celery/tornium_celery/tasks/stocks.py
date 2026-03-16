@@ -17,8 +17,8 @@ import datetime
 import time
 import typing
 
-from redis.commands.json.path import Path
 from tornium_commons import rds, with_db_connection
+from tornium_commons.altjson import dumps
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import StockTick, TornKey
 
@@ -109,7 +109,7 @@ def update_stock_prices(stocks_data, stocks_timestamp: datetime.datetime = datet
 
     StockTick.insert_many(stocks_insert_data).execute()
 
-    rds().json().set("tornium:stocks", Path.root_path(), stocks)
-    rds().json().set("tornium:stocks:benefits", Path.root_path(), stock_benefits)
+    rds().set("tornium:stocks", dumps({str(k): v for k, v in stocks.items()}))
+    rds().set("tornium:stocks:benefits", dumps({str(k): v for k, v in stock_benefits.items()}))
 
     return stocks_data

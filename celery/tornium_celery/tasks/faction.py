@@ -472,7 +472,7 @@ def fetch_attacks_runner():
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
         # TODO: Convert to a delete returning query
         try:
-            discordpatch.delay(
+            discordpatch.s(
                 f"channels/{retal.channel_id}/messages/{retal.message_id}",
                 {
                     "embeds": [
@@ -489,7 +489,7 @@ def fetch_attacks_runner():
                     ],
                     "components": [],
                 },
-            ).forget()
+            ).apply_async(ignore_result=True)
         except Exception as e:
             logger.exception(e)
             continue
@@ -636,7 +636,7 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             ).execute()
 
         try:
-            update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys)).forget()
+            update_user.s(tid=opponent_id, key=random.choice(faction.aa_keys)).apply_async(ignore_result=True)
         except Exception as e:
             logger.exception(e)
             continue
@@ -1102,7 +1102,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 )
                 .returning(Retaliation.channel_id, Retaliation.message_id)
             ):
-                discordpatch.delay(
+                discordpatch.s(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",
                     {
                         "embeds": [
@@ -1116,7 +1116,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                         ],
                         "components": [],
                     },
-                ).forget()
+                ).apply_async(ignore_result=True)
         elif (
             ALERT_RETALS
             and validate_attack_available_retaliation(attack, faction)
@@ -1182,10 +1182,10 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
                 payload["content"] += f"<@&{role}>"
 
-            discordpost.delay(
+            discordpost.s(
                 f"channels/{attack_config.chain_bonus_channel}/messages",
                 payload=payload,
-            ).forget()
+            ).apply_async(ignore_result=True)
 
     if (
         latest_outgoing_attack is not None
@@ -1212,7 +1212,9 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
             payload["content"] += f"<@&{role}>"
 
-        discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
+        discordpost.s(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).apply_async(
+            ignore_result=True
+        )
 
     for retal in possible_retals.values():
         retal["task"]: typing.Optional[celery.result.AsyncResult]
@@ -1339,7 +1341,7 @@ def auto_cancel_requests():
             logger.exception(e)
             continue
 
-        discordpost.delay(
+        discordpost.s(
             f"channels/{dm_channel['id']}/messages",
             payload={
                 "embeds": [
@@ -1353,7 +1355,7 @@ def auto_cancel_requests():
                     }
                 ]
             },
-        ).forget()
+        ).apply_async(ignore_result=True)
 
 
 @celery.shared_task(
@@ -1661,11 +1663,11 @@ def armory_check_subtask(_armory_data, faction_id: int):
             )
 
             if len(payload["embeds"]) == 10:
-                discordpost.delay(
+                discordpost.s(
                     f"channels/{faction_config['channel']}/messages",
                     payload=payload,
                     channel=faction_config["channel"],
-                ).forget()
+                ).apply_async(ignore_result=True)
                 payload["embeds"].clear()
 
     out_of_stock_item: int
@@ -1696,16 +1698,16 @@ def armory_check_subtask(_armory_data, faction_id: int):
         )
 
         if len(payload["embeds"]) == 10:
-            discordpost.delay(
+            discordpost.s(
                 f"channels/{faction_config['channel']}/messages",
                 payload=payload,
                 channel=faction_config["channel"],
-            ).forget()
+            ).apply_async(ignore_result=True)
             payload["embeds"].clear()
 
     if len(payload["embeds"]) != 0:
-        discordpost.delay(
+        discordpost.s(
             f"channels/{faction_config['channel']}/messages",
             payload=payload,
             channel=faction_config["channel"],
-        ).forget()
+        ).apply_async(ignore_result=True)

@@ -220,9 +220,10 @@ defmodule Tornium.Faction.Overdose do
       overdose_logs = get_user_overdoses(api_key, overdose_last_updated)
 
       case overdose_logs do
-        [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}] ->
+        [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}]
+        when is_integer(overdosed_at) ->
           event
-          |> Map.put(:created_at, overdosed_at)
+          |> Map.put(:created_at, overdosed_at |> DateTime.from_unix!())
           |> Map.put(:drug_id, overdosed_item_id)
 
         _ ->

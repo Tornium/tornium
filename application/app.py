@@ -13,34 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import importlib.util
-import sys
-import typing
-
-if sys.version_info < (3, 9):
-    raise RuntimeError("This package requires Python 3.9+")
-
-# fmt: off
-for module in ("ddtrace",):
-    try:
-        globals()[f"{module}:loaded"] = importlib.util.find_spec(module) is not None
-    except (ValueError, ModuleNotFoundError):
-        globals()[f"{module}:loaded"] = False
-# fmt: on
-
-if globals().get("ddtrace:loaded") and not hasattr(sys, "_called_from_test"):
-    import ddtrace
-
-    ddtrace.config.env = "prod"
-    ddtrace.tracer.configure(
-        enabled=True,
-    )
-    ddtrace.patch(logging=True)
-    ddtrace.patch_all(flask=True)
-
 import datetime
-import logging
 import secrets
+import typing
 
 import flask
 from authlib.oauth2.rfc7636 import CodeChallenge
@@ -53,21 +28,6 @@ from tornium_commons.models import Faction, OAuthClient, OAuthToken
 from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
 
 config = Config.from_json()
-
-if globals().get("ddtrace:loaded"):
-    FORMAT = (
-        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%("
-        "dd.span_id)s]- %(message)s"
-    )
-else:
-    FORMAT = "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
-
-logger = logging.getLogger("server")
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="server.log", encoding="utf-8", mode="a")
-handler.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(handler)
 
 
 def init__app():

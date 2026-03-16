@@ -22,11 +22,10 @@ dependencies = [
     "flask-cors ~= 6.0.0",
     "flask-login ~= 0.6.2",
     "scikit-learn",
-    "toml",
     "pandas",
     "peewee ~= 3.18.1",
     "psycopg2",
-    "pynacl ~= 1.6.0",
+    "pynacl",
     "xgboost",
     "git+https://github.com/Tornium/tornium_oc_graph.git"
 ]
@@ -56,8 +55,7 @@ ci = [
     "pytest-sugar",
 ]
 extra = [
-    "orjson",
-    "pytoml"
+    "orjson"
 ]
 
 [project.urls]

@@ -140,7 +140,21 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    if withdrawal.status == 1:
+    if withdrawal.faction_tid != user.faction_id:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "You may only cancel requests for your faction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 1:
         return {
             "type": 4,
             "data": {
@@ -350,7 +364,21 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    if withdrawal.status == 1:
+    if withdrawal.faction_tid != user.faction_id:
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Permission Denied",
+                        "description": "You may only cancel requests for your faction.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    elif withdrawal.status == 1:
         return {
             "type": 4,
             "data": {

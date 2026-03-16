@@ -57,9 +57,9 @@ def verify(interaction, *args, **kwargs):
             patch_json["roles"] = list(patch_json["roles"])
 
         if len(patch_json) != 0:
-            discordpatch.delay(
+            discordpatch.s(
                 endpoint=f"guilds/{guild.sid}/members/{update_user_kwargs['discordid']}", payload=patch_json
-            ).forget()
+            ).apply_async(ignore_result=True)
 
     if "guild_id" not in interaction:
         return {
@@ -378,7 +378,9 @@ def verify_uc(interaction, *args, **kwargs):
             patch_json["roles"] = list(patch_json["roles"])
 
         if len(patch_json) != 0:
-            discordpatch.delay(endpoint=f"guilds/{guild.sid}/members/{member_discord_id}", payload=patch_json).forget()
+            discordpatch.s(endpoint=f"guilds/{guild.sid}/members/{member_discord_id}", payload=patch_json).apply_async(
+                ignore_result=True
+            )
 
     if "guild_id" not in interaction:
         return {

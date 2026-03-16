@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   imports = [
@@ -17,8 +17,8 @@
     permissions = "0600";
   };
 
-  boot.loader.grub.device = "/dev/sda";
-  fileSystems."/" = {
+  boot.loader.grub.device = lib.mkDefault "/dev/sda";
+  fileSystems."/" = lib.mkDefault {
     device = "/dev/sda1";
   };
 }

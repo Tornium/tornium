@@ -5,11 +5,13 @@
     ./users
   ];
 
+  system.stateVersion = "25.11";
+
   # Clean /tmp on boot
-  boot.cleanTmpDir = true;
+  boot.tmp.cleanOnBoot = true;
 
   # Hard-link identical files together to save storage space
-  nix.autoOptimiseStore = true;
+  nix.settings.auto-optimise-store = true;
 
   time.timeZone = "UTC";
 
@@ -31,7 +33,6 @@
   '';
 
   services.openssh.enable = true;
-  # services.openssh.settings.PasswordAuthentication = false;
   # OpenSSH settings come from https://saylesss88.github.io/nix/hardening_NixOS.html#openssh-server
   services.openssh.settings = {
     PasswordAuthentication = false;
@@ -43,12 +44,18 @@
     MaxSessions = 2;
     ClientAliveInterval = 300;
     ClientAliveCountMax = 0;
-    AllowUsers = ["root" "tiksan"];
+    AllowUsers = ["root" "tiksan" "postgres"];
     TCPKeepAlive = false;
-    AllowTcpForwarding = false;
+    AllowTcpForwarding = true;
     AllowAgentForwarding = false;
   };
   networking.firewall.allowedTCPPorts = [ 22 ];
+
+  users.groups.tornium = {};
+  users.users.tornium = {
+    isSystemUser = true;
+    group = "tornium";
+  };
 
   users.users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
@@ -63,4 +70,16 @@
   sops.secrets."postgres/password" = {owner = "postgres"; };
   sops.secrets."postgres/replicator_password" = {owner = "postgres"; };
   sops.secrets."postgres/admin_password" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/aes_encryption_key" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/backblaze_key_id" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/backblaze_key" = { owner = "postgres"; };
+  sops.secrets."tornium/discord/bot_token" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_application_id" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_application_public" = { owner = "tornium"; };
+  sops.secrets."tornium/discord/bot_client_secret" = { owner = "tornium"; };
+  sops.secrets."tornium/flask/secret" = { owner = "tornium"; };
+  sops.secrets."tornium/flask/admin_passphrase" = { owner = "tornium"; };
+  sops.secrets."tornium/worker/cookie" = { owner = "tornium"; };
+  sops.secrets."nginx/cloudflare_origin_cert" = { owner = "nginx"; };
+  sops.secrets."nginx/cloudflare_origin_key" = { owner = "nginx"; };
 }

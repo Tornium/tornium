@@ -114,8 +114,7 @@ def estimate_specific_user(tid: int, *args, **kwargs):
             kwargs["user"].key,
             allow_api_calls="torn_key:usage" in current_token.get_scope() and kwargs["user"].key not in ("", None),
         )
-    except ValueError as e:
-        logging.getLogger("server").exception(e)
+    except ValueError:
         return make_exception_response("1100", key)
     except PermissionError:
         return require_oauth.raise_error_response(InvalidScopeError())

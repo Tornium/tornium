@@ -621,7 +621,7 @@ def stat_db_attacks_user(user_data):
             opponent_id = attack["attacker_id"]
 
         try:
-            update_user.delay(tid=opponent_id, key=user.key).forget()
+            update_user.signature(tid=opponent_id, key=user.key).apply_async(ignore_result=True)
         except Exception as e:
             logger.exception(e)
             continue

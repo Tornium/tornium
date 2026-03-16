@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import pathlib
 import secrets
 import typing
@@ -53,9 +54,14 @@ class Config(BaseModel):
     @classmethod
     def from_json(
         cls: typing.Type[_T],
-        file: typing.Union[pathlib.Path, str] = "settings.json",
+        file: typing.Union[pathlib.Path, str, None] = None,
         disable_cache=False,
     ) -> _T:
+        if file is None and os.getenv("TORNIUM_SETTINGS_FILE"):
+            file = os.environ["TORNIUM_SETTINGS_FILE"]
+        elif file is None:
+            file = "settings.json"
+
         if not disable_cache:
             from .redisconnection import rds
 

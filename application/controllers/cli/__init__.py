@@ -56,15 +56,7 @@ def update_commands(verbose=False):
     with open("commands/commands.json") as commands_file:
         commands_list = json.load(commands_file)
 
-    botlogger = logging.getLogger("skynet")
-    botlogger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
-    handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-    botlogger.addHandler(handler)
-
     application_id = Config.from_json().bot_application_id
-    botlogger.debug(application_id)
-
     commands_data = []
 
     if verbose:
@@ -76,20 +68,16 @@ def update_commands(verbose=False):
             commands_data.append(command_json)
 
     click.echo(f"{len(commands_data)} commands discovered and ready to be exported")
-    botlogger.debug(commands_data)
 
     try:
         commands_data = discordput(
             f"applications/{application_id}/commands",
             commands_data,
         )
-        botlogger.info(commands_data)
     except DiscordError as e:
-        botlogger.error(e)
         click.echo(f"Command export failed due to Discord API error {e.code}")
         raise e
     except Exception as e:
-        botlogger.error(e)
         click.echo(f"Command export failed due to error {e}")
         raise e
 

@@ -206,6 +206,10 @@ def withdraw(interaction, *args, **kwargs):
             user, validated_withdrawal_amount, withdrawal_option_str, timeout_datetime
         )
     except IntegrityError:
+        discorddelete.s(
+            f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+        ).apply_async(ignore_result=True)
+
         followup_return(
             {
                 "embeds": [

@@ -287,11 +287,6 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
-    "/api/v1/faction/banking",
-    view_func=faction.banking.banking_request,
-    methods=["POST"],
-)
-mod.add_url_rule(
     "/api/v1/faction/banking/vault",
     view_func=faction.banking.vault_balance,
     methods=["GET"],

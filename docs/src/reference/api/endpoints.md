@@ -70,29 +70,6 @@ Authorization: Bearer {{ access_token }}
 }
 ```
 
-### [DEPRECATED] Create Faction Vault Request
-Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
-
-This API endpoint has an additional ratelimit currently set to 1 per minute.
-
-```http
-POST /api/v1/faction/banking HTTP/1.1
-Authorization: Bearer {{ access_token }}
-Content-Type: application/json
-
-{
-    "amount_requested": "all"
-}
-
-{
-    "id": 1234,
-    "amount": 12345678,
-    "requester": 2383326,
-    "time_requested": 1761708665,
-    "withdrawal_message": 1433602346151313469
-}
-```
-
 ### Create Faction Vault Request
 Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
 

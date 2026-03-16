@@ -17,7 +17,7 @@ import datetime
 import typing
 
 from peewee import IntegrityError
-from tornium_celery.tasks.api import discordpatch, discordpost
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -99,7 +99,7 @@ def withdraw(interaction, *args, **kwargs):
     withdrawal_option = find_list(interaction["data"]["options"], "name", "option")
 
     if withdrawal_option is None or withdrawal_option["value"] == "Cash":
-        withdrawal_option_str = "cash_balance"
+        withdrawal_option_str = "money_balance"
     elif withdrawal_option["value"] == "Points":
         withdrawal_option_str = "points_balance"
     else:
@@ -203,13 +203,14 @@ def withdraw(interaction, *args, **kwargs):
 
     try:
         withdrawal: Withdrawal = Withdrawal.new(
-            user, validated_withdrawal_amount, withdrawal_option_str, timeout_datetime
+            user,
+            validated_withdrawal_amount,
+            withdrawal_option_str,
+            timeout_datetime,
+            discordpost=discordpost,
+            discorddelete=discorddelete,
         )
     except IntegrityError:
-        discorddelete.s(
-            f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
-        ).apply_async(ignore_result=True)
-
         followup_return(
             {
                 "embeds": [

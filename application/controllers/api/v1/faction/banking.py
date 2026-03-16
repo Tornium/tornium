@@ -20,7 +20,7 @@ import uuid
 
 from flask import jsonify, request
 from peewee import DataError, DoesNotExist, IntegrityError
-from tornium_celery.tasks.api import tornget
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import text_to_num
 from tornium_commons.models import User, Withdrawal
@@ -147,7 +147,14 @@ def new_banking_request(faction_id: int, *args, **kwargs):
         return make_exception_response("0000", key, details={"message": "Faction vault configuration needs to be set."})
 
     try:
-        withdrawal: Withdrawal = Withdrawal.new(user, validated_withdrawal_amount, withdrawal_option, timeout_datetime)
+        withdrawal: Withdrawal = Withdrawal.new(
+            user,
+            validated_withdrawal_amount,
+            withdrawal_option,
+            timeout_datetime,
+            discordpost=discordpost,
+            discorddelete=discorddelete,
+        )
     except IntegrityError:
         return make_exception_response("5000", key, details={"message": "There was an integrity error. Try again."})
 
@@ -271,6 +278,6 @@ def cancel_request(faction_id: int, request_id: str, *args, **kwargs):
     elif withdrawal.requester != user.tid and user.tid not in user.faction.get_bankers():
         return make_exception_response("4007", key)
 
-    withdrawal.cancel(user)
+    withdrawal.cancel(user, discordpost=discordpost, discordpatch=discordpatch)
 
     return "", 204, api_ratelimit_response(key)

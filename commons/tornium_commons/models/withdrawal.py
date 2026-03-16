@@ -28,7 +28,6 @@ from peewee import (
     SmallIntegerField,
     UUIDField,
 )
-from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
 
 from tornium_commons.formatters import commas, discord_escaper
 from tornium_commons.models import User
@@ -131,6 +130,8 @@ class Withdrawal(BaseModel):
         amount: int,
         request_type: typing.Literal["points_balance"] | typing.Literal["money_balance"],
         timeout: typing.Optional[datetime.datetime],
+        discordpost,
+        discorddelete,
     ):
         try:
             last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).get()
@@ -218,7 +219,7 @@ class Withdrawal(BaseModel):
 
         return withdrawal
 
-    def cancel(self, canceller: User):
+    def cancel(self, canceller: User, discordpatch, discordpost):
         requester: typing.Optional[User] = User.select().where(User.tid == self.requester).first()
 
         discordpatch(

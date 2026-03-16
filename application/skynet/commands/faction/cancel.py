@@ -13,12 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
-import typing
-
 from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordpatch, discordpost
-from tornium_commons.formatters import commas, discord_escaper, find_list
+from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
@@ -424,7 +421,7 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.cancel(user)
+    withdrawal.cancel(user, discordpatch=discordpatch, discordpost=discordpost)
 
     return {
         "type": 4,

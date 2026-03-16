@@ -16,16 +16,14 @@
 import datetime
 import json
 import random
-import typing
 import uuid
 
 from flask import jsonify, request
 from peewee import DataError, DoesNotExist, IntegrityError
-from tornium_celery.tasks.api import discordpost, tornget
-from tornium_celery.tasks.user import update_user
+from tornium_celery.tasks.api import tornget
 from tornium_commons.errors import NetworkingError, TornError
-from tornium_commons.formatters import commas, text_to_num
-from tornium_commons.models import Server, User, Withdrawal
+from tornium_commons.formatters import text_to_num
+from tornium_commons.models import User, Withdrawal
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response

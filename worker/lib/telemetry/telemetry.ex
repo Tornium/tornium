@@ -86,6 +86,11 @@ defmodule Tornium.Telemetry do
     :ok
   end
 
+  @doc false
+  def handle_event([:oban, :job, :exception], _measurements, metadata, _opts) do
+    metadata |> inspect() |> Logger.info()
+  end
+
   @spec log(opts :: Keyword.t(), event_data :: map()) :: term()
   defp log(opts, event_data) when is_map(event_data) do
     level = Keyword.get(opts, :level, :debug)

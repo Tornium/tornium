@@ -16,17 +16,25 @@
 import datetime
 import random
 import typing
+import uuid
 
 from peewee import (
     BigIntegerField,
     BooleanField,
     DateTimeField,
+    DoesNotExist,
     IntegerField,
+    IntegrityError,
     SmallIntegerField,
     UUIDField,
 )
+from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
+
+from tornium_commons.formatters import commas, discord_escaper
+from tornium_commons.models import User
 
 from ..errors import MissingKeyError
+from ..skyutils import SKYNET_ERROR, SKYNET_GOOD
 from .base_model import BaseModel
 from .faction import Faction
 
@@ -53,6 +61,17 @@ class Withdrawal(BaseModel):
     time_fulfilled = DateTimeField(null=True)
 
     withdrawal_message = BigIntegerField()  # Discord message ID
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.wid,
+            "guid": str(self.guid),
+            "user_id": self.requester,
+            "faction_id": self.faction_tid,
+            "amount": self.amount,
+            "type": "money_balance" if self.cash_request else "points_balance",
+            "expires_at": None if self.expires_at is None else self.expires_at.timestamp(),
+        }
 
     def has_sufficient_balance(
         user_id: int,
@@ -104,3 +123,164 @@ class Withdrawal(BaseModel):
             raise ValueError("Your pending requests and your current requests will go over your balance.")
 
         return current_balance if amount == "all" else amount
+
+    @classmethod
+    def new(
+        cls,
+        user: User,
+        amount: int,
+        request_type: typing.Literal["points_balance"] | typing.Literal["money_balance"],
+        timeout: typing.Optional[datetime.datetime],
+    ):
+        try:
+            last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).get()
+            request_id = last_request.wid + 1
+        except DoesNotExist:
+            request_id = 0
+
+        guid = uuid.uuid4().hex
+
+        message_payload = {
+            "embeds": [
+                {
+                    "title": f"Vault Request #{commas(request_id)}",
+                    "description": f"{discord_escaper(user.name)} [{user.tid}] is requesting "
+                    f"{commas(amount)} in {'points' if request_type == 'points_balance' else 'cash'} "
+                    f"from the faction vault. The request expires {'never' if timeout is None else f'<t:{int(timeout.timestamp())}:R>'}.",
+                    "timestamp": datetime.datetime.utcnow().isoformat(),
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Faction Vault",
+                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
+                        },
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Fulfill",
+                            "url": f"https://tornium.com/faction/banking/fulfill/{guid}",
+                        },
+                        {
+                            "type": 2,
+                            "style": 3,
+                            "label": "Fulfill Manually",
+                            "custom_id": "faction:vault:fulfill",
+                        },
+                        {
+                            "type": 2,
+                            "style": 4,
+                            "label": "Cancel",
+                            "custom_id": "faction:vault:cancel",
+                        },
+                    ],
+                }
+            ],
+        }
+
+        for role in user.faction.guild.banking_config[str(user.faction_id)]["roles"]:
+            if "content" not in message_payload:
+                message_payload["content"] = ""
+
+            message_payload["content"] += f"<@&{role}>"
+
+        message = discordpost(
+            f'channels/{user.faction.guild.banking_config[str(user.faction_id)]["channel"]}/messages',
+            payload=message_payload,
+        )
+
+        try:
+            withdrawal = Withdrawal.create(
+                wid=request_id,
+                guid=guid,
+                faction_tid=user.faction_id,
+                amount=amount,
+                cash_request=request_type == "money_balance",
+                requester=user.tid,
+                time_requested=datetime.datetime.utcnow(),
+                expires_at=timeout,
+                status=0,
+                fulfiller=None,
+                time_fulfilled=None,
+                withdrawal_message=message["id"],
+            )
+        except IntegrityError as e:
+            discorddelete.delay(
+                f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
+            ).forget()
+
+            raise e
+
+        return withdrawal
+
+    def cancel(self, canceller: User):
+        requester: typing.Optional[User] = User.select().where(User.tid == self.requester).first()
+
+        discordpatch(
+            f"channels/{requester.faction.guild.banking_config[str(requester.faction_id)]['channel']}/messages/{self.withdrawal_message}",
+            {
+                "embeds": [
+                    {
+                        "title": f"Vault Request #{self.wid}",
+                        "description": f"This request has been cancelled by {discord_escaper(canceller.name)} [{canceller.tid}].",
+                        "fields": [
+                            {
+                                "name": "Original Request Amount",
+                                "value": f"{commas(self.amount)} {'Cash' if self.cash_request else 'Points'}",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": (
+                                    f"N/A [{self.requester}]" if requester is None else requester.user_str_self()
+                                ),
+                            },
+                        ],
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "components": [],
+            },
+        )
+
+        self.status = 2
+        self.fulfiller = canceller.tid
+        self.time_fulfilled = datetime.datetime.utcnow()
+        self.save()
+
+        if requester.discord_id not in (None, 0):
+            try:
+                dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+            except Exception:
+                return {
+                    "type": 4,
+                    "data": {
+                        "embeds": [
+                            {
+                                "title": "Banking Request Cancelled",
+                                "description": f"You have cancelled banking request #{self.wid}.",
+                                "color": SKYNET_GOOD,
+                            }
+                        ],
+                        "flags": 64,
+                    },
+                }
+
+            discordpost.delay(
+                f"channels/{dm_channel['id']}/messages",
+                payload={
+                    "embeds": [
+                        {
+                            "title": "Vault Request Cancelled",
+                            "description": f"Your vault request #{self.wid} has been cancelled by {discord_escaper(requester.name)} [{requester.tid}]",
+                            "timestamp": datetime.datetime.utcnow().isoformat(),
+                            "color": SKYNET_ERROR,
+                        }
+                    ]
+                },
+            ).forget()

@@ -20,7 +20,7 @@ in {
     enable = lib.mkEnableOption "Tornium Celery workers";
     concurrency = lib.mkOption {
       type = lib.types.int;
-      default = 24;
+      default = 32;
       description = "Number of Celery workers running";
     };
   };

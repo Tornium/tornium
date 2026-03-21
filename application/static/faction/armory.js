@@ -130,12 +130,14 @@ ready(() => {
         new TomSelect(element, {
             create: false,
             maxOptions: null,
+            onItemAdd: tomselectClearAfterAdd,
         });
     });
     itemsRequest().finally(() => {
         document.querySelectorAll(".item-selector").forEach((element) => {
             new TomSelect(element, {
                 create: false,
+                onItemAdd: tomselectClearAfterAdd,
             });
         });
     });

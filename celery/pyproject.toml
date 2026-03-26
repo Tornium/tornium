@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "celery",
     "redis",
-    "requests ~= 2.33.0",
+    "requests ~= 2.32.0",
     "python-liquid ~= 2.1.0",
     "authlib"
 ]

@@ -235,7 +235,7 @@ def withdraw(interaction, *args, **kwargs):
                     "fields": [
                         {
                             "name": "Request Type",
-                            "value": "Cash" if withdrawal_option == 0 else "Points",
+                            "value": "Cash" if withdrawal_option_str == "money_balance" else "Points",
                         },
                         {"name": "Amount Requested", "value": commas(validated_withdrawal_amount)},
                     ],

@@ -197,7 +197,7 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    withdrawal.cancel(user)
+    withdrawal.cancel(user, discordpatch=discordpatch, discordpost=discordpost)
 
     return {
         "type": 4,

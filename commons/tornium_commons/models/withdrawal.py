@@ -211,9 +211,9 @@ class Withdrawal(BaseModel):
                 withdrawal_message=message["id"],
             )
         except IntegrityError as e:
-            discorddelete.delay(
+            discorddelete.s(
                 f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
-            ).forget()
+            ).apply_async(ignore_result=True)
 
             raise e
 
@@ -272,7 +272,7 @@ class Withdrawal(BaseModel):
                     },
                 }
 
-            discordpost.delay(
+            discordpost.s(
                 f"channels/{dm_channel['id']}/messages",
                 payload={
                     "embeds": [
@@ -284,4 +284,4 @@ class Withdrawal(BaseModel):
                         }
                     ]
                 },
-            ).forget()
+            ).apply_async(ignore_result=True)

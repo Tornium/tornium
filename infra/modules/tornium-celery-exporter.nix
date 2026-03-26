@@ -96,6 +96,7 @@ in {
       after = [ "network-online.target" "tornium-celery.service" "redis-tornium.service" ];
       wants = [ "network-online.target" ];
       requires = [ "tornium-celery.service" "redis-tornium.service" ];
+      partOf = [ "tornium-celery.service" ];
       restartTriggers = [ config.sops.templates."tornium-celery-exporter.env".path ];
 
       serviceConfig = {

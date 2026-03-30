@@ -46,10 +46,10 @@ defmodule Tornium.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
-      {:oban, "~> 2.20"},
+      {:oban, "~> 2.21"},
       # Required for oban_web
       {:plug_cowboy, "~> 2.7"},
-      {:oban_web, "~> 2.11"},
+      {:oban_web, "~> 2.12"},
       {:bandit, "~> 1.8"},
       {:lua, "~> 0.4"},
       {:solid, "~> 0.18"},

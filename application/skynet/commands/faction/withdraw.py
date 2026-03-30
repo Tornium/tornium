@@ -16,7 +16,6 @@
 import datetime
 import typing
 
-from peewee import IntegrityError
 from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
@@ -201,29 +200,14 @@ def withdraw(interaction, *args, **kwargs):
     # causing sometimes frequent client-side timeouts of withdrawal slash commands.
     discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
 
-    try:
-        withdrawal: Withdrawal = Withdrawal.new(
-            user,
-            validated_withdrawal_amount,
-            withdrawal_option_str,
-            timeout_datetime,
-            discordpost=discordpost,
-            discorddelete=discorddelete,
-        )
-    except IntegrityError:
-        followup_return(
-            {
-                "embeds": [
-                    {
-                        "title": "Withdrawal Request Failed",
-                        "description": "The withdrawal has failed due to an internal integrity error. Please try again and if this error repeatedly occurs, please contact the developer.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            }
-        )
-        return {}
+    withdrawal: Withdrawal = Withdrawal.new(
+        user,
+        validated_withdrawal_amount,
+        withdrawal_option_str,
+        timeout_datetime,
+        discordpost=discordpost,
+        discorddelete=discorddelete,
+    )
 
     followup_return(
         {

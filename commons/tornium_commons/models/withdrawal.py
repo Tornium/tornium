@@ -29,6 +29,7 @@ from peewee import (
     UUIDField,
 )
 
+from tornium_commons.db_connection import db
 from tornium_commons.formatters import commas, discord_escaper
 from tornium_commons.models import User
 
@@ -124,6 +125,7 @@ class Withdrawal(BaseModel):
         return current_balance if amount == "all" else amount
 
     @classmethod
+    @db.atomic()
     def new(
         cls,
         user: User,
@@ -133,12 +135,7 @@ class Withdrawal(BaseModel):
         discordpost,
         discorddelete,
     ):
-        try:
-            last_request = Withdrawal.select(Withdrawal.wid).order_by(-Withdrawal.wid).get()
-            request_id = last_request.wid + 1
-        except DoesNotExist:
-            request_id = 0
-
+        request_id = db.execute_sql("SELECT nextval('withdrawal_wid_seq')").fetchone()[0]
         guid = uuid.uuid4().hex
 
         message_payload = {
@@ -195,27 +192,20 @@ class Withdrawal(BaseModel):
             payload=message_payload,
         )
 
-        try:
-            withdrawal = Withdrawal.create(
-                wid=request_id,
-                guid=guid,
-                faction_tid=user.faction_id,
-                amount=amount,
-                cash_request=request_type == "money_balance",
-                requester=user.tid,
-                time_requested=datetime.datetime.utcnow(),
-                expires_at=timeout,
-                status=0,
-                fulfiller=None,
-                time_fulfilled=None,
-                withdrawal_message=message["id"],
-            )
-        except IntegrityError as e:
-            discorddelete.s(
-                f"channels/{user.faction.guild.banking_config[str(user.faction_id)]['channel']}/messages/{message['id']}"
-            ).apply_async(ignore_result=True)
-
-            raise e
+        withdrawal = Withdrawal.create(
+            wid=request_id,
+            guid=guid,
+            faction_tid=user.faction_id,
+            amount=amount,
+            cash_request=request_type == "money_balance",
+            requester=user.tid,
+            time_requested=datetime.datetime.utcnow(),
+            expires_at=timeout,
+            status=0,
+            fulfiller=None,
+            time_fulfilled=None,
+            withdrawal_message=message["id"],
+        )
 
         return withdrawal
 

@@ -445,7 +445,7 @@ def fetch_attacks_runner():
 
         tornget.signature(
             kwargs={
-                "endpoint": "faction/?selections=basic,attacks",
+                "endpoint": f"faction/?selections=basic,attacks&timestamp={int(time.time())}",
                 "key": random.choice(faction.aa_keys),
             },
             queue="api",

@@ -292,7 +292,7 @@ defmodule Tornium.Faction.Overdose do
     query =
       Tornex.SpecQuery.new(key: api_key)
       |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Log)
-      |> Tornex.SpecQuery.put_parameter(:log, [
+      |> Tornex.SpecQuery.put_parameter!(:log, [
         # Cannabis overdose
         2201,
         # Ecstacy overdose
@@ -314,8 +314,8 @@ defmodule Tornium.Faction.Overdose do
         # Xanax overdose
         2291
       ])
-      |> Tornex.SpecQuery.put_parameter(:from, DateTime.to_unix(from_timestamp))
-      |> Tornex.SpecQuery.put_parameter(:limit, 100)
+      |> Tornex.SpecQuery.put_parameter!(:from, DateTime.to_unix(from_timestamp))
+      |> Tornex.SpecQuery.put_parameter!(:limit, 100)
 
     response = Tornex.API.get(query)
 

@@ -53,6 +53,7 @@ defmodule Tornium.Application do
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
       Tornium.API.Store,
       Tornex.HTTP.FinchClient,
+      Tornex.NodeRatelimiter,
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
       Tornium.Web.Endpoint,

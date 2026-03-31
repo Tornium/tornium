@@ -75,7 +75,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
     } =
       Tornex.SpecQuery.new()
       |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
-      |> Tornex.SpecQuery.put_parameter(:cat, @armory_news_category)
+      |> Tornex.SpecQuery.put_parameter!(:cat, @armory_news_category)
       |> Tornex.SpecQuery.parse(api_call_result)
 
     @armory_news_category

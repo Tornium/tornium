@@ -57,7 +57,7 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
     Enum.each(users, fn [api_key, user_tid, faction_tid]
                         when is_binary(api_key) and is_integer(user_tid) and is_integer(faction_tid) ->
       query =
-        Tornex.SpecQuery.new(nice: 20)
+        Tornex.SpecQuery.new(nice: 20, resource_id: {:id, user_tid})
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Organizedcrimes)
         |> Tornex.SpecQuery.put_key(api_key)
         |> Tornex.SpecQuery.put_key_owner(user_tid)

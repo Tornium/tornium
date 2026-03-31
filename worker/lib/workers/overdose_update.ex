@@ -74,7 +74,7 @@ defmodule Tornium.Workers.OverdoseUpdate do
         } =
           Tornex.SpecQuery.new()
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
-          |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
+          |> Tornex.SpecQuery.put_parameter!(:stat, "drugoverdoses")
           |> Tornex.SpecQuery.parse(result)
 
         overdose_last_updated =

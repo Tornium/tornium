@@ -54,8 +54,8 @@ defmodule Tornium.MixProject do
       {:lua, "~> 0.4"},
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
-      {:tornex, "~> 0.4"},
-      {:torngen_elixir_client, ">= 3.0.0"},
+      {:tornex, "~> 0.5.0"},
+      {:torngen_elixir_client, github: "Tornium/torngen_elixir_client", tag: "v5.5.3+torngen-v0.1.10", override: true},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.20"},
       {:floki, "~> 0.38"},

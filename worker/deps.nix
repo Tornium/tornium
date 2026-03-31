@@ -224,7 +224,7 @@ let
 
       castore =
         let
-          version = "1.0.17";
+          version = "1.0.18";
           drv = buildMix {
             inherit version;
             name = "castore";
@@ -233,7 +233,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "castore";
-              sha256 = "12d24b9d80b910dd3953e165636d68f147a31db945d2dcb9365e441f8b5351e5";
+              sha256 = "f393e4fe6317829b158fb74d86eb681f737d2fe326aa61ccf6293c4104957e34";
             };
           };
         in
@@ -699,8 +699,8 @@ let
             src = fetchFromGitHub {
               owner = "dssecret";
               repo = "nostrum";
-              rev = "169a98f279715651259933531970d56ed77ba48e";
-              hash = "sha256-udJZ+Aw/5BzTJ4iFX6an4Qycca2gACD0jebCRV8W4SE=";
+              rev = "108219b016c9ae288ab8d14903ceacf69d9abb78";
+              hash = "sha256-YhacWbHwhJH6nPr6snW1fmTk5/qnEErFMxnF7Zj63s0=";
             };
 
             beamDeps = [
@@ -791,7 +791,7 @@ let
 
       octo_fetch =
         let
-          version = "0.4.0";
+          version = "0.5.0";
           drv = buildMix {
             inherit version;
             name = "octo_fetch";
@@ -800,7 +800,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "octo_fetch";
-              sha256 = "cf8be6f40cd519d7000bb4e84adcf661c32e59369ca2827c4e20042eda7a7fc6";
+              sha256 = "6226cc3c14ca948ee9f25fb0446322e5c288e215da9beba7899b6b5f4cd3ccb0";
             };
 
             beamDeps = [
@@ -1254,7 +1254,7 @@ let
 
       tornex =
         let
-          version = "0.4.1";
+          version = "0.5.0";
           drv = buildMix {
             inherit version;
             name = "tornex";
@@ -1263,15 +1263,15 @@ let
             src = fetchHex {
               inherit version;
               pkg = "tornex";
-              sha256 = "5fa72cdb30b21d62dcfe527107ffd87f69e8faef11c2f7b4868d24bd8f238871";
+              sha256 = "b57abbc91479d943440ecaffeb95aed0dea10be21f2edf43af79a10cf0e662e6";
             };
 
             beamDeps = [
               finch
-              jason
               plug_cowboy
               prom_ex
               telemetry
+              torngen
               torngen_elixir_client
             ];
           };
@@ -1301,16 +1301,17 @@ let
 
       torngen_elixir_client =
         let
-          version = "5.5.3";
+          version = "5.5.3+torngen-v0.1.10";
           drv = buildMix {
             inherit version;
             name = "torngen_elixir_client";
             appConfigPath = ./config;
 
-            src = fetchHex {
-              inherit version;
-              pkg = "torngen_elixir_client";
-              sha256 = "ed3ed373cc9fecd3e97bd44fe2e769ab5b0ab7112c82641e5bac41e6eaa5fb33";
+            src = fetchFromGitHub {
+              owner = "Tornium";
+              repo = "torngen_elixir_client";
+              rev = "188c7ab35fafa5c5f2f2738bfc2668775c069172";
+              hash = "sha256-Ua99eQ3F3RCz9Wm5rjLvnKxvoUP7laTw+zlDKh7fh7g=";
             };
 
             beamDeps = [

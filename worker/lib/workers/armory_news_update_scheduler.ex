@@ -90,9 +90,9 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       |> Repo.one()
 
     query =
-      Tornex.SpecQuery.new(key: api_key, key_owner: user_id, nice: 10)
+      Tornex.SpecQuery.new(key: api_key, key_owner: user_id, resource_id: {:id, faction_id}, nice: 10)
       |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
-      |> Tornex.SpecQuery.put_parameter(:cat, "armoryAction")
+      |> Tornex.SpecQuery.put_parameter!(:cat, "armoryAction")
 
     query =
       case latest_faction_usage do
@@ -108,8 +108,8 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
           # We do not want to increment the from parameter to avoid missing data occurring at the same second.
           # Data already in the database will be handled by an on conflict statement.
           query
-          |> Tornex.SpecQuery.put_parameter(:from, DateTime.to_unix(timestamp, :second))
-          |> Tornex.SpecQuery.put_parameter(:sort, "asc")
+          |> Tornex.SpecQuery.put_parameter!(:from, DateTime.to_unix(timestamp, :second))
+          |> Tornex.SpecQuery.put_parameter!(:sort, "asc")
 
         nil ->
           query

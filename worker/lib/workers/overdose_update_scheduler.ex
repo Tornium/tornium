@@ -46,10 +46,10 @@ defmodule Tornium.Workers.OverdoseUpdateScheduler do
     |> Repo.all()
     |> Enum.each(fn [api_key, user_tid, faction_tid] when is_integer(faction_tid) ->
       query =
-        Tornex.SpecQuery.new(key: api_key, key_owner: user_tid, nice: 10)
+        Tornex.SpecQuery.new(key: api_key, key_owner: user_tid, resource_id: {:id, faction_tid}, nice: 10)
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
-        |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
-        |> Tornex.SpecQuery.put_parameter(:cat, "current")
+        |> Tornex.SpecQuery.put_parameter!(:stat, "drugoverdoses")
+        |> Tornex.SpecQuery.put_parameter!(:cat, "current")
 
       api_call_id = Ecto.UUID.generate()
       Tornium.API.Store.create(api_call_id, 300)

@@ -63,7 +63,7 @@ defmodule Tornium.Workers.OCCPRUpdateScheduler do
         |> Tornex.SpecQuery.put_key_owner(user_tid)
 
       api_call_id = Ecto.UUID.generate()
-      Tornium.API.Store.create(api_call_id, 300)
+      Tornium.API.Store.create(api_call_id, ttl: 300)
 
       Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
         query

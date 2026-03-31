@@ -52,7 +52,7 @@ defmodule Tornium.Workers.OverdoseUpdateScheduler do
         |> Tornex.SpecQuery.put_parameter!(:cat, "current")
 
       api_call_id = Ecto.UUID.generate()
-      Tornium.API.Store.create(api_call_id, 300)
+      Tornium.API.Store.create(api_call_id, ttl: 300)
 
       Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
         query

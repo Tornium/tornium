@@ -116,21 +116,31 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       end
 
     api_call_id = Ecto.UUID.generate()
-    Tornium.API.Store.create(api_call_id, 300)
 
-    Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
-      query
-      |> Tornex.Scheduler.Bucket.enqueue()
-      |> Tornium.API.Store.insert(api_call_id)
-    end)
+    inserted_job =
+      %{
+        user_id: user_id,
+        faction_id: faction_id,
+        api_call_id: api_call_id
+      }
+      |> Tornium.Workers.ArmoryNewsUpdate.new(state: "suspended")
+      |> Oban.insert()
 
-    %{
-      user_id: user_id,
-      faction_id: faction_id,
-      api_call_id: api_call_id
-    }
-    |> Tornium.Workers.ArmoryNewsUpdate.new(schedule_in: _seconds = 15)
-    |> Oban.insert()
+    case inserted_job do
+      {:ok, %Oban.Job{}} ->
+        Tornium.API.Store.create(api_call_id, ttl: 300, job_id: inserted_job)
+
+        Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
+          query
+          |> Tornex.Scheduler.Bucket.enqueue()
+          |> Tornium.API.Store.insert(api_call_id)
+        end)
+
+      _ ->
+        nil
+    end
+
+    inserted_job
   end
 
   @impl Oban.Worker

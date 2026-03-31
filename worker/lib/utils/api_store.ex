@@ -130,7 +130,7 @@ defmodule Tornium.API.Store do
        state,
        api_call_id,
        %StoredResponse{response: :not_ready, expires_at: expires_at, job_id: job_id}
-      )}
+     )}
   end
 
   @impl true

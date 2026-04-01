@@ -102,6 +102,7 @@ in {
         RestartSec = "2s";
 
         ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
+        # ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --log-level debug --capture-output --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
 
         NoNewPrivileges = true;
         PrivateTmp = true;
@@ -178,6 +179,19 @@ in {
 
         cd "${tornium_application.srcDir}"
         exec ${tornium_application.gunicornCmd} "$@"
+      '')
+
+      (pkgs.writeShellScriptBin "tornium-web" ''
+        set -euo pipefail
+
+        export RESULT_BACKEND_CELERY=file
+        export RESULT_FILE_CELERY=/run/tornium-celery
+        export TORNIUM_OC_GRAPH_LIB="${pkgs.python313Packages.tornium_oc_graph.outPath}/lib/python3.13/site-packages/tornium_oc_graph/libtornium_oc_graph_core.so"
+        export TORNIUM_SETTINGS_FILE="${config.sops.templates."tornium-settings.json".path}"
+        export PYTHONPATH="${tornium_application.srcDir}/${pkgs.python313.sitePackages}"
+
+        cd "${tornium_application.srcDir}"
+        exec ${tornium_application.pythonEnv}/bin/flask "$@"
       '')
     ];
   };

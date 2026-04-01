@@ -62,7 +62,7 @@ defmodule Tornium.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:deps_nix, "~> 2.0", only: :dev}
+      {:deps_nix, "~> 3.0", only: :dev}
     ]
   end
 

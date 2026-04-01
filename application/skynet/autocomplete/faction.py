@@ -25,14 +25,17 @@ def faction_autocomplete(interaction, *args, **kwargs):
     # value being entered into the autocomplete is in the interaction; see
     # https://docs.discord.com/developers/interactions/application-commands#autocomplete
 
-    typing_value = find_list(interaction["data"]["options"], "name", "faction")
+    typing_value = find_list(interaction["data"]["options"][0]["options"][0]["options"], "name", "faction")
 
     if typing_value is None:
         return {"type": 8, "data": {"choices": []}}
 
     typing_value: str = str(typing_value["value"])
-    pattern = str(typing_value).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    factions = Faction.select(Faction.tid, Faction.name).where(Faction.name**pattern).limit(25)
+    escaped_value = typing_value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    pattern = f"{escaped_value}%"
+    factions = (
+        Faction.select(Faction.tid, Faction.name).where(Faction.name**pattern).order_by(Faction.name.asc()).limit(25)
+    )
 
     return {
         "type": 8,
@@ -40,7 +43,7 @@ def faction_autocomplete(interaction, *args, **kwargs):
             "choices": [
                 {
                     "name": faction.name,
-                    "value": faction.tid,
+                    "value": str(faction.tid),
                 }
                 for faction in factions
             ]

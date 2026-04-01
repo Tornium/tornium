@@ -101,7 +101,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        ExecStart = "${tornium_application.gunicornCmd} --workers 8 --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
+        ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
 
         NoNewPrivileges = true;
         PrivateTmp = true;

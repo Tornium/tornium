@@ -25,13 +25,18 @@ from tornium_commons.errors import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR
 
+import skynet.autocomplete
 import skynet.commands
 import skynet.skyutils
 
 mod = Blueprint("botinteractions", __name__)
 
 
-_autocomplete = {}
+_autocomplete = {
+    # See https://docs.discord.com/developers/interactions/application-commands#autocomplete for information
+    # on autocomplete
+    "faction": skynet.autocomplete.faction_autocomplete
+}
 _user_commands = {
     # NOTE: keys are lower case version of the command name
     "verify": skynet.commands.bot.verify.verify_uc

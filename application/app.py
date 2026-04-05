@@ -199,6 +199,10 @@ def before_request():
         db.close()
         db.connect()
 
+    if flask.request.path == "/skynet":
+        # If the request is a Discord interaction, the below don't matter
+        return
+
     flask.session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=31)
 
@@ -217,6 +221,10 @@ def before_request():
 def after_request(response: flask.Response):
     if not db.is_closed():
         db.close()
+
+    if flask.request.path == "/skynet":
+        # If the request is a Discord interaction, the below don't matter
+        return response
 
     # HSTS enabled through CloudFlare
     # response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'

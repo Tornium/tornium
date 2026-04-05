@@ -16,20 +16,17 @@
 import datetime
 import typing
 
-from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost
+from tornium_celery.tasks.api import discorddelete, discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
 
-from skynet.decorators import invoker_required
+from skynet.decorators import invoker_required, with_deferred_response
 
 
 @invoker_required
+@with_deferred_response
 def withdraw(interaction, *args, **kwargs):
-    def followup_return(response):
-        discordpatch(f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original", response)
-        return
-
     user: User = kwargs["invoker"]
 
     if user is None:
@@ -196,10 +193,6 @@ def withdraw(interaction, *args, **kwargs):
             },
         }
 
-    # Creating a followup message is necessary due to increased Torn and Discord API latencies
-    # causing sometimes frequent client-side timeouts of withdrawal slash commands.
-    discordpost(f"interactions/{interaction['id']}/{interaction['token']}/callback", {"type": 5, "data": {"flags": 64}})
-
     withdrawal: Withdrawal = Withdrawal.new(
         user,
         validated_withdrawal_amount,
@@ -209,8 +202,9 @@ def withdraw(interaction, *args, **kwargs):
         discorddelete=discorddelete,
     )
 
-    followup_return(
-        {
+    return {
+        "type": 4,
+        "data": {
             "embeds": [
                 {
                     "title": f"Vault Request #{withdrawal.wid}",
@@ -226,6 +220,5 @@ def withdraw(interaction, *args, **kwargs):
                 }
             ],
             "flags": 64,
-        }
-    )
-    return {}
+        },
+    }

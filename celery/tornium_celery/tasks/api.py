@@ -15,7 +15,6 @@
 
 import datetime
 import json
-import random
 import typing
 
 if globals().get("orjson:loaded"):
@@ -37,16 +36,6 @@ from celery.utils.log import get_task_logger
 
 logger = get_task_logger("celery_app")
 config = Config.from_cache()
-
-
-def backoff(self: celery.Task):
-    if self.request.retries <= 1:
-        return countdown_wo()
-    return int(1 + random.uniform(0, self.request.retries) ** self.request.retries)
-
-
-def countdown_wo():
-    return random.randint(1, 3)
 
 
 def handle_discord_error(e: DiscordError):

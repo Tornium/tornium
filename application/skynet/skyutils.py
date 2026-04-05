@@ -155,7 +155,7 @@ def check_invoker_exists(interaction: dict):
             },
         }
     elif invoker is None:
-        return invoker, tuple()
+        return invoker, admin_keys
 
     if discord_id is None:
         return {

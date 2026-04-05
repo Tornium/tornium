@@ -16,7 +16,7 @@
 import datetime
 import typing
 
-from tornium_celery.tasks.api import discorddelete, discordpost
+from tornium_celery.tasks.api import discordpost
 from tornium_commons.formatters import commas, discord_escaper, find_list, text_to_num
 from tornium_commons.models import User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR
@@ -199,7 +199,6 @@ def withdraw(interaction, *args, **kwargs):
         withdrawal_option_str,
         timeout_datetime,
         discordpost=discordpost,
-        discorddelete=discorddelete,
     )
 
     return {

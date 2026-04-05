@@ -133,7 +133,6 @@ class Withdrawal(BaseModel):
         request_type: typing.Literal["points_balance"] | typing.Literal["money_balance"],
         timeout: typing.Optional[datetime.datetime],
         discordpost,
-        discorddelete,
     ):
         request_id = db.execute_sql("SELECT nextval('withdrawal_wid_seq')").fetchone()[0]
         guid = uuid.uuid4().hex

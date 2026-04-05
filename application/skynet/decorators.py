@@ -16,7 +16,7 @@
 import threading
 from functools import wraps
 
-from requests import jsonify
+from flask import jsonify
 from tornium_celery.tasks.api import discord_request
 from tornium_commons.errors import (
     DiscordError,

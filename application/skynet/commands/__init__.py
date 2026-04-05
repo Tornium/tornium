@@ -16,8 +16,10 @@
 from tornium_commons.skyutils import SKYNET_INFO
 
 from skynet.commands import bot, faction, stat, user
+from skynet.decorators import with_deferred_response
 
 
+@with_deferred_response
 def ping(interaction, *args, **kwargs):
     return {
         "type": 4,

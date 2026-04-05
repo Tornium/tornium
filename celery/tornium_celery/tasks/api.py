@@ -37,7 +37,7 @@ logger = get_task_logger("celery_app")
 config = Config.from_cache()
 
 
-def discord_request(method: str, endpoint: str, body={}, params=None, headers=None, timeout=5):
+def discord_request(method: str, endpoint: str, body=None, params=None, headers=None, timeout=5):
     # We want a function to perform a direct Discord request which should only be used for debugging
     # and for paths where ratelimiting doesn't matter
     default_headers = {
@@ -46,11 +46,18 @@ def discord_request(method: str, endpoint: str, body={}, params=None, headers=No
     }
     merged_headers = {**default_headers, **(headers or {})}
 
+    if body is None or not isinstance(body, dict):
+        payload = None
+    elif globals().get("orjson:loaded"):
+        payload = orjson.dumps(body)
+    else:
+        payload = json.dumps(body)
+
     return requests.request(
         method=method.upper(),
         url=f"https://discord.com/api/v10/{endpoint}",
         params=params,
-        json=body,
+        data=payload,
         headers=merged_headers,
         timeout=timeout,
     )

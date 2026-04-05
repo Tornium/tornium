@@ -28,6 +28,7 @@ from tornium_commons.skyutils import SKYNET_ERROR
 import skynet.autocomplete
 import skynet.commands
 import skynet.skyutils
+from skynet.decorators import handle_interaction_errors
 
 mod = Blueprint("botinteractions", __name__)
 
@@ -68,81 +69,8 @@ _commands = {
 }
 
 
-def _handle_interaction_errors(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except NetworkingError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Networking Error",
-                                "description": f"A networking error has occurred on an API call resulting in HTTP {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except TornError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Torn API Error",
-                                "description": f"An error has occurred on a Torn API call resulting in error code {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except MissingKeyError:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Missing API Key",
-                                "description": "There wasn't an API key available for a Torn API call.",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except DiscordError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Discord API Error",
-                                "description": f"A Discord API error has occurred resulting in an error {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-
-    return wrapper
-
-
 @mod.route("/skynet", methods=["POST"])
-@_handle_interaction_errors
+@handle_interaction_errors
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)

@@ -249,7 +249,13 @@ defmodule Tornium.Faction.News.ArmoryAction do
   end
 
   defp text_action_item("filled one of the faction's " <> suffixed_item_string = text) when is_binary(text) do
-    [item_name] = String.split(suffixed_item_string, " items", trim: true)
+    split_string = String.split(suffixed_item_string, [" items", "s to create a "], trim: true)
+
+    item_name =
+      case split_string do
+        [name] -> name
+        [name, _] -> name
+      end
 
     %{
       action: :fill,

@@ -25,4 +25,4 @@ Once authorized, you will be redirected back to Torn. If the userscript has succ
 
 **WARNING**: Due to security limitations of userscripts and userscript managers, in an attempt to keep your Tornium account secure, you MUST re-authenticate every week. This can be done in the userscript's settings.
 
-For more information on this userscript, see the [Tornium estimate reference](page).
+For more information on this userscript, see the [Tornium estimate reference](../reference/tornium-estimate.md).

@@ -119,7 +119,7 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     }
 } else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
     startSearchUserListObserver();
-} else if (window.location.pathname == "/loader.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
+} else if (window.location.pathname == "/page.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
     const userID = parseInt(query.get("user2ID"));
 
     if (!isNaN(userID) && userID != null) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.5
+// @version      0.5.6
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -9,7 +9,7 @@
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/oauth/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/settings
 // @match        https://www.torn.com/gym.php*
-// @match        https://www.torn.com/loader.php?sid=attack*
+// @match        https://www.torn.com/page.php?sid=attack*
 // @match        https://www.torn.com/page.php?sid=UserList*
 // @match        https://www.torn.com/factions.php*
 // @match        https://www.torn.com/index.php?page=people*
@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.5";
+  var VERSION = "0.5.6";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
@@ -899,7 +899,7 @@ margin: 8px 6px 0 0;
     }
   } else if (window.location.pathname == "/page.php" && query.get("sid") == "UserList" && isEnabledOn("search")) {
     startSearchUserListObserver();
-  } else if (window.location.pathname == "/loader.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
+  } else if (window.location.pathname == "/page.php" && query.get("sid") == "attack" && isEnabledOn("attack-loader")) {
     const userID = parseInt(query.get("user2ID"));
     if (!isNaN(userID) && userID != null) {
       injectAttackLoaderStats(userID);

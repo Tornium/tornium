@@ -37,7 +37,7 @@ defmodule Tornium.Faction.ChainMonitor.Supervisor do
     children = [
       {Registry, keys: :unique, name: Tornium.Faction.ChainMonitor.Registry},
       {DynamicSupervisor, name: Tornium.Faction.ChainMonitor.MonitorSupervisor, strategy: :one_for_one},
-      Tornium.Faction.ChainMonitor.Discovery
+      # Tornium.Faction.ChainMonitor.Discovery
     ]
 
     Supervisor.init(children, opts)

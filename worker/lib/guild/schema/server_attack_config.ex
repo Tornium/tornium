@@ -35,7 +35,7 @@ defmodule Tornium.Schema.ServerAttackConfig do
         }
 
   @primary_key false
-  schema "server_attack_config" do
+  schema "serverattackconfig" do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
 

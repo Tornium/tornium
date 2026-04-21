@@ -155,6 +155,10 @@ defmodule Tornium.Faction.ChainMonitor.State do
   end
 
   @spec cancel_existing_timer(state :: t()) :: t()
+  defp cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) when is_nil(ref) do
+    state
+  end
+
   defp cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) do
     Process.cancel_timer(ref)
 

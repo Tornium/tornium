@@ -52,7 +52,7 @@ defmodule Tornium.Faction.ChainMonitor do
 
       %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
       when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
-        GenServer.start_link(__MODULE__, opts, name: {:via, Tornium.Faction.ChainMonitor.Registry, faction_id})
+        GenServer.start_link(__MODULE__, opts, name: {:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}})
     end
   end
 
@@ -260,12 +260,12 @@ defmodule Tornium.Faction.ChainMonitor do
   defp try_timer({:error, %Nostrum.Error.ApiError{}} = _message_response, %Tornium.Faction.ChainMonitor.State{} = state) do
     # As ths error code hasn't been caught above, we can assume ths error to be some sort of transient error that
     # may go away the next iteration of the timer's execution.
-    Tornium.Faction.ChainMonitor.State.set_timer(state)
+    {:noreply, Tornium.Faction.ChainMonitor.State.set_timer(state)}
   end
 
   defp try_timer({:ok, _} = _message_response, %Tornium.Faction.ChainMonitor.State{} = state) do
     # Since the message was succesfully sent, we can set a new timer for the chain monitor.
-    Tornium.Faction.ChainMonitor.State.set_timer(state)
+    {:noreply, Tornium.Faction.ChainMonitor.State.set_timer(state)}
   end
 
   @spec query(state :: Tornium.Faction.ChainMonitor.State.t()) :: Tornex.SpecQuery.t() | nil

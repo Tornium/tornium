@@ -14,4 +14,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Faction.ChainMonitor.Discovery do
+  @moduledoc """
+  Discovery and auto-start of a `ChainMonitor` a faction that is chaining.
+
+  If a faction is chaining and has the feature configured, a `ChainMonitor` should be
+  started against that faction. We can determine if a faction is chaining with the 
+  `Tornium.Schema.Chain` database table. It can also be manually started by other features.
+  """
+
+  # TODO: Implement this
+  # This is blocked by adding the chain data to the database
 end

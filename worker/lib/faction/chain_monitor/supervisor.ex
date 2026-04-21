@@ -15,7 +15,7 @@
 
 defmodule Tornium.Faction.ChainMonitor.Supervisor do
   @moduledoc """
-  Supervisor for the chain monitor.
+  Supervisor for the ChainMonitor's children.
   """
 
   use Supervisor

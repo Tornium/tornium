@@ -52,7 +52,9 @@ defmodule Tornium.Faction.ChainMonitor do
 
       %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
       when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
-        GenServer.start_link(__MODULE__, opts, name: {:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}})
+        GenServer.start_link(__MODULE__, opts,
+          name: {:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
+        )
     end
   end
 

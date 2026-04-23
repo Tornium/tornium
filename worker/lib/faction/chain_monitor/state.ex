@@ -154,12 +154,13 @@ defmodule Tornium.Faction.ChainMonitor.State do
     |> Map.put(:timer_ref, ref)
   end
 
+  @doc false
   @spec cancel_existing_timer(state :: t()) :: t()
-  defp cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) when is_nil(ref) do
+  def cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) when is_nil(ref) do
     state
   end
 
-  defp cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) do
+  def cancel_existing_timer(%__MODULE__{timer_ref: ref} = state) do
     Process.cancel_timer(ref)
 
     %{state | timer_ref: nil}

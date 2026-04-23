@@ -48,13 +48,16 @@ defmodule Tornium.Faction.ChainMonitor do
     # We should check if the faction is configured properly here and not start the server if it isn't.
     case Tornium.Schema.ServerAttackConfig.config(faction_id) do
       nil ->
-        {:error, "Invalid configuration"}
+        {:error, "Missing configuration"}
 
       %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
       when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
         GenServer.start_link(__MODULE__, opts,
           name: {:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
         )
+
+      %Tornium.Schema.ServerAttackConfig{} ->
+        {:error, "Invalid configuration"}
     end
   end
 
@@ -191,7 +194,11 @@ defmodule Tornium.Faction.ChainMonitor do
   end
 
   @impl true
-  def handle_call(:check, _from, %Tornium.Faction.ChainMonitor.State{faction_id: faction_id} = state) do
+  def handle_call(
+        :check,
+        _from,
+        %Tornium.Faction.ChainMonitor.State{faction_id: faction_id, timer_ref: timer_ref} = state
+      ) do
     case query(state) do
       nil ->
         # There was no API key available to use for this ChainMonitor so we should stop it
@@ -216,7 +223,7 @@ defmodule Tornium.Faction.ChainMonitor do
         {
           :reply,
           :ok,
-          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data, faction_id: faction_id),
+          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data, faction_id: faction_id, timer_ref: timer_ref),
           {:continue, :message}
         }
     end
@@ -284,6 +291,12 @@ defmodule Tornium.Faction.ChainMonitor do
 
       nil ->
         nil
+    end
+  end
+
+  if Application.compile_env!(:tornium, :env) == :test do
+    defp send_message(_faction_id, message) do
+      {:ok, message}
     end
   end
 

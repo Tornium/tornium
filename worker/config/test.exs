@@ -15,6 +15,9 @@
 
 import Config
 
+config :tornium,
+  api_key: System.get_env("TORN_API_KEY")
+
 config :tornium, Tornium.Repo,
   username: "Tornium",
   password: "password",

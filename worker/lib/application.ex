@@ -57,7 +57,8 @@ defmodule Tornium.Application do
       Tornex.Scheduler.Supervisor,
       {Oban, Application.fetch_env!(:tornium, Oban)},
       Tornium.Web.Endpoint,
-      Tornium.Item.NameCache
+      Tornium.Item.NameCache,
+      Tornium.Faction.ChainMonitor.Supervisor
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)

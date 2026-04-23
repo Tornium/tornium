@@ -13,27 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
+defmodule Tornium.Schema.Chain do
+  @moduledoc """
+  Faction chain data.
+  """
 
-config :tornium,
-  api_key: System.get_env("TORN_API_KEY")
+  use Ecto.Schema
 
-config :tornium, Tornium.Repo,
-  username: "Tornium",
-  password: "password",
-  hostname: "localhost",
-  database: "tornium_test",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          faction_id: pos_integer(),
+          faction: Tornium.Schema.Faction.t(),
+          start_timestamp: DateTime.t(),
+          end_timestamp: DateTime.t() | nil
+        }
 
-config :tornium, Tornium.ObanRepo,
-  username: "Tornium",
-  password: "password",
-  hostname: "localhost",
-  database: "tornium_test",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 1
-
-config :logger, level: :warning
-
-config :tornium, Oban, testing: :inline
+  @primary_key {:id, :integer, autogenerate: false}
+  schema "chain" do
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
+    field(:start_timestamp, :utc_datetime)
+    field(:end_timestamp, :utc_datetime)
+  end
+end

@@ -15,6 +15,8 @@
 
 defmodule Tornium.Schema.ServerAttackConfig do
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           faction_id: integer(),
@@ -33,7 +35,7 @@ defmodule Tornium.Schema.ServerAttackConfig do
         }
 
   @primary_key false
-  schema "server_attack_config" do
+  schema "serverattackconfig" do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     belongs_to(:server, Tornium.Schema.Server, references: :sid)
 
@@ -48,5 +50,19 @@ defmodule Tornium.Schema.ServerAttackConfig do
     field(:chain_alert_channel, :integer)
     field(:chain_alert_roles, {:array, :integer})
     field(:chain_alert_minimum, :integer)
+  end
+
+  @doc """
+  Get the attack notification configuration for the faction in its linked server.
+  """
+  @spec config(faction_id :: pos_integer()) :: t() | nil
+  def config(faction_id) when is_integer(faction_id) do
+    Tornium.Schema.ServerAttackConfig
+    |> where([c], c.faction_id == ^faction_id)
+    |> join(:inner, [c], f in assoc(c, :faction), on: c.faction_id == f.tid)
+    |> join(:inner, [c, f], s in assoc(f, :guild), on: f.guild_id == s.sid)
+    |> where([c, f, s], ^faction_id in s.factions)
+    |> first()
+    |> Repo.one()
   end
 end

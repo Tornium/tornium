@@ -13,27 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Config
+defmodule Tornium.Faction.ChainMonitor.Discovery do
+  @moduledoc """
+  Discovery and auto-start of a `ChainMonitor` a faction that is chaining.
 
-config :tornium,
-  api_key: System.get_env("TORN_API_KEY")
+  If a faction is chaining and has the feature configured, a `ChainMonitor` should be
+  started against that faction. We can determine if a faction is chaining with the 
+  `Tornium.Schema.Chain` database table. It can also be manually started by other features.
+  """
 
-config :tornium, Tornium.Repo,
-  username: "Tornium",
-  password: "password",
-  hostname: "localhost",
-  database: "tornium_test",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
-
-config :tornium, Tornium.ObanRepo,
-  username: "Tornium",
-  password: "password",
-  hostname: "localhost",
-  database: "tornium_test",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 1
-
-config :logger, level: :warning
-
-config :tornium, Oban, testing: :inline
+  # TODO: Implement this
+  # This is blocked by adding the chain data to the database
+end

@@ -772,7 +772,7 @@ let
 
       oban_web =
         let
-          version = "2.12.2";
+          version = "2.12.3";
           drv = buildMix {
             inherit version;
             name = "oban_web";
@@ -781,7 +781,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "oban_web";
-              sha256 = "14cf4fca083a7310e95c16bd88e7af83202b18b7e7166fb28175f7df4bdbca77";
+              sha256 = "ba6afd689ad6a800794d2bffd8561559451c0871c4331e6db000ab8ac4a39932";
             };
 
             beamDeps = [
@@ -1262,7 +1262,7 @@ let
 
       tornex =
         let
-          version = "0.5.0";
+          version = "0.5.1";
           drv = buildMix {
             inherit version;
             name = "tornex";
@@ -1271,7 +1271,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "tornex";
-              sha256 = "b57abbc91479d943440ecaffeb95aed0dea10be21f2edf43af79a10cf0e662e6";
+              sha256 = "b0319a5edddfd2427dda83003e89f19aa1b56be08f30af17f2ec5e4dbb6b2765";
             };
 
             beamDeps = [

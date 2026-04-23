@@ -52,7 +52,7 @@ defmodule Tornium.MixProject do
       {:oban_web, "~> 2.12"},
       {:bandit, "~> 1.8"},
       {:lua, "~> 0.4"},
-      {:solid, "~> 0.18"},
+      {:solid, "~> 1.2"},
       {:logger_json, "~> 7.0"},
       {:tornex, "~> 0.5"},
       {:torngen_elixir_client, github: "Tornium/torngen_elixir_client", tag: "v5.5.3+torngen-v0.1.10", override: true},

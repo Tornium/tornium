@@ -13,24 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from tornium_commons.skyutils import SKYNET_INFO
+from skynet.autocomplete.faction import faction_autocomplete
 
-from skynet.commands import bot, faction, stat, user
-from skynet.decorators import with_deferred_response
-
-
-@with_deferred_response
-def ping(interaction, *args, **kwargs):
-    return {
-        "type": 4,
-        "data": {
-            "embeds": [
-                {
-                    "title": "Pong",
-                    "image": {"url": "https://media3.giphy.com/media/pWncxUrrNHdny/giphy.gif"},
-                    "color": SKYNET_INFO,
-                }
-            ],
-            "flags": 64,  # Ephemeral
-        },
-    }
+__all__ = ["faction_autocomplete"]

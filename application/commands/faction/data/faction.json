@@ -16,7 +16,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         },
                         {
                             "type": 3,
@@ -68,7 +69,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -81,7 +83,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -94,7 +97,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -107,7 +111,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -120,7 +125,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -139,7 +145,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -152,7 +159,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 },
@@ -165,7 +173,8 @@
                             "type": 3,
                             "name": "faction",
                             "description" :"The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         },
                         {
                             "type": 3,
@@ -200,7 +209,8 @@
                             "type": 3,
                             "name": "faction",
                             "description": "The faction's name or Torn ID",
-                            "required": false
+                            "required": false,
+                            "autocomplete": true
                         }
                     ]
                 }

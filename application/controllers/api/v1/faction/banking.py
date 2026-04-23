@@ -20,7 +20,7 @@ import uuid
 
 from flask import jsonify, request
 from peewee import DataError, DoesNotExist
-from tornium_celery.tasks.api import discorddelete, discordpatch, discordpost, tornget
+from tornium_celery.tasks.api import discordpatch, discordpost, tornget
 from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import text_to_num
 from tornium_commons.models import User, Withdrawal
@@ -152,7 +152,6 @@ def new_banking_request(faction_id: int, *args, **kwargs):
         withdrawal_option,
         timeout_datetime,
         discordpost=discordpost,
-        discorddelete=discorddelete,
     )
 
     return withdrawal.to_dict(), 200, api_ratelimit_response(key)

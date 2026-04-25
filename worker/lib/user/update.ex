@@ -17,7 +17,7 @@
 
 defmodule Tornium.User do
   @moduledoc """
-  Functionality related to updating users' data' data' data' data.
+  Functionality related to updating users' data.
   """
 
   alias Tornium.Repo
@@ -252,16 +252,17 @@ defmodule Tornium.User do
        ) do
     position_subquery =
       Tornium.Schema.FactionPosition
-      |> select([:pid, :access_fac_api])
+      |> select([:pid, :permissions])
+      |> select([p], %{pid: p.pid, has_aa: "Faction API Access" in p.permissions})
       |> where([p], p.name == ^position)
-      |> where([p], p.faction_tid == ^faction_tid)
+      |> where([p], p.faction_id == ^faction_tid)
       |> limit(1)
 
     {count, _} =
       Tornium.Schema.User
       |> join(:inner, [u], p in subquery(position_subquery), on: u.faction_position_id == p.pid)
       |> where([u, p], u.tid == ^tid)
-      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.access_fac_api])
+      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.has_aa])
       |> Repo.update_all([])
 
     case count do
@@ -270,17 +271,27 @@ defmodule Tornium.User do
     end
   end
 
-  @spec should_update_user?({id_type :: atom(), id :: integer()}, refresh_existing :: boolean()) :: boolean()
-  def should_update_user?({_id_type, _id}, refresh_existing) when refresh_existing == true do
+  @doc """
+  Determine if a user's data should be updated.
+
+  If `:refresh_existing` is true, the user's data should be updated regardless of other parameters. Otherwise,
+  the user should be updated when the user was never last updated or was last updated more than
+  `@minimum_update_seconds` seconds ago.
+  """
+  @spec should_update_user?(user_id :: {id_type :: atom(), id :: integer()}, refresh_existing :: boolean()) :: boolean()
+  def should_update_user?({_id_type, _id} = _user_id, refresh_existing) when refresh_existing == true do
     true
   end
 
   def should_update_user?({id_type, id}, _refresh_existing) do
-    where = [{id_type, id}]
-    select = [:last_refresh]
-    query = from(Tornium.Schema.User, where: ^where, select: ^select)
+    user =
+      Tornium.Schema.User
+      |> select([:last_refresh])
+      |> where(^id_type == ^id)
+      |> first()
+      |> Repo.one()
 
-    case Repo.one(query) do
+    case user do
       nil ->
         true
 

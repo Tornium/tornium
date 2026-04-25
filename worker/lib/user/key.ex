@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.User.Key do
+  @moduledoc """
+  Utilities to fetch API keys for certain circumstances.
+  """
+
   import Ecto.Query
   alias Tornium.Repo
 
@@ -49,5 +53,45 @@ defmodule Tornium.User.Key do
       torn_key ->
         torn_key
     end
+  end
+
+  @doc """
+  Get a random API key to pull public Torn data.
+
+  The owner of the API key must have `:public_data_enabled` set to true in their `Tornium.Schema.UserSettings`
+  for their API key to be used for this.
+  """
+  @spec get_random!() :: Tornium.Schema.TornKey.t()
+  def get_random!() do
+    get_random_query()
+    |> first()
+    |> Repo.one!()
+  end
+
+  @doc """
+  Get random API keys to pull public Torn data.
+
+  The owner of the API keys must have `:public_data_enabled` set to true in their `Tornium.Schema.UserSettings`
+  for their API key to be used for this.
+
+  ## Options
+    * `:limit` - The maximum number of API keys to return (default: `10`)
+  """
+  @spec get_random(opts :: keyword()) :: [Tornium.Schema.TornKey.t()]
+  def get_random(opts \\ []) do
+    limit = Keyword.get(opts, :limit, 10)
+
+    get_random_query()
+    |> limit(^limit)
+    |> Repo.all()
+  end
+
+  defp get_random_query() do
+    Tornium.Schema.TornKey
+    |> where([k], k.default == true and k.disabled == false and k.paused == false)
+    |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+    |> join(:inner, [k, u], s in assoc(u, :settings), on: s.guid == u.settings_id)
+    |> where([k, u, s], s.public_data_enabled == true)
+    |> order_by([k, u, s], fragment("RANDOM()"))
   end
 end

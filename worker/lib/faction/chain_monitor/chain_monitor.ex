@@ -73,7 +73,7 @@ defmodule Tornium.Faction.ChainMonitor do
     faction_id = Keyword.fetch!(opts, :faction_id)
     timeout = Keyword.get(opts, :timeout, 5_000)
 
-    GenServer.call({:via, Tornium.Faction.ChainMonitor.Registry, faction_id}, :check, timeout)
+    GenServer.call({:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}, :check, timeout)
   end
 
   @impl true
@@ -174,11 +174,22 @@ defmodule Tornium.Faction.ChainMonitor do
         {:stop, "Stopped ChainMonitor as chain has ended for faction #{faction_id}"}
 
       %Tornium.Schema.ServerAttackConfig{chain_alert_minimum: chain_alert_minimum}
-      when chain_alert_minimum <= seconds_left ->
+      when seconds_left <= chain_alert_minimum ->
         # Since there are fewer seconds left on the chain than the configured minimum, we should try to send
         # an notifiction for this.
+        # TODO: Add the role ping to this
         faction_id
-        |> send_message(%Nostrum.Struct.Message{})
+        |> send_message(%Nostrum.Struct.Message{
+          content: "Chain Alert!!!",
+          embeds: [
+            %Nostrum.Struct.Embed{
+              title: "Chain Timer Alert",
+              description:
+                "The chain timer for {faction.name} [#{faction_id}] will reach zero <t:#{DateTime.to_unix(last_attack) + 300}:R> with a current chain length of #{Tornium.Utils.commas(chain_length)}.",
+              color: Tornium.Discord.Constants.colors()[:error]
+            }
+          ]
+        })
         |> try_timer(state)
 
       %Tornium.Schema.ServerAttackConfig{} ->
@@ -230,9 +241,34 @@ defmodule Tornium.Faction.ChainMonitor do
   end
 
   @impl true
-  def handle_info(:check, %Tornium.Faction.ChainMonitor.State{} = state) do
-    GenServer.call(self(), :check)
-    {:noreply, state}
+  def handle_info(:check, %Tornium.Faction.ChainMonitor.State{faction_id: faction_id, timer_ref: timer_ref} = state) do
+    case query(state) do
+      nil ->
+        # There was no API key available to use for this ChainMonitor so we should stop it
+        send_message(faction_id, %Nostrum.Struct.Message{
+          embeds: [
+            %Nostrum.Struct.Embed{
+              title: "ChainMonitor Error",
+              description:
+                "The ChainMonitor for faction ID #{faction_id} has been disabled as no API keys could be found to use for the feature.",
+              color: Tornium.Discord.Constants.colors()[:error]
+            }
+          ]
+        })
+
+        disable(faction_id, reason: "No AA API keys found")
+        {:stop, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}
+
+      %Tornex.SpecQuery{} = chain_query ->
+        chain_data = Tornex.Scheduler.Bucket.enqueue(chain_query)
+        parsed_chain_data = Tornex.SpecQuery.parse(chain_query, chain_data)
+
+        {
+          :noreply,
+          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data, faction_id: faction_id, timer_ref: timer_ref),
+          {:continue, :message}
+        }
+    end
   end
 
   @spec try_timer(

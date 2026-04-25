@@ -19,6 +19,7 @@ defmodule Tornium.Schema.FactionPosition do
   """
 
   use Ecto.Schema
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           pid: Ecto.UUID.t(),
@@ -36,5 +37,65 @@ defmodule Tornium.Schema.FactionPosition do
 
     field(:default, :boolean)
     field(:permissions, {:array, :string})
+  end
+
+  @doc """
+  Map the faction position data for a specfic position to a `Tornium.Schema.FactionPosition`.
+  """
+  @spec map(position_data :: Torngen.Client.Schema.FactionPosition.t(), faction_id :: pos_integer()) :: t()
+  def map(
+        %Torngen.Client.Schema.FactionPosition{
+          name: position_name,
+          is_default: position_default?,
+          abilities: position_abilities
+        } = _position_data,
+        faction_id
+      )
+      when is_binary(position_name) and is_binary(position_default?) and is_list(position_abilities) and
+             is_integer(faction_id) do
+    %__MODULE__{
+      pid: Ecto.UUID.generate(),
+      name: position_name,
+      faction_id: faction_id,
+      default: position_default?,
+      permissions: position_abilities
+    }
+  end
+
+  @doc """
+  Upsert faction positions for a faction ID into the database.
+  """
+  @spec upsert_all(positions :: [t() | Torngen.Client.Schema.FactionPosition.t()], faction_id :: pos_integer()) :: [t()]
+  def upsert_all([%Torngen.Client.Schema.FactionPosition{} | _] = positions, faction_id) when is_integer(faction_id) do
+    positions
+    |> Enum.map(&map(&1, faction_id))
+    |> upsert_all(faction_id)
+  end
+
+  def upsert_all([%__MODULE__{} | _] = positions, _faction_id) do
+    map_positions =
+      Enum.map(
+        positions,
+        &%{
+          pid: &1.pid,
+          name: &1.name,
+          faction_id: &1.faction_id,
+          default: &1.default,
+          permissions: &1.permissions
+        }
+      )
+
+    {_count, upserted_positions} =
+      Repo.insert_all(__MODULE__, map_positions,
+        on_conflict: {:replace, [:name, :default, :permissions]},
+        conflict_target: [:pid],
+        returning: true
+      )
+
+    upserted_positions
+  end
+
+  def upsert_all([], _faction_id) do
+    []
   end
 end

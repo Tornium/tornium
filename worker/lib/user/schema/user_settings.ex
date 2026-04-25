@@ -25,6 +25,7 @@ defmodule Tornium.Schema.UserSettings do
   - `:cpr_enabled` - Toggle for retrieval of the user's CPRs in OCs
   - `:stat_db_enabled` - Toggle for storage of opponent's stats in the stat DB via FF calculations
   - `:od_drug_enabled` - Toggle for retrieval of overdose drug from user's logs
+  - `:public_data_enabled` - Toggle for using the user's API key to collect public data
   """
 
   use Ecto.Schema
@@ -37,7 +38,8 @@ defmodule Tornium.Schema.UserSettings do
           user: Tornium.Schema.User.t(),
           cpr_enabled: boolean(),
           stat_db_enabled: boolean(),
-          od_drug_enabled: boolean()
+          od_drug_enabled: boolean(),
+          public_data_enabled: boolean()
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -45,10 +47,9 @@ defmodule Tornium.Schema.UserSettings do
     belongs_to(:user, Tornium.Schema.User, references: :tid)
 
     field(:cpr_enabled, :boolean)
-
     field(:stat_db_enabled, :boolean)
-
     field(:od_drug_enabled, :boolean)
+    field(:public_data_enabled, :boolean)
   end
 
   @doc """

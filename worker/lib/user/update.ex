@@ -313,7 +313,43 @@ defmodule Tornium.User do
   support infinite timestamps. If a user is temporarily fedded, it will be the date of the `:until`
   timestamp in the API response. Otherwise, if a user is not fedded, `nil` will be returned.
   """
-  @spec fedded_until(user_data :: map()) :: Date.t() | nil
+  @spec fedded_until(user_data :: Torngen.Client.Schema.UserStatus.t() | map()) :: Date.t() | nil
+  def fedded_until(%Torngen.Client.Schema.UserStatus{state: "Fallen"} = _user_data) do
+    # Since the user is fallen, we'll want to treat them as permanently fedded.
+    %Date{
+      calendar: Calendar.ISO,
+      year: 9999,
+      month: 12,
+      day: 31
+    }
+  end
+
+  def fedded_until(%Torngen.Client.Schema.UserStatus{
+        state: "Federal",
+        description: federal_description,
+        until: federal_until
+      })
+      when is_binary(federal_description) and is_integer(federal_until) do
+    permanent_federal? =
+      federal_description
+      |> String.downcase()
+      |> String.contains?("permanently")
+
+    if permanent_federal? do
+      # This is the largest date supported by Elixir/OTP
+      %Date{
+        calendar: Calendar.ISO,
+        year: 9999,
+        month: 12,
+        day: 31
+      }
+    else
+      federal_until
+      |> DateTime.from_unix!()
+      |> DateTime.to_date()
+    end
+  end
+
   def fedded_until(%{"status" => %{"state" => "Fallen"}} = _user_data) do
     # Since the user is fallen, we'll want to treat them as permanently fedded.
     %Date{
@@ -348,7 +384,7 @@ defmodule Tornium.User do
     end
   end
 
-  def fedded_until(user_data) when is_map(user_data) do
+  def fedded_until(_user_data) do
     # The user is not fedded or fallen
     nil
   end

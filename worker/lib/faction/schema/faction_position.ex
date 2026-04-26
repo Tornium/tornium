@@ -19,6 +19,7 @@ defmodule Tornium.Schema.FactionPosition do
   """
 
   use Ecto.Schema
+  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
@@ -97,5 +98,28 @@ defmodule Tornium.Schema.FactionPosition do
 
   def upsert_all([], _faction_id) do
     []
+  end
+
+  @doc """
+  Remove the old faction positions from members and delete those faction positions.
+  """
+  @spec remove_old_positions(current_positions :: [t()], faction_id :: pos_integer()) :: term()
+  def remove_old_positions(current_positions, faction_id) when is_list(current_positions) and is_integer(faction_id) do
+    # TODO: Test this
+    current_position_names = Enum.map(current_positions, & &1.name)
+
+    old_position_ids =
+      Tornium.Schema.FactionPosition
+      |> select([p], p.pid)
+      |> where([p], p.name not in ^current_position_names and p.faction_id == ^faction_id)
+      |> Repo.all()
+
+    Tornium.Schema.User
+    |> where([u], u.faction_position_id in ^old_position_ids)
+    |> Repo.update_all(set: [faction_aa: false, faction_position_id: nil])
+
+    Tornium.Schema.FactionPosition
+    |> where([p], p.pid in ^old_position_ids)
+    |> Repo.delete_all()
   end
 end

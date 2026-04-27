@@ -7,9 +7,8 @@
     colmena.url = "github:zhaofengli/colmena";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    tornium_oc_graph.url = "github:Tornium/tornium_oc_graph/feature/nix";
   };
-  outputs = { nixpkgs, disko, colmena, sops-nix, tornium_oc_graph, ... }: 
+  outputs = { nixpkgs, disko, colmena, sops-nix, ... }:
     let
       # overlay that bumps only pgbackrest to 2.58.0
       pgbackrestOverlay = final: prev: {
@@ -30,7 +29,7 @@
         meta = {
           nixpkgs = import nixpkgs {
             system = "x86_64-linux";
-            overlays = [ pgbackrestOverlay tornium_oc_graph.overlays.default ];
+            overlays = [ pgbackrestOverlay ];
           };
         };
         defaults = {

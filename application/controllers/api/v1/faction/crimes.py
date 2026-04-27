@@ -268,7 +268,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         try:
             current_oc_ev = round(OrganizedCrime.expected_value(oc_name, slots, default=0.7))
             current_oc_probability = round(OrganizedCrime.probability(oc_name, slots, default=0.7), 3)
-        except KeyError:
+        except (KeyError, RuntimeError):
             continue
 
         slot: OrganizedCrimeSlot

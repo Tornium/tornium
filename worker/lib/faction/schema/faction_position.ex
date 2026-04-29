@@ -52,7 +52,7 @@ defmodule Tornium.Schema.FactionPosition do
         } = _position_data,
         faction_id
       )
-      when is_binary(position_name) and is_binary(position_default?) and is_list(position_abilities) and
+      when is_binary(position_name) and is_boolean(position_default?) and is_list(position_abilities) and
              is_integer(faction_id) do
     %__MODULE__{
       pid: Ecto.UUID.generate(),
@@ -88,8 +88,8 @@ defmodule Tornium.Schema.FactionPosition do
 
     {_count, upserted_positions} =
       Repo.insert_all(__MODULE__, map_positions,
-        on_conflict: {:replace, [:name, :default, :permissions]},
-        conflict_target: [:pid],
+        on_conflict: {:replace, [:default, :permissions]},
+        conflict_target: [:faction_id, :name],
         returning: true
       )
 
@@ -120,6 +120,6 @@ defmodule Tornium.Schema.FactionPosition do
 
     Tornium.Schema.FactionPosition
     |> where([p], p.pid in ^old_position_ids)
-    |> Repo.delete_all()
+    |> Repo.delete_all(returning: true)
   end
 end

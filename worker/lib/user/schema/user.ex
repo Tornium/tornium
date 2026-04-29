@@ -67,7 +67,7 @@ defmodule Tornium.Schema.User do
     field(:dexterity, :integer)
 
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
-    field(:faction_aa, :boolean)
+    field(:faction_aa, :boolean, default: false)
     belongs_to(:faction_position, Tornium.Schema.FactionPosition, references: :pid, type: :binary_id)
 
     field(:status, :string)
@@ -81,7 +81,7 @@ defmodule Tornium.Schema.User do
     # TODO: Convert `:security` into an Ecto Enum
     field(:security, :integer)
     field(:otp_secret, :string)
-    field(:otp_backups, {:array, :string})
+    field(:otp_backups, {:array, :string}, default: [])
 
     belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid, type: :binary_id)
   end

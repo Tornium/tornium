@@ -38,11 +38,38 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
     # TODO: Change f.last_members to the more traditional f.updated_at
-    Tornium.Schema.Faction
-    |> order_by([f], desc: f.last_members)
-    |> limit(@max_chunk)
-    |> Repo.all()
-    |> Enum.each(&schedule_faction_update/1)
+    one_hour_ago = DateTime.utc_now() |> DateTime.add(-1, :hour)
+
+    valid_aa_key_subquery =
+      Tornium.Schema.TornKey
+      |> where([k], k.default == true and k.disabled == false and k.paused == false and k.access_level >= :limited)
+      |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
+      |> where([k, u], not is_nil(u.faction_id) and u.faction_id == parent_as(:faction).tid and u.faction_aa == true)
+
+    high_priority_factions =
+      Tornium.Schema.Faction
+      |> from(as: :faction)
+      |> where([f], f.last_members < ^one_hour_ago and exists(valid_aa_key_subquery))
+      |> order_by([f, hk], asc: f.last_members)
+      |> limit(@max_chunk)
+      |> Repo.all()
+
+    remaining_limit = @max_chunk - length(high_priority_factions)
+
+    other_factions =
+      if remaining_limit > 0 do
+        high_priority_faction_ids = Enum.map(high_priority_factions, & &1.tid)
+
+        Tornium.Schema.Faction
+        |> where([f], f.tid not in ^high_priority_faction_ids)
+        |> order_by([f], asc: f.last_members)
+        |> limit(^remaining_limit)
+        |> Repo.all()
+      else
+        []
+      end
+
+    Enum.each(high_priority_factions ++ other_factions, &schedule_faction_update/1)
 
     :ok
   end
@@ -94,7 +121,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   defp api_key(%Tornium.Schema.Faction{tid: faction_id} = _faction) do
     case Tornium.Faction.get_key(faction_id) do
       %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level} = aa_key
-      when access_level >= 3 ->
+      when access_level in [:limited, :full] ->
         {aa_key, true}
 
       _ ->

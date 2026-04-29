@@ -104,18 +104,19 @@ defmodule Tornium.Schema.Faction do
   @spec upsert_members(
           members_data :: [Torngen.Client.Schema.FactionMember.t()],
           positions :: [Tornium.Schema.FactionPosition.t()],
-          faction_id: pos_integer()
+          faction_id :: pos_integer()
         ) :: [Tornium.Schema.User.t()]
-  def upsert_members(
-        [%Torngen.Client.Schema.FactionMember{} | _] = members_data,
-        [%Tornium.Schema.FactionPosition{} | _] = positions,
-        faction_id
-      )
-      when is_integer(faction_id) do
+  def upsert_members([%Torngen.Client.Schema.FactionMember{} | _] = members_data, positions, faction_id)
+      when is_list(positions) and is_integer(faction_id) do
+    # Before we can insert the data, we need to map the API data into the Ecto schema struct and convert that
+    # struct into a map. When converting the struct back into a map, we need to drop `:__meta__` and all keys for
+    # associations (while the foreign keys for those associations should be kept) so that `Ecto.Repo.insert_all` 
+    # can upsert it.
     mapped_member_data =
       members_data
       |> Enum.map(&Tornium.Schema.User.map_faction_member(&1, positions, faction_id))
       |> Enum.map(&Map.from_struct/1)
+      |> Enum.map(&Map.drop(&1, [:__meta__, :faction, :faction_position, :settings]))
 
     {_count, upserted_members} =
       Repo.insert_all(Tornium.Schema.User, mapped_member_data,
@@ -149,6 +150,6 @@ defmodule Tornium.Schema.Faction do
 
     Tornium.Schema.User
     |> where([u], u.tid not in ^current_member_ids and u.faction_id == ^faction_id)
-    |> Repo.update_all(set: [faction_id: nil, faction_aa: nil, faction_position_id: nil])
+    |> Repo.update_all(set: [faction_id: nil, faction_aa: false, faction_position_id: nil])
   end
 end

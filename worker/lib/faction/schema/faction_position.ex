@@ -73,6 +73,7 @@ defmodule Tornium.Schema.FactionPosition do
   def upsert_all([%Torngen.Client.Schema.FactionPosition{} | _] = positions, faction_id) when is_integer(faction_id) do
     positions
     |> Enum.map(&map(&1, faction_id))
+    |> insert_other_positions(faction_id)
     |> upsert_all(faction_id)
   end
 
@@ -101,6 +102,66 @@ defmodule Tornium.Schema.FactionPosition do
 
   def upsert_all([], _faction_id) do
     []
+  end
+
+  @spec insert_other_positions(mapped_positions :: [t()], faction_id :: pos_integer()) :: [t()]
+  defp insert_other_positions(mapped_positions, faction_id) when is_list(mapped_positions) and is_integer(faction_id) do
+    # We want to insert the leader, coleader, and recruit positions into the list of mapped positions
+    # if they don't already exist in the list. The Torn API doesn't usually return this in the
+    # faction/positions response (except for bugs).
+    insert_leader? = mapped_positions |> Enum.find(&(&1.name == "Leader")) |> is_nil()
+    insert_coleader? = mapped_positions |> Enum.find(&(&1.name == "Co-leader")) |> is_nil()
+    insert_recruit? = mapped_positions |> Enum.find(&(&1.name == "Recruit")) |> is_nil()
+
+    mapped_positions =
+      if insert_leader? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Leader",
+            faction_id: faction_id,
+            default: false,
+            permissions: Torngen.Client.Schema.FactionPositionAbilityEnum.values()
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions =
+      if insert_coleader? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Co-leader",
+            faction_id: faction_id,
+            default: false,
+            permissions: Torngen.Client.Schema.FactionPositionAbilityEnum.values()
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions =
+      if insert_recruit? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Recruit",
+            faction_id: faction_id,
+            default: false,
+            permissions: []
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions
   end
 
   @doc """

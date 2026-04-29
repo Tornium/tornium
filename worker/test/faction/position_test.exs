@@ -53,7 +53,8 @@ defmodule Tornium.Test.FactionPosition do
     %Tornium.Schema.Faction{tid: 1, name: "Test"} |> Repo.insert!()
 
     inserted_positions = Tornium.Schema.FactionPosition.upsert_all(positions_data, 1)
-    assert length(inserted_positions) == length(positions_data)
+    assert length(inserted_positions) == length(positions_data) + 3
+    # The positions for lead, co, and recruit are inserted into the database but aren't provided by the API.
   end
 
   test "duplicte position upsertion" do
@@ -76,10 +77,12 @@ defmodule Tornium.Test.FactionPosition do
     )
 
     positions = Repo.all(Tornium.Schema.FactionPosition)
-    assert length(positions) == 1
 
-    assert [%Tornium.Schema.FactionPosition{pid: ^pid, name: "test", default: false, permissions: ["Drug Usage"]}] =
-             positions
+    # The positions for lead, co, and recruit are inserted into the database but aren't provided by the API.
+    assert length(positions) == 4
+
+    assert %Tornium.Schema.FactionPosition{pid: ^pid, name: "test", default: false, permissions: ["Drug Usage"]} =
+             Enum.find(positions, &(&1.name == "test"))
   end
 
   test "old position removal" do

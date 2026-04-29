@@ -98,6 +98,7 @@ defmodule Tornium.Schema.User do
   def ensure_exists(users) when is_list(users) do
     mapped_users =
       users
+      |> Enum.reject(fn {user_id, _user_name} -> is_nil(user_id) end)
       |> Enum.uniq_by(fn {user_id, _user_name} when is_integer(user_id) -> user_id end)
       |> Enum.map(fn {user_id, user_name} when is_integer(user_id) and (is_binary(user_name) or is_nil(user_name)) ->
         %{tid: user_id, name: user_name}

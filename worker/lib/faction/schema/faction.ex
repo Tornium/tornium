@@ -91,7 +91,9 @@ defmodule Tornium.Schema.Faction do
   Upsert basic faction data into the database.
   """
   @spec upsert(faction_data :: Torngen.Client.Schema.FactionBasic.t()) :: t()
-  def upsert(%Torngen.Client.Schema.FactionBasic{} = faction_data) do
+  def upsert(%Torngen.Client.Schema.FactionBasic{leader_id: leader_id, co_leader_id: coleader_id} = faction_data) do
+    Tornium.Schema.User.ensure_exists([{leader_id, nil}, {coleader_id, nil}])
+
     faction_data
     |> map()
     |> Repo.insert!(

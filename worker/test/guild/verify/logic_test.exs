@@ -211,7 +211,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
           faction_position: %Tornium.Schema.FactionPosition{
             pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
             name: "Test Position 1",
-            faction_tid: 1
+            faction_id: 1
           }
         }
       )
@@ -248,7 +248,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
           faction_position: %Tornium.Schema.FactionPosition{
             pid: "cbaf7f5d-34c0-4e92-bc4b-cea429bbd496",
             name: "Test Position 1",
-            faction_tid: 1
+            faction_id: 1
           }
         }
       )

@@ -55,7 +55,7 @@ defmodule Tornium.MixProject do
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
       {:tornex, "~> 0.5"},
-      {:torngen_elixir_client, github: "Tornium/torngen_elixir_client", tag: "v5.5.3+torngen-v0.1.10", override: true},
+      {:torngen_elixir_client, ">= 5.0.0"},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.20"},
       {:floki, "~> 0.38"},

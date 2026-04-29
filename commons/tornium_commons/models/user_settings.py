@@ -32,6 +32,7 @@ class UserSettings(BaseModel):
     cpr_enabled = BooleanField(default=True, null=False)
     stat_db_enabled = BooleanField(default=True, null=False)
     od_drug_enabled = BooleanField(default=False, null=False)
+    public_data_enabled = BooleanField(default=False, null=False)
 
     def create_or_update(user_id: int, **kwargs: dict):
         """
@@ -73,4 +74,7 @@ class UserSettings(BaseModel):
         return {
             "guid": self.guid,
             "cpr_enabled": self.cpr_enabled,
+            "stat_db_enabled": self.stat_db_enabled,
+            "od_drug_enabled": self.od_drug_enabled,
+            "public_data_enabled": self.public_data_enabled,
         }

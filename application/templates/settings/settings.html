@@ -146,7 +146,7 @@ Tornium - Settings
                 <div class="list-group list-group-flush">
                     <li class="list-group-item">
                         <label for="cpr-toggle" class="form-label">Share CPR:</label>
-                        <p><small>Collect and share your CPR data for all available organized crimes for the <a href="/faction/crimes/cpr">faction CPR viewer</a>.</small></p>
+                        <p><small>Collect and share your CPR data for all available organized crimes for <a href="/faction/crimes/cpr">your faction's CPR viewer</a>.</small></p>
 
                         <input type="radio" class="btn-check" name="cpr-toggle" id="cpr-toggle-enable" autocomplete="off" {% if current_user.settings is not none and current_user.settings.cpr_enabled %} checked {% endif %}>
                         <label class="btn" for="cpr-toggle-enable">Enable</label>
@@ -157,7 +157,7 @@ Tornium - Settings
 
                     <li class="list-group-item">
                         <label for="cpr-toggle" class="form-label mb-0">Share opponent stats:</label>
-                        <p><small>Collect and share your opponents' stats via fair fight for the <a href="/stats/db">stat database</a>.</small></p>
+                        <p><small>Collect and share your opponents' stats via fair fight with potentially all Tornium users for the <a href="/stats/db">stat database</a>.</small></p>
 
                         <input type="radio" class="btn-check" name="stat-db-toggle" id="stat-db-toggle-enable" autocomplete="off" {% if current_user.settings is not none and current_user.settings.stat_db_enabled %} checked {% endif %}>
                         <label class="btn" for="stat-db-toggle-enable">Enable</label>
@@ -168,7 +168,7 @@ Tornium - Settings
 
                     <li class="list-group-item">
                         <label for="od-drug-toggle" class="form-label mb-0">Share overdosed drug:</label>
-                        <p><small>Collect and share the drug you've overdosed on from your logs.</small></p>
+                        <p><small>Collect and share the drug you've overdosed on from your logs with your faction.</small></p>
 
                         <input type="radio" class="btn-check" name="od-drug-toggle" id="od-drug-toggle-enable" autocomplete="off" {% if current_user.settings is not none and current_user.settings.od_drug_enabled %} checked {% endif %}>
                         <label class="btn" for="od-drug-toggle-enable">Enable</label>
@@ -176,6 +176,20 @@ Tornium - Settings
                         <input type="radio" class="btn-check" name="od-drug-toggle" id="od-drug-toggle-disable" autocomplete="off" {% if current_user.settings is none or not current_user.settings.od_drug_enabled %} checked {% endif %}>
                         <label class="btn" for="od-drug-toggle-disable">Disable</label>
                     </li>
+
+                    <li class="list-group-item">
+                        <label for="public-data-toggle" class="form-label mb-0">Share public data:</label>
+                        <p><small>Collect and share public data on other users, factions, etc. using your API key with all Tornium users.</small></p>
+
+                        <input type="radio" class="btn-check" name="public-data-toggle" id="public-data-toggle-enable" autocomplete="off" {% if current_user.settings is not none and current_user.settings.public_data_enabled %} checked {% endif %}>
+                        <label class="btn" for="public-data-toggle-enable">Enable</label>
+
+                        <input type="radio" class="btn-check" name="public-data-toggle" id="public-data-toggle-disable" autocomplete="off" {% if current_user.settings is none or not current_user.settings.public_data_enabled %} checked {% endif %}>
+                        <label class="btn" for="public-data-toggle-disable">Disable</label>
+                    </li>
+                </div>
+                <div class="card-footer">
+                    For more information on these usage toggles, see Tornium's <a href="https://docs.tornium.com/en/latest/data-use-storage.html">data use and storage policy</a>.
                 </div>
             </div>
         </div>

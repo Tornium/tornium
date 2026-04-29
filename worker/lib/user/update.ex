@@ -17,7 +17,7 @@
 
 defmodule Tornium.User do
   @moduledoc """
-  Functionality related to updating users' data' data' data' data.
+  Functionality related to updating users' data.
   """
 
   alias Tornium.Repo
@@ -252,16 +252,17 @@ defmodule Tornium.User do
        ) do
     position_subquery =
       Tornium.Schema.FactionPosition
-      |> select([:pid, :access_fac_api])
+      |> select([:pid, :permissions])
+      |> select([p], %{pid: p.pid, has_aa: "Faction API Access" in p.permissions})
       |> where([p], p.name == ^position)
-      |> where([p], p.faction_tid == ^faction_tid)
+      |> where([p], p.faction_id == ^faction_tid)
       |> limit(1)
 
     {count, _} =
       Tornium.Schema.User
       |> join(:inner, [u], p in subquery(position_subquery), on: u.faction_position_id == p.pid)
       |> where([u, p], u.tid == ^tid)
-      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.access_fac_api])
+      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.has_aa])
       |> Repo.update_all([])
 
     case count do
@@ -270,17 +271,27 @@ defmodule Tornium.User do
     end
   end
 
-  @spec should_update_user?({id_type :: atom(), id :: integer()}, refresh_existing :: boolean()) :: boolean()
-  def should_update_user?({_id_type, _id}, refresh_existing) when refresh_existing == true do
+  @doc """
+  Determine if a user's data should be updated.
+
+  If `:refresh_existing` is true, the user's data should be updated regardless of other parameters. Otherwise,
+  the user should be updated when the user was never last updated or was last updated more than
+  `@minimum_update_seconds` seconds ago.
+  """
+  @spec should_update_user?(user_id :: {id_type :: atom(), id :: integer()}, refresh_existing :: boolean()) :: boolean()
+  def should_update_user?({_id_type, _id} = _user_id, refresh_existing) when refresh_existing == true do
     true
   end
 
   def should_update_user?({id_type, id}, _refresh_existing) do
-    where = [{id_type, id}]
-    select = [:last_refresh]
-    query = from(Tornium.Schema.User, where: ^where, select: ^select)
+    user =
+      Tornium.Schema.User
+      |> select([:last_refresh])
+      |> where(^id_type == ^id)
+      |> first()
+      |> Repo.one()
 
-    case Repo.one(query) do
+    case user do
       nil ->
         true
 
@@ -302,7 +313,43 @@ defmodule Tornium.User do
   support infinite timestamps. If a user is temporarily fedded, it will be the date of the `:until`
   timestamp in the API response. Otherwise, if a user is not fedded, `nil` will be returned.
   """
-  @spec fedded_until(user_data :: map()) :: Date.t() | nil
+  @spec fedded_until(user_data :: Torngen.Client.Schema.UserStatus.t() | map()) :: Date.t() | nil
+  def fedded_until(%Torngen.Client.Schema.UserStatus{state: "Fallen"} = _user_data) do
+    # Since the user is fallen, we'll want to treat them as permanently fedded.
+    %Date{
+      calendar: Calendar.ISO,
+      year: 9999,
+      month: 12,
+      day: 31
+    }
+  end
+
+  def fedded_until(%Torngen.Client.Schema.UserStatus{
+        state: "Federal",
+        description: federal_description,
+        until: federal_until
+      })
+      when is_binary(federal_description) and is_integer(federal_until) do
+    permanent_federal? =
+      federal_description
+      |> String.downcase()
+      |> String.contains?("permanently")
+
+    if permanent_federal? do
+      # This is the largest date supported by Elixir/OTP
+      %Date{
+        calendar: Calendar.ISO,
+        year: 9999,
+        month: 12,
+        day: 31
+      }
+    else
+      federal_until
+      |> DateTime.from_unix!()
+      |> DateTime.to_date()
+    end
+  end
+
   def fedded_until(%{"status" => %{"state" => "Fallen"}} = _user_data) do
     # Since the user is fallen, we'll want to treat them as permanently fedded.
     %Date{
@@ -337,7 +384,7 @@ defmodule Tornium.User do
     end
   end
 
-  def fedded_until(user_data) when is_map(user_data) do
+  def fedded_until(_user_data) do
     # The user is not fedded or fallen
     nil
   end

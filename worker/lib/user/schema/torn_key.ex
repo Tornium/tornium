@@ -21,6 +21,7 @@ defmodule Tornium.Schema.TornKey do
   @type t :: %__MODULE__{
           guid: Ecto.UUID.t(),
           api_key: String.t(),
+          user_id: pos_integer(),
           user: Tornium.Schema.User.t(),
           default: boolean(),
           disabled: boolean(),
@@ -36,5 +37,15 @@ defmodule Tornium.Schema.TornKey do
     field(:disabled, :boolean)
     field(:paused, :boolean)
     field(:access_level, Ecto.Enum, values: [public: 1, minimal: 2, limited: 3, full: 4])
+  end
+
+  @doc """
+  Put the Tornium API key and key owner into the Tornex query.
+  """
+  @spec put_key(query :: Tornex.Query.t() | Tornex.SpecQuery.t(), api_key :: t()) ::
+          Tornex.Query.t() | Tornex.SpecQuery.t()
+  def put_key(%query_type{} = query, %__MODULE__{api_key: key, user_id: key_owner} = _api_key)
+      when query_type in [Tornex.Query, Tornex.SpecQuery] do
+    %{query | key: key, key_owner: key_owner}
   end
 end

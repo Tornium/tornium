@@ -65,6 +65,9 @@ defmodule Tornium.Schema.FactionPosition do
 
   @doc """
   Upsert faction positions for a faction ID into the database.
+
+  Using the API data from `faction/positions` (in v2), this function will map the API data to
+  `Tornium.Schema.FactionPosition` and upsert the list of faction positions. 
   """
   @spec upsert_all(positions :: [t() | Torngen.Client.Schema.FactionPosition.t()], faction_id :: pos_integer()) :: [t()]
   def upsert_all([%Torngen.Client.Schema.FactionPosition{} | _] = positions, faction_id) when is_integer(faction_id) do
@@ -102,6 +105,10 @@ defmodule Tornium.Schema.FactionPosition do
 
   @doc """
   Remove the old faction positions from members and delete those faction positions.
+
+  When a position is deleted, it must be removed from the users with that position before being deleted.
+  We can assume that the user no longer has faction AA perms after that position was deleted. This can be
+  updated after-the-fact.
   """
   @spec remove_old_positions(current_positions :: [t()], faction_id :: pos_integer()) :: term()
   def remove_old_positions(current_positions, faction_id) when is_list(current_positions) and is_integer(faction_id) do
@@ -114,12 +121,14 @@ defmodule Tornium.Schema.FactionPosition do
       |> where([p], p.name not in ^current_position_names and p.faction_id == ^faction_id)
       |> Repo.all()
 
-    Tornium.Schema.User
-    |> where([u], u.faction_position_id in ^old_position_ids)
-    |> Repo.update_all(set: [faction_aa: false, faction_position_id: nil])
+    if old_position_ids != [] do
+      Tornium.Schema.User
+      |> where([u], u.faction_position_id in ^old_position_ids)
+      |> Repo.update_all(set: [faction_aa: false, faction_position_id: nil])
 
-    Tornium.Schema.FactionPosition
-    |> where([p], p.pid in ^old_position_ids)
-    |> Repo.delete_all(returning: true)
+      Tornium.Schema.FactionPosition
+      |> where([p], p.pid in ^old_position_ids)
+      |> Repo.delete_all()
+    end
   end
 end

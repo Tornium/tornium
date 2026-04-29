@@ -49,7 +49,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     high_priority_factions =
       Tornium.Schema.Faction
       |> from(as: :faction)
-      |> where([f], f.last_members < ^one_hour_ago and exists(valid_aa_key_subquery))
+      |> where([f], f.last_members > ^one_hour_ago and exists(valid_aa_key_subquery))
       |> order_by([f, hk], asc: f.last_members)
       |> limit(@max_chunk)
       |> Repo.all()

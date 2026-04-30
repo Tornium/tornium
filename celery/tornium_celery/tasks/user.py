@@ -196,10 +196,10 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
             faction = Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
 
             if faction is not None and len(faction.aa_keys) == 0:
-                from .faction import update_faction_positions
+                # from .faction import update_faction_positions
 
                 try:
-                    positions_data = tornget("faction/?selections=basic,positions", key)
+                    tornget("faction/?selections=basic,positions", key)
                 except TornError as e:
                     if e.code == 7:
                         user_data_kwargs["faction_aa"] = False
@@ -207,7 +207,8 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                     pass
                 else:
                     user_data_kwargs["faction_aa"] = True
-                    update_faction_positions(positions_data)
+                    # TODO: this needs to be run on elixir
+                    # update_faction_positions(positions_data)
 
         if user_data["faction"]["position"] in ("Leader", "Co-leader"):
             user_data_kwargs["faction_position"] = None

@@ -95,7 +95,7 @@ def refresh_guild(guild: dict):
             for position_uuid, position_data in faction_data["positions"].items():
                 try:
                     position: FactionPosition = (
-                        FactionPosition.select(FactionPosition.faction_tid)
+                        FactionPosition.select(FactionPosition.faction_id)
                         .where(FactionPosition.pid == position_uuid)
                         .get()
                     )

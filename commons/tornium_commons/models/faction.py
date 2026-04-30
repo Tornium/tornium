@@ -67,11 +67,7 @@ class Faction(BaseModel):
             .join(FactionPosition)
             .where(
                 (User.faction_id == self.tid)
-                & (
-                    (User.faction_position.give_money == True)
-                    | (User.faction_position.give_points == True)
-                    | (User.faction_position.adjust_balances == True)
-                )
+                & (User.faction_position.permissions.overlap(["Money Giving", "Points Giving", "Balance Adjustment"]))
             )
         )
 

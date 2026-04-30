@@ -120,10 +120,20 @@ def banking():
             "name": banker_user.name,
             "tid": banker_user.tid,
             "last_action": int(banker_user.last_action.timestamp()),
-            "money": (banker_user.faction_position.give_money if banker_user.faction_position is not None else True),
-            "points": (banker_user.faction_position.give_points if banker_user.faction_position is not None else True),
+            "money": (
+                "Money Giving" in banker_user.faction_position.permissions
+                if banker_user.faction_position is not None
+                else True
+            ),
+            "points": (
+                "Points Giving" in banker_user.faction_position.permissions
+                if banker_user.faction_position is not None
+                else True
+            ),
             "adjust": (
-                banker_user.faction_position.adjust_balances if banker_user.faction_position is not None else True
+                "Balance Adjustment" in banker_user.faction_position.permissions
+                if banker_user.faction_position is not None
+                else True
             ),
         }
         for banker_user in banker_users

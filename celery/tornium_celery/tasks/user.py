@@ -231,7 +231,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                 FactionPosition.select()
                 .where(
                     (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+                    & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
                 )
                 .first()
             )
@@ -360,7 +360,7 @@ def update_user_other(user_data: dict):
                 FactionPosition.select()
                 .where(
                     (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+                    & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
                 )
                 .first()
             )

@@ -106,33 +106,22 @@ class User(BaseModel):
     def can_manage_crimes(self) -> bool:
         if self.faction_id is None:
             return False
-
-        # Faction lead/co needs to be determined before faction position for API bugs related to the API incorrectly
-        # including lead, co, and recruits as faction positions.
-        faction: typing.Optional[Faction] = self.faction
-
-        if not isinstance(faction, Faction):
-            try:
-                faction = Faction.select(Faction.leader, Faction.coleader).where(Faction.tid == self.faction_id).get()
-            except DoesNotExist:
-                return False
-
-        if isinstance(faction, Faction) and (self.tid == faction.leader_id or self.tid == faction.coleader_id):
-            return True
+        elif self.faction_position_id is None:
+            return False
 
         faction_position: typing.Optional[FactionPosition] = self.faction_position
 
         if not isinstance(faction_position, FactionPosition):
             try:
                 faction_position = (
-                    FactionPosition.select(FactionPosition.plan_init_oc)
+                    FactionPosition.select(FactionPosition.permissions)
                     .where(FactionPosition.pid == self.faction_position_id)
                     .get()
                 )
             except DoesNotExist:
                 return False
 
-        return faction_position.plan_init_oc
+        return "Organized Crimes" in faction_position.permissions
 
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"

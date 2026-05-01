@@ -28,7 +28,6 @@ from peewee import (
 from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
-from .faction_position import FactionPosition
 from .torn_key import TornKey
 
 
@@ -59,24 +58,22 @@ class Faction(BaseModel):
     has_migrated_oc = BooleanField(default=False, null=False)
 
     def get_bankers(self):
+        from .faction_position import FactionPosition
         from .user import User
 
-        bankers = set(
+        return set(
             u.tid
             for u in User.select(User.tid)
             .join(FactionPosition)
             .where(
                 (User.faction_id == self.tid)
-                & (User.faction_position.permissions.overlap(["Money Giving", "Points Giving", "Balance Adjustment"]))
+                & (
+                    User.faction_position.permissions.contains_any(
+                        "Money Giving", "Points Giving", "Balance Adjustment"
+                    )
+                )
             )
         )
-
-        if self.leader is not None:
-            bankers.add(self.leader_id)
-        if self.coleader is not None:
-            bankers.add(self.coleader_id)
-
-        return bankers
 
     @staticmethod
     def faction_str(tid: int) -> str:

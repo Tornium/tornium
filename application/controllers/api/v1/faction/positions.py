@@ -77,7 +77,7 @@ def get_positions(*args, **kwargs):
             details={"message": "The data hasn't been updated sufficiently recently."},
         )
 
-    positions = FactionPosition.select().where(FactionPosition.faction_tid == faction_tid)
+    positions = FactionPosition.select().where(FactionPosition.faction_id == faction_tid)
 
     if positions.count() == 0:
         return make_exception_response("1103", key)

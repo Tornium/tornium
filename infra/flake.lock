@@ -126,29 +126,12 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
-      "locked": {
-        "lastModified": 1774709303,
-        "narHash": "sha256-D3Q07BbIA2KnTcSXIqqu9P586uWxN74zNoCH3h2ESHg=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "8110df5ad7abf5d4c0f6fb0f8f978390e77f9685",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "colmena": "colmena",
         "disko": "disko",
         "nixpkgs": "nixpkgs_2",
-        "sops-nix": "sops-nix",
-        "tornium_oc_graph": "tornium_oc_graph"
+        "sops-nix": "sops-nix"
       }
     },
     "sops-nix": {
@@ -184,25 +167,6 @@
         "owner": "NixOS",
         "ref": "nixos-25.05",
         "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "tornium_oc_graph": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_3"
-      },
-      "locked": {
-        "lastModified": 1773334465,
-        "narHash": "sha256-7MoiqzWF8gEHEsoD3EZxNo48VgTzAFLIW9iQs8QVXFM=",
-        "owner": "Tornium",
-        "repo": "tornium_oc_graph",
-        "rev": "356aabb73aac34a62bf744ea3da29e9c1b855ad4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Tornium",
-        "ref": "feature/nix",
-        "repo": "tornium_oc_graph",
         "type": "github"
       }
     }

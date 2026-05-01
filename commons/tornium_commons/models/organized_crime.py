@@ -80,8 +80,8 @@ class OrganizedCrime(BaseModel):
         }
 
     @staticmethod
-    def expected_value(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> float:
-        succcess_map = {}
+    def expected_value(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> typing.Optional[float]:
+        success_map = {}
 
         slot: OrganizedCrimeSlot
         for slot in slots:
@@ -89,13 +89,13 @@ class OrganizedCrime(BaseModel):
                 raise ValueError(f"{slot.crime_position} #{slot.crime_position_index} is not filled")
 
             position = f"{'_'.join(slot.crime_position.lower().split(' '))}_{slot.crime_position_index}"
-            succcess_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
+            success_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
 
-        return calculate_ev(oc_name, succcess_map)
+        return calculate_ev(oc_name, success_map)
 
     @staticmethod
-    def probability(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> float:
-        succcess_map = {}
+    def probability(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> typing.Optional[float]:
+        success_map = {}
 
         slot: OrganizedCrimeSlot
         for slot in slots:
@@ -103,6 +103,6 @@ class OrganizedCrime(BaseModel):
                 raise ValueError(f"{slot.crime_position} #{slot.crime_position_index} is not filled")
 
             position = f"{'_'.join(slot.crime_position.lower().split(' '))}_{slot.crime_position_index}"
-            succcess_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
+            success_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
 
-        return calculate_probability(oc_name, succcess_map)
+        return calculate_probability(oc_name, success_map)

@@ -61,10 +61,11 @@ defmodule Tornium.Workers.FactionUpdate do
     end
   end
 
+  @doc false
   @spec do_perform(api_call_result :: map(), faction_id :: non_neg_integer(), nonpublic? :: boolean()) ::
           Oban.Worker.result()
-  defp do_perform(api_call_result, faction_id, true = _nonpublic?)
-       when is_map(api_call_result) and is_integer(faction_id) do
+  def do_perform(api_call_result, faction_id, true = _nonpublic?)
+      when is_map(api_call_result) and is_integer(faction_id) do
     %{
       Torngen.Client.Path.Faction.Basic => %{
         FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{basic: basic_data}
@@ -93,8 +94,8 @@ defmodule Tornium.Workers.FactionUpdate do
     :ok
   end
 
-  defp do_perform(api_call_result, faction_id, false = _nonpublic?)
-       when is_map(api_call_result) and is_integer(faction_id) do
+  def do_perform(api_call_result, faction_id, false = _nonpublic?)
+      when is_map(api_call_result) and is_integer(faction_id) do
     %{
       Torngen.Client.Path.Faction.Id.Basic => %{
         FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{basic: basic_data}

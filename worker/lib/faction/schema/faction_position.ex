@@ -173,7 +173,6 @@ defmodule Tornium.Schema.FactionPosition do
   """
   @spec remove_old_positions(current_positions :: [t()], faction_id :: pos_integer()) :: term()
   def remove_old_positions(current_positions, faction_id) when is_list(current_positions) and is_integer(faction_id) do
-    # TODO: Test this
     current_position_names = Enum.map(current_positions, & &1.name)
 
     old_position_ids =

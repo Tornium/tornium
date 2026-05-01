@@ -38,9 +38,15 @@ class TornKey(BaseModel):
 
     @classmethod
     def random_key(cls) -> typing.Optional["TornKey"]:
+        from .user import User
+        from .user_settings import UserSettings
+
         return (
             TornKey.select(TornKey.api_key)
             .where((TornKey.default == True) & (TornKey.disabled == False) & (TornKey.paused == False))
+            .join(User)
+            .join(UserSettings)
+            .where(TornKey.user.settings.public_data_enabled == True)
             .order_by(fn.Random())
             .first()
         )

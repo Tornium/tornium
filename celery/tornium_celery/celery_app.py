@@ -57,11 +57,6 @@ if celery_app is None:
             "enabled": True,
             "schedule": {"type": "cron", "minute": "*", "hour": "*"},
         },  # Faction tasks
-        "refresh-factions": {
-            "task": "tasks.faction.refresh_factions",
-            "enabled": True,
-            "schedule": {"type": "cron", "minute": "5", "hour": "*"},
-        },
         "fetch-attacks-runner": {
             "task": "tasks.faction.fetch_attacks_runner",
             "enabled": True,

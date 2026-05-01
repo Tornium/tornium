@@ -196,10 +196,8 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
             faction = Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
 
             if faction is not None and len(faction.aa_keys) == 0:
-                from .faction import update_faction_positions
-
                 try:
-                    positions_data = tornget("faction/?selections=basic,positions", key)
+                    tornget("faction/?selections=basic,positions", key)
                 except TornError as e:
                     if e.code == 7:
                         user_data_kwargs["faction_aa"] = False
@@ -207,41 +205,34 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                     pass
                 else:
                     user_data_kwargs["faction_aa"] = True
-                    update_faction_positions(positions_data)
+                    # TODO: this needs to be run on elixir
+                    # update_faction_positions(positions_data)
 
-        if user_data["faction"]["position"] in ("Leader", "Co-leader"):
-            user_data_kwargs["faction_position"] = None
-            user_data_kwargs["faction_aa"] = True
+        if user_data["faction"]["position"] == "Leader":
+            Faction.update(leader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+        elif user_data["faction"]["position"] == "Co-leader":
+            Faction.update(coleader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
 
-            if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-            elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-leader",
-        ):
-            faction_position: typing.Optional[FactionPosition] = (
-                FactionPosition.select()
-                .where(
-                    (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+        if user_data["faction"]["position"] != "None":
+            try:
+                faction_position: FactionPosition = (
+                    FactionPosition.select()
+                    .where(
+                        (FactionPosition.name == user_data["faction"]["position"])
+                        & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
+                    )
+                    .get()
                 )
-                .first()
-            )
 
-            if faction_position is None:
-                user_data_kwargs["faction_position"] = None
-                user_data_kwargs["faction_aa"] = False
-            else:
                 user_data_kwargs["faction_position"] = faction_position
-                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
+                user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
+            except DoesNotExist:
+                user_data_kwargs["faction_position"] = None
+                user_data_kwargs["faction_aa"] = user_data_kwargs.get("faction_aa") or False
     else:
         faction = None
         user_data_kwargs["faction_position"] = None
@@ -338,39 +329,31 @@ def update_user_other(user_data: dict):
             .execute()
         )
 
-        if user_data["faction"]["position"] in ("Leader", "Co-leader"):
-            user_data_kwargs["faction_position"] = None
-            user_data_kwargs["faction_aa"] = True
+        if user_data["faction"]["position"] == "Leader":
+            Faction.update(leader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+        elif user_data["faction"]["position"] == "Co-leader":
+            Faction.update(coleader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
 
-            if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-            elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-leader",
-        ):
-            faction_position: typing.Optional[FactionPosition] = (
-                FactionPosition.select()
-                .where(
-                    (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+        if user_data["faction"]["position"] != "None":
+            try:
+                faction_position: FactionPosition = (
+                    FactionPosition.select()
+                    .where(
+                        (FactionPosition.name == user_data["faction"]["position"])
+                        & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
+                    )
+                    .get()
                 )
-                .first()
-            )
 
-            if faction_position is None:
-                user_data_kwargs["faction_position"] = None
-                user_data_kwargs["faction_aa"] = False
-            else:
                 user_data_kwargs["faction_position"] = faction_position
-                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
+                user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
+            except DoesNotExist:
+                user_data_kwargs["faction_position"] = None
+                user_data_kwargs["faction_aa"] = user_data_kwargs.get("faction_aa") or False
     else:
         faction = None
         user_data_kwargs["faction_position"] = None

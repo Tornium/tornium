@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, CharField, IntegerField, UUIDField
+from peewee import BooleanField, CharField, ForeignKeyField, UUIDField
+from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
+from .faction import Faction
 
 
 class FactionPosition(BaseModel):
@@ -24,30 +26,7 @@ class FactionPosition(BaseModel):
 
     pid = UUIDField(primary_key=True)
     name = CharField()
-    faction_tid = IntegerField()
+    faction_id = ForeignKeyField(Faction, null=False)
 
     default = BooleanField(default=False)
-
-    # Permissions
-    use_medical_item = BooleanField(default=False)
-    use_booster_item = BooleanField(default=False)
-    use_drug_item = BooleanField(default=False)
-    use_energy_refill = BooleanField(default=False)
-    use_nerve_refill = BooleanField(default=False)
-    loan_temporary_item = BooleanField(default=False)
-    loan_weapon_armory = BooleanField(default=False)
-    retrieve_loaned_armory = BooleanField(default=False)
-    plan_init_oc = BooleanField(default=False)
-    access_fac_api = BooleanField(default=False)
-    give_item = BooleanField(default=False)
-    give_money = BooleanField(default=False)
-    give_points = BooleanField(default=False)
-    manage_forums = BooleanField(default=False)
-    manage_applications = BooleanField(default=False)
-    kick_members = BooleanField(default=False)
-    adjust_balances = BooleanField(default=False)
-    manage_wars = BooleanField(default=False)
-    manage_upgrades = BooleanField(default=False)
-    send_newsletters = BooleanField(default=False)
-    change_announcement = BooleanField(default=False)
-    change_description = BooleanField(default=False)
+    permissions = ArrayField(CharField, default=[], null=False)

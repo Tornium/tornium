@@ -49,8 +49,8 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     high_priority_factions =
       Tornium.Schema.Faction
       |> from(as: :faction)
-      |> where([f], f.last_members > ^one_hour_ago and exists(valid_aa_key_subquery))
-      |> order_by([f, hk], asc: f.last_members)
+      |> where([f], f.last_members < ^one_hour_ago and exists(valid_aa_key_subquery))
+      |> order_by([f], asc: f.last_members)
       |> limit(@max_chunk)
       |> Repo.all()
 
@@ -78,7 +78,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   defp schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction) when is_integer(faction_id) do
     # If there is no faction AA API key available to use for this API call, it will set `:nonpublic?` to false
     # to indicate that the API call can only make and parse public selections. This allows for all factions to
-    # be regulary updated instead of only those factions that have AA keys.
+    # be regularly updated instead of only those factions that have AA keys.
     {%Tornium.Schema.TornKey{user_id: key_owner} = key, nonpublic?} = api_key(faction)
 
     query =

@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import ArrayField, BooleanField, CharField, ForeignKeyField, UUIDField
+from peewee import BooleanField, CharField, ForeignKeyField, UUIDField
+from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
 from .faction import Faction

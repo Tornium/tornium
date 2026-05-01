@@ -57,7 +57,7 @@ defmodule Tornium.Test.FactionPosition do
     # The positions for lead, co, and recruit are inserted into the database but aren't provided by the API.
   end
 
-  test "duplicte position upsertion" do
+  test "duplicate position upsertion" do
     %Tornium.Schema.Faction{tid: 1, name: "Test"} |> Repo.insert!()
 
     pid = Ecto.UUID.generate()

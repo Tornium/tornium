@@ -286,8 +286,8 @@ defmodule Tornium.User do
   def should_update_user?({id_type, id}, _refresh_existing) do
     user =
       Tornium.Schema.User
-      |> select([:last_refresh])
-      |> where(^id_type == ^id)
+      |> select([u], [:last_refresh])
+      |> where([u], ^id_type == ^id)
       |> first()
       |> Repo.one()
 

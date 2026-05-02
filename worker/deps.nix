@@ -977,7 +977,7 @@ let
 
       plug_cowboy =
         let
-          version = "2.8.0";
+          version = "2.8.1";
           drv = buildMix {
             inherit version;
             name = "plug_cowboy";
@@ -986,7 +986,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "plug_cowboy";
-              sha256 = "9cbfaaf17463334ca31aed38ea7e08a68ee37cabc077b1e9be6d2fb68e0171d0";
+              sha256 = "4c200288673d5bc86a0ab7dc6a2a069176a74e5d573ef62740a1c517458a5f26";
             };
 
             beamDeps = [
@@ -1309,17 +1309,16 @@ let
 
       torngen_elixir_client =
         let
-          version = "5.5.3+torngen-v0.1.10";
+          version = "5.7.0";
           drv = buildMix {
             inherit version;
             name = "torngen_elixir_client";
             appConfigPath = ./config;
 
-            src = fetchFromGitHub {
-              owner = "Tornium";
-              repo = "torngen_elixir_client";
-              rev = "188c7ab35fafa5c5f2f2738bfc2668775c069172";
-              hash = "sha256-Ua99eQ3F3RCz9Wm5rjLvnKxvoUP7laTw+zlDKh7fh7g=";
+            src = fetchHex {
+              inherit version;
+              pkg = "torngen_elixir_client";
+              sha256 = "28a31902ba9a2733d050cd6c0b12e5340a4db5c3bc59c689a07c3dfdc431d00f";
             };
 
             beamDeps = [

@@ -80,13 +80,15 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
 
       Tornium.Schema.User
       |> where([u], u.faction_id == ^faction_id and (is_nil(u.fedded_until) or u.fedded_until <= ^today))
-      |> join(:left, [u], oc in subquery(latest_oc_subquery), on: oc.user_id == u.tid and oc.faction_id == u.faction_id)
+      |> join(:inner, [u], p in assoc(u, :faction_position), on: u.faction_position_id == p.pid)
+      |> where([u, p], p.name != "Recruit")
+      |> join(:left, [u, p], oc in subquery(latest_oc_subquery), on: oc.user_id == u.tid and oc.faction_id == u.faction_id)
       |> where(
-        [u, oc],
+        [u, p, oc],
         is_nil(oc.user_id) or
           (not is_nil(oc.executed_at) and ^now - oc.executed_at > ^missing_member_minimum_duration)
       )
-      |> select([u, oc], %{
+      |> select([u, p, oc], %{
         user_id: u.tid,
         user_name: u.name,
         user_discord_id: u.discord_id,

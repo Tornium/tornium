@@ -186,7 +186,7 @@ let
 
       bandit =
         let
-          version = "1.10.4";
+          version = "1.11.0";
           drv = buildMix {
             inherit version;
             name = "bandit";
@@ -195,7 +195,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "bandit";
-              sha256 = "a5faf501042ac1f31d736d9d4a813b3db4ef812e634583b6a457b0928798a51d";
+              sha256 = "c949d93a325a28da2333dde5a9ab61986ad2c2b7226347db6a28303b9139865e";
             };
 
             beamDeps = [

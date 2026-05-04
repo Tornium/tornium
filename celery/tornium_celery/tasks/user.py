@@ -175,7 +175,7 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
 )
 @with_db_connection
 def update_user_self(user_data: dict, key: typing.Optional[str] = None):
-    user_data_kwargs = {"faction_aa": False, "fedded_until": User.get_fedded_until(user_data)}
+    user_data_kwargs = {"faction_aa": None, "fedded_until": User.get_fedded_until(user_data)}
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
@@ -229,13 +229,15 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                 )
 
                 user_data_kwargs["faction_position"] = faction_position
-                user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
+                if user_data_kwargs["faction_aa"] is None:
+                    user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
             except DoesNotExist:
                 user_data_kwargs["faction_position"] = None
-                user_data_kwargs["faction_aa"] = user_data_kwargs.get("faction_aa") or False
     else:
         faction = None
         user_data_kwargs["faction_position"] = None
+
+    if user_data_kwargs["faction_aa"] is None:
         user_data_kwargs["faction_aa"] = False
 
     User.insert(
@@ -353,7 +355,7 @@ def update_user_other(user_data: dict):
                 user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
             except DoesNotExist:
                 user_data_kwargs["faction_position"] = None
-                user_data_kwargs["faction_aa"] = user_data_kwargs.get("faction_aa") or False
+                user_data_kwargs["faction_aa"] = False
     else:
         faction = None
         user_data_kwargs["faction_position"] = None

@@ -138,8 +138,6 @@ defmodule Tornium.User do
       ) do
     update_user_faction_data(user_data)
 
-    {:ok, last_action} = DateTime.from_unix(last_action)
-
     # TODO: Replace set in the on_conflict clause with replace
     {:ok, _} =
       Repo.insert(
@@ -150,7 +148,7 @@ defmodule Tornium.User do
           discord_id: Tornium.Utils.string_to_integer(discord_id),
           faction_id: faction_tid,
           status: status,
-          last_action: last_action,
+          last_action: DateTime.from_unix!(last_action),
           fedded_until: fedded_until(user_data),
           last_refresh: DateTime.utc_now()
         },
@@ -161,7 +159,7 @@ defmodule Tornium.User do
             discord_id: Tornium.Utils.string_to_integer(discord_id),
             faction_id: faction_tid,
             status: status,
-            last_action: last_action,
+            last_action: DateTime.from_unix!(last_action),
             fedded_until: fedded_until(user_data),
             last_refresh: DateTime.utc_now()
           ]
@@ -184,60 +182,17 @@ defmodule Tornium.User do
            _user_data
        ) do
     # TODO: Replace set in the on_conflict clause with replace
-    Repo.insert(
-      %Tornium.Schema.Faction{
-        tid: tid,
-        name: name,
-        tag: tag
-      },
-      on_conflict: [
-        set: [name: name, tag: tag]
-      ],
-      conflict_target: :tid
-    )
+    {:ok, _} =
+      Repo.insert(%Tornium.Schema.Faction{tid: tid, name: name, tag: tag},
+        on_conflict: [set: [name: name, tag: tag]],
+        conflict_target: :tid
+      )
 
     true
   end
 
   @spec update_user_faction_position(user_data :: map()) :: boolean()
-  defp update_user_faction_position(
-         %{"player_id" => tid, "faction" => %{"position" => "Leader", "faction_id" => faction_tid}} = _user_data
-       ) do
-    {1, _} =
-      Tornium.Schema.Faction
-      |> where(tid: ^faction_tid)
-      |> update(set: [leader_id: ^tid])
-      |> Repo.update_all([])
-
-    {1, _} =
-      Tornium.Schema.User
-      |> where(tid: ^tid)
-      |> update(set: [faction_position_id: nil, faction_aa: true])
-      |> Repo.update_all([])
-
-    true
-  end
-
-  defp update_user_faction_position(
-         %{"player_id" => tid, "faction" => %{"position" => "Co-leader", "faction_id" => faction_tid}} = _user_data
-       ) do
-    {1, _} =
-      Tornium.Schema.Faction
-      |> where(tid: ^faction_tid)
-      |> update(set: [coleader_id: ^tid])
-      |> Repo.update_all([])
-
-    {1, _} =
-      Tornium.Schema.User
-      |> where(tid: ^tid)
-      |> update(set: [faction_position_id: nil, faction_aa: true])
-      |> Repo.update_all([])
-
-    true
-  end
-
-  defp update_user_faction_position(%{"player_id" => tid, "faction" => %{"position" => position}} = _user_data)
-       when position in ["None", "Recruit"] do
+  defp update_user_faction_position(%{"player_id" => tid, "faction" => %{"position" => "None"}} = _user_data) do
     {1, _} =
       Tornium.Schema.User
       |> where(tid: ^tid)

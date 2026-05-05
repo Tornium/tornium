@@ -138,7 +138,6 @@ defmodule Tornium.User do
       ) do
     update_user_faction_data(user_data)
 
-    # TODO: Replace set in the on_conflict clause with replace
     {:ok, _} =
       Repo.insert(
         %Tornium.Schema.User{
@@ -152,18 +151,8 @@ defmodule Tornium.User do
           fedded_until: fedded_until(user_data),
           last_refresh: DateTime.utc_now()
         },
-        on_conflict: [
-          set: [
-            name: name,
-            level: level,
-            discord_id: Tornium.Utils.string_to_integer(discord_id),
-            faction_id: faction_tid,
-            status: status,
-            last_action: DateTime.from_unix!(last_action),
-            fedded_until: fedded_until(user_data),
-            last_refresh: DateTime.utc_now()
-          ]
-        ],
+        on_conflict:
+          {:replace, [:name, :level, :discord_id, :faction_id, :status, :last_action, :last_refresh, :fedded_until]},
         conflict_target: :tid
       )
 
@@ -181,10 +170,9 @@ defmodule Tornium.User do
          %{"faction" => %{"faction_id" => tid, "faction_name" => name, "faction_tag" => tag}} =
            _user_data
        ) do
-    # TODO: Replace set in the on_conflict clause with replace
     {:ok, _} =
       Repo.insert(%Tornium.Schema.Faction{tid: tid, name: name, tag: tag},
-        on_conflict: [set: [name: name, tag: tag]],
+        on_conflict: {:replace, [:name, :tag]},
         conflict_target: :tid
       )
 

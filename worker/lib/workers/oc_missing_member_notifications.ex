@@ -134,14 +134,7 @@ defmodule Tornium.Workers.OCMissingMemberNotifications do
       when is_list(missing_members) and length(missing_members) <= 10 and is_integer(channel_id) and is_list(roles) do
     role_assigns =
       missing_members
-      |> Enum.reject(fn %{last_oc_executed_at: last_oc_executed_at, user_discord_id: user_discord_id} ->
-        # TODO: Role and missing user pings are disabled until the feature can check that the member isn't
-        # in recruit status. We can assume that someone who has never been in an OC is in recruit status for
-        # now.
-
-        # `is_nil(user_discord_id)` is to ensure we aren't pinging a user's non-existent Discord account
-        is_nil(user_discord_id) or user_discord_id == 0 or is_nil(last_oc_executed_at)
-      end)
+      |> Enum.filter(fn %{user_discord_id: user_discord_id} -> is_integer(user_discord_id) and user_discord_id > 0 end)
       |> Enum.map(fn %{user_discord_id: user_discord_id} -> {:user, user_discord_id} end)
 
     %Nostrum.Struct.Message{

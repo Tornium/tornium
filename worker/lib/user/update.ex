@@ -205,19 +205,12 @@ defmodule Tornium.User do
   defp update_user_faction_position(
          %{"player_id" => tid, "faction" => %{"position" => position, "faction_id" => faction_tid}} = _user_data
        ) do
-    position_subquery =
-      Tornium.Schema.FactionPosition
-      |> select([:pid, :permissions])
-      |> select([p], %{pid: p.pid, has_aa: "Faction API Access" in p.permissions})
-      |> where([p], p.name == ^position)
-      |> where([p], p.faction_id == ^faction_tid)
-      |> limit(1)
-
     {count, _} =
       Tornium.Schema.User
-      |> join(:inner, [u], p in subquery(position_subquery), on: u.faction_position_id == p.pid)
-      |> where([u, p], u.tid == ^tid)
-      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: p.has_aa])
+      |> where([u], u.tid == ^tid)
+      |> join(:inner, [u], p in assoc(u, :faction_position), on: u.faction_position_id == p.pid)
+      |> where([u, p], p.name == ^position and p.faction_id == ^faction_tid)
+      |> update([u, p], set: [faction_position_id: p.pid, faction_aa: "Faction API Acess" in p.permissions])
       |> Repo.update_all([])
 
     case count do

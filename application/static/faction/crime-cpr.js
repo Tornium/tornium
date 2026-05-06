@@ -74,6 +74,10 @@ function loadViewerCPR(ocName, cprData) {
 function loadViewer(event) {
     const ocName = this.value;
 
+    if (ocName == "") {
+        return;
+    }
+
     tfetch("GET", `faction/${factionID}/crime/cpr/${ocName}`, {
         errorTitle: "CPR Retrieval Failed",
     }).then((data) => {
@@ -106,9 +110,13 @@ ready(() => {
 
     const ocNamesPromise = ocNamesRequest().then(() => {
         document.querySelectorAll(".oc-name-selector").forEach((element) => {
-            new TomSelect(element, {
-                create: false,
-            });
+            const emptyOption = document.createElement("option");
+            emptyOption.value = "";
+            emptyOption.textContent = "Select an OC type...";
+            emptyOption.setAttribute("selected", "");
+            element.prepend(emptyOption);
+
+            new TomSelect(element, { create: false });
         });
     });
 

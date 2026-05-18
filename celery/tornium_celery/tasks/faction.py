@@ -330,9 +330,8 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
 
         try:
             update_user.s(tid=opponent_id, key=random.choice(faction.aa_keys)).apply_async(ignore_result=True)
-        except Exception as e:
-            logger.exception(e)
-            continue
+        except IndexError:
+            pass
 
         try:
             if attack["defender_faction"] == faction_data["ID"]:

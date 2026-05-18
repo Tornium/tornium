@@ -35,7 +35,7 @@ in {
     systemd.services.tornium-celery = {
       description = "Tornium Celery workers";
       after = [ "network-online.target" "postgresql.service" ];
-      wants = [ "network-online.target" ];
+      wants = [ "network-online.target" "tornium-celery-exporter.service" ];
       restartTriggers = [ config.sops.templates."tornium-settings.json".path ];
 
       serviceConfig = {

@@ -103,7 +103,7 @@ def refresh_guild(guild: dict):
                     positions_to_delete.append(position_uuid)
                     continue
 
-                if position.faction_tid != int(faction_tid):
+                if position.faction_id != int(faction_tid):
                     positions_to_delete.append(position_uuid)
 
             for position_uuid in positions_to_delete:

@@ -330,9 +330,8 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
 
         try:
             update_user.s(tid=opponent_id, key=random.choice(faction.aa_keys)).apply_async(ignore_result=True)
-        except Exception as e:
-            logger.exception(e)
-            continue
+        except IndexError:
+            pass
 
         try:
             if attack["defender_faction"] == faction_data["ID"]:
@@ -638,13 +637,13 @@ def generate_retaliation_embed(
                         "type": 2,
                         "style": 5,
                         "label": "Attack Log",
-                        "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                        "url": f"https://www.torn.com/page.php?sid=attackLog&ID={attack['code']}",
                     },
                     {
                         "type": 2,
                         "style": 5,
                         "label": "RETAL!!",
-                        "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}",
+                        "url": f"https://www.torn.com/page.php?sid=attack&user2ID={opponent.tid}",
                     },
                 ],
             },
@@ -852,7 +851,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Attack Log",
-                                "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                                "url": f"https://www.torn.com/page.php?sid=attackLog&ID={attack['code']}",
                             },
                         ],
                     }

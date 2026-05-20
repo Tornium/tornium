@@ -90,13 +90,16 @@ def create_client():
         return make_exception_response("1000", details={"message": "Invalid client type"})
 
     if client_type == "authorization-code-grant":
-        grant = "code"
+        grant = ["authorization_code"]
+        response_type = ["code"]
         auth_method = "client_secret_basic"
     elif client_type == "authorization-code-grant-pkce":
-        grant = "code"
+        grant = "authorization_code"
+        response_type = ["code"]
         auth_method = "none"
     elif client_type == "device-authorization-grant":
-        grant = "urn:ietf:params:oauth:grant-type:device_code"
+        grant = ["urn:ietf:params:oauth:grant-type:device_code"]
+        response_type = []
         auth_method = "none"
     else:
         return make_exception_response(
@@ -114,9 +117,9 @@ def create_client():
         client_metadata={
             "client_name": client_name,
             "client_uri": "",
-            "grant_types": [grant],
+            "grant_types": grant,
             "redirect_uris": [],
-            "response_types": [],
+            "response_types": response_type,
             "scope": "",
             "token_endpoint_auth_method": auth_method,
             "official": False,

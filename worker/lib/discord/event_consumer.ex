@@ -26,8 +26,9 @@ defmodule Tornium.Discord.Consumer do
     |> Tornium.Guild.Verify.handle_on_join(new_member)
     |> verification_jail_message(new_member)
 
-    {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
-    Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
+    # TODO: Convert this to log via Alloy
+    # {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
+    # Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
     nil
   end
 

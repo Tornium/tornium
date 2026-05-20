@@ -158,4 +158,90 @@ defmodule Tornium.Schema.User do
       last_refresh: DateTime.utc_now()
     }
   end
+
+  @doc """
+  Convert the API data into user struct.
+
+  ## Options
+    * `:discord_data` - user's Discord data from `user/discord` (default: `nil`)
+    * `:stats_data` - user's battlestats data from `user/battlestats` (default: `nil`)
+  """
+  @spec from_data(profile_data :: Torngen.Client.Schema.UserProfileResponse.t(), opts :: keyword()) :: t()
+  def from_data(
+        %Torngen.Client.Schema.UserProfileResponse{
+          profile: %{
+            id: user_id,
+            name: name,
+            level: level,
+            faction_id: faction_id,
+            status: status_data,
+            last_action: %Torngen.Client.Schema.UserLastAction{
+              timestamp: last_action_timestamp,
+              status: last_action_status
+            }
+          }
+        } = _profile_data,
+        opts \\ []
+      ) do
+    discord_data = Keyword.get(opts, :discord_data, nil)
+    stats_data = Keyword.get(opts, :stats_data, nil)
+
+    %__MODULE__{
+      tid: user_id,
+      name: name,
+      level: level,
+      faction_id: faction_id,
+      status: last_action_status,
+      last_action: DateTime.from_unix!(last_action_timestamp, :second),
+      fedded_until: Tornium.User.fedded_until(status_data),
+      last_refresh: DateTime.utc_now()
+    }
+    |> from_discord_data(discord_data)
+    |> from_stats_data(stats_data)
+  end
+
+  @spec from_discord_data(user :: t(), discord_data :: Torngen.Client.Schema.UserDiscordResponse.t() | nil) :: t()
+  defp from_discord_data(%__MODULE__{} = user, discord_data) when is_nil(discord_data) do
+    user
+  end
+
+  defp from_discord_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserDiscordResponse{discord: %{discord_id: discord_id}} = _discord_data
+       )
+       when discord_id == "" do
+    # When the Torn API returns an empty string for the Discord ID, that represents a null value for
+    # the Discord ID.
+    %{user | discord_id: nil}
+  end
+
+  defp from_discord_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserDiscordResponse{discord: %{discord_id: discord_id}} = _discord_data
+       )
+       when is_binary(discord_id) do
+    # When the Torn API returns an empty string for the Discord ID, that represents a null value for
+    # the Discord ID.
+    %{user | discord_id: String.to_integer(discord_id)}
+  end
+
+  @spec from_stats_data(user :: t(), stats_data :: Torngen.Client.Schema.UserBattleStatsResponse.t() | nil) :: t()
+  defp from_stats_data(%__MODULE__{} = user, stats_data) when is_nil(stats_data) do
+    user
+  end
+
+  defp from_stats_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserBattleStatsResponse{
+           battlestats: %{
+             strength: %Torngen.Client.Schema.UserBattleStatDetail{value: strength},
+             defense: %Torngen.Client.Schema.UserBattleStatDetail{value: defense},
+             speed: %Torngen.Client.Schema.UserBattleStatDetail{value: speed},
+             dexterity: %Torngen.Client.Schema.UserBattleStatDetail{value: dexterity}
+           }
+         } = _stats_data
+       ) do
+    stat_score = :math.sqrt(strength) + :math.sqrt(defense) + :math.sqrt(speed) + :math.sqrt(dexterity)
+    %{user | strength: strength, defense: defense, speed: speed, dexterity: dexterity}
+  end
 end

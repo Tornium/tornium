@@ -24,7 +24,7 @@ defmodule Tornium.User.Key do
   @doc """
   Get the default API key for a specific user or a specific user ID.
   """
-  @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer()) :: Tornium.Schema.TornKey.t() | nil
+  @spec get_by_user(user :: Tornium.Schema.User.t() | pos_integer()) :: Tornium.Schema.TornKey.t() | nil
   def get_by_user(%Tornium.Schema.User{} = user) do
     pid = Process.whereis(Tornium.User.KeyStore)
     get_by_user(user, pid)
@@ -35,7 +35,7 @@ defmodule Tornium.User.Key do
     get_by_user(user_id, pid)
   end
 
-  @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer(), pid :: pid()) ::
+  @spec get_by_user(user :: Tornium.Schema.User.t() | pos_integer(), pid :: pid()) ::
           Tornium.Schema.TornKey.t() | nil
   def get_by_user(%Tornium.Schema.User{tid: user_id} = _user, pid) when not is_nil(pid) do
     get_by_user(user_id, pid)
@@ -44,11 +44,14 @@ defmodule Tornium.User.Key do
   def get_by_user(user_id, pid) when is_integer(user_id) and not is_nil(pid) do
     case Tornium.User.KeyStore.get(pid, user_id) do
       nil ->
-        where = [user_id: user_id, paused: false, disabled: false, default: true]
-        query = from(Tornium.Schema.TornKey, where: ^where)
-        torn_key = Repo.one(query)
-        Tornium.User.KeyStore.put(pid, user_id, torn_key)
-        torn_key
+        key =
+          Tornium.Schema.TornKey
+          |> where([k], k.user_id == ^user_id and k.paused == false and k.disabled == false and k.default == true)
+          |> first()
+          |> Repo.one()
+
+        Tornium.User.KeyStore.put(pid, user_id, key)
+        key
 
       torn_key ->
         torn_key

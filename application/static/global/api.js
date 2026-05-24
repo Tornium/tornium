@@ -34,7 +34,6 @@ function generateTFetchErrorToast(jsonError, errorTitle) {
 function _tfetch(method, endpoint, { body, headers, errorTitle, errorHandler }) {
     const accept_type = (headers || {})["Accept"] || "*/*";
     const accept_json = accept_type == "*/*" || accept_type == "application/json";
-    console.log("json: " + accept_json);
     const accept_csv = accept_type == "text/csv";
 
     return window

@@ -22,6 +22,7 @@ class TableViewer extends HTMLElement {
         this.container = this.querySelector(".viewer-container");
         this.previousButton = null;
         this.nextButton = null;
+        this.exportButton = null;
         this.filters = this.registerFilters();
     }
 
@@ -54,6 +55,16 @@ class TableViewer extends HTMLElement {
         const buttonContainer = document.createElement("div");
         buttonContainer.classList.add("col-sm-12", "col-md-6", "d-flex", "justify-content-end");
         footer.appendChild(buttonContainer);
+
+        if (this.getAttribute("data-export") == "true") {
+            this.exportButton = document.createElement("button");
+            this.exportButton.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
+            this.exportButton.textContent = "Export";
+            this.exportButton.addEventListener("click", (event) => {
+                this.export();
+            });
+            buttonContainer.appendChild(this.exportButton);
+        }
 
         this.previousButton = document.createElement("button");
         this.previousButton.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
@@ -238,6 +249,31 @@ class TableViewer extends HTMLElement {
         }
 
         return searchParams;
+    }
+
+    export() {
+        const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
+        const error = this.getAttribute("data-error");
+
+        let apiEndpointSearch = new URLSearchParams(apiEndpoint.search);
+        apiEndpointSearch = this.applyFilters(apiEndpointSearch);
+
+        apiEndpoint.search = apiEndpointSearch;
+
+        apiEndpoint.searchParams.append("offset", this.offset);
+        apiEndpoint.searchParams.append("limit", this.limit);
+
+        tfetch("GET", apiEndpoint.pathname.toString().substring(1) + apiEndpoint.search.toString(), {
+            headers: { Accept: "text/csv" },
+            errorTitle: error,
+            errorHandler: (jsonError) => {
+                const callback = this.getErrorCallback();
+                callback(jsonError, this.container);
+            },
+        }).then((response) => {
+            const url = URL.createObjectURL(response);
+            window.open(url, "_blank");
+        });
     }
 }
 

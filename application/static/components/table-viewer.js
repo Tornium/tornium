@@ -252,6 +252,7 @@ class TableViewer extends HTMLElement {
     }
 
     export() {
+        this.exportButton.setAttribute("disabled", "");
         const apiEndpoint = new URL(window.location.origin + "/" + this.getAttribute("data-endpoint"));
         const error = this.getAttribute("data-error");
 
@@ -269,10 +270,12 @@ class TableViewer extends HTMLElement {
             errorHandler: (jsonError) => {
                 const callback = this.getErrorCallback();
                 callback(jsonError, this.container);
+                this.exportButton.removeAttribute("disabled");
             },
         }).then((response) => {
             const url = URL.createObjectURL(response);
             window.open(url, "_blank");
+            this.exportButton.removeAttribute("disabled");
         });
     }
 }

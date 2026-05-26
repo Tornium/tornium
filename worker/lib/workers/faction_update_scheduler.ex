@@ -74,8 +74,19 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     :ok
   end
 
-  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t()) :: term()
-  defp schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction) when is_integer(faction_id) do
+  @doc """
+  Schedule a specific faction's data be updated.
+  """
+  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t() | pos_integer()) :: term()
+  def schedule_faction_update(faction) when is_integer(faction) do
+    Tornium.Schema.Faction
+    |> where([f], f.tid == ^faction)
+    |> first()
+    |> Repo.one!()
+    |> schedule_faction_update()
+  end
+
+  def schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction) when is_integer(faction_id) do
     # If there is no faction AA API key available to use for this API call, it will set `:nonpublic?` to false
     # to indicate that the API call can only make and parse public selections. This allows for all factions to
     # be regularly updated instead of only those factions that have AA keys.

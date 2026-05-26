@@ -260,12 +260,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       selector.addEventListener("change", onSelectedMemberChange);
     });
   }
-  function updateMemberOptimums(optimumData) {
-    console.log(optimumData);
-    Promise.any([
+  function waitForRoot() {
+    return Promise.any([
       waitForElement(".tt-oc2-list"),
       waitForElement(`#faction-crimes-root hr.page-head-delimiter + div:has(> div[class^="wrapper___"][data-oc-id])`)
-    ]).then((root) => {
+    ]);
+  }
+  function updateMemberOptimums(optimumData) {
+    waitForRoot().then((root) => {
       if (!root.classList.contains("tt-oc2-list")) {
         root.classList.add("tt-oc2-list");
       }
@@ -280,33 +282,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
         }
         for (const slotElement of slotElements) {
           const titleElement = slotElement.querySelector(`span[class*="title___"]`);
-          const badgeContainer = slotElement.querySelector(`[class*="badgeContainer___"]`);
-          badgeContainer.classList.add("tornium-crimes-slot-badge-container");
+          const badgeContainer = slotElement.querySelector(
+            `[class*="badgeContainer___"], [class*="joinContainer___"]`
+          );
           if (badgeContainer == null || titleElement == null) {
             continue;
           }
+          badgeContainer.classList.add("tornium-crimes-slot-badge-container");
           const slotData = optimumData.find((optimumSlotData) => {
             return optimumSlotData.oc_id == crimeID && `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` == titleElement.textContent || optimumSlotData.oc_position == titleElement.textContent;
           });
           if (slotData == null) {
             continue;
           }
-          const slotInfo = document.createElement("div");
-          slotInfo.classList.add("tornium-crimes-slot-info");
+          let slotInfo = badgeContainer.querySelector(".tornium-crimes-slot-info");
+          if (slotInfo == null) {
+            slotInfo = document.createElement("div");
+            slotInfo.classList.add("tornium-crimes-slot-info");
+            badgeContainer.prepend(slotInfo);
+          }
           slotInfo.textContent = `\u0394EV: ${(slotData.team_expected_value_change * 100).toFixed(2)}%; \u0394EV': ${(slotData.user_expected_value_change * 100).toFixed(2)}%; \u0394P: ${(slotData.team_probability_change * 100).toFixed(2)}%`;
-          badgeContainer.prepend(slotInfo);
         }
       }
     });
   }
-  function onSelectedMemberChange(event) {
+  function loadMemberData(userID) {
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
-      return identityData.factiontid;
-    }).then((factionID) => {
-      return torniumFetch(`faction/${factionID}/crime/member/${event.target.value}/optimum`, { ttl: 60 });
+      return [identityData.factiontid, identityData.tid];
+    }).then(([factionID, identityUserID]) => {
+      return torniumFetch(`faction/${factionID}/crime/member/${userID || identityUserID}/optimum`, { ttl: 60 });
     }).then((optimumData) => {
       return updateMemberOptimums(optimumData);
     });
+  }
+  function onSelectedMemberChange(event) {
+    loadMemberData(event.target.value);
   }
   function injectStyles() {
     GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
@@ -314,6 +324,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     GM_addStyle(
       `div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`
     );
+    GM_addStyle(`div[class*="planningTime___"] {display: none !important;}`);
+  }
+  function startCrimeTabListener() {
+    waitForRoot().then(() => {
+      const tabButtonContainer = document.querySelector(`div[class*="buttonsContainer___"]`);
+      tabButtonContainer.addEventListener("click", () => {
+        loadMemberData(null);
+      });
+    });
   }
 
   // settings.js
@@ -325,9 +344,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     if (pageLinks == void 0) {
       log("Missing page links element");
       return;
+    } else if (pageLinks.querySelector(".tornium-crimes-settings-button") != null) {
+      return;
     }
     const settingsButton = document.createElement("a");
-    settingsButton.classList.add("t-clear", "h", "c-pointer", "m-icon", "line-h24", "right", "last");
+    settingsButton.classList.add(
+      "t-clear",
+      "h",
+      "c-pointer",
+      "m-icon",
+      "line-h24",
+      "right",
+      "last",
+      "tornium-crimes-settings-button"
+    );
     settingsButton.setAttribute("href", `/tornium/${APP_ID}/settings`);
     const settingsIcon = document.createElement("span");
     settingsIcon.classList.add("icon-wrap", "svg-icon-wrap", "link-icon-svg");
@@ -455,6 +485,7 @@ margin: 8px 6px 0 0;
   function executeCrimes() {
     createSettingsButton();
     injectStyles();
+    startCrimeTabListener();
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
       return [identityData.factiontid, identityData.tid];
     }).then(([factionID, userID]) => {

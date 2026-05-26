@@ -136,16 +136,30 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   end
 
   @spec api_key(faction :: Tornium.Schema.Faction.t()) :: {Tornium.Schema.TornKey.t(), boolean()}
-  defp api_key(%Tornium.Schema.Faction{tid: faction_id} = _faction) do
+  defp api_key(%Tornium.Schema.Faction{tid: faction_id, leader_id: leader_id, coleader_id: coleader_id} = _faction) do
     case Tornium.Faction.get_key(faction_id) do
       %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level} = aa_key
       when access_level in [:limited, :full] ->
         {aa_key, true}
 
       _ ->
-        # TODO: Convert this to use some sort of circular buffer with Tornium.User.Key.get_random/1 so
-        # that there only needs to be 1 DB call
-        {Tornium.User.Key.get_random!(), false}
+        # TODO: Clean up these nested cases
+
+        # Sometimes, there will not be any faction positions but the leader/coleader of the faction will be set and will
+        # have an API key. We should attempt to use their API key so that we can get the faction positions and set their
+        # `:faction_aa` value. If the leader/coleader is not signed in, we should fallback to a random API key.
+        leadership_key = Tornium.User.Key.get_by_user(leader_id) or Tornium.User.Key.get_by_user(coleader_id)
+
+        case leadership_key do
+          %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level}
+          when access_level in [:limited, :full] ->
+            {leadership_key, true}
+
+          nil ->
+            # TODO: Convert this to use some sort of circular buffer with Tornium.User.Key.get_random/1 so
+            # that there only needs to be 1 DB call
+            {Tornium.User.Key.get_random!(), false}
+        end
     end
   end
 end

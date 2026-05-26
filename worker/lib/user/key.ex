@@ -35,6 +35,10 @@ defmodule Tornium.User.Key do
     get_by_user(user_id, pid)
   end
 
+  def get_by_user(user_id) when is_nil(user_id) do
+    nil
+  end
+
   @spec get_by_user(user :: Tornium.Schema.User.t() | non_neg_integer(), pid :: pid()) ::
           Tornium.Schema.TornKey.t() | nil
   def get_by_user(%Tornium.Schema.User{tid: user_id} = _user, pid) when not is_nil(pid) do

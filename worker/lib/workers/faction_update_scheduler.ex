@@ -76,28 +76,35 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
 
   @doc """
   Schedule a specific faction's data be updated.
+
+  ## Options
+    * `:public?` - Only collect public data regardless of the API key available (default: `false`)
   """
-  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t() | pos_integer()) :: term()
-  def schedule_faction_update(faction) when is_integer(faction) do
+  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t() | pos_integer(), opts :: keyword()) :: term()
+  def schedule_faction_update(faction, opts \\ [])
+
+  def schedule_faction_update(faction, opts) when is_integer(faction) do
     Tornium.Schema.Faction
     |> where([f], f.tid == ^faction)
     |> first()
     |> Repo.one!()
-    |> schedule_faction_update()
+    |> schedule_faction_update(opts)
   end
 
-  def schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction) when is_integer(faction_id) do
+  def schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction, opts) when is_integer(faction_id) do
     # If there is no faction AA API key available to use for this API call, it will set `:nonpublic?` to false
     # to indicate that the API call can only make and parse public selections. This allows for all factions to
     # be regularly updated instead of only those factions that have AA keys.
     {%Tornium.Schema.TornKey{user_id: key_owner} = key, nonpublic?} = api_key(faction)
+
+    force_public? = Keyword.get(opts, :public?, false)
 
     query =
       Tornex.SpecQuery.new(nice: 10, resource_id: faction_id)
       |> Tornium.Schema.TornKey.put_key(key)
 
     query =
-      if nonpublic? do
+      if nonpublic? and not force_public? do
         query
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Basic)
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Members)

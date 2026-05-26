@@ -47,6 +47,37 @@ def get_oc_names(*args, **kwargs):
     return jsonify(oc_names), 200, api_ratelimit_response(key)
 
 
+@require_oauth()
+@ratelimit
+@global_cache
+def get_oc_slots(*args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    # TODO: Convert this to use a table of information on OCs from the API directly
+    slots = (
+        OrganizedCrimeSlot.select(
+            OrganizedCrime.oc_name, OrganizedCrimeSlot.crime_position, OrganizedCrimeSlot.crime_position_index
+        )
+        .join(OrganizedCrime)
+        .distinct(OrganizedCrime.oc_name, OrganizedCrimeSlot.crime_position, OrganizedCrimeSlot.crime_position_index)
+    )
+
+    return (
+        jsonify(
+            [
+                {
+                    "oc": slot.oc.oc_name,
+                    "position_name": slot.crime_position,
+                    "position_index": slot.crime_position_index,
+                }
+                for slot in slots
+            ]
+        ),
+        200,
+        api_ratelimit_response(key),
+    )
+
+
 @require_oauth("faction:crimes", "faction")
 @ratelimit
 def get_delays(faction_id: int, *args, **kwargs):

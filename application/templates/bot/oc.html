@@ -210,16 +210,6 @@ Tornium - OCs
                 <hr />
 
                 <p class="card-text">
-                    <b>Initialized OCs:</b> Notifications regarding OCs being initialized.
-                    
-                    <br />
-                    <br />
-                    Not yet implemented
-                </p>
-
-                <hr />
-
-                <p class="card-text">
                     <b>Stalled OCs:</b> Notifications regarding OCs that are stalled where not all slots are filled but filled slots are completed.
                     
                     <br />
@@ -230,7 +220,7 @@ Tornium - OCs
                 <hr />
 
                 <p class="card-text">
-                    <b>Extra-Range OCs:</b> Notifications regarding OCs that have members with CPRs in a slot that is too low or too high
+                    <b>Extra-Range OCs:</b> Notifications regarding OCs that have members with CPRs in a slot that is too low or too high. The global range applies to all OC slots unless overriden for a specific slot.
                 </p>
 
                 <div class="row w-100 ps-3">
@@ -267,76 +257,44 @@ Tornium - OCs
 
                     <div class="col-sm-12">
                         <div class="ms-2 mt-1 fw-bold">Extra-Range Global Minimum-Maximum</div>
-                        <div class="input-group">
-                            <span class="input-group-text">Min</span>
-                            <input
-                                type="number"
-                                class="form-control oc-range-global-min"
-                                data-faction="{{ faction.tid }}"
-                                aria-label="Minimum Global CPR"
-                                value="{{ faction.server_oc_config.extra_range_global_min }}"
-                                autocomplete="off"
-                            >
 
-                            <span class="input-group-text">Max</span>
-                            <input
-                                type="number"
-                                class="form-control oc-range-global-max"
-                                data-faction="{{ faction.tid }}"
-                                aria-label="Maximum Global CPR"
-                                value="{{ faction.server_oc_config.extra_range_global_max }}"
-                                autocomplete="off"
-                            >
+                        <div class="d-flex gap-2">
+                            <div class="input-group">
+                                <span class="input-group-text">Min</span>
+                                <input
+                                    type="number"
+                                    class="form-control oc-range-global-min"
+                                    data-faction="{{ faction.tid }}"
+                                    aria-label="Minimum Global CPR"
+                                    value="{{ faction.server_oc_config.extra_range_global_min }}"
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                            <div class="input-group">
+                                <span class="input-group-text">Max</span>
+                                <input
+                                    type="number"
+                                    class="form-control oc-range-global-max"
+                                    data-faction="{{ faction.tid }}"
+                                    aria-label="Maximum Global CPR"
+                                    value="{{ faction.server_oc_config.extra_range_global_max }}"
+                                    autocomplete="off"
+                                >
+                            </div>
                         </div>
                     </div>
 
                     <div class="col-sm-12">
                         <div class="ms-2 mt-1 fw-bold">Extra-Range Per-OC Minimum-Maximum</div>
-                        <div class="list-group list-group-range-crimes" data-faction="{{ faction.tid }}">
-                            <div class="list-group-item" aria-disabled="true" disabled>
-                                <!-- TODO: Add name describing this select input -->
-                                <select
-                                    class="oc-name-selector oc-range-crimes w-100"
-                                    data-faction="{{ faction.tid }}"
-                                    aria-label="Extra-Range Crimes"
-                                    data-live-search="true"
-                                    data-selected-text-format="count > 2"
-                                    data-selected-crimes="{{ faction.server_oc_config.local_range_crimes }}"
-                                    multiple
-                                ></select>
-                            </div>
+                        <select
+                            class="oc-name-selector oc-range-crimes w-100"
+                            data-faction="{{ faction.tid }}"
+                            aria-label="Extra-Range Crimes"
+                            data-live-search="true"
+                        ></select>
 
-                            {% for crime_config in faction.server_oc_config.local_range_configs %}
-                            <div class="list-group-item" data-crime-name="{{ crime_config.oc_name }}">
-                                <div class="fw-bold">{{ crime_config.oc_name }}</div>
-                                <div class="input-group">
-                                    <span class="input-group-text">Min</span>
-                                    <input
-                                        type="number"
-                                        class="form-control oc-range-local-min"
-                                        aria-label="Minimum CPR for {{ crime_config.oc_name }}"
-                                        data-crime-name="{{ crime_config.oc_name }}"
-                                        value="{{ crime_config.minimum }}"
-                                        autocomplete="off"
-                                    >
-
-                                    <span class="input-group-text">Max</span>
-                                    <input
-                                        type="number"
-                                        class="form-control oc-range-local-max"
-                                        aria-label="Maximum CPR for {{ crime_config.oc_name }}"
-                                        data-crime-name="{{ crime_config.oc_name }}"
-                                        value="{{ crime_config.maximum }}"
-                                        autocomplete="off"
-                                    >
-                                </div>
-                            </div>
-                            {% endfor %}
-
-                            <div class="list-group-item default-oc-range-value" {% if faction.server_oc_config.local_range_configs|length != 0 %} hidden {% endif %}>
-                                No OCs selected. Using global min/max for all OCs.
-                            </div>
-                        </div>
+                        <div class="list-group list-group-flush list-group-range-slots mt-3" data-faction="{{ faction.tid }}" hidden> </div>
                     </div>
                 </div>
 

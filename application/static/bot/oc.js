@@ -1,4 +1,4 @@
-/* Copyright (C) 2021-2025 tiksan
+/* Copyr'ight (C) 2021-2025 tiksan
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const factionCrimeRanges = {};
+let slotData = [];
 
 function setToolCrimes(event) {
     const selectedOptions = this.querySelectorAll(":checked");
@@ -127,54 +128,6 @@ function setFeatureRoles(event) {
     });
 }
 
-function insertDOMRangeCrime(crimeName, container) {
-    const crimeListElement = document.createElement("div");
-    crimeListElement.classList.add("list-group-item");
-    crimeListElement.setAttribute("data-crime-name", crimeName);
-
-    const label = document.createElement("div");
-    label.classList.add("fw-bold");
-    label.textContent = crimeName;
-    crimeListElement.append(label);
-
-    const inputGroup = document.createElement("div");
-    inputGroup.classList.add("input-group");
-
-    const minLabel = document.createElement("span");
-    const minSelector = document.createElement("input");
-    minLabel.textContent = "Min";
-    minLabel.classList.add("input-group-text");
-    minSelector.type = "number";
-    minSelector.classList.add("form-control", "oc-range-local-min");
-    minSelector.setAttribute("aria-label", `Minimum CPR for ${crimeName}`);
-    minSelector.setAttribute("data-crime-name", crimeName);
-    minSelector.setAttribute("autocomplete", "off");
-    inputGroup.append(minLabel);
-    inputGroup.append(minSelector);
-
-    const maxLabel = document.createElement("span");
-    const maxSelector = document.createElement("input");
-    maxLabel.textContent = "Max";
-    maxLabel.classList.add("input-group-text");
-    maxSelector.type = "number";
-    maxSelector.classList.add("form-control", "oc-range-local-max");
-    maxSelector.setAttribute("aria-label", `Maximum CPR for ${crimeName}`);
-    maxSelector.setAttribute("data-crime-name", crimeName);
-    maxSelector.setAttribute("autocomplete", "off");
-    inputGroup.append(maxLabel);
-    inputGroup.append(maxSelector);
-
-    crimeListElement.append(inputGroup);
-    container.append(crimeListElement);
-
-    minSelector.addEventListener("input", (event) => {
-        modifyRangeLocalMinMax(event, "minimum");
-    });
-    maxSelector.addEventListener("input", (event) => {
-        modifyRangeLocalMinMax(event, "maximum");
-    });
-}
-
 function removeDOMRangeCrime(crimeName, container) {
     const element = container.querySelector(`[data-crime-name="${crimeName}"]`);
 
@@ -194,8 +147,6 @@ function addRangeCrime(crimeName, container) {
             "OC-Specific Range Creation Successful",
             "The per-OC configuration for OC extra-range notifications has been successfully created.",
         );
-
-        insertDOMRangeCrime(crimeName, container);
 
         const minInput = container.querySelector(`.oc-range-local-min[data-crime-name="${crimeName}"]`);
         const maxInput = container.querySelector(`.oc-range-local-max[data-crime-name="${crimeName}"]`);
@@ -225,60 +176,112 @@ function removeRangeCrime(crimeName, container) {
         });
 }
 
-function modifyRangeCrimes(event) {
-    const factionID = this.getAttribute("data-faction");
-    const selectedOptions = this.querySelectorAll(":checked");
-
-    let listContainer = document.querySelector(`.list-group-range-crimes[data-faction="${factionID}"]`);
-    if (listContainer == null) {
-        console.error("Failed to find list container");
-        return;
-    }
-
-    let selectedCrimes = [];
-    selectedOptions.forEach((element) => {
-        selectedCrimes.push(element.getAttribute("value"));
-    });
-
-    let newCrimes = selectedCrimes.filter((crime) => !factionCrimeRanges[factionID].includes(crime));
-    let removedCrimes = factionCrimeRanges[factionID].filter((crime) => !selectedCrimes.includes(crime));
-    factionCrimeRanges[factionID] = selectedCrimes;
-
-    newCrimes.forEach((crimeName) => {
-        addRangeCrime(crimeName, listContainer);
-    });
-    removedCrimes.forEach((crimeName) => {
-        removeRangeCrime(crimeName, listContainer);
-    });
-
-    const defaultMessage = listContainer.querySelector(".default-oc-range-value");
-    if (defaultMessage == null) {
-        console.error("Failed to find default message");
-        return;
-    } else if (selectedCrimes.length != 0) {
-        defaultMessage.setAttribute("hidden", "");
-    } else {
-        defaultMessage.removeAttribute("hidden");
-    }
-}
-
 function modifyRangeLocalMinMax(event, rangeType) {
-    const body = {};
-    body[rangeType] = event.currentTarget.value;
-    console.log(event.currentTarget);
-    console.log(event.currentTarget.value);
+    const factionID = event.currentTarget.closest("[data-faction]").getAttribute("data-faction");
+    const crimeName = event.currentTarget.closest(".col-sm-12").querySelector(".oc-name-selector").value;
+    const positionName = event.currentTarget.getAttribute("data-position-name");
+    const positionIndex = event.currentTarget.getAttribute("data-position-index");
 
-    const factionID = event.currentTarget.parentElement.parentElement.parentElement.getAttribute("data-faction");
-    const crimeName = event.currentTarget.getAttribute("data-crime-name");
+    const body = {
+        oc_name: crimeName,
+        position_name: positionName,
+        position_index: parseInt(positionIndex)
+    };
 
-    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/extra-range/local/${crimeName}`, {
+    if (event.currentTarget.value == "") {
+        body[rangeType] = null;
+    } else if (parseInt(event.currentTarget.value) != NaN) {
+        body[rangeType] = parseInt(event.currentTarget.value);
+    } else {
+        generateToast("Invalid CPR", "The CPR must be an integer between 0 and 100.");
+        return;
+    }
+
+    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/extra-range/local`, {
         body: body,
-        errorTitle: "OC-Specific Range Min/Max Change Failed",
+        errorTitle: "OC Slot-Specific Range Min/Max Change Failed",
     }).then(() => {
         generateToast(
-            "OC-Specific Range Deletion Successful",
-            "The per-OC configuration for OC extra-range notifications has been successfully updated.",
+            "OC-Specific Range Updated Successfully",
+            "The per-OC slot configuration for OC extra-range notifications has been successfully updated.",
         );
+    });
+}
+
+function reloadRangeCrime(event) {
+    const factionID = this.getAttribute("data-faction");
+    const ocName = this.value;
+
+    const slotsRangeContainer = this.parentElement.querySelector(".list-group-range-slots");
+    slotsRangeContainer.innerHTML = "";
+
+    if (ocName == "") {
+        slotsRangeContainer.setAttribute("hidden", "");
+        return;
+    }
+
+    const crimeSlots = slotData.filter((slot) => slot.oc == ocName);
+    // TODO: Load the current values for each slot when appending them
+    crimeSlots.forEach((slot) => appendSlotRange(slot, slotsRangeContainer));
+    slotsRangeContainer.removeAttribute("hidden");
+}
+
+function appendSlotRange(slot, container) {
+    const slotElement = document.createElement("div");
+    slotElement.classList.add("list-group-item", "justify-content-between", "align-items-center");
+    slotElement.setAttribute("data-position-name", slot.position_name);
+    slotElement.setAttribute("data-position-index", slot.position_index);
+    container.append(slotElement);
+
+    const label = document.createElement("span");
+    label.textContent = `${slot.position_name} #${slot.position_index}`;
+    slotElement.append(label);
+
+    const rangeContainer = document.createElement("div");
+    rangeContainer.classList.add("d-flex", "flex-wrap", "flex-md-nowrap", "align-items-center", "gap-2");
+    slotElement.append(rangeContainer);
+
+    const minRangeGroup = document.createElement("div");
+    minRangeGroup.classList.add("input-group", "input-group-sm");
+    rangeContainer.append(minRangeGroup);
+
+    const minRangeLabel = document.createElement("label");
+    minRangeLabel.classList.add("input-group-text");
+    minRangeLabel.textContent = "Min";
+    minRangeGroup.append(minRangeLabel);
+
+    const minRangeInput = document.createElement("input");
+    minRangeInput.classList.add("form-control");
+    minRangeInput.setAttribute("type", "number");
+    minRangeInput.setAttribute("data-position-name", slot.position_name);
+    minRangeInput.setAttribute("data-position-index", slot.position_index);
+    minRangeInput.setAttribute("placeholder", "Global default");
+    minRangeInput.setAttribute("autocomplete", "off");
+    minRangeGroup.append(minRangeInput);
+
+    const maxRangeGroup = document.createElement("div");
+    maxRangeGroup.classList.add("input-group", "input-group-sm");
+    rangeContainer.append(maxRangeGroup);
+
+    const maxRangeLabel = document.createElement("label");
+    maxRangeLabel.classList.add("input-group-text");
+    maxRangeLabel.textContent = "Max";
+    maxRangeGroup.append(maxRangeLabel);
+
+    const maxRangeInput = document.createElement("input");
+    maxRangeInput.classList.add("form-control");
+    maxRangeInput.setAttribute("type", "number");
+    maxRangeInput.setAttribute("data-position-name", slot.position_name);
+    maxRangeInput.setAttribute("data-position-index", slot.position_index);
+    maxRangeInput.setAttribute("placeholder", "Global default");
+    maxRangeInput.setAttribute("autocomplete", "off");
+    maxRangeGroup.append(maxRangeInput);
+
+    minRangeInput.addEventListener("change", (event) => {
+        modifyRangeLocalMinMax(event, "minimum");
+    });
+    maxRangeInput.addEventListener("change", (event) => {
+        modifyRangeLocalMinMax(event, "maximum");
     });
 }
 
@@ -334,7 +337,13 @@ ready(() => {
     ocNamesRequest()
         .then(() => {
             document.querySelectorAll(".oc-name-selector").forEach((element) => {
-                const crimes = parseStringArray(element.getAttribute("data-selected-crimes"));
+                const selectedCrimesString = element.getAttribute("data-selected-crimes");
+
+                if (selectedCrimesString == null) {
+                    return;
+                }
+
+                const crimes = parseStringArray(selectedCrimesString);
 
                 crimes.forEach((crimeName) => {
                     const options = element.querySelectorAll(`option[value="${crimeName}"]`);
@@ -349,10 +358,14 @@ ready(() => {
         })
         .then(() => {
             document.querySelectorAll(".oc-range-crimes").forEach((element) => {
-                const crimes = parseStringArray(element.getAttribute("data-selected-crimes"));
                 const factionID = element.getAttribute("data-faction");
                 const listContainer = document.querySelector(`.list-group-range-crimes[data-faction="${factionID}"]`);
-                factionCrimeRanges[factionID] = crimes;
+
+                const emptyOption = document.createElement("option");
+                emptyOption.value = "";
+                emptyOption.textContent = "Select an OC type...";
+                emptyOption.setAttribute("selected", "");
+                element.prepend(emptyOption);
 
                 if (listContainer == null) {
                     console.error(`Could not find list container for faction ID ${factionID}`);
@@ -367,6 +380,12 @@ ready(() => {
                 });
             });
         });
+
+    tfetch("GET", "faction/crime/slots", {
+        errorTitle: "OC Slot Data Load Failed",
+    }).then((data) => {
+        slotData = data;
+    });
 
     document.querySelectorAll(".oc-missing-member-duration").forEach((element) => {
         const selectedDuration = element.getAttribute("data-selected-duration");
@@ -404,17 +423,16 @@ ready(() => {
         element.addEventListener("change", setRangeGlobalMax);
     });
     document.querySelectorAll(".oc-range-crimes").forEach((element) => {
-        element.addEventListener("change", modifyRangeCrimes);
+        element.addEventListener("change", reloadRangeCrime);
     });
-    document.querySelectorAll(".oc-range-local-min").forEach((element) => {
-        element.addEventListener("input", (event) => {
-            modifyRangeLocalMinMax(event, "minimum");
-        });
-    });
-    document.querySelectorAll(".oc-range-local-max").forEach((element) => {
-        element.addEventListener("input", (event) => {
-            console.log(event);
-            modifyRangeLocalMinMax(event, "maximum");
-        });
-    });
+    // document.querySelectorAll(".oc-range-local-min").forEach((element) => {
+    //     element.addEventListener("input", (event) => {
+    //         modifyRangeLocalMinMax(event, "minimum");
+    //     });
+    // });
+    // document.querySelectorAll(".oc-range-local-max").forEach((element) => {
+    //     element.addEventListener("input", (event) => {
+    //         modifyRangeLocalMinMax(event, "maximum");
+    //     });
+    // });
 });

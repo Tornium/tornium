@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.ServerOCRangeConfig do
+  @moduledoc """
+  Schema for the valid range of CPR for a server in a faction for a specific slot of an OC.
+  """
+
   use Ecto.Schema
 
   @type t :: %__MODULE__{
@@ -21,14 +25,21 @@ defmodule Tornium.Schema.ServerOCRangeConfig do
           server_oc_config_id: Ecto.UUID.t(),
           server_oc_config: Tornium.Schema.ServerOCConfig.t(),
           oc_name: String.t(),
-          minimum: integer(),
-          maximum: integer()
+          position_name: String.t() | nil,
+          position_index: pos_integer() | nil,
+          minimum: 0..100,
+          maximum: 0..100
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "server_oc_range_config" do
     belongs_to(:server_oc_config, Tornium.Schema.ServerOCConfig, references: :guid, type: :binary_id)
+
     field(:oc_name, :string)
+    # FIXME: This needs a DB migration
+    field(:position_name, :string)
+    field(:position_index, :integer)
+
     field(:minimum, :integer)
     field(:maximum, :integer)
   end

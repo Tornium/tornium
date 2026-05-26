@@ -317,70 +317,13 @@ def set_extra_range_global_maximum(guild_id: int, faction_tid: int, *args, **kwa
 
 @session_required
 @ratelimit
-def create_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    if oc_name not in OrganizedCrime.oc_names():
-        return make_exception_response("1105", key)
-
-    try:
-        oc_config: ServerOCConfig = (
-            ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
-            .get()
-        )
-    except DoesNotExist:
-        return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
-
-    range_config = (
-        ServerOCRangeConfig.insert(guid=uuid.uuid4(), server_oc_config=oc_config.guid, oc_name=oc_name)
-        .returning(ServerOCRangeConfig)
-        .on_conflict(
-            action="IGNORE", conflict_target=[ServerOCRangeConfig.server_oc_config, ServerOCRangeConfig.oc_name]
-        )
-        .execute()
-    )
-
-    if len(range_config) == 0:
-        # The RETURNING clause does not return anything when the CONFLICT_ACTION of DO NOTHING is triggered
-        # https://www.postgresql.org/docs/current/sql-insert.html
-        return make_exception_response(
-            "0000", key, details={"message": "This base OC configuration + OC name pair already exists"}
-        )
-
-    return range_config[0].to_dict(), 200, api_ratelimit_response(key)
-
-
-@session_required
-@ratelimit
-def delete_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    if oc_name not in OrganizedCrime.oc_names():
-        return make_exception_response("1105", key)
-
-    try:
-        oc_config: ServerOCConfig = (
-            ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
-            .get()
-        )
-    except DoesNotExist:
-        return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
-
-    ServerOCRangeConfig.delete().where(
-        (ServerOCRangeConfig.server_oc_config == oc_config.guid) & (ServerOCRangeConfig.oc_name == oc_name)
-    ).execute()
-
-    return "", 204, api_ratelimit_response(key)
-
-
-@session_required
-@ratelimit
-def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
+def patch_extra_range_local(guild_id: int, faction_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
+    oc_name = data.get("oc_name")
+    position_name = data.get("position_name")
+    position_index = data.get("position_index")
     minimum = data.get("minimum")
     maximum = data.get("maximum")
 
@@ -404,21 +347,26 @@ def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args
     if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
 
+    # TODO: Validate the position name + index
+
     try:
         oc_config: ServerOCConfig = (
             ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
+            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_id))
             .get()
         )
     except DoesNotExist:
         return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
 
+    # TODO: update the range config for the position name + index
     range_config = (
         ServerOCRangeConfig.update(**update_kwargs)
         .where((ServerOCRangeConfig.server_oc_config == oc_config.guid) & (ServerOCRangeConfig.oc_name == oc_name))
         .returning(ServerOCRangeConfig)
         .execute()[0]
     )
+
+    # TODO: Delete the range config if both the min and max are null
 
     return range_config.to_dict(), 200, api_ratelimit_response(key)
 

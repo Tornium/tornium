@@ -62,7 +62,7 @@ defmodule Tornium.User do
           api_key :: Tornium.Schema.TornKey.t() | nil,
           opts :: keyword()
         ) :: {:ok, Tornium.Schema.User.t() | nil} | {:error, Tornium.API.Error.t()}
-  def update_by_id(user, api_key, opts \\ [])
+  def update_by_id(user, api_key \\ nil, opts \\ [])
 
   def update_by_id({:torn, id} = user, api_key, opts) when is_integer(id) and is_nil(api_key) do
     # We want to try to use the user's API key if there is one for that Torn user ID. Otherwise,
@@ -100,13 +100,13 @@ defmodule Tornium.User do
   end
 
   def update_by_id(
-        {_id_type, user_id} = _user,
+        {_id_type, user_id} = user,
         %Tornium.Schema.TornKey{disabled: false, paused: false} = api_key,
         opts
       ) do
     force_update? = Keyword.get(opts, :force?, false)
 
-    if force_update? or update_user?(user_id) do
+    if force_update? or update_user?(user) do
       query = update_query(user_id, api_key)
       response = Tornex.API.get(query)
 
@@ -159,28 +159,106 @@ defmodule Tornium.User do
     |> Tornium.Schema.TornKey.put_key(api_key)
   end
 
+  @doc """
+  Upsert a user to the database from the parsed APIv2 response of the user's data.
+
+  This function supports data from exactly the following sets of API calls:
+    * `Torngen.Client.Path.User.Profile`, `Torngen.Client.Path.User.Discord`, and `Torngen.Client.Path.User.Battlestats`
+    * `Torngen.Client.Path.User.Id.Profile` and `Torngen.Client.Path.Id.Discord`
+  """
   @spec update_data(data :: map()) :: {:ok, Tornium.Schema.User.t()} | {:error, Tornium.API.Error.t()}
   def update_data(
         %{
-          Torngen.Client.Path.User.Profile => %{Torngen.Client.Schema.UserProfileResponse => user_profile_data},
-          Torngen.Client.Path.User.Discord => %{Torngen.Client.Schema.UserDiscordResponse => user_discord_data},
-          Torngen.Client.Path.User.Battlestats => %{Torngen.Client.Schema.UserBattleStatsResponse => user_stats_data}
+          Torngen.Client.Path.User.Profile => %{
+            UserProfileResponse =>
+              %Torngen.Client.Schema.UserProfileResponse{profile: %{faction_id: faction_id}} = user_profile_data
+          },
+          Torngen.Client.Path.User.Discord => %{UserDiscordResponse => user_discord_data},
+          Torngen.Client.Path.User.Battlestats => %{UserBattleStatsResponse => user_stats_data}
         } = _data
       ) do
-    Tornium.Schema.User.from_data(user_profile_data, discord_data: user_discord_data, stats_data: user_stats_data)
-    # TODO: Ensure that the faction exists
-    # TODO: Upsert the user
+    user =
+      Tornium.Schema.User.from_data(user_profile_data, discord_data: user_discord_data, stats_data: user_stats_data)
+
+    if not faction_exists?(faction_id) do
+      # TODO: Pull API data for an update of the faction if the faction is not in the database
+      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id})
+    end
+
+    returned_user =
+      Repo.insert!(user,
+        returning: true,
+        conflict_target: :tid,
+        on_conflict:
+          {:replace,
+           [
+             :name,
+             :level,
+             :faction_id,
+             :status,
+             :last_action,
+             :fedded_until,
+             :last_refresh,
+             :discord_id,
+             :strength,
+             :defense,
+             :speed,
+             :dexterity,
+             :battlescore
+           ]}
+      )
+
+    {:ok, returned_user}
   end
 
   def update_data(
         %{
-          Torngen.Client.Path.User.Id.Profile => %{Torngen.Client.Schema.UserProfileResponse => user_profile_data},
-          Torngen.Client.Path.User.Id.Discord => %{Torngen.Client.Schema.UserDiscordResponse => user_discord_data}
+          Torngen.Client.Path.User.Id.Profile => %{
+            UserProfileResponse =>
+              %Torngen.Client.Schema.UserProfileResponse{profile: %{faction_id: faction_id}} = user_profile_data
+          },
+          Torngen.Client.Path.User.Id.Discord => %{UserDiscordResponse => user_discord_data}
         } = _data
       ) do
-    Tornium.Schema.User.from_data(user_profile_data, discord_data: user_discord_data)
-    # TODO: Ensure that the faction exists
-    # TODO: Upsert the user
+    user = Tornium.Schema.User.from_data(user_profile_data, discord_data: user_discord_data)
+
+    if not faction_exists?(faction_id) do
+      # TODO: Pull API data for an update of the faction if the faction is not in the database
+      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id})
+    end
+
+    returned_user =
+      Repo.insert!(user,
+        returning: true,
+        conflict_target: :tid,
+        on_conflict:
+          {:replace,
+           [
+             :name,
+             :level,
+             :faction_id,
+             :status,
+             :last_action,
+             :fedded_until,
+             :last_refresh,
+             :discord_id
+           ]}
+      )
+
+    {:ok, returned_user}
+  end
+
+  @spec faction_exists?(faction_id :: pos_integer() | nil) :: boolean()
+  defp faction_exists?(faction_id) when is_nil(faction_id) do
+    # We can say that a faction ID of nil exists as it's not possible to pull data for that
+    # faction from the API or insert that faction into the database.
+    true
+  end
+
+  defp faction_exists?(faction_id) when is_integer(faction_id) do
+    Tornium.Schema.Faction
+    |> where([f], f.tid == ^faction_id)
+    |> Repo.exists?()
   end
 
   @doc """

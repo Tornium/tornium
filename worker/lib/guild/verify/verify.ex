@@ -143,14 +143,14 @@ defmodule Tornium.Guild.Verify do
   defp handle_guild(
          %Tornium.Schema.Server{} = guild,
          %Tornium.Schema.TornKey{} = api_key,
-         %Nostrum.Struct.Guild.Member{} = member
+         %Nostrum.Struct.Guild.Member{user_id: member_id} = member
        ) do
     case Tornium.Guild.Verify.Config.validate(guild) do
       {:error, reason} when is_binary(reason) ->
         {:error, {:config, String.downcase(reason)}}
 
       %Tornium.Guild.Verify.Config{} = config ->
-        Tornium.User.update_user({:key, api_key}, {:discord_id, member.user_id}, true, 0)
+        Tornium.User.update_by_id({:discord, member_id}, api_key, force: true, niceness: -10)
         |> build_changes(config, member)
         |> perform_changes(guild, member)
     end

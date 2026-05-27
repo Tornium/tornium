@@ -24,6 +24,7 @@ defmodule Tornium.User do
   import Ecto.Query
 
   @minimum_update_seconds 600
+  @default_update_niceness 10
 
   @typedoc """
   Tuple describing a user through their ID type.
@@ -37,15 +38,21 @@ defmodule Tornium.User do
 
   The user can be updated through the struct of the user or the struct of a user's API key. When
   updating the user through this function, the user must have a valid API key to use.
+
+  ## Options
+    * `:force?` - Update a user regardless of when the user was last updated (default: `false`)
+    * `:niceness` - Priority of the Tornex API call (default: `10`)
   """
-  @spec update(user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t()) ::
+  @spec update(user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t(), opts :: keyword()) ::
           {:ok, Tornium.Schema.User.t()} | {:error, Tornium.API.Error.t()}
-  def update(%Tornium.Schema.User{} = user) do
-    # TODO: Implement this
+  def update(user, opts \\ [])
+
+  def update(%Tornium.Schema.User{tid: user_id} = _user, opts) do
+    update_by_id({:torn, user_id}, nil, opts)
   end
 
-  def update(%Tornium.Schema.TornKey{} = user) do
-    # TODO: Implement this
+  def update(%Tornium.Schema.TornKey{user_id: user_id} = api_key, opts) do
+    update_by_id({:torn, user_id}, api_key, opts)
   end
 
   @doc """
@@ -56,6 +63,7 @@ defmodule Tornium.User do
 
   ## Options
     * `:force?` - Update a user regardless of when the user was last updated (default: `false`)
+    * `:niceness` - Priority of the Tornex API call (default: `10`)
   """
   @spec update_by_id(
           user :: user_id(),
@@ -107,7 +115,7 @@ defmodule Tornium.User do
     force_update? = Keyword.get(opts, :force?, false)
 
     if force_update? or update_user?(user) do
-      query = update_query(user_id, api_key)
+      query = update_query(user_id, api_key, opts)
       response = Tornex.API.get(query)
 
       case response do
@@ -143,7 +151,7 @@ defmodule Tornium.User do
 
   defp update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
        when is_integer(user_id) and user_id == key_owner_id do
-    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, 10), resource_id: user_id)
+    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Discord)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Battlestats)
@@ -152,7 +160,7 @@ defmodule Tornium.User do
 
   defp update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
        when is_integer(user_id) and key_owner_id != user_id do
-    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, 10), resource_id: user_id)
+    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Discord)
     |> Tornex.SpecQuery.put_parameter!(:id, user_id)

@@ -148,7 +148,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
         # Sometimes, there will not be any faction positions but the leader/coleader of the faction will be set and will
         # have an API key. We should attempt to use their API key so that we can get the faction positions and set their
         # `:faction_aa` value. If the leader/coleader is not signed in, we should fallback to a random API key.
-        leadership_key = Tornium.User.Key.get_by_user(leader_id) or Tornium.User.Key.get_by_user(coleader_id)
+        leadership_key = Tornium.User.Key.get_by_user(leader_id) || Tornium.User.Key.get_by_user(coleader_id)
 
         case leadership_key do
           %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level}

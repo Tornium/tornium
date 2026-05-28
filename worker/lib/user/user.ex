@@ -172,7 +172,7 @@ defmodule Tornium.User do
 
   This function supports data from exactly the following sets of API calls:
     * `Torngen.Client.Path.User.Profile`, `Torngen.Client.Path.User.Discord`, and `Torngen.Client.Path.User.Battlestats`
-    * `Torngen.Client.Path.User.Id.Profile` and `Torngen.Client.Path.Id.Discord`
+    * `Torngen.Client.Path.User.Id.Profile` and `Torngen.Client.Path.User.Id.Discord`
   """
   @spec update_data(data :: map()) :: {:ok, Tornium.Schema.User.t()} | {:error, Tornium.API.Error.t()}
   def update_data(

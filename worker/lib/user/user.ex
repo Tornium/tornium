@@ -190,7 +190,7 @@ defmodule Tornium.User do
 
     if not faction_exists?(faction_id) do
       # TODO: Pull API data for an update of the faction if the faction is not in the database
-      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id})
+      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id}, conflict_target: :tid, on_conflict: :nothing)
     end
 
     returned_user =
@@ -232,7 +232,7 @@ defmodule Tornium.User do
 
     if not faction_exists?(faction_id) do
       # TODO: Pull API data for an update of the faction if the faction is not in the database
-      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id})
+      Repo.insert!(%Tornium.Schema.Faction{tid: faction_id}, conflict_target: :tid, on_conflict: :nothing)
     end
 
     returned_user =

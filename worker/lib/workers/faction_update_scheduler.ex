@@ -33,7 +33,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk 25
+  @max_chunk 50
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

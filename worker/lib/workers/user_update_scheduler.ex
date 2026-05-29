@@ -102,7 +102,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     |> Oban.insert()
   end
 
-  def scheduler_user_update(%Tornium.Schema.User{tid: user_id} = user) when is_integer(user_id) do
+  def scheduler_user_update(%Tornium.Schema.User{tid: user_id} = _user) when is_integer(user_id) do
     %Tornium.Schema.TornKey{user_id: api_key_owner} =
       api_key = Tornium.User.Key.get_by_user(user_id) || Tornium.User.Key.get_random!()
 

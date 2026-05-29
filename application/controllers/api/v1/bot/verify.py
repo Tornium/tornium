@@ -16,7 +16,9 @@
 import json
 
 from flask import jsonify, request
+from liquid.exceptions import LiquidSyntaxError
 from peewee import DoesNotExist
+from tornium_celery.tasks.guild import _VertificationNameEnvironment
 from tornium_commons.models import Faction, Server
 
 from controllers.api.v1.decorators import ratelimit, session_required
@@ -277,6 +279,18 @@ def guild_verification_template(*args, **kwargs):
         template = data["template"]
     except KeyError:
         return make_exception_response("1000", key, details={"element": "template"})
+
+    try:
+        _VertificationNameEnvironment().render(template, name="tiksan", tid=2383326, tag="NSO").strip()
+    except LiquidSyntaxError:
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "element": "template",
+                "message": "The provided template could not be parsed/rendered by the Liquid templating engine",
+            },
+        )
 
     try:
         guild: Server = Server.get_by_id(guild_id)

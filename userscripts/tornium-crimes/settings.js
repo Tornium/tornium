@@ -27,10 +27,21 @@ export function createSettingsButton() {
     if (pageLinks == undefined) {
         log("Missing page links element");
         return;
+    } else if (pageLinks.querySelector(".tornium-crimes-settings-button") != null) {
+        return;
     }
 
     const settingsButton = document.createElement("a");
-    settingsButton.classList.add("t-clear", "h", "c-pointer", "m-icon", "line-h24", "right", "last");
+    settingsButton.classList.add(
+        "t-clear",
+        "h",
+        "c-pointer",
+        "m-icon",
+        "line-h24",
+        "right",
+        "last",
+        "tornium-crimes-settings-button",
+    );
     settingsButton.setAttribute("href", `/tornium/${APP_ID}/settings`);
 
     const settingsIcon = document.createElement("span");

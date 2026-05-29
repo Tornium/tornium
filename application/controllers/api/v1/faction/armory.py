@@ -13,10 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import csv
 import datetime
+import io
 
-from flask import request
+from flask import make_response, request
 from peewee import fn
+from tornium_commons.formatters import timestamp
 from tornium_commons.models import ArmoryAction, ArmoryUsage, Item, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth
@@ -112,16 +115,57 @@ def get_logs(faction_id: int, *args, **kwargs):
             },
         )
 
-    total_count_expression = fn.COUNT(ArmoryUsage.id).over()
-    logs = logs.select(ArmoryUsage, total_count_expression.alias("total_count"))
-    paged_logs = list(logs.limit(limit).offset(offset))
-    total_count = paged_logs[0].total_count if paged_logs else 0
+    if request.accept_mimetypes.accept_json:
+        total_count_expression = fn.COUNT(ArmoryUsage.id).over()
+        logs = logs.select(ArmoryUsage, total_count_expression.alias("total_count"))
+        paged_logs = list(logs.limit(limit).offset(offset))
+        total_count = paged_logs[0].total_count if paged_logs else 0
 
-    return (
-        {"count": total_count, "logs": [log.to_dict() for log in paged_logs]},
-        200,
-        api_ratelimit_response(key),
-    )
+        return (
+            {"count": total_count, "logs": [log.to_dict() for log in paged_logs]},
+            200,
+            api_ratelimit_response(key),
+        )
+    elif "text/csv" in request.accept_mimetypes:
+        logs = logs.select(ArmoryUsage)
+
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+
+        header = [
+            "id",
+            "timestamp",
+            "action",
+            "user",
+            "recipient",
+            "item",
+            "is_energy_refill",
+            "is_nerve_refill",
+            "quantity",
+        ]
+        data = [
+            [
+                log.id,
+                timestamp(log.timestamp),
+                log.action,
+                log.user_id,
+                log.recipient_id,
+                log.item_id,
+                log.is_energy_refill,
+                log.is_nerve_refill,
+                log.quantity,
+            ]
+            for log in logs
+        ]
+
+        writer.writerow(header)
+        writer.writerows(data)
+
+        response = make_response(buffer.getvalue())
+        response.headers["Content-Type"] = "text/csv"
+        return response
+    else:
+        return make_exception_response("4012", key)
 
 
 @require_oauth("faction:armory", "faction")
@@ -226,30 +270,56 @@ def get_cumulative(faction_id: int, *args, **kwargs):
             },
         )
 
-    paged_cumulative = list(cumulative.limit(limit).offset(offset))
-    total_count = paged_cumulative[0].total_count if paged_cumulative else 0
+    if request.accept_mimetypes.accept_json:
+        paged_cumulative = list(cumulative.limit(limit).offset(offset))
+        total_count = paged_cumulative[0].total_count if paged_cumulative else 0
 
-    return (
-        {
-            "count": total_count,
-            "cumulative": [
-                {
-                    "action": group.action,
-                    "user": {
-                        "id": group.user_id,
-                        "name": User.user_name(group.user_id),
-                    },
-                    "item": {
-                        "id": group.item_id,
-                        "name": None if group.item_id is None else Item.item_name(group.item_id),
-                        "is_nerve_refill": group.is_nerve_refill,
-                        "is_energy_refill": group.is_energy_refill,
-                    },
-                    "cumulative_quantity": group.cumulative_usage,
-                }
-                for group in paged_cumulative
-            ],
-        },
-        200,
-        api_ratelimit_response(key),
-    )
+        return (
+            {
+                "count": total_count,
+                "cumulative": [
+                    {
+                        "action": group.action,
+                        "user": {
+                            "id": group.user_id,
+                            "name": User.user_name(group.user_id),
+                        },
+                        "item": {
+                            "id": group.item_id,
+                            "name": None if group.item_id is None else Item.item_name(group.item_id),
+                            "is_nerve_refill": group.is_nerve_refill,
+                            "is_energy_refill": group.is_energy_refill,
+                        },
+                        "cumulative_quantity": group.cumulative_usage,
+                    }
+                    for group in paged_cumulative
+                ],
+            },
+            200,
+            api_ratelimit_response(key),
+        )
+    elif "text/csv" in request.accept_mimetypes:
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+
+        header = ["action", "user", "item", "is_energy_refill", "is_nerve_refill", "quantity"]
+        data = [
+            [
+                group.action,
+                group.user_id,
+                group.item_id,
+                group.is_energy_refill,
+                group.is_nerve_refill,
+                group.cumulative_usage,
+            ]
+            for group in cumulative
+        ]
+
+        writer.writerow(header)
+        writer.writerows(data)
+
+        response = make_response(buffer.getvalue())
+        response.headers["Content-Type"] = "text/csv"
+        return response
+    else:
+        return make_exception_response("4012", key)

@@ -223,6 +223,12 @@ API_EXCEPTIONS = {
         "http": 405,
         "message": "The requested endpoint does not support this HTTP method.",
     },
+    "4012": {
+        "code": 4012,
+        "name": "InvalidContentType",
+        "http": 406,
+        "message": "The requested endpoint does not support the requested MIME type provided in the Accept header.",
+    },
     "4020": {
         "code": 4020,
         "name": "InsufficientDiscordPermissions",

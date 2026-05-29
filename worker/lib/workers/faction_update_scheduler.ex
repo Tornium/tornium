@@ -33,7 +33,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk 25
+  @max_chunk 50
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -49,7 +49,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     high_priority_factions =
       Tornium.Schema.Faction
       |> from(as: :faction)
-      |> where([f], f.last_members < ^one_hour_ago and exists(valid_aa_key_subquery))
+      |> where([f], (is_nil(f.last_members) or f.last_members < ^one_hour_ago) and exists(valid_aa_key_subquery))
       |> order_by([f], asc: f.last_members)
       |> limit(@max_chunk)
       |> Repo.all()
@@ -74,19 +74,37 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     :ok
   end
 
-  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t()) :: term()
-  defp schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction) when is_integer(faction_id) do
+  @doc """
+  Schedule a specific faction's data be updated.
+
+  ## Options
+    * `:public?` - Only collect public data regardless of the API key available (default: `false`)
+  """
+  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t() | pos_integer(), opts :: keyword()) :: term()
+  def schedule_faction_update(faction, opts \\ [])
+
+  def schedule_faction_update(faction, opts) when is_integer(faction) do
+    Tornium.Schema.Faction
+    |> where([f], f.tid == ^faction)
+    |> first()
+    |> Repo.one!()
+    |> schedule_faction_update(opts)
+  end
+
+  def schedule_faction_update(%Tornium.Schema.Faction{tid: faction_id} = faction, opts) when is_integer(faction_id) do
     # If there is no faction AA API key available to use for this API call, it will set `:nonpublic?` to false
     # to indicate that the API call can only make and parse public selections. This allows for all factions to
     # be regularly updated instead of only those factions that have AA keys.
     {%Tornium.Schema.TornKey{user_id: key_owner} = key, nonpublic?} = api_key(faction)
+
+    force_public? = Keyword.get(opts, :public?, false)
 
     query =
       Tornex.SpecQuery.new(nice: 10, resource_id: faction_id)
       |> Tornium.Schema.TornKey.put_key(key)
 
     query =
-      if nonpublic? do
+      if nonpublic? and not force_public? do
         query
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Basic)
         |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Members)
@@ -118,16 +136,30 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   end
 
   @spec api_key(faction :: Tornium.Schema.Faction.t()) :: {Tornium.Schema.TornKey.t(), boolean()}
-  defp api_key(%Tornium.Schema.Faction{tid: faction_id} = _faction) do
+  defp api_key(%Tornium.Schema.Faction{tid: faction_id, leader_id: leader_id, coleader_id: coleader_id} = _faction) do
     case Tornium.Faction.get_key(faction_id) do
       %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level} = aa_key
       when access_level in [:limited, :full] ->
         {aa_key, true}
 
       _ ->
-        # TODO: Convert this to use some sort of circular buffer with Tornium.User.Key.get_random/1 so
-        # that there only needs to be 1 DB call
-        {Tornium.User.Key.get_random!(), false}
+        # TODO: Clean up these nested cases
+
+        # Sometimes, there will not be any faction positions but the leader/coleader of the faction will be set and will
+        # have an API key. We should attempt to use their API key so that we can get the faction positions and set their
+        # `:faction_aa` value. If the leader/coleader is not signed in, we should fallback to a random API key.
+        leadership_key = Tornium.User.Key.get_by_user(leader_id) || Tornium.User.Key.get_by_user(coleader_id)
+
+        case leadership_key do
+          %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level}
+          when access_level in [:limited, :full] ->
+            {leadership_key, true}
+
+          nil ->
+            # TODO: Convert this to use some sort of circular buffer with Tornium.User.Key.get_random/1 so
+            # that there only needs to be 1 DB call
+            {Tornium.User.Key.get_random!(), false}
+        end
     end
   end
 end

@@ -51,14 +51,17 @@ export function injectMemberSelector(container, userID, factionID) {
     });
 }
 
-export function updateMemberOptimums(optimumData) {
-    console.log(optimumData);
-    // If the user has TT enabled, TT may inject .tt-oc2-list
-    // See https://github.com/Mephiles/torntools_extension/blob/501eba808e20354f748563e8692da418267c6c48/extension/scripts/content/factions/ttFactions.ts#L89
-    Promise.any([
+function waitForRoot() {
+    return Promise.any([
         waitForElement(".tt-oc2-list"),
         waitForElement(`#faction-crimes-root hr.page-head-delimiter + div:has(> div[class^="wrapper___"][data-oc-id])`),
-    ]).then((root) => {
+    ]);
+}
+
+export function updateMemberOptimums(optimumData) {
+    // If the user has TT enabled, TT may inject .tt-oc2-list
+    // See https://github.com/Mephiles/torntools_extension/blob/501eba808e20354f748563e8692da418267c6c48/extension/scripts/content/factions/ttFactions.ts#L89
+    waitForRoot().then((root) => {
         if (!root.classList.contains("tt-oc2-list")) {
             root.classList.add("tt-oc2-list");
         }
@@ -79,13 +82,15 @@ export function updateMemberOptimums(optimumData) {
 
             for (const slotElement of slotElements) {
                 const titleElement = slotElement.querySelector(`span[class*="title___"]`);
-                const badgeContainer = slotElement.querySelector(`[class*="badgeContainer___"]`);
-                badgeContainer.classList.add("tornium-crimes-slot-badge-container");
+                const badgeContainer = slotElement.querySelector(
+                    `[class*="badgeContainer___"], [class*="joinContainer___"]`,
+                );
 
                 if (badgeContainer == null || titleElement == null) {
                     continue;
                 }
 
+                badgeContainer.classList.add("tornium-crimes-slot-badge-container");
                 const slotData = optimumData.find((optimumSlotData) => {
                     return (
                         (optimumSlotData.oc_id == crimeID &&
@@ -99,26 +104,35 @@ export function updateMemberOptimums(optimumData) {
                     continue;
                 }
 
-                const slotInfo = document.createElement("div");
-                slotInfo.classList.add("tornium-crimes-slot-info");
+                let slotInfo = badgeContainer.querySelector(".tornium-crimes-slot-info");
+
+                if (slotInfo == null) {
+                    slotInfo = document.createElement("div");
+                    slotInfo.classList.add("tornium-crimes-slot-info");
+                    badgeContainer.prepend(slotInfo);
+                }
+
                 slotInfo.textContent = `ΔEV: ${(slotData.team_expected_value_change * 100).toFixed(2)}%; ΔEV': ${(slotData.user_expected_value_change * 100).toFixed(2)}%; ΔP: ${(slotData.team_probability_change * 100).toFixed(2)}%`;
-                badgeContainer.prepend(slotInfo);
             }
         }
     });
 }
 
-function onSelectedMemberChange(event) {
+function loadMemberData(userID) {
     torniumFetch("user", { ttl: 1000 * 60 * 60 })
         .then((identityData) => {
-            return identityData.factiontid;
+            return [identityData.factiontid, identityData.tid];
         })
-        .then((factionID) => {
-            return torniumFetch(`faction/${factionID}/crime/member/${event.target.value}/optimum`, { ttl: 60 });
+        .then(([factionID, identityUserID]) => {
+            return torniumFetch(`faction/${factionID}/crime/member/${userID || identityUserID}/optimum`, { ttl: 60 });
         })
         .then((optimumData) => {
             return updateMemberOptimums(optimumData);
         });
+}
+
+function onSelectedMemberChange(event) {
+    loadMemberData(event.target.value);
 }
 
 export function injectStyles() {
@@ -127,4 +141,18 @@ export function injectStyles() {
     GM_addStyle(
         `div[class*="slotBody___"] {height: inherit; height: stretch; height: -webkit-fill-available; height: 100%; min-height: 32px;}`,
     );
+
+    // We should hide the planning time as it makes the already tall element even taller
+    GM_addStyle(`div[class*="planningTime___"] {display: none !important;}`);
+}
+
+export function startCrimeTabListener() {
+    waitForRoot().then(() => {
+        const tabButtonContainer = document.querySelector(`div[class*="buttonsContainer___"]`);
+        tabButtonContainer.addEventListener("click", () => {
+            loadMemberData(null);
+        });
+    });
+
+    // TODO: Disable tab listener when navigating out of the crimes page
 }

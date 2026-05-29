@@ -48,8 +48,10 @@ defmodule Tornium.Workers.FactionUpdate do
       %{"error" => %{"code" => 7}} ->
         Tornium.Schema.User
         |> update([u], set: [faction_aa: false])
-        |> where([u], u.tid == ^user_id)
+        |> where([u], u.tid == ^user_id and u.faction_id == ^faction_id)
         |> Repo.update_all([])
+
+        Tornium.Workers.FactionUpdateScheduler.schedule_faction_update(faction_id, public?: true)
 
         :ok
 
@@ -57,18 +59,18 @@ defmodule Tornium.Workers.FactionUpdate do
         {:cancel, {:api_error, error_code}}
 
       result when is_map(result) ->
-        do_perform(result, faction_id, nonpublic?)
+        do_perform(result, nonpublic?)
     end
   end
 
   @doc false
-  @spec do_perform(api_call_result :: map(), faction_id :: non_neg_integer(), nonpublic? :: boolean()) ::
-          Oban.Worker.result()
-  def do_perform(api_call_result, faction_id, true = _nonpublic?)
-      when is_map(api_call_result) and is_integer(faction_id) do
+  @spec do_perform(api_call_result :: map(), nonpublic? :: boolean()) :: Oban.Worker.result()
+  def do_perform(api_call_result, true = _nonpublic?) when is_map(api_call_result) do
     %{
       Torngen.Client.Path.Faction.Basic => %{
-        FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{basic: basic_data}
+        FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{
+          basic: %Torngen.Client.Schema.FactionBasic{id: faction_id} = basic_data
+        }
       },
       Torngen.Client.Path.Faction.Members => %{
         FactionMembersResponse => %Torngen.Client.Schema.FactionMembersResponse{members: members_data}
@@ -94,11 +96,12 @@ defmodule Tornium.Workers.FactionUpdate do
     :ok
   end
 
-  def do_perform(api_call_result, faction_id, false = _nonpublic?)
-      when is_map(api_call_result) and is_integer(faction_id) do
+  def do_perform(api_call_result, false = _nonpublic?) when is_map(api_call_result) do
     %{
       Torngen.Client.Path.Faction.Id.Basic => %{
-        FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{basic: basic_data}
+        FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{
+          basic: %Torngen.Client.Schema.FactionBasic{id: faction_id} = basic_data
+        }
       },
       Torngen.Client.Path.Faction.Id.Members => %{
         FactionMembersResponse => %Torngen.Client.Schema.FactionMembersResponse{members: members_data}

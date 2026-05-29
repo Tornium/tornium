@@ -14,6 +14,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Discord.Consumer do
+  @moduledoc """
+  Discord websocket gateway listener.
+
+  This module provides functionality for Discord gateway events when they're provided on Discord's websocket
+  gateway. When a `:GUILD_MEMBER_ADD` event is received from a user joining a guild Tornium is on, 
+  verification will be attempted to be run on that member. When a `:GUILD_CREATE` event is received for the
+  bot being added to a new server, the server and its admins will be added to the database if they are
+  verified.
+  """
+
   require Logger
   import Ecto.Query
   alias Tornium.Repo
@@ -26,8 +36,9 @@ defmodule Tornium.Discord.Consumer do
     |> Tornium.Guild.Verify.handle_on_join(new_member)
     |> verification_jail_message(new_member)
 
-    {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
-    Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
+    # TODO: Convert this to log via Alloy
+    # {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
+    # Logger.info("#{user.username} [#{new_member.user_id}] has joined guild #{guild_id}")
     nil
   end
 

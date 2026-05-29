@@ -132,13 +132,22 @@ defmodule Tornium.User do
           |> update_data()
       end
     else
-      {
-        :ok,
-        Tornium.Schema.User
-        |> where([u], u.tid == ^user_id or u.discord_id == ^user_id)
-        |> first()
-        |> Repo.one()
-      }
+      cached_user =
+        case user do
+          {:torn, _} ->
+            Tornium.Schema.User
+            |> where([u], u.tid == ^user_id)
+            |> first()
+            |> Repo.one()
+
+          {:discord, _} ->
+            Tornium.Schema.User
+            |> where([u], u.discord_id == ^user_id)
+            |> first()
+            |> Repo.one()
+        end
+
+      {:ok, cached_user}
     end
   end
 

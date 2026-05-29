@@ -16,10 +16,10 @@
 defmodule Tornium.Test.Faction.News.ArmoryAction do
   use Tornium.RepoCase, async: true
   alias Tornium.Faction.News.ArmoryAction
-  alias Torngen.Client.Schema.FactionNews
+  alias Torngen.Client.Schema.News
 
   test "use item ending in 'x '" do
-    news = %FactionNews{
+    news = %News{
       id: "55RrWavfGpBGng5mCYUk",
       text:
         "<a href = \"http://www.torn.com/profiles.php?XID=1\">Chedburn</a> gave 2992x Box of Extra Strong Mints to themselves from the faction armory",
@@ -37,7 +37,7 @@ defmodule Tornium.Test.Faction.News.ArmoryAction do
   end
 
   test "fill bloodbag" do
-    news = %FactionNews{
+    news = %News{
       id: "1Et5m6YNr2iDZErRHo1a",
       text:
         "<a href = \"http://www.torn.com/profiles.php?XID=1\">Chedburn</a> filled one of the faction's Empty Blood Bag items",
@@ -55,7 +55,7 @@ defmodule Tornium.Test.Faction.News.ArmoryAction do
   end
 
   test "use beer" do
-    news = %FactionNews{
+    news = %News{
       id: "jDECKiHFkj9EKh7iLWG0",
       text:
         "<a href = \"http://www.torn.com/profiles.php?XID=1\">Chedburn</a> used one of the faction's Bottle of Beer items",

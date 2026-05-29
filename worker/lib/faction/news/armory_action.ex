@@ -38,7 +38,7 @@ defmodule Tornium.Faction.News.ArmoryAction do
         }
 
   @impl Tornium.Faction.News
-  def parse(%Torngen.Client.Schema.FactionNews{timestamp: timestamp, text: text, id: id} = _news) do
+  def parse(%Torngen.Client.Schema.News{timestamp: timestamp, text: text, id: id} = _news) do
     parsed_text =
       text
       |> String.trim_trailing(".")

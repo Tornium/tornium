@@ -70,7 +70,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdate do
   def do_perform(api_call_result, faction_id) when is_map(api_call_result) and is_integer(faction_id) do
     %{
       Torngen.Client.Path.Faction.News => %{
-        FactionNewsResponse => %Torngen.Client.Schema.FactionNewsResponse{news: armory_usage_news}
+        NewsResponse => %Torngen.Client.Schema.NewsResponse{news: armory_usage_news}
       }
     } =
       Tornex.SpecQuery.new()

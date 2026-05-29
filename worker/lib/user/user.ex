@@ -142,15 +142,23 @@ defmodule Tornium.User do
     end
   end
 
+  @doc """
+  API query for updating user data.
+
+  Returns a `Tornex.SpecQuery` for the provided user ID and API key for updating the user's data.
+
+  ## Options
+    * `:niceness` - Priority of the Tornex API call (default: `10`)
+  """
   @spec update_query(
           user_id :: pos_integer(),
           api_key :: Tornium.Schema.TornKey.t(),
           opts :: keyword()
         ) :: Tornex.SpecQuery.t()
-  defp update_query(user_id, api_key, opts \\ [])
+  def update_query(user_id, api_key, opts \\ [])
 
-  defp update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
-       when is_integer(user_id) and user_id == key_owner_id do
+  def update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
+      when is_integer(user_id) and user_id == key_owner_id do
     Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Discord)
@@ -158,8 +166,8 @@ defmodule Tornium.User do
     |> Tornium.Schema.TornKey.put_key(api_key)
   end
 
-  defp update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
-       when is_integer(user_id) and key_owner_id != user_id do
+  def update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
+      when is_integer(user_id) and key_owner_id != user_id do
     Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Discord)
@@ -212,7 +220,8 @@ defmodule Tornium.User do
              :defense,
              :speed,
              :dexterity,
-             :battlescore
+             :battlescore,
+             :battlescore_update
            ]}
       )
 

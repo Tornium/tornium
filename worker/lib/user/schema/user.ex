@@ -242,6 +242,15 @@ defmodule Tornium.Schema.User do
          } = _stats_data
        ) do
     stat_score = :math.sqrt(strength) + :math.sqrt(defense) + :math.sqrt(speed) + :math.sqrt(dexterity)
-    %{user | strength: strength, defense: defense, speed: speed, dexterity: dexterity, battlescore: stat_score}
+
+    %{
+      user
+      | strength: strength,
+        defense: defense,
+        speed: speed,
+        dexterity: dexterity,
+        battlescore: stat_score,
+        battlescore_update: DateTime.utc_now()
+    }
   end
 end

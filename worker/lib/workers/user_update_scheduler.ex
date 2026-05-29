@@ -58,7 +58,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
 
     other_users =
       if remaining_limit > 0 do
-        high_priority_user_ids = Enum.map(high_priority_users, & &1.tid)
+        high_priority_user_ids = Enum.map(high_priority_users, & &1.user_id)
 
         Tornium.Schema.User
         |> where([f], f.tid not in ^high_priority_user_ids)

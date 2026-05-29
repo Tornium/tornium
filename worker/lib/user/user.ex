@@ -168,7 +168,7 @@ defmodule Tornium.User do
 
   def update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
       when is_integer(user_id) and user_id == key_owner_id do
-    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
+    Tornex.SpecQuery.new(nice: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Discord)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Battlestats)
@@ -177,7 +177,7 @@ defmodule Tornium.User do
 
   def update_query(user_id, %Tornium.Schema.TornKey{user_id: key_owner_id} = api_key, opts)
       when is_integer(user_id) and key_owner_id != user_id do
-    Tornex.SpecQuery.new(niceness: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
+    Tornex.SpecQuery.new(nice: Keyword.get(opts, :niceness, @default_update_niceness), resource_id: user_id)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Profile)
     |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Id.Discord)
     |> Tornex.SpecQuery.put_parameter!(:id, user_id)

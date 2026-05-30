@@ -14,14 +14,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Application do
-  require Logger
-  use Application
+  @moduledoc false
 
-  @spec(
-    start(Application.start_type(), term()) :: {:ok, pid()},
-    {:ok, pid(), Application.state()} | {:error, term()}
-  )
+  use Application
+  require Logger
+
+  @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
+    topology = [
+      strategy: LibclusterPostgres.Strategy,
+      config: Tornium.Repo.config()
+    ]
+
     Logger.add_handlers(:tornium)
 
     # Attach the default loggers from :telemetry before the start of the children
@@ -36,6 +40,7 @@ defmodule Tornium.Application do
 
     # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [
+      {Cluster.Supervisor, [[app: topology]]},
       Tornium.PromEx,
       Tornium.ObanRepo,
       Tornium.Repo,

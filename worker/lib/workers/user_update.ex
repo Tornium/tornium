@@ -65,6 +65,8 @@ defmodule Tornium.Workers.UserUpdate do
         |> first()
         |> Repo.delete_all()
 
+        {:cancel, {:api_error, 6}}
+
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}
 

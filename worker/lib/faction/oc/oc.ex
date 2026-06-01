@@ -150,7 +150,10 @@ defmodule Tornium.Faction.OC do
         [
           %{
             "position" => crime_position,
-            "position_number" => crime_position_index,
+            "position_info" => %{
+              "id" => "P" <> slot_index,
+              "number" => crime_position_index,
+            },
             "item_requirement" => item_requirement,
             "user" => %{
               "id" => user_id,
@@ -168,7 +171,7 @@ defmodule Tornium.Faction.OC do
       when is_list(members) and is_boolean(oc_ready) and (is_map(item_requirement) or is_nil(item_requirement)) do
     slot =
       %Tornium.Schema.OrganizedCrimeSlot{
-        slot_index: Kernel.length(slots),
+        slot_index: String.to_integer(slot_index),
         oc_id: oc_id,
         crime_position: crime_position,
         crime_position_index: crime_position_index,
@@ -186,7 +189,10 @@ defmodule Tornium.Faction.OC do
         [
           %{
             "position" => crime_position,
-            "position_number" => crime_position_index,
+            "position_info" => %{
+              "id" => "P" <> slot_index,
+              "number" => crime_position_index,
+            },
             "item_requirement" => item_requirement,
             "user" => nil,
             "checkpoint_pass_rate" => user_success_chance
@@ -201,7 +207,7 @@ defmodule Tornium.Faction.OC do
       when is_list(members) and is_boolean(oc_ready) and (is_map(item_requirement) or is_nil(item_requirement)) do
     slot =
       %Tornium.Schema.OrganizedCrimeSlot{
-        slot_index: Kernel.length(slots),
+        slot_index: String.to_integer(slot_index),
         oc_id: oc_id,
         crime_position: crime_position,
         crime_position_index: crime_position_index,

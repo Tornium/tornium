@@ -129,7 +129,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       faction_id: faction_id,
       api_call_id: api_call_id,
       user_id: key_owner,
-      nonpublic?: nonpublic?
+      nonpublic?: nonpublic? and not force_public?
     }
     |> Tornium.Workers.FactionUpdate.new(schedule_in: _seconds = 15)
     |> Oban.insert()

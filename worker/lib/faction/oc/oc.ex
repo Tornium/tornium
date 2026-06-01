@@ -152,7 +152,7 @@ defmodule Tornium.Faction.OC do
             "position" => crime_position,
             "position_info" => %{
               "id" => "P" <> slot_index,
-              "number" => crime_position_index,
+              "number" => crime_position_index
             },
             "item_requirement" => item_requirement,
             "user" => %{
@@ -191,7 +191,7 @@ defmodule Tornium.Faction.OC do
             "position" => crime_position,
             "position_info" => %{
               "id" => "P" <> slot_index,
-              "number" => crime_position_index,
+              "number" => crime_position_index
             },
             "item_requirement" => item_requirement,
             "user" => nil,

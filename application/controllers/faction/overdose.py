@@ -14,7 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from flask import render_template
-from flask_login import login_required
+from flask_login import current_user, login_required
+from tornium_commons.models import OverdoseEvent, User
 
 from controllers.faction.decorators import fac_required
 
@@ -22,4 +23,11 @@ from controllers.faction.decorators import fac_required
 @login_required
 @fac_required
 def overdose(*args, **kwargs):
-    return render_template("faction/overdose.html")
+    overdosed_members = (
+        OverdoseEvent.select(User.tid, User.name)
+        .distinct(User.tid)
+        .join(User)
+        .where(OverdoseEvent.faction_id == current_user.faction_id)
+    )
+
+    return render_template("faction/overdose.html", overdosed_members=overdosed_members)

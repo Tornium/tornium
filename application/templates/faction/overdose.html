@@ -113,8 +113,8 @@ Tornium - Faction Overdoses
                                 multiple
                                 autocomplete="off"
                             >
-                                {% for armory_action in armory_members %}
-                                <option value="{{ armory_action.user.tid }}">{{ armory_action.user.name }} [{{ armory_action.user.tid }}]</option>
+                                {% for event in overdosed_members %}
+                                <option value="{{ event.user.tid }}">{{ event.user.name }} [{{ event.user.tid }}]</option>
                                 {% endfor %}
                             </select>
                         </fieldset>

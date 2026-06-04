@@ -28,6 +28,8 @@ from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_slot import OrganizedCrimeSlot
 from .organized_crime_team import OrganizedCrimeTeam
 from .organized_crime_team_member import OrganizedCrimeTeamMember
+from .overdose_count import OverdoseCount
+from .overdose_event import OverdoseEvent
 from .personal_stats import PersonalStats
 from .retaliation import Retaliation
 from .server import Server
@@ -62,6 +64,8 @@ __all__ = [
     "OrganizedCrimeSlot",
     "OrganizedCrimeTeam",
     "OrganizedCrimeTeamMember",
+    "OverdoseCount",
+    "OverdoseEvent",
     "PersonalStats",
     "Retaliation",
     "Server",

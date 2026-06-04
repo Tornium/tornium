@@ -46,6 +46,12 @@ Tornium - Faction Armory
             </a>
         </div>
 
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/overdose">
+                <i class="col-1 col-sm-2 fa-solid fa-capsules"></i> <span class="col">Overdoses</span>
+            </a>
+        </div>
+
         {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
@@ -200,7 +206,7 @@ Tornium - Faction Armory
                 <div class="viewer-filters px-2 pb-3">
                     <div class="row">
                         <fieldset class="col-sm-12 col-md-6 col-lg-4">
-                            <label for="cumulative-usage-viewer-action-filter">Armory Action</label>
+                            <label for="cumulative-usage-viewer-action-filter">Armory Action(s)</label>
                             <select
                                 id="cumulative-usage-viewer-action-filter"
                                 class="viewer-filter automatic-tom-select"
@@ -222,7 +228,7 @@ Tornium - Faction Armory
                         </fieldset>
 
                         <fieldset class="col-sm-12 col-md-6 col-lg-4">
-                            <label for="cumulative-usage-viewer-member-filter">Faction Member</label>
+                            <label for="cumulative-usage-viewer-member-filter">Faction Member(s)</label>
                             <select
                                 id="cumulative-usage-viewer-member-filter"
                                 class="viewer-filter automatic-tom-select"
@@ -241,7 +247,7 @@ Tornium - Faction Armory
                         </fieldset>
 
                         <fieldset class="col-sm-12 col-md-6 col-lg-4">
-                            <label for="cumulative-usage-viewer-item-filter">Armory Item</label>
+                            <label for="cumulative-usage-viewer-item-filter">Armory Item(s)</label>
                             <select
                                 id="cumulative-usage-viewer-item-filter"
                                 class="viewer-filter item-selector"

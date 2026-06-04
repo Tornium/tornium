@@ -50,7 +50,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       Tornium.Schema.Faction
       |> from(as: :faction)
       |> where([f], (is_nil(f.last_members) or f.last_members < ^one_hour_ago) and exists(valid_aa_key_subquery))
-      |> order_by([f], asc: f.last_members)
+      |> order_by([f], asc_nulls_first: f.last_members)
       |> limit(@max_chunk)
       |> Repo.all()
 
@@ -62,7 +62,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
 
         Tornium.Schema.Faction
         |> where([f], f.tid not in ^high_priority_faction_ids)
-        |> order_by([f], asc: f.last_members)
+        |> order_by([f], asc_nulls_first: f.last_members)
         |> limit(^remaining_limit)
         |> Repo.all()
       else

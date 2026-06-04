@@ -49,9 +49,9 @@ defmodule Tornium.Workers.UserUpdateScheduler do
       Tornium.Schema.TornKey
       |> where([k], k.default == true and k.disabled == false and k.paused == false and k.access_level >= :limited)
       |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
-      |> where([k, u], u.last_refresh < ^one_hour_ago)
+      |> where([k, u], is_nil(u.last_refresh) or u.last_refresh < ^one_hour_ago)
       |> select([k, u], k)
-      |> order_by([u], asc_nulls_first: u.last_refresh)
+      |> order_by([k, u], asc_nulls_first: u.last_refresh)
       |> limit(@max_chunk)
       |> Repo.all()
 

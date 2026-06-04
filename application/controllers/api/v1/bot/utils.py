@@ -61,7 +61,7 @@ def test_channel(guild_id, channel_id, *args, **kwargs):
         discordpost(
             f"channels/{channel_id}/messages",
             payload={
-                "content": "TEST!",
+                "content": 'TEST! If you do not see an embed in this message, this channel is missing the "Embed Links" permissions.',
                 "embeds": [
                     {
                         "title": "Test Message",

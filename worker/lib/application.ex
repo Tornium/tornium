@@ -56,7 +56,7 @@ defmodule Tornium.Application do
       {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
-      Tornium.API.Store,
+      Tornium.API.Supervisor,
       Tornex.HTTP.FinchClient,
       Tornex.NodeRatelimiter,
       Tornex.Scheduler.Supervisor,

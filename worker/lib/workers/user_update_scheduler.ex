@@ -37,7 +37,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk 100
+  @max_chunk (if Application.compile_env!(:tornium, :env) == :dev, do: 10, else: 100)
   @update_niceness 10
 
   @impl Oban.Worker

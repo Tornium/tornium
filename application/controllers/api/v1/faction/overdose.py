@@ -123,8 +123,8 @@ def get_events(faction_id: int, *args, **kwargs):
         buffer = io.StringIO()
         writer = csv.writer(buffer)
 
-        header = ["id", "timestamp", "user", "drug"]
-        data = [[event.guid, timestamp(event.created_at), event.user_id, event.drug_id] for event in events]
+        header = ["timestamp", "user", "user_name", "drug"]
+        data = [[timestamp(event.created_at), event.user_id, event.user.name, event.drug_id] for event in events]
 
         writer.writerow(header)
         writer.writerows(data)

@@ -33,7 +33,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk (if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 50)
+  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 50
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

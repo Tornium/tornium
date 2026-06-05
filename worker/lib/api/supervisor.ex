@@ -47,8 +47,15 @@ defmodule Tornium.API.Supervisor do
     # See https://github.com/slashdotdash/til/blob/master/elixir/dynamic-supervisor-start-children.md
 
     for shard <- 0..(@shards - 1) do
-      {:ok, _} =
-        Horde.DynamicSupervisor.start_child(Tornium.API.ShardSupervisor, {Tornium.API.Store, shard})
+      child = Horde.DynamicSupervisor.start_child(Tornium.API.ShardSupervisor, {Tornium.API.Store, shard})
+
+      case child do
+        {:ok, _} ->
+          nil
+
+        {:error, {:already_started, _}} ->
+          nil
+      end
     end
   end
 end

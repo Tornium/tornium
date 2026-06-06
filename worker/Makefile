@@ -32,3 +32,9 @@ rollback:
 
 run-tests:
 	MIX_ENV=test mix test
+
+node-1:
+	MIX_ENV=dev LOCAL_ONLY=0 iex --sname node1 --cookie asdf -S mix phx.server
+
+node-2:
+	MIX_ENV=dev LOCAL_ONLY=0 iex --sname node2 --cookie asdf -S mix

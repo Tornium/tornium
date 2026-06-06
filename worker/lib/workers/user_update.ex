@@ -34,6 +34,7 @@ defmodule Tornium.Workers.UserUpdate do
       )
       when is_nil(api_call_id) do
     # TODO: Implement this to perform the API call and update API call ID (similar to the schedule function)
+    {:cancel, :not_yet_implemented}
   end
 
   def perform(

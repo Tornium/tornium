@@ -35,7 +35,7 @@ defmodule Tornium.API.Supervisor do
       Supervisor.child_spec({Task, &start_shards/0}, restart: :transient)
     ]
 
-    Supervisor.init(children, strategy: :one_for_one)
+    Supervisor.init(children, strategy: :rest_for_one)
   end
 
   defp start_shards() do

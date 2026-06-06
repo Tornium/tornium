@@ -21,9 +21,11 @@ defmodule Tornium.Application do
 
   @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
-    topology = [
-      strategy: LibclusterPostgres.Strategy,
-      config: Tornium.Repo.config()
+    topologies = [
+      tornium: [
+        strategy: LibclusterPostgres.Strategy,
+        config: Tornium.Repo.config()
+      ]
     ]
 
     Logger.add_handlers(:tornium)

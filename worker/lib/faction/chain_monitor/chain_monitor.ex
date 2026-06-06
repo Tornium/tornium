@@ -234,7 +234,10 @@ defmodule Tornium.Faction.ChainMonitor do
         {
           :reply,
           :ok,
-          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data, faction_id: faction_id, timer_ref: timer_ref),
+          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data,
+            faction_id: faction_id,
+            timer_ref: timer_ref
+          ),
           {:continue, :message}
         }
     end
@@ -265,7 +268,10 @@ defmodule Tornium.Faction.ChainMonitor do
 
         {
           :noreply,
-          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data, faction_id: faction_id, timer_ref: timer_ref),
+          Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data,
+            faction_id: faction_id,
+            timer_ref: timer_ref
+          ),
           {:continue, :message}
         }
     end

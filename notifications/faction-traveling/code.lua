@@ -17,7 +17,6 @@ faction = faction
 ---@field last_update_time integer
 ---@field initialized boolean
 state = state
--- TODO: Reset notification states when the code is updated
 
 -- Preprocessed variables
 ---@type integer
@@ -248,7 +247,11 @@ local render_state = {
 
 for destination, destination_members in pairs(state.members) do
   for _, member in pairs(destination_members) do
-    if member.landed and member.status ~= nil then
+    if faction.members[member.tid] == nil then
+      -- The member was flying but is no longer in the faction. We should remove the member from the state
+      -- as to not pollute the render state.
+      state.members[destination][member.tid] = nil
+    elseif member.landed and member.status ~= nil then
       try_insert_table(render_state.hospital_members, destination, {
         tid = member.tid,
         username = format_username(member),
@@ -272,6 +275,12 @@ for destination, destination_members in pairs(state.members) do
         regular_landing = regular_landing,
       })
     end
+  end
+
+  if #state.members[destination] == 0 then
+    -- We want to remove destinations from the state if there's no member flying to it to reduce the size of
+    -- the state in the database.
+    state.members[destination] = nil
   end
 end
 

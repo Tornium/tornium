@@ -20,6 +20,9 @@ defmodule Tornium.Workers.UserUpdate do
     queue: :faction_processing,
     tags: ["faction"]
 
+  import Ecto.Query
+  alias Tornium.Repo
+
   @impl Oban.Worker
   def perform(
         %Oban.Job{
@@ -53,6 +56,16 @@ defmodule Tornium.Workers.UserUpdate do
       :not_ready ->
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
+
+      %{"error" => %{"code" => 6}} ->
+        # This error indicates that the user does not exist. This is likely the result of invalid
+        # data in the database. So we should try to delete the user ID from the database if it
+        # exists.
+        Tornium.Schema.User
+        |> where([u], u.tid == ^user_id)
+        |> Repo.delete_all()
+
+        {:cancel, {:api_error, 6}}
 
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}

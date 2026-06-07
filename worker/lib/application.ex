@@ -22,10 +22,8 @@ defmodule Tornium.Application do
   @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
     topologies = [
-      tornium: [
-        strategy: LibclusterPostgres.Strategy,
-        config: Tornium.Repo.config()
-      ]
+      strategy: LibclusterPostgres.Strategy,
+      config: [{:channel_name, "tornium_cluster"} | Tornium.Repo.config()]
     ]
 
     Logger.add_handlers(:tornium)
@@ -42,7 +40,7 @@ defmodule Tornium.Application do
 
     # TODO: Stop using `Tornium.TornexTaskSupervisor`
     children = [
-      {Cluster.Supervisor, [[app: topology]]},
+      {Cluster.Supervisor, [[app: topologies]]},
       Tornium.PromEx,
       Tornium.ObanRepo,
       Tornium.Repo,

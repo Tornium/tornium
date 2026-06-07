@@ -108,6 +108,7 @@ defmodule Tornium.API.Store do
   Remove and return the API response corresponding to the provided API call ID if it exists and
   is ready. If the response isn't ready, `:not_ready` will be returned instead. If it has
   expired, `:expired` will be returned.
+  """
   @spec pop(api_call_id :: String.t()) :: map() | :not_ready | :expired | nil
   def pop(api_call_id) do
     GenServer.call(via(api_call_id), {:pop, api_call_id})

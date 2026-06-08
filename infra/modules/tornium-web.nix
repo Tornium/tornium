@@ -167,7 +167,7 @@ in {
     };
 
     networking.firewall.allowedTCPPorts = lib.mkAfter [ 443 ];
-    networking.firewall.extraCommands = cloudflare.firewallRules;
+    networking.firewall.extraCommands = lib.mkAfter cloudflare.firewallRules;
 
     environment.systemPackages = lib.mkAfter [
       (pkgs.writeShellScriptBin "tornium-gunicornc" ''

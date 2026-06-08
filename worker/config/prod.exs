@@ -32,6 +32,6 @@ config :tornex,
 config :phoenix, :logger, false
 
 config :tornium, Oban,
-  # Suggested for use in development for increased performance
+  # Suggested for use in production for increased performance
   # See https://oban.hexdocs.pm/clustering.html
   peer: Oban.Peers.Database

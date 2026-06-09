@@ -84,7 +84,7 @@ if celery_app is None:
         },  # User tasks
         "refresh-users": {
             "task": "tasks.user.refresh_users",
-            "enabled": True,
+            "enabled": False,
             "schedule": {"type": "cron", "minute": "*/30", "hour": "*"},
         },
         "fetch-attacks-user-runner": {

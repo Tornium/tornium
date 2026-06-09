@@ -48,8 +48,6 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
     :param all_keys: Flag for whether all applicable keys should be included
     """
 
-    # TODO: Accept passed server model to prevent double query
-
     admin_keys: typing.List[str] = []
 
     invoker: typing.Optional[User]
@@ -59,7 +57,8 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
         else:
             invoker = User.select(User.tid).where(User.discord_id == interaction["user"]["id"]).get()
 
-        admin_keys.append(invoker.key)
+        if invoker.key is not None:
+            admin_keys.append(invoker.key)
     except DoesNotExist:
         invoker = None
 
@@ -70,18 +69,20 @@ def get_admin_keys(interaction, all_keys: bool = False) -> tuple:
 
     if "guild_id" in interaction:
         try:
-            server: Server = Server.get_by_id(interaction["guild_id"])
+            server: Server = Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get()
         except DoesNotExist:
             return tuple(admin_keys)
 
-        for admin in server.admins:
-            try:
-                admin_key: typing.Optional[str] = User.select(User.tid).where(User.tid == admin).get().key
-            except DoesNotExist:
+        admins = User.select(User.tid).where(User.tid.in_(server.admins))
+
+        admin: User
+        for admin in admins:
+            admin_key = admin.key
+
+            if admin_key is None:
                 continue
 
-            if admin_key is not None:
-                admin_keys.append(admin_key)
+            admin_keys.append(admin_key)
 
     return tuple(admin_keys)
 

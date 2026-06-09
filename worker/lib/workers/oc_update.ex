@@ -34,25 +34,61 @@ defmodule Tornium.Workers.OCUpdate do
   def perform(
         %Oban.Job{
           args: %{
-            "api_key" => api_key,
-            "user_tid" => user_tid,
-            "faction_tid" => faction_tid
+            "api_call_id" => api_call_id,
+            "faction_id" => faction_id,
+            "user_id" => user_id
           }
         } = _job
       ) do
-    config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_tid)
+    case Tornium.API.Store.pop(api_call_id) do
+      nil ->
+        {:cancel, :invalid_call_id}
 
-    parsed_crimes =
-      %Tornex.Query{
-        resource: "v2/faction",
-        resource_id: faction_tid,
-        key: api_key,
-        selections: ["crimes", "members"],
-        key_owner: user_tid,
-        nice: 10
+      :expired ->
+        {:cancel, :expired}
+
+      :not_ready ->
+        # This uses :error instead of :snooze to allow for an easy cap on the number of retries
+        {:error, :not_ready}
+
+      %{"error" => %{"code" => 7}} ->
+        Tornium.Schema.User
+        |> update([u], set: [faction_aa: false])
+        |> where([u], u.tid == ^user_id and u.faction_id == ^faction_id)
+        |> Repo.update_all([])
+
+        :ok
+
+      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
+        {:cancel, {:api_error, error_code}}
+
+      result when is_map(result) ->
+        do_perform(result)
+    end
+  end
+
+  @doc false
+  @spec do_perform(api_call_result :: map()) :: Oban.Worker.result()
+  def do_perform(api_call_result) when is_map(api_call_result) do
+    %{
+      Torngen.Client.Path.Faction.Basic => %{
+        FactionBasicResponse => %Torngen.Client.Schema.FactionBasicResponse{
+          basic: %Torngen.Client.Schema.FactionBasic{id: faction_id} = _basic_data
+        }
+      },
+      Torngen.Client.Path.Faction.Members => %{
+        FactionMembersResponse => %Torngen.Client.Schema.FactionMembersResponse{members: members_data}
+      },
+      Torngen.Client.Path.Faction.Crimes => %{
+        FactionCrimesResponse => %Torngen.Client.Schema.FactionCrimesResponse{crimes: crimes_data}
       }
-      |> Tornex.Scheduler.Bucket.enqueue()
-      |> Tornium.Faction.OC.parse(faction_tid)
+    } =
+      0
+      |> Tornium.Workers.OCUpdateScheduler.query()
+      |> Tornex.SpecQuery.parse(api_call_result)
+
+    config = Tornium.Schema.ServerOCConfig.get_by_faction(faction_id)
+    parsed_crimes = Tornium.Faction.OC.parse(crimes_data, members_data, faction_id)
 
     # `Repo.preload` is required to load additional information for performing and rending the checks
     check_state =
@@ -101,13 +137,13 @@ defmodule Tornium.Workers.OCUpdate do
     # Only factions with at least one OC team should perform this update
     count =
       Tornium.Schema.OrganizedCrimeTeam
-      |> where([t], t.faction_id == ^faction_tid)
+      |> where([t], t.faction_id == ^faction_id)
       |> select(count())
       |> Repo.one()
 
     case count do
       _ when count >= 1 ->
-        %{faction_tid: faction_tid}
+        %{faction_tid: faction_id}
         |> Tornium.Workers.OCTeamUpdate.new()
         |> Oban.insert()
 
@@ -120,6 +156,6 @@ defmodule Tornium.Workers.OCUpdate do
 
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
-    :timer.minutes(3)
+    :timer.minutes(1)
   end
 end

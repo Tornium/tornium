@@ -26,12 +26,7 @@ defmodule Tornium.Application do
     # Attach the default loggers from :telemetry before the start of the children
     Tornium.Telemetry.attach_default_logger()
     Tornex.Telemetry.attach_default_logger(ignored: [[:tornex, :bucket, :create]])
-
-    if Application.get_env(:tornium, :env) == :dev do
-      Oban.Telemetry.attach_default_logger()
-    else
-      Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
-    end
+    Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
 
     children =
       Application.get_env(:tornium, :env)

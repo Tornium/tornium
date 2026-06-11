@@ -28,6 +28,7 @@ from tornium_commons import with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import (
     LinkHTMLParser,
+    bs_to_range,
     commas,
     date_to_timestamp,
     timestamp,
@@ -35,7 +36,6 @@ from tornium_commons.formatters import (
 )
 from tornium_commons.models import (
     Faction,
-    FactionPosition,
     Item,
     PersonalStats,
     Retaliation,
@@ -51,7 +51,7 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 import celery
 from celery.utils.log import get_task_logger
 
-from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .api import discordpatch, discordpost, tornget
 from .misc import send_dm
 from .user import update_user
 
@@ -520,15 +520,16 @@ def generate_retaliation_embed(
                 opponent_score = 0
 
             if opponent_score != 0:
+                minimum, maximum = bs_to_range(opponent_score)
                 fields.extend(
                     (
                         {
-                            "name": "Estimated Stat Score",
-                            "value": commas(round(opponent_score)),
+                            "name": "Estimated Stat Range",
+                            "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
                             "inline": True,
                         },
                         {
-                            "name": "Stat Score Update",
+                            "name": "Stat Range Update",
                             "value": f"<t:{int(time.time())}:R>",
                             "inline": True,
                         },
@@ -558,15 +559,16 @@ def generate_retaliation_embed(
             stat = None
 
         if stat is not None:
+            minimum, maximum = bs_to_range(stat.battlescore)
             fields.extend(
                 (
                     {
-                        "name": "Estimated Stat Score",
-                        "value": commas(stat.battlescore),
+                        "name": "Estimated Stat Range",
+                        "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
                         "inline": True,
                     },
                     {
-                        "name": "Stat Score Update",
+                        "name": "Stat Range Update",
                         "value": f"<t:{int(timestamp(stat.time_added))}:R>",
                         "inline": True,
                     },

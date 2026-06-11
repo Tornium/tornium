@@ -67,9 +67,10 @@ defmodule Tornium.Workers.UserUpdate do
 
         {:cancel, {:api_error, 6}}
 
-      %{"error" => %{"code" => 13}} ->
-        # The owner of this API key has been inactive for over 7 days so we can just disable their
-        # API key as using it will be pointless. When/if the user returns, they can enable it again.
+      %{"error" => %{"code" => error_code}} when error_code in [10, 13] ->
+        # The owner of this API key has been inactive for over 7 days or is in federal jail so we
+        # can just disable their API key as using it will be pointless. When/if the user returns,
+        # they can enable it again.
         Tornium.Schema.TornKey
         |> where([k], k.user_id == ^api_key_owner)
         |> update([k], set: [disabled: true])

@@ -544,14 +544,14 @@ def generate_retaliation_embed(
                     .where(
                         (Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
                     )
-                    .order_by(Stat.time_added)
+                    .order_by(Stat.time_added.desc())
                     .first()
                 )
             else:
                 stat = (
                     Stat.select()
                     .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
-                    .order_by(Stat.time_added)
+                    .order_by(Stat.time_added.desc())
                     .first()
                 )
         except AttributeError as e:

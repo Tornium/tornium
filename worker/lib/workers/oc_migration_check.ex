@@ -43,7 +43,7 @@ defmodule Tornium.Workers.OCMigrationCheck do
     |> Repo.all()
     |> Enum.each(fn [api_key, user_tid, faction_tid] ->
       request = %Tornex.Query{
-        resource: "v2/faction",
+        resource: "v2/#{faction_tid}/faction",
         resource_id: faction_tid,
         key: api_key,
         selections: ["crimes"],
@@ -51,27 +51,22 @@ defmodule Tornium.Workers.OCMigrationCheck do
         nice: 20
       }
 
-      # TODO: Stop using the `Tornium.TornexTaskSupervisor`
       Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
         request
         |> Tornex.Scheduler.Bucket.enqueue()
         |> Tornium.Faction.OC.migrated?()
         |> update_migrated(faction_tid)
-
-        nil
       end)
     end)
 
     :ok
   end
 
-  @spec update_migrated(migration_status :: boolean(), faction_tid :: integer()) :: nil
+  @spec update_migrated(migration_status :: boolean(), faction_tid :: integer()) :: term()
   defp update_migrated(migration_status, faction_tid) when is_boolean(migration_status) and is_integer(faction_tid) do
     Tornium.Schema.Faction
     |> where([f], f.tid == ^faction_tid)
     |> update([f], set: [has_migrated_oc: ^migration_status])
     |> Repo.update_all([])
-
-    nil
   end
 end

@@ -154,7 +154,9 @@ defmodule Tornium.User do
   @doc """
   API query for updating user data.
 
-  Returns a `Tornex.SpecQuery` for the provided user ID and API key for updating the user's data.
+  The user ID can be either a Discord ID or a Torn ID. However, if the Discord ID is not
+  linked to a Torn account, Torn will respond with an error. This will return a
+  `Tornex.SpecQuery` for the provided user ID and API key for updating the user's data.
 
   ## Options
     * `:niceness` - Priority of the Tornex API call (default: `10`)

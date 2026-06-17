@@ -43,6 +43,8 @@ The verification name template is used to generate the nickname for all members 
 | {{ tid }}  | Torn user ID            | `1`        |
 | {{ tag }}  | Torn user's faction tag | `CR`       |
 
+If the user is not in a faction, the faction tag will fallback to an empty string `""`.
+
 ### Verified Roles
 Members of the Discord server will be given these roles if they are verified by Torn.
 

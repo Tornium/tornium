@@ -85,6 +85,13 @@ defmodule Tornium.Guild.Verify.Logic do
         %Tornium.Guild.Verify.Config{verify_template: template} = _server_config,
         %Tornium.Schema.User{} = user
       ) do
+    faction_tag =
+      if is_nil(user.faction) do
+        ""
+      else
+        user.faction.tag
+      end
+
     verified_string =
       try do
         template
@@ -92,7 +99,7 @@ defmodule Tornium.Guild.Verify.Logic do
         |> Solid.render!(%{
           "name" => user.name,
           "tid" => to_string(user.tid),
-          "tag" => user.faction.tag
+          "tag" => faction_tag
         })
         |> Kernel.to_string()
         |> String.replace(["\n", "\t"], "")

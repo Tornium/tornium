@@ -507,73 +507,64 @@ def generate_retaliation_embed(
         }
     ]
 
-    if attack["modifiers"]["fair_fight"] != 3:
-        if (
-            user is not None
-            and user.battlescore != 0
-            and user.battlescore_update is not None
-            and int(time.time()) - timestamp(user.battlescore_update) <= 259200
-        ):  # Three days
-            try:
-                opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
-            except (DivisionByZero, ZeroDivisionError):
-                opponent_score = 0
+    stat_score = None
+    stat_score_update: typing.Optional[int] = None
+    now = int(time.time())
 
-            if opponent_score != 0:
-                minimum, maximum = bs_to_range(opponent_score)
-                fields.extend(
-                    (
-                        {
-                            "name": "Estimated Stat Range",
-                            "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
-                            "inline": True,
-                        },
-                        {
-                            "name": "Stat Range Update",
-                            "value": f"<t:{int(time.time())}:R>",
-                            "inline": True,
-                        },
-                    )
-                )
-    else:
-        stat: typing.Optional[Stat]
+    if (
+        attack["modifiers"]["fair_fight"] not in (1, 3)
+        and user is not None
+        and user.battlescore not in (0, None)
+        and user.battlescore_update is not None
+        and now - timestamp(user.battlescore_update) <= 259200
+    ):
         try:
-            if user is not None and user.faction_id is not None:
-                stat = (
-                    Stat.select()
-                    .where(
-                        (Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
-                    )
-                    .order_by(Stat.time_added.desc())
-                    .first()
-                )
-            else:
-                stat = (
-                    Stat.select()
-                    .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
-                    .order_by(Stat.time_added.desc())
-                    .first()
-                )
-        except AttributeError as e:
-            logger.exception(e),
-            stat = None
+            stat_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
+            stat_score_update = now
+        except (DivisionByZero, ZeroDivisionError):
+            stat_score = None
+            stat_score_update = None
+
+        if stat_score == 0:
+            stat_score = None
+            stat_score_update = None
+    if stat_score is None and stat_score_update is None:
+        stat: typing.Optional[Stat]
+        if user is not None and user.faction_id is not None:
+            stat = (
+                Stat.select()
+                .where((Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id)))
+                .order_by(Stat.time_added.desc())
+                .first()
+            )
+        else:
+            stat = (
+                Stat.select()
+                .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
+                .order_by(Stat.time_added.desc())
+                .first()
+            )
 
         if stat is not None:
-            minimum, maximum = bs_to_range(stat.battlescore)
-            fields.extend(
-                (
-                    {
-                        "name": "Estimated Stat Range",
-                        "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
-                        "inline": True,
-                    },
-                    {
-                        "name": "Stat Range Update",
-                        "value": f"<t:{int(timestamp(stat.time_added))}:R>",
-                        "inline": True,
-                    },
-                )
+            stat_score = stat.battlescore
+            stat_score_update = int(timestamp(stat.time_added))
+
+    if stat_score is not None and stat_score_update is not None:
+        minimum, maximum = bs_to_range(stat_score)
+        fields.extend(
+            (
+                {
+                    "name": "Estimated Stat Range",
+                    "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
+                    "inline": True,
+                },
+                {
+                    "name": "Stat Range Update",
+                    "value": f"<t:{stat_score_update}:R>",
+                    "inline": True,
+                },
             )
+        )
 
     if attack["attacker_faction"] not in (0, ""):
         fields.append(

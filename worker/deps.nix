@@ -452,7 +452,7 @@ let
 
       finch =
         let
-          version = "0.22.0";
+          version = "0.23.0";
           drv = buildMix {
             inherit version;
             name = "finch";
@@ -461,7 +461,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "finch";
-              sha256 = "b94e83c47780fc6813f746a1f1a34ee65cda42da4c5ea26a68f0acc4498e23dc";
+              sha256 = "80e58d3f936f57e3fdf404f83a3642897ae6d9fb642934e46da4d8fe761b99d5";
             };
 
             beamDeps = [
@@ -477,7 +477,7 @@ let
 
       floki =
         let
-          version = "0.38.3";
+          version = "0.38.4";
           drv = buildMix {
             inherit version;
             name = "floki";
@@ -486,7 +486,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "floki";
-              sha256 = "025aa1f5f24a70cb31bfbc7011419228596f3b062d7feda617238ba4926f83cb";
+              sha256 = "bdb34645eee8e79845c7edaca2d4099a52804ee4d4a3ecc683a69451f0244973";
             };
           };
         in

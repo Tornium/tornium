@@ -14,7 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCMigrationCheck do
-  require Logger
+  @moduledoc """
+  Check and update all faction's migration status.
+
+  If a faction has not previously migrated to OCs 2.0, check if the API call for OCs indicates
+  that they have migrated to OCs 2.0 and update the database.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
 
@@ -32,7 +38,7 @@ defmodule Tornium.Workers.OCMigrationCheck do
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
     Tornium.Schema.TornKey
-    |> where([k], k.default == true)
+    |> where([k], k.default == true and k.disabled == false and k.paused == false and k.access_level >= :limited)
     |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
     |> where([k, u], not is_nil(u.faction_id) and u.faction_id != 0)
     |> where([k, u], u.faction_aa == true)
@@ -43,7 +49,7 @@ defmodule Tornium.Workers.OCMigrationCheck do
     |> Repo.all()
     |> Enum.each(fn [api_key, user_tid, faction_tid] ->
       request = %Tornex.Query{
-        resource: "v2/#{faction_tid}/faction",
+        resource: "v2/faction/#{faction_tid}",
         resource_id: faction_tid,
         key: api_key,
         selections: ["crimes"],

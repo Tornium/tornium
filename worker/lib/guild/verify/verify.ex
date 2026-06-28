@@ -22,27 +22,27 @@ defmodule Tornium.Guild.Verify do
 
   alias Tornium.Repo
   import Ecto.Query
-  require Logger
 
   # TODO: Comment the private methods
-  # TODO: Combine some of the types with pre-defined types
 
   @typedoc """
   The state of the verification process after resolving the `MapSet` of roles into a list.
   """
   @type resolved_state() :: %{roles: [Tornium.Discord.role()], nick: String.t()}
 
-  @type verification_error() :: {
-          :error,
+  @type verification_errors() ::
           Nostrum.Error.ApiError.t()
           | Tornium.API.Error.t()
           | :unverified
           | :nochanges
           | :api_key
           | :exclusion_role
-          | {:config, String.t()},
-          Tornium.Schema.Server.t()
-        }
+          | {:config, String.t()}
+
+  @type verification_error() :: {:error, verification_errors(), Tornium.Schema.Server.t()}
+
+  @type verification_result() ::
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()} | verification_error()
 
   @doc """
   Verify a Discord member of a Discord server.
@@ -63,14 +63,14 @@ defmodule Tornium.Guild.Verify do
           guild :: pos_integer() | Tornium.Schema.Server.t(),
           member :: Nostrum.Struct.Guild.Member.t(),
           opts :: keyword()
-        ) :: {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()} | verification_error()
-
+        ) :: verification_result()
   def verify(guild, member, opts \\ [])
 
   def verify(guild, %Nostrum.Struct.Guild.Member{} = member, opts) when is_integer(guild) do
     Tornium.Schema.Server
     |> Repo.get(guild)
     |> verify(member, opts)
+    |> log(member)
   end
 
   def verify({:error, error}, _member, _opts) do
@@ -133,15 +133,7 @@ defmodule Tornium.Guild.Verify do
           api_key :: Tornium.Schema.TornKey | nil,
           member :: Nostrum.Struct.Guild.Member.t(),
           opts :: keyword()
-        ) ::
-          {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error,
-             Nostrum.Error.ApiError.t()
-             | Tornium.API.Error.t()
-             | :unverified
-             | :nochanges
-             | :api_key
-             | {:config, String.t()}}
+        ) :: {:ok, Nostrum.Struct.Guild.Member.t()} | {:error, verification_errors()}
   defp handle_guild(guild, api_key, member, opts \\ [])
 
   defp handle_guild(_guild, api_key, %Nostrum.Struct.Guild.Member{} = _member, _opts) when is_nil(api_key) do
@@ -294,5 +286,46 @@ defmodule Tornium.Guild.Verify do
        )
        when is_map(changeset) do
     Nostrum.Api.Guild.modify_member(guild_id, member_id, changeset)
+  end
+
+  @spec log(verification_result :: verification_result(), original_member :: Nostrum.Struct.Guild.Member.t()) ::
+          verification_result()
+  defp log(
+         {:ok, %Nostrum.Struct.Guild.Member{nick: old_nickname, roles: old_roles} = _current_member,
+          %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id, nick: new_nickname, roles: new_roles} = _original_member
+       ) do
+    roles_removed = old_roles -- new_roles
+    roles_added = new_roles -- old_roles
+
+    # TODO: Use the same user ID as found earlier when building the changeset.
+    # however, currently the code is not set up well to get that user ID out of
+    # the changeset's functions.
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :success], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      old_nickname: old_nickname,
+      new_nickname: new_nickname,
+      added_roles: roles_removed,
+      removed_roles: roles_added
+    })
+
+    verification_result
+  end
+
+  defp log(
+         {:error, _error, %Tornium.Schema.Server{} = _guild} = verification_result,
+         %Nostrum.Struct.Guild.Member{} = _original_member
+       ) do
+    # TODO: Implement this
+
+    verification_result
   end
 end

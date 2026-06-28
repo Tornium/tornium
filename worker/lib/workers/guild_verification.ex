@@ -48,7 +48,12 @@ defmodule Tornium.Workers.GuildVerification do
         do_perform(guild, after_id)
 
       {:error, verification_config_error} ->
-        # TODO: Log error if applicable
+        :telemetry.execute([:tornium, :guild, :verify, :config_error], %{}, %{
+          guild_id: guild_id,
+          user_id: nil,
+          error: verification_config_error
+        })
+
         {:cancel, verification_config_error}
     end
   end
@@ -74,8 +79,6 @@ defmodule Tornium.Workers.GuildVerification do
     # there are likely more members in the server and another iteration is required.
     more_members? = length(members) == chunk_size
     next_after_id = do_perform_members(members, more_members?, users, guild, length(guild_admins) * 10)
-
-    # TODO: Send the messages regarding verification to the log channel
 
     if is_nil(next_after_id) do
       :ok

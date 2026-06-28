@@ -14,11 +14,33 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Telemetry do
-  @moduledoc false
+  @moduledoc """
+  Logging of events from Tornium.
+
+  ## Telemetry Events
+  * `[:tornium, :oc_team, :member_removed]`: TBA
+    * Measurement: `%{}`
+    * Metadata: `%{}`
+
+  * `[:tornium, :bot, :guild_joined]`: Executed when the bot joins a specific Discord server.
+    * Measurement: `%{}`
+    * Metadata: `%{guild_id: pos_integer, guild_name: String.t}`
+
+  * `[:tornium, :guild, :verify, :config_error]`: Dispatched by `Tornium.Workers.GuildVerify`
+    when a server does not have a valid verification configuration to verify its members.
+    * Measurement: `%{}`
+    * Metadata: `%{guild_id: pos_integer, user_id: nil | pos_integer, error: String.t}`
+
+  * `[:tornium, :guild, :verify, :success]`: Dispatched by `Tornium.Guild.Verify` when
+    the Discord server member was successfully verified with some change. This will not be
+    dispatched when the member was verified without their nickname and/or roles changing.
+    * Measurement: `%{}`
+    * Metadata: `%{guild_id: pos_integer, user_id: pos_integer, discord_id: pos_integer, old_nickname: string, new_nickname: string, added_roles: [pos_integer], removed_roles: [pos_integer]}`
+  """
 
   require Logger
 
-  @handler_id "tornium-telemetry-hndler"
+  @handler_id "tornium-telemetry-handler"
 
   @doc """
   Attaches the default Tornium `:telemetry` handler.
@@ -27,8 +49,12 @@ defmodule Tornium.Telemetry do
   def attach_default_logger(opts \\ []) when is_list(opts) do
     events = [
       [:tornium, :oc_team, :member_removed],
-      [:tornium, :bot, :guild_joined]
+      [:tornium, :bot, :guild_joined],
+      [:tornium, :guild, :verify, :config_error],
+      [:tornium, :guild, :verify, :success]
     ]
+
+    # TODO: Add failed verification to telemetry logs
 
     opts =
       opts
@@ -82,7 +108,72 @@ defmodule Tornium.Telemetry do
   end
 
   @doc false
-  def handle_event([:tornium, _event_type, _event], _measurements, _metadata, _opts) do
+  def handle_event(
+        [:tornium, :guild, :verify, :config_error],
+        %{} = _measurements,
+        %{guild_id: guild_id, user_id: user_id, error: error} = _metadata,
+        opts
+      )
+      when is_nil(user_id) do
+    opts
+    |> Keyword.put(:level, :info)
+    |> log(%{
+      event: "guild:verify:config_error",
+      message: "Bot failed to verify all users of guild #{guild_id} due to #{error}",
+      guild_id: guild_id,
+      user_id: nil,
+      error: error
+    })
+  end
+
+  @doc false
+  def handle_event(
+        [:tornium, :guild, :verify, :config_error],
+        %{} = _measurements,
+        %{guild_id: guild_id, user_id: user_id, error: error} = _metadata,
+        opts
+      )
+      when not is_nil(user_id) do
+    opts
+    |> Keyword.put(:level, :info)
+    |> log(%{
+      event: "guild:verify:config_error",
+      message: "Bot failed to verify member #{user_id} of guild #{guild_id} due to #{error}",
+      guild_id: guild_id,
+      user_id: user_id,
+      error: error
+    })
+  end
+
+  @doc false
+  def handle_event(
+        [:tornium, :guild, :verify, :success],
+        %{} = _measurements,
+        %{
+          guild_id: guild_id,
+          user_id: user_id,
+          discord_id: discord_id,
+          old_nickname: old_nickname,
+          new_nickname: new_nickname,
+          added_roles: added_roles,
+          removed_roles: removed_roles
+        },
+        opts
+      ) do
+    opts
+    |> Keyword.put(:level, :debug)
+    |> log(%{
+      event: "guild:verify:success",
+      message:
+        "Member #{user_id} of guild #{guild_id} was verified with the nick #{old_nickname} -> #{new_nickname}, the removed roles #{removed_roles |> inspect()}, and the added roles #{added_roles |> inspect()}",
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id
+    })
+  end
+
+  @doc false
+  def handle_event([:tornium | _], _measurements, _metadata, _opts) do
     :ok
   end
 

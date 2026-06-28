@@ -17,7 +17,6 @@ defmodule Tornium.Application do
   @moduledoc false
 
   use Application
-  require Logger
 
   @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
@@ -54,6 +53,7 @@ defmodule Tornium.Application do
       Tornium.ObanRepo,
       Tornium.Repo,
       {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
       Tornium.PromEx,
       {
         Nostrum.Bot,
@@ -83,6 +83,7 @@ defmodule Tornium.Application do
       Tornium.ObanRepo,
       Tornium.Repo,
       {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},

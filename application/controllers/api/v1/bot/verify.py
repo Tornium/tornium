@@ -18,12 +18,22 @@ import json
 
 from flask import jsonify, request
 from liquid.exceptions import LiquidSyntaxError
-from peewee import fn, DoesNotExist
+from peewee import DoesNotExist, fn
 from tornium_celery.tasks.guild import _VertificationNameEnvironment
-from tornium_commons.models import Faction, Server, User, VerificationLog, VerificationLogResult
+from tornium_commons.models import (
+    Faction,
+    Server,
+    User,
+    VerificationLog,
+    VerificationLogResult,
+)
 
 from controllers.api.v1.decorators import ratelimit, session_required
-from controllers.api.v1.utils import api_ratelimit_response, get_list, make_exception_response
+from controllers.api.v1.utils import (
+    api_ratelimit_response,
+    get_list,
+    make_exception_response,
+)
 
 _verification_log_results = (result.value for result in VerificationLogResult)
 

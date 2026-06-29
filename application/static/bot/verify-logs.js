@@ -23,12 +23,50 @@ const error_types = {
 };
 
 function showDetails(event) {
+    const defaultDetailsMessage = document.getElementById("default-details-message");
     const detailsGroup = document.getElementById("verification-details-group");
-    detailsGroup.classList.remove("d-none");
+    const logsTable = document.getElementById("verification-logs-viewer");
 
-    console.log(event);
-    // TODO: Use existing page data to get the data
-    // TODO: Only show the success/failure rows required
+    const logNode = event.target.closest(".viewer-card[data-log-id]");
+    const logGUID = logNode.getAttribute("data-log-id");
+    const log = logsTable.getData().find((log) => log.guid == logGUID);
+
+    if (detailsGroup == null || logsTable == null || log == null) {
+        return;
+    }
+
+    document.getElementById("details-timestamp").textContent = tcttime(log.timestamp);
+    document.getElementById("details-discord").textContent = log.discord_id || "N/A";
+    document.getElementById("details-user").textContent =
+        log.user == null ? "N/A" : `${log.user.name} [${log.user.id}]`;
+    document
+        .getElementById("details-user")
+        .setAttribute("href", log.user == null ? "#" : `https://www.torn.com/profiles.php?XID=${log.user.id}`);
+
+    const isSuccess = log.error_type == null;
+    if (isSuccess) {
+        document.getElementById("details-status").textContent = "Success";
+
+        const [oldNickname, newNickname] = log.success.nickname;
+        if (oldNickname != null && oldNickname != newNickname) {
+            document.getElementById("details-old-nickname").textContent = oldNickname;
+            document.getElementById("details-new-nickname").textContent = newNickname;
+        }
+
+        // TODO: Format the roles well
+        document.getElementById("details-roles-added").textContent = log.success.roles_added.join("\n") || "None";
+        document.getElementById("details-roles-removed").textContent = log.success.roles_removed.join("\n") || "None";
+    } else {
+        document.getElementById("details-status").textContent = "Failed";
+        document.getElementById("details-error-type").textContent = error_types[log.failure.error_type] || "Unknown";
+        document.getElementById("details-error-code").textContent = log.failure.error_code || "N/A";
+        document.getElementById("details-error-message").textContent = log.failure.error_message || "N/A";
+    }
+
+    detailsGroup.classList.remove("d-none");
+    detailsGroup.classList.toggle("is-success", isSuccess);
+    detailsGroup.classList.toggle("is-failure", !isSuccess);
+    defaultDetailsMessage.classList.add("d-none");
 }
 
 window.viewerErrorCallback = function (jsonError, container) {
@@ -71,7 +109,7 @@ window.addVerificationLogToViewer = function (log, logContainer) {
 
     const logNode = document.createElement("div");
     logNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
-    logNode.setAttribute("data-log-id", log.id);
+    logNode.setAttribute("data-log-id", log.guid);
     logContainer.append(logNode);
 
     const logRow = document.createElement("div");

@@ -39,6 +39,18 @@ Tornium - Verification Logs
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+    #verification-details-group.is-success .verification-details-failure {
+        display: none !important;
+    }
+
+    #verification-details-group.is-failure .verification-details-success {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="py-3 px-3">
     <div class="card">
@@ -118,12 +130,12 @@ Tornium - Verification Logs
                 <div class="col-sm-12 col-xl-4">
                     <div class="card">
                         <div class="card-header">Verification Log Details</div>
-                        <small class="card-text m-2">
+                        <small class="card-text m-2" id="default-details-message">
                         No verification log selected. <br />
                         Select a verification from the table to view its details.
                         </small>
 
-                        <ul class="list-group list-group-flush d-none" id="verification-details-group">
+                        <ul class="list-group list-group-flush border-top-0 d-none" id="verification-details-group">
                             <li class="list-group-item d-flex justify-content-between">
                                 <span class="fw-semibold">Status: </span><span id="details-status">N/A</span>
                             </li>
@@ -134,27 +146,28 @@ Tornium - Verification Logs
                                 <span class="fw-semibold">Discord ID: </span><span id="details-discord">N/A</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <span class="fw-semibold">Torn User: </span><span id="details-user">N/A</span>
+                                <span class="fw-semibold">Torn User: </span><a href="#" id="details-user">N/A</a>
                             </li>
 
-                            <li class="list-group-item d-flex justify-content-between verification-details-success">
-                                <span class="fw-semibold">Torn Nickname: </span>
-                                <div>
+                            <li class="list-group-item verification-details-success">
+                                <span class="fw-semibold">Nickname: </span>
+                                <br />
+                                <div class="text-end">
                                     <span id="details-old-nickname">N/A</span> &#8594; <span id="details-new-nickname">N/A</span>
                                 </div>
                             </li>
                             <li class="list-group-item d-flex justify-content-between verification-details-success">
-                                <span class="fw-semibold">Roles Removed: </span>
+                                <span class="fw-semibold">Roles Removed: </span><span id="details-roles-added">N/A</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between verification-details-success">
-                                <span class="fw-semibold">Roles Added: </span>
+                                <span class="fw-semibold">Roles Added: </span><span id="details-roles-removed">N/A</span>
                             </li>
 
                             <li class="list-group-item d-flex justify-content-between verification-details-failure">
-                                <span class="fw-semibold">Error Type: </span>
+                                <span class="fw-semibold">Error Type: </span><span id="details-error-type">N/A</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between verification-details-failure">
-                                <span class="fw-semibold">Error Code: </span>
+                                <span class="fw-semibold">Error Code: </span><span id="details-error-code">N/A</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between verification-details-failure">
                                 <span class="fw-semibold">Error Message: </span>

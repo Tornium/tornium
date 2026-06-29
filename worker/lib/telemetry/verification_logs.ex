@@ -26,6 +26,9 @@ defmodule Tornium.Telemetry.VerificationLogs do
   @default_write_interval 15_000
   @write_table :tornium_verification_telemetry_logs_queue
 
+  @typedoc """
+  Tuple used to store verification logs in the ETS table
+  """
   @type ets_log() ::
           {discord_id :: pos_integer() | nil, user_id :: pos_integer() | nil, log :: Tornium.Schema.VerificationLog.t()}
 
@@ -35,11 +38,9 @@ defmodule Tornium.Telemetry.VerificationLogs do
   @spec attach_logger(opts :: keyword()) :: :ok | {:error, :already_exists}
   def attach_logger(opts \\ []) do
     events = [
-      [:tornium, :guild, :verify, :config_error],
-      [:tornium, :guild, :verify, :success]
+      [:tornium, :guild, :verify, :success],
+      [:tornium, :guild, :verify, :failure]
     ]
-
-    # TODO: Add failed verification to telemetry logs
 
     opts =
       opts
@@ -59,14 +60,25 @@ defmodule Tornium.Telemetry.VerificationLogs do
 
   @doc false
   def handle_event(
-        [:tornium, :guild, :verify, :config_error],
+        [:tornium, :guild, :verify, :failure],
         %{} = _measurements,
-        %{guild_id: guild_id, user_id: nil, error: error} = _metadata,
+        %{
+          guild_id: guild_id,
+          user_id: user_id,
+          discord_id: discord_id,
+          error_type: error_type,
+          error_code: error_code,
+          error_message: error_message
+        } = _metadata,
         _opts
       ) do
     insert(guild_id, %Tornium.Schema.VerificationLog{
-      server_id: guild_id
-      # TODO: Add the error
+      server_id: guild_id,
+      discord_id: discord_id,
+      user_id: user_id,
+      error_type: error_type,
+      error_code: error_code,
+      error_message: error_message
     })
   end
 

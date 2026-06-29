@@ -39,7 +39,7 @@ defmodule Tornium.Guild.Verify do
           | :exclusion_role
           | {:config, String.t()}
 
-  @type verification_error() :: {:error, verification_errors(), Tornium.Schema.Server.t()}
+  @type verification_error() :: {:error, verification_errors(), Tornium.Schema.Server.t() | nil}
 
   @type verification_result() ::
           {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()} | verification_error()
@@ -298,9 +298,9 @@ defmodule Tornium.Guild.Verify do
     roles_removed = old_roles -- new_roles
     roles_added = new_roles -- old_roles
 
-    # TODO: Use the same user ID as found earlier when building the changeset.
-    # however, currently the code is not set up well to get that user ID out of
-    # the changeset's functions.
+    # TODO: Use the same user ID as found earlier when building the changeset. However, currently
+    # the code is not set up well to get that user ID out of the changeset's functions. This
+    # would also need to be done for all the below log/2 functions.
     user_id =
       Tornium.Schema.User
       |> select([u], u.tid)
@@ -321,11 +321,132 @@ defmodule Tornium.Guild.Verify do
   end
 
   defp log(
+         {:error, %Nostrum.Error.ApiError{response: %{code: error_code}} = _error,
+          %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+       ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    # We don't want to log Discord's error messages as the basic message can be found in the
+    # docs and the more in-depth message would likely use too much of the database's space.
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :discord_api,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  defp log(
+         {:error, %Tornium.API.Error{code: error_code} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+           verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+       ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :torn_api,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  defp log(
+         {:error, :unverified = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+       ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :unverified,
+      error_code: nil,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  # We don't care about logging the :nochanges error as it's not significant for the most part and would
+  # result in a lot of spammy logs.
+
+  defp log(
+         {:error, :api_key = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+       ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :no_api_key,
+      error_code: nil,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  # We don't care about logging the :exclusion_role error as it's purposefully done and would result in 
+  # a lot of spammy logs.
+
+  defp log(
+         {:error, {:config, config_error_message} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+           verification_result,
+         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+       ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :no_api_key,
+      error_code: nil,
+      error_message: config_error_message
+    })
+
+    verification_result
+  end
+
+  defp log(
          {:error, _error, %Tornium.Schema.Server{} = _guild} = verification_result,
          %Nostrum.Struct.Guild.Member{} = _original_member
        ) do
-    # TODO: Implement this
-
+    # Passthrough for errors that we don't want to handle/log and errors that haven't been
+    # properly handled above
     verification_result
   end
 end

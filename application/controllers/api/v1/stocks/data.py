@@ -45,7 +45,8 @@ def stocks_data(*args, **kwargs):
 
         ticks: typing.Iterable[StockTick] = StockTick.select().where(StockTick.timestamp == last_tick.timestamp)
     else:
-        stock_id_list = [int(stock_id) for stock_id in loads(stocks_map).keys()]
+        stocks_map = loads(stocks_map)
+        stock_id_list = [int(stock_id) for stock_id in stocks_map.keys()]
         now = datetime.datetime.utcnow()
 
         if now.second <= 6:

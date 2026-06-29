@@ -48,10 +48,13 @@ defmodule Tornium.Workers.GuildVerification do
         do_perform(guild, after_id)
 
       {:error, verification_config_error} ->
-        :telemetry.execute([:tornium, :guild, :verify, :config_error], %{}, %{
+        :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
           guild_id: guild_id,
           user_id: nil,
-          error: verification_config_error
+          discord_id: nil,
+          error_type: :config,
+          error_code: nil,
+          error_message: verification_config_error
         })
 
         {:cancel, verification_config_error}

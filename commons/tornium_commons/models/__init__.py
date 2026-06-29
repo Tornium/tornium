@@ -43,6 +43,7 @@ from .stock_tick import StockTick
 from .torn_key import TornKey
 from .user import User
 from .user_settings import UserSettings
+from .verification_log import VerificationLog, VerificationLogResult
 from .withdrawal import Withdrawal
 
 # NOTE: Non-model variables, classes, etc. can not be stored in __all__
@@ -79,5 +80,6 @@ __all__ = [
     "TornKey",
     "User",
     "UserSettings",
+    "VerificationLog",
     "Withdrawal",
 ]

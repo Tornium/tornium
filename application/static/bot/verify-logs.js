@@ -13,6 +13,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+const error_types = {
+    unverified: "Not Verified",
+    discord_permission: "Discord Permissions Issue",
+    no_api_key: "No API Key",
+    config: "Bot Config Issue",
+    torn_api: "Torn API Error",
+    discord_api: "Discord API Error",
+};
+
+function showDetails(event) {
+    const detailsGroup = document.getElementById("verification-details-group");
+    detailsGroup.classList.remove("d-none");
+
+    console.log(event);
+    // TODO: Use existing page data to get the data
+    // TODO: Only show the success/failure rows required
+}
+
 window.viewerErrorCallback = function (jsonError, container) {
     const errorNode = document.createElement("span");
     errorNode.textContent = " Data failed to load...";
@@ -26,6 +44,31 @@ window.viewerErrorCallback = function (jsonError, container) {
 };
 
 window.addVerificationLogToViewer = function (log, logContainer) {
+    let logChanges = [];
+    let logResult = "Unknown";
+
+    if (log.success != null) {
+        logResult = "Success";
+
+        if (log.success.nickname[0] != log.success.nickname[1]) {
+            logChanges.push("nickname");
+        }
+        if (log.success.roles_added.length != 0) {
+            logChanges.push(`+${log.success.roles_added.length} roles`);
+        }
+        if (log.success.roles_removed.length != 0) {
+            logChanges.push(`-${log.success.roles_removed.length} roles`);
+        }
+    } else if (log.failure != null) {
+        logResult = "Failed";
+        logChanges = [error_types[log.failure.error_type] || "Unknown"];
+    } else {
+        logResult = "Unknown";
+        logChanges = ["N/A"];
+    }
+
+    logChanges = logChanges.join(", ");
+
     const logNode = document.createElement("div");
     logNode.classList.add("card", "mx-2", "mt-2", "viewer-card");
     logNode.setAttribute("data-log-id", log.id);
@@ -35,20 +78,21 @@ window.addVerificationLogToViewer = function (log, logContainer) {
     logRow.classList.add("row", "p-2", "align-middle");
     logNode.append(logRow);
 
-    const logNameElement = document.createElement("div");
-    logNameElement.classList.add("col-sm-12", "col-md-4");
-    logNameElement.textContent = `${log.user.name} [${log.user.id}]`;
-    logRow.append(logNameElement);
+    const logUserElement = document.createElement("a");
+    logUserElement.classList.add("col-sm-12", "col-md-3");
+    logUserElement.textContent = `${log.user.name} [${log.user.id}]`;
+    logUserElement.setAttribute("href", `https://www.torn.com/profiles.php?XID=${log.user.id}`);
+    logRow.append(logUserElement);
 
-    const logActionElement = document.createElement("div");
-    logActionElement.classList.add("col-sm-12", "col-md-2");
-    logActionElement.textContent = log.action;
-    logRow.append(logActionElement);
+    const logResultElement = document.createElement("div");
+    logResultElement.classList.add("col-sm-12", "col-md-2");
+    logResultElement.textContent = logResult;
+    logRow.append(logResultElement);
 
-    const logItemElement = document.createElement("div");
-    logItemElement.classList.add("col-sm-12", "col-md-3", "text-truncate");
-    logItemElement.textContent = itemToString(log.item);
-    logRow.append(logItemElement);
+    const logChangesElement = document.createElement("div");
+    logChangesElement.classList.add("col-sm-12", "col-md-4", "text-truncate");
+    logChangesElement.textContent = logChanges;
+    logRow.append(logChangesElement);
 
     const logDateTimeElement = document.createElement("time");
     logDateTimeElement.classList.add("col-sm-12", "col-md-2");
@@ -64,9 +108,9 @@ window.addVerificationLogToViewer = function (log, logContainer) {
     logActions.classList.add("w-100", "justify-content-end", "d-flex");
     logActionsContainer.append(logActions);
 
-    const viewAction = document.createElement("a");
+    const viewAction = document.createElement("button");
     viewAction.classList.add("btn", "btn-sm", "btn-outline-secondary", "me-2");
-    viewAction.href = `https://www.torn.com/factions.php?step=your&search=${log.user.name}&from=${log.timestamp - 1}&to=${log.timestamp + 1}`;
+    viewAction.addEventListener("click", showDetails);
     logActions.append(viewAction);
 
     const viewActionIcon = document.createElement("i");

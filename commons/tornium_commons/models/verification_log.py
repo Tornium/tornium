@@ -64,4 +64,27 @@ class VerificationLog(BaseModel):
     def to_dict(self) -> dict:
         from ..formatters import timestamp
 
-        return {"guid": self.guid, "timestamp": timestamp(self.timestamp), "server_id": self.server_id}
+        return {
+            "guid": self.guid,
+            "timestamp": timestamp(self.timestamp),
+            "user": {"id": self.user_id, "name": self.user.name} if self.user is not None else None,
+            "discord_id": None if self.discord_id is None else str(self.discord_id),
+            "success": (
+                {
+                    "nickname": [self.old_nickname, self.new_nickname],
+                    "roles_added": self.roles_added,
+                    "roles_removed": self.roles_removed,
+                }
+                if self.error_type is None
+                else None
+            ),
+            "error": (
+                {
+                    "error_type": str(self.error_type),
+                    "error_code": self.error_code,
+                    "error_message": self.error_message,
+                }
+                if self.error_type is not None
+                else None
+            ),
+        }

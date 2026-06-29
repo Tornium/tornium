@@ -600,6 +600,7 @@ def verify_logs(guild_id: int, *args, **kwargs):
 
     logs = VerificationLog.select().where(VerificationLog.server_id == guild_id)
 
+    # FIXME: This needs to be implemented
     # if len(results) != 0:
     #     logs = logs.where(VerificationLog.result.in_(members))
     if from_timestamp != 0:

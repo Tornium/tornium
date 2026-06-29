@@ -13,16 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import json
 
 from flask import jsonify, request
 from liquid.exceptions import LiquidSyntaxError
-from peewee import DoesNotExist
+from peewee import fn, DoesNotExist
 from tornium_celery.tasks.guild import _VertificationNameEnvironment
-from tornium_commons.models import Faction, Server
+from tornium_commons.models import Faction, Server, User, VerificationLog, VerificationLogResult
 
 from controllers.api.v1.decorators import ratelimit, session_required
-from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import api_ratelimit_response, get_list, make_exception_response
+
+_verification_log_results = (result.value for result in VerificationLogResult)
 
 
 def jsonified_verify_config(guild: Server):
@@ -529,3 +532,96 @@ def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
     Server.update(faction_verify=guild.faction_verify).where(Server.sid == guild.sid).execute()
 
     return jsonified_verify_config(guild), 200, api_ratelimit_response(key)
+
+
+@session_required
+@ratelimit
+def verify_logs(guild_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    user: User = kwargs["user"]
+
+    try:
+        guild: Server = Server.select(Server.admins).where(Server.sid == int(guild_id)).get()
+    except (ValueError, TypeError, DoesNotExist):
+        return make_exception_response("1001", key)
+
+    if user.tid not in guild.admins:
+        return make_exception_response("4020", key)
+
+    now = int(datetime.datetime.utcnow().timestamp())
+
+    try:
+        limit = int(request.args.get("limit", 25))
+        offset = int(request.args.get("offset", 0))
+        from_timestamp = int(request.args.get("from", 0))
+        to_timestamp = int(request.args.get("to", now))
+        sort_order = request.args.get("sort", "timestamp-desc")
+    except (TypeError, ValueError):
+        return make_exception_response("1000", key)
+
+    results = get_list(request.args, "results", str)
+
+    if limit < 0 or limit > 100:
+        return make_exception_response(
+            "0000", key, details={"element": "limit", "message": "The limit must be between 0 and 100."}
+        )
+    elif offset < 0:
+        return make_exception_response(
+            "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+        )
+    elif len(results) > 0 and any([result not in _verification_log_results for result in results]):
+        return make_exception_response(
+            "0000", key, details={"element": "results", "message": "There was an invalid result provided."}
+        )
+    elif from_timestamp < 0 or from_timestamp > now:
+        return make_exception_response(
+            "0000", key, details={"element": "from", "message": "There was an invalid from timestamp provided."}
+        )
+    elif to_timestamp <= 0 or to_timestamp > now:
+        return make_exception_response(
+            "0000", key, details={"element": "to", "message": "There was an invalid to timestamp provided."}
+        )
+    elif from_timestamp > to_timestamp:
+        return make_exception_response(
+            "0000",
+            key,
+            details={"element": "from+to", "message": "The from timestamp can not be larger than the to timstamp."},
+        )
+
+    logs = VerificationLog.select().where(VerificationLog.server_id == guild_id)
+
+    # if len(results) != 0:
+    #     logs = logs.where(VerificationLog.result.in_(members))
+    if from_timestamp != 0:
+        logs = logs.where(
+            VerificationLog.timestamp >= datetime.datetime.fromtimestamp(from_timestamp, tz=datetime.timezone.utc)
+        )
+    if to_timestamp != now:
+        logs = logs.where(
+            VerificationLog.timestamp <= datetime.datetime.fromtimestamp(to_timestamp, tz=datetime.timezone.utc)
+        )
+
+    if sort_order == "timestamp-desc":
+        logs = logs.order_by(VerificationLog.timestamp.desc())
+    elif sort_order == "timestamp-asc":
+        logs = logs.order_by(VerificationLog.timestamp.asc())
+    else:
+        return make_exception_response(
+            "0000",
+            key,
+            details={
+                "element": "sort",
+                "message": 'The sort order must be one of the following: "timestamp-desc" or "timestamp-asc".',
+            },
+        )
+
+    total_count_expression = fn.COUNT(VerificationLog.guid).over()
+    logs = logs.select(VerificationLog, total_count_expression.alias("total_count"))
+    paged_logs = list(logs.limit(limit).offset(offset))
+    total_count = paged_logs[0].total_count if paged_logs else 0
+
+    return (
+        {"count": total_count, "logs": [log.to_dict() for log in paged_logs]},
+        200,
+        api_ratelimit_response(key),
+    )

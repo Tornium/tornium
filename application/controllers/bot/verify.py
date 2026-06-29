@@ -59,3 +59,30 @@ def verify_dashboard(guild_id: int):
         "bot/verify.html",
         guild=guild,
     )
+
+
+@login_required
+def verify_logs(guild_id: int):
+    try:
+        guild: Server = Server.select(Server.sid, Server.admins).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Guild Not Found",
+                error="No Discord server could be located with the provided guild ID",
+            ),
+            400,
+        )
+
+    if current_user.tid not in guild.admins:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error="Only server admins are able to access this page, and you do not have this permission.",
+            ),
+            403,
+        )
+
+    return render_template("bot/verify-logs.html", guild=guild)

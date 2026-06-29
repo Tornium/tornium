@@ -24,6 +24,7 @@ class TableViewer extends HTMLElement {
         this.nextButton = null;
         this.exportButton = null;
         this.filters = this.registerFilters();
+        this.pageData = [];
     }
 
     connectedCallback() {
@@ -127,7 +128,8 @@ class TableViewer extends HTMLElement {
                     const callback = this.getRenderCallback();
                     this.container.innerHTML = "";
 
-                    for (const rowData of response[dataKey]) {
+                    this.pageData = response[dataKey];
+                    for (const rowData of this.pageData) {
                         callback(rowData, this.container);
                     }
                 })
@@ -277,6 +279,10 @@ class TableViewer extends HTMLElement {
             window.open(url, "_blank");
             this.exportButton.removeAttribute("disabled");
         });
+    }
+
+    getData() {
+        return this.pageData;
     }
 }
 

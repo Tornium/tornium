@@ -13,10 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
+
 from flask import render_template
 from flask_login import current_user, login_required
-from peewee import DoesNotExist
-from tornium_commons.models import Server
+from peewee import DoesNotExist, fn
+from tornium_commons.formatters import rel_time
+from tornium_commons.models import Server, VerificationLog
 
 
 @login_required
@@ -55,9 +58,34 @@ def verify_dashboard(guild_id: int):
             403,
         )
 
+    one_day_ago = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    verification_stats = (
+        VerificationLog.select(
+            fn.COUNT(VerificationLog.guid).alias("verification_attempts"),
+            fn.COUNT(VerificationLog.guid).filter(VerificationLog.error_type.is_null(False)).alias("failed_attempts"),
+            fn.MAX(VerificationLog.timestamp).alias("most_recent_timestamp"),
+        )
+        .where((VerificationLog.server_id == guild_id) & (VerificationLog.timestamp >= one_day_ago))
+        .dicts()
+        .get()
+    )
+    print(verification_stats)
+
     return render_template(
         "bot/verify.html",
         guild=guild,
+        verification_attempts=verification_stats["verification_attempts"],
+        verification_failed_attempts=verification_stats["failed_attempts"],
+        verification_most_recent_timestamp=rel_time(verification_stats["most_recent_timestamp"]),
+        verification_success_percent=(
+            round(
+                (verification_stats["verification_attempts"] - verification_stats["failed_attempts"])
+                / verification_stats["verification_attempts"]
+                * 100,
+            )
+            if verification_stats["verification_attempts"]
+            else 0
+        ),
     )
 
 

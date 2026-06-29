@@ -109,19 +109,19 @@ Tornium - Verification
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Verification Attempts</span>
-                        <span>1</span>
+                        <span>{{ verification_attempts }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Failed Verification Attempts</span>
-                        <span>2</span>
+                        <span>{{ verification_failed_attempts }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Success (%)</span>
-                        <span>3</span>
+                        <span>{{ verification_success_percent }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Last Verification Attempt</span>
-                        <span>4</span>
+                        <span>{{ verification_most_recent_timestamp }}</span>
                     </li>
                 </ul>
 

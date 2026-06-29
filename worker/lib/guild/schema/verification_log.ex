@@ -101,12 +101,12 @@ defmodule Tornium.Schema.VerificationLog do
       user_id: user_id,
       old_nickname: old_nickname,
       new_nickname: new_nickname,
-      roles_added: roles_added,
-      roles_removed: roles_removed,
+      roles_added: roles_added || [],
+      roles_removed: roles_removed || [],
       error_type: dump_error_type(error_type),
       error_code: error_code,
       error_message: error_message,
-      timestamp: DateTime.utc_now()
+      timestamp: DateTime.utc_now() |> DateTime.truncate(:second)
     }
   end
 

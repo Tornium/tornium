@@ -70,7 +70,6 @@ defmodule Tornium.Guild.Verify do
     Tornium.Schema.Server
     |> Repo.get(guild)
     |> verify(member, opts)
-    |> log(member)
   end
 
   def verify({:error, error}, _member, _opts) do
@@ -94,6 +93,7 @@ defmodule Tornium.Guild.Verify do
         {:error, error} -> {:error, error, guild}
       end
     end
+    |> log(member)
   end
 
   defp validate_on_join(%Tornium.Schema.Server{gateway_verify_enabled: false} = _guild) do
@@ -294,9 +294,11 @@ defmodule Tornium.Guild.Verify do
          {:ok, %Nostrum.Struct.Guild.Member{nick: old_nickname, roles: old_roles} = _current_member,
           %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
          %Nostrum.Struct.Guild.Member{user_id: discord_id, nick: new_nickname, roles: new_roles} = _original_member
-       ) do
+       )
+       when old_nickname != new_nickname or old_roles != new_roles do
     roles_removed = old_roles -- new_roles
     roles_added = new_roles -- old_roles
+    nickname_changed? = old_nickname != new_nickname
 
     # TODO: Use the same user ID as found earlier when building the changeset. However, currently
     # the code is not set up well to get that user ID out of the changeset's functions. This
@@ -311,8 +313,8 @@ defmodule Tornium.Guild.Verify do
       guild_id: guild_id,
       user_id: user_id,
       discord_id: discord_id,
-      old_nickname: old_nickname,
-      new_nickname: new_nickname,
+      old_nickname: if(nickname_changed?, do: old_nickname, else: nil),
+      new_nickname: if(nickname_changed?, do: new_nickname, else: nil),
       added_roles: roles_removed,
       removed_roles: roles_added
     })
@@ -442,11 +444,11 @@ defmodule Tornium.Guild.Verify do
   end
 
   defp log(
-         {:error, _error, %Tornium.Schema.Server{} = _guild} = verification_result,
+         verification_result,
          %Nostrum.Struct.Guild.Member{} = _original_member
        ) do
-    # Passthrough for errors that we don't want to handle/log and errors that haven't been
-    # properly handled above
+    # Passthrough for errors that we don't want to handle/log, errors that haven't been
+    # properly handled above, and users that haven't been modified
     verification_result
   end
 end

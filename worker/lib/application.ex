@@ -24,6 +24,7 @@ defmodule Tornium.Application do
 
     # Attach the default loggers from :telemetry before the start of the children
     Tornium.Telemetry.attach_default_logger()
+    Tornium.Telemetry.VerificationLogs.attach_logger()
     Tornex.Telemetry.attach_default_logger(ignored: [[:tornex, :bucket, :create]])
 
     if Application.get_env(:tornium, :env) == :dev do

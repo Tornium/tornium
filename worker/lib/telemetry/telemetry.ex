@@ -121,11 +121,11 @@ defmodule Tornium.Telemetry do
       )
       when not is_nil(user_id) do
     opts
-    |> Keyword.put(:level, :info)
+    |> Keyword.put(:level, :debug)
     |> log(%{
       event: "guild:verify:failure",
       message:
-        "Bot failed to verify member #{discord_id} [#{user_id}] of guild #{guild_id} due to error #{error_type} (#{error_code or error_message or "N/A"}",
+        "Bot failed to verify member #{discord_id} [#{user_id}] of guild #{guild_id} due to error #{error_type} (#{error_code || error_message || "N/A"}",
       guild_id: guild_id,
       user_id: user_id,
       discord_id: discord_id,

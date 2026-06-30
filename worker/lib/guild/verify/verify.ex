@@ -291,9 +291,9 @@ defmodule Tornium.Guild.Verify do
   @spec log(verification_result :: verification_result(), original_member :: Nostrum.Struct.Guild.Member.t()) ::
           verification_result()
   defp log(
-         {:ok, %Nostrum.Struct.Guild.Member{nick: old_nickname, roles: old_roles} = _current_member,
+         {:ok, %Nostrum.Struct.Guild.Member{nick: new_nickname, roles: new_roles} = _current_member,
           %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
-         %Nostrum.Struct.Guild.Member{user_id: discord_id, nick: new_nickname, roles: new_roles} = _original_member
+         %Nostrum.Struct.Guild.Member{user_id: discord_id, nick: old_nickname, roles: old_roles} = _original_member
        )
        when old_nickname != new_nickname or old_roles != new_roles do
     roles_removed = old_roles -- new_roles

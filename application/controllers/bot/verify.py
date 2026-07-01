@@ -69,24 +69,27 @@ def verify_dashboard(guild_id: int):
         .dicts()
         .get()
     )
-    print(verification_stats)
 
-    return render_template(
-        "bot/verify.html",
-        guild=guild,
-        verification_attempts=verification_stats["verification_attempts"],
-        verification_failed_attempts=verification_stats["failed_attempts"],
-        verification_most_recent_timestamp=rel_time(verification_stats["most_recent_timestamp"]),
-        verification_success_percent=(
-            round(
-                (verification_stats["verification_attempts"] - verification_stats["failed_attempts"])
-                / verification_stats["verification_attempts"]
-                * 100,
-            )
-            if verification_stats["verification_attempts"]
-            else 0
-        ),
-    )
+    verification_stats_dict = {
+        "verification_attempts": "N/A",
+        "verification_failed_attempts": "N/A",
+        "verification_most_recent_timestamp": "N/A",
+        "verification_success_percent": "N/A",
+    }
+
+    if verification_stats["verification_attempts"] > 0:
+        verification_stats_dict["verification_attempts"] = verification_stats["verification_attempts"]
+        verification_stats_dict["verification_failed_attempts"] = verification_stats["failed_attempts"]
+        verification_stats_dict["verification_most_recent_timestamp"] = rel_time(
+            verification_stats["most_recent_timestamp"]
+        )
+        verification_stats_dict["verification_success_percent"] = round(
+            (verification_stats["verification_attempts"] - verification_stats["failed_attempts"])
+            / verification_stats["verification_attempts"]
+            * 100
+        )
+
+    return render_template("bot/verify.html", guild=guild, **verification_stats_dict)
 
 
 @login_required

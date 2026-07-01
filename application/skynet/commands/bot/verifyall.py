@@ -17,10 +17,9 @@ import datetime
 import time
 
 from peewee import DoesNotExist
-from tornium_celery.tasks.guild import verify_users
 from tornium_commons import rds
 from tornium_commons.formatters import find_list
-from tornium_commons.models import Server
+from tornium_commons.models import ObanJob, Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.decorators import invoker_required
@@ -149,10 +148,14 @@ def verify_all(interaction, *args, **kwargs):
             },
         }
 
-    task = verify_users.delay(
-        guild_id=guild.sid,
-        admin_keys=admin_keys,
-        force=force,
+    verification_job: ObanJob = ObanJob.new(
+        worker="Tornium.Workers.GuildVerification",
+        queue="guild_processing",
+        args={
+            "guild_id": guild.sid,
+            "after": 0,
+        },
+        tags=["guild"],
     )
 
     return {
@@ -165,7 +168,7 @@ def verify_all(interaction, *args, **kwargs):
                     "by the Torn API, the Discord API, and Tornium. If a log channel is enabled, details will be sent "
                     "to it as verification proceeds.",
                     "color": SKYNET_INFO,
-                    "footer": {"text": f"Task ID: {task.id}"},
+                    "footer": {"text": f"Task ID: #{verification_job.id}"},
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ]

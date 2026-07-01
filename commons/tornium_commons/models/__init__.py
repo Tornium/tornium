@@ -23,6 +23,7 @@ from .notification_trigger import NotificationTrigger
 from .oauth_authorization_code import OAuthAuthorizationCode
 from .oauth_client import OAuthClient
 from .oauth_token import OAuthToken
+from .oban_job import ObanJob
 from .organized_crime import OrganizedCrime
 from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_slot import OrganizedCrimeSlot
@@ -60,6 +61,7 @@ __all__ = [
     "OAuthAuthorizationCode",
     "OAuthClient",
     "OAuthToken",
+    "ObanJob",
     "OrganizedCrimeCPR",
     "OrganizedCrime",
     "OrganizedCrimeSlot",

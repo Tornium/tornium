@@ -43,6 +43,7 @@ def verify_all(interaction, *args, **kwargs):
     try:
         guild: Server = (
             Server.select(
+                Server.sid,
                 Server.admins,
                 Server.verify_template,
                 Server.verified_roles,

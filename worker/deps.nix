@@ -832,8 +832,8 @@ let
             src = fetchFromGitHub {
               owner = "dssecret";
               repo = "nostrum";
-              rev = "108219b016c9ae288ab8d14903ceacf69d9abb78";
-              hash = "sha256-YhacWbHwhJH6nPr6snW1fmTk5/qnEErFMxnF7Zj63s0=";
+              rev = "4995ae066280e1b266e9f23b90869bb6e846e295";
+              hash = "sha256-GlhvfLodXx1Nha1k8B72+EAW1cBZOVK4qxg0GLgzxGI=";
             };
 
             beamDeps = [
@@ -1080,7 +1080,7 @@ let
 
       plug =
         let
-          version = "1.20.1";
+          version = "1.20.2";
           drv = buildMix {
             inherit version;
             name = "plug";
@@ -1089,7 +1089,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "plug";
-              sha256 = "892d2a1a7a3f5368c5a3b9067bba1050c031495f48c430ec00b09691dbf211b7";
+              sha256 = "b16baf55877d60891002ffc1ce0b3ff7d6f30a38a23e02e4d4293c4ac266f136";
             };
 
             beamDeps = [

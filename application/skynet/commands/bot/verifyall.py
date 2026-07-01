@@ -44,7 +44,7 @@ def verify_all(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.get_by_id(interaction["guild_id"])
+        guild: Server = Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get()
     except DoesNotExist:
         return {
             "type": 4,
@@ -104,18 +104,7 @@ def verify_all(interaction, *args, **kwargs):
             },
         }
 
-    if "options" in interaction["data"]:
-        force = find_list(interaction["data"]["options"], "name", "force")
-
-        if force is None:
-            force = False
-        else:
-            force = force["value"]
-    else:
-        force = False
-
     admin_keys = get_admin_keys(interaction, all_keys=True)
-    redis_client = rds()
 
     if len(admin_keys) == 0:
         return {
@@ -126,21 +115,6 @@ def verify_all(interaction, *args, **kwargs):
                         "title": "No API Keys",
                         "description": "No API keys were found to be run for this command. Please sign into "
                         "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    if redis_client.exists(f"tornium:verify:{guild.sid}:lock"):
-        ttl = redis_client.ttl(f"tornium:verify:{guild.sid}:lock")
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Too Many Requests",
-                        "description": f"Server-wide verification can be run every ten minutes. Please try again <t:{int(time.time()) + ttl}:R>.",
                         "color": SKYNET_ERROR,
                     }
                 ],

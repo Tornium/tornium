@@ -82,7 +82,7 @@ defmodule Tornium.Workers.GuildMemberVerification do
     Tornium.Schema.Server
     |> where([s], s.sid == ^guild_id)
     |> Repo.one!()
-    |> Tornium.Guild.Verify.verify(member, force: false)
+    |> Tornium.Guild.Verify.verify(member, force?: false)
 
     :ok
   end

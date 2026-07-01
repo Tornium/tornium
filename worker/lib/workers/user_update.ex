@@ -42,7 +42,8 @@ defmodule Tornium.Workers.UserUpdate do
           args: %{
             "api_call_id" => api_call_id,
             "user_id" => user_id,
-            "api_key_owner" => api_key_owner
+            "api_key_owner" => api_key_owner,
+            "api_key_id" => api_key_id
           }
         } = _job
       ) do
@@ -66,6 +67,26 @@ defmodule Tornium.Workers.UserUpdate do
         |> Repo.delete_all()
 
         {:cancel, {:api_error, 6}}
+
+      %{"error" => %{"code" => 2}} ->
+        # The API key has been deleted so we can just delete the respective API key based upon the
+        # primary key.
+        Tornium.Schema.TornKey
+        |> where([k], k.guid == ^api_key_id)
+        |> Repo.delete_all()
+
+        {:cancel, {:api_error, 2}}
+
+      %{"error" => %{"code" => error_code}} when error_code in [10, 13] ->
+        # The owner of this API key has been inactive for over 7 days or is in federal jail so we
+        # can just disable their API key as using it will be pointless. When/if the user returns,
+        # they can enable it again.
+        Tornium.Schema.TornKey
+        |> where([k], k.user_id == ^api_key_owner)
+        |> update([k], set: [disabled: true])
+        |> Repo.update_all([])
+
+        {:cancel, {:api_error, error_code}}
 
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}

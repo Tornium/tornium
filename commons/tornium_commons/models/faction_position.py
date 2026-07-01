@@ -26,7 +26,7 @@ class FactionPosition(BaseModel):
 
     pid = UUIDField(primary_key=True)
     name = CharField()
-    faction_id = ForeignKeyField(Faction, null=False)
+    faction = ForeignKeyField(Faction, null=False)
 
     default = BooleanField(default=False)
     permissions = ArrayField(CharField, default=[], null=False)

@@ -82,7 +82,8 @@ defmodule Tornium.Workers.UserUpdateScheduler do
   updating the user data of the API key owner.
   """
   @spec scheduler_user_update(user :: Tornium.Schema.TornKey.t() | Tornium.Schema.User.t()) :: term()
-  def scheduler_user_update(%Tornium.Schema.TornKey{user_id: user_id} = api_key) when is_integer(user_id) do
+  def scheduler_user_update(%Tornium.Schema.TornKey{guid: api_key_id, user_id: user_id} = api_key)
+      when is_integer(user_id) do
     query = Tornium.User.update_query(user_id, api_key, niceness: @update_niceness)
 
     api_call_id = Ecto.UUID.generate()
@@ -97,14 +98,15 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     %{
       api_call_id: api_call_id,
       user_id: user_id,
-      api_key_owner: user_id
+      api_key_owner: user_id,
+      api_key_id: api_key_id
     }
     |> Tornium.Workers.UserUpdate.new(schedule_in: _seconds = 15)
     |> Oban.insert()
   end
 
   def scheduler_user_update(%Tornium.Schema.User{tid: user_id} = _user) when is_integer(user_id) do
-    %Tornium.Schema.TornKey{user_id: api_key_owner} =
+    %Tornium.Schema.TornKey{api_key: api_key_id, user_id: api_key_owner} =
       api_key = Tornium.User.Key.get_by_user(user_id) || Tornium.User.Key.get_random!()
 
     query = Tornium.User.update_query(user_id, api_key, niceness: @update_niceness)
@@ -121,7 +123,8 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     %{
       api_call_id: api_call_id,
       user_id: user_id,
-      api_key_owner: api_key_owner
+      api_key_owner: api_key_owner,
+      api_key_id: api_key_id
     }
     |> Tornium.Workers.UserUpdate.new(schedule_in: _seconds = 15)
     |> Oban.insert()

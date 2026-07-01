@@ -435,7 +435,7 @@ defmodule Tornium.Guild.Verify do
       guild_id: guild_id,
       user_id: user_id,
       discord_id: discord_id,
-      error_type: :no_api_key,
+      error_type: :config,
       error_code: nil,
       error_message: config_error_message
     })

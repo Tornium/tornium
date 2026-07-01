@@ -39,7 +39,8 @@ defmodule Tornium.Test.Guild.Verify.Log do
                    new_nickname: "new",
                    old_nickname: "old",
                    roles_removed: [1, 2, 3],
-                   roles_added: [4, 5, 6]
+                   roles_added: [4, 5, 6],
+                   timestamp: DateTime.utc_now() |> DateTime.truncate(:second)
                  }
                ])
 

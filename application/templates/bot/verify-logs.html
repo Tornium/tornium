@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tornium - Verification Logs
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guild.sid }}">Server Configuration</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guild.sid }}/verify">Verification Configuration</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/bot/dashboard/{{ guild.sid }}/verify/logs">Verification Logs</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    #verification-details-group.is-success .verification-details-failure {
+        display: none !important;
+    }
+
+    #verification-details-group.is-failure .verification-details-success {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Verification Logs</h5>
+            <p class="card-text">
+                This lists all verification attempts against this Discord server's members listing the
+                successful changes and the reasons for failed attempts. By pressing the eye, you can
+                view more details about the verification attempt.
+            </p>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-sm-12 col-xl-8">
+                    <table-viewer
+                        id="verification-logs-viewer"
+                        data-endpoint="bot/{{ guild.sid }}/verify/logs"
+                        data-key="logs"
+                        data-error="Verification Logs Fetch Failed"
+                        data-error-callback="viewerErrorCallback"
+                        data-render-callback="addVerificationLogToViewer"
+                        >
+                        <div class="viewer-filters px-2 pb-3">
+                            <div class="row">
+                                <fieldset class="col-sm-12 col-md-6">
+                                    <label for="verification-logs-viewer-result-filter">Verification Result</label>
+                                    <select
+                                        id="verification-logs-viewer-result-filter"
+                                        class="viewer-filter automatic-tom-select"
+                                        data-filter-key="result"
+                                        data-filter-callback="filterTomSelectMultiple"
+                                        data-live-search="true"
+                                        aria-label="Verification Result Filter"
+                                        data-selected-text-format="count > 2"
+                                        multiple
+                                        autocomplete="off"
+                                        >
+                                        <option value="success">Success</option>
+                                        <option value="unverified">Unverified</option>
+                                        <option value="discord_permission">Permission Error</option>
+                                        <option value="no_api_key">No API Key</option>
+                                        <option value="config">Configuration Issue</option>
+                                        <option value="torn_api">Torn API Error</option>
+                                        <option value="discord_api">Discord API Error</option>
+                                    </select>
+                                </fieldset>
+
+                                <fieldset class="col-sm-12 col-md-6 mt-1">
+                                    <label for="verification-logs-viewer-order">Sort By</label>
+                                    <select
+                                        id="verification-logs-viewer-order"
+                                        class="viewer-filter automatic-tom-select"
+                                        data-filter-key="sort"
+                                        data-live-search="true"
+                                        aria-label="Sort Order"
+                                        autocomplete="off"
+                                        >
+                                        <option value="timestamp-desc" selected>Timestamp (Desc)</option>
+                                        <option value="timestamp-asc">Timestamp (Asc)</option>
+                                    </select>
+                                </fieldset>
+
+                                <div class="col-sm-12 col-md-6 mt-md-1">
+                                    <datetime-input data-legend="From (YYYY-MM-DD HH:MM TCT)" id="verification-logs-viewer-from-filter" data-filter-key="from">
+                                </div>
+
+                                <div class="col-sm-12 col-md-6 mt-md-1">
+                                    <datetime-input data-legend="To (YYYY-MM-DD HH:MM TCT)" id="verification-logs-viewer-to-filter" data-filter-key="to">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="viewer-container"></div>
+                    </table-viewer>
+                </div>
+                <div class="col-sm-12 col-xl-4">
+                    <div class="card">
+                        <div class="card-header">Verification Log Details</div>
+                        <small class="card-text m-2" id="default-details-message">
+                        No verification log selected. <br />
+                        Select a verification from the table to view its details.
+                        </small>
+
+                        <ul class="list-group list-group-flush border-top-0 d-none" id="verification-details-group">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="fw-semibold">Status: </span><span id="details-status">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="fw-semibold">Timestamp: </span><span id="details-timestamp">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="fw-semibold">Discord ID: </span><span id="details-discord">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="fw-semibold">Torn User: </span><a href="#" id="details-user">N/A</a>
+                            </li>
+
+                            <li class="list-group-item verification-details-success">
+                                <span class="fw-semibold">Nickname: </span>
+                                <br />
+                                <div class="text-end">
+                                    <span id="details-old-nickname">N/A</span> &#8594; <span id="details-new-nickname">N/A</span>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between verification-details-success">
+                                <span class="fw-semibold">Roles Added: </span><span id="details-roles-added">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between verification-details-success">
+                                <span class="fw-semibold">Roles Removed: </span><span id="details-roles-removed">N/A</span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between verification-details-failure">
+                                <span class="fw-semibold">Error Type: </span><span id="details-error-type">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between verification-details-failure">
+                                <span class="fw-semibold">Error Code: </span><span id="details-error-code">N/A</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between verification-details-failure">
+                                <span class="fw-semibold">Error Message: </span><span id="details-error-message">N/A</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/components/datetime-input.js"></script>
+<script src="/static/components/table-viewer.js"></script>
+<script src="/static/bot/verify-logs.js"></script>
+{% endblock %}

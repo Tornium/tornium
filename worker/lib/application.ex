@@ -17,7 +17,6 @@ defmodule Tornium.Application do
   @moduledoc false
 
   use Application
-  require Logger
 
   @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
@@ -25,6 +24,7 @@ defmodule Tornium.Application do
 
     # Attach the default loggers from :telemetry before the start of the children
     Tornium.Telemetry.attach_default_logger()
+    Tornium.Telemetry.VerificationLogs.attach_logger()
     Tornex.Telemetry.attach_default_logger(ignored: [[:tornex, :bucket, :create]])
     Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
 
@@ -49,6 +49,7 @@ defmodule Tornium.Application do
       Tornium.ObanRepo,
       Tornium.Repo,
       {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
       Tornium.PromEx,
       {
         Nostrum.Bot,
@@ -78,6 +79,7 @@ defmodule Tornium.Application do
       Tornium.ObanRepo,
       Tornium.Repo,
       {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
       {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
       {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},

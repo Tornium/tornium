@@ -59,7 +59,7 @@ def get_events(faction_id: int, *args, **kwargs):
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
         )
     elif from_timestamp < 0 or from_timestamp > now:
         return make_exception_response(

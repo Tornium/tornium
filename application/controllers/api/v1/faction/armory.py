@@ -62,7 +62,7 @@ def get_logs(faction_id: int, *args, **kwargs):
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
         )
     elif len(actions) > 0 and any([action not in armory_action_values for action in actions]):
         return make_exception_response(
@@ -198,7 +198,7 @@ def get_cumulative(faction_id: int, *args, **kwargs):
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
         )
     elif len(actions) > 0 and any([action not in armory_action_values for action in actions]):
         return make_exception_response(

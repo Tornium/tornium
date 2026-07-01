@@ -577,7 +577,7 @@ def verify_logs(guild_id: int, *args, **kwargs):
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, detils={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
         )
     elif len(results) > 0 and any([result not in _verification_log_results for result in results]):
         return make_exception_response(

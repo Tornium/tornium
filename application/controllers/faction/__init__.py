@@ -30,7 +30,7 @@ mod.add_url_rule("/faction/userbankingdata", view_func=banking.user_banking_data
 mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 
 # Crime Routes
-mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])
+# mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])
 mod.add_url_rule("/faction/crimes/cpr", view_func=crimes.crimes_cpr, methods=["GET"])
 
 # Member Routes

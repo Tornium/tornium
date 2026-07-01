@@ -18,10 +18,6 @@ defmodule Tornium.Telemetry do
   Logging of events from Tornium.
 
   ## Telemetry Events
-  * `[:tornium, :oc_team, :member_removed]`: TBA
-    * Measurement: `%{}`
-    * Metadata: `%{}`
-
   * `[:tornium, :bot, :guild_joined]`: Executed when the bot joins a specific Discord server.
     * Measurement: `%{}`
     * Metadata: `%{guild_id: pos_integer, guild_name: String.t}`
@@ -48,7 +44,6 @@ defmodule Tornium.Telemetry do
   @spec attach_default_logger(opts :: Keyword.t()) :: :ok | {:error, :already_exists}
   def attach_default_logger(opts \\ []) when is_list(opts) do
     events = [
-      [:tornium, :oc_team, :member_removed],
       [:tornium, :bot, :guild_joined],
       [:tornium, :guild, :verify, :success],
       [:tornium, :guild, :verify, :failure]
@@ -68,24 +63,6 @@ defmodule Tornium.Telemetry do
   @spec detach_default_logger() :: :ok | {:error, :not_found}
   def detach_default_logger() do
     :telemetry.detach(@handler_id)
-  end
-
-  @doc false
-  def handle_event(
-        [:tornium, :oc_team, :member_removed],
-        %{} = _measurements,
-        %{user_id: user_id, team_id: team_id, faction_id: faction_id} = _metadata,
-        opts
-      ) do
-    opts
-    |> Keyword.put(:level, :info)
-    |> log(%{
-      event: "oc_team:member_removed",
-      message: "#{user_id} was removed from their OC team",
-      user_id: user_id,
-      team_id: team_id,
-      faction_id: faction_id
-    })
   end
 
   @doc false

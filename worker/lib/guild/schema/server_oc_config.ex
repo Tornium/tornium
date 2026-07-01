@@ -38,19 +38,7 @@ defmodule Tornium.Schema.ServerOCConfig do
           extra_range_roles: [Tornium.Discord.role_assignable()],
           extra_range_global_min: integer(),
           extra_range_global_max: integer(),
-          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()],
-          team_spawn_required_channel: integer() | nil,
-          team_spawn_required_roles: [Tornium.Discord.role()],
-          team_member_join_required_channel: integer() | nil,
-          team_member_join_required_roles: [Tornium.Discord.role_assignable()],
-          team_member_incorrect_crime_channel: integer() | nil,
-          team_member_incorrect_crime_roles: [Tornium.Discord.role_assignable()],
-          team_incorrect_member_channel: integer() | nil,
-          team_incorrect_member_roles: [Tornium.Discord.role_assignable()],
-          team_member_incorrect_slot_channel: integer() | nil,
-          team_member_incorrect_slot_roles: [Tornium.Discord.role_assignable()],
-          assigned_team_channel: integer() | nil,
-          assigned_team_roles: [Tornium.Discord.role()]
+          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()]
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -76,24 +64,6 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:extra_range_global_min, :integer)
     field(:extra_range_global_max, :integer)
     has_many(:extra_range_local_configs, Tornium.Schema.ServerOCRangeConfig, foreign_key: :server_oc_config_id)
-
-    field(:team_spawn_required_channel, :integer)
-    field(:team_spawn_required_roles, {:array, :integer})
-
-    field(:team_member_join_required_channel, :integer)
-    field(:team_member_join_required_roles, {:array, :integer})
-
-    field(:team_member_incorrect_crime_channel, :integer)
-    field(:team_member_incorrect_crime_roles, {:array, :integer})
-
-    field(:team_incorrect_member_channel, :integer)
-    field(:team_incorrect_member_roles, {:array, :integer})
-
-    field(:team_member_incorrect_slot_channel, :integer)
-    field(:team_member_incorrect_slot_roles, {:array, :integer})
-
-    field(:assigned_team_channel, :integer)
-    field(:assigned_team_roles, {:array, :integer})
   end
 
   @doc """

@@ -149,9 +149,15 @@ defmodule Tornium.Telemetry.VerificationLogs do
     Process.send_after(self(), :write_logs, duration)
   end
 
-  @spec create_table() :: :ets.table()
-  defp create_table() do
-    :ets.new(@write_table, [:named_table, :duplicate_bag, :public])
+  @spec create_table(table :: atom()) :: :ets.table()
+  defp create_table(table \\ @write_table) do
+    case :ets.whereis(table) do
+      :undefined ->
+        :ets.new(table, [:named_table, :duplicate_bag, :public])
+
+      tid when is_reference(tid) ->
+        tid
+    end
   end
 
   @doc false

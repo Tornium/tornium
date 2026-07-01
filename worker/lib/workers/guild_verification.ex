@@ -82,7 +82,7 @@ defmodule Tornium.Workers.GuildVerification do
     else
       # We want to spawn a new job to perform verification from the provided next_after_id
       # using Oban's recursive jobs. See https://oban.hexdocs.pm/recursive-jobs.html
-      schedule(guild, after: next_after_id, schedule_in: _seconds = 20)
+      schedule(guild, after: next_after_id, schedule_in: _seconds = 60)
     end
   end
 

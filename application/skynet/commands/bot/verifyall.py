@@ -14,11 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import time
 
 from peewee import DoesNotExist
-from tornium_commons import rds
-from tornium_commons.formatters import find_list
 from tornium_commons.models import ObanJob, Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 

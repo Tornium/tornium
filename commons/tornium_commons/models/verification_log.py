@@ -78,7 +78,7 @@ class VerificationLog(BaseModel):
                 if self.error_type is None
                 else None
             ),
-            "error": (
+            "failure": (
                 {
                     "error_type": str(self.error_type),
                     "error_code": self.error_code,

@@ -50,7 +50,7 @@ defmodule Tornium.Telemetry do
     events = [
       [:tornium, :oc_team, :member_removed],
       [:tornium, :bot, :guild_joined],
-      [:tornium, :guild, :verify, :config_error],
+      [:tornium, :guild, :verify, :success],
       [:tornium, :guild, :verify, :failure]
     ]
 
@@ -125,7 +125,7 @@ defmodule Tornium.Telemetry do
     |> log(%{
       event: "guild:verify:failure",
       message:
-        "Bot failed to verify member #{discord_id} [#{user_id}] of guild #{guild_id} due to error #{error_type} (#{error_code || error_message || "N/A"}",
+        "Bot failed to verify member #{discord_id} [#{user_id}] of guild #{guild_id} due to error #{error_type} (#{error_code || error_message || "N/A"})",
       guild_id: guild_id,
       user_id: user_id,
       discord_id: discord_id,

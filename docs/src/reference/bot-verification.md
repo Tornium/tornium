@@ -99,15 +99,10 @@ The `/verify` slash command will attempt to verify a member of the Discord serve
 
 ### Verify All Command
 ```
-/verifyall [force]
+/verifyall
 ```
 
 The `/verifyall` slash command will manually start the [verification cron](#verification-cron) to verify all members of the Discord server in the background. This verification process can take up to several minutes. For more information, see the [verification cron](#verification-cron).
-
-| Argument | Description                                   | Required | Default |
-| -------- | --------------------------------------------- | -------- | ------- |
-| `force`  | Flag to require updated data on the Torn user | False    | True    |
-
 
 ### Verify User Command
 The verify user command will silently attempt to verify the member of the Discord server selected according to the Discord server's verification configuration.

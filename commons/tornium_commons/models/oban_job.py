@@ -52,7 +52,7 @@ class ObanJob(BaseModel):
     meta = JSONField(null=True)
 
     class Meta:
-        table_name = "oban_job"
+        table_name = "oban_jobs"
 
     @classmethod
     def new(

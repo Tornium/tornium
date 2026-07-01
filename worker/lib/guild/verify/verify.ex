@@ -74,7 +74,7 @@ defmodule Tornium.Guild.Verify do
 
   def verify({:error, error}, _member, _opts) do
     # Error passthrough from possible validation of server configuration
-    {:error, error}
+    {:error, error, nil}
   end
 
   def verify(guild, %Nostrum.Struct.Guild.Member{} = _member, _opts) when is_nil(guild) do

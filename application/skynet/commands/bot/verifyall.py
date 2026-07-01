@@ -41,7 +41,17 @@ def verify_all(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.select(Server.admins).where(Server.sid == interaction["guild_id"]).get()
+        guild: Server = (
+            Server.select(
+                Server.admins,
+                Server.verify_template,
+                Server.verified_roles,
+                Server.faction_verify,
+                Server.verify_enabled,
+            )
+            .where(Server.sid == interaction["guild_id"])
+            .get()
+        )
     except DoesNotExist:
         return {
             "type": 4,

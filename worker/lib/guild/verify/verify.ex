@@ -315,8 +315,8 @@ defmodule Tornium.Guild.Verify do
       discord_id: discord_id,
       old_nickname: if(nickname_changed?, do: old_nickname, else: nil),
       new_nickname: if(nickname_changed?, do: new_nickname, else: nil),
-      added_roles: roles_removed,
-      removed_roles: roles_added
+      added_roles: roles_added,
+      removed_roles: roles_removed
     })
 
     verification_result

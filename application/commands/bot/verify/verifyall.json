@@ -1,6 +1,6 @@
 {
     "name": "verifyall",
     "type": 1,
-    "description": "Verifies the current user or the mentioned user within the server",
+    "description": "Verifies all memebers within the current server",
     "options": []
 }

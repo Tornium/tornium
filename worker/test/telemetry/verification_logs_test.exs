@@ -30,46 +30,39 @@ defmodule Tornium.Test.Telemetry.VerificationLogs do
 
   test "insert invalid", %{table: table} do
     assert_raise FunctionClauseError, fn ->
-      Tornium.Telemetry.VerificationLogs.insert(
-        nil,
-        %Tornium.Schema.VerificationLog{},
-        %Nostrum.Struct.Message{},
-        table: table
-      )
+      Tornium.Telemetry.VerificationLogs.insert(nil, %Tornium.Schema.VerificationLog{}, table: table)
     end
-
-    assert_raise FunctionClauseError, fn -> Tornium.Telemetry.VerificationLogs.insert(1, nil, nil, table: table) end
   end
 
   test "insert valid with different keys", %{table: table} do
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test"}, table: table)
-    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, nil, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, table: table)
 
     # TODO: Validate ETS values
   end
 
   test "insert valid duplicate keys", %{table: table} do
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test"}, table: table)
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test 2"}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
 
     # TODO: Validate ETS values
   end
 
   test "get guilds", %{table: table} do
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test"}, table: table)
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test 2"}, table: table)
-    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, nil, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, table: table)
 
     guilds = Tornium.Telemetry.VerificationLogs.take_guilds(table)
     assert guilds == MapSet.new([1, 2])
   end
 
   test "get all", %{table: table} do
-    Tornium.Telemetry.VerificationLogs.insert(1, nil, %Nostrum.Struct.Message{content: "test"}, table: table)
-    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, nil, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(1, %Tornium.Schema.VerificationLog{}, table: table)
+    Tornium.Telemetry.VerificationLogs.insert(2, %Tornium.Schema.VerificationLog{}, table: table)
 
     assert %{1 => one, 2 => two} = Tornium.Telemetry.VerificationLogs.take(table)
-    assert [{nil, nil, nil, %Nostrum.Struct.Message{content: "test"}}] = one
-    assert [{nil, nil, %Tornium.Schema.VerificationLog{}, nil}] = two
+    assert [{nil, nil, %Tornium.Schema.VerificationLog{}}] = one
+    assert [{nil, nil, %Tornium.Schema.VerificationLog{}}] = two
   end
 end

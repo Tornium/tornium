@@ -39,18 +39,7 @@ def set_oc_config_channel(guild_id: int, faction_tid: int, feature: str, *args, 
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     feature = feature.replace("-", "_")
 
-    if feature not in (
-        "tool",
-        "delayed",
-        "missing_member",
-        "extra_range",
-        "team_spawn_required",
-        "team_member_join_required",
-        "team_member_incorrect_crime",
-        "team_incorrect_member",
-        "team_member_incorrect_slot",
-        "assigned_team",
-    ):
+    if feature not in ("tool", "delayed", "missing_member", "extra_range"):
         return make_exception_response("1000", key)
 
     channel_id = data.get("channel")
@@ -94,18 +83,7 @@ def set_oc_config_roles(guild_id: int, faction_tid: int, feature: str, *args, **
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     feature = feature.replace("-", "_")
 
-    if feature not in (
-        "tool",
-        "delayed",
-        "missing_member",
-        "extra_range",
-        "team_spawn_required",
-        "team_member_join_required",
-        "team_member_incorrect_crime",
-        "team_incorrect_member",
-        "team_member_incorrect_slot",
-        "assigned_team",
-    ):
+    if feature not in ("tool", "delayed", "missing_member", "extra_range"):
         return make_exception_response("1000", key)
 
     roles = data.get("roles")

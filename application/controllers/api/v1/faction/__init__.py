@@ -17,7 +17,6 @@ from controllers.api.v1.faction import (
     armory,
     attacks,
     banking,
-    crime_team,
     crimes,
     faction,
     overdose,

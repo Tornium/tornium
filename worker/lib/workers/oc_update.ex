@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCUpdate do
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 
@@ -132,24 +131,6 @@ defmodule Tornium.Workers.OCUpdate do
 
     # Perform this after the attempting to send the messages to avoid a flag being updated despite the message not being sent (e.g. from a rendering issue)
     Tornium.Schema.OrganizedCrimeSlot.update_sent_state(check_state)
-
-    # This should be performed after Workers.OCUpdate is run to ensure the OCs have been updated/inserted to the database.
-    # Only factions with at least one OC team should perform this update
-    count =
-      Tornium.Schema.OrganizedCrimeTeam
-      |> where([t], t.faction_id == ^faction_id)
-      |> select(count())
-      |> Repo.one()
-
-    case count do
-      _ when count >= 1 ->
-        %{faction_tid: faction_id}
-        |> Tornium.Workers.OCTeamUpdate.new()
-        |> Oban.insert()
-
-      _ ->
-        nil
-    end
 
     :ok
   end

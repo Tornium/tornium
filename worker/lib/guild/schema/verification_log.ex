@@ -103,25 +103,11 @@ defmodule Tornium.Schema.VerificationLog do
       new_nickname: new_nickname,
       roles_added: roles_added || [],
       roles_removed: roles_removed || [],
-      error_type: dump_error_type(error_type),
+      error_type: error_type,
       error_code: error_code,
       error_message: error_message,
       timestamp: DateTime.utc_now() |> DateTime.truncate(:second)
     }
-  end
-
-  @spec dump_error_type(error_type :: errors() | nil) :: String.t() | nil
-  defp dump_error_type(error_type) when is_nil(error_type) do
-    nil
-  end
-
-  defp dump_error_type(error_type) do
-    # We need to convert the error type enum into a string ourselves as Repo.insert_all/3
-    # is too low-level for these transformations.
-
-    __MODULE__
-    |> Ecto.Enum.mappings(:error_type)
-    |> Keyword.get(error_type)
   end
 
   @doc """

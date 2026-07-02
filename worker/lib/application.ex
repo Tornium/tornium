@@ -14,31 +14,43 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Application do
-  require Logger
+  @moduledoc false
+
   use Application
 
-  @spec(
-    start(Application.start_type(), term()) :: {:ok, pid()},
-    {:ok, pid(), Application.state()} | {:error, term()}
-  )
+  @spec start(Application.start_type(), term()) :: {:ok, pid()} | {:ok, pid(), Application.state()} | {:error, term()}
   def start(_type, _args) do
     Logger.add_handlers(:tornium)
 
     # Attach the default loggers from :telemetry before the start of the children
     Tornium.Telemetry.attach_default_logger()
+    Tornium.Telemetry.VerificationLogs.attach_logger()
     Tornex.Telemetry.attach_default_logger(ignored: [[:tornex, :bucket, :create]])
+    Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
 
-    if Application.get_env(:tornium, :env) == :dev do
-      Oban.Telemetry.attach_default_logger()
-    else
-      Oban.Telemetry.attach_default_logger(level: :warning, events: ~w(queue notifier peer stager)a)
-    end
+    children =
+      Application.get_env(:tornium, :env)
+      |> application_children()
 
-    # TODO: Stop using `Tornium.TornexTaskSupervisor`
-    children = [
-      Tornium.PromEx,
+    Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)
+  end
+
+  @spec cluster_topology() :: keyword()
+  defp cluster_topology() do
+    [
+      strategy: LibclusterPostgres.Strategy,
+      config: [{:channel_name, "tornium_cluster"} | Tornium.Repo.config()]
+    ]
+  end
+
+  @spec application_children(env :: :test | :dev | :prod) :: [term()]
+  defp application_children(env) when env in [:dev, :prod] do
+    [
       Tornium.ObanRepo,
       Tornium.Repo,
+      {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
+      Tornium.PromEx,
       {
         Nostrum.Bot,
         %{
@@ -51,7 +63,7 @@ defmodule Tornium.Application do
       {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
       {Task.Supervisor, name: Tornium.LuaSupervisor},
       {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
-      Tornium.API.Store,
+      Tornium.API.Supervisor,
       Tornex.HTTP.FinchClient,
       Tornex.NodeRatelimiter,
       Tornex.Scheduler.Supervisor,
@@ -60,7 +72,24 @@ defmodule Tornium.Application do
       Tornium.Item.NameCache,
       Tornium.Faction.ChainMonitor.Supervisor
     ]
+  end
 
-    Supervisor.start_link(children, strategy: :one_for_one, name: Tornium.Supervisor)
+  defp application_children(:test) do
+    [
+      Tornium.ObanRepo,
+      Tornium.Repo,
+      {Cluster.Supervisor, [[tornium: cluster_topology()]]},
+      Tornium.Telemetry.VerificationLogs,
+      {Tornium.User.KeyStore, name: Tornium.User.KeyStore},
+      {Tornium.User.DiscordStore, name: Tornium.User.DiscordStore},
+      {Task.Supervisor, name: Tornium.LuaSupervisor},
+      {Task.Supervisor, name: Tornium.TornexTaskSupervisor},
+      Tornium.API.Supervisor,
+      Tornex.HTTP.FinchClient,
+      Tornex.NodeRatelimiter,
+      Tornex.Scheduler.Supervisor,
+      Tornium.Item.NameCache,
+      Tornium.Faction.ChainMonitor.Supervisor
+    ]
   end
 end

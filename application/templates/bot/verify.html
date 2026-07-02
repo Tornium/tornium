@@ -25,7 +25,7 @@ Tornium - Verification
 {% endblock %}
 
 {% block subnav %}
- <div class="row pt-3 border-top">
+<div class="row pt-3 border-top">
     <div class="container-fluid px-md-3">
         <div class="row mb-3">
             <a class="nav-link" href="/bot/dashboard">
@@ -38,15 +38,15 @@ Tornium - Verification
 
 {% block content %}
 <div class="px-3 py-3">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Basic Verification Configuration</h5>
-            <p class="card-text">
-                Basic configurations for server member verification regardless of verification type.
-            </p>
+    <div class="row">
+        <div class="col-sm-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Basic Verification Configuration</h5>
+                    <p class="card-text">
+                        Basic configurations for server member verification regardless of verification type.
+                    </p>
 
-            <div class="row">
-                <div class="col-sm-12 col-md-8 col-xl-4">
                     <div class="form-floating">
                         {% if guild.verify_enabled %}
                         <button type="button" class="btn btn-outline-primary" id="verification-config-enable" disabled>
@@ -65,38 +65,68 @@ Tornium - Verification
                         {% endif %}
 
                         <div class="form-text">
-                            Enable or disable verification.
+                            Enable or disable verification.<br />
                             <b>NOTE:</b> Does NOT delete settings upon disabling of verification.
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row pt-3">
-                <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                    <div class="form-floating">
-                        <div class="form-text">
-                            Select the channel to which log messages regarding member verification are forwarded to.
+                    <div class="row pt-3">
+                        <div class="col-sm-12 col-lg-6 my-2">
+                            <div class="form-floating">
+                                <div class="form-text">
+                                    Select the channel to which log messages regarding member verification are forwarded to.
+                                </div>
+
+                                <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-log-channel" aria-label="Verification Log Channel" data-live-search="true">
+                                    <option value="0">Disabled</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-log-channel" aria-label="Verification Log Channel" data-live-search="true">
-                            <option value="0">Disabled</option>
-                        </select>
+                        <div class="col-sm-12 col-lg-6 my-2">
+                            <div class="form-floating">
+                                <div class="form-text">
+                                    Select the channel members that join a server will be locked within by default until they're verified.
+                                </div>
+
+                                <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-jail-channel" aria-label="Verification Jail Channel" data-live-search="true">
+                                    <option value="0">Disabled</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="row pt-3">
-                <div class="col-sm-12 col-md-8 col-xl-4 my-2">
-                    <div class="form-floating">
-                        <div class="form-text">
-                            Select the channel members that join a server will be locked within by default until they're verified.
-                        </div>
+        </div>
+        
+        <div class="col-sm-12 col-lg-6">
+            <div class="card p-2">
+                <div class="card-header">
+                    Verification Logs (24 Hours) <br />
+                    <small class="card-text">View previous verification nickname changes, roles added/removed, and errors.</small>
+                </div>
 
-                        <select is="channel-selector" is="channel-selector" class="discord-channel-selector" id="verification-jail-channel" aria-label="Verification Jail Channel" data-live-search="true">
-                            <option value="0">Disabled</option>
-                        </select>
-                    </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Verification Attempts</span>
+                        <span>{{ verification_attempts }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Failed Verification Attempts</span>
+                        <span>{{ verification_failed_attempts }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Success (%)</span>
+                        <span>{{ verification_success_percent }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Last Verification Attempt</span>
+                        <span>{{ verification_most_recent_timestamp }}</span>
+                    </li>
+                </ul>
+
+                <div class="card-footer text-end">
+                    <a href="/bot/dashboard/{{ guild.sid }}/verify/logs">View Verification Logs</a>
                 </div>
             </div>
         </div>
@@ -221,9 +251,7 @@ Tornium - Verification
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
                 <div class="col-sm-12 col-md-8 col-xl-4 my-2">
                     <div class="card my-3">
                         <div class="card-header">

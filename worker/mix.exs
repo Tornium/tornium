@@ -54,15 +54,20 @@ defmodule Tornium.MixProject do
       {:lua, "~> 0.4"},
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
-      {:tornex, "~> 0.5"},
-      {:torngen_elixir_client, ">= 5.0.0"},
+      # {:tornex, "~> 0.6"},
+      # {:tornex, path: "~/tornium/tornex/"},
+      {:tornex, github: "Tornium/Tornex", ref: "76f46c4d30da0e19097d4ed3a128dd763d8cf157"},
+      {:torngen_elixir_client, ">= 6.0.0"},
+      # Required to be overriden as deps_nix uses an older version of mint
+      {:mint, "~> 1.8", override: true},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.20"},
       {:floki, "~> 0.38"},
+      {:libcluster, "~> 3.5"},
+      {:libcluster_postgres, "~> 0.2"},
+      {:horde, "~> 0.10.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:deps_nix, "~> 3.0", only: :dev}
+      {:deps_nix, "~> 3.0", only: :dev, runtime: false}
     ]
   end
 

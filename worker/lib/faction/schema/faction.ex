@@ -142,6 +142,11 @@ defmodule Tornium.Schema.Faction do
     upserted_members
   end
 
+  def upsert_members([] = _members_data, _positions, _faction_id) do
+    # This occurs when a faction is destoryed and has no respect.
+    []
+  end
+
   @doc """
   Remove the faction ID and related faction data from users who are no longer in the faction.
   """

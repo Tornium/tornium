@@ -17,40 +17,44 @@ defmodule Tornium.Test.Faction.OC.Parser do
   use Tornium.RepoCase, async: true
 
   @members [
-    %{
-      "id" => 1,
-      "name" => "Chedburn",
-      "status" => %{"description" => "Okay", "details" => nil, "state" => "Okay", "until" => nil}
+    %Torngen.Client.Schema.FactionMember{
+      id: 1,
+      name: "Chedburn",
+      status: %Torngen.Client.Schema.UserStatus{description: "Okay", details: nil, state: "Okay", until: nil}
     },
-    %{
-      "id" => 2,
-      "name" => "Quack",
-      "status" => %{"description" => "Okay", "details" => nil, "state" => "Okay", "until" => nil}
+    %Torngen.Client.Schema.FactionMember{
+      id: 2,
+      name: "Quack",
+      status: %Torngen.Client.Schema.UserStatus{description: "Okay", details: nil, state: "Okay", until: nil}
     },
-    %{
-      "id" => 3,
-      "name" => "Duke",
-      "status" => %{"description" => "Traveling to Nowhere", "details" => nil, "state" => "Traveling", "until" => nil}
+    %Torngen.Client.Schema.FactionMember{
+      id: 3,
+      name: "Duke",
+      status: %Torngen.Client.Schema.UserStatus{
+        description: "Traveling to Nowhere",
+        details: nil,
+        state: "Traveling",
+        until: nil
+      }
     }
   ]
 
   test "test_crime_parser" do
-    api_data = %{
-      "id" => 380_813,
-      "name" => "Honey Trap",
-      "difficulty" => 6,
-      "status" => "Planning",
-      "created_at" => 1_741_107_620,
-      "initiated_at" => 1_741_111_258,
-      "planning_at" => 1_741_111_258,
-      "executed_at" => nil,
-      "ready_at" => 1_741_370_458,
-      "expired_at" => 1_741_366_820,
-      "slots" => [],
-      "rewards" => nil
+    api_crime = %Torngen.Client.Schema.FactionCrime{
+      id: 380_813,
+      name: "Honey Trap",
+      difficulty: 6,
+      status: "Planning",
+      created_at: 1_741_107_620,
+      planning_at: 1_741_111_258,
+      executed_at: 1_741_111_258,
+      ready_at: 1_741_370_458,
+      expired_at: 1_741_366_820,
+      slots: [],
+      rewards: nil
     }
 
-    crimes = Tornium.Faction.OC.parse_crimes([api_data], @members, 1, [])
+    crimes = Tornium.Faction.OC.parse([api_crime], @members, 1)
 
     assert Kernel.length(crimes) == 1
 
@@ -70,35 +74,40 @@ defmodule Tornium.Test.Faction.OC.Parser do
     assert oc_id == 380_813
     assert oc_name == "Honey Trap"
     assert oc_difficulty == 6
+    assert faction_id == 1
     assert status == :planning
     assert DateTime.to_unix(created_at) == 1_741_107_620
     assert DateTime.to_unix(planning_started_at) == 1_741_111_258
     assert DateTime.to_unix(ready_at) == 1_741_370_458
     assert DateTime.to_unix(expires_at) == 1_741_366_820
-    assert executed_at == nil
+    assert DateTime.to_unix(executed_at) == 1_741_111_258
   end
 
   test "test_slot_parser_not_ready" do
     slots =
       [
-        %{
-          "position" => "Enforcer",
-          "position_number" => 0,
-          "item_requirement" => %{"id" => 1080, "is_reusable" => true, "is_available" => true},
-          "user_id" => 1,
-          "user" => %{"id" => 1, "joined_at" => 1_741_114_140, "progress" => 44.89},
-          "checkpoint_pass_rate" => 75
+        %Torngen.Client.Schema.FactionCrimeSlot{
+          position: "Enforcer",
+          position_info: %Torngen.Client.Schema.FactionSlotPositionInfo{
+            id: "P1",
+            number: 1
+          },
+          item_requirement: %{id: 1080, is_reusable: true, is_available: true},
+          user: %Torngen.Client.Schema.FactionCrimeUser{id: 1, joined_at: 1_741_114_140, progress: 44.89},
+          checkpoint_pass_rate: 75
         },
-        %{
-          "position" => "Muscle",
-          "position_number" => 0,
-          "item_requirement" => nil,
-          "user_id" => 2,
-          "user" => %{"id" => 2, "joined_at" => 1_741_111_258, "progress" => 100},
-          "checkpoint_pass_rate" => 71
+        %Torngen.Client.Schema.FactionCrimeSlot{
+          position: "Muscle",
+          position_info: %Torngen.Client.Schema.FactionSlotPositionInfo{
+            id: "P2",
+            number: 1
+          },
+          item_requirement: nil,
+          user: %Torngen.Client.Schema.FactionCrimeUser{id: 2, joined_at: 1_741_111_258, progress: 100},
+          checkpoint_pass_rate: 71
         }
       ]
-      |> Tornium.Faction.OC.parse_slots(@members, 380_813, false, [])
+      |> Tornium.Faction.OC.parse_slots(@members, 380_813, false)
 
     assert Kernel.length(slots) == 2
 
@@ -146,29 +155,35 @@ defmodule Tornium.Test.Faction.OC.Parser do
   test "test_slot_parser_ready_delayed" do
     slots =
       [
-        %{
-          "position" => "Enforcer",
-          "position_number" => 0,
-          "item_requirement" => %{"id" => 1080, "is_reusable" => true, "is_available" => true},
-          "user_id" => 1,
-          "user" => %{"id" => 1, "joined_at" => 1_741_114_140, "progress" => 100},
-          "checkpoint_pass_rate" => 75
+        %Torngen.Client.Schema.FactionCrimeSlot{
+          position: "Enforcer",
+          position_info: %Torngen.Client.Schema.FactionSlotPositionInfo{
+            id: "P1",
+            number: 1
+          },
+          item_requirement: %{id: 1080, is_reusable: true, is_available: true},
+          user: %Torngen.Client.Schema.FactionCrimeUser{id: 1, joined_at: 1_741_114_140, progress: 100},
+          checkpoint_pass_rate: 75
         },
-        %{
-          "position" => "Muscle",
-          "position_number" => 0,
-          "item_requirement" => nil,
-          "user_id" => 2,
-          "user" => %{"id" => 2, "joined_at" => 1_741_111_258, "progress" => 100},
-          "checkpoint_pass_rate" => 71
+        %Torngen.Client.Schema.FactionCrimeSlot{
+          position: "Muscle",
+          position_info: %Torngen.Client.Schema.FactionSlotPositionInfo{
+            id: "P2",
+            number: 1
+          },
+          item_requirement: nil,
+          user: %Torngen.Client.Schema.FactionCrimeUser{id: 2, joined_at: 1_741_111_258, progress: 100},
+          checkpoint_pass_rate: 71
         },
-        %{
-          "position" => "Muscle",
-          "position_number" => 1,
-          "item_requirement" => nil,
-          "user_id" => 3,
-          "user" => %{"id" => 3, "joined_at" => 1_741_111_258, "progress" => 100},
-          "checkpoint_pass_rate" => 70
+        %Torngen.Client.Schema.FactionCrimeSlot{
+          position: "Muscle",
+          position_info: %Torngen.Client.Schema.FactionSlotPositionInfo{
+            id: "P3",
+            number: 2
+          },
+          item_requirement: nil,
+          user: %Torngen.Client.Schema.FactionCrimeUser{id: 3, joined_at: 1_741_111_258, progress: 100},
+          checkpoint_pass_rate: 70
         }
       ]
       |> Tornium.Faction.OC.parse_slots(@members, 380_813, true, [])

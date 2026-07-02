@@ -70,7 +70,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 50, user_processing: 20, notifications: 20, scheduler: 5],
+  queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
   repo: Tornium.ObanRepo,
   get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
   shutdown_grace_period: :timer.seconds(30),
@@ -87,7 +87,8 @@ config :tornium, Oban,
         {"15 0 * * *", Tornium.Workers.OverdoseDailyReport},
         {"*/15 * * * *", Tornium.Workers.ArmoryNewsUpdateScheduler},
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications},
-        {"* * * * *", Tornium.Workers.FactionUpdateScheduler}
+        {"* * * * *", Tornium.Workers.FactionUpdateScheduler},
+        {"* * * * *", Tornium.Workers.UserUpdateScheduler}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},

@@ -94,7 +94,7 @@ def create_client():
         response_type = ["code"]
         auth_method = "client_secret_basic"
     elif client_type == "authorization-code-grant-pkce":
-        grant = "authorization_code"
+        grant = ["authorization_code"]
         response_type = ["code"]
         auth_method = "none"
     elif client_type == "device-authorization-grant":

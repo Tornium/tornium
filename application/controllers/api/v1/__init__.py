@@ -196,6 +196,7 @@ mod.add_url_rule(
     view_func=bot.verify.guild_jail_channel,
     methods=["POST"],
 )
+mod.add_url_rule("/api/v1/bot/<int:guild_id>/verify/logs", view_func=bot.verify.verify_logs, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/bot/server/<int:guild_id>",
     view_func=bot.config.server_config,
@@ -296,38 +297,8 @@ mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/armory/cumulative", view_func=faction.armory.get_cumulative, methods=["GET"]
 )
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/armory/logs", view_func=faction.armory.get_logs, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/<int:faction_id>/overdose", view_func=faction.overdose.get_events, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team", view_func=faction.crime_team.get_oc_teams, methods=["GET"]
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<oc_name>",
-    view_func=faction.crime_team.create_oc_team,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>", view_func=faction.crime_team.get_oc_team, methods=["GET"]
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>",
-    view_func=faction.crime_team.delete_oc_team,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/member/<member_guid>/<user_id>",
-    view_func=faction.crime_team.set_oc_team_member,
-    methods=["PUT"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/member/<member_guid>",
-    view_func=faction.crime_team.set_wilcard_oc_team_member,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/v1/faction/<int:faction_id>/crime/team/<team_guid>/name/<new_name>",
-    view_func=faction.crime_team.update_oc_team_name,
-    methods=["PUT"],
-)
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>",
     view_func=faction.crimes.get_members_cpr_oc,

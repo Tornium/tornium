@@ -40,6 +40,11 @@ mod.add_url_rule(
     view_func=verify.verify_dashboard,
     methods=["GET"],
 )
+mod.add_url_rule(
+    "/bot/dashboard/<string:guild_id>/verify/logs",
+    view_func=verify.verify_logs,
+    methods=["GET"],
+)
 
 # OC Routes
 mod.add_url_rule(

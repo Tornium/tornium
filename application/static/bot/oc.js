@@ -330,6 +330,7 @@ ready(() => {
                 new TomSelect(element, {
                     create: false,
                     maxOptions: null,
+                    plugins: ["remove_button"],
                 });
             });
         });
@@ -377,6 +378,7 @@ ready(() => {
             document.querySelectorAll(".oc-name-selector").forEach((element) => {
                 new TomSelect(element, {
                     create: false,
+                    plugins: ["remove_button"],
                 });
             });
         });

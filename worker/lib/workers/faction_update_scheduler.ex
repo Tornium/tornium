@@ -33,7 +33,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk 25
+  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 50
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -49,8 +49,8 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     high_priority_factions =
       Tornium.Schema.Faction
       |> from(as: :faction)
-      |> where([f], f.last_members < ^one_hour_ago and exists(valid_aa_key_subquery))
-      |> order_by([f], asc: f.last_members)
+      |> where([f], (is_nil(f.last_members) or f.last_members < ^one_hour_ago) and exists(valid_aa_key_subquery))
+      |> order_by([f], asc_nulls_first: f.last_members)
       |> limit(@max_chunk)
       |> Repo.all()
 
@@ -62,7 +62,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
 
         Tornium.Schema.Faction
         |> where([f], f.tid not in ^high_priority_faction_ids)
-        |> order_by([f], asc: f.last_members)
+        |> order_by([f], asc_nulls_first: f.last_members)
         |> limit(^remaining_limit)
         |> Repo.all()
       else
@@ -129,7 +129,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       faction_id: faction_id,
       api_call_id: api_call_id,
       user_id: key_owner,
-      nonpublic?: nonpublic?
+      nonpublic?: nonpublic? and not force_public?
     }
     |> Tornium.Workers.FactionUpdate.new(schedule_in: _seconds = 15)
     |> Oban.insert()
@@ -148,7 +148,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
         # Sometimes, there will not be any faction positions but the leader/coleader of the faction will be set and will
         # have an API key. We should attempt to use their API key so that we can get the faction positions and set their
         # `:faction_aa` value. If the leader/coleader is not signed in, we should fallback to a random API key.
-        leadership_key = Tornium.User.Key.get_by_user(leader_id) or Tornium.User.Key.get_by_user(coleader_id)
+        leadership_key = Tornium.User.Key.get_by_user(leader_id) || Tornium.User.Key.get_by_user(coleader_id)
 
         case leadership_key do
           %Tornium.Schema.TornKey{default: true, disabled: false, paused: false, access_level: access_level}

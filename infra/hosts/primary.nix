@@ -24,8 +24,6 @@
     device = "/dev/sdb1";
   };
 
-  networking.hostName = "tornium-primary";
-
   services.nginx.enable = true;
   services.tornium-nginx.enable-proxy = true;
   services.tornium-nginx.enable-proxy-gateway = true;
@@ -42,6 +40,8 @@
 
   services.tornium-worker.enable = true;
   services.tornium-worker.environment = "prod";
+  services.tornium-worker.node = "tornium@10.0.0.5";
+  services.tornium-worker.db_ip = "127.0.0.1";
 
   deployment.tags = ["tornium-primary" "prod" "db" "prometheus"];
 }

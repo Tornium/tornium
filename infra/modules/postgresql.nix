@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
@@ -19,7 +19,7 @@
     max_wal_size = "1GB";
     max_connections = "150";
 
-    # TODO: Add listen address
+    listen_addresses = pkgs.lib.mkForce "*";
 
     # archive_mode = "on";
     # archive_command = "${pkgs.pgbackrest}/bin/pgbackrest --stanza=tornium archive-push %p";
@@ -49,12 +49,18 @@
     host Tornium Tornium ::1/128 scram-sha-256
 
     # Allow 10.0.0.0/24
-    # host Tornium Tornium 10.0.0.0/24 scram-sha-256
+    host Tornium Tornium 10.0.0.0/24 scram-sha-256
     host replication replicator 10.0.0.0/24 scram-sha-256
 
     # Reject all external requests
     host all all 0.0.0.0/0 reject
     host all all ::/0 reject
+  '';
+
+  networking.firewall.extraCommands = lib.mkAfter ''
+    iptables -I INPUT 1 -p tcp -s 127.0.0.1 --dport 5432 -j ACCEPT
+    iptables -I INPUT 2 -p tcp -s 10.0.0.0/24 --dport 5432 -j ACCEPT
+    iptables -I INPUT 3 -p tcp --dport 5432 -j DROP
   '';
 
   # systemd.services.postgresql.serviceConfig = {

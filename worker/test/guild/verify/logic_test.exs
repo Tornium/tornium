@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Test.Guild.Verify.Logic do
-  use Tornium.RepoCase
+  use Tornium.RepoCase, async: true
 
   test "test_empty_tempate_verified_name" do
     state =
@@ -58,6 +58,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         %Tornium.Schema.User{
           tid: 1,
           name: "Chedburn",
+          faction_id: 1,
           faction: %Tornium.Schema.Faction{
             tid: 1,
             name: "Chedburn Test Faction",
@@ -117,6 +118,31 @@ defmodule Tornium.Test.Guild.Verify.Logic do
     assert MapSet.to_list(Map.get(state, :roles)) == []
   end
 
+  test "unverified => verified" do
+    state =
+      Tornium.Guild.Verify.Logic.remove_invalid_unverified_roles(
+        %{roles: MapSet.new([2])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          unverified_roles: [2],
+          exclusion_roles: [1],
+          faction_verify: %{},
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn"
+        }
+      )
+
+    assert MapSet.to_list(Map.get(state, :roles)) == []
+  end
+
   test "test_remove_invalid_roles" do
     state =
       Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(
@@ -139,6 +165,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         %Tornium.Schema.User{
           tid: 1,
           name: "Chedburn",
+          faction_id: 1,
           faction: %Tornium.Schema.Faction{
             tid: 1,
             name: "Chedburn Test Faction"
@@ -171,6 +198,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         %Tornium.Schema.User{
           tid: 1,
           name: "Chedburn",
+          faction_id: 1,
           faction: %Tornium.Schema.Faction{
             tid: 1,
             name: "Chedburn Test Faction"
@@ -179,6 +207,40 @@ defmodule Tornium.Test.Guild.Verify.Logic do
       )
 
     assert MapSet.to_list(Map.get(state, :roles)) == [1, 2]
+  end
+
+  test "remove invalid faction roles" do
+    state =
+      Tornium.Guild.Verify.Logic.remove_invalid_faction_roles(
+        %{roles: MapSet.new([2, 3])},
+        %Tornium.Guild.Verify.Config{
+          verify_enabled: true,
+          auto_verify_enabled: true,
+          gateway_verify_enabled: true,
+          verify_template: "{{ name }} [{{ tid }}]",
+          verified_roles: [],
+          exclusion_roles: [1],
+          faction_verify: %{
+            "1" => %{"roles" => [1], "positions" => %{}, "enabled" => true},
+            "2" => %{"roles" => [2], "positions" => %{}, "enabled" => true},
+            "3" => %{"roles" => [3], "positions" => %{}, "enabled" => false}
+          },
+          verify_log_channel: nil,
+          verify_jail_channel: nil
+        },
+        %Tornium.Schema.User{
+          tid: 1,
+          name: "Chedburn",
+          faction_id: 1,
+          faction: %Tornium.Schema.Faction{
+            tid: 1,
+            name: "Chedburn Test Faction"
+          }
+        }
+      )
+
+    # Only faction ID 2's roles would be removed as 3 is not enabled
+    assert MapSet.to_list(Map.get(state, :roles)) == [3]
   end
 
   test "test_faction_position_roles" do
@@ -203,6 +265,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         %Tornium.Schema.User{
           tid: 1,
           name: "Chedburn",
+          faction_id: 1,
           faction: %Tornium.Schema.Faction{
             tid: 1,
             name: "Chedburn Test Faction"
@@ -241,6 +304,7 @@ defmodule Tornium.Test.Guild.Verify.Logic do
         %Tornium.Schema.User{
           tid: 1,
           name: "Chedburn",
+          faction_id: 1,
           faction: %Tornium.Schema.Faction{
             tid: 1,
             name: "Chedburn Test Faction"

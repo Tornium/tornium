@@ -24,7 +24,6 @@ defmodule Tornium.Discord.Consumer do
   verified.
   """
 
-  require Logger
   import Ecto.Query
   alias Tornium.Repo
 

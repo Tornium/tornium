@@ -23,7 +23,6 @@ defmodule Tornium.Workers.OAuthRevocation do
   the application is deleted, etc.
   """
 
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 

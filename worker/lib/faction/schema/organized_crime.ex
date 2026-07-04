@@ -24,7 +24,6 @@ defmodule Tornium.Schema.OrganizedCrime do
 
   alias Tornium.Repo
   use Ecto.Schema
-  import Ecto.Query
 
   @type t :: %__MODULE__{
           oc_id: integer(),
@@ -77,11 +76,7 @@ defmodule Tornium.Schema.OrganizedCrime do
       |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> user_id end)
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
-      |> Enum.map(
-        &%{
-          tid: &1
-        }
-      )
+      |> Enum.map( &%{ tid: &1 })
 
     Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 

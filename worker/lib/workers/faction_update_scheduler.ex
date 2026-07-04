@@ -95,7 +95,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     # If there is no faction AA API key available to use for this API call, it will set `:nonpublic?` to false
     # to indicate that the API call can only make and parse public selections. This allows for all factions to
     # be regularly updated instead of only those factions that have AA keys.
-    {%Tornium.Schema.TornKey{user_id: key_owner} = key, nonpublic?} = api_key(faction)
+    {%Tornium.Schema.TornKey{guid: api_key_id, user_id: key_owner} = key, nonpublic?} = api_key(faction)
 
     force_public? = Keyword.get(opts, :public?, false)
 
@@ -128,6 +128,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     %{
       faction_id: faction_id,
       api_call_id: api_call_id,
+      api_key_id: api_key_id,
       user_id: key_owner,
       nonpublic?: nonpublic? and not force_public?
     }

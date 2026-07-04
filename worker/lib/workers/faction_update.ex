@@ -28,6 +28,7 @@ defmodule Tornium.Workers.FactionUpdate do
         %Oban.Job{
           args: %{
             "api_call_id" => api_call_id,
+            "api_key_id" => api_key_id,
             "faction_id" => faction_id,
             "user_id" => user_id,
             "nonpublic?" => nonpublic?
@@ -44,6 +45,38 @@ defmodule Tornium.Workers.FactionUpdate do
       :not_ready ->
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
+
+      %{"error" => %{"code" => 2}} ->
+        # The API key has been deleted so we can just delete the respective API key based upon the
+        # primary key.
+        # TODO: Switch to another API key if there is one available as a default.
+        Tornium.Schema.TornKey
+        |> where([k], k.guid == ^api_key_id)
+        |> Repo.delete_all()
+
+        {:cancel, {:api_error, 2}}
+
+      %{"error" => %{"code" => error_code}} when error_code in [10, 13] ->
+        # The owner of this API key has been inactive for over 7 days or is in federal jail so we
+        # can just disable their API key as using it will be pointless. When/if the user returns,
+        # they can enable it again.
+        Tornium.Schema.TornKey
+        |> where([k], k.user_id == ^user_id)
+        |> update([k], set: [disabled: true])
+        |> Repo.update_all([])
+
+        {:cancel, {:api_error, error_code}}
+
+      %{"error" => %{"code" => 18}} ->
+        # The API key has been paused so we should pause the API key in the database by the pk
+        # of the API key. When/if the user un-pauses their API key, we can enable it again.
+        # TODO: Switch to another API key if there is one available as a default.
+        Tornium.Schema.TornKey
+        |> where([k], k.guid == ^api_key_id)
+        |> update([k], set: [paused: true])
+        |> Repo.update_all([])
+
+        {:cancel, {:api_error, 18}}
 
       %{"error" => %{"code" => 7}} ->
         Tornium.Schema.User

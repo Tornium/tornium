@@ -71,6 +71,7 @@ defmodule Tornium.Workers.UserUpdate do
       %{"error" => %{"code" => 2}} ->
         # The API key has been deleted so we can just delete the respective API key based upon the
         # primary key.
+        # TODO: Switch to another API key if there is one available as a default.
         Tornium.Schema.TornKey
         |> where([k], k.guid == ^api_key_id)
         |> Repo.delete_all()
@@ -87,6 +88,17 @@ defmodule Tornium.Workers.UserUpdate do
         |> Repo.update_all([])
 
         {:cancel, {:api_error, error_code}}
+
+      %{"error" => %{"code" => 18}} ->
+        # The API key has been paused so we should pause the API key in the database by the pk
+        # of the API key. When/if the user un-pauses their API key, we can enable it again.
+        # TODO: Switch to another API key if there is one available as a default.
+        Tornium.Schema.TornKey
+        |> where([k], k.guid == ^api_key_id)
+        |> update([k], set: [paused: true])
+        |> Repo.update_all([])
+
+        {:cancel, {:api_error, 18}}
 
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}

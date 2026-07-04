@@ -16,19 +16,27 @@ Tornium - Terms of Service
 </ol>
 {% endblock %}
 
+{% block styles %}
+<style>
+.card-text {
+    color: var(--text-color) !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="card m-3">
     <div class="card-body container-fluid">
         <h3 class="card-title">Tornium Terms of Service</h3>
 
         <p class="card-subtitle"><b>Last Updated:</b> September 16th, 2025</p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             These Terms of Service (”Terms”) describe our commitments to you, and your rights and
             responsibilities when using our Services. Please read them carefully and reach out to us if
             you have any questions. <b>If you don’t agree to these Terms, don’t use our Services.</b>
         </p>
 
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             If you access or use the Service, you agree to and are bound to the below terms and all
             applicable laws and regulations. You are also responsible for informing users in your
             Discord server(s) about these Terms. There may be times where we do not exercise or
@@ -38,7 +46,7 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Changes to these Terms</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             We reserve the right to modify these Terms at any time. Unless explicitly stated, any new features
             which are added to the Service shall also be subject to the Terms. Whenever we make changes to
             these Terms, the changes are effective 30 days after we post such revised Terms (indicated by
@@ -48,13 +56,13 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Privacy Policy</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             For information about how we collect and use information about users of the Service and API key
             usage, please check out our privacy policy available <a href="/privacy">here</a>.
         </p>
 
         <h5 class="card-subtitle">Third-Party Services</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             From time to time, we may provide you with links to third party websites or services that we
             do not own or control. Your use of the Service may also include the use of applications that
             are developed or owned by a third party. Your use of such third party applications, websites,
@@ -63,7 +71,7 @@ Tornium - Terms of Service
             or service that you visit or use.
         </p>
 
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             We use third party vendors and hosting partners to provide the necessary hardware, software,
             and related technology required to run the Services. These third party vendors and hosting
             partners include but are not limited to <a href="https://www.datadoghq.com/">Datadog</a>,
@@ -72,10 +80,10 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Account Terms</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You must be at least 13 years old to use the Service.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You are responsible for the security of your API key(s) and for any use of your account. You 
             must notify us of any unauthorized access or use of your account or API key(s). We can not be held
             liable for any loss or damage resulting from your failure to protect your account information. We 
@@ -83,32 +91,32 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Use of Service</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - Your use of the Services is at your sole risk. We provide these Services on an “as is” and
             “as available” basis. We do not offer service-level agreements for any of our Services.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - Your use of the Service must comply with all applicable laws, regulations, and ordinances.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You agree not to engage in any activity that interferes with or disrupts the Service or
             attempt to interfere with or disrupt the Service.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You agree to only access and use your account and API key(s). You agree to not access,
             attempt to access, or use another user's account or API key(s). Any such activity will be
             considered a violation of these Terms and may result in immediate suspension or termination
             of your access to the Service.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - We reserve the right to enforce quotas or usage limits to any resource at our
             discretion, with or without notice.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - We reserve the right to terminate your access to the Service at any time, without notice,
             for any reason.
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You agree to not post, link, or otherwise make available on or through the Service any of the following:
             <ul>
                 <li>Content that is libelous, defamatory, bigoted, fraudulent or deceptive;</li>
@@ -119,7 +127,7 @@ Tornium - Terms of Service
                 <li>Viruses, corrupted data or other harmful, disruptive or destructive files or code.</li>
             </ul>
         </p>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             - You agree to not use automated scripts, scraping tools, bots, or any other form of non-API
             programmatic access to the Service. All automated interactions with the Service must occur
             exclusively through our provided API and in compliance with these Terms. Any attempt to 
@@ -129,22 +137,22 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Features and Bugs</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             We design our Services with care, based on our own experience and the experiences of customers who share their time and feedback. However, there is no such thing as a service that pleases everybody. We make no guarantees that our Services will meet your specific requirements or expectations.
         </p>
 
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             We also test all of our features extensively before shipping them. As with any software, our Services inevitably have some bugs. We track the bugs reported to us and work through priority ones, especially any related to security or privacy. Not all reported bugs will get fixed and we don’t guarantee completely error-free Services.
         </p>
 
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             You may choose to or we may invite you to submit comments or ideas about the Service, including but 
             not limited to ideas about improving the Service or products. By submitting any idea, you irrevocably
             assign to us all of your right, title and interest in and to your feedback, comments and suggestions.
         </p>
 
         <h5 class="card-subtitle">Services Adaptations and API Terms</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             We offer Application Program Interfaces (“API”s) for some of our Services. Any use of the API, including through a third-party product that accesses the Services, is bound by these Terms plus the following specific terms:
             <ul>
                 <li>You expressly understand and agree that we are not liable for any damages or losses resulting from your use of the API or third-party products that access data via the API.</li>
@@ -170,18 +178,18 @@ Tornium - Terms of Service
         </p>
 
         <h5 class="card-subtitle">Ownership of Material and Software</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             The materials and software provided through this Service is licensed under the GNU General Public License version 3 (GPLv3). You can view the full text of the GPLv3 license on <a href="https://github.com/Tornium/tornium/blob/master/LICENSE.md">GitHub</a>. As required by the GPLv3 license, the source code for the software is available on <a href="https://github.com/Tornium/tornium">GitHub</a>.
         </p>
 
         <h5 class="card-subtitle">Liability</h5>
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             You expressly understand and agree that Tornium shall not be liable, in law or in equity, to you or to any third party for any direct, indirect, incidental, lost profits, special, consequential, punitive or exemplary damages, including, but not limited to, damages for loss of profits, goodwill, use, data or other intangible losses (even if the Company has been advised of the possibility of such damages), resulting from: (i) the use or the inability to use the Services; (ii) the cost of procurement of substitute goods and services resulting from any goods, data, information or services purchased or obtained or messages received or transactions entered into through or from the Services; (iii) unauthorized access to or alteration of your transmissions or data; (iv) statements or conduct of any third party on the service; (v) or any other matter relating to these Terms or the Services, whether as a breach of contract, tort (including negligence whether active or passive), or any other theory of liability.
         </p>
 
         <hr />
 
-        <p class="card-text" style="color: white">
+        <p class="card-text">
             Adapted from the <a href="https://github.com/basecamp/policies">Basecamp open-source policies</a> / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adapted from the <a href="https://github.com/appdotnet/template-terms-of-service">app.net open-source policies</a> / <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
         </p>
     </div>

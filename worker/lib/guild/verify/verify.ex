@@ -166,15 +166,17 @@ defmodule Tornium.Guild.Verify do
           original_nick :: String.t() | nil
         ) ::
           resolved_state() | :nochanges
-  defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick)
+  defp validate_changes_made(%{roles: roles, nick: nick} = new_roles_nick, original_roles, original_nick)
        when is_list(original_roles) do
     patched_map =
-      %{roles: MapSet.to_list(roles), nick: nick}
+      new_roles_nick
       |> then(fn patched_map ->
-        if Map.get(patched_map, :roles) == original_roles, do: Map.delete(patched_map, :roles), else: patched_map
+        if roles == MapSet.new(original_roles),
+          do: Map.delete(patched_map, :roles),
+          else: Map.put(patched_map, :roles, MapSet.to_list(roles))
       end)
       |> then(fn patched_map ->
-        if Map.get(patched_map, :nick) == original_nick, do: Map.delete(patched_map, :nick), else: patched_map
+        if nick == original_nick, do: Map.delete(patched_map, :nick), else: patched_map
       end)
 
     if Kernel.map_size(patched_map) == 0 do
@@ -300,24 +302,26 @@ defmodule Tornium.Guild.Verify do
     roles_added = new_roles -- old_roles
     nickname_changed? = old_nickname != new_nickname
 
-    # TODO: Use the same user ID as found earlier when building the changeset. However, currently
-    # the code is not set up well to get that user ID out of the changeset's functions. This
-    # would also need to be done for all the below log/2 functions.
-    user_id =
-      Tornium.Schema.User
-      |> select([u], u.tid)
-      |> where([u], u.discord_id == ^discord_id)
-      |> Repo.one()
+    if roles_removed != [] or roles_added != [] or nickname_changed? do
+      # TODO: Use the same user ID as found earlier when building the changeset. However, currently
+      # the code is not set up well to get that user ID out of the changeset's functions. This
+      # would also need to be done for all the below log/2 functions.
+      user_id =
+        Tornium.Schema.User
+        |> select([u], u.tid)
+        |> where([u], u.discord_id == ^discord_id)
+        |> Repo.one()
 
-    :telemetry.execute([:tornium, :guild, :verify, :success], %{}, %{
-      guild_id: guild_id,
-      user_id: user_id,
-      discord_id: discord_id,
-      old_nickname: if(nickname_changed?, do: old_nickname, else: nil),
-      new_nickname: if(nickname_changed?, do: new_nickname, else: nil),
-      added_roles: roles_added,
-      removed_roles: roles_removed
-    })
+      :telemetry.execute([:tornium, :guild, :verify, :success], %{}, %{
+        guild_id: guild_id,
+        user_id: user_id,
+        discord_id: discord_id,
+        old_nickname: if(nickname_changed?, do: old_nickname, else: nil),
+        new_nickname: if(nickname_changed?, do: new_nickname, else: nil),
+        added_roles: roles_added,
+        removed_roles: roles_removed
+      })
+    end
 
     verification_result
   end

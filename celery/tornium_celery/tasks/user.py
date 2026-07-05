@@ -27,6 +27,7 @@ from tornium_commons.formatters import timestamp
 from tornium_commons.models import (
     Faction,
     FactionPosition,
+    ObanJob,
     PersonalStats,
     Stat,
     TornKey,
@@ -193,7 +194,9 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         )
 
         if key is not None:
-            faction = Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+            faction: typing.Optional[Faction] = (
+                Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+            )
 
             if faction is not None and len(faction.aa_keys) == 0:
                 try:
@@ -205,8 +208,23 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                     pass
                 else:
                     user_data_kwargs["faction_aa"] = True
-                    # TODO: this needs to be run on elixir
-                    # update_faction_positions(positions_data)
+
+                    # We want to asynchronously update the faction data and set the faction positions under
+                    # the assumption that this API key can access non public data so that many features will
+                    # work instead of features that realy on only `:faction_aa`.
+                    ObanJob.new(
+                        worker="Tornium.Workers.FactionUpdate",
+                        queue="faction_processing",
+                        args={
+                            "api_call_id": None,
+                            "api_key_id": None,
+                            "api_key": key,
+                            "faction_id": faction.tid,
+                            "user_id": user_data["player_id"],
+                            "nonpublic?": True,
+                        },
+                        tags=["faction"],
+                    )
 
         if user_data["faction"]["position"] == "Leader":
             Faction.update(leader=user_data["player_id"]).where(

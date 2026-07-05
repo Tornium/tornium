@@ -129,7 +129,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   @doc false
   @spec faction_update_query(
           faction_id :: pos_integer(),
-          api_key :: Tornium.Schema.TornKey.t(),
+          api_key :: Tornium.Schema.TornKey.t() | String.t(),
           nonpublic? :: boolean()
         ) :: Tornex.SpecQuery.t()
   def faction_update_query(faction_id, %Tornium.Schema.TornKey{} = api_key, true = _nonpublic?)

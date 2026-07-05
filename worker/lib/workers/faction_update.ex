@@ -25,7 +25,8 @@ defmodule Tornium.Workers.FactionUpdate do
   If there is no API call ID, it is considered that the job must start it itself. This should
   only be the case when the worker is invoked from Python where it would be unable to perform
   the API call and store it in the Elixir node(s). In this case, the worker will schedule a
-  new Oban job to update the faction data.
+  new Oban job to update the faction data. For this use case, a `:api_key` can also be provided
+  the the job args when the API key would not be in the database yet.
   """
 
   import Ecto.Query
@@ -41,13 +42,14 @@ defmodule Tornium.Workers.FactionUpdate do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args: %{
-          "api_call_id" => nil,
-          "api_key_id" => api_key_id,
-          "faction_id" => faction_id,
-          "user_id" => user_id,
-          "nonpublic?" => nonpublic?
-        }
+        args:
+          %{
+            "api_call_id" => nil,
+            "api_key_id" => api_key_id,
+            "faction_id" => faction_id,
+            "user_id" => user_id,
+            "nonpublic?" => nonpublic?
+          } = args
       })
       when is_integer(faction_id) do
     # As it is not suggested to modify the database directly to update an Oban job, we are just going
@@ -55,9 +57,18 @@ defmodule Tornium.Workers.FactionUpdate do
     # wait for that instead.
     %Tornium.Schema.TornKey{} =
       api_key =
-      Tornium.Schema.TornKey
-      |> where([k], k.guid == ^api_key_id and k.user_id == ^user_id)
-      |> Repo.one()
+      case {api_key_id, Map.get(args, "api_key")} do
+        {_, _} when not is_nil(api_key_id) ->
+          Tornium.Schema.TornKey
+          |> where([k], k.guid == ^api_key_id and k.user_id == ^user_id)
+          |> Repo.one()
+
+        {nil, provided_api_key} when is_binary(provided_api_key) ->
+          # If the API key is provided directly, we can assume that the API key is not in the database
+          # as the user is signing in right now. As such, we can provide a temporary struct for the
+          # Tornex SpecQuery to use.
+          %Tornium.Schema.TornKey{guid: nil, api_key: provided_api_key, user_id: user_id}
+      end
 
     query = Tornium.Workers.FactionUpdateScheduler.faction_update_query(faction_id, api_key, nonpublic?)
 

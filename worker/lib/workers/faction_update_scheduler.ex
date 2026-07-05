@@ -83,7 +83,10 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
   ## Options
     * `:public?` - Only collect public data regardless of the API key available (default: `false`)
   """
-  @spec schedule_faction_update(faction :: Tornium.Schema.Faction.t() | pos_integer(), opts :: keyword()) :: term()
+  @spec schedule_faction_update(
+          faction :: Tornium.Schema.Faction.t() | pos_integer(),
+          opts :: keyword()
+        ) :: {:ok, Oban.Job.t()} | {:error, Oban.Job.changeset() | term()}
   def schedule_faction_update(faction, opts \\ [])
 
   def schedule_faction_update(faction, opts) when is_integer(faction) do
@@ -101,23 +104,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     {%Tornium.Schema.TornKey{guid: api_key_id, user_id: key_owner} = key, nonpublic?} = api_key(faction)
 
     force_public? = Keyword.get(opts, :public?, false)
-
-    query =
-      Tornex.SpecQuery.new(nice: 10, resource_id: faction_id)
-      |> Tornium.Schema.TornKey.put_key(key)
-
-    query =
-      if nonpublic? and not force_public? do
-        query
-        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Basic)
-        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Members)
-        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Positions)
-      else
-        query
-        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Id.Basic)
-        |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Id.Members)
-        |> Tornex.SpecQuery.put_parameter!(:id, faction_id)
-      end
+    query = faction_update_query(faction_id, key, nonpublic? and not force_public?)
 
     api_call_id = Ecto.UUID.generate()
     Tornium.API.Store.create(api_call_id, 300)
@@ -137,6 +124,30 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     }
     |> Tornium.Workers.FactionUpdate.new(schedule_in: _seconds = 15)
     |> Oban.insert()
+  end
+
+  @doc false
+  @spec faction_update_query(
+          faction_id :: pos_integer(),
+          api_key :: Tornium.Schema.TornKey.t(),
+          nonpublic? :: boolean()
+        ) :: Tornex.SpecQuery.t()
+  def faction_update_query(faction_id, %Tornium.Schema.TornKey{} = api_key, true = _nonpublic?)
+      when is_integer(faction_id) do
+    Tornex.SpecQuery.new(nice: 10, resource_id: faction_id)
+    |> Tornium.Schema.TornKey.put_key(api_key)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Basic)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Members)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Positions)
+  end
+
+  def faction_update_query(faction_id, %Tornium.Schema.TornKey{} = api_key, false = _nonpublic?)
+      when is_integer(faction_id) do
+    Tornex.SpecQuery.new(nice: 10, resource_id: faction_id)
+    |> Tornium.Schema.TornKey.put_key(api_key)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Id.Basic)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Id.Members)
+    |> Tornex.SpecQuery.put_parameter!(:id, faction_id)
   end
 
   @spec api_key(faction :: Tornium.Schema.Faction.t()) :: {Tornium.Schema.TornKey.t(), boolean()}

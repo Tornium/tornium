@@ -14,14 +14,72 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.FactionUpdate do
+  @moduledoc """
+  Update a faction's data in the database.
+
+  The update is considered `nonpublic?` if the API key used for the update belongs to a member
+  of the faction who has AA permissions. When `nonpublic?`, the update of the faction will also
+  update its faction permissions and other private information if included in the API call
+  response.
+
+  If there is no API call ID, it is considered that the job must start it itself. This should
+  only be the case when the worker is invoked from Python where it would be unable to perform
+  the API call and store it in the Elixir node(s). In this case, the worker will schedule a
+  new Oban job to update the faction data.
+  """
+
   import Ecto.Query
   alias Tornium.Repo
 
+  # This worker shouldn't have a unique section as it needs to be able to insert a child job when
+  # invoked from outside of the Elixir worker.
   use Oban.Worker,
     max_attempts: 3,
     priority: 0,
     queue: :faction_processing,
     tags: ["faction"]
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{
+        args: %{
+          "api_call_id" => nil,
+          "api_key_id" => api_key_id,
+          "faction_id" => faction_id,
+          "user_id" => user_id,
+          "nonpublic?" => nonpublic?
+        }
+      })
+      when is_integer(faction_id) do
+    # As it is not suggested to modify the database directly to update an Oban job, we are just going
+    # to create a new Oban job and return it. If some process is waiting on the job to finish, it can
+    # wait for that instead.
+    %Tornium.Schema.TornKey{} =
+      api_key =
+      Tornium.Schema.TornKey
+      |> where([k], k.guid == ^api_key_id and k.user_id == ^user_id)
+      |> Repo.one()
+
+    query = Tornium.Workers.FactionUpdateScheduler.faction_update_query(faction_id, api_key, nonpublic?)
+
+    api_call_id = Ecto.UUID.generate()
+    Tornium.API.Store.create(api_call_id, 300)
+
+    Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
+      query
+      |> Tornex.Scheduler.Bucket.enqueue()
+      |> Tornium.API.Store.insert(api_call_id)
+    end)
+
+    %{
+      faction_id: faction_id,
+      api_call_id: api_call_id,
+      api_key_id: api_key_id,
+      user_id: user_id,
+      nonpublic?: nonpublic?
+    }
+    |> __MODULE__.new(schedule_in: _seconds = 15)
+    |> Oban.insert()
+  end
 
   @impl Oban.Worker
   def perform(

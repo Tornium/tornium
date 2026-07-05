@@ -55,7 +55,28 @@ defmodule Tornium.Workers.GuildMemberVerification do
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
 
-      # TODO: handle the API error for an unverified user
+      %{"error" => %{"code" => 6}} ->
+        # This error would occur when the user is not verified. Since we've already performed
+        # the API call, we can skip some of the code in verify/3 and just build and perform the
+        # changes.
+        guild =
+          Tornium.Schema.Server
+          |> where([s], s.sid == ^guild_id)
+          |> Repo.one!()
+
+        config = Tornium.Guild.Verify.Config.validate(guild)
+        member = Nostrum.Api.Guild.member(guild_id, member_id)
+
+        verification_result =
+          {:error, %Tornium.API.Error{code: 6}}
+          |> Tornium.Guild.Verify.build_changes(config, member)
+          |> Tornium.Guild.Verify.perform_changes(guild, member)
+
+        # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
+        # to do that ourselves here.
+        Tornium.Guild.Verify.log(verification_result, member)
+
+        :ok
 
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}

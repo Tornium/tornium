@@ -33,7 +33,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
       states: :incomplete
     ]
 
-  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 50
+  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 100
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -61,7 +61,10 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
         high_priority_faction_ids = Enum.map(high_priority_factions, & &1.tid)
 
         Tornium.Schema.Faction
-        |> where([f], f.tid not in ^high_priority_faction_ids)
+        |> where(
+          [f],
+          f.tid not in ^high_priority_faction_ids and (is_nil(f.last_members) or f.last_members < ^one_hour_ago)
+        )
         |> order_by([f], asc_nulls_first: f.last_members)
         |> limit(^remaining_limit)
         |> Repo.all()

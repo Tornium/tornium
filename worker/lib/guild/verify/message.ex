@@ -14,18 +14,27 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Message do
-  # TODO: Add docs
+  @moduledoc """
+  Generate Discord embeds for verification results.
+  """
+
+  @doc """
+  Generate a Discord message describing the successful or failed verification of a member.
+
+  NOTE: This is only for the verification of single members and not batch verification. See
+  `Tornium.Workers.VerificationDiscordNotifications` for that.
+  """
   @spec message(
-          {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error,
-             Nostrum.Error.ApiError.t()
-             | Tornium.API.Error.t()
-             | :unverified
-             | :nochanges
-             | :api_key
-             | {:config, error :: String.t()}},
+          verification_result :: {:ok, Nostrum.Struct.Guild.Member.t()} | Tornium.Guild.Verify.verification_result(),
           member :: Nostrum.Struct.Guild.Member.t()
         ) :: Nostrum.Struct.Embed.t()
+  def message(
+        {:ok, %Nostrum.Struct.Guild.Member{} = updated_member, _guild},
+        %Nostrum.Struct.Guild.Member{} = member
+      ) do
+    message({:ok, updated_member}, member)
+  end
+
   def message({:error, %Nostrum.Error.ApiError{} = error}, %Nostrum.Struct.Guild.Member{} = member) do
     # TODO: Improve this error message to make it more readable
     %Nostrum.Struct.Embed{

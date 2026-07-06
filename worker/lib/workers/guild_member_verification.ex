@@ -16,6 +16,13 @@
 defmodule Tornium.Workers.GuildMemberVerification do
   @moduledoc """
   Verify a specific member of the Discord server.
+
+  From the API data in tha API call ID, this worker will build and apply the verification
+  changeset to the provided member in the provided Discord server. This worker also provides
+  functionality for it to be called from non-Elixir components by providing `nil` for the
+  `api_call_id` parameter. Optionally, a `token` parameter -- for a Discord interaction token
+  -- can be provided to the worker (if there is no API call ID) for the worker to create a
+  followup message to respond to the original slash command.
   """
 
   alias Tornium.Repo
@@ -32,6 +39,46 @@ defmodule Tornium.Workers.GuildMemberVerification do
       keys: [:guild_id, :member_id],
       states: :incomplete
     ]
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"api_call_id" => nil, "guild_id" => guild_id, "member_id" => member_id} = args})
+      when is_integer(guild_id) and is_integer(member_id) do
+    # When there is no API call ID, it can be assumed that the job was invoked by a slash command, and we
+    # need to respond as soon as possible to avoid excess backlog on the web server. So we should perform
+    # the API call directly instead of through the bucket.
+    guild =
+      Tornium.Schema.Server
+      |> where([s], s.sid == ^guild_id)
+      |> Repo.one!()
+
+    query = Tornium.User.update_query(member_id, Tornium.Guild.get_random_admin_key(guild), niceness: -20)
+    api_call_result = Tornex.API.get(query)
+
+    member = Nostrum.Api.Guild.member(guild_id, member_id)
+    verification_result = do_perform(member, guild_id, api_call_result)
+
+    # Once verification is complete, if a token has been provided in the job arguments we should respond to
+    # the corresponding verification slash command or user command with the status of the verification attempt.
+    interaction_token = Map.get(args, "token")
+
+    if is_binary(interaction_token) do
+      {:ok, fetched_member} = member
+
+      Nostrum.Api.Interaction.create_followup_message(interaction_token, %{
+        type: 4,
+        data: %{
+          embeds: [
+            verification_result
+            |> Tornium.Guild.Verify.Message.message(fetched_member)
+            |> Map.from_struct()
+          ],
+          flags: 64
+        }
+      })
+    end
+
+    :ok
+  end
 
   @impl Oban.Worker
   def perform(
@@ -82,11 +129,18 @@ defmodule Tornium.Workers.GuildMemberVerification do
         {:cancel, {:api_error, error_code}}
 
       result when is_map(result) ->
-        Nostrum.Api.Guild.member(guild_id, member_id)
-        |> do_perform(guild_id, result)
+        member = Nostrum.Api.Guild.member(guild_id, member_id)
+        do_perform(member, guild_id, result)
+
+        :ok
     end
   end
 
+  @spec do_perform(
+          {:ok, Nostrum.Struct.Guild.Member.t()} | Nostrum.Api.error(),
+          guild_id :: pos_integer(),
+          api_call_result :: map()
+        ) :: Tornium.Guild.Verify.verification_result() | Nostrum.Api.error()
   defp do_perform({:error, _error} = error, _guild_id, _api_call_result) do
     # TODO: Handle this case
     error
@@ -104,7 +158,5 @@ defmodule Tornium.Workers.GuildMemberVerification do
     |> where([s], s.sid == ^guild_id)
     |> Repo.one!()
     |> Tornium.Guild.Verify.verify(member, force?: false)
-
-    :ok
   end
 end

@@ -36,12 +36,11 @@ defmodule Tornium.Guild.Verify.Message do
   end
 
   def message({:error, %Nostrum.Error.ApiError{} = error}, %Nostrum.Struct.Guild.Member{} = member) do
-    # TODO: Improve this error message to make it more readable
     %Nostrum.Struct.Embed{
       title: "Verification Failed - Discord Error",
       description:
         "<@#{member.user_id}> was not able to be verified as there was an error from Discord. #{Nostrum.Error.ApiError.message(error)}",
-      color: 0xC83F49
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -53,7 +52,7 @@ defmodule Tornium.Guild.Verify.Message do
       title: "Verification Failed - Torn Error",
       description:
         "<@#{member.user_id}> was not able to be verified as there was an error from the Torn API. [#{code}] #{message}",
-      color: 0xC83F49
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -64,8 +63,8 @@ defmodule Tornium.Guild.Verify.Message do
         "<@#{member.user_id}> may not be verified on Torn. To verify on Torn, the user can link their Discord " <>
           "and Torn accounts through the [official Torn Discord server](https://www.torn.com/discord) or through a " <>
           "[direct OAuth link](https://discord.com/api/oauth2/authorize?client_id=439014098987122698&redirect_uri=https%3A%2F%2Fwww.torn.com%2Fdiscord.php&response_type=code&scope=identify)." <>
-          "Once the user is verified, use `/verify force:true` to verify the user.",
-      color: 0xC83F49
+          "Once the user is verified, use `/verify frce:true` to verify the user.",
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -75,7 +74,7 @@ defmodule Tornium.Guild.Verify.Message do
       description:
         "The verification of <@#{member.user_id}> is already complete and nothing would change. " <>
           "Execute `/verify force:true` if you believe something should have changed.",
-      color: 0xC83F49
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -83,7 +82,7 @@ defmodule Tornium.Guild.Verify.Message do
     %Nostrum.Struct.Embed{
       title: "No API keys",
       description: "No API keys of server admins were found to be used for this command.",
-      color: 0xC83F49
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -91,7 +90,7 @@ defmodule Tornium.Guild.Verify.Message do
     %Nostrum.Struct.Embed{
       title: "Invalid Verification Configuration",
       description: "The verification of <@#{member.user_id}> has failed as there is a(n) #{error}.",
-      color: 0xC83F49
+      color: Tornium.Discord.Constants.colors()[:error]
     }
   end
 
@@ -99,7 +98,7 @@ defmodule Tornium.Guild.Verify.Message do
     embed = %Nostrum.Struct.Embed{
       title: "Verification Complete",
       description: "The verification of <@#{original_member.user_id}> is successful.",
-      color: 0x32CD32
+      color: Tornium.Discord.Constants.colors()[:good]
     }
 
     original_roles = MapSet.new(original_member.roles)

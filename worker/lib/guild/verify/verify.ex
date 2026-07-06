@@ -346,6 +346,34 @@ defmodule Tornium.Guild.Verify do
         {:error, %Nostrum.Error.ApiError{response: %{code: error_code}} = _error,
          %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      )
+      when error_code in [50_013] do
+    # TODO: Add other error codes about Discord preventing member verification
+
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    # We don't want to log Discord's error messages as the basic message can be found in the
+    # docs and the more in-depth message would likely use too much of the database's space.
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :discord_permission,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
+        {:error, %Nostrum.Error.ApiError{response: %{code: error_code}} = _error,
+         %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
       ) do
     user_id =
       Tornium.Schema.User

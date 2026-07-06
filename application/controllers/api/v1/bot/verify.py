@@ -17,9 +17,9 @@ import datetime
 import json
 
 from flask import jsonify, request
+from liquid import Environment as LiquidEnvironment
 from liquid.exceptions import LiquidSyntaxError
 from peewee import DoesNotExist, fn
-from tornium_celery.tasks.guild import _VertificationNameEnvironment
 from tornium_commons.models import (
     Faction,
     Server,
@@ -36,6 +36,13 @@ from controllers.api.v1.utils import (
 )
 
 _verification_log_results = (result.value for result in VerificationLogResult)
+
+
+class _VertificationNameEnvironment(LiquidEnvironment):
+    context_depth_limit = 5
+    local_namespace_limit = 1000
+    loop_iteration_limit = 100
+    output_stream_limit = 1000
 
 
 def jsonified_verify_config(guild: Server):

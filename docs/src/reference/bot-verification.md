@@ -87,7 +87,7 @@ Tornium's Discord bot contains two slash commands related to performing verifica
 
 ### Verify Command
 ```
-/verify [member] [force]
+/verify [member]
 ```
 
 The `/verify` slash command will attempt to verify a member of the Discord server according to the Discord server's verification configuration.
@@ -95,7 +95,6 @@ The `/verify` slash command will attempt to verify a member of the Discord serve
 | Argument | Description                                   | Required | Default                |
 | -------- | --------------------------------------------- | -------- | ---------------------- |
 | `member` | Discord server member to be verified          | False    | Invoker of the command |
-| `force`  | Flag to require updated data on the Torn user | False    | True                   |
 
 ### Verify All Command
 ```

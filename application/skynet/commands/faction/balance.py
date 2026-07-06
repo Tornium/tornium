@@ -76,7 +76,7 @@ def balance(interaction, *args, **kwargs):
                     {
                         "title": "User Faction Not Found",
                         "description": "The mentioned user or the invoker is not currently in a faction in the "
-                        "database. Please try force verifying if you are in a faction.",
+                        "database. Please try re-verifying if you are in a faction.",
                         "color": SKYNET_ERROR,
                     }
                 ],

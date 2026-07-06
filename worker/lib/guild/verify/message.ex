@@ -71,9 +71,7 @@ defmodule Tornium.Guild.Verify.Message do
   def message({:error, :nochanges}, %Nostrum.Struct.Guild.Member{} = member) do
     %Nostrum.Struct.Embed{
       title: "Verification Already Complete",
-      description:
-        "The verification of <@#{member.user_id}> is already complete and nothing would change. " <>
-          "Execute `/verify force:true` if you believe something should have changed.",
+      description: "The verification of <@#{member.user_id}> is already complete and nothing would change.",
       color: Tornium.Discord.Constants.colors()[:error]
     }
   end

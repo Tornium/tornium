@@ -14,13 +14,13 @@ let
   tornium_celery_pkg = pkgs.callPackage ../../celery/package.nix {
     python3Packages = pkgs.python313Packages;
     tornium_commons = tornium_commons_pkg;
-    python-liquid = pkgs.callPackage ../../celery/python-liquid.nix { python3Packages = pkgs.python313Packages; };
     src = ../../celery;
   };
 
   tornium_application = pkgs.callPackage ../../application/package.nix {
     python3 = pkgs.python313;
     python3Packages = pkgs.python313Packages;
+    python-liquid = pkgs.callPackage ../../application/python-liquid.nix { python3Packages = pkgs.python313Packages; };
     tornium_commons = tornium_commons_pkg;
     tornium_celery = tornium_celery_pkg;
     src = ../../application;

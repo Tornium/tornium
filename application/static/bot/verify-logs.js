@@ -118,7 +118,7 @@ window.addVerificationLogToViewer = function (log, logContainer) {
 
     const logUserElement = document.createElement("a");
     logUserElement.classList.add("col-sm-12", "col-md-3");
-    logUserElement.textContent = `${log.user.name} [${log.user.id}]`;
+    logUserElement.textContent = log.user == null ? "Unknown" : `${log.user.name} [${log.user.id}]`;
     logUserElement.setAttribute("href", `https://www.torn.com/profiles.php?XID=${log.user.id}`);
     logRow.append(logUserElement);
 

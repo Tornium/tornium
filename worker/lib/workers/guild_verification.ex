@@ -282,7 +282,7 @@ defmodule Tornium.Workers.GuildVerification do
   end
 
   defp verify_or_schedule(
-         {%Nostrum.Struct.Guild.Member{user_id: member_id} = _member, user},
+         {%Nostrum.Struct.Guild.Member{user_id: member_id} = member, user},
          %Tornium.Schema.Server{sid: guild_id} = guild
        )
        when is_nil(user) do
@@ -290,24 +290,33 @@ defmodule Tornium.Workers.GuildVerification do
     # because the user is not verified or not known to be verified), so we should make an API
     # call to update the user's data and then try to verify the user.
 
-    query = Tornium.User.update_query(member_id, Tornium.Guild.get_random_admin_key(guild), niceness: 20)
+    case Tornium.Guild.get_random_admin_key(guild) do
+      %Tornium.Schema.TornKey{} = api_key ->
+        query = Tornium.User.update_query(member_id, api_key, niceness: 20)
 
-    api_call_id = Ecto.UUID.generate()
-    Tornium.API.Store.create(api_call_id, @api_query_timeout)
+        api_call_id = Ecto.UUID.generate()
+        Tornium.API.Store.create(api_call_id, @api_query_timeout)
 
-    Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
-      query
-      |> Tornex.Scheduler.Bucket.enqueue(timeout: @api_query_timeout * 1_000)
-      |> Tornium.API.Store.insert(api_call_id)
-    end)
+        Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
+          query
+          |> Tornex.Scheduler.Bucket.enqueue(timeout: @api_query_timeout * 1_000)
+          |> Tornium.API.Store.insert(api_call_id)
+        end)
 
-    %{
-      api_call_id: api_call_id,
-      member_id: member_id,
-      guild_id: guild_id
-    }
-    |> Tornium.Workers.GuildMemberVerification.new(schedule_in: _seconds = 15)
-    |> Oban.insert()
+        %{
+          api_call_id: api_call_id,
+          member_id: member_id,
+          guild_id: guild_id
+        }
+        |> Tornium.Workers.GuildMemberVerification.new(schedule_in: _seconds = 15)
+        |> Oban.insert()
+
+      nil ->
+        Tornium.Guild.Verify.log({:error, :api_key, guild}, member)
+
+        # We should return `{true, _}` here to indicate that an API call was not performed.
+        {true, nil}
+    end
   end
 
   @impl Oban.Worker

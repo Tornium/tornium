@@ -90,7 +90,7 @@ def verify(interaction: dict, *args, **kwargs):
     try:
         member_discord_id = int(find_list(interaction["data"]["options"], "name", "member")["value"])
     except Exception:
-        member_discord_id = interaction["member"]["user"]["id"]
+        member_discord_id = int(interaction["member"]["user"]["id"])
 
     try:
         # TODO: Remove from try/except once we can make sure this works in slash commands

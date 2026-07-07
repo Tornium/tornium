@@ -65,19 +65,16 @@ defmodule Tornium.Workers.GuildMemberVerification do
       {:ok, fetched_member} = member
 
       Nostrum.Api.Interaction.create_followup_message(interaction_token, %{
-        type: 4,
-        data: %{
-          embeds: [
-            verification_result
-            |> Tornium.Guild.Verify.Message.message(fetched_member)
-            |> Map.from_struct()
-          ],
-          flags: 64
-        }
+        embeds: [
+          verification_result
+          |> Tornium.Guild.Verify.Message.message(fetched_member)
+          |> Map.from_struct()
+        ],
+        flags: 64
       })
+    else
+      :ok
     end
-
-    :ok
   end
 
   @impl Oban.Worker
@@ -112,16 +109,15 @@ defmodule Tornium.Workers.GuildMemberVerification do
           |> Repo.one!()
 
         config = Tornium.Guild.Verify.Config.validate(guild)
-        member = Nostrum.Api.Guild.member(guild_id, member_id)
+        {:ok, member} = Nostrum.Api.Guild.member(guild_id, member_id)
 
-        verification_result =
-          {:error, %Tornium.API.Error{code: 6}}
-          |> Tornium.Guild.Verify.build_changes(config, member)
-          |> Tornium.Guild.Verify.perform_changes(guild, member)
+        {:error, %Tornium.API.Error{code: 6}}
+        |> Tornium.Guild.Verify.build_changes(config, member)
+        |> Tornium.Guild.Verify.perform_changes(guild, member)
 
         # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
         # to do that ourselves here.
-        Tornium.Guild.Verify.log(verification_result, member)
+        Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
 
         :ok
 

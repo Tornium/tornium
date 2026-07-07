@@ -73,6 +73,15 @@ defmodule Tornium.Guild.Verify.Message do
     }
   end
 
+  def message({:error, :exclusion_role}, %Nostrum.Struct.Guild.Member{} = _member) do
+    %Nostrum.Struct.Embed{
+      title: "Verification Already Complete",
+      description:
+        "The user has an exclusion role which prevents automatic verification. Contact a server admin to remove this exclusion role or to manually set roles.",
+      color: Tornium.Discord.Constants.colors()[:error]
+    }
+  end
+
   def message({:error, :api_key}, %Nostrum.Struct.Guild.Member{} = _member) do
     %Nostrum.Struct.Embed{
       title: "No API keys",

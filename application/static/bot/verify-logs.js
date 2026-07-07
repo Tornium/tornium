@@ -43,7 +43,7 @@ function showDetails(event) {
         .getElementById("details-user")
         .setAttribute("href", log.user == null ? "#" : `https://www.torn.com/profiles.php?XID=${log.user.id}`);
 
-    const isSuccess = log.error_type == null;
+    const isSuccess = log.failure == null;
     if (isSuccess) {
         document.getElementById("details-status").textContent = "Success";
 

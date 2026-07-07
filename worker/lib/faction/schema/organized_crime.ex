@@ -24,7 +24,6 @@ defmodule Tornium.Schema.OrganizedCrime do
 
   alias Tornium.Repo
   use Ecto.Schema
-  import Ecto.Query
 
   @type t :: %__MODULE__{
           oc_id: integer(),

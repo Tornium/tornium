@@ -29,7 +29,7 @@ defmodule Tornium.Guild.Verify.Message do
           member :: Nostrum.Struct.Guild.Member.t()
         ) :: Nostrum.Struct.Embed.t()
   def message({status_atom, data, _guild}, %Nostrum.Struct.Guild.Member{} = member) when status_atom in [:ok, :error] do
-    message({:ok, data}, member)
+    message({status_atom, data}, member)
   end
 
   def message({:error, %Nostrum.Error.ApiError{} = error}, %Nostrum.Struct.Guild.Member{} = member) do

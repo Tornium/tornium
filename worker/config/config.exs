@@ -89,7 +89,8 @@ config :tornium, Oban,
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications},
         {"* * * * *", Tornium.Workers.FactionUpdateScheduler},
         {"* * * * *", Tornium.Workers.UserUpdateScheduler},
-        {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications}
+        {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications},
+        {"*/15 * * * *", Tornium.Workers.DailyVerificationScheduler}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},

@@ -70,6 +70,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
   queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
   repo: Tornium.ObanRepo,
   get_dynamic_repo: {Tornium.Repo, :oban_repo, []},

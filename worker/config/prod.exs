@@ -34,4 +34,5 @@ config :phoenix, :logger, false
 config :tornium, Oban,
   # Suggested for use in production for increased performance
   # See https://oban.hexdocs.pm/clustering.html
-  peer: Oban.Peers.Database
+  peer: Oban.Peers.Database,
+  notifier: Oban.Notifiers.PG

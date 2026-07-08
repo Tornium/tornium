@@ -215,6 +215,7 @@ defmodule Tornium.Guild.Verify do
       |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
       |> where([u, f], u.discord_id == ^discord_id)
       |> preload([u, f], faction: f)
+      |> first()
       |> Repo.one()
 
     case user do

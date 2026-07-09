@@ -103,6 +103,9 @@ defmodule Tornium.Workers.GuildMemberVerification do
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
 
+      %{"error" => %{"code" => error_code}} when is_integer(error_code) and error_code not in [6] ->
+        {:cancel, {:api_error, error_code}}
+
       result when is_map(result) ->
         do_perform(member_id, guild_id, result)
 
@@ -117,7 +120,7 @@ defmodule Tornium.Workers.GuildMemberVerification do
         ) :: Tornium.Guild.Verify.verification_result() | Nostrum.Api.error()
   defp do_perform(_member, _guild_id, %{"error" => %{"code" => error_code}} = _api_call_result)
        when is_integer(error_code) and error_code not in [6] do
-    {:cancel, {:api_error, error_code}}
+    %Tornium.API.Error{code: error_code}
   end
 
   defp do_perform(member_id, guild_id, api_call_result) when is_integer(member_id) do
@@ -145,15 +148,16 @@ defmodule Tornium.Workers.GuildMemberVerification do
 
     config = Tornium.Guild.Verify.Config.validate(guild)
 
-    {:error, %Tornium.API.Error{code: 6}}
-    |> Tornium.Guild.Verify.build_changes(config, member)
-    |> Tornium.Guild.Verify.perform_changes(guild, member)
+    verification_result = 
+      {:error, %Tornium.API.Error{code: 6}}
+      |> Tornium.Guild.Verify.build_changes(config, member)
+      |> Tornium.Guild.Verify.perform_changes(guild, member)
 
     # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
     # to do that ourselves here.
     Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
 
-    :ok
+    verification_result
   end
 
   defp do_perform({:ok, %Nostrum.Struct.Guild.Member{user_id: member_id} = member}, guild_id, api_call_result) do

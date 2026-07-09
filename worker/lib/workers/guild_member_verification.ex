@@ -148,7 +148,7 @@ defmodule Tornium.Workers.GuildMemberVerification do
 
     config = Tornium.Guild.Verify.Config.validate(guild)
 
-    verification_result = 
+    verification_result =
       {:error, %Tornium.API.Error{code: 6}}
       |> Tornium.Guild.Verify.build_changes(config, member)
       |> Tornium.Guild.Verify.perform_changes(guild, member)

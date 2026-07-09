@@ -556,21 +556,21 @@ def members_switchboard(interaction, *args, **kwargs):
         )
 
         payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
-        grouped_members = {"No One": [], "Friends & Faction": [], "Everyone": []}
+        grouped_members = {"No one": [], "Friends & faction": [], "Everyone": []}
 
         for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
 
             member_status_string = f"{member['name']} [{member['id']}]\n"
-            grouped_members[member["status"]["state"]].append(member_status_string)
+            grouped_members[member["revive_setting"]].append(member_status_string)
 
-        for revivable_status in ("No One", "Friends & Faction"):
-            payload[-1]["description"] += f"__{revivable_status} ({len(grouped_members[revivable_status])})__\n"
+        for revivable_status in ("Everyone", "Friends & faction"):
+            payload[-1]["description"] += f"\n__{revivable_status} ({len(grouped_members[revivable_status])})__\n"
             if len(grouped_members[revivable_status]) == 0:
                 payload[-1]["description"] += "None"
 
-            for member in grouped_members[revivable_status]:
+            for member_status_string in grouped_members[revivable_status]:
                 if (len(payload[-1]["description"]) + 1 + len(member_status_string)) > 4096:
                     payload.append(
                         {
@@ -582,7 +582,9 @@ def members_switchboard(interaction, *args, **kwargs):
 
                 payload[-1]["description"] += member_status_string
 
-        payload[0]["footer"] = {"text": f"Not Revivable: {len(grouped_members['Everyone'])}"}
+        for embed_index in len(payload):
+            payload[embed_index]["description"] = payload[embed_index]["description"].strip()
+            payload[embed_index]["footer"] = {"text": f"Not Revivable: {len(grouped_members['Everyone'])}"}
 
         return {
             "type": 4,

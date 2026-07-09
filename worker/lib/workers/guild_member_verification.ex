@@ -64,14 +64,18 @@ defmodule Tornium.Workers.GuildMemberVerification do
     if is_binary(interaction_token) do
       {:ok, fetched_member} = member
 
-      Nostrum.Api.Interaction.create_followup_message(interaction_token, %{
-        embeds: [
-          verification_result
-          |> Tornium.Guild.Verify.Message.message(fetched_member)
-          |> Map.from_struct()
-        ],
-        flags: 64
-      })
+      Task.async(fn ->
+        Nostrum.Api.Interaction.create_followup_message(interaction_token, %{
+          embeds: [
+            verification_result
+            |> Tornium.Guild.Verify.Message.message(fetched_member)
+            |> Map.from_struct()
+          ],
+          flags: 64
+        })
+      end)
+
+      :ok
     else
       :ok
     end
@@ -154,5 +158,10 @@ defmodule Tornium.Workers.GuildMemberVerification do
     |> where([s], s.sid == ^guild_id)
     |> Repo.one!()
     |> Tornium.Guild.Verify.verify(member, force?: false)
+  end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{} = _job) do
+    :timer.minutes(1)
   end
 end

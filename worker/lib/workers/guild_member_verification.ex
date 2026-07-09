@@ -103,47 +103,57 @@ defmodule Tornium.Workers.GuildMemberVerification do
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
 
-      %{"error" => %{"code" => 6}} ->
-        # This error would occur when the user is not verified. Since we've already performed
-        # the API call, we can skip some of the code in verify/3 and just build and perform the
-        # changes.
-        guild =
-          Tornium.Schema.Server
-          |> where([s], s.sid == ^guild_id)
-          |> Repo.one!()
-
-        config = Tornium.Guild.Verify.Config.validate(guild)
-        {:ok, member} = Nostrum.Api.Guild.member(guild_id, member_id)
-
-        {:error, %Tornium.API.Error{code: 6}}
-        |> Tornium.Guild.Verify.build_changes(config, member)
-        |> Tornium.Guild.Verify.perform_changes(guild, member)
-
-        # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
-        # to do that ourselves here.
-        Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
-
-        :ok
-
-      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
-        {:cancel, {:api_error, error_code}}
-
       result when is_map(result) ->
-        member = Nostrum.Api.Guild.member(guild_id, member_id)
-        do_perform(member, guild_id, result)
+        do_perform(member_id, guild_id, result)
 
         :ok
     end
   end
 
   @spec do_perform(
-          {:ok, Nostrum.Struct.Guild.Member.t()} | Nostrum.Api.error(),
+          {:ok, Nostrum.Struct.Guild.Member.t()} | Nostrum.Api.error() | pos_integer(),
           guild_id :: pos_integer(),
           api_call_result :: map()
         ) :: Tornium.Guild.Verify.verification_result() | Nostrum.Api.error()
+  defp do_perform(_member, _guild_id, %{"error" => %{"code" => error_code}} = _api_call_result)
+       when is_integer(error_code) and error_code not in [6] do
+    {:cancel, {:api_error, error_code}}
+  end
+
+  defp do_perform(member_id, guild_id, api_call_result) when is_integer(member_id) do
+    Nostrum.Api.Guild.member(guild_id, member_id)
+    |> do_perform(guild_id, api_call_result)
+  end
+
   defp do_perform({:error, _error} = error, _guild_id, _api_call_result) do
     # TODO: Handle this case
     error
+  end
+
+  defp do_perform(
+         {:ok, %Nostrum.Struct.Guild.Member{} = member},
+         guild_id,
+         %{"error" => %{"code" => 6}} = _api_call_result
+       ) do
+    # This error would occur when the user is not verified. Since we've already performed
+    # the API call, we can skip some of the code in verify/3 and just build and perform the
+    # changes.
+    guild =
+      Tornium.Schema.Server
+      |> where([s], s.sid == ^guild_id)
+      |> Repo.one!()
+
+    config = Tornium.Guild.Verify.Config.validate(guild)
+
+    {:error, %Tornium.API.Error{code: 6}}
+    |> Tornium.Guild.Verify.build_changes(config, member)
+    |> Tornium.Guild.Verify.perform_changes(guild, member)
+
+    # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
+    # to do that ourselves here.
+    Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
+
+    :ok
   end
 
   defp do_perform({:ok, %Nostrum.Struct.Guild.Member{user_id: member_id} = member}, guild_id, api_call_result) do

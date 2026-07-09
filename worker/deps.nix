@@ -1397,8 +1397,8 @@ let
             src = fetchFromGitHub {
               owner = "Tornium";
               repo = "Tornex";
-              rev = "76f46c4d30da0e19097d4ed3a128dd763d8cf157";
-              hash = "sha256-6KvOUzGuUJj4ZEP2i8BagqYhHfFy1Nk8tfJTN5gHb+Q=";
+              rev = "6f56a185d6bdbcdc923c2285b10b55060254177f";
+              hash = "sha256-1V+5kKFn8+QrtKTDX4DUUCPxEozPdk0nH/Y5/S8LDnc=";
             };
 
             beamDeps = [

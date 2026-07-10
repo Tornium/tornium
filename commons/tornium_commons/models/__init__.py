@@ -27,6 +27,8 @@ from .oban_job import ObanJob
 from .organized_crime import OrganizedCrime
 from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_slot import OrganizedCrimeSlot
+from .organized_crime_slot_type import OrganizedCrimeSlotType
+from .organized_crime_type import OrganizedCrimeType
 from .overdose_count import OverdoseCount
 from .overdose_event import OverdoseEvent
 from .personal_stats import PersonalStats
@@ -63,6 +65,8 @@ __all__ = [
     "OrganizedCrimeCPR",
     "OrganizedCrime",
     "OrganizedCrimeSlot",
+    "OrganizedCrimeSlotType",
+    "OrganizedCrimeType",
     "OverdoseCount",
     "OverdoseEvent",
     "PersonalStats",

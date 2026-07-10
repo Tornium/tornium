@@ -24,9 +24,10 @@ defmodule Tornium.Schema.ServerOCRangeConfig do
           guid: Ecto.UUID.t(),
           server_oc_config_id: Ecto.UUID.t(),
           server_oc_config: Tornium.Schema.ServerOCConfig.t(),
-          oc_name: String.t(),
-          position_name: String.t() | nil,
-          position_index: pos_integer() | nil,
+          oc_type_id: Ecto.UUID.t(),
+          oc_type: Tornium.Schema.OrganizedCrimeType.t(),
+          oc_slot_type_id: Ecto.UUID.t(),
+          oc_slot_type: Tornium.Schema.OrganizedCrimeSlotType.t(),
           minimum: 0..100,
           maximum: 0..100
         }
@@ -35,10 +36,8 @@ defmodule Tornium.Schema.ServerOCRangeConfig do
   schema "server_oc_range_config" do
     belongs_to(:server_oc_config, Tornium.Schema.ServerOCConfig, references: :guid, type: :binary_id)
 
-    field(:oc_name, :string)
-    # FIXME: This needs a DB migration
-    field(:position_name, :string)
-    field(:position_index, :integer)
+    belongs_to(:oc_type, Tornium.Schema.OrganizedCrimeType, references: :guid, type: :binary_id)
+    belongs_to(:oc_slot_type, Tornium.Schema.OrganizedCrimeSlotType, references: :guid, type: :binary_id)
 
     field(:minimum, :integer)
     field(:maximum, :integer)

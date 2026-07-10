@@ -13,33 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import ForeignKeyField, SmallIntegerField
+from peewee import BooleanField, CharField, ForeignKeyField, SmallIntegerField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
-from .organized_crime_slot_type import OrganizedCrimeSlotType
+from .item import Item
 from .organized_crime_type import OrganizedCrimeType
-from .server_oc_config import ServerOCConfig
 
 
-class ServerOCRangeConfig(BaseModel):
+class OrganizedCrimeSlotType(BaseModel):
     class Meta:
-        table_name = "server_oc_range_config"
+        table_name = "organized_crime_slot_type"
 
-    guid = UUIDField(null=False, primary_key=True)
-    server_oc_config = ForeignKeyField(ServerOCConfig, null=False)
+    guid = UUIDField(primary_key=True)
 
     oc_type = ForeignKeyField(OrganizedCrimeType, null=False)
-    oc_slot_tyep = ForeignKeyField(OrganizedCrimeSlotType, null=False)
+    name = CharField(null=False)
+    number = SmallIntegerField(null=False)
+    index = SmallIntegerField(null=False)
 
-    minimum = SmallIntegerField(default=0, null=False)
-    maximum = SmallIntegerField(default=100, null=False)
-
-    def to_dict(self):
-        return {
-            "guid": self.guid,
-            "server_oc_config_id": self.server_oc_config_id,
-            "oc_name": self.oc_type.name,
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-        }
+    required_item = ForeignKeyField(Item, default=None, null=True)
+    required_item_consumed = BooleanField(default=None, null=True)

@@ -16,12 +16,14 @@
 import typing
 
 from flask import jsonify, request
-from peewee import DoesNotExist, fn
+from peewee import DoesNotExist
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
     OrganizedCrimeCPR,
     OrganizedCrimeSlot,
+    OrganizedCrimeSlotType,
+    OrganizedCrimeType,
     User,
 )
 
@@ -40,9 +42,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def get_oc_names(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    oc_names: typing.List[str] = [
-        crime.oc_name for crime in OrganizedCrime.select().distinct(fn.LOWER(OrganizedCrime.oc_name))
-    ]
+    oc_names: typing.List[str] = OrganizedCrimeType.select(OrganizedCrimeType.name).all()
 
     return jsonify(oc_names), 200, api_ratelimit_response(key)
 
@@ -53,24 +53,17 @@ def get_oc_names(*args, **kwargs):
 def get_oc_slots(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    # TODO: Convert this to use a table of information on OCs from the API directly
-    slots = (
-        OrganizedCrimeSlot.select(
-            OrganizedCrime.oc_name, OrganizedCrimeSlot.crime_position, OrganizedCrimeSlot.crime_position_index
-        )
-        .join(OrganizedCrime)
-        .distinct(OrganizedCrime.oc_name, OrganizedCrimeSlot.crime_position, OrganizedCrimeSlot.crime_position_index)
-    )
+    slots = OrganizedCrimeSlotType.select(OrganizedCrimeType.name, OrganizedCrimeSlotType.name, OrganizedCrimeSlotType.number).join(OrganizedCrimeType)
 
     return (
         jsonify(
             [
                 {
-                    "oc": slot.oc.oc_name,
-                    "position_name": slot.crime_position,
-                    "position_index": slot.crime_position_index,
+                    "oc": slot_type.oc_type.name,
+                    "position_name": slot_type.name,
+                    "position_index": slot_type.number,
                 }
-                for slot in slots
+                for slot_type in slots
             ]
         ),
         200,

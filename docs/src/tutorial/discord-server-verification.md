@@ -45,3 +45,5 @@ At this point, new members joining the Discord server will automatically be veri
 
 ## More Configuration
 There are further configuration options that provide more customization for verification of Discord server members on Tornium including [customizable nicknames](../reference/bot-verification.md#name-template). For more information, see the [verification reference](../reference/bot-verification.md) page.
+
+For example, it is suggested to give all bots a shared "Bot" role and add that bot role as an exclusion role to prevent Tornium from attempting to verify bots.

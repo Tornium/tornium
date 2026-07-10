@@ -137,7 +137,7 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_id>/extra-range/local",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_id>/extra-range/local/<slot_guid>",
     view_func=bot.crimes.patch_extra_range_local,
     methods=["PATCH"],
 )

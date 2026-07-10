@@ -89,16 +89,6 @@ def oc_dashboard(guild_id):
                 faction_id=faction.tid,
             )
 
-        faction.server_oc_config.local_range_configs = [
-            config
-            for config in ServerOCRangeConfig.select(
-                ServerOCRangeConfig.oc_name, ServerOCRangeConfig.minimum, ServerOCRangeConfig.maximum
-            ).where(ServerOCRangeConfig.server_oc_config == faction.server_oc_config.guid)
-        ]
-        faction.server_oc_config.local_range_crimes = [
-            config.oc_name for config in faction.server_oc_config.local_range_configs
-        ]
-
     return render_template(
         "bot/oc.html",
         guild=guild,

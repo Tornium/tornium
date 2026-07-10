@@ -28,8 +28,8 @@ defmodule Tornium.Schema.ServerOCRangeConfig do
           oc_type: Tornium.Schema.OrganizedCrimeType.t(),
           oc_slot_type_id: Ecto.UUID.t(),
           oc_slot_type: Tornium.Schema.OrganizedCrimeSlotType.t(),
-          minimum: 0..100,
-          maximum: 0..100
+          minimum: 0..100 | nil,
+          maximum: 0..100 | nil
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}

@@ -30,10 +30,10 @@ class ServerOCRangeConfig(BaseModel):
     server_oc_config = ForeignKeyField(ServerOCConfig, null=False)
 
     oc_type = ForeignKeyField(OrganizedCrimeType, null=False)
-    oc_slot_tyep = ForeignKeyField(OrganizedCrimeSlotType, null=False)
+    oc_slot_type = ForeignKeyField(OrganizedCrimeSlotType, null=False)
 
-    minimum = SmallIntegerField(default=0, null=False)
-    maximum = SmallIntegerField(default=100, null=False)
+    minimum = SmallIntegerField(default=None, null=True)
+    maximum = SmallIntegerField(default=None, null=True)
 
     def to_dict(self):
         return {

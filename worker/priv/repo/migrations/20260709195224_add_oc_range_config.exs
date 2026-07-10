@@ -11,8 +11,8 @@ defmodule Tornium.Repo.Migrations.AddOcRangeConfig do
       add :oc_type_id, references(:organized_crime_type, column: :guid, type: :binary_id), null: false
       add :oc_slot_type_id, references(:organized_crime_slot_type, column: :guid, type: :binary_id), null: false
 
-      add :minimum, :integer, default: 0, null: false
-      add :maximum, :integer, default: 100, null: false
+      add :minimum, :integer, default: nil, null: true
+      add :maximum, :integer, default: nil, null: true
     end
     create unique_index("server_oc_range_config", [:server_oc_config_id, :oc_type_id, :oc_slot_type_id])
 

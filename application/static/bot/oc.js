@@ -139,53 +139,13 @@ function removeDOMRangeCrime(crimeName, container) {
     element.remove();
 }
 
-function addRangeCrime(crimeName, container) {
-    tfetch("POST", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/extra-range/local/${crimeName}`, {
-        errorTitle: "OC-Specific Range Creation Failed",
-    }).then((data) => {
-        generateToast(
-            "OC-Specific Range Creation Successful",
-            "The per-OC configuration for OC extra-range notifications has been successfully created.",
-        );
-
-        const minInput = container.querySelector(`.oc-range-local-min[data-crime-name="${crimeName}"]`);
-        const maxInput = container.querySelector(`.oc-range-local-max[data-crime-name="${crimeName}"]`);
-
-        if (minInput == null || maxInput == null) {
-            console.error("Min input or max input could not be found in the DOM");
-            return;
-        }
-
-        minInput.value = data.minimum;
-        maxInput.value = data.maximum;
-    });
-}
-
-function removeRangeCrime(crimeName, container) {
-    tfetch("DELETE", `bot/${guildid}/crimes/${container.getAttribute("data-faction")}/extra-range/local/${crimeName}`, {
-        errorTitle: "OC-Specific Range Deletion Failed",
-    })
-        .then(() => {
-            generateToast(
-                "OC-Specific Range Deletion Successful",
-                "The per-OC configuration for OC extra-range notifications has been successfully deleted.",
-            );
-        })
-        .then(() => {
-            removeDOMRangeCrime(crimeName, container);
-        });
-}
-
 function modifyRangeLocalMinMax(event, rangeType) {
     const factionID = event.currentTarget.closest("[data-faction]").getAttribute("data-faction");
     const crimeName = event.currentTarget.closest(".col-sm-12").querySelector(".oc-name-selector").value;
-    const positionName = event.currentTarget.getAttribute("data-position-name");
-    const positionIndex = event.currentTarget.getAttribute("data-position-index");
+    const slotGUID = event.currentTarget.closest("[data-slot-id]").getAttribute("data-slot-id");
 
     const body = {
         oc_name: crimeName,
-        position_name: positionName,
-        position_index: parseInt(positionIndex)
     };
 
     if (event.currentTarget.value == "") {
@@ -197,7 +157,7 @@ function modifyRangeLocalMinMax(event, rangeType) {
         return;
     }
 
-    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/extra-range/local`, {
+    tfetch("PATCH", `bot/${guildid}/crimes/${factionID}/extra-range/local/${slotGUID}`, {
         body: body,
         errorTitle: "OC Slot-Specific Range Min/Max Change Failed",
     }).then(() => {
@@ -228,9 +188,8 @@ function reloadRangeCrime(event) {
 
 function appendSlotRange(slot, container) {
     const slotElement = document.createElement("div");
+    slotElement.setAttribute("data-slot-id", slot.guid);
     slotElement.classList.add("list-group-item", "justify-content-between", "align-items-center");
-    slotElement.setAttribute("data-position-name", slot.position_name);
-    slotElement.setAttribute("data-position-index", slot.position_index);
     container.append(slotElement);
 
     const label = document.createElement("span");
@@ -253,8 +212,6 @@ function appendSlotRange(slot, container) {
     const minRangeInput = document.createElement("input");
     minRangeInput.classList.add("form-control");
     minRangeInput.setAttribute("type", "number");
-    minRangeInput.setAttribute("data-position-name", slot.position_name);
-    minRangeInput.setAttribute("data-position-index", slot.position_index);
     minRangeInput.setAttribute("placeholder", "Global default");
     minRangeInput.setAttribute("autocomplete", "off");
     minRangeGroup.append(minRangeInput);
@@ -271,8 +228,6 @@ function appendSlotRange(slot, container) {
     const maxRangeInput = document.createElement("input");
     maxRangeInput.classList.add("form-control");
     maxRangeInput.setAttribute("type", "number");
-    maxRangeInput.setAttribute("data-position-name", slot.position_name);
-    maxRangeInput.setAttribute("data-position-index", slot.position_index);
     maxRangeInput.setAttribute("placeholder", "Global default");
     maxRangeInput.setAttribute("autocomplete", "off");
     maxRangeGroup.append(maxRangeInput);

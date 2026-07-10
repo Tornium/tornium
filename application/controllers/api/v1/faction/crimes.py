@@ -49,16 +49,20 @@ def get_oc_names(*args, **kwargs):
 
 @require_oauth()
 @ratelimit
-@global_cache
+# @global_cache
+# FIXME: Re-eanble caching before merging
 def get_oc_slots(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    slots = OrganizedCrimeSlotType.select(OrganizedCrimeType.name, OrganizedCrimeSlotType.name, OrganizedCrimeSlotType.number).join(OrganizedCrimeType)
+    slots = OrganizedCrimeSlotType.select(
+        OrganizedCrimeSlotType.guid, OrganizedCrimeType.name, OrganizedCrimeSlotType.name, OrganizedCrimeSlotType.number
+    ).join(OrganizedCrimeType)
 
     return (
         jsonify(
             [
                 {
+                    "guid": slot_type.guid,
                     "oc": slot_type.oc_type.name,
                     "position_name": slot_type.name,
                     "position_index": slot_type.number,

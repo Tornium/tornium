@@ -112,14 +112,16 @@ defmodule Tornium.Schema.ServerOCConfig do
         %__MODULE__{
           extra_range_global_min: global_min,
           extra_range_global_max: global_max,
-          extra_range_local_configs: local_configs
+          extra_range_local_configs: _local_configs
         } = _config,
-        %Tornium.Schema.OrganizedCrime{oc_name: oc_name} = _oc
+        # %Tornium.Schema.OrganizedCrime{oc_name: oc_name} = _oc
+        _oc
       ) do
-    config =
-      Enum.find(local_configs, fn %Tornium.Schema.ServerOCRangeConfig{oc_name: config_oc_name} ->
-        String.downcase(oc_name) == String.downcase(config_oc_name)
-      end)
+    # config =
+    #   Enum.find(local_configs, fn %Tornium.Schema.ServerOCRangeConfig{oc_name: config_oc_name} ->
+    #     String.downcase(oc_name) == String.downcase(config_oc_name)
+    #   end)
+    config = nil
 
     case config do
       nil -> {global_min, global_max}

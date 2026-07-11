@@ -180,7 +180,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
-        faction = (
+        faction: Faction = (
             Faction.insert(
                 tid=user_data["faction"]["faction_id"],
                 name=user_data["faction"]["faction_name"],
@@ -190,41 +190,37 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                 conflict_target=[Faction.tid],
                 preserve=[Faction.name, Faction.tag],
             )
-            .execute()
+            .returning(Faction)
+            .execute()[0]
         )
 
-        if key is not None:
-            faction: typing.Optional[Faction] = (
-                Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+        if key is not None and len(faction.aa_keys) == 0:
+            try:
+                tornget("faction/?selections=basic,positions", key)
+            except TornError as e:
+                if e.code == 7:
+                    user_data_kwargs["faction_aa"] = False
+            except NetworkingError:
+                pass
+            else:
+                user_data_kwargs["faction_aa"] = True
+
+            # We want to asynchronously update the faction data and set the faction positions under
+            # the assumption that this API key can access non public data so that many features will
+            # work instead of features that realy on only `:faction_aa`.
+            ObanJob.new(
+                worker="Tornium.Workers.FactionUpdate",
+                queue="faction_processing",
+                args={
+                    "api_call_id": None,
+                    "api_key_id": None,
+                    "api_key": key,
+                    "faction_id": faction.tid,
+                    "user_id": user_data["player_id"],
+                    "nonpublic?": user_data_kwargs["faction_aa"] is True,
+                },
+                tags=["faction"],
             )
-
-            if faction is not None and len(faction.aa_keys) == 0:
-                try:
-                    tornget("faction/?selections=basic,positions", key)
-                except TornError as e:
-                    if e.code == 7:
-                        user_data_kwargs["faction_aa"] = False
-                except NetworkingError:
-                    pass
-                else:
-                    user_data_kwargs["faction_aa"] = True
-
-                    # We want to asynchronously update the faction data and set the faction positions under
-                    # the assumption that this API key can access non public data so that many features will
-                    # work instead of features that realy on only `:faction_aa`.
-                    ObanJob.new(
-                        worker="Tornium.Workers.FactionUpdate",
-                        queue="faction_processing",
-                        args={
-                            "api_call_id": None,
-                            "api_key_id": None,
-                            "api_key": key,
-                            "faction_id": faction.tid,
-                            "user_id": user_data["player_id"],
-                            "nonpublic?": True,
-                        },
-                        tags=["faction"],
-                    )
 
         if user_data["faction"]["position"] == "Leader":
             Faction.update(leader=user_data["player_id"]).where(

@@ -27,6 +27,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlotType do
   """
 
   use Ecto.Schema
+  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
@@ -130,5 +131,16 @@ defmodule Tornium.Schema.OrganizedCrimeSlotType do
     )
 
     :ok
+  end
+
+  @spec get(oc_name :: String.t(), slot_name :: String, slot_number :: pos_integer()) :: t() | nil
+  def get(oc_name, slot_name, slot_number)
+      when is_binary(oc_name) and is_binary(slot_name) and is_integer(slot_number) do
+    __MODULE__
+    |> where([s], s.name == ^slot_name and s.number == ^slot_number)
+    |> join(:inner, [s], c in assoc(s, :oc_type), on: s.oc_type_id == c.guid)
+    |> where([s, c], c.name == ^oc_name)
+    |> preload(:oc_type)
+    |> Repo.one()
   end
 end

@@ -25,12 +25,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "faction"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

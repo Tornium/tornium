@@ -21,12 +21,7 @@ defmodule Tornium.Workers.OCUpdateScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "oc"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "oc"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

@@ -25,12 +25,7 @@ defmodule Tornium.Workers.DailyVerificationScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler"]
 
   @schedule_in_delay 30
 

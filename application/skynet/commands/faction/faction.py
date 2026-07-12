@@ -584,7 +584,7 @@ def members_switchboard(interaction, *args, **kwargs):
 
         for embed_index in range(len(payload)):
             payload[embed_index]["description"] = payload[embed_index]["description"].strip()
-            payload[embed_index]["footer"] = {"text": f"Not Revivable: {len(grouped_members['Everyone'])}"}
+            payload[embed_index]["footer"] = {"text": f"Not Revivable: {len(grouped_members['No one'])}"}
 
         return {
             "type": 4,

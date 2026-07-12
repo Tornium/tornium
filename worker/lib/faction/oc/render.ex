@@ -221,7 +221,7 @@ defmodule Tornium.Faction.OC.Render do
             oc: %Tornium.Schema.OrganizedCrime{} = crime,
             user: %Tornium.Schema.User{} = user,
             user_success_chance: chance
-          } = _slot
+          } = slot
           | remaining_slots
         ],
         %Tornium.Schema.ServerOCConfig{
@@ -234,7 +234,7 @@ defmodule Tornium.Faction.OC.Render do
       when is_list(messages) and not is_nil(extra_range_channel) do
     # FIXME: Re-enable the `enabled` check once the UI for that is created
 
-    {expected_minimum, expected_maximum} = Tornium.Schema.ServerOCConfig.chance_range(config, crime)
+    {expected_minimum, expected_maximum} = Tornium.Schema.ServerOCConfig.chance_range(config, slot)
     extra_range_user_id = Tornium.User.DiscordStore.get(user.tid)
 
     new_message =

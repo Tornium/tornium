@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import itertools
 import typing
 
 from flask import jsonify, request
@@ -24,6 +25,8 @@ from tornium_commons.models import (
     OrganizedCrimeSlot,
     OrganizedCrimeSlotType,
     OrganizedCrimeType,
+    ServerOCConfig,
+    ServerOCRangeConfig,
     User,
 )
 
@@ -42,15 +45,14 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 def get_oc_names(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    oc_names: typing.List[str] = OrganizedCrimeType.select(OrganizedCrimeType.name).all()
+    oc_names: typing.List[str] = [oc_type.name for oc_type in OrganizedCrimeType.select(OrganizedCrimeType.name)]
 
     return jsonify(oc_names), 200, api_ratelimit_response(key)
 
 
 @require_oauth()
 @ratelimit
-# @global_cache
-# FIXME: Re-eanble caching before merging
+@global_cache
 def get_oc_slots(*args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
@@ -211,6 +213,71 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
                 for member in members_cpr_list
             ]
             for position, members_cpr_list in members_cpr_positions.items()
+        },
+        200,
+        api_ratelimit_response(key),
+    )
+
+
+@require_oauth("faction:crimes", "faction")
+@ratelimit
+def get_cpr_ranges(faction_id: int, *args, **kwargs):
+    user: User = kwargs["user"]
+    key = f"tornium:ratelimit:{user.tid}"
+
+    if user.faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif user.faction.guild is None:
+        return make_exception_response("1001", key)
+    elif user.faction_id not in user.faction.guild.factions:
+        return make_exception_response("4021", key)
+
+    try:
+        server_oc_config: ServerOCConfig = (
+            ServerOCConfig.select(
+                ServerOCConfig.guid, ServerOCConfig.extra_range_global_max, ServerOCConfig.extra_range_global_min
+            )
+            .where((ServerOCConfig.server_id == user.faction.guild_id) & (ServerOCConfig.faction_id == user.faction_id))
+            .get()
+        )
+    except DoesNotExist:
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "element": "server_oc_config",
+                "message": "There is no OC config for this faction and its linked server.",
+            },
+        )
+
+    ranges = ServerOCRangeConfig.select().where(ServerOCRangeConfig.server_oc_config_id == server_oc_config.guid)
+    grouped_ranges = itertools.groupby(ranges, lambda range_config: range_config.oc_type_id)
+
+    local_data = {}
+    for oc_type, range_configs in grouped_ranges:
+        configs_list = list(range_configs)
+
+        if not configs_list:
+            continue
+
+        local_data[configs_list[0].oc_type.name] = [
+            {
+                "guid": range_config.guid,
+                "slot_name": range_config.oc_slot_type.name,
+                "slot_number": range_config.oc_slot_type.number,
+                "minimum": range_config.minimum,
+                "maximum": range_config.maximum,
+            }
+            for range_config in configs_list
+        ]
+
+    return (
+        {
+            "minimum": server_oc_config.extra_range_global_min,
+            "maximum": server_oc_config.extra_range_global_max,
+            "local": local_data,
         },
         200,
         api_ratelimit_response(key),

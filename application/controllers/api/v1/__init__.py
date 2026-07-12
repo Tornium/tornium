@@ -310,6 +310,9 @@ mod.add_url_rule(
     methods=["GET"],
 )
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr-range", view_func=faction.crimes.get_cpr_ranges, methods=["GET"]
+)
+mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/member/<int:user_id>/optimum",
     view_func=faction.crimes.get_optimum_slots,
     methods=["GET"],

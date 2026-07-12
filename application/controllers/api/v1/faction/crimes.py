@@ -262,11 +262,13 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
         if not configs_list:
             continue
 
+        # The slot names and idnexes in the local data should have the same keys as get_oc_slots
+        # for continuity.
         local_data[configs_list[0].oc_type.name] = [
             {
                 "guid": range_config.guid,
-                "slot_name": range_config.oc_slot_type.name,
-                "slot_number": range_config.oc_slot_type.number,
+                "position_name": range_config.oc_slot_type.name,
+                "position_index": range_config.oc_slot_type.number,
                 "minimum": range_config.minimum,
                 "maximum": range_config.maximum,
             }

@@ -180,13 +180,26 @@ function reloadRangeCrime(event) {
         return;
     }
 
-    const crimeSlots = slotData.filter((slot) => slot.oc == ocName);
-    // TODO: Load the current values for each slot when appending them
-    crimeSlots.forEach((slot) => appendSlotRange(slot, slotsRangeContainer));
-    slotsRangeContainer.removeAttribute("hidden");
+    tfetch("GET", `faction/${factionID}/crime/cpr-range`, { errorTitle: "OC CPR Ranges Fetch Failed" }).then(
+        (slotRanges) => {
+            const crimeSlots = slotData.filter((slot) => slot.oc == ocName);
+            crimeSlots.forEach((slot) => {
+                const slotRange =
+                    ocName in slotRanges.local
+                        ? slotRanges.local[ocName].find(
+                              (rangeData) =>
+                                  rangeData.position_name == slot.position_name &&
+                                  rangeData.position_index == slot.position_index,
+                          )
+                        : null;
+                appendSlotRange(slot, slotRange, slotsRangeContainer);
+            });
+            slotsRangeContainer.removeAttribute("hidden");
+        },
+    );
 }
 
-function appendSlotRange(slot, container) {
+function appendSlotRange(slot, slotRange, container) {
     const slotElement = document.createElement("div");
     slotElement.setAttribute("data-slot-id", slot.guid);
     slotElement.classList.add("list-group-item", "justify-content-between", "align-items-center");
@@ -215,6 +228,9 @@ function appendSlotRange(slot, container) {
     minRangeInput.setAttribute("placeholder", "Global default");
     minRangeInput.setAttribute("autocomplete", "off");
     minRangeGroup.append(minRangeInput);
+    if (slotRange != null) {
+        minRangeInput.value = slotRange.minimum;
+    }
 
     const maxRangeGroup = document.createElement("div");
     maxRangeGroup.classList.add("input-group", "input-group-sm");
@@ -231,6 +247,9 @@ function appendSlotRange(slot, container) {
     maxRangeInput.setAttribute("placeholder", "Global default");
     maxRangeInput.setAttribute("autocomplete", "off");
     maxRangeGroup.append(maxRangeInput);
+    if (slotRange != null) {
+        maxRangeInput.value = slotRange.maximum;
+    }
 
     minRangeInput.addEventListener("change", (event) => {
         modifyRangeLocalMinMax(event, "minimum");
@@ -382,14 +401,4 @@ ready(() => {
     document.querySelectorAll(".oc-range-crimes").forEach((element) => {
         element.addEventListener("change", reloadRangeCrime);
     });
-    // document.querySelectorAll(".oc-range-local-min").forEach((element) => {
-    //     element.addEventListener("input", (event) => {
-    //         modifyRangeLocalMinMax(event, "minimum");
-    //     });
-    // });
-    // document.querySelectorAll(".oc-range-local-max").forEach((element) => {
-    //     element.addEventListener("input", (event) => {
-    //         modifyRangeLocalMinMax(event, "maximum");
-    //     });
-    // });
 });

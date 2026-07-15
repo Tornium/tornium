@@ -61,6 +61,19 @@ defmodule Tornium.Workers.OCUpdate do
       %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
         {:cancel, {:api_error, error_code}}
 
+      %{"crimes" => crime_data} when is_map(crime_data) ->
+        # When an OC's crime response is a map instead of a list, this indicates that the
+        # faction is still on OCs 1.0 and hasn't migrated. We should force update the 
+        # migration flag for this faction to indicate this as this worker shouldn't be
+        # running for factions that haven't migrated yet.
+
+        Tornium.Schema.Faction
+        |> update([f], set: [has_migrated_oc: false])
+        |> where([f], f.tid == ^faction_id)
+        |> Repo.update_all([])
+
+        :ok
+
       result when is_map(result) ->
         do_perform(result)
     end

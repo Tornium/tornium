@@ -268,16 +268,24 @@ defmodule Tornium.Workers.GuildVerification do
           | {false, Oban.Job.t()}
   defp verify_or_schedule(
          {%Nostrum.Struct.Guild.Member{} = member, %Tornium.Schema.User{} = user} = _user_data,
-         %Tornium.Schema.Server{} = guild
+         %Tornium.Schema.Server{exclusion_roles: exclusion_roles} = guild
        ) do
-    if requires_api_call?(user) do
-      # The user was updated too far in the past, so we should pass this to the other clause of
-      # the function to update the user's data before verifying the user.
-      {false, verify_or_schedule({member, nil}, guild)}
+    if Tornium.Guild.Verify.has_exclusion_role?(member, exclusion_roles) do
+      # We should skip members that have an exclusion role otherwise it would need to perform an
+      # API call for members are bots (or are generally not verified). We don't need to log this
+      # though even though it's a verification error as it's only logged for slash commands and
+      # verification jail messages.
+      {true, {:error, :exclusion_role, guild}}
     else
-      # The user was updated less than one hour ago, so we can verify the user without trying to
-      # make an API call to update the user's data.
-      {true, Tornium.Guild.Verify.verify(guild, member)}
+      if requires_api_call?(user) do
+        # The user was updated too far in the past, so we should pass this to the other clause of
+        # the function to update the user's data before verifying the user.
+        {false, verify_or_schedule({member, nil}, guild)}
+      else
+        # The user was updated less than one hour ago, so we can verify the user without trying to
+        # make an API call to update the user's data.
+        {true, Tornium.Guild.Verify.verify(guild, member)}
+      end
     end
   end
 

@@ -81,9 +81,12 @@ defmodule Tornium.Guild.Verify do
     {:error, {:config, "invalid guild ID"}, nil}
   end
 
-  def verify(%Tornium.Schema.Server{} = guild, %Nostrum.Struct.Guild.Member{} = member, opts) do
-    if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
-      # Member has at least one exclusion role and should be skipped
+  def verify(
+        %Tornium.Schema.Server{exclusion_roles: exclusion_roles} = guild,
+        %Nostrum.Struct.Guild.Member{} = member,
+        opts
+      ) do
+    if has_exclusion_role?(member, exclusion_roles) do
       {:error, :exclusion_role, guild}
     else
       api_key = Tornium.Guild.get_random_admin_key(guild)
@@ -94,6 +97,29 @@ defmodule Tornium.Guild.Verify do
       end
     end
     |> log(member)
+  end
+
+  @doc """
+  Check if a member has at least one exclusion role.
+
+  When a member has at least one Discord role overlapping between their Discord roles
+  and the server's configured list of exclusion roles, the member should be excluded
+  from verification.
+  """
+  @spec has_exclusion_role?(
+          member :: Nostrum.Struct.Guild.Member.t(),
+          exclusion_roles :: [Tornium.Discord.role()]
+        ) :: boolean()
+  def has_exclusion_role?(%Nostrum.Struct.Guild.Member{} = _member, [] = _exclusion_roles) do
+    # We can short-circuit the exclusion role check when there are no exlcusion roles setup.
+
+    false
+  end
+
+  def has_exclusion_role?(%Nostrum.Struct.Guild.Member{roles: member_roles} = _member, exclusion_roles)
+      when is_list(exclusion_roles) do
+    # TEST: Add test for this (probably a doctest)
+    MapSet.size(MapSet.intersection(MapSet.new(member_roles), MapSet.new(exclusion_roles))) != 0
   end
 
   defp validate_on_join(%Tornium.Schema.Server{gateway_verify_enabled: false} = _guild) do

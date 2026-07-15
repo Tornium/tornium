@@ -147,17 +147,22 @@ defmodule Tornium.Workers.GuildMemberVerification do
       |> Repo.one!()
 
     config = Tornium.Guild.Verify.Config.validate(guild)
+    exclusion_roles = if is_nil(config), do: [], else: config.exclusion_roles
 
-    verification_result =
-      {:error, %Tornium.API.Error{code: 6}}
-      |> Tornium.Guild.Verify.build_changes(config, member)
-      |> Tornium.Guild.Verify.perform_changes(guild, member)
+    if Tornium.Guild.Verify.has_exclusion_role?(member, exclusion_roles) do
+      {:error, :exclusion_role, guild}
+    else
+      verification_result =
+        {:error, %Tornium.API.Error{code: 6}}
+        |> Tornium.Guild.Verify.build_changes(config, member)
+        |> Tornium.Guild.Verify.perform_changes(guild, member)
 
-    # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
-    # to do that ourselves here.
-    Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
+      # As skipping the unnecessary code in verify/3 also skips the :telemetry logging, we need
+      # to do that ourselves here.
+      Tornium.Guild.Verify.log({:error, %Tornium.API.Error{code: 6}, guild}, member)
 
-    verification_result
+      verification_result
+    end
   end
 
   defp do_perform({:ok, %Nostrum.Struct.Guild.Member{user_id: member_id} = member}, guild_id, api_call_result) do

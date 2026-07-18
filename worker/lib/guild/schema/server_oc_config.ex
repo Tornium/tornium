@@ -119,7 +119,7 @@ defmodule Tornium.Schema.ServerOCConfig do
           crime_position: slot_name,
           crime_position_index: slot_index,
           oc: %Tornium.Schema.OrganizedCrime{oc_name: oc_name}
-        } = _oc
+        } = _slot
       ) do
     # TEST: Test this before merging
     slot_type = Tornium.Schema.OrganizedCrimeSlotType.get(oc_name, slot_name, slot_index)

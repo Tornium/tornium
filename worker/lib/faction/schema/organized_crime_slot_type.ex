@@ -133,6 +133,12 @@ defmodule Tornium.Schema.OrganizedCrimeSlotType do
     :ok
   end
 
+  @doc """
+  Get the slot type from the OC name, the slot slot, and the slot number.
+
+  If the data comes from an `Tornium.Schema.OrganizedCrimeSlot`, the `slot_number` paramter
+  of this function corresponds to `OrganizedCrimeSlot.crime_position_index`.
+  """
   @spec get(oc_name :: String.t(), slot_name :: String, slot_number :: pos_integer()) :: t() | nil
   def get(oc_name, slot_name, slot_number)
       when is_binary(oc_name) and is_binary(slot_name) and is_integer(slot_number) do

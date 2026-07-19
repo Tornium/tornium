@@ -225,21 +225,33 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
     user: User = kwargs["user"]
     key = f"tornium:ratelimit:{user.tid}"
 
-    if user.faction_id != faction_id:
-        return make_exception_response("4022", key)
-    elif not Faction.select().where(Faction.tid == faction_id).exists():
+    try:
+        faction: Faction = Faction.select().where(Faction.tid == faction_id).get()
+    except DoesNotExist:
         return make_exception_response("1102", key)
-    elif user.faction.guild is None:
+
+    if faction.guild is None:
         return make_exception_response("1001", key)
-    elif user.faction_id not in user.faction.guild.factions:
+    elif faction_id not in faction.guild.factions:
         return make_exception_response("4021", key)
+
+    if kwargs["method"] == "oauth" and user.faction_id != faction_id:
+        # If the user is signed in through oauth, they MUST only be able to access their
+        # faction's CPR range to avoid excessive data sharing.
+        return make_exception_response("4022", key)
+    elif kwargs["method"] == "session" and user.faction_id != faction_id and user.tid not in faction.guild.admins:
+        # If the user is using the API through Tornium's website, they can access other
+        # factions' CPR ranges if the user is an admin of the server linked to the
+        # specified faction. Since checking if the faction has a linked server is performed
+        # above, we only need to check if the user is in the linked server's list of admins.
+        return make_exception_response("4020", key)
 
     try:
         server_oc_config: ServerOCConfig = (
             ServerOCConfig.select(
                 ServerOCConfig.guid, ServerOCConfig.extra_range_global_max, ServerOCConfig.extra_range_global_min
             )
-            .where((ServerOCConfig.server_id == user.faction.guild_id) & (ServerOCConfig.faction_id == user.faction_id))
+            .where((ServerOCConfig.server_id == faction.guild_id) & (ServerOCConfig.faction_id == faction_id))
             .get()
         )
     except DoesNotExist:
@@ -252,7 +264,11 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
             },
         )
 
-    ranges = ServerOCRangeConfig.select().where(ServerOCRangeConfig.server_oc_config_id == server_oc_config.guid)
+    ranges = (
+        ServerOCRangeConfig.select()
+        .where(ServerOCRangeConfig.server_oc_config_id == server_oc_config.guid)
+        .order_by(ServerOCRangeConfig.oc_type_id)
+    )
     grouped_ranges = itertools.groupby(ranges, lambda range_config: range_config.oc_type_id)
 
     local_data = {}

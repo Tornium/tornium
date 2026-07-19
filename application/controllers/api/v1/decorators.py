@@ -17,7 +17,6 @@ import time
 import typing
 from functools import partial, wraps
 
-import redis
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Response, request, session
 from flask_login import current_user
@@ -35,10 +34,12 @@ def ratelimit(func):
             # OAuth token
             kwargs["user"] = current_token.user
             kwargs["key"] = current_token.user.key
+            kwargs["method"] = "oauth"
         except AttributeError:
             # CSRF token
             kwargs["user"] = current_user
             kwargs["key"] = current_user.key
+            kwargs["method"] = "session"
 
         client = rds()
         key = f"tornium:ratelimit:{kwargs['user'].tid}"

@@ -25,17 +25,15 @@ defmodule Tornium.Workers.DailyVerificationScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler"]
+
+  @schedule_in_delay 30
 
   @impl Oban.Worker
-  def perform(%Oban.Job{} = _job) do
+  def perform(%Oban.Job{scheduled_at: %DateTime{} = scheduled_at} = _job) do
     current_guild_slot =
-      System.os_time(:second)
+      scheduled_at
+      |> DateTime.to_unix(:second)
       |> rem(86_400)
       |> div(900)
 
@@ -43,7 +41,13 @@ defmodule Tornium.Workers.DailyVerificationScheduler do
     |> where([s], s.verify_enabled == true and s.auto_verify_enabled == true)
     |> where([s], fragment("? % 96", s.sid) == ^current_guild_slot)
     |> Repo.all()
-    |> Enum.each(&Tornium.Workers.GuildVerification.schedule/1)
+    |> Enum.reduce(0, fn guild, schedule_in_acc ->
+      Tornium.Workers.GuildVerification.schedule(guild, schedule_in: schedule_in_acc)
+
+      schedule_in_acc + @schedule_in_delay
+    end)
+
+    :ok
   end
 
   @impl Oban.Worker

@@ -47,13 +47,13 @@ defmodule Tornium.Workers.OCMigrationCheck do
     |> where([k, u, f], f.has_migrated_oc == false)
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
-    |> Enum.each(fn [api_key, user_tid, faction_tid] ->
+    |> Enum.each(fn [api_key, user_id, faction_id] ->
       request = %Tornex.Query{
-        resource: "v2/faction/#{faction_tid}",
-        resource_id: faction_tid,
+        resource: "v2/faction",
+        resource_id: faction_id,
         key: api_key,
         selections: ["crimes"],
-        key_owner: user_tid,
+        key_owner: user_id,
         nice: 20
       }
 
@@ -61,17 +61,17 @@ defmodule Tornium.Workers.OCMigrationCheck do
         request
         |> Tornex.Scheduler.Bucket.enqueue()
         |> Tornium.Faction.OC.migrated?()
-        |> update_migrated(faction_tid)
+        |> update_migrated(faction_id)
       end)
     end)
 
     :ok
   end
 
-  @spec update_migrated(migration_status :: boolean(), faction_tid :: integer()) :: term()
-  defp update_migrated(migration_status, faction_tid) when is_boolean(migration_status) and is_integer(faction_tid) do
+  @spec update_migrated(migration_status :: boolean(), faction_id :: pos_integer()) :: term()
+  defp update_migrated(migration_status, faction_id) when is_boolean(migration_status) and is_integer(faction_id) do
     Tornium.Schema.Faction
-    |> where([f], f.tid == ^faction_tid)
+    |> where([f], f.tid == ^faction_id)
     |> update([f], set: [has_migrated_oc: ^migration_status])
     |> Repo.update_all([])
   end

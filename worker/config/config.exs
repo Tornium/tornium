@@ -70,6 +70,7 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
   queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
   repo: Tornium.ObanRepo,
   get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
@@ -89,6 +90,8 @@ config :tornium, Oban,
         {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications},
         {"* * * * *", Tornium.Workers.FactionUpdateScheduler},
         {"* * * * *", Tornium.Workers.UserUpdateScheduler},
+        {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications},
+        {"*/15 * * * *", Tornium.Workers.DailyVerificationScheduler},
         {"0 */12 * * *", Tornium.Workers.OCTypeUpdate}
       ]
     },

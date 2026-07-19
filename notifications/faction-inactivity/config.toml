@@ -1,0 +1,14 @@
+[trigger]
+uuid = "aa3ba20c-dc6a-4a3e-8710-28120a24f00e"
+name = "Faction Inactivity"
+description = "This notification will list members who are inactive for at least the specified minimum duration. By default, this is one day but this can be configured."
+owner = 2383326
+
+[implementation]
+cron = "30 */12 * * *"
+resource = "faction"
+selections = ["basic"]
+message_type = "send"
+
+[implementation.parameters]
+DAYS = "(integer) Minimum number of days of inactivity"

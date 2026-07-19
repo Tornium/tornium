@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.Notification do
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 

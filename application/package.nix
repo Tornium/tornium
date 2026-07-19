@@ -1,4 +1,4 @@
-{ python3, tornium_commons, tornium_celery, src, ...}:
+{ python3, tornium_commons, tornium_celery, python-liquid, src, ...}:
 
 let 
   pythonEnv = python3.withPackages (packages: with packages; [
@@ -8,6 +8,7 @@ let
     flask
     flask-cors
     flask-login
+    python-liquid
     pynacl
 
     pandas

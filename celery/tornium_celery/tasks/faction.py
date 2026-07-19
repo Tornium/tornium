@@ -143,7 +143,7 @@ def fetch_attacks_runner():
             },
             queue="api",
         ).apply_async(
-            expires=300,
+            expires=30,
             link=celery.group(
                 check_attacks.signature(
                     kwargs={"last_attacks": int(last_attacks)},

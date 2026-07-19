@@ -43,7 +43,7 @@ function showDetails(event) {
         .getElementById("details-user")
         .setAttribute("href", log.user == null ? "#" : `https://www.torn.com/profiles.php?XID=${log.user.id}`);
 
-    const isSuccess = log.error_type == null;
+    const isSuccess = log.failure == null;
     if (isSuccess) {
         document.getElementById("details-status").textContent = "Success";
 
@@ -118,8 +118,11 @@ window.addVerificationLogToViewer = function (log, logContainer) {
 
     const logUserElement = document.createElement("a");
     logUserElement.classList.add("col-sm-12", "col-md-3");
-    logUserElement.textContent = `${log.user.name} [${log.user.id}]`;
-    logUserElement.setAttribute("href", `https://www.torn.com/profiles.php?XID=${log.user.id}`);
+    logUserElement.textContent = log.user == null ? "Unknown" : `${log.user.name} [${log.user.id}]`;
+    logUserElement.setAttribute(
+        "href",
+        log.user == null ? "#" : `https://www.torn.com/profiles.php?XID=${log.user.id}`,
+    );
     logRow.append(logUserElement);
 
     const logResultElement = document.createElement("div");

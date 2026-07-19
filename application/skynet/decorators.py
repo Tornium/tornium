@@ -144,12 +144,20 @@ def with_deferred_response(f):
         slash_command_response = _handle_interaction_errors(f, *args, **kwargs)
 
         if isinstance(slash_command_response, dict) and "data" in slash_command_response:
-            # If the slash command resposne is a dict and there's a data attribute, it's a normal slash
+            # If the slash command response is a dict and there's a data attribute, it's a normal slash
             # command response and not one for an ACK-ed response so it would include extra keys. So we'd
             # just need to return the data in the response.
             slash_command_response = slash_command_response["data"]
 
         ack_complete.wait()
+
+        if slash_command_response is None:
+            # If the slash command response is None, we can assume this to be a response provided by the
+            # Elixir worker (or something else) that will eventually respond to this. So we can move onto
+            # processing the new request, but we should wait for the ack to be complete as the Elixir
+            # worker would not be able to access and wait on that.
+            return {}
+
         discord_request(
             "PATCH",
             f"webhooks/{interaction['application_id']}/{interaction['token']}/messages/@original",

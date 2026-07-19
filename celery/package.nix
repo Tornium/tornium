@@ -1,4 +1,4 @@
-{ lib, python3, python3Packages, src, tornium_commons, python-liquid, ...}:
+{ lib, python3, python3Packages, src, tornium_commons, ...}:
 
 python3Packages.buildPythonPackage {
   pname = "tornium_celery";
@@ -16,7 +16,6 @@ python3Packages.buildPythonPackage {
     celery
     redis
     requests
-    python-liquid
     orjson
     flower
 
@@ -37,7 +36,6 @@ python3Packages.buildPythonPackage {
     celery
     redis
     requests
-    python-liquid
     orjson
     flower
 

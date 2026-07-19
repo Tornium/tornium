@@ -30,12 +30,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "user"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "user"]
 
   @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 10, else: 100
   @update_niceness 10

@@ -22,7 +22,7 @@ from peewee import DoesNotExist
 from tornium_celery.tasks.api import discordget, discordpatch, discordpost, tornget
 from tornium_commons import db
 from tornium_commons.formatters import HumanTimeDelta, find_list
-from tornium_commons.models import Faction, PersonalStats, Server, User
+from tornium_commons.models import Faction, Server, User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD, SKYNET_INFO
 
 from skynet.decorators import invoker_required
@@ -556,31 +556,35 @@ def members_switchboard(interaction, *args, **kwargs):
         )
 
         payload[0]["title"] = f"Revivable Members of {member_data['basic']['name']}"
-        not_revivable_count = 0
+        grouped_members = {"No one": [], "Friends & faction": [], "Everyone": []}
 
         for member in member_data["members"]:
             if member["status"]["state"] in ("Federal", "Fallen"):
                 continue
-            elif member["revive_setting"].lower() == "no one":
-                not_revivable_count += 1
-                continue
 
-            line_payload = f"{member['name']} [{member['id']}] - {member['revive_setting']}"
+            member_status_string = f"{member['name']} [{member['id']}]\n"
+            grouped_members[member["revive_setting"]].append(member_status_string)
 
-            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
-                payload.append(
-                    {
-                        "title": f"Revivable Members of {member_data['basic']['name']}",
-                        "description": "",
-                        "color": SKYNET_INFO,
-                    }
-                )
-            else:
-                line_payload = "\n" + line_payload
+        for revivable_status in ("Everyone", "Friends & faction"):
+            payload[-1]["description"] += f"\n__{revivable_status} ({len(grouped_members[revivable_status])})__\n"
+            if len(grouped_members[revivable_status]) == 0:
+                payload[-1]["description"] += "None"
 
-            payload[-1]["description"] += line_payload
+            for member_status_string in grouped_members[revivable_status]:
+                if (len(payload[-1]["description"]) + 1 + len(member_status_string)) > 4096:
+                    payload.append(
+                        {
+                            "title": f"Revivable Members of {member_data['basic']['name']}",
+                            "description": f"__{revivable_status} (cont)__\n",
+                            "color": SKYNET_INFO,
+                        }
+                    )
 
-        payload[0]["footer"] = {"text": f"Not Revivable: {not_revivable_count}"}
+                payload[-1]["description"] += member_status_string
+
+        for embed_index in range(len(payload)):
+            payload[embed_index]["description"] = payload[embed_index]["description"].strip()
+            payload[embed_index]["footer"] = {"text": f"Not Revivable: {len(grouped_members['No one'])}"}
 
         return {
             "type": 4,

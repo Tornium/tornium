@@ -16,7 +16,7 @@
 defmodule Tornium.Schema.OrganizedCrimeSlot do
   @moduledoc """
   Schema of a slot for a specific OC.
-  
+
   ## Slot Indexing
   Each slot is indexed through three fields:
     * `:crime_position` - The name of the slot

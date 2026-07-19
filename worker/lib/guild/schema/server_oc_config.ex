@@ -132,8 +132,11 @@ defmodule Tornium.Schema.ServerOCConfig do
       end
 
     case local_config do
-      nil -> {global_min, global_max}
-      %Tornium.Schema.ServerOCRangeConfig{minimum: minimum, maximum: maximum} -> {minimum, maximum}
+      nil ->
+        {global_min, global_max}
+
+      %Tornium.Schema.ServerOCRangeConfig{minimum: minimum, maximum: maximum} ->
+        {minimum || global_min, maximum || global_max}
     end
   end
 end

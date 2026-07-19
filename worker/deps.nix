@@ -1437,7 +1437,7 @@ let
 
       torngen_elixir_client =
         let
-          version = "6.0.0";
+          version = "6.1.1";
           drv = buildMix {
             inherit version;
             name = "torngen_elixir_client";
@@ -1446,7 +1446,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "torngen_elixir_client";
-              sha256 = "745ee93dc2cf0ef748ed27fec6bf8d493e795cd58702542cc3c474ef24c383d4";
+              sha256 = "b7aa5bdfb886df63e223adaa9f1ad774c4415e1c81024828e6260cfd65c9daf5";
             };
 
             beamDeps = [

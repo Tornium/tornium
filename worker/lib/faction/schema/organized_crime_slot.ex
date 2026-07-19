@@ -14,6 +14,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.OrganizedCrimeSlot do
+  @moduledoc """
+  Schema of a slot for a specific OC.
+  
+  ## Slot Indexing
+  Each slot is indexed through three fields:
+    * `:crime_position` - The name of the slot
+    * `:slot_index` - The zero-indexed posotion of the slot for this OC type
+    * `:crime_position_index` - The one-indexed numberof the member for the slot name
+
+  For example, `Thief #2` in Break The Bank can be reprsented as
+  ```elixir
+  %Tornium.Schema.OrganizedCrimeSlot{
+    crime_position: "Thief",
+    slot_index: 5,
+    crime_position_index: 2,
+  }
+  ```
+  """
+
   alias Tornium.Repo
   import Ecto.Query
   use Ecto.Schema

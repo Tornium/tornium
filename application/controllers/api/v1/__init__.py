@@ -137,17 +137,7 @@ mod.add_url_rule(
     methods=["POST"],
 )
 mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
-    view_func=bot.crimes.create_extra_range_local,
-    methods=["POST"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
-    view_func=bot.crimes.delete_extra_range_local,
-    methods=["DELETE"],
-)
-mod.add_url_rule(
-    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_tid>/extra-range/local/<oc_name>",
+    "/api/v1/bot/<int:guild_id>/crimes/<int:faction_id>/extra-range/local/<slot_guid>",
     view_func=bot.crimes.patch_extra_range_local,
     methods=["PATCH"],
 )
@@ -302,6 +292,7 @@ mod.add_url_rule(
     methods=["DELETE"],
 )
 mod.add_url_rule("/api/v1/faction/crime/names", view_func=faction.crimes.get_oc_names, methods=["GET"])
+mod.add_url_rule("/api/v1/faction/crime/slots", view_func=faction.crimes.get_oc_slots, methods=["GET"])
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/armory/cumulative", view_func=faction.armory.get_cumulative, methods=["GET"]
 )
@@ -317,6 +308,9 @@ mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>/<oc_position_name>",
     view_func=faction.crimes.get_members_cpr_slot,
     methods=["GET"],
+)
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/cpr-range", view_func=faction.crimes.get_cpr_ranges, methods=["GET"]
 )
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/member/<int:user_id>/optimum",

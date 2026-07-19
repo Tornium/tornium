@@ -322,4 +322,67 @@ defmodule Tornium.Test.Faction.OC.Checks do
 
     assert Kernel.length(delayers) == 0
   end
+
+  describe "change_range/2" do
+    test "chance_range/2 global" do
+      assert {70, 90} =
+               Tornium.Schema.ServerOCConfig.chance_range(
+                 %Tornium.Schema.ServerOCConfig{extra_range_global_max: 90, extra_range_global_min: 70},
+                 %Tornium.Schema.OrganizedCrimeSlot{
+                   id: Ecto.UUID.generate(),
+                   oc_id: 1,
+                   oc: %Tornium.Schema.OrganizedCrime{
+                     oc_id: 1,
+                     oc_name: "Test"
+                   },
+                   slot_index: 0,
+                   crime_position: "Muscle",
+                   crime_position_index: 1,
+                   user_id: 1,
+                   user: %Tornium.Schema.User{
+                     tid: 1,
+                     name: "Chedburn"
+                   },
+                   user_success_chance: 99,
+                   item_required_id: nil,
+                   item_required: nil,
+                   item_available: true,
+                   delayer: false,
+                   delayed_reason: nil,
+                   sent_tool_notification: false
+                 }
+               )
+    end
+
+    # TEST: Add these tests
+    test "chance-range/2 local" do
+    end
+
+    test "chance-range/2 partially local" do
+    end
+  end
+
+  describe "extra-range CPR" do
+    # TEST: Add these tests
+    test "unconfigured" do
+    end
+
+    test "within global range" do
+    end
+
+    test "outside global range" do
+    end
+
+    test "within local range" do
+    end
+
+    test "outside local range" do
+    end
+
+    test "within partially local range" do
+    end
+
+    test "outside partially local range" do
+    end
+  end
 end

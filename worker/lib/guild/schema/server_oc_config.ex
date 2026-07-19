@@ -103,25 +103,35 @@ defmodule Tornium.Schema.ServerOCConfig do
   end
 
   @doc """
-  Returns the success chance (CPR) range as a tuple for an OC by its name.
+  Returns the success chance (CPR) range as a tuple for an OC slot.
 
-  If there exists a local (per-OC name) range, the local range will be used. Otherwise, the global range will be used as a fallback
+  If there exists a local (per-OC slot) range, the local range will be used. Otherwise, the global range will be used as a fallback.
   """
-  @spec chance_range(config :: t(), oc :: Tornium.Schema.OrganizedCrime.t()) :: {integer(), integer()}
+  @spec chance_range(config :: t(), slot :: Tornium.Schema.OrganizedCrimeSlot.t()) :: {integer(), integer()}
   def chance_range(
         %__MODULE__{
+          guid: config_guid,
           extra_range_global_min: global_min,
           extra_range_global_max: global_max,
           extra_range_local_configs: local_configs
         } = _config,
-        %Tornium.Schema.OrganizedCrime{oc_name: oc_name} = _oc
+        %Tornium.Schema.OrganizedCrimeSlot{
+          crime_position: slot_name,
+          crime_position_index: slot_index,
+          oc: %Tornium.Schema.OrganizedCrime{oc_name: oc_name}
+        } = _slot
       ) do
-    config =
-      Enum.find(local_configs, fn %Tornium.Schema.ServerOCRangeConfig{oc_name: config_oc_name} ->
-        String.downcase(oc_name) == String.downcase(config_oc_name)
-      end)
+    # TEST: Test this before merging
+    slot_type = Tornium.Schema.OrganizedCrimeSlotType.get(oc_name, slot_name, slot_index)
 
-    case config do
+    local_config =
+      if is_nil(slot_type) do
+        nil
+      else
+        Enum.find(local_configs, &(&1.oc_slot_type_id == slot_type.guid and &1.server_oc_config_id == config_guid))
+      end
+
+    case local_config do
       nil -> {global_min, global_max}
       %Tornium.Schema.ServerOCRangeConfig{minimum: minimum, maximum: maximum} -> {minimum, maximum}
     end

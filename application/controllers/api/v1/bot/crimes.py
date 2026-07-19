@@ -15,7 +15,7 @@
 
 import datetime
 import json
-import uuid
+from uuid import UUID, uuid4
 
 from flask import request
 from peewee import DoesNotExist
@@ -23,6 +23,7 @@ from tornium_commons.formatters import str_to_duration
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
+    OrganizedCrimeSlotType,
     Server,
     ServerOCConfig,
     ServerOCRangeConfig,
@@ -295,108 +296,74 @@ def set_extra_range_global_maximum(guild_id: int, faction_tid: int, *args, **kwa
 
 @session_required
 @ratelimit
-def create_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    if oc_name not in OrganizedCrime.oc_names():
-        return make_exception_response("1105", key)
-
-    try:
-        oc_config: ServerOCConfig = (
-            ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
-            .get()
-        )
-    except DoesNotExist:
-        return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
-
-    range_config = (
-        ServerOCRangeConfig.insert(guid=uuid.uuid4(), server_oc_config=oc_config.guid, oc_name=oc_name)
-        .returning(ServerOCRangeConfig)
-        .on_conflict(
-            action="IGNORE", conflict_target=[ServerOCRangeConfig.server_oc_config, ServerOCRangeConfig.oc_name]
-        )
-        .execute()
-    )
-
-    if len(range_config) == 0:
-        # The RETURNING clause does not return anything when the CONFLICT_ACTION of DO NOTHING is triggered
-        # https://www.postgresql.org/docs/current/sql-insert.html
-        return make_exception_response(
-            "0000", key, details={"message": "This base OC configuration + OC name pair already exists"}
-        )
-
-    return range_config[0].to_dict(), 200, api_ratelimit_response(key)
-
-
-@session_required
-@ratelimit
-def delete_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
-
-    if oc_name not in OrganizedCrime.oc_names():
-        return make_exception_response("1105", key)
-
-    try:
-        oc_config: ServerOCConfig = (
-            ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
-            .get()
-        )
-    except DoesNotExist:
-        return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
-
-    ServerOCRangeConfig.delete().where(
-        (ServerOCRangeConfig.server_oc_config == oc_config.guid) & (ServerOCRangeConfig.oc_name == oc_name)
-    ).execute()
-
-    return "", 204, api_ratelimit_response(key)
-
-
-@session_required
-@ratelimit
-def patch_extra_range_local(guild_id: int, faction_tid: int, oc_name: str, *args, **kwargs):
+def patch_extra_range_local(guild_id: int, faction_id: int, slot_guid: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
 
-    minimum = data.get("minimum")
-    maximum = data.get("maximum")
-
-    if not minimum and not maximum:
-        return make_exception_response(
-            "0000", key, details={"message": "Either a minimum or maximum value is required"}
+    try:
+        slot_type: OrganizedCrimeSlotType = (
+            OrganizedCrimeSlotType.select().where(OrganizedCrimeSlotType.guid == UUID(slot_guid)).get()
         )
+    except ValueError:
+        return make_exception_response(
+            "0000", key, details={"element": "slot_guid", "message": "The slot GUID was not a valid UUIDv4."}
+        )
+    except DoesNotExist:
+        return make_exception_response(
+            "1000", key, details={"element": "slot_guid", "message": "The provided slot GUID does not exist."}
+        )
+
+    minimum_set = "minimum" in data
+    minimum = data.get("minimum")
+    maximum_set = "maximum" in data
+    maximum = data.get("maximum")
 
     update_kwargs = {}
     if minimum is not None and isinstance(minimum, str) and minimum.isdigit():
         update_kwargs["minimum"] = int(minimum)
     elif minimum is not None and isinstance(minimum, int):
         update_kwargs["minimum"] = minimum
+    elif minimum_set and minimum is None:
+        update_kwargs["minimum"] = None
     elif maximum is not None and isinstance(maximum, str) and maximum.isdigit():
         update_kwargs["maximum"] = int(maximum)
     elif maximum is not None and isinstance(maximum, int):
         update_kwargs["maximum"] = maximum
-    else:
-        raise ValueError
-
-    if oc_name not in OrganizedCrime.oc_names():
-        return make_exception_response("1105", key)
+    elif maximum_set and maximum is None:
+        update_kwargs["maximum"] = None
 
     try:
         oc_config: ServerOCConfig = (
             ServerOCConfig.select(ServerOCConfig.guid)
-            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_tid))
+            .where((ServerOCConfig.server == guild_id) & (ServerOCConfig.faction == faction_id))
             .get()
         )
     except DoesNotExist:
         return make_exception_response("1000", key, details={"message": "Server OC configuration does not exist"})
 
-    range_config = (
-        ServerOCRangeConfig.update(**update_kwargs)
-        .where((ServerOCRangeConfig.server_oc_config == oc_config.guid) & (ServerOCRangeConfig.oc_name == oc_name))
+    range_config: ServerOCRangeConfig = (
+        ServerOCRangeConfig.insert(
+            guid=uuid4(),
+            server_oc_config_id=oc_config.guid,
+            oc_type_id=slot_type.oc_type_id,
+            oc_slot_type_id=slot_type.guid,
+            **update_kwargs,
+        )
+        .on_conflict(
+            conflict_target=[
+                ServerOCRangeConfig.server_oc_config_id,
+                ServerOCRangeConfig.oc_type_id,
+                ServerOCRangeConfig.oc_slot_type_id,
+            ],
+            preserve=list(update_kwargs.keys()),
+        )
         .returning(ServerOCRangeConfig)
         .execute()[0]
     )
+
+    if range_config.minimum is None and range_config.maximum is None:
+        range_config.delete_instance()
+        return "", 204, api_ratelimit_response(key)
 
     return range_config.to_dict(), 200, api_ratelimit_response(key)
 

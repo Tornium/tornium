@@ -38,7 +38,7 @@ defmodule Tornium.Workers.DailyVerificationScheduler do
       |> div(900)
 
     Tornium.Schema.Server
-    |> where([s], s.verify_enabled == true and s.auto_verify_enabled == true)
+    |> where([s], s.admins != [] and s.verify_enabled == true and s.auto_verify_enabled == true)
     |> where([s], fragment("? % 96", s.sid) == ^current_guild_slot)
     |> Repo.all()
     |> Enum.reduce(0, fn guild, schedule_in_acc ->

@@ -362,4 +362,8 @@ defmodule Tornium.Workers.GuildVerification do
         error
     end
   end
+
+  def schedule(_guild, _opts) do
+    {:error, nil}
+  end
 end

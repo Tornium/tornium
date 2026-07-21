@@ -832,8 +832,8 @@ let
             src = fetchFromGitHub {
               owner = "dssecret";
               repo = "nostrum";
-              rev = "b1ef88e6268decec083ad49171448cf39c83e533";
-              hash = "sha256-LSLEYSQfYJYxvyLMV/rWrWgzG+hPOkUyNVHYo25ejmA=";
+              rev = "a9fd8a36e98c6394a8f667af1c855c02af8f9387";
+              hash = "sha256-reM4GFzDZJK4wEONnkJe1sM8o8P8L8YDabu3mb/ld/k=";
             };
 
             beamDeps = [

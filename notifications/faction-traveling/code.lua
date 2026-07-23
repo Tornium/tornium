@@ -33,17 +33,17 @@ end
 local travel_methods = { "Standard", "Airstrip", "WLT", "BCT" }
 local destination_travel_durations = {
   -- Destination: [Standard, Airstrip, WLT, BCT]
-  ["Mexico"] = { 1560, 1080, 780, 480 },
-  ["Cayman Islands"] = { 2100, 1500, 1080, 660 },
-  ["Canada"] = { 2460, 1740, 1200, 720 },
-  ["Hawaii"] = { 8040, 5460, 4020, 2400 },
-  ["United Kingdom"] = { 9540, 6660, 4800, 2880 },
-  ["Argentina"] = { 10020, 7020, 4980, 3000 },
-  ["Switzerland"] = { 10500, 7380, 5280, 3180 },
-  ["Japan"] = { 13500, 9480, 6780, 4080 },
-  ["China"] = { 14520, 10140, 7260, 4320 },
-  ["UAE"] = { 16260, 11400, 8100, 4860 },
-  ["South Africa"] = { 17820, 12480, 8940, 5340 },
+  ["Mexico"] = { 1440, 1020, 720, 420 },
+  ["Cayman Islands"] = { 1980, 1380, 1020, 600 },
+  ["Canada"] = { 2340, 1620, 1140, 720 },
+  ["Hawaii"] = { 7620, 5340, 3780, 2280 },
+  ["United Kingdom"] = { 9060, 6360, 4500, 2700 },
+  ["Argentina"] = { 9480, 6660, 4740, 2820 },
+  ["Switzerland"] = { 9960, 6960, 4980, 3000 },
+  ["Japan"] = { 12780, 8940, 6420, 3840 },
+  ["China"] = { 13740, 9600, 6840, 4140 },
+  ["UAE"] = { 15420, 10800, 7680, 4620 },
+  ["South Africa"] = { 16920, 11820, 8460, 5100 },
 }
 
 function string.split(match_string)

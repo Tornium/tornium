@@ -14,7 +14,6 @@ faction = faction
 
 ---@class State
 ---@field members table<string, table<string, FlyingMember>>
----@field last_update_time integer
 ---@field initialized boolean
 state = state
 
@@ -59,6 +58,10 @@ end
 
 function string.starts_with(match_string, starts)
   return string.sub(match_string, 1, #starts) == starts
+end
+
+function string.ends_with(match_string, ends)
+  return match_string:sub(-#ends) == ends
 end
 
 function string.gmatch(str, pattern)
@@ -123,33 +126,37 @@ local function try_insert_table(tbl, key, value)
   tbl[key][value.tid] = value
 end
 
+--- Extract the origin string from a user's status when the user is returning to Torn from that origin
+---@param status_string string user.status.description
+---@return string? "Destination of the user (or current location if abroad)"
+local function get_origin(status_string)
+  if string.starts_with(status_string, "Traveling from Torn to") then
+    return nil
+  elseif string.starts_with(status_string, "Traveling from ") then
+    local _, from_end = status_string:find("from ")
+    local to_start = status_string:find(" to ", from_end + 1)
+
+    return status_string:sub(from_end + 1, to_start - 1)
+  end
+
+  return nil
+end
+
 --- Extract the destination string from a user's status
 ---@param status_string string user.status.description
 ---@return string? "Destination of the user (or current location if abroad)"
 local function get_destination(status_string)
   local destination_words = string.split(status_string)
 
-  if string.starts_with(status_string, "Traveling") then
-    return table.join({ table.unpack(destination_words, 3, #destination_words) }, " ")
-  elseif string.starts_with(status_string, "Returning to Torn") then
+  if string.starts_with(status_string, "Traveling from Torn to") then
+    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
+  elseif string.starts_with(status_string, "Traveling from ") and status_string:ends_with(" to Torn") then
     return "Torn"
   elseif string.starts_with(status_string, "In") and string.find(status_string, "hospital") ~= nil then
     local hospital_index = table.find(destination_words, "hospital")
     return table.join({ table.unpack(destination_words, 3, hospital_index) }, " ")
   elseif string.starts_with(status_string, "In") then
     return table.join({ table.unpack(destination_words, 2, #destination_words) }, " ")
-  end
-
-  return nil
-end
-
---- Extract the origin string from a user's status when the user is returning to Torn from that origin
----@param status_string string user.status.description
----@return string? "Destination of the user (or current location if abroad)"
-function get_origin(status_string)
-  if string.starts_with(status_string, "Returning to Torn") then
-    local destination_words = string.split(status_string)
-    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
   end
 
   return nil
@@ -191,7 +198,7 @@ for member_id, member_data in pairs(faction.members) do
   if string.starts_with(member_data.status.description, "In hospital") or string.starts_with(member_data.status.description, "In jail") or string.starts_with(member_data.status.description, "In federal jail") then
     -- e.g. "In hospital for 4 mins "
     destination = nil
-  elseif string.starts_with(member_data.status.description, "Traveling") then
+  elseif string.starts_with(member_data.status.description, "Traveling from Torn to") then
     -- The faction member is flying
     member_table.landed = false
     member_table.status = nil
@@ -205,7 +212,7 @@ for member_id, member_data in pairs(faction.members) do
     else
       member_table.earliest_departure_time = nil
     end
-  elseif string.starts_with(member_data.status.description, "Returning") then
+  elseif string.starts_with(member_data.status.description, "Traveling from") then
     -- The faction member is flying back to Torn
     member_table.landed = false
     member_table.status = nil
@@ -277,7 +284,7 @@ for destination, destination_members in pairs(state.members) do
     end
   end
 
-  if #state.members[destination] == 0 then
+  if next(state.members[destination]) == nil then
     -- We want to remove destinations from the state if there's no member flying to it to reduce the size of
     -- the state in the database.
     state.members[destination] = nil

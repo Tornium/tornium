@@ -15,6 +15,7 @@
 
 import datetime
 import typing
+from functools import lru_cache
 
 from peewee import (
     BigIntegerField,
@@ -126,13 +127,16 @@ class Item(BaseModel):
         )  # 1.5 hours
 
     @staticmethod
-    def item_str(tid: int) -> str:
+    @lru_cache
+    def item_name(tid: int) -> str:
         try:
-            _item: Item = Item.select(Item.name).where(Item.tid == tid).get()
+            return Item.select(Item.name).where(Item.tid == tid).get().name
         except DoesNotExist:
-            return f"Unknown {tid}"
+            return "Unknown"
 
-        return f"{_item.name} [{tid}]"
+    @staticmethod
+    def item_str(tid: int) -> str:
+        return f"{Item.item_name(tid)} [{tid}]"
 
     @staticmethod
     def item_name_map() -> typing.Dict[int, str]:

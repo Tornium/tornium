@@ -13,13 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import pathlib
 import secrets
 import typing
 
 from pydantic import AnyUrl, BaseModel, Field, PostgresDsn, RedisDsn
 
-from .altjson import load
+from .altjson import dumps, load, loads
 
 _T = typing.TypeVar("_T")
 
@@ -44,6 +45,8 @@ class Config(BaseModel):
 
     torn_api_uri: typing.Optional[AnyUrl] = Field(default="https://api.torn.com")
 
+    banned_users: typing.Dict[int, str] = Field(default={})
+
     # Internal Data
     _file: typing.Optional[pathlib.Path] = None
     _loaded = False
@@ -51,9 +54,14 @@ class Config(BaseModel):
     @classmethod
     def from_json(
         cls: typing.Type[_T],
-        file: typing.Union[pathlib.Path, str] = "settings.json",
+        file: typing.Union[pathlib.Path, str, None] = None,
         disable_cache=False,
     ) -> _T:
+        if file is None and os.getenv("TORNIUM_SETTINGS_FILE"):
+            file = os.environ["TORNIUM_SETTINGS_FILE"]
+        elif file is None:
+            file = "settings.json"
+
         if not disable_cache:
             from .redisconnection import rds
 
@@ -73,7 +81,10 @@ class Config(BaseModel):
                 data_value = int(data_value)
 
             if not disable_cache:
-                rds().set(f"tornium:settings:{data_key}", data_value)
+                if isinstance(data_value, (dict, list)):
+                    rds().set(f"tornium:settings:{data_key}", dumps(data_value))
+                else:
+                    rds().set(f"tornium:settings:{data_key}", data_value)
 
         self = cls(**loaded_data)
         self._file = file
@@ -91,7 +102,12 @@ class Config(BaseModel):
             if settings_key.startswith("_"):
                 continue
 
-            _cached_data[settings_key] = rds().get(f"tornium:settings:{settings_key}")
+            value = rds().get(f"tornium:settings:{settings_key}")
+
+            try:
+                _cached_data[settings_key] = loads(value)
+            except Exception:
+                _cached_data[settings_key] = value
 
         self = cls(**_cached_data)
         self._file = None
@@ -134,7 +150,10 @@ class Config(BaseModel):
             value = int(value)
 
         if not disable_cache:
-            rds().set(key, value)
+            if isinstance(value, (dict, list)):
+                rds().set(f"tornium:settings:{key}", dumps(value))
+            else:
+                rds().set(f"tornium:settings:{key}", value)
 
         self.save()
 
@@ -152,7 +171,10 @@ class Config(BaseModel):
                 data_value = int(data_value)
 
             if not disable_cache:
-                rds().set(f"tornium:settings:{data_key}", data_value)
+                if isinstance(data_value, (dict, list)):
+                    rds().set(f"tornium:settings:{data_key}", dumps(data_value))
+                else:
+                    rds().set(f"tornium:settings:{data_key}", data_value)
 
             setattr(self, data_key, data_value)
 

@@ -30,6 +30,8 @@ defmodule Tornium.User.KeyStore do
 
   @doc """
   Insert the API key for a user ID into the cache.
+
+  If the provided API key is `nil`, then the API key will not be inserted.
   """
   @spec put(pid :: pid(), user_id :: pos_integer(), api_key :: Tornium.Schema.TornKey.t() | nil, ttl :: Duration.t()) ::
           :ok | :error

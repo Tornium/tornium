@@ -15,10 +15,10 @@
 
 import pathlib
 import re
+import tomllib
 import typing
 import uuid
 
-import toml
 from tornium_commons.models import NotificationTrigger
 
 SELECTION_MAP = {
@@ -272,7 +272,7 @@ def load_trigger(path: pathlib.Path, official: bool = False):
     """
 
     with open(f"{path}/config.toml", "r") as f:
-        config_data: Config = toml.load(f)
+        config_data: Config = tomllib.load(f)
 
     with open(f"{path}/code.lua", "r") as f:
         code: str = f.read()
@@ -291,7 +291,7 @@ def load_trigger(path: pathlib.Path, official: bool = False):
         resource=config_data["implementation"]["resource"],
         selections=config_data["implementation"]["selections"],
         code=code,
-        parameters=config_data["implementation"]["parameters"],
+        parameters=config_data["implementation"].get("parameters", {}),
         message_type=config_data["implementation"]["message_type"],
         message_template=template,
         restricted_data=has_restricted_selection(code, config_data["implementation"]["resource"]),

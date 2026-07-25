@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import inspect
 import typing
 from functools import cached_property, lru_cache
@@ -21,6 +22,7 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     CharField,
+    DateField,
     DateTimeField,
     DeferredForeignKey,
     DoesNotExist,
@@ -64,6 +66,7 @@ class User(BaseModel):
     # User status
     status = TextField(null=True)
     last_action = DateTimeField(null=True)
+    fedded_until = DateField(null=True)
 
     # Internal data
     last_refresh = DateTimeField(null=True)
@@ -103,33 +106,22 @@ class User(BaseModel):
     def can_manage_crimes(self) -> bool:
         if self.faction_id is None:
             return False
-
-        # Faction lead/co needs to be determined before faction position for API bugs related to the API incorrectly
-        # including lead, co, and recruits as faction positions.
-        faction: typing.Optional[Faction] = self.faction
-
-        if not isinstance(faction, Faction):
-            try:
-                faction = Faction.select(Faction.leader, Faction.coleader).where(Faction.tid == self.faction_id).get()
-            except DoesNotExist:
-                return False
-
-        if isinstance(faction, Faction) and (self.tid == faction.leader_id or self.tid == faction.coleader_id):
-            return True
+        elif self.faction_position_id is None:
+            return False
 
         faction_position: typing.Optional[FactionPosition] = self.faction_position
 
         if not isinstance(faction_position, FactionPosition):
             try:
                 faction_position = (
-                    FactionPosition.select(FactionPosition.plan_init_oc)
+                    FactionPosition.select(FactionPosition.permissions)
                     .where(FactionPosition.pid == self.faction_position_id)
                     .get()
                 )
             except DoesNotExist:
                 return False
 
-        return faction_position.plan_init_oc
+        return "Organized Crimes" in faction_position.permissions
 
     def user_str_self(self) -> str:
         return f"{self.name} [{self.tid}]"
@@ -205,13 +197,11 @@ class User(BaseModel):
                         "fields": [
                             {
                                 "name": "Overview",
-                                "value": inspect.cleandoc(
-                                    f"""
+                                "value": inspect.cleandoc(f"""
                                     Level: {self.level}
                                     Last Action: <t:{int(self.last_action.timestamp())}:R>
                                     Last Update: <t:{int(self.last_refresh.timestamp())}:R>
-                                """
-                                ),
+                                """),
                             },
                         ],
                     },
@@ -237,13 +227,27 @@ class User(BaseModel):
             embed["data"]["embeds"][0]["fields"].append(
                 {
                     "name": "Faction",
-                    "value": inspect.cleandoc(
-                        f"""
+                    "value": inspect.cleandoc(f"""
                         Faction: [{self.faction.name} [{self.faction_id}]](https://www.torn.com/factions.php?step=profile&ID={self.faction_id}&referredFrom={self.tid})
                         Faction Position: {self.user_position_str()}
-                    """
-                    ),
+                    """),
                 }
             )
 
         return embed
+
+    @staticmethod
+    def get_fedded_until(user_data: dict) -> typing.Optional[datetime.date]:
+        """
+        Get the date object representing when a user would leave federal jail.
+        """
+
+        if user_data["status"]["state"] == "Fallen":
+            # A fallen user should be set to the maximum fed value of 9999-12-31
+            return datetime.date(year=9999, month=12, day=31)
+        elif user_data["status"]["state"] == "Federal" and "permanently" in user_data["status"]["description"]:
+            return datetime.date(year=9999, month=12, day=31)
+        elif user_data["status"]["state"] == "Federal":
+            return datetime.date.fromtimestamp(user_data["status"]["until"])
+
+        return None

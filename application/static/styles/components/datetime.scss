@@ -1,0 +1,42 @@
+@import "../themes";
+@import "../base/base.scss";
+
+.datetime-fieldset {
+    legend.datetime-legend {
+        // Bootstrap has its own styling for legend elements
+        font-size: initial;
+    }
+
+    .datetime-group {
+        display: inline-flex;
+        vertical-align: middle;
+        align-items: center;
+
+        border: 1px solid var(--text-color);
+        border-radius: 0.375rem;
+        padding: 4px 8px;
+        width: fit-content;
+
+        margin-right: 8px;
+        background: inherit;
+
+        input {
+            border: none;
+            outline: none;
+            text-align: center;
+            width: 2.6rem;
+            background: transparent;
+            font-size: 14px;
+        }
+
+        label span.label-text {
+            // We don't need visible labels as that is covered by the legend
+            @include visually-hidden;
+        }
+
+        span.datetime-group-seperator {
+            padding-left: 3px;
+            color: var(--text-alternate-color);
+        }
+    }
+}

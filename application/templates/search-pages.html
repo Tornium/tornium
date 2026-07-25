@@ -1,0 +1,34 @@
+<page-option href="/faction" icon="fa-solid fa-hand-fist" keywords="faction,fac">Faction</page-option>
+<page-option href="/faction/members" icon="fa-solid fa-shield-halved" keywords="members,faction">Faction Members</page-option>
+<page-option href="/faction/banking" icon="fa-solid fa-money-check" keywords="banking,money,faction">Faction Banking</page-option>
+<page-option href="/faction/bankingaa" icon="fa-solid fa-money-check" keywords="banking,aa,faction">Faction Banking AA</page-option>
+<page-option href="/faction/armory" icon="fa-solid fa-shield-halved" keywords="armory,faction">Faction Armory</page-option>
+<page-option href="/faction/bot" icon="fa-solid fa-robot" keywords="bot,config,faction">Faction Bot Config</page-option>
+
+<page-option href="/bot" icon="fa-brands fa-discord" keywords="discord,bot">Discord Bot</page-option>
+<page-option href="/bot/dashboard" icon="fa-brands fa-discord" keywords="server,dashboard,bot">Server Selector</page-option>
+
+<page-option href="/stats" icon="fa-solid fa-database" keywords="stats,statistics,database">Stat DB</page-option>
+<page-option href="/stats/db" icon="fa-solid fa-database" keywords="stats,database,db">Stat Database</page-option>
+<page-option href="/stats/chain" icon="fa-solid fa-bars" keywords="chain,list,generator">Chain List Generator</page-option>
+<page-option href="/stats/config" icon="fa-solid fa-screwdriver-wrench" keywords="stats,config,configuration">Stat DB Config</page-option>
+
+<page-option href="/torn" icon="fa-solid fa-t" keywords="torn,data">Torn Data</page-option>
+<page-option href="/torn/factions" icon="fa-solid fa-person-military-rifle" keywords="factions,torn,database">Factions DB</page-option>
+<page-option href="/torn/users" icon="fa-solid fa-person-rifle" keywords="users,torn,database">Users DB</page-option>
+
+<page-option href="/notification" icon="fa-solid fa-bell" keywords="notification,alert">Notifications</page-option>
+<page-option href="/notification/trigger" icon="fa-brands fa-searchengin" keywords="trigger,notification">Notification Triggers</page-option>
+
+{% if current_user.is_authenticated %}
+<page-option href="/settings" icon="fa-solid fa-screwdriver-wrench" keywords="settings,user,account">User Settings</page-option>
+{% endif %}
+
+<page-option href="/developers" icon="fa-solid fa-code" keywords="developer,api,oauth">Developers</page-option>
+<page-option href="/developers/clients" icon="fa-solid fa-file-invoice" keywords="oauth,client,developer">OAuth Clients</page-option>
+
+<page-option href="/terms" icon="fa-solid fa-file-contract" keywords="terms,tos,legal">Terms of Service</page-option>
+<page-option href="/privacy" icon="fa-solid fa-fingerprint" keywords="privacy,policy">Privacy Policy</page-option>
+<page-option href="https://docs.tornium.com" icon="fa-solid fa-file" keywords="docs,documentation,help">Documentation</page-option>
+<page-option href="https://discord.gg/pPcqTRTRyF" icon="fa-solid fa-ticket" keywords="support,discord,help">Support Server</page-option>
+<page-option href="https://status.tornium.com/public" icon="fa-solid fa-signal" keywords="status,uptime">Status Page</page-option>

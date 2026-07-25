@@ -15,13 +15,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 const csrfToken = document.currentScript.getAttribute("data-csrf-token");
 
-function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
+function generateTFetchErrorToast(jsonError, errorTitle) {
+    if (jsonError.details == undefined || jsonError.details.message == undefined) {
+        generateToast(
+            errorTitle == undefined ? "Tornium Error" : errorTitle,
+            `[${jsonError.code}] ${jsonError.message}`,
+            "error",
+        );
+    } else if (jsonError.details != undefined && jsonError.details.message != undefined) {
+        generateToast(
+            errorTitle == undefined ? "Tornium Error" : errorTitle,
+            `[${jsonError.code}] ${jsonError.message}<br /><br />${jsonError.details.message}`,
+            "error",
+        );
+    }
+}
+
+function _tfetch(method, endpoint, { body, headers, errorTitle, errorHandler }) {
+    const accept_type = (headers || {})["Accept"] || "*/*";
+    const accept_json = accept_type == "*/*" || accept_type == "application/json";
+    const accept_csv = accept_type == "text/csv";
+
     return window
         .fetch(endpoint, {
             method: method,
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRF-Token": csrfToken,
+                ...headers,
             },
             ...(body !== undefined && { body: JSON.stringify(body) }),
         })
@@ -30,40 +51,31 @@ function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
                 return 204;
             }
 
-            try {
-                return await response.json();
-            } catch {
-                generateToast("Tornium Error", "The Tornium API failed to respond with a parsable response.", "error");
-                return Promise.reject();
+            if (accept_json) {
+                try {
+                    return await response.json();
+                } catch {
+                    generateToast(
+                        "Tornium Error",
+                        "The Tornium API failed to respond with a parsable response.",
+                        "error",
+                    );
+                    return Promise.reject();
+                }
+            } else if (accept_csv && response.headers.get("Content-Type") == "text/csv") {
+                return await response.blob();
             }
+
+            return await response.text();
         })
         .then((jsonResponse) => {
             if (jsonResponse == 204) {
                 return;
+            } else if (jsonResponse.code !== undefined && errorHandler !== undefined) {
+                errorHandler(jsonResponse);
+                return Promise.reject();
             } else if (jsonResponse.code !== undefined) {
-                if (
-                    errorHandler == undefined &&
-                    (jsonResponse.details == undefined || jsonResponse.details.message == undefined)
-                ) {
-                    generateToast(
-                        errorTitle == undefined ? "Tornium Error" : errorTitle,
-                        `[${jsonResponse.code}] ${jsonResponse.message}`,
-                        "error",
-                    );
-                } else if (
-                    errorHandler == undefined &&
-                    jsonResponse.details != undefined &&
-                    jsonResponse.details.message != undefined
-                ) {
-                    generateToast(
-                        errorTitle == undefined ? "Tornium Error" : errorTitle,
-                        `[${jsonResponse.code}] ${jsonResponse.message}<br /><br />${jsonResponse.details.message}`,
-                        "error",
-                    );
-                } else {
-                    errorHandler(jsonResponse);
-                }
-
+                generateTFetchErrorToast(jsonResponse, errorTitle);
                 return Promise.reject();
             }
 
@@ -71,6 +83,6 @@ function _tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
         });
 }
 
-function tfetch(method, endpoint, { body, errorTitle, errorHandler }) {
-    return _tfetch(method, `/api/v1/${endpoint}`, { body, errorTitle, errorHandler });
+function tfetch(method, endpoint, { body, headers, errorTitle, errorHandler }) {
+    return _tfetch(method, `/api/v1/${endpoint}`, { body, headers, errorTitle, errorHandler });
 }

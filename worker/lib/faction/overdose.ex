@@ -220,9 +220,10 @@ defmodule Tornium.Faction.Overdose do
       overdose_logs = get_user_overdoses(api_key, overdose_last_updated)
 
       case overdose_logs do
-        [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}] ->
+        [%Torngen.Client.Schema.UserLog{timestamp: overdosed_at, data: %{"item" => overdosed_item_id}}]
+        when is_integer(overdosed_at) ->
           event
-          |> Map.put(:created_at, overdosed_at)
+          |> Map.put(:created_at, overdosed_at |> DateTime.from_unix!())
           |> Map.put(:drug_id, overdosed_item_id)
 
         _ ->
@@ -232,8 +233,6 @@ defmodule Tornium.Faction.Overdose do
           #  - There are more than one logs, so we can not be sure what drug the user overdosed on.
           Map.put(event, :drug_id, nil)
       end
-
-      event
     else
       # Ensure the drug is set to `nil` so the armory usage logs can attempt to find a matching log
       # during its next run
@@ -293,7 +292,7 @@ defmodule Tornium.Faction.Overdose do
     query =
       Tornex.SpecQuery.new(key: api_key)
       |> Tornex.SpecQuery.put_path(Torngen.Client.Path.User.Log)
-      |> Tornex.SpecQuery.put_parameter(:log, [
+      |> Tornex.SpecQuery.put_parameter!(:log, [
         # Cannabis overdose
         2201,
         # Ecstacy overdose
@@ -315,8 +314,8 @@ defmodule Tornium.Faction.Overdose do
         # Xanax overdose
         2291
       ])
-      |> Tornex.SpecQuery.put_parameter(:from, DateTime.to_unix(from_timestamp))
-      |> Tornex.SpecQuery.put_parameter(:limit, 100)
+      |> Tornex.SpecQuery.put_parameter!(:from, DateTime.to_unix(from_timestamp))
+      |> Tornex.SpecQuery.put_parameter!(:limit, 100)
 
     response = Tornex.API.get(query)
 

@@ -29,7 +29,7 @@ function setUnverifiedRoles(event) {
     });
 }
 
-$(document).ready(function () {
+ready(() => {
     $('[data-bs-toggle="tooltip"]').tooltip({
         html: true,
     });
@@ -122,10 +122,7 @@ $(document).ready(function () {
     $("#verification-config-enable").on("click", function () {
         tfetch("POST", "bot/verify", { body: { guildid: guildid }, errorTitle: "Verification Enable Failed" }).then(
             (response) => {
-                generateToast(
-                    "Verification Enable Successful",
-                    "The Tornium API server has been successfully enabled.",
-                );
+                generateToast("Verification Enable Successful", "Verification has been enabled for this server.");
                 $("#verification-config-enable").prop("disabled", true);
                 $("#verification-config-disable").prop("disabled", false);
             },
@@ -135,10 +132,7 @@ $(document).ready(function () {
     $("#verification-config-disable").on("click", function () {
         tfetch("DELETE", "bot/verify", { body: { guildid: guildid }, errorTitle: "Verification Disable Failed" }).then(
             (response) => {
-                generateToast(
-                    "Verification Disable Successful",
-                    "The Tornium API server has been successfully enabled.",
-                );
+                generateToast("Verification Disable Successful", "Verification has been disabled for this server.");
                 $("#verification-config-enable").prop("disabled", false);
                 $("#verification-config-disable").prop("disabled", true);
             },
@@ -150,10 +144,7 @@ $(document).ready(function () {
             body: { guildid: guildid },
             errorTitle: "Auto Verificable Enable Failed",
         }).then((response) => {
-            generateToast(
-                "Auto Verification Enable Successful",
-                "The Tornium API server has been successfully enabled.",
-            );
+            generateToast("Auto Verification Enable Successful", "Auto verification has been enabled for this server.");
             $("#auto-verification-config-enable").prop("disabled", true);
             $("#auto-verification-config-disable").prop("disabled", false);
         });
@@ -166,7 +157,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Auto Verification Diable Successful",
-                "The Tornium API server has been successfully enabled.",
+                "Auto verification has been disabled for this server.",
             );
             $("#auto-verification-config-enable").prop("disabled", false);
             $("#auto-verification-config-disable").prop("disabled", true);
@@ -179,7 +170,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Gateway Verification Enable Successful",
-                "The Tornium API server has successfully enabled gateway verification.",
+                "Verification-on-join has been enabled for this server.",
             );
             $("#gateway-verification-config-enable").prop("disabled", true);
             $("#gateway-verification-config-disable").prop("disabled", false);
@@ -192,7 +183,7 @@ $(document).ready(function () {
         }).then((response) => {
             generateToast(
                 "Gateway Verification Disable Successful",
-                "The Tornium API server has successfully disabled gateway verification.",
+                "Verification-on-join has been disabled for this server.",
             );
             $("#gateway-verification-config-enable").prop("disabled", false);
             $("#gateway-verification-config-disable").prop("disabled", true);
@@ -204,7 +195,10 @@ $(document).ready(function () {
             body: { guildid: guildid, factiontid: $("#faction-verification-input").val() },
             errorTitle: "Verification Faction Set Failed",
         }).then((response) => {
-            generateToast("Verification Faction Set Successful");
+            generateToast(
+                "Verification Faction Set Successful",
+                "The provided faction has been added to the server's list of factions for verification.",
+            );
             window.location.reload(); // TODO: Replace with dynamically adding code
         });
     }
@@ -221,7 +215,10 @@ $(document).ready(function () {
             body: { guildid: guildid, channel: this.options[this.selectedIndex].value },
             errorTitle: "Verification Log Channel Set Failed",
         }).then(() => {
-            generateToast("Verification Log Channel Set Successful");
+            generateToast(
+                "Verification Log Channel Set Successful",
+                "The log channel for verification for this server has been set.",
+            );
         });
     });
 
@@ -230,7 +227,10 @@ $(document).ready(function () {
             body: { channel: this.options[this.selectedIndex].value },
             errorTitle: "Verification Jail Channel Set Failed",
         }).then(() => {
-            generateToast("Verification Jail Channel Set Successful");
+            generateToast(
+                "Verification Jail Channel Set Successful",
+                "The jail channel for verification for this server has been set.",
+            );
         });
     });
 
@@ -243,7 +243,10 @@ $(document).ready(function () {
             body: { guildid: guildid, template: $("#verification-name-template").val() },
             errorTitle: "Verification Template Set Failed",
         }).then(() => {
-            generateToast("Verification Template Set Successful");
+            generateToast(
+                "Verification Template Set Successful",
+                "The verification template for this server has been set.",
+            );
         });
     });
 
@@ -254,7 +257,10 @@ $(document).ready(function () {
             body: { guildid: guildid, template: template },
             errorTitle: "Verification Template Set Failed",
         }).then(() => {
-            generateToast("Verification Template Set Successful");
+            generateToast(
+                "Verification Template Set Successful",
+                "The verification template for this server has been set.",
+            );
         });
     });
 
@@ -263,7 +269,10 @@ $(document).ready(function () {
             body: { guildid: guildid, factiontid: this.getAttribute("data-faction") },
             errorTitle: "Faction Verification Enable Failed",
         }).then(() => {
-            generateToast("Faction Verification Enable Successful");
+            generateToast(
+                "Faction Verification Enable Successful",
+                "Verification of the selected faction has been enabled on this server.",
+            );
             window.location.reload();
         });
     });
@@ -273,7 +282,10 @@ $(document).ready(function () {
             body: { guildid: guildid, factiontid: this.getAttribute("data-faction") },
             errorTitle: "Faction Verification Disable Failed",
         }).then(() => {
-            generateToast("Faction Verification Disable Successful");
+            generateToast(
+                "Faction Verification Disable Successful",
+                "Verification of the selected faction has been disabled on this server.",
+            );
             window.location.reload();
         });
     });
@@ -283,7 +295,10 @@ $(document).ready(function () {
             body: { guildid: guildid, factiontid: this.getAttribute("data-faction"), remove: true },
             errorTitle: "Faction Verification Removal Failed",
         }).then(() => {
-            generateToast("Faction Verification Removal Successful");
+            generateToast(
+                "Faction Verification Removal Successful",
+                "Verification of the selected faction has been removed from this server.",
+            );
             window.location.reload();
         });
     });
@@ -300,7 +315,10 @@ $(document).ready(function () {
             body: { guildid: guildid, roles: selectedRoles },
             errorTitle: "Faction Verification Role Set Failed",
         }).then(() => {
-            generateToast("Faction Verification Role Set Successful");
+            generateToast(
+                "Faction Verification Role Set Successful",
+                "Roles for verification of the selected faction have been set for this server.",
+            );
         });
     });
 
@@ -334,7 +352,10 @@ $(document).ready(function () {
             body: { guildid: guildid, roles: selectedRoles },
             errorTitle: "Verification Exlcusion Role Add Failed",
         }).then(() => {
-            generateToast("Verification Exclusion Role Add Successful");
+            generateToast(
+                "Verification Exclusion Role Add Successful",
+                "Exclusion roles for verification have been set for this server.",
+            );
         });
     });
 

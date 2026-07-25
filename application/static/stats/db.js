@@ -211,7 +211,7 @@ $(document).ready(function () {
                 $("#stat-modal-label").text(`${response.user.name} [${response.user.tid}]`);
                 $("#stat-modal-attack-link").attr(
                     "href",
-                    `https://www.torn.com/loader.php?sid=attack&user2ID=${response.user.tid}`,
+                    `https://www.torn.com/page.php?sid=attack&user2ID=${response.user.tid}`,
                 );
                 $("#stat-modal-profile-link").attr(
                     "href",

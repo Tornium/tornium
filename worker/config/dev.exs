@@ -24,6 +24,15 @@ config :tornium, Tornium.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :tornium, Tornium.ObanRepo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "Tornium",
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
 config :tornium, Tornium.Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
@@ -42,3 +51,15 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
+
+config :tornium, Tornium.PromEx,
+  # See https://hexdocs.pm/prom_ex/PromEx.Config.html for configuration details
+  disabled: true
+
+config :tornium, Oban,
+  # Suggested for use in development for increased performance
+  # See https://oban.hexdocs.pm/clustering.html
+  peer: Oban.Peers.Global
+
+config :tornex,
+  local: System.get_env("LOCAL_ONLY", "1") == "1"

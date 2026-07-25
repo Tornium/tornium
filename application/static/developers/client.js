@@ -50,7 +50,7 @@ function deleteClient(event) {
 
 function createNewClientRedirectURI(event) {
     const defaultItem = document.getElementById("client-redirect-uri-default");
-    if (!defaultItem.classList.contains("d-none")) {
+    if (defaultItem != null && !defaultItem.classList.contains("d-none")) {
         defaultItem.classList.add("d-none");
     }
 

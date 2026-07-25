@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import DateTimeField, ForeignKeyField, TextField, UUIDField
+from peewee import DateTimeField, ForeignKeyField, UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
+from .item import Item
 from .user import User
 
 
@@ -32,4 +33,24 @@ class OverdoseEvent(BaseModel):
     created_at = DateTimeField(null=False)
     notified_at = DateTimeField(default=None, null=True)
 
-    drug = TextField(null=True)
+    drug = ForeignKeyField(Item, null=True)
+
+    def to_dict(self) -> dict:
+        from ..formatters import timestamp
+
+        return {
+            "id": self.guid,
+            "user": {
+                "id": self.user_id,
+                "name": self.user.name,
+            },
+            "timestamp": timestamp(self.created_at),
+            "drug": (
+                {
+                    "id": self.drug_id,
+                    "name": self.drug.name,
+                }
+                if self.drug_id
+                else None
+            ),
+        }

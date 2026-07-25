@@ -20,13 +20,14 @@ import typing
 import uuid
 from decimal import DivisionByZero
 
-from peewee import DoesNotExist, IntegrityError
+from peewee import DoesNotExist
 from tornium_commons import rds, with_db_connection
 from tornium_commons.errors import MissingKeyError, NetworkingError, TornError
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import (
     Faction,
     FactionPosition,
+    ObanJob,
     PersonalStats,
     Stat,
     TornKey,
@@ -175,11 +176,11 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
 )
 @with_db_connection
 def update_user_self(user_data: dict, key: typing.Optional[str] = None):
-    user_data_kwargs = {"faction_aa": False}
+    user_data_kwargs = {"faction_aa": None, "fedded_until": User.get_fedded_until(user_data)}
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
-        faction = (
+        faction: Faction = (
             Faction.insert(
                 tid=user_data["faction"]["faction_id"],
                 name=user_data["faction"]["faction_name"],
@@ -189,73 +190,69 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
                 conflict_target=[Faction.tid],
                 preserve=[Faction.name, Faction.tag],
             )
-            .execute()
+            .returning(Faction)
+            .execute()[0]
         )
 
-        if key is not None:
-            faction = Faction.select(Faction.tid).where(Faction.tid == user_data["faction"]["faction_id"]).first()
+        if key is not None and len(faction.aa_keys) == 0:
+            try:
+                tornget("faction/?selections=basic,positions", key)
+            except TornError as e:
+                if e.code == 7:
+                    user_data_kwargs["faction_aa"] = False
+            except NetworkingError:
+                pass
+            else:
+                user_data_kwargs["faction_aa"] = True
 
-            if faction is not None and len(faction.aa_keys) == 0:
-                from .faction import update_faction_positions
-
-                try:
-                    positions_data = tornget("faction/?selections=basic,positions", key)
-                except TornError as e:
-                    if e.code == 7:
-                        user_data_kwargs["faction_aa"] = False
-                except NetworkingError:
-                    pass
-                else:
-                    user_data_kwargs["faction_aa"] = True
-                    update_faction_positions(positions_data)
-
-        if user_data["faction"]["position"] in ("Leader", "Co-leader"):
-            user_data_kwargs["faction_position"] = None
-            user_data_kwargs["faction_aa"] = True
-
-            if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-            elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-leader",
-        ):
-            faction_position: typing.Optional[FactionPosition] = (
-                FactionPosition.select()
-                .where(
-                    (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
-                )
-                .first()
+            # We want to asynchronously update the faction data and set the faction positions under
+            # the assumption that this API key can access non public data so that many features will
+            # work instead of features that realy on only `:faction_aa`.
+            ObanJob.new(
+                worker="Tornium.Workers.FactionUpdate",
+                queue="faction_processing",
+                args={
+                    "api_call_id": None,
+                    "api_key_id": None,
+                    "api_key": key,
+                    "faction_id": faction.tid,
+                    "user_id": user_data["player_id"],
+                    "nonpublic?": user_data_kwargs["faction_aa"] is True,
+                },
+                tags=["faction"],
             )
 
-            if faction_position is None:
-                user_data_kwargs["faction_position"] = None
-                user_data_kwargs["faction_aa"] = False
-            else:
+        if user_data["faction"]["position"] == "Leader":
+            Faction.update(leader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+        elif user_data["faction"]["position"] == "Co-leader":
+            Faction.update(coleader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+
+        if user_data["faction"]["position"] != "None":
+            try:
+                faction_position: FactionPosition = (
+                    FactionPosition.select()
+                    .where(
+                        (FactionPosition.name == user_data["faction"]["position"])
+                        & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
+                    )
+                    .get()
+                )
+
                 user_data_kwargs["faction_position"] = faction_position
-                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
+                if user_data_kwargs["faction_aa"] is None:
+                    user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
+            except DoesNotExist:
+                user_data_kwargs["faction_position"] = None
     else:
         faction = None
         user_data_kwargs["faction_position"] = None
-        user_data_kwargs["faction_aa"] = False
 
-    if "personalstats" in user_data:
-        try:
-            PersonalStats.create(
-                user=user_data["player_id"],
-                timestamp=datetime.date.today(),
-                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-            )
-        except IntegrityError:
-            pass
+    if user_data_kwargs["faction_aa"] is None:
+        user_data_kwargs["faction_aa"] = False
 
     User.insert(
         tid=user_data["player_id"],
@@ -298,6 +295,13 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
         ],
     ).execute()
 
+    if "personalstats" in user_data:
+        PersonalStats.insert(
+            user=user_data["player_id"],
+            timestamp=datetime.date.today(),
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict_ignore().execute()
+
     if key is not None:
         TornKey.insert(
             guid=uuid.uuid4(),
@@ -323,8 +327,8 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
     time_limit=5,
 )
 @with_db_connection
-def update_user_other(user_data):
-    user_data_kwargs = {"faction_aa": False}
+def update_user_other(user_data: dict):
+    user_data_kwargs = {"faction_aa": False, "fedded_until": User.get_fedded_until(user_data)}
 
     faction: typing.Optional[Faction]
     if user_data["faction"]["faction_id"] != 0:
@@ -341,54 +345,35 @@ def update_user_other(user_data):
             .execute()
         )
 
-        if user_data["faction"]["position"] in ("Leader", "Co-leader"):
-            user_data_kwargs["faction_position"] = None
-            user_data_kwargs["faction_aa"] = True
+        if user_data["faction"]["position"] == "Leader":
+            Faction.update(leader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
+        elif user_data["faction"]["position"] == "Co-leader":
+            Faction.update(coleader=user_data["player_id"]).where(
+                Faction.tid == user_data["faction"]["faction_id"]
+            ).execute()
 
-            if user_data["faction"]["position"] == "Leader":
-                Faction.update(leader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-            elif user_data["faction"]["position"] == "Co-leader":
-                Faction.update(coleader=user_data["player_id"]).where(
-                    Faction.tid == user_data["faction"]["faction_id"]
-                ).execute()
-        elif user_data["faction"]["position"] not in (
-            "None",
-            "Recruit",
-            "Leader",
-            "Co-leader",
-        ):
-            faction_position: typing.Optional[FactionPosition] = (
-                FactionPosition.select()
-                .where(
-                    (FactionPosition.name == user_data["faction"]["position"])
-                    & (FactionPosition.faction_tid == user_data["faction"]["faction_id"])
+        if user_data["faction"]["position"] != "None":
+            try:
+                faction_position: FactionPosition = (
+                    FactionPosition.select()
+                    .where(
+                        (FactionPosition.name == user_data["faction"]["position"])
+                        & (FactionPosition.faction_id == user_data["faction"]["faction_id"])
+                    )
+                    .get()
                 )
-                .first()
-            )
 
-            if faction_position is None:
+                user_data_kwargs["faction_position"] = faction_position
+                user_data_kwargs["faction_aa"] = "Faction API Access" in faction_position.permissions
+            except DoesNotExist:
                 user_data_kwargs["faction_position"] = None
                 user_data_kwargs["faction_aa"] = False
-            else:
-                user_data_kwargs["faction_position"] = faction_position
-                user_data_kwargs["faction_aa"] = faction_position.access_fac_api
     else:
         faction = None
         user_data_kwargs["faction_position"] = None
         user_data_kwargs["faction_aa"] = False
-
-    if "personalstats" in user_data:
-        # /user/personalstats upon other users uses data from the end of the previous day
-        try:
-            PersonalStats.create(
-                user=user_data["player_id"],
-                timestamp=datetime.date.today() - datetime.timedelta(days=1),
-                **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
-            )
-        except IntegrityError:
-            pass
 
     User.insert(
         tid=user_data["player_id"],
@@ -413,6 +398,14 @@ def update_user_other(user_data):
             *(getattr(User, k) for k in user_data_kwargs.keys()),
         ],
     ).execute()
+
+    if "personalstats" in user_data:
+        # /user/personalstats upon other users uses data from the end of the previous day
+        PersonalStats.insert(
+            user=user_data["player_id"],
+            timestamp=datetime.date.today() - datetime.timedelta(days=1),
+            **{k: v for k, v in user_data["personalstats"].items() if k in PersonalStats._meta.sorted_field_names},
+        ).on_conflict_ignore().execute()
 
     if user_data["discord"]["discordID"] not in ("", 0):
         # Remove users' Discord IDs if another user has the same Discord ID
@@ -627,7 +620,7 @@ def stat_db_attacks_user(user_data):
             opponent_id = attack["attacker_id"]
 
         try:
-            update_user.delay(tid=opponent_id, key=user.key).forget()
+            update_user.signature(tid=opponent_id, key=user.key).apply_async(ignore_result=True)
         except Exception as e:
             logger.exception(e)
             continue
@@ -668,7 +661,7 @@ def stat_db_attacks_user(user_data):
     name="tasks.user.check_api_keys",
     routing_key="quick.check_api_keys",
     queue="quick",
-    time_limit=5,
+    time_limit=30,
 )
 @with_db_connection
 def check_api_keys():
@@ -695,7 +688,7 @@ def check_api_keys():
         )(check_api_key_sub.signature(kwargs={"guid": key.guid}))
 
     for key_user in (
-        TornKey.select(TornKey.user)
+        TornKey.select()
         .join(User)
         .distinct(TornKey.user)
         .where((TornKey.disabled == False) & (TornKey.paused == False))

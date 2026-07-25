@@ -9,7 +9,7 @@ state = state
 
 -- Preprocessed variables
 ---@type integer
-MEMBER_LIMIT = MEMBER_LIMIT
+MEMBER_LIMIT = tonumber(MEMBER_LIMIT) or 10
 
 local function format_username (user_id, user_name)
   return string.format("%s [%d]", user_name, user_id)

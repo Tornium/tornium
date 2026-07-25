@@ -320,7 +320,7 @@ def login(*args, **kwargs):
             ],
         }
 
-        send_dm.delay(user.discord_id, discord_payload).forget()
+        send_dm.s(user.discord_id, discord_payload).apply_async(ignore_result=True)
 
     if user.security == 0 or user.security is None:
         # TODO: Make the key query above the same as the query required for login

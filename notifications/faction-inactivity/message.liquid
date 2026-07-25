@@ -1,0 +1,8 @@
+{
+	"embeds": [
+		{
+			"title": "Inactive Members of {{ faction_name }}",
+			"description": "The following members are more than {{ configured_days }} day(s) inactive:\n\n{% for index in (1..inactive_members.size) %}[{{ inactive_members[index].username }}](https://torn.com/profiles.php?XID={{ inactive_members[index].id }}) - <t:{{ inactive_members[index].last_action }}:R>{% if inactive_members[index].fedded %} ({{ inactive_members[index].fedded_reason }}){% endif %}{% if inactive_members[index].recruit %} (Recruit){% endif %}\n{% endfor %}"
+		}
+	]
+}

@@ -17,7 +17,6 @@ import time
 import typing
 from functools import partial, wraps
 
-import redis
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Response, request, session
 from flask_login import current_user
@@ -35,10 +34,12 @@ def ratelimit(func):
             # OAuth token
             kwargs["user"] = current_token.user
             kwargs["key"] = current_token.user.key
+            kwargs["method"] = "oauth"
         except AttributeError:
             # CSRF token
             kwargs["user"] = current_user
             kwargs["key"] = current_user.key
+            kwargs["method"] = "session"
 
         client = rds()
         key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -111,8 +112,7 @@ def global_cache(func=None, duration=3600):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # TODO: Migrate this redis call back into tornium-commons
-        client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=False)
+        client = rds()
 
         cached_response = client.get(f"tornium:cache:{request.url_rule}")
 
@@ -133,6 +133,7 @@ def global_cache(func=None, duration=3600):
             )
 
             endpoint_response[0].headers["Cache-Control"] = f"max-age={duration}, public"
+            endpoint_response[0].headers["X-Cache"] = "MISS"
             return endpoint_response
 
         unpacked_response: dict = loads(cached_response)
@@ -144,6 +145,7 @@ def global_cache(func=None, duration=3600):
             {
                 "Content-Type": "application/json",
                 "Cache-Control": f"max-age={cache_ttl}, public",
+                "X-Cache": "HIT",
                 **api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}", client),
             },
         )

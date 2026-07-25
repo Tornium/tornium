@@ -15,6 +15,9 @@
 
 import Config
 
+config :tornium,
+  api_key: System.get_env("TORN_API_KEY")
+
 config :tornium, Tornium.Repo,
   username: "Tornium",
   password: "password",
@@ -22,6 +25,14 @@ config :tornium, Tornium.Repo,
   database: "tornium_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
+
+config :tornium, Tornium.ObanRepo,
+  username: "Tornium",
+  password: "password",
+  hostname: "localhost",
+  database: "tornium_test",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: 1
 
 config :logger, level: :warning
 

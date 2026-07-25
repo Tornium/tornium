@@ -38,9 +38,10 @@ defmodule Tornium.Faction.News.ArmoryAction do
         }
 
   @impl Tornium.Faction.News
-  def parse(%Torngen.Client.Schema.FactionNews{timestamp: timestamp, text: text, id: id} = _news) do
+  def parse(%Torngen.Client.Schema.News{timestamp: timestamp, text: text, id: id} = _news) do
     parsed_text =
       text
+      |> String.trim_trailing(".")
       |> Floki.parse_fragment!()
       |> do_parse_text()
 
@@ -248,7 +249,13 @@ defmodule Tornium.Faction.News.ArmoryAction do
   end
 
   defp text_action_item("filled one of the faction's " <> suffixed_item_string = text) when is_binary(text) do
-    [item_name] = String.split(suffixed_item_string, " items", trim: true)
+    split_string = String.split(suffixed_item_string, [" items", "s to create a "], trim: true)
+
+    item_name =
+      case split_string do
+        [name] -> name
+        [name, _] -> name
+      end
 
     %{
       action: :fill,
@@ -267,21 +274,21 @@ defmodule Tornium.Faction.News.ArmoryAction do
       end
 
     # loaned 1x Thompson to themselves from the faction armory
-    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+    {item_quantity, item_name} = split_item_name_quantity(item_name_quantity)
 
     %{
       action: :loan,
-      quantity: String.to_integer(item_quantity),
+      quantity: item_quantity,
       item_name: item_name
     }
   end
 
   defp text_action_item("returned " <> item_name_quantity = text) when is_binary(text) do
-    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+    {item_quantity, item_name} = split_item_name_quantity(item_name_quantity)
 
     %{
       action: :return,
-      quantity: String.to_integer(item_quantity),
+      quantity: item_quantity,
       item_name: item_name
     }
   end
@@ -296,11 +303,11 @@ defmodule Tornium.Faction.News.ArmoryAction do
       end
 
     # gave 1x Armor Cache to themselves from the faction armory
-    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+    {item_quantity, item_name} = split_item_name_quantity(item_name_quantity)
 
     %{
       action: :give,
-      quantity: String.to_integer(item_quantity),
+      quantity: item_quantity,
       item_name: item_name
     }
   end
@@ -308,12 +315,20 @@ defmodule Tornium.Faction.News.ArmoryAction do
   defp text_action_item("retrieved " <> item_name_quantity_from = text) when is_binary(text) do
     [item_name_quantity] = String.split(item_name_quantity_from, [" from ", " from"], trim: true)
 
-    [item_quantity, item_name] = String.split(item_name_quantity, "x ", trim: true)
+    {item_quantity, item_name} = split_item_name_quantity(item_name_quantity)
 
     %{
       action: :retrieve,
-      quantity: String.to_integer(item_quantity),
+      quantity: item_quantity,
       item_name: item_name
     }
+  end
+
+  @spec split_item_name_quantity(item_name_quantity :: String.t()) :: {pos_integer(), String.t()}
+  defp split_item_name_quantity(item_name_quantity) when is_binary(item_name_quantity) do
+    %{"quantity" => item_quantity, "name" => item_name} =
+      Regex.named_captures(~r/^(?<quantity>\d+)x (?<name>.+)$/, item_name_quantity)
+
+    {String.to_integer(item_quantity), item_name}
   end
 end

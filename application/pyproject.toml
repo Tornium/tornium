@@ -22,12 +22,13 @@ dependencies = [
     "flask-cors ~= 6.0.0",
     "flask-login ~= 0.6.2",
     "scikit-learn",
-    "toml",
     "pandas",
     "peewee ~= 3.18.1",
     "psycopg2",
-    "pynacl ~= 1.6.0",
+    "pynacl",
     "xgboost",
+    "python-liquid ~= 2.1.0",
+    "git+https://github.com/Tornium/tornium_oc_graph.git"
 ]
 description = "A website and Discord bot to assist with the playing of Torn City developed with love <3"
 keywords = ["torn", "torn-city", "torn-city-api", "flask", "discord", "celery"]
@@ -55,8 +56,7 @@ ci = [
     "pytest-sugar",
 ]
 extra = [
-    "orjson",
-    "pytoml"
+    "orjson"
 ]
 
 [project.urls]

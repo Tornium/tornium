@@ -34,6 +34,24 @@ Tornium - Faction Bot Dashboard
         </div>
 
         {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/armory">
+                <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes/cpr">
+                <i class="col-1 col-sm-2 fa-solid fa-star-half-stroke"></i> <span class="col">Organized Crimes CPR</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/overdose">
+                <i class="col-1 col-sm-2 fa-solid fa-capsules"></i> <span class="col">Overdoses</span>
+            </a>
+        </div>
+
         {% if current_user.can_manage_crimes() %}
         <div class="row mb-3">
             <a class="nav-link" href="/faction/crimes">
@@ -72,15 +90,17 @@ Tornium - Faction Bot Dashboard
                 In order to set other bot configurations, please set the faction's guild ID first.
             </p>
 
-            <form class="form-floating" method="POST" action="/faction/bot">
-                <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
-                <label for="guildid">Guild ID</label>
-            </form>
+            <div class="row">
+                <div class="col-sm-12 col-md-8 col-xl-4">
+                    <form class="form-floating input-group" method="POST" action="/faction/bot">
+                        <input class="form-control" id="guildid" name="guildid" value="{{ guildid }}">
+                        <label for="guildid">Guild ID</label>
+                        <button type="submit" class="btn btn-outline-success">Set</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="/static/faction/guild.js"></script>
-{% endblock %}

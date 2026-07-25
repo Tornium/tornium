@@ -14,10 +14,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from controllers.api.v1.faction import (
+    armory,
     attacks,
     banking,
-    crime_team,
     crimes,
     faction,
+    overdose,
     positions,
 )

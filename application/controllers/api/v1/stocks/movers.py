@@ -19,6 +19,7 @@ import typing
 from flask import jsonify
 from peewee import DoesNotExist
 from tornium_commons import rds
+from tornium_commons.altjson import loads
 from tornium_commons.models import StockTick
 
 from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
@@ -48,11 +49,12 @@ def stock_movers(*args, **kwargs):
 
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
     redis_client = rds()
-    stocks_map = redis_client.json().get("tornium:stocks")
+    stocks_map = redis_client.get("tornium:stocks")
 
     if stocks_map is None:
         return make_exception_response("1000", key, details={"message": "Cached stocks map could not be located."})
 
+    stocks_map = loads(stocks_map)
     stock_id_list = [int(stock_id) for stock_id in stocks_map.keys()]
 
     # movers must use lists to preserve order

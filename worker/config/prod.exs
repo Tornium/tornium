@@ -22,4 +22,17 @@ config :tornium, Tornium.Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   debug_errors: true,
-  secret_key_base: "XxDP9g/UoipgQSvTqSqFus7TvlSn40KYFVlshlKM7Ey3YsUHjBweDP1r43tsS4Fa"
+  secret_key_base: "XxDP9g/UoipgQSvTqSqFus7TvlSn40KYFVlshlKM7Ey3YsUHjBweDP1r43tsS4Fa",
+  server: true
+
+config :tornex,
+  local: false
+
+# Disable logging from Phoenix
+config :phoenix, :logger, false
+
+config :tornium, Oban,
+  # Suggested for use in production for increased performance
+  # See https://oban.hexdocs.pm/clustering.html
+  peer: Oban.Peers.Database,
+  notifier: Oban.Notifiers.PG

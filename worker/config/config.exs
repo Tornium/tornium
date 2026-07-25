@@ -16,7 +16,7 @@
 import Config
 
 config :tornium,
-  ecto_repos: [Tornium.Repo],
+  ecto_repos: [Tornium.Repo, Tornium.ObanRepo],
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   env: config_env()
 
@@ -70,8 +70,10 @@ config :tornium, Tornium.PromEx,
 
 config :tornium, Oban,
   engine: Oban.Engines.Basic,
-  queues: [faction_processing: 50, user_processing: 20, notifications: 20, scheduler: 5],
-  repo: Tornium.Repo,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
+  repo: Tornium.ObanRepo,
+  get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
     {
@@ -85,10 +87,15 @@ config :tornium, Oban,
         {"7,37 * * * *", Tornium.Workers.OverdoseUpdateScheduler},
         {"15 0 * * *", Tornium.Workers.OverdoseDailyReport},
         {"*/15 * * * *", Tornium.Workers.ArmoryNewsUpdateScheduler},
-        {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications}
+        {"0 */12 * * *", Tornium.Workers.OCMissingMemberNotifications},
+        {"* * * * *", Tornium.Workers.FactionUpdateScheduler},
+        {"* * * * *", Tornium.Workers.UserUpdateScheduler},
+        {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications},
+        {"*/15 * * * *", Tornium.Workers.DailyVerificationScheduler},
+        {"0 */12 * * *", Tornium.Workers.OCTypeUpdate}
       ]
     },
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 

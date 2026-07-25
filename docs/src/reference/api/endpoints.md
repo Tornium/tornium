@@ -70,33 +70,85 @@ Authorization: Bearer {{ access_token }}
 }
 ```
 
-### [DEPRECATED] Create Faction Vault Request
+### Create Faction Vault Request
 Create a vault request against the authenticated user's faction. This requires the faction to be linked to a Discord server and to have banking set up on that Discord server.
 
-This API endpoint has an additional ratelimit currently set to 1 per minute.
+The `amount` parameter supports the same values as the [slash command](../bot-banking.md#withdraw-command) including values such as `"all"`, `"1m"`, and `1000000`. If the `timeout` parameter is `null`, the request will never time out.
+
+The `guid` in the vault request response can be used to create a fulfillment link of the form:
+```
+https://tornium.com/faction/banking/fulfill/<guid>
+```
+
+**Scopes Required:** `faction:banking` (or `faction`)
 
 ```http
-POST /api/v1/faction/banking HTTP/1.1
+POST /api/v1/faction/<int:faction_id>/banking HTTP/1.1
 Authorization: Bearer {{ access_token }}
 Content-Type: application/json
 
 {
-    "amount_requested": "all"
+    "amount": "all",
+    "type": "money_balance",
+    "timeout": 1761708665
 }
 
 {
     "id": 1234,
+    "guid": "dc79b83b-2ece-4ce9-9324-59464e89baaa",
+    "user_id": 2383326,
+    "faction_id": 15644,
     "amount": 12345678,
-    "requester": 2383326,
-    "time_requested": 1761708665,
-    "withdrawal_message": 1433602346151313469
+    "type": "money_balance",
+    "expires_at": 1761708665
 }
 ```
+
+**Body Parameters**
+
+| Field     | Type                      | Description                                          | Default   | Required |
+| --------- | ------------------------- | ---------------------------------------------------- | --------- | -------- |
+| `amount`  | Integer or String         | Amount to withdraw                                   |           | True     |
+| `type`    | String                    | Type of request: `money_balance` or `points_balance` |           | True     |
+| `timeout` | Unix Timestamp or null    | Earliest expiration timestamp                        | Never     | False    |
+
+
+### Cancel Faction Vault Request
+Cancel a vault request against the authenticated user's faction. If the user has banking permissions, the user can cancel any faction members' vault request. If the use does not have banking permissions, they can only cancel their own vault requests.
+
+The `request_id` path parameter can either be the `wid` of the request or the `guid` of the request. This API endpoint return HTTP 204 with no response body if the request has been successfully cancelled.
+
+**Scopes Required:** `faction:banking` (or `faction`)
+
+```http
+DELETE /api/v1/faction/<int:faction_id>/banking/<request_id> HTTP/1.1
+Authorization: Bearer {{ access_token }}
+```
+
+### List Vault Requests
+List all applicable vault requests against the authenticated user's faction.
+
+If the `search_type` is `pending`, this endpoint will return all requests that have not been fulfilled or cancelled; otherwise, the endpoint will return all requests. If the `scope` is `faction` and the user has banking permisions, this endpoint will return either the pending or all requests for all faction members; otherwise, if the `scope` is `user`, the endpoint will return the pending or all requests for the authenticated user.
+
+**Scopes Required:** `faction:banking` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/banking HTTP/1.1
+Authorization: Bearer {{ access_token }}
+```
+
+**Query Parameters**
+
+| Field          | Type             | Description                            | Default   | Required |
+| -------------- | ---------------- | -------------------------------------- | --------- | -------- |
+| `search_type`  | String           | Type of request: `pending` or `all`    | `pending` | False    |
+| `scope`        | String           | Scope of requests: `user` or `faction` | `user`    | False    |
+| `limit`        | Integer          | Response limit (1-100)                 | 100       | False    |
+| `before`       | UNIX timestamp   | Latest timestamp to return             |           | False    |
 
 ### Get Organized Crimes Names
 Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.
 
-**Scopes Required:** none
 
 ```http
 GET /api/v1/faction/crime/names HTTP/1.1

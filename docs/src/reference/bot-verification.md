@@ -43,6 +43,8 @@ The verification name template is used to generate the nickname for all members 
 | {{ tid }}  | Torn user ID            | `1`        |
 | {{ tag }}  | Torn user's faction tag | `CR`       |
 
+If the user is not in a faction, the faction tag will fallback to an empty string `""`.
+
 ### Verified Roles
 Members of the Discord server will be given these roles if they are verified by Torn.
 
@@ -85,7 +87,7 @@ Tornium's Discord bot contains two slash commands related to performing verifica
 
 ### Verify Command
 ```
-/verify [member] [force]
+/verify [member]
 ```
 
 The `/verify` slash command will attempt to verify a member of the Discord server according to the Discord server's verification configuration.
@@ -93,19 +95,13 @@ The `/verify` slash command will attempt to verify a member of the Discord serve
 | Argument | Description                                   | Required | Default                |
 | -------- | --------------------------------------------- | -------- | ---------------------- |
 | `member` | Discord server member to be verified          | False    | Invoker of the command |
-| `force`  | Flag to require updated data on the Torn user | False    | True                   |
 
 ### Verify All Command
 ```
-/verifyall [force]
+/verifyall
 ```
 
 The `/verifyall` slash command will manually start the [verification cron](#verification-cron) to verify all members of the Discord server in the background. This verification process can take up to several minutes. For more information, see the [verification cron](#verification-cron).
-
-| Argument | Description                                   | Required | Default |
-| -------- | --------------------------------------------- | -------- | ------- |
-| `force`  | Flag to require updated data on the Torn user | False    | True    |
-
 
 ### Verify User Command
 The verify user command will silently attempt to verify the member of the Discord server selected according to the Discord server's verification configuration.

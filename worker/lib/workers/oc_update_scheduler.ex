@@ -14,7 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Workers.OCUpdateScheduler do
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 
@@ -22,12 +21,7 @@ defmodule Tornium.Workers.OCUpdateScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "oc"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "oc"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -41,13 +35,24 @@ defmodule Tornium.Workers.OCUpdateScheduler do
     |> where([k, u, f], f.has_migrated_oc == true)
     |> select([k, u, f], [k.api_key, u.tid, u.faction_id])
     |> Repo.all()
-    |> Enum.each(fn [api_key, user_tid, faction_tid] when is_integer(faction_tid) ->
+    |> Enum.each(fn [api_key, user_id, faction_id] when is_integer(faction_id) ->
+      api_call_id = Ecto.UUID.generate()
+      Tornium.API.Store.create(api_call_id, 300)
+
+      Task.Supervisor.async_nolink(Tornium.TornexTaskSupervisor, fn ->
+        query(faction_id)
+        |> Tornex.SpecQuery.put_key(api_key)
+        |> Tornex.SpecQuery.put_key_owner(user_id)
+        |> Tornex.Scheduler.Bucket.enqueue()
+        |> Tornium.API.Store.insert(api_call_id)
+      end)
+
       %{
-        api_key: api_key,
-        user_tid: user_tid,
-        faction_tid: faction_tid
+        api_call_id: api_call_id,
+        user_id: user_id,
+        faction_id: faction_id
       }
-      |> Tornium.Workers.OCUpdate.new()
+      |> Tornium.Workers.OCUpdate.new(schedule_in: _seconds = 15)
       |> Oban.insert()
     end)
 
@@ -57,5 +62,13 @@ defmodule Tornium.Workers.OCUpdateScheduler do
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
     :timer.minutes(1)
+  end
+
+  @spec query(faction_id :: pos_integer()) :: Tornex.SpecQuery.t()
+  def query(faction_id) when is_integer(faction_id) do
+    Tornex.SpecQuery.new(nice: 0, resource_id: faction_id)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Crimes)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Basic)
+    |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Members)
   end
 end

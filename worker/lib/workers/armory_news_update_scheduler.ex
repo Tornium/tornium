@@ -25,12 +25,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
     max_attempts: 3,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "faction"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
@@ -63,6 +58,7 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       |> where([k, u], u.faction_id == ^faction_id and u.faction_aa == true)
       |> select([k, u, f], [k.api_key, u.tid])
       |> order_by(fragment("RANDOM()"))
+      |> first()
       |> Repo.one()
 
     case api_key_result do
@@ -89,9 +85,9 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
       |> Repo.one()
 
     query =
-      Tornex.SpecQuery.new(key: api_key, key_owner: user_id, nice: 10)
+      Tornex.SpecQuery.new(key: api_key, key_owner: user_id, resource_id: {:id, faction_id}, nice: 10)
       |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.News)
-      |> Tornex.SpecQuery.put_parameter(:cat, "armoryAction")
+      |> Tornex.SpecQuery.put_parameter!(:cat, "armoryAction")
 
     query =
       case latest_faction_usage do
@@ -107,8 +103,8 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
           # We do not want to increment the from parameter to avoid missing data occurring at the same second.
           # Data already in the database will be handled by an on conflict statement.
           query
-          |> Tornex.SpecQuery.put_parameter(:from, DateTime.to_unix(timestamp, :second))
-          |> Tornex.SpecQuery.put_parameter(:sort, "asc")
+          |> Tornex.SpecQuery.put_parameter!(:from, DateTime.to_unix(timestamp, :second))
+          |> Tornex.SpecQuery.put_parameter!(:sort, "asc")
 
         nil ->
           query
@@ -134,6 +130,6 @@ defmodule Tornium.Workers.ArmoryNewsUpdateScheduler do
 
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
-    :timer.minutes(1)
+    :timer.minutes(5)
   end
 end

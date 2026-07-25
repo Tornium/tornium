@@ -45,7 +45,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import logging
 import typing
 
 from authlib.integrations.flask_oauth2 import ResourceProtector as _ResourceProtector
@@ -61,14 +60,13 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_basic", "client_secret_post", "none"]
 
     def save_authorization_code(self, code, request):
-        client = request.client
-        code_challenge = request.data.get("code_challenge")
-        code_challenge_method = request.data.get("code_challenge_method")
+        code_challenge = request.payload.data.get("code_challenge")
+        code_challenge_method = request.payload.data.get("code_challenge_method")
         auth_code = OAuthAuthorizationCode.insert(
             code=code,
-            client_id=client.client_id,
-            redirect_uri=request.redirect_uri,
-            scope=request.scope or "",
+            client_id=request.payload.client_id,
+            redirect_uri=request.payload.redirect_uri,
+            scope=request.payload.scope or "",
             user=request.user.tid,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
@@ -81,6 +79,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def query_authorization_code(self, code, client):
         item = (
             OAuthAuthorizationCode.select()
+            .join(User)
             .where((OAuthAuthorizationCode.code == code) & (OAuthAuthorizationCode.client_id == client.client_id))
             .first()
         )
@@ -144,7 +143,6 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             scope=scope,
             include_refresh_token=client.check_grant_type("refresh_token"),
         )
-        logging.getLogger(__name__).debug("Issue token %r to %r", token, client)
 
         saved_token = self.save_token(token)
         authorization_code.mark_created(saved_token)

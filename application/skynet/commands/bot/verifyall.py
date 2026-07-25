@@ -14,13 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import time
 
 from peewee import DoesNotExist
-from tornium_celery.tasks.guild import verify_users
-from tornium_commons import rds
-from tornium_commons.formatters import find_list
-from tornium_commons.models import Server
+from tornium_commons.models import ObanJob, Server
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_INFO
 
 from skynet.decorators import invoker_required
@@ -45,7 +41,18 @@ def verify_all(interaction, *args, **kwargs):
         }
 
     try:
-        guild: Server = Server.get_by_id(interaction["guild_id"])
+        guild: Server = (
+            Server.select(
+                Server.sid,
+                Server.admins,
+                Server.verify_template,
+                Server.verified_roles,
+                Server.faction_verify,
+                Server.verify_enabled,
+            )
+            .where(Server.sid == interaction["guild_id"])
+            .get()
+        )
     except DoesNotExist:
         return {
             "type": 4,
@@ -105,18 +112,7 @@ def verify_all(interaction, *args, **kwargs):
             },
         }
 
-    if "options" in interaction["data"]:
-        force = find_list(interaction["data"]["options"], "name", "force")
-
-        if force is None:
-            force = False
-        else:
-            force = force["value"]
-    else:
-        force = False
-
     admin_keys = get_admin_keys(interaction, all_keys=True)
-    redis_client = rds()
 
     if len(admin_keys) == 0:
         return {
@@ -133,26 +129,15 @@ def verify_all(interaction, *args, **kwargs):
                 "flags": 64,
             },
         }
-    if redis_client.exists(f"tornium:verify:{guild.sid}:lock"):
-        ttl = redis_client.ttl(f"tornium:verify:{guild.sid}:lock")
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Too Many Requests",
-                        "description": f"Server-wide verification can be run every ten minutes. Please try again <t:{int(time.time()) + ttl}:R>.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
 
-    task = verify_users.delay(
-        guild_id=guild.sid,
-        admin_keys=admin_keys,
-        force=force,
+    verification_job: ObanJob = ObanJob.new(
+        worker="Tornium.Workers.GuildVerification",
+        queue="guild_processing",
+        args={
+            "guild_id": guild.sid,
+            "after": 0,
+        },
+        tags=["guild"],
     )
 
     return {
@@ -165,7 +150,7 @@ def verify_all(interaction, *args, **kwargs):
                     "by the Torn API, the Discord API, and Tornium. If a log channel is enabled, details will be sent "
                     "to it as verification proceeds.",
                     "color": SKYNET_INFO,
-                    "footer": {"text": f"Task ID: {task.id}"},
+                    "footer": {"text": f"Task ID: #{verification_job.id}"},
                     "timestamp": datetime.datetime.utcnow().isoformat(),
                 }
             ]

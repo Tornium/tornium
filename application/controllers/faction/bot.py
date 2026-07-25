@@ -26,7 +26,10 @@ from controllers.faction.decorators import aa_required, fac_required
 def bot(*args, **kwargs):
     guild_id = current_user.faction.guild_id
 
-    if request.method == "POST" and request.form.get("guildid") is not None:
+    if request.method == "POST" and request.form.get("guildid") == "":
+        Faction.update(guild=None).where(Faction.tid == current_user.faction_id).execute()
+        guild_id = None
+    elif request.method == "POST" and request.form.get("guildid") is not None:
         try:
             guild_id = int(request.form["guildid"])
         except (KeyError, ValueError, TypeError):

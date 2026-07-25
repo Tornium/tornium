@@ -14,29 +14,42 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.User do
+  @moduledoc """
+  Schema representing a Torn user.
+
+  ## Fields
+  - `:fedded_until` - The date the user is fedded until if not `nil`. If the date is 9999-12-31,
+    the user is fedded forever. This includes fallen users who should have the date of 9999-12-31
+  """
+
   use Ecto.Schema
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
-          tid: integer(),
-          name: String.t(),
-          level: integer(),
-          discord_id: integer(),
-          battlescore: float(),
-          strength: integer(),
-          defense: integer(),
-          speed: integer(),
-          dexterity: integer(),
-          faction: Tornium.Schema.Faction.t(),
+          tid: pos_integer(),
+          name: String.t() | nil,
+          level: 0..100 | nil,
+          discord_id: non_neg_integer() | nil,
+          battlescore: float() | nil,
+          strength: pos_integer() | nil,
+          defense: pos_integer() | nil,
+          speed: pos_integer() | nil,
+          dexterity: pos_integer() | nil,
+          faction_id: pos_integer() | nil,
+          faction: Tornium.Schema.Faction.t() | nil,
           faction_aa: boolean(),
-          faction_position: Tornium.Schema.FactionPosition.t(),
-          status: String.t(),
-          last_action: DateTime.t(),
-          last_refresh: DateTime.t(),
-          last_attacks: DateTime.t(),
-          battlescore_update: DateTime.t(),
-          security: integer(),
-          otp_secret: String.t(),
+          faction_position_id: Ecto.UUID.t() | nil,
+          faction_position: Tornium.Schema.FactionPosition.t() | nil,
+          status: String.t() | nil,
+          last_action: DateTime.t() | nil,
+          fedded_until: Date.t() | nil,
+          last_refresh: DateTime.t() | nil,
+          last_attacks: DateTime.t() | nil,
+          battlescore_update: DateTime.t() | nil,
+          security: 0..1 | nil,
+          otp_secret: String.t() | nil,
           otp_backups: [String.t()],
+          settings_id: Ecto.UUID.t() | nil,
           settings: Tornium.Schema.UserSettings.t() | nil
         }
 
@@ -54,20 +67,190 @@ defmodule Tornium.Schema.User do
     field(:dexterity, :integer)
 
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
-    field(:faction_aa, :boolean)
+    field(:faction_aa, :boolean, default: false)
     belongs_to(:faction_position, Tornium.Schema.FactionPosition, references: :pid, type: :binary_id)
 
     field(:status, :string)
     field(:last_action, :utc_datetime)
+    field(:fedded_until, :date)
 
     field(:last_refresh, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)
     field(:battlescore_update, :utc_datetime_usec)
 
+    # TODO: Convert `:security` into an Ecto Enum
     field(:security, :integer)
     field(:otp_secret, :string)
-    field(:otp_backups, {:array, :string})
+    field(:otp_backups, {:array, :string}, default: [])
 
     belongs_to(:settings, Tornium.Schema.UserSettings, references: :guid, type: :binary_id)
+  end
+
+  @type ensure_exists_user :: {user_id :: pos_integer(), user_name :: String.t() | nil}
+
+  @doc """
+  Bulk upsert users' IDs and names to ensure that exist in the database.
+
+  This is to prevent failures in other inserts/upserts that depend upon the user table as a foreign key.
+  **NOTE**: Do not rely upon this function to update user names.
+  """
+  @spec ensure_exists(users :: [ensure_exists_user()]) :: :ok
+  def ensure_exists(users) when is_list(users) do
+    mapped_users =
+      users
+      |> Enum.reject(fn {user_id, _user_name} -> is_nil(user_id) end)
+      |> Enum.uniq_by(fn {user_id, _user_name} when is_integer(user_id) -> user_id end)
+      |> Enum.map(fn {user_id, user_name} when is_integer(user_id) and (is_binary(user_name) or is_nil(user_name)) ->
+        %{tid: user_id, name: user_name}
+      end)
+
+    Repo.insert_all(
+      __MODULE__,
+      mapped_users,
+      on_conflict: :nothing,
+      conflict_target: :tid
+    )
+
+    :ok
+  end
+
+  @spec map_faction_member(
+          member_data :: Torngen.Client.Schema.FactionMember.t(),
+          positions :: [Tornium.Schema.FactionPosition.t()],
+          faction_id: pos_integer()
+        ) :: t()
+  def map_faction_member(
+        %Torngen.Client.Schema.FactionMember{
+          id: id,
+          name: name,
+          level: level,
+          position: position_name,
+          status: status_data,
+          last_action: %Torngen.Client.Schema.UserLastAction{
+            timestamp: last_action_timestamp,
+            status: last_action_status
+          }
+        } = _member_data,
+        positions,
+        faction_id
+      ) do
+    # Since the position returned by the API is the name of the position, we need to find the ID of the
+    # faction position from the name.
+    {position_id, position_aa} =
+      case Enum.find(positions, &(&1.name == position_name)) do
+        %Tornium.Schema.FactionPosition{pid: pid, permissions: permissions} ->
+          {pid, Enum.member?(permissions, "Faction API Access")}
+
+        _ ->
+          {nil, false}
+      end
+
+    %__MODULE__{
+      tid: id,
+      name: name,
+      level: level,
+      faction_id: faction_id,
+      faction_aa: position_aa,
+      faction_position_id: position_id,
+      status: last_action_status,
+      last_action: DateTime.from_unix!(last_action_timestamp, :second),
+      fedded_until: Tornium.User.fedded_until(status_data),
+      last_refresh: DateTime.utc_now()
+    }
+  end
+
+  @doc """
+  Convert the API data into user struct.
+
+  ## Options
+    * `:discord_data` - user's Discord data from `user/discord` (default: `nil`)
+    * `:stats_data` - user's battlestats data from `user/battlestats` (default: `nil`)
+  """
+  @spec from_data(profile_data :: Torngen.Client.Schema.UserProfileResponse.t(), opts :: keyword()) :: t()
+  def from_data(
+        %Torngen.Client.Schema.UserProfileResponse{
+          profile: %{
+            id: user_id,
+            name: name,
+            level: level,
+            faction_id: faction_id,
+            status: status_data,
+            last_action: %Torngen.Client.Schema.UserLastAction{
+              timestamp: last_action_timestamp,
+              status: last_action_status
+            }
+          }
+        } = _profile_data,
+        opts \\ []
+      ) do
+    discord_data = Keyword.get(opts, :discord_data, nil)
+    stats_data = Keyword.get(opts, :stats_data, nil)
+
+    %__MODULE__{
+      tid: user_id,
+      name: name,
+      level: level,
+      faction_id: faction_id,
+      status: last_action_status,
+      last_action: DateTime.from_unix!(last_action_timestamp, :second),
+      fedded_until: Tornium.User.fedded_until(status_data),
+      last_refresh: DateTime.utc_now()
+    }
+    |> from_discord_data(discord_data)
+    |> from_stats_data(stats_data)
+  end
+
+  @spec from_discord_data(user :: t(), discord_data :: Torngen.Client.Schema.UserDiscordResponse.t() | nil) :: t()
+  defp from_discord_data(%__MODULE__{} = user, discord_data) when is_nil(discord_data) do
+    user
+  end
+
+  defp from_discord_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserDiscordResponse{discord: %{discord_id: discord_id}} = _discord_data
+       )
+       when discord_id == "" do
+    # When the Torn API returns an empty string for the Discord ID, that represents a null value for
+    # the Discord ID.
+    %{user | discord_id: nil}
+  end
+
+  defp from_discord_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserDiscordResponse{discord: %{discord_id: discord_id}} = _discord_data
+       )
+       when is_binary(discord_id) do
+    # When the Torn API returns an empty string for the Discord ID, that represents a null value for
+    # the Discord ID.
+    %{user | discord_id: String.to_integer(discord_id)}
+  end
+
+  @spec from_stats_data(user :: t(), stats_data :: Torngen.Client.Schema.UserBattleStatsResponse.t() | nil) :: t()
+  defp from_stats_data(%__MODULE__{} = user, stats_data) when is_nil(stats_data) do
+    user
+  end
+
+  defp from_stats_data(
+         %__MODULE__{} = user,
+         %Torngen.Client.Schema.UserBattleStatsResponse{
+           battlestats: %{
+             strength: %Torngen.Client.Schema.UserBattleStatDetail{value: strength},
+             defense: %Torngen.Client.Schema.UserBattleStatDetail{value: defense},
+             speed: %Torngen.Client.Schema.UserBattleStatDetail{value: speed},
+             dexterity: %Torngen.Client.Schema.UserBattleStatDetail{value: dexterity}
+           }
+         } = _stats_data
+       ) do
+    stat_score = :math.sqrt(strength) + :math.sqrt(defense) + :math.sqrt(speed) + :math.sqrt(dexterity)
+
+    %{
+      user
+      | strength: strength,
+        defense: defense,
+        speed: speed,
+        dexterity: dexterity,
+        battlescore: stat_score,
+        battlescore_update: DateTime.utc_now()
+    }
   end
 end

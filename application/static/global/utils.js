@@ -135,3 +135,9 @@ function parseStringArray(inputString) {
 
     return result;
 }
+
+function tomselectClearAfterAdd(value, item) {
+    // Source: https://github.com/orchidjs/tom-select/discussions/38
+    this.setTextboxValue("");
+    this.refreshOptions();
+}

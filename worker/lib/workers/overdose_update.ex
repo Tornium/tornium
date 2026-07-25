@@ -30,20 +30,15 @@ defmodule Tornium.Workers.OverdoseUpdate do
     max_attempts: 3,
     priority: 0,
     queue: :faction_processing,
-    tags: ["faction"],
-    unique: [
-      period: :infinity,
-      fields: [:worker, :args],
-      keys: [:api_call_id],
-      states: :incomplete
-    ]
+    tags: ["faction"]
 
   @impl Oban.Worker
   def perform(
         %Oban.Job{
           args: %{
             "api_call_id" => api_call_id,
-            "faction_id" => faction_id
+            "faction_id" => faction_id,
+            "user_id" => user_id
           }
         } = _job
       ) do
@@ -58,6 +53,17 @@ defmodule Tornium.Workers.OverdoseUpdate do
         # This uses :error instead of :snooze to allow for an easy cap on the number of retries
         {:error, :not_ready}
 
+      %{"error" => %{"code" => 7}} ->
+        Tornium.Schema.User
+        |> update([u], set: [faction_aa: false])
+        |> where([u], u.tid == ^user_id)
+        |> Repo.update_all([])
+
+        :ok
+
+      %{"error" => %{"code" => error_code}} when is_integer(error_code) ->
+        {:cancel, {:api_error, error_code}}
+
       %{} = result ->
         %{
           Torngen.Client.Path.Faction.Contributors => %{
@@ -68,7 +74,7 @@ defmodule Tornium.Workers.OverdoseUpdate do
         } =
           Tornex.SpecQuery.new()
           |> Tornex.SpecQuery.put_path(Torngen.Client.Path.Faction.Contributors)
-          |> Tornex.SpecQuery.put_parameter(:stat, "drugoverdoses")
+          |> Tornex.SpecQuery.put_parameter!(:stat, "drugoverdoses")
           |> Tornex.SpecQuery.parse(result)
 
         overdose_last_updated =
@@ -86,10 +92,18 @@ defmodule Tornium.Workers.OverdoseUpdate do
           |> Enum.map(fn %Tornium.Schema.OverdoseCount{user_id: user_id, count: count} -> {user_id, count} end)
           |> Map.new()
 
+        overdose_counts = Tornium.Faction.Overdose.map_counts(overdose_data, faction_id)
+
+        overdose_counts
+        |> Enum.map(fn %{user_id: user_id} -> user_id end)
+        |> Enum.uniq()
+        |> Enum.map(fn user_id -> {user_id, nil} end)
+        |> Tornium.Schema.User.ensure_exists()
+
         {_, overdosed_members} =
           Repo.insert_all(
             Tornium.Schema.OverdoseCount,
-            Tornium.Faction.Overdose.map_counts(overdose_data, faction_id),
+            overdose_counts,
             on_conflict: {:replace, [:count, :updated_at]},
             conflict_target: [:user_id, :faction_id],
             returning: true

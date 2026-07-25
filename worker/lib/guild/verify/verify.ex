@@ -14,61 +14,112 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify do
+  @moduledoc """
+  Module to process the verification of users according to a server's configuration and 
+  the user's current roles and nick, the user's Torn/Discord ID, and the user's Torn
+  data.
+  """
+
   alias Tornium.Repo
   import Ecto.Query
-  require Logger
 
   # TODO: Comment the private methods
-  # TODO: Combine some of the types with pre-defined types
+
+  @typedoc """
+  The state of the verification process after resolving the `MapSet` of roles into a list.
+  """
+  @type resolved_state() :: %{roles: [Tornium.Discord.role()], nick: String.t()}
+
+  @type verification_errors() ::
+          Nostrum.Error.ApiError.t()
+          | Tornium.API.Error.t()
+          | :unverified
+          | :nochanges
+          | :api_key
+          | :exclusion_role
+          | {:config, String.t()}
+
+  @type verification_error() :: {:error, verification_errors(), Tornium.Schema.Server.t() | nil}
+
+  @type verification_result() ::
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()} | verification_error()
 
   @doc """
-  Handle verification of a user in a server
+  Verify a Discord member of a Discord server.
 
   ## Parameters
-    - guild: ID of the guild the user should be verified for
+    - guild: The guild (or guild ID) the user should be verified for
     - member: Nostrum struct of the Discord member of the user
+
+  ## Options
+    * `:force?` - Force an update of the user's API data (default: `false`)
+    * `:niceness` - Priority of the Tornex API call (default: `10`)
 
   ## Returns
     - OK with the updated member struct
     - Error with the error reason
   """
-  @spec handle(guild :: integer() | Tornium.Schema.Server.t(), member :: Nostrum.Struct.Guild.Member.t()) ::
-          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
-          | {:error,
-             Nostrum.Error.ApiError
-             | Tornium.API.Error
-             | :unverified
-             | :nochanges
-             | :api_key
-             | :exclusion_role
-             | {:config, String.t()}, Tornium.Schema.Server.t()}
-  def handle(guild, %Nostrum.Struct.Guild.Member{} = member) when is_integer(guild) do
+  @spec verify(
+          guild :: pos_integer() | Tornium.Schema.Server.t(),
+          member :: Nostrum.Struct.Guild.Member.t(),
+          opts :: keyword()
+        ) :: verification_result()
+  def verify(guild, member, opts \\ [])
+
+  def verify(guild, %Nostrum.Struct.Guild.Member{} = member, opts) when is_integer(guild) do
     Tornium.Schema.Server
     |> Repo.get(guild)
-    |> handle(member)
+    |> verify(member, opts)
   end
 
-  def handle({:error, error}, _member) do
+  def verify({:error, error}, _member, _opts) do
     # Error passthrough from possible validation of server configuration
-    {:error, error}
+    {:error, error, nil}
   end
 
-  def handle(guild, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(guild) do
+  def verify(guild, %Nostrum.Struct.Guild.Member{} = _member, _opts) when is_nil(guild) do
     {:error, {:config, "invalid guild ID"}, nil}
   end
 
-  def handle(%Tornium.Schema.Server{} = guild, %Nostrum.Struct.Guild.Member{} = member) do
-    if MapSet.size(MapSet.intersection(MapSet.new(member.roles), MapSet.new(guild.exclusion_roles))) > 0 do
-      # Member has at least one exclusion role and should be skipped
+  def verify(
+        %Tornium.Schema.Server{exclusion_roles: exclusion_roles} = guild,
+        %Nostrum.Struct.Guild.Member{} = member,
+        opts
+      ) do
+    if has_exclusion_role?(member, exclusion_roles) do
       {:error, :exclusion_role, guild}
     else
       api_key = Tornium.Guild.get_random_admin_key(guild)
 
-      case handle_guild(guild, api_key, member) do
+      case handle_guild(guild, api_key, member, opts) do
         {:ok, %Nostrum.Struct.Guild.Member{} = member} -> {:ok, member, guild}
         {:error, error} -> {:error, error, guild}
       end
     end
+    |> log(member)
+  end
+
+  @doc """
+  Check if a member has at least one exclusion role.
+
+  When a member has at least one Discord role overlapping between their Discord roles
+  and the server's configured list of exclusion roles, the member should be excluded
+  from verification.
+  """
+  @spec has_exclusion_role?(
+          member :: Nostrum.Struct.Guild.Member.t(),
+          exclusion_roles :: [Tornium.Discord.role()]
+        ) :: boolean()
+  def has_exclusion_role?(%Nostrum.Struct.Guild.Member{} = _member, [] = _exclusion_roles) do
+    # We can short-circuit the exclusion role check when there are no exlcusion roles setup.
+
+    false
+  end
+
+  def has_exclusion_role?(%Nostrum.Struct.Guild.Member{roles: member_roles} = _member, exclusion_roles)
+      when is_list(exclusion_roles) do
+    # TEST: Add test for this (probably a doctest)
+    MapSet.size(MapSet.intersection(MapSet.new(member_roles), MapSet.new(exclusion_roles))) != 0
   end
 
   defp validate_on_join(%Tornium.Schema.Server{gateway_verify_enabled: false} = _guild) do
@@ -95,62 +146,64 @@ defmodule Tornium.Guild.Verify do
     - Error with the error reason
   """
   @spec handle_on_join(guild_id :: integer(), member :: Nostrum.Struct.Guild.Member.t()) ::
-          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
-          | {:error,
-             Nostrum.Error.ApiError
-             | Tornium.API.Error
-             | :unverified
-             | :nochanges
-             | :api_key
-             | :exclusion_role
-             | {:config, String.t()}, Tornium.Schema.Server.t()}
+          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()} | verification_error()
   def handle_on_join(guild_id, member) when is_integer(guild_id) do
     Repo.get(Tornium.Schema.Server, guild_id)
     |> validate_on_join()
-    |> handle(member)
+    |> verify(member, force?: true, niceness: -10)
   end
 
   # TODO: Rename handle_guild to be more descriptive
   @spec handle_guild(
           guild :: Tornium.Schema.Server.t(),
           api_key :: Tornium.Schema.TornKey | nil,
-          member :: Nostrum.Struct.Guild.Member.t()
-        ) ::
-          {:ok, Nostrum.Struct.Guild.Member.t()}
-          | {:error,
-             Nostrum.Error.ApiError.t()
-             | Tornium.API.Error.t()
-             | :unverified
-             | :nochanges
-             | :api_key
-             | {:config, String.t()}}
-  defp handle_guild(_guild, api_key, %Nostrum.Struct.Guild.Member{} = _member) when is_nil(api_key) do
+          member :: Nostrum.Struct.Guild.Member.t(),
+          opts :: keyword()
+        ) :: {:ok, Nostrum.Struct.Guild.Member.t()} | {:error, verification_errors()}
+  defp handle_guild(guild, api_key, member, opts \\ [])
+
+  defp handle_guild(_guild, api_key, %Nostrum.Struct.Guild.Member{} = _member, _opts) when is_nil(api_key) do
     {:error, :api_key}
   end
 
   defp handle_guild(
          %Tornium.Schema.Server{} = guild,
          %Tornium.Schema.TornKey{} = api_key,
-         %Nostrum.Struct.Guild.Member{} = member
+         %Nostrum.Struct.Guild.Member{user_id: member_id} = member,
+         opts
        ) do
     case Tornium.Guild.Verify.Config.validate(guild) do
       {:error, reason} when is_binary(reason) ->
         {:error, {:config, String.downcase(reason)}}
 
       %Tornium.Guild.Verify.Config{} = config ->
-        Tornium.User.update_user({:key, api_key}, {:discord_id, member.user_id}, true, 0)
+        Tornium.User.update_by_id({:discord, member_id}, api_key,
+          force: Keyword.get(opts, :force?, false),
+          niceness: Keyword.get(opts, :niceness, 10)
+        )
         |> build_changes(config, member)
         |> perform_changes(guild, member)
     end
   end
 
-  @spec validate_changes_made(new_roles_nick :: map(), original_roles :: List, original_nick :: String) ::
-          map() | :nochanges
-  defp validate_changes_made(%{roles: roles, nick: nick} = _new_roles_nick, original_roles, original_nick) do
+  @spec validate_changes_made(
+          new_roles_nick :: Tornium.Guild.Verify.Logic.state(),
+          original_roles :: [Tornium.Discord.role()],
+          original_nick :: String.t() | nil
+        ) ::
+          resolved_state() | :nochanges
+  defp validate_changes_made(%{roles: roles, nick: nick} = new_roles_nick, original_roles, original_nick)
+       when is_list(original_roles) do
     patched_map =
-      %{roles: MapSet.to_list(roles), nick: nick}
-      |> then(fn patched_map -> if roles == original_roles, do: Map.delete(patched_map, :roles), else: patched_map end)
-      |> then(fn patched_map -> if nick == original_nick, do: Map.delete(patched_map, :nick), else: patched_map end)
+      new_roles_nick
+      |> then(fn patched_map ->
+        if roles == MapSet.new(original_roles),
+          do: Map.delete(patched_map, :roles),
+          else: Map.put(patched_map, :roles, MapSet.to_list(roles))
+      end)
+      |> then(fn patched_map ->
+        if nick == original_nick, do: Map.delete(patched_map, :nick), else: patched_map
+      end)
 
     if Kernel.map_size(patched_map) == 0 do
       :nochanges
@@ -159,21 +212,36 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
+  @doc """
+  Create a minimal map of the roles and the nickname for the Discord member.
+
+  To reduce the number of Discord API calls, this will try to minimize the changeset to nothing
+  if the roles and/or nickname the member should be updated to are the same as the current values.
+
+  If the member is verified, this will remove the unverified role if applicable, will remove
+  roles that should not be on the user (e.g. a role corresponding to some other faction), and
+  will add the roles corresponding to their verification status, faction, and faction position.
+
+  If the member is not verified (or, in general, if the member can not be found in the database),
+  the member will be stripped of all roles corresponding to in-game aspects and their verified
+  roles, and the member will given the unverified roles.
+  """
   @spec build_changes(
           {:ok, boolean()} | {:error, Tornium.API.Error.t()},
           config :: Tornium.Guild.Verify.Config.t(),
           member :: Nostrum.Struct.Guild.Member.t()
-        ) :: {:verified, map()} | Tornium.API.Error.t() | {:unverified, map()} | :nochanges
-  defp build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
-         roles: roles,
-         nick: nick,
-         user_id: discord_id
-       }) do
+        ) :: {:verified, resolved_state() | :nochanges} | Tornium.API.Error.t() | {:unverified, resolved_state()}
+  def build_changes({:ok, _}, config, %Nostrum.Struct.Guild.Member{
+        roles: roles,
+        nick: nick,
+        user_id: discord_id
+      }) do
     user =
       Tornium.Schema.User
       |> join(:left, [u], f in assoc(u, :faction), on: f.tid == u.faction_id)
       |> where([u, f], u.discord_id == ^discord_id)
       |> preload([u, f], faction: f)
+      |> first()
       |> Repo.one()
 
     case user do
@@ -204,15 +272,15 @@ defmodule Tornium.Guild.Verify do
     end
   end
 
-  defp build_changes(
-         {:error, %Tornium.API.Error{code: code} = _error},
-         %Tornium.Guild.Verify.Config{} = config,
-         %Nostrum.Struct.Guild.Member{
-           roles: roles,
-           nick: nick
-         }
-       )
-       when code == 6 do
+  def build_changes(
+        {:error, %Tornium.API.Error{code: code} = _error},
+        %Tornium.Guild.Verify.Config{} = config,
+        %Nostrum.Struct.Guild.Member{
+          roles: roles,
+          nick: nick
+        }
+      )
+      when code == 6 do
     changes =
       %{roles: MapSet.new(roles), nick: nick}
       |> Tornium.Guild.Verify.Logic.remove_invalid_verified_roles(config, nil)
@@ -224,40 +292,238 @@ defmodule Tornium.Guild.Verify do
     {:unverified, changes}
   end
 
-  defp build_changes({:error, %Tornium.API.Error{} = error}, _config, _member) do
+  def build_changes({:error, %Tornium.API.Error{} = error}, _config, _member) do
     error
   end
 
+  @doc false
   @spec perform_changes(
-          changeset :: {:verified, map()} | {:unverified, map()} | :nochanges | Tornium.API.Error.t(),
+          changeset ::
+            {:verified, resolved_state() | :nochanges} | {:unverified, resolved_state()} | Tornium.API.Error.t(),
           guild :: Tornium.Schema.Server.t(),
           member :: Nostrum.Struct.Guild.Member.t()
         ) ::
           {:ok, Nostrum.Struct.Guild.Member.t()}
           | {:error, Nostrum.Error.ApiError.t() | Tornium.API.Error.t() | :unverified | :nochanges}
-  defp perform_changes(
-         {:unverified, %{roles: roles, nick: nick}} = _changeset,
-         %Tornium.Schema.Server{sid: guild_id} = _guild,
-         %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       )
-       when is_list(roles) do
+  def perform_changes(
+        {:unverified, %{roles: roles, nick: nick}} = _changeset,
+        %Tornium.Schema.Server{sid: guild_id} = _guild,
+        %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
+      )
+      when is_list(roles) do
     Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
     {:error, :unverified}
   end
 
-  defp perform_changes(:nochanges, _guild, _member) do
-    {:error, :nochanges}
-  end
-
-  defp perform_changes(%Tornium.API.Error{} = error, _guild, _member) do
+  def perform_changes(%Tornium.API.Error{} = error, _guild, _member) do
     {:error, error}
   end
 
-  defp perform_changes(
-         {:verified, %{roles: roles, nick: nick} = _changeset},
-         %Tornium.Schema.Server{sid: guild_id} = _guild,
-         %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
-       ) do
-    Nostrum.Api.Guild.modify_member(guild_id, member_id, %{nick: nick, roles: roles})
+  def perform_changes({:verified, :nochanges}, _guild, _member) do
+    {:error, :nochanges}
+  end
+
+  def perform_changes(
+        {:verified, changeset},
+        %Tornium.Schema.Server{sid: guild_id} = _guild,
+        %Nostrum.Struct.Guild.Member{user_id: member_id} = _member
+      )
+      when is_map(changeset) do
+    Nostrum.Api.Guild.modify_member(guild_id, member_id, changeset)
+  end
+
+  @doc false
+  @spec log(verification_result :: verification_result(), original_member :: Nostrum.Struct.Guild.Member.t()) ::
+          verification_result()
+  def log(
+        {:ok, %Nostrum.Struct.Guild.Member{nick: new_nickname, roles: new_roles} = _current_member,
+         %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id, nick: old_nickname, roles: old_roles} = _original_member
+      )
+      when old_nickname != new_nickname or old_roles != new_roles do
+    roles_removed = old_roles -- new_roles
+    roles_added = new_roles -- old_roles
+    nickname_changed? = old_nickname != new_nickname
+
+    if roles_removed != [] or roles_added != [] or nickname_changed? do
+      # TODO: Use the same user ID as found earlier when building the changeset. However, currently
+      # the code is not set up well to get that user ID out of the changeset's functions. This
+      # would also need to be done for all the below log/2 functions.
+      user_id =
+        Tornium.Schema.User
+        |> select([u], u.tid)
+        |> where([u], u.discord_id == ^discord_id)
+        |> Repo.one()
+
+      :telemetry.execute([:tornium, :guild, :verify, :success], %{}, %{
+        guild_id: guild_id,
+        user_id: user_id,
+        discord_id: discord_id,
+        old_nickname: if(nickname_changed?, do: old_nickname, else: nil),
+        new_nickname: if(nickname_changed?, do: new_nickname, else: nil),
+        added_roles: roles_added,
+        removed_roles: roles_removed
+      })
+    end
+
+    verification_result
+  end
+
+  def log(
+        {:error, %Nostrum.Error.ApiError{response: %{code: error_code}} = _error,
+         %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      )
+      when error_code in [50_013] do
+    # TODO: Add other error codes about Discord preventing member verification
+
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    # We don't want to log Discord's error messages as the basic message can be found in the
+    # docs and the more in-depth message would likely use too much of the database's space.
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :discord_permission,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
+        {:error, %Nostrum.Error.ApiError{response: %{code: error_code}} = _error,
+         %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    # We don't want to log Discord's error messages as the basic message can be found in the
+    # docs and the more in-depth message would likely use too much of the database's space.
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :discord_api,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
+        {:error, %Tornium.API.Error{code: error_code} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+          verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :torn_api,
+      error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
+        {:error, :unverified = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :unverified,
+      error_code: nil,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  # We don't care about logging the :nochanges error as it's not significant for the most part and would
+  # result in a lot of spammy logs.
+
+  def log(
+        {:error, :api_key = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} = verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :no_api_key,
+      error_code: nil,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  # We don't care about logging the :exclusion_role error as it's purposefully done and would result in 
+  # a lot of spammy logs.
+
+  def log(
+        {:error, {:config, config_error_message} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+          verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :config,
+      error_code: nil,
+      error_message: config_error_message
+    })
+
+    verification_result
+  end
+
+  def log(
+        verification_result,
+        %Nostrum.Struct.Guild.Member{} = _original_member
+      ) do
+    # Passthrough for errors that we don't want to handle/log, errors that haven't been
+    # properly handled above, and users that haven't been modified
+    verification_result
   end
 end

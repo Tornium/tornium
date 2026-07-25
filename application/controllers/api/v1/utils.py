@@ -113,13 +113,13 @@ API_EXCEPTIONS = {
         "code": 1106,
         "name": "UnknownOrganizedCrimeTeam",
         "http": 404,
-        "messsage": "Server failed to located the requested organized crime team.",
+        "messsage": "[DEPRECATED] Server failed to located the requested organized crime team.",
     },
     "1107": {
         "code": 1107,
         "name": "UnknownOrganizedCrimeTeamMember",
         "http": 404,
-        "message": "Server failed to locate the requested organized crime team member.",
+        "message": "[DEPRECATED] Server failed to locate the requested organized crime team member.",
     },
     "1200": {
         "code": 1200,
@@ -205,6 +205,12 @@ API_EXCEPTIONS = {
         "http": 403,
         "message": "The provided authentication code was not sufficient for a MC level request.",
     },
+    "4007": {
+        "code": 4007,
+        "name": "InsufficientFactionPermissions",
+        "http": 403,
+        "message": "The provided authentication code was not sufficient for a banker level request.",
+    },
     "4010": {
         "code": 4010,
         "name": "EndpointNotFound",
@@ -216,6 +222,12 @@ API_EXCEPTIONS = {
         "name": "InvalidMethod",
         "http": 405,
         "message": "The requested endpoint does not support this HTTP method.",
+    },
+    "4012": {
+        "code": 4012,
+        "name": "InvalidContentType",
+        "http": 406,
+        "message": "The requested endpoint does not support the requested MIME type provided in the Accept header.",
     },
     "4020": {
         "code": 4020,
@@ -349,3 +361,28 @@ def make_exception_response(
             exception["http"],
             api_ratelimit_response(ratelimit_key, redis_client),
         )
+
+
+def get_list(data: dict, key: str, callable_type: typing.Callable | None) -> list:
+    """
+    Get a list of elements from a key in a dictionary. If a callable type is included, the values will be converted using that type.
+
+    Based upon https://github.com/pallets/werkzeug/blob/7d67f88e6c8ed49ab205e2b6b208aede8b9b27d7/src/werkzeug/datastructures/headers.py#L164
+    """
+
+    if data.get(key) is None or len(data.get(key)) == 0:
+        return []
+
+    result = [value_part for value_part in data.get(key, "").split(",")]
+
+    if callable_type is None:
+        return result
+
+    typed_result = []
+    for value_part in result:
+        try:
+            typed_result.append(callable_type(value_part))
+        except (TypeError, ValueError):
+            continue
+
+    return typed_result

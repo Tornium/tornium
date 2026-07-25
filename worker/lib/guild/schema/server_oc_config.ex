@@ -38,19 +38,7 @@ defmodule Tornium.Schema.ServerOCConfig do
           extra_range_roles: [Tornium.Discord.role_assignable()],
           extra_range_global_min: integer(),
           extra_range_global_max: integer(),
-          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()],
-          team_spawn_required_channel: integer() | nil,
-          team_spawn_required_roles: [Tornium.Discord.role()],
-          team_member_join_required_channel: integer() | nil,
-          team_member_join_required_roles: [Tornium.Discord.role_assignable()],
-          team_member_incorrect_crime_channel: integer() | nil,
-          team_member_incorrect_crime_roles: [Tornium.Discord.role_assignable()],
-          team_incorrect_member_channel: integer() | nil,
-          team_incorrect_member_roles: [Tornium.Discord.role_assignable()],
-          team_member_incorrect_slot_channel: integer() | nil,
-          team_member_incorrect_slot_roles: [Tornium.Discord.role_assignable()],
-          assigned_team_channel: integer() | nil,
-          assigned_team_roles: [Tornium.Discord.role()]
+          extra_range_local_configs: [Tornium.Schema.ServerOCRangeConfig.t()]
         }
 
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
@@ -76,24 +64,6 @@ defmodule Tornium.Schema.ServerOCConfig do
     field(:extra_range_global_min, :integer)
     field(:extra_range_global_max, :integer)
     has_many(:extra_range_local_configs, Tornium.Schema.ServerOCRangeConfig, foreign_key: :server_oc_config_id)
-
-    field(:team_spawn_required_channel, :integer)
-    field(:team_spawn_required_roles, {:array, :integer})
-
-    field(:team_member_join_required_channel, :integer)
-    field(:team_member_join_required_roles, {:array, :integer})
-
-    field(:team_member_incorrect_crime_channel, :integer)
-    field(:team_member_incorrect_crime_roles, {:array, :integer})
-
-    field(:team_incorrect_member_channel, :integer)
-    field(:team_incorrect_member_roles, {:array, :integer})
-
-    field(:team_member_incorrect_slot_channel, :integer)
-    field(:team_member_incorrect_slot_roles, {:array, :integer})
-
-    field(:assigned_team_channel, :integer)
-    field(:assigned_team_roles, {:array, :integer})
   end
 
   @doc """
@@ -133,27 +103,40 @@ defmodule Tornium.Schema.ServerOCConfig do
   end
 
   @doc """
-  Returns the success chance (CPR) range as a tuple for an OC by its name.
+  Returns the success chance (CPR) range as a tuple for an OC slot.
 
-  If there exists a local (per-OC name) range, the local range will be used. Otherwise, the global range will be used as a fallback
+  If there exists a local (per-OC slot) range, the local range will be used. Otherwise, the global range will be used as a fallback.
   """
-  @spec chance_range(config :: t(), oc :: Tornium.Schema.OrganizedCrime.t()) :: {integer(), integer()}
+  @spec chance_range(config :: t(), slot :: Tornium.Schema.OrganizedCrimeSlot.t()) :: {integer(), integer()}
   def chance_range(
         %__MODULE__{
+          guid: config_guid,
           extra_range_global_min: global_min,
           extra_range_global_max: global_max,
           extra_range_local_configs: local_configs
         } = _config,
-        %Tornium.Schema.OrganizedCrime{oc_name: oc_name} = _oc
+        %Tornium.Schema.OrganizedCrimeSlot{
+          crime_position: slot_name,
+          crime_position_index: slot_index,
+          oc: %Tornium.Schema.OrganizedCrime{oc_name: oc_name}
+        } = _slot
       ) do
-    config =
-      Enum.find(local_configs, fn %Tornium.Schema.ServerOCRangeConfig{oc_name: config_oc_name} ->
-        String.downcase(oc_name) == String.downcase(config_oc_name)
-      end)
+    # TEST: Test this before merging
+    slot_type = Tornium.Schema.OrganizedCrimeSlotType.get(oc_name, slot_name, slot_index)
 
-    case config do
-      nil -> {global_min, global_max}
-      %Tornium.Schema.ServerOCRangeConfig{minimum: minimum, maximum: maximum} -> {minimum, maximum}
+    local_config =
+      if is_nil(slot_type) do
+        nil
+      else
+        Enum.find(local_configs, &(&1.oc_slot_type_id == slot_type.guid and &1.server_oc_config_id == config_guid))
+      end
+
+    case local_config do
+      nil ->
+        {global_min, global_max}
+
+      %Tornium.Schema.ServerOCRangeConfig{minimum: minimum, maximum: maximum} ->
+        {minimum || global_min, maximum || global_max}
     end
   end
 end

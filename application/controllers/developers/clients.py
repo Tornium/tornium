@@ -90,13 +90,16 @@ def create_client():
         return make_exception_response("1000", details={"message": "Invalid client type"})
 
     if client_type == "authorization-code-grant":
-        grant = "code"
+        grant = ["authorization_code"]
+        response_type = ["code"]
         auth_method = "client_secret_basic"
     elif client_type == "authorization-code-grant-pkce":
-        grant = "code"
+        grant = ["authorization_code"]
+        response_type = ["code"]
         auth_method = "none"
     elif client_type == "device-authorization-grant":
-        grant = "urn:ietf:params:oauth:grant-type:device_code"
+        grant = ["urn:ietf:params:oauth:grant-type:device_code"]
+        response_type = []
         auth_method = "none"
     else:
         return make_exception_response(
@@ -114,9 +117,9 @@ def create_client():
         client_metadata={
             "client_name": client_name,
             "client_uri": "",
-            "grant_types": [grant],
+            "grant_types": grant,
             "redirect_uris": [],
-            "response_types": [],
+            "response_types": response_type,
             "scope": "",
             "token_endpoint_auth_method": auth_method,
             "official": False,
@@ -215,7 +218,7 @@ def update_client(client_id: str):
             "1000", details={"message": "At least one of the provided scopes was not valid."}
         )
     elif isinstance(client_uri, str) and client_uri != "" and not validate_oauth_redirect_uri(client_uri)[0]:
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client URI was not valid as {invalid_reason}"}
         )
@@ -226,7 +229,7 @@ def update_client(client_id: str):
         and client_terms_uri != ""
         and not validate_oauth_redirect_uri(client_terms_uri)[0]
     ):
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_terms_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_terms_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client terms of service URI was not valid as {invalid_reason}"}
         )
@@ -237,7 +240,7 @@ def update_client(client_id: str):
         and client_privacy_uri != ""
         and not validate_oauth_redirect_uri(client_privacy_uri)[0]
     ):
-        (valid_uri, invalid_reason) = validate_oauth_redirect_uri(client_privacy_uri)
+        valid_uri, invalid_reason = validate_oauth_redirect_uri(client_privacy_uri)
         return make_exception_response(
             "1000", details={"message": f"The provided client privacy policy URI was not valid as {invalid_reason}"}
         )

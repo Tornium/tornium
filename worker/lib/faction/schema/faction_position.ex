@@ -14,65 +14,181 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.FactionPosition do
+  @moduledoc """
+  Schema for each of the faction positions of a faction.
+  """
+
   use Ecto.Schema
+  import Ecto.Query
+  alias Tornium.Repo
 
   @type t :: %__MODULE__{
           pid: Ecto.UUID.t(),
           name: String.t(),
-          faction_tid: integer(),
+          faction_id: pos_integer(),
+          faction: Tornium.Schema.Faction.t(),
           default: boolean(),
-          use_medical_item: boolean(),
-          use_booster_item: boolean(),
-          use_drug_item: boolean(),
-          use_energy_refill: boolean(),
-          use_nerve_refill: boolean(),
-          loan_temporary_item: boolean(),
-          loan_weapon_armory: boolean(),
-          retrieve_loaned_armory: boolean(),
-          plan_init_oc: boolean(),
-          access_fac_api: boolean(),
-          give_item: boolean(),
-          give_money: boolean(),
-          give_points: boolean(),
-          manage_forums: boolean(),
-          manage_applications: boolean(),
-          kick_members: boolean(),
-          adjust_balances: boolean(),
-          manage_wars: boolean(),
-          manage_upgrades: boolean(),
-          send_newsletters: boolean(),
-          change_announcement: boolean(),
-          change_description: boolean()
+          permissions: [Torngen.Client.Schema.FactionPositionAbilityEnum.t()]
         }
 
   @primary_key {:pid, Ecto.UUID, autogenerate: true}
   schema "faction_position" do
     field(:name, :string)
-    field(:faction_tid, :integer)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
 
     field(:default, :boolean)
+    field(:permissions, {:array, :string})
+  end
 
-    field(:use_medical_item, :boolean)
-    field(:use_booster_item, :boolean)
-    field(:use_drug_item, :boolean)
-    field(:use_energy_refill, :boolean)
-    field(:use_nerve_refill, :boolean)
-    field(:loan_temporary_item, :boolean)
-    field(:loan_weapon_armory, :boolean)
-    field(:retrieve_loaned_armory, :boolean)
-    field(:plan_init_oc, :boolean)
-    field(:access_fac_api, :boolean)
-    field(:give_item, :boolean)
-    field(:give_money, :boolean)
-    field(:give_points, :boolean)
-    field(:manage_forums, :boolean)
-    field(:manage_applications, :boolean)
-    field(:kick_members, :boolean)
-    field(:adjust_balances, :boolean)
-    field(:manage_wars, :boolean)
-    field(:manage_upgrades, :boolean)
-    field(:send_newsletters, :boolean)
-    field(:change_announcement, :boolean)
-    field(:change_description, :boolean)
+  @doc """
+  Map the faction position data for a specfic position to a `Tornium.Schema.FactionPosition`.
+  """
+  @spec map(position_data :: Torngen.Client.Schema.FactionPosition.t(), faction_id :: pos_integer()) :: t()
+  def map(
+        %Torngen.Client.Schema.FactionPosition{
+          name: position_name,
+          is_default: position_default?,
+          abilities: position_abilities
+        } = _position_data,
+        faction_id
+      )
+      when is_binary(position_name) and is_boolean(position_default?) and is_list(position_abilities) and
+             is_integer(faction_id) do
+    %__MODULE__{
+      pid: Ecto.UUID.generate(),
+      name: position_name,
+      faction_id: faction_id,
+      default: position_default?,
+      permissions: position_abilities
+    }
+  end
+
+  @doc """
+  Upsert faction positions for a faction ID into the database.
+
+  Using the API data from `faction/positions` (in v2), this function will map the API data to
+  `Tornium.Schema.FactionPosition` and upsert the list of faction positions. 
+  """
+  @spec upsert_all(positions :: [t() | Torngen.Client.Schema.FactionPosition.t()], faction_id :: pos_integer()) :: [t()]
+  def upsert_all([%Torngen.Client.Schema.FactionPosition{} | _] = positions, faction_id) when is_integer(faction_id) do
+    positions
+    |> Enum.map(&map(&1, faction_id))
+    |> insert_other_positions(faction_id)
+    |> upsert_all(faction_id)
+  end
+
+  def upsert_all([%__MODULE__{} | _] = positions, _faction_id) do
+    map_positions =
+      Enum.map(
+        positions,
+        &%{
+          pid: &1.pid,
+          name: &1.name,
+          faction_id: &1.faction_id,
+          default: &1.default,
+          permissions: &1.permissions
+        }
+      )
+
+    {_count, upserted_positions} =
+      Repo.insert_all(__MODULE__, map_positions,
+        on_conflict: {:replace, [:default, :permissions]},
+        conflict_target: [:faction_id, :name],
+        returning: true
+      )
+
+    upserted_positions
+  end
+
+  def upsert_all([], _faction_id) do
+    []
+  end
+
+  @spec insert_other_positions(mapped_positions :: [t()], faction_id :: pos_integer()) :: [t()]
+  defp insert_other_positions(mapped_positions, faction_id) when is_list(mapped_positions) and is_integer(faction_id) do
+    # We want to insert the leader, coleader, and recruit positions into the list of mapped positions
+    # if they don't already exist in the list. The Torn API doesn't usually return this in the
+    # faction/positions response (except for bugs).
+    insert_leader? = mapped_positions |> Enum.find(&(&1.name == "Leader")) |> is_nil()
+    insert_coleader? = mapped_positions |> Enum.find(&(&1.name == "Co-leader")) |> is_nil()
+    insert_recruit? = mapped_positions |> Enum.find(&(&1.name == "Recruit")) |> is_nil()
+
+    mapped_positions =
+      if insert_leader? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Leader",
+            faction_id: faction_id,
+            default: false,
+            permissions: Torngen.Client.Schema.FactionPositionAbilityEnum.values()
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions =
+      if insert_coleader? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Co-leader",
+            faction_id: faction_id,
+            default: false,
+            permissions: Torngen.Client.Schema.FactionPositionAbilityEnum.values()
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions =
+      if insert_recruit? do
+        [
+          %__MODULE__{
+            pid: Ecto.UUID.generate(),
+            name: "Recruit",
+            faction_id: faction_id,
+            default: false,
+            permissions: []
+          }
+          | mapped_positions
+        ]
+      else
+        mapped_positions
+      end
+
+    mapped_positions
+  end
+
+  @doc """
+  Remove the old faction positions from members and delete those faction positions.
+
+  When a position is deleted, it must be removed from the users with that position before being deleted.
+  We can assume that the user no longer has faction AA perms after that position was deleted. This can be
+  updated after-the-fact.
+  """
+  @spec remove_old_positions(current_positions :: [t()], faction_id :: pos_integer()) :: term()
+  def remove_old_positions(current_positions, faction_id) when is_list(current_positions) and is_integer(faction_id) do
+    current_position_names = Enum.map(current_positions, & &1.name)
+
+    old_position_ids =
+      Tornium.Schema.FactionPosition
+      |> select([p], p.pid)
+      |> where([p], p.name not in ^current_position_names and p.faction_id == ^faction_id)
+      |> Repo.all()
+
+    if old_position_ids != [] do
+      Tornium.Schema.User
+      |> where([u], u.faction_position_id in ^old_position_ids)
+      |> Repo.update_all(set: [faction_aa: false, faction_position_id: nil])
+
+      Tornium.Schema.FactionPosition
+      |> where([p], p.pid in ^old_position_ids)
+      |> Repo.delete_all()
+    end
   end
 end

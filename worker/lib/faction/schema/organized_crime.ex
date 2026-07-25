@@ -24,7 +24,6 @@ defmodule Tornium.Schema.OrganizedCrime do
 
   alias Tornium.Repo
   use Ecto.Schema
-  import Ecto.Query
 
   @type t :: %__MODULE__{
           oc_id: integer(),
@@ -37,10 +36,7 @@ defmodule Tornium.Schema.OrganizedCrime do
           ready_at: DateTime.t() | nil,
           expires_at: DateTime.t(),
           executed_at: DateTime.t() | nil,
-          slots: [Tornium.Schema.OrganizedCrimeSlot.t()],
-          assigned_team_id: Ecto.UUID.t(),
-          assigned_team: Tornium.Schema.OrganizedCrimeTeam.t(),
-          assigned_team_at: DateTime.t()
+          slots: [Tornium.Schema.OrganizedCrimeSlot.t()]
         }
 
   @primary_key {:oc_id, :integer, autogenerate: false}
@@ -59,10 +55,6 @@ defmodule Tornium.Schema.OrganizedCrime do
     field(:executed_at, :utc_datetime)
 
     has_many(:slots, Tornium.Schema.OrganizedCrimeSlot, foreign_key: :oc_id)
-
-    # Tornium-specific data
-    belongs_to(:assigned_team, Tornium.Schema.OrganizedCrimeTeam, references: :guid, type: Ecto.UUID)
-    field(:assigned_team_at, :utc_datetime)
   end
 
   # TODO: Add documentation
@@ -73,7 +65,7 @@ defmodule Tornium.Schema.OrganizedCrime do
       entries
       |> map()
       |> (&Repo.insert_all(Tornium.Schema.OrganizedCrime, &1,
-            on_conflict: {:replace_all_except, [:oc_id, :assigned_team_id, :assigned_team_at]},
+            on_conflict: {:replace_all_except, [:oc_id]},
             conflict_target: [:oc_id],
             returning: true
           )).()
@@ -84,11 +76,7 @@ defmodule Tornium.Schema.OrganizedCrime do
       |> Enum.map(fn %Tornium.Schema.OrganizedCrimeSlot{user_id: user_id} -> user_id end)
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
-      |> Enum.map(
-        &%{
-          tid: &1
-        }
-      )
+      |> Enum.map(&%{tid: &1})
 
     Repo.insert_all(Tornium.Schema.User, slot_users, on_conflict: :nothing, conflict_target: [:tid])
 
@@ -121,9 +109,7 @@ defmodule Tornium.Schema.OrganizedCrime do
            planning_started_at: planning_started_at,
            ready_at: ready_at,
            expires_at: expires_at,
-           executed_at: executed_at,
-           assigned_team_id: assigned_team_id,
-           assigned_team_at: assigned_team_at
+           executed_at: executed_at
          } ->
         %{
           oc_id: oc_id,
@@ -135,28 +121,9 @@ defmodule Tornium.Schema.OrganizedCrime do
           planning_started_at: planning_started_at,
           ready_at: ready_at,
           expires_at: expires_at,
-          executed_at: executed_at,
-          assigned_team_id: assigned_team_id,
-          assigned_team_at: assigned_team_at
+          executed_at: executed_at
         }
       end
     )
-  end
-
-  @doc """
-  Assign an organized crime team to an organized crime in the DB.
-
-  The `assigned_team_at` timestamp will be set to the current time indicating when the OC team was assigned to the
-  OC.
-  """
-  @spec update_assigned_team(team :: Tornium.Schema.OrganizedCrimeTeam.t(), crime :: t()) :: {non_neg_integer(), nil}
-  def update_assigned_team(
-        %Tornium.Schema.OrganizedCrimeTeam{guid: team_guid} = _team,
-        %__MODULE__{oc_id: oc_id} = _crime
-      ) do
-    __MODULE__
-    |> update([c], set: [assigned_team_id: ^team_guid, assigned_team_at: ^DateTime.utc_now()])
-    |> where([c], c.oc_id == ^oc_id)
-    |> Repo.update_all([])
   end
 end

@@ -24,14 +24,15 @@ defmodule Tornium.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      aliases: aliases()
+      aliases: aliases(),
+      preferred_cli_env: preferred_cli_env()
     ]
   end
 
   def application do
     [
       mod: {Tornium.Application, []},
-      extra_applications: [:logger, :plug_cowboy, :runtime_tools]
+      extra_applications: [:logger, :plug_cowboy, :runtime_tools, :sasl]
     ]
   end
 
@@ -43,25 +44,32 @@ defmodule Tornium.MixProject do
       {:certifi, "~> 2.14", override: true},
       # {:nostrum, "~> 0.10"},
       # {:nostrum, github: "Kraigie/nostrum", ref: "c95d702e476513253a0eff3910fa88fb52e91602"},
-      {:nostrum, github: "dssecret/nostrum", ref: "ec0d92c732b7ea9522b98c47631df945342163a5"},
+      {:nostrum, github: "dssecret/nostrum", branch: "test"},
       {:postgrex, ">= 0.0.0"},
       {:prom_ex, "~> 1.11"},
       {:crontab, "~> 1.1"},
-      {:oban, "~> 2.20"},
+      {:oban, "~> 2.21"},
       # Required for oban_web
       {:plug_cowboy, "~> 2.7"},
-      {:oban_web, "~> 2.11"},
+      {:oban_web, "~> 2.12"},
       {:bandit, "~> 1.8"},
-      {:luerl, "~> 1.2.3"},
+      {:lua, "~> 0.4"},
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
-      {:tornex, "~> 0.4"},
-      {:torngen_elixir_client, ">= 3.0.0"},
+      # {:tornex, "~> 0.6"},
+      # {:tornex, path: "~/tornium/tornex/"},
+      {:tornex, github: "Tornium/Tornex", ref: "6f56a185d6bdbcdc923c2285b10b55060254177f"},
+      {:torngen_elixir_client, ">= 6.0.0"},
+      # Required to be overriden as deps_nix uses an older version of mint
+      {:mint, "~> 1.8", override: true},
       # Required for tornex's default HTTP adapater
       {:finch, "~> 0.20"},
       {:floki, "~> 0.38"},
+      {:libcluster, "~> 3.5"},
+      {:libcluster_postgres, "~> 0.2"},
+      {:horde, "~> 0.10.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:mix_test_interactive, "~> 5.0", only: [:dev, :test], runtime: false}
+      {:deps_nix, "~> 3.0", only: :dev, runtime: false}
     ]
   end
 
@@ -69,7 +77,15 @@ defmodule Tornium.MixProject do
     [
       "ecto.setup": ["ecto.create --quiet", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.setup", "test --cover --trace"]
+      "test.full": ["ecto.setup", "test --cover --trace"],
+      test: ["ecto.setup", "test"]
+    ]
+  end
+
+  defp preferred_cli_env do
+    [
+      "test.full": :test,
+      test: :test
     ]
   end
 

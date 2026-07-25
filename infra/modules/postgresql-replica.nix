@@ -1,0 +1,60 @@
+{ config, pkgs, ... }:
+
+{
+  # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
+  imports = [
+    ./postgresql-password-service.nix
+  ];
+
+  systemd.tmpfiles.rules = [
+    "d /var/lib/postgresql/16/replica 0700 postgres postgres -"
+  ];
+
+  services.postgresql.enable = true;
+  services.postgresql.package = pkgs.postgresql_16;
+  services.postgresql.dataDir = "/var/lib/postgresql/16/replica";
+  services.postgresql.settings = {
+    wal_level = "replica";
+    max_wal_senders = "10";
+    max_replication_slots = "10";
+    wal_keep_size = "1GB";
+    primary_conninfo = "host=10.0.0.5 port=5432 user=replicator";
+    hot_standby = "on";
+    max_connections = "150";
+  };
+  services.postgresql.ensureDatabases = [ "Tornium" ];
+  services.postgresql.ensureUsers = [
+    {
+      name = "Tornium";
+      ensureDBOwnership = true;
+      ensureClauses = { superuser = true; };
+    }
+    {
+      name = "replicator";
+      ensureClauses = { replication = true; };
+    }
+  ];
+  services.postgresql.authentication = pkgs.lib.mkOverride 10 ''
+    # Allow local superuser
+    # type database user auth-method
+    local all postgres peer
+    local all Tornium scram-sha-256
+
+    # Allow local IPv4 and IPv6 loopback
+    # type database user address auth-method
+    host Tornium Tornium 127.0.0.1/32 scram-sha-256
+    host Tornium Tornium ::1/128 scram-sha-256
+
+    # Allow 10.0.0.0/24
+    # host Tornium Tornium 10.0.0.0/24 scram-sha-256
+
+    # Reject all external requests
+    host all all 0.0.0.0/0 reject
+    host all all ::/0 reject
+  '';
+
+  # systemd.services.postgresql.serviceConfig = {
+  #     EnvironmentFile = config.sops.templates."pgbackrest.env".path;
+  #     ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
+  # };
+}

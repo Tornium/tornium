@@ -70,7 +70,7 @@ Tornium - Notification
                         Channel to which notification-related log messages are sent.
                     </p>
 
-                    <select class="discord-channel-selector" id="notifications-log-channel" aria-label="Notifications Log Channel" data-live-search="true">
+                    <select is="channel-selector" class="discord-channel-selector" id="notifications-log-channel" aria-label="Notifications Log Channel" data-live-search="true">
                         <option value="0">Disabled</option>
                     </select>
                 </div>
@@ -92,6 +92,7 @@ Tornium - Notification
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/channel-selector.js"></script>
 <script src="/static/components/table-viewer.js"></script>
 <script src="/static/global/discord.js" data-guildid="{{ guild.sid }}"></script>
 <script src="/static/bot/notification.js"></script>

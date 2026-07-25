@@ -54,7 +54,13 @@ _tornerrors = {
         "A selection is being called of which this key does not have permission to access.",
     ),
     17: ("Backend error occurred", "Please try again."),
-    18: ("API key has been paused by the owner", ""),
+    18: ("API key has been paused by the owner.", ""),
+    19: ("Must be migrated to crimes 2.0.", ""),
+    20: ("Race not yet finished.", ""),
+    21: ("Incorrect category", "Wrong cat value"),
+    22: ("This selection is only available in API v1.", ""),
+    23: ("This selection is only available in API v2.", ""),
+    24: ("Closed Temporarily", ""),
 }
 
 

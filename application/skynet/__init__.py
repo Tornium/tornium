@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
 from functools import wraps
 
 from flask import Blueprint, abort, jsonify, request
@@ -26,26 +25,19 @@ from tornium_commons.errors import (
 )
 from tornium_commons.skyutils import SKYNET_ERROR
 
+import skynet.autocomplete
 import skynet.commands
 import skynet.skyutils
-
-try:
-    import ddtrace
-
-    globals()["ddtrace:loaded"] = True
-except (ImportError, ModuleNotFoundError):
-    globals()["ddtrace:loaded"] = False
-
-botlogger = logging.getLogger("skynet")
-botlogger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="skynet.log", encoding="utf-8", mode="a")
-handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-botlogger.addHandler(handler)
+from skynet.decorators import handle_interaction_errors
 
 mod = Blueprint("botinteractions", __name__)
 
 
-_autocomplete = {}
+_autocomplete = {
+    # See https://docs.discord.com/developers/interactions/application-commands#autocomplete for information
+    # on autocomplete
+    "faction": skynet.autocomplete.faction_autocomplete
+}
 _user_commands = {
     # NOTE: keys are lower case version of the command name
     "verify": skynet.commands.bot.verify.verify_uc
@@ -77,81 +69,8 @@ _commands = {
 }
 
 
-def _handle_interaction_errors(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except NetworkingError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Networking Error",
-                                "description": f"A networking error has occurred on an API call resulting in HTTP {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except TornError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Torn API Error",
-                                "description": f"An error has occurred on a Torn API call resulting in error code {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except MissingKeyError:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Missing API Key",
-                                "description": "There wasn't an API key available for a Torn API call.",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-        except DiscordError as e:
-            return jsonify(
-                {
-                    "type": 4,
-                    "data": {
-                        "embeds": [
-                            {
-                                "title": "Discord API Error",
-                                "description": f"A Discord API error has occurred resulting in an error {e.code}: {e.message}",
-                                "color": SKYNET_ERROR,
-                            },
-                        ],
-                        "flags": 64,
-                    },
-                }
-            )
-
-    return wrapper
-
-
 @mod.route("/skynet", methods=["POST"])
-@_handle_interaction_errors
+@handle_interaction_errors
 def skynet_interactions():
     try:  # https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
         skynet.skyutils.verify_headers(request)
@@ -170,18 +89,6 @@ def skynet_interactions():
         return jsonify(response)
 
     invoker, admin_keys = response
-
-    if globals().get("ddtrace:loaded"):
-        if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
-            ddtrace.tracer.current_root_span().set_tag("command_type", "button")
-            ddtrace.tracer.current_root_span().set_tag("command_id", request.json["data"]["custom_id"])
-        else:
-            ddtrace.tracer.current_root_span().set_tag("command_id", request.json["data"]["name"])
-
-        if "member" in request.json:
-            ddtrace.tracer.current_root_span().set_tag("user_id", request.json["member"]["user"]["id"])
-        else:
-            ddtrace.tracer.current_root_span().set_tag("user_id", request.json["user"]["id"])
 
     if request.json["type"] == 3 and request.json["data"]["component_type"] == 2:
         if request.json["data"]["custom_id"] in _buttons:

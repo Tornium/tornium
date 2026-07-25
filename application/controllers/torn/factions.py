@@ -16,8 +16,6 @@
 from flask import abort, jsonify, render_template, request
 from flask_login import current_user, login_required
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import tornget
-from tornium_celery.tasks.faction import update_faction
 from tornium_commons.formatters import commas
 from tornium_commons.models import Faction, User
 
@@ -80,11 +78,6 @@ def factions_data():
 def faction_data(tid: int):
     if tid == 0 or current_user.key is None:
         return abort(400)
-
-    tornget.signature(
-        kwargs={"endpoint": f"faction/{tid}?selections=", "key": current_user.key},
-        queue="api",
-    ).apply_async(expires=300, link=update_faction.s())
 
     try:
         faction: Faction = (

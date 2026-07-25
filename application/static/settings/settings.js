@@ -138,6 +138,13 @@ ready(() => {
         toggleSetting("od-drug", false);
     });
 
+    document.getElementById("public-data-toggle-enable").addEventListener("click", (event) => {
+        toggleSetting("public-data", true);
+    });
+    document.getElementById("public-data-toggle-disable").addEventListener("click", (event) => {
+        toggleSetting("public-data", false);
+    });
+
     Array.from(document.getElementsByClassName("revoke-client")).forEach((button) => {
         button.addEventListener("click", revokeClient);
     });

@@ -95,3 +95,6 @@ wsgi.py
 docs/build/
 
 .tool-versions
+
+# Nix Infrastructure
+.age-key

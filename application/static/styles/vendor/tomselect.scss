@@ -1,3 +1,9 @@
+.ts-wrapper {
+    // Used for <channel-selector> to fill the width it should
+    // width: 100%;
+    flex-grow: 100;
+}
+
 .ts-control {
     background-color: var(--primary-bg-color) !important;
     color: var(--text-color);

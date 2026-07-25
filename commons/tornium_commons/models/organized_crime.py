@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import typing
 from functools import lru_cache
 
@@ -20,13 +22,16 @@ from peewee import (
     BigIntegerField,
     CharField,
     DateTimeField,
-    DeferredForeignKey,
     ForeignKeyField,
     SmallIntegerField,
 )
+from tornium_oc_graph import calculate_ev, calculate_probability
 
 from .base_model import BaseModel
 from .faction import Faction
+
+if typing.TYPE_CHECKING:
+    from .organized_crime_slot import OrganizedCrimeSlot
 
 
 class OrganizedCrime(BaseModel):
@@ -47,19 +52,12 @@ class OrganizedCrime(BaseModel):
     expires_at = DateTimeField(default=None, null=True)
     executed_at = DateTimeField(default=None, null=True)
 
-    # Tornium-specific OC data
-    assigned_team = DeferredForeignKey("OrganizedCrimeTeam", default=None, null=True)
-
     @classmethod
     @lru_cache
     def oc_names(cls) -> typing.List[str]:
         return [crime.oc_name for crime in OrganizedCrime.select().distinct(OrganizedCrime.oc_name)]
 
     def to_dict(self) -> dict:
-        # Skip the `assigned_team` to avoid circular imports
-        # At this time, there isn't a purpose in returning that, but if necessary in the future, this can
-        # be done with an optional parameter.
-
         return {
             "oc_id": self.oc_id,
             "oc_name": self.oc_name,
@@ -72,3 +70,31 @@ class OrganizedCrime(BaseModel):
             "expires_at": self.expires_at.timestamp(),
             "executed_at": None if self.executed_at is None else self.executed_at.timestamp(),
         }
+
+    @staticmethod
+    def expected_value(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> typing.Optional[float]:
+        success_map = {}
+
+        slot: OrganizedCrimeSlot
+        for slot in slots:
+            if slot.user_id is None and default is None:
+                raise ValueError(f"{slot.crime_position} #{slot.crime_position_index} is not filled")
+
+            position = f"{'_'.join(slot.crime_position.lower().split(' '))}_{slot.crime_position_index}"
+            success_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
+
+        return calculate_ev(oc_name, success_map)
+
+    @staticmethod
+    def probability(oc_name: str, slots: typing.List[OrganizedCrimeSlot], default=None) -> typing.Optional[float]:
+        success_map = {}
+
+        slot: OrganizedCrimeSlot
+        for slot in slots:
+            if slot.user_id is None and default is None:
+                raise ValueError(f"{slot.crime_position} #{slot.crime_position_index} is not filled")
+
+            position = f"{'_'.join(slot.crime_position.lower().split(' '))}_{slot.crime_position_index}"
+            success_map[position] = default if slot.user_id is None else slot.user_success_chance / 100
+
+        return calculate_probability(oc_name, success_map)

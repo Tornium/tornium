@@ -23,10 +23,23 @@ defmodule Tornium.Faction.News do
   """
   @spec parse(
           category :: Torngen.Client.Schema.FactionNewsCategory.t(),
-          news_data :: [Torngen.Client.Schema.FactionNews.t()]
+          news_data :: [Torngen.Client.Schema.News.t()]
         ) :: [struct()]
-  def parse("armoryAction", [%Torngen.Client.Schema.FactionNews{} | _] = news_data) do
+  def parse("armoryAction", [%Torngen.Client.Schema.News{} | _] = news_data) do
+    now = DateTime.utc_now()
+
     news_data
+    |> Enum.reject(fn %Torngen.Client.Schema.News{timestamp: news_timestamp} ->
+      # We want to reject extremely old faction news as the format changed at some point
+      # and we don't need to support this.
+      seconds_diff =
+        news_timestamp
+        |> DateTime.from_unix!()
+        |> DateTime.diff(now)
+        |> abs()
+
+      seconds_diff / 3600 / 24 / 365 > 2
+    end)
     |> Enum.map(&Tornium.Faction.News.ArmoryAction.parse/1)
     |> Enum.reject(&is_nil/1)
   end
@@ -38,5 +51,5 @@ defmodule Tornium.Faction.News do
   @doc """
   Parse a faction news struct from Torn for a specific category.
   """
-  @callback parse(news :: Torngen.Client.Schema.FactionNews.t()) :: struct() | nil
+  @callback parse(news :: Torngen.Client.Schema.News.t()) :: struct() | nil
 end

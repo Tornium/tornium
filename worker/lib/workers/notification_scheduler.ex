@@ -22,12 +22,7 @@ defmodule Tornium.Workers.NotificationScheduler do
     max_attempts: 5,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "notification"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "notification"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

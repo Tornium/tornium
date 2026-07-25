@@ -23,7 +23,6 @@ defmodule Tornium.Workers.OAuthRevocation do
   the application is deleted, etc.
   """
 
-  require Logger
   alias Tornium.Repo
   import Ecto.Query
 
@@ -31,12 +30,7 @@ defmodule Tornium.Workers.OAuthRevocation do
     max_attempts: 5,
     priority: 0,
     queue: :scheduler,
-    tags: ["scheduler", "user"],
-    unique: [
-      period: :infinity,
-      fields: [:worker],
-      states: :incomplete
-    ]
+    tags: ["scheduler", "user"]
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

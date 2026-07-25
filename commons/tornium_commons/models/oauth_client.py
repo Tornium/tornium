@@ -125,7 +125,7 @@ class OAuthClient(BaseModel):
 
     @property
     def policy_uri(self):
-        return self.client_metadata.get("policy_uri")
+        return self.client_metadata.get("privacy_uri")
 
     @property
     def jwks_uri(self):

@@ -22,7 +22,7 @@ defmodule Tornium.Item.NameCache do
     ttl = Keyword.get(opts, :ttl, 3600)
     ttl_unit = Keyword.get(opts, :ttl_unit, :second)
 
-    Agent.start(
+    Agent.start_link(
       fn ->
         %{
           forward: %{},

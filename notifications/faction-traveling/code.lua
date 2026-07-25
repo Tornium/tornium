@@ -14,14 +14,17 @@ faction = faction
 
 ---@class State
 ---@field members table<string, table<string, FlyingMember>>
----@field last_update_time integer
 ---@field initialized boolean
 state = state
--- TODO: Reset notification states when the code is updated
 
 -- Preprocessed variables
 ---@type integer
 TRAVEL_METHOD = tonumber(TRAVEL_METHOD) or 1 -- Defaults to standard travel
+
+if type(TRAVEL_METHOD) ~= "number" or TRAVEL_METHOD % 1 ~= 0 or TRAVEL_METHOD < 1 or TRAVEL_METHOD > 4 then
+  -- The TRAVEL_METHOD must be an integer between 1 and 4
+  return false, {}, state
+end
 
 if state.members == nil then
   state.members = {}
@@ -30,17 +33,17 @@ end
 local travel_methods = { "Standard", "Airstrip", "WLT", "BCT" }
 local destination_travel_durations = {
   -- Destination: [Standard, Airstrip, WLT, BCT]
-  ["Mexico"] = { 1560, 1080, 780, 480 },
-  ["Cayman Islands"] = { 2100, 1500, 1080, 660 },
-  ["Canada"] = { 2460, 1740, 1200, 720 },
-  ["Hawaii"] = { 8040, 5460, 4020, 2400 },
-  ["United Kingdom"] = { 9540, 6660, 4800, 2880 },
-  ["Argentina"] = { 10020, 7020, 4980, 3000 },
-  ["Switzerland"] = { 10500, 7380, 5280, 3180 },
-  ["Japan"] = { 13500, 9480, 6780, 4080 },
-  ["China"] = { 14520, 10140, 7260, 4320 },
-  ["UAE"] = { 16260, 11400, 8100, 4860 },
-  ["South Africa"] = { 17820, 12480, 8940, 5340 },
+  ["Mexico"] = { 1440, 1020, 720, 420 },
+  ["Cayman Islands"] = { 1980, 1380, 1020, 600 },
+  ["Canada"] = { 2340, 1620, 1140, 720 },
+  ["Hawaii"] = { 7620, 5340, 3780, 2280 },
+  ["United Kingdom"] = { 9060, 6360, 4500, 2700 },
+  ["Argentina"] = { 9480, 6660, 4740, 2820 },
+  ["Switzerland"] = { 9960, 6960, 4980, 3000 },
+  ["Japan"] = { 12780, 8940, 6420, 3840 },
+  ["China"] = { 13740, 9600, 6840, 4140 },
+  ["UAE"] = { 15420, 10800, 7680, 4620 },
+  ["South Africa"] = { 16920, 11820, 8460, 5100 },
 }
 
 function string.split(match_string)
@@ -55,6 +58,10 @@ end
 
 function string.starts_with(match_string, starts)
   return string.sub(match_string, 1, #starts) == starts
+end
+
+function string.ends_with(match_string, ends)
+  return match_string:sub(-#ends) == ends
 end
 
 function string.gmatch(str, pattern)
@@ -119,33 +126,37 @@ local function try_insert_table(tbl, key, value)
   tbl[key][value.tid] = value
 end
 
+--- Extract the origin string from a user's status when the user is returning to Torn from that origin
+---@param status_string string user.status.description
+---@return string? "Destination of the user (or current location if abroad)"
+local function get_origin(status_string)
+  if string.starts_with(status_string, "Traveling from Torn to") then
+    return nil
+  elseif string.starts_with(status_string, "Traveling from ") then
+    local _, from_end = status_string:find("from ")
+    local to_start = status_string:find(" to ", from_end + 1)
+
+    return status_string:sub(from_end + 1, to_start - 1)
+  end
+
+  return nil
+end
+
 --- Extract the destination string from a user's status
 ---@param status_string string user.status.description
 ---@return string? "Destination of the user (or current location if abroad)"
 local function get_destination(status_string)
   local destination_words = string.split(status_string)
 
-  if string.starts_with(status_string, "Traveling") then
-    return table.join({ table.unpack(destination_words, 3, #destination_words) }, " ")
-  elseif string.starts_with(status_string, "Returning to Torn") then
+  if string.starts_with(status_string, "Traveling from Torn to") then
+    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
+  elseif string.starts_with(status_string, "Traveling from ") and status_string:ends_with(" to Torn") then
     return "Torn"
   elseif string.starts_with(status_string, "In") and string.find(status_string, "hospital") ~= nil then
     local hospital_index = table.find(destination_words, "hospital")
     return table.join({ table.unpack(destination_words, 3, hospital_index) }, " ")
   elseif string.starts_with(status_string, "In") then
     return table.join({ table.unpack(destination_words, 2, #destination_words) }, " ")
-  end
-
-  return nil
-end
-
---- Extract the origin string from a user's status when the user is returning to Torn from that origin
----@param status_string string user.status.description
----@return string? "Destination of the user (or current location if abroad)"
-function get_origin(status_string)
-  if string.starts_with(status_string, "Returning to Torn") then
-    local destination_words = string.split(status_string)
-    return table.join({ table.unpack(destination_words, 5, #destination_words) }, " ")
   end
 
   return nil
@@ -187,7 +198,7 @@ for member_id, member_data in pairs(faction.members) do
   if string.starts_with(member_data.status.description, "In hospital") or string.starts_with(member_data.status.description, "In jail") or string.starts_with(member_data.status.description, "In federal jail") then
     -- e.g. "In hospital for 4 mins "
     destination = nil
-  elseif string.starts_with(member_data.status.description, "Traveling") then
+  elseif string.starts_with(member_data.status.description, "Traveling from Torn to") then
     -- The faction member is flying
     member_table.landed = false
     member_table.status = nil
@@ -201,7 +212,7 @@ for member_id, member_data in pairs(faction.members) do
     else
       member_table.earliest_departure_time = nil
     end
-  elseif string.starts_with(member_data.status.description, "Returning") then
+  elseif string.starts_with(member_data.status.description, "Traveling from") then
     -- The faction member is flying back to Torn
     member_table.landed = false
     member_table.status = nil
@@ -243,7 +254,11 @@ local render_state = {
 
 for destination, destination_members in pairs(state.members) do
   for _, member in pairs(destination_members) do
-    if member.landed and member.status ~= nil then
+    if faction.members[member.tid] == nil then
+      -- The member was flying but is no longer in the faction. We should remove the member from the state
+      -- as to not pollute the render state.
+      state.members[destination][member.tid] = nil
+    elseif member.landed and member.status ~= nil then
       try_insert_table(render_state.hospital_members, destination, {
         tid = member.tid,
         username = format_username(member),
@@ -267,6 +282,12 @@ for destination, destination_members in pairs(state.members) do
         regular_landing = regular_landing,
       })
     end
+  end
+
+  if next(state.members[destination]) == nil then
+    -- We want to remove destinations from the state if there's no member flying to it to reduce the size of
+    -- the state in the database.
+    state.members[destination] = nil
   end
 end
 

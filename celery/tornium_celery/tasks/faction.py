@@ -21,7 +21,6 @@ import re
 import time
 import typing
 import urllib.parse
-import uuid
 from decimal import DivisionByZero
 
 from peewee import JOIN, DoesNotExist
@@ -29,6 +28,7 @@ from tornium_commons import with_db_connection
 from tornium_commons.errors import DiscordError, NetworkingError
 from tornium_commons.formatters import (
     LinkHTMLParser,
+    bs_to_range,
     commas,
     date_to_timestamp,
     timestamp,
@@ -36,7 +36,6 @@ from tornium_commons.formatters import (
 )
 from tornium_commons.models import (
     Faction,
-    FactionPosition,
     Item,
     PersonalStats,
     Retaliation,
@@ -52,314 +51,11 @@ from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 import celery
 from celery.utils.log import get_task_logger
 
-from .api import discordpatch, discordpost, torn_stats_get, tornget
+from .api import discordpatch, discordpost, tornget
 from .misc import send_dm
 from .user import update_user
 
 logger = get_task_logger("celery_app")
-
-ATTACK_RESULTS = {
-    "Lost": 0,
-    "Attacked": 1,
-    "Mugged": 2,
-    "Hospitalized": 3,
-    "Stalemate": 4,
-    "Escape": 5,
-    "Assist": 6,
-    "Special": 7,
-    "Looted": 8,
-    "Arrested": 9,
-    "Timeout": 10,
-    "Interrupted": 11,
-}
-
-
-@celery.shared_task(
-    name="tasks.faction.refresh_factions",
-    routing_key="default.refresh_factions",
-    queue="default",
-    time_limit=30,
-)
-@with_db_connection
-def refresh_factions():
-    faction: Faction
-    for faction in Faction.select():
-        # Optimize this query to use one query to select valid factions
-
-        if len(faction.aa_keys) == 0:
-            continue
-
-        tornget.signature(
-            kwargs={
-                "endpoint": "faction/?selections=basic,positions",
-                "key": random.choice(faction.aa_keys),
-            },
-            queue="api",
-        ).apply_async(expires=300, link=update_faction.s())
-
-        ts_key = ""
-
-        if faction.leader is not None and faction.leader.key not in ("", None):
-            ts_key = faction.leader.key
-        else:
-            if faction.coleader is not None and faction.coleader.key not in ("", None):
-                ts_key = faction.coleader.key
-
-        if ts_key is not None:
-            torn_stats_get.signature(
-                kwargs={"endpoint": f"spy/faction/{faction.tid}", "key": ts_key},
-                expires=300,
-                link=update_faction_ts.s(),
-            )
-
-
-@celery.shared_task(
-    name="tasks.faction.update_faction",
-    routing_key="quick.update_faction",
-    queue="quick",
-    time_limit=5,
-)
-@with_db_connection
-def update_faction(faction_data):
-    if faction_data is None:
-        return
-    elif faction_data.get("ID") is None:
-        return  # Must include faction/basic
-
-    Faction.insert(
-        tid=faction_data["ID"],
-        name=faction_data["name"],
-        tag=str(faction_data["tag"]),  # Torn occasionally uses integers as tags
-        respect=faction_data["respect"],
-        capacity=faction_data["capacity"],
-        leader=User.select().where(User.tid == faction_data["leader"]).first(),
-        coleader=(
-            User.select().where(User.tid == faction_data["co-leader"]).first()
-            if faction_data["co-leader"] != 0
-            else None
-        ),
-        last_members=datetime.datetime.utcnow(),
-    ).on_conflict(
-        conflict_target=[Faction.tid],
-        preserve=[
-            Faction.name,
-            Faction.tag,
-            Faction.respect,
-            Faction.capacity,
-            Faction.leader,
-            Faction.coleader,
-            Faction.last_members,
-        ],
-    ).execute()
-
-    # faction/positions
-    if "positions" in faction_data:
-        positions_data = update_faction_positions(faction_data)
-
-    users = [member_id for member_id in faction_data["members"].keys()]
-
-    for member_id, member in faction_data["members"].items():
-        # TODO: Switch upsert to bulk upsert
-        if "positions" in faction_data:
-            User.insert(
-                tid=int(member_id),
-                name=member["name"],
-                level=member["level"],
-                faction=faction_data["ID"],
-                faction_aa=(positions_data[member["position"]]["aa"] if member["position"] is not None else False),
-                faction_position=(
-                    positions_data[member["position"]]["uuid"] if member["position"] is not None else None
-                ),
-                status=member["last_action"]["status"],
-                last_action=datetime.datetime.fromtimestamp(
-                    member["last_action"]["timestamp"], tz=datetime.timezone.utc
-                ),
-                last_refresh=datetime.datetime.utcnow(),
-            ).on_conflict(
-                conflict_target=[User.tid],
-                preserve=[
-                    User.name,
-                    User.level,
-                    User.faction,
-                    User.faction_aa,
-                    User.faction_position,
-                    User.status,
-                    User.last_action,
-                    User.last_refresh,
-                ],
-            ).execute()
-        else:
-            User.insert(
-                tid=member["player_id"],
-                name=member["name"],
-                level=member["level"],
-                faction=faction_data["ID"],
-                status=member["last_action"]["status"],
-                last_action=datetime.datetime.fromtimestamp(
-                    member["last_action"]["timestamp"], tz=datetime.timezone.utc
-                ),
-                last_refresh=datetime.datetime.utcnow(),
-            ).on_conflict(
-                conflict_target=[User.tid],
-                preserve=[
-                    User.name,
-                    User.level,
-                    User.faction,
-                    User.status,
-                    User.last_action,
-                    User.last_refresh,
-                ],
-            ).execute()
-
-    # Strips old faction members of their faction data
-    User.update(faction=None, faction_position=None, faction_aa=False).where(
-        (User.faction_id == faction_data["ID"]) & (User.tid.not_in(users))
-    ).execute()
-
-
-@celery.shared_task(
-    name="tasks.faction.update_faction_positions",
-    routing_key="quick.update_faction_positions",
-    queue="quick",
-    time_limit=5,
-)
-@with_db_connection
-def update_faction_positions(faction_positions_data: dict) -> typing.Optional[dict]:
-    if "positions" not in faction_positions_data or "ID" not in faction_positions_data:
-        return None
-
-    existing_positions = FactionPosition.select(FactionPosition.pid, FactionPosition.name).where(
-        FactionPosition.faction_tid == faction_positions_data["ID"]
-    )
-    existing_position_names: typing.Set[str] = {position.name for position in existing_positions}
-
-    latest_position_names: typing.Set[str] = {k for k in faction_positions_data["positions"]}
-
-    positions_data = {
-        "Recruit": {
-            "uuid": None,
-            "aa": False,
-        },
-        "Leader": {
-            "uuid": None,
-            "aa": True,
-        },
-        "Co-leader": {
-            "uuid": None,
-            "aa": True,
-        },
-    }
-
-    deleted_position: FactionPosition
-    for deleted_position in existing_positions.where(
-        FactionPosition.name << (existing_position_names - latest_position_names)
-    ):
-        try:
-            User.update(faction_position=None).where(User.faction_position_id == deleted_position.pid).execute()
-            existing_positions.where(FactionPosition.name == deleted_position.name).get().delete_instance()
-        except Exception as e:
-            logger.exception(e)
-            continue
-
-        existing_position_names.remove(deleted_position.name)
-
-    add_position_name: str
-    for add_position_name in latest_position_names - existing_position_names:
-        perms = faction_positions_data["positions"][add_position_name]
-        pid = uuid.uuid4().hex
-
-        FactionPosition.insert(
-            pid=pid,
-            name=add_position_name,
-            faction_tid=faction_positions_data["ID"],
-            default=bool(perms["default"]),
-            use_medical_item=bool(perms["canUseMedicalItem"]),
-            use_booster_item=bool(perms["canUseBoosterItem"]),
-            use_drug_item=bool(perms["canUseDrugItem"]),
-            use_energy_refill=bool(perms["canUseEnergyRefill"]),
-            use_nerve_refill=bool(perms["canUseNerveRefill"]),
-            loan_temporary_item=bool(perms["canLoanTemporaryItem"]),
-            loan_weapon_armory=bool(perms["canLoanWeaponAndArmory"]),
-            retrieve_loaned_armory=bool(perms["canRetrieveLoanedArmory"]),
-            plan_init_oc=bool(perms.get("canPlanAndInitiateOrganisedCrime") or perms.get("canManageOC2") or False),
-            access_fac_api=bool(perms["canAccessFactionApi"]),
-            give_item=bool(perms["canGiveItem"]),
-            give_money=bool(perms["canGiveMoney"]),
-            give_points=bool(perms["canGivePoints"]),
-            manage_forums=bool(perms["canManageForum"]),
-            manage_applications=bool(perms["canManageApplications"]),
-            kick_members=bool(perms["canKickMembers"]),
-            adjust_balances=bool(perms["canAdjustMemberBalance"]),
-            manage_wars=bool(perms["canManageWars"]),
-            manage_upgrades=bool(perms["canManageUpgrades"]),
-            send_newsletters=bool(perms["canSendNewsletter"]),
-            change_announcement=bool(perms["canChangeAnnouncement"]),
-            change_description=bool(perms["canChangeDescription"]),
-        ).on_conflict(
-            conflict_target=[FactionPosition.pid],
-            preserve=[
-                getattr(FactionPosition, p)
-                for p in set(FactionPosition._meta.sorted_field_names) - {"pid", "name", "faction_tid"}
-            ],
-        ).execute()
-
-        existing_position_names.add(add_position_name)
-        positions_data[add_position_name] = {
-            "uuid": pid,
-            "aa": bool(perms["canAccessFactionApi"]),
-        }
-
-    modify_position_name: str
-    for modify_position_name in existing_position_names & latest_position_names:
-        perms = faction_positions_data["positions"][modify_position_name]
-        existing_position: typing.Optional[FactionPosition] = existing_positions.where(
-            FactionPosition.name == modify_position_name
-        ).first()
-
-        if existing_position is None:
-            continue
-
-        FactionPosition.insert(
-            pid=existing_position.pid,
-            name=modify_position_name,
-            faction_tid=faction_positions_data["ID"],
-            default=bool(perms["default"]),
-            use_medical_item=bool(perms["canUseMedicalItem"]),
-            use_booster_item=bool(perms["canUseBoosterItem"]),
-            use_drug_item=bool(perms["canUseDrugItem"]),
-            use_energy_refill=bool(perms["canUseEnergyRefill"]),
-            use_nerve_refill=bool(perms["canUseNerveRefill"]),
-            loan_temporary_item=bool(perms["canLoanTemporaryItem"]),
-            loan_weapon_armory=bool(perms["canLoanWeaponAndArmory"]),
-            retrieve_loaned_armory=bool(perms["canRetrieveLoanedArmory"]),
-            plan_init_oc=bool(perms.get("canPlanAndInitiateOrganisedCrime") or perms.get("canManageOC2") or False),
-            access_fac_api=bool(perms["canAccessFactionApi"]),
-            give_item=bool(perms["canGiveItem"]),
-            give_money=bool(perms["canGiveMoney"]),
-            give_points=bool(perms["canGivePoints"]),
-            manage_forums=bool(perms["canManageForum"]),
-            manage_applications=bool(perms["canManageApplications"]),
-            kick_members=bool(perms["canKickMembers"]),
-            adjust_balances=bool(perms["canAdjustMemberBalance"]),
-            manage_wars=bool(perms["canManageWars"]),
-            manage_upgrades=bool(perms["canManageUpgrades"]),
-            send_newsletters=bool(perms["canSendNewsletter"]),
-            change_announcement=bool(perms["canChangeAnnouncement"]),
-            change_description=bool(perms["canChangeDescription"]),
-        ).on_conflict(
-            conflict_target=[FactionPosition.pid],
-            preserve=[
-                getattr(FactionPosition, p)
-                for p in set(FactionPosition._meta.sorted_field_names) - {"pid", "name", "faction_tid"}
-            ],
-        ).execute()
-
-        positions_data[modify_position_name] = {
-            "uuid": existing_position.pid,
-            "aa": bool(perms["canAccessFactionApi"]),
-        }
-
-    return positions_data
 
 
 @celery.shared_task(
@@ -370,6 +66,7 @@ def update_faction_positions(faction_positions_data: dict) -> typing.Optional[di
 )
 @with_db_connection
 def update_faction_ts(faction_ts_data):
+    # TODO: This needs to be moved to Elixir
     if not faction_ts_data["status"]:
         return
 
@@ -441,12 +138,12 @@ def fetch_attacks_runner():
 
         tornget.signature(
             kwargs={
-                "endpoint": "faction/?selections=basic,attacks",
+                "endpoint": f"faction/?selections=basic,attacks&timestamp={int(time.time())}",
                 "key": random.choice(faction.aa_keys),
             },
             queue="api",
         ).apply_async(
-            expires=300,
+            expires=30,
             link=celery.group(
                 check_attacks.signature(
                     kwargs={"last_attacks": int(last_attacks)},
@@ -468,7 +165,7 @@ def fetch_attacks_runner():
         # Runs at 6 minutes after to allow API calls to be made if the attack is made close to timeout
         # TODO: Convert to a delete returning query
         try:
-            discordpatch.delay(
+            discordpatch.s(
                 f"channels/{retal.channel_id}/messages/{retal.message_id}",
                 {
                     "embeds": [
@@ -485,7 +182,7 @@ def fetch_attacks_runner():
                     ],
                     "components": [],
                 },
-            ).forget()
+            ).apply_async(ignore_result=True)
         except Exception as e:
             logger.exception(e)
             continue
@@ -632,17 +329,16 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             ).execute()
 
         try:
-            update_user.delay(tid=opponent_id, key=random.choice(faction.aa_keys)).forget()
-        except Exception as e:
-            logger.exception(e)
-            continue
+            update_user.s(tid=opponent_id, key=random.choice(faction.aa_keys)).apply_async(ignore_result=True)
+        except IndexError:
+            pass
 
         try:
             if attack["defender_faction"] == faction_data["ID"]:
                 opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
             else:
                 opponent_score = (attack["modifiers"]["fair_fight"] - 1) * 0.375 * user.battlescore
-        except DivisionByZero:
+        except (DivisionByZero, ZeroDivisionError):
             continue
 
         if opponent_score == 0:
@@ -811,71 +507,64 @@ def generate_retaliation_embed(
         }
     ]
 
-    if attack["modifiers"]["fair_fight"] != 3:
-        if (
-            user is not None
-            and user.battlescore != 0
-            and user.battlescore_update is not None
-            and int(time.time()) - timestamp(user.battlescore_update) <= 259200
-        ):  # Three days
-            try:
-                opponent_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
-            except DivisionByZero:
-                opponent_score = 0
+    stat_score = None
+    stat_score_update: typing.Optional[int] = None
+    now = int(time.time())
 
-            if opponent_score != 0:
-                fields.extend(
-                    (
-                        {
-                            "name": "Estimated Stat Score",
-                            "value": commas(round(opponent_score)),
-                            "inline": True,
-                        },
-                        {
-                            "name": "Stat Score Update",
-                            "value": f"<t:{int(time.time())}:R>",
-                            "inline": True,
-                        },
-                    )
-                )
-    else:
-        stat: typing.Optional[Stat]
+    if (
+        attack["modifiers"]["fair_fight"] not in (1, 3)
+        and user is not None
+        and user.battlescore not in (0, None)
+        and user.battlescore_update is not None
+        and now - timestamp(user.battlescore_update) <= 259200
+    ):
         try:
-            if user is not None and user.faction_id is not None:
-                stat = (
-                    Stat.select()
-                    .where(
-                        (Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id))
-                    )
-                    .order_by(Stat.time_added)
-                    .first()
-                )
-            else:
-                stat = (
-                    Stat.select()
-                    .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
-                    .order_by(Stat.time_added)
-                    .first()
-                )
-        except AttributeError as e:
-            logger.exception(e),
-            stat = None
+            stat_score = user.battlescore / ((attack["modifiers"]["fair_fight"] - 1) * 0.375)
+            stat_score_update = now
+        except (DivisionByZero, ZeroDivisionError):
+            stat_score = None
+            stat_score_update = None
+
+        if stat_score == 0:
+            stat_score = None
+            stat_score_update = None
+    if stat_score is None and stat_score_update is None:
+        stat: typing.Optional[Stat]
+        if user is not None and user.faction_id is not None:
+            stat = (
+                Stat.select()
+                .where((Stat.tid == opponent.tid) & ((Stat.added_group == 0) | (Stat.added_group == user.faction_id)))
+                .order_by(Stat.time_added.desc())
+                .first()
+            )
+        else:
+            stat = (
+                Stat.select()
+                .where((Stat.tid == opponent.tid) & (Stat.added_group == 0))
+                .order_by(Stat.time_added.desc())
+                .first()
+            )
 
         if stat is not None:
-            fields.extend(
-                (
-                    {
-                        "name": "Estimated Stat Score",
-                        "value": commas(stat.battlescore),
-                        "inline": True,
-                    },
-                    {
-                        "name": "Stat Score Update",
-                        "value": f"<t:{int(timestamp(stat.time_added))}:R>",
-                        "inline": True,
-                    },
-                )
+            stat_score = stat.battlescore
+            stat_score_update = int(timestamp(stat.time_added))
+
+    if stat_score is not None and stat_score_update is not None:
+        minimum, maximum = bs_to_range(stat_score)
+        fields.extend(
+            (
+                {
+                    "name": "Estimated Stat Range",
+                    "value": f"{commas(round(minimum))} -- {commas(round(maximum))}",
+                    "inline": True,
+                },
+                {
+                    "name": "Stat Range Update",
+                    "value": f"<t:{stat_score_update}:R>",
+                    "inline": True,
+                },
             )
+        )
 
     if attack["attacker_faction"] not in (0, ""):
         fields.append(
@@ -911,16 +600,14 @@ def generate_retaliation_embed(
         fields.append(
             {
                 "name": "Personal Stats",
-                "value": inspect.cleandoc(
-                    f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
+                "value": inspect.cleandoc(f"""Xanax Used: {commas(opponents_personal_stats.xantaken)}
                     SEs Used: {commas(opponents_personal_stats.statenhancersused)}
                     E-Cans Used: {commas(opponents_personal_stats.energydrinkused)}
                     Books Read: {commas(opponents_personal_stats.booksread)}
 
                     ELO: {commas(opponents_personal_stats.elo)}
                     Average Respect: {commas(opponents_personal_stats.respectforfaction / opponents_personal_stats.attackswon, stock_price=True)}
-                    """
-                ),
+                    """),
             }
         )
 
@@ -943,13 +630,13 @@ def generate_retaliation_embed(
                         "type": 2,
                         "style": 5,
                         "label": "Attack Log",
-                        "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                        "url": f"https://www.torn.com/page.php?sid=attackLog&ID={attack['code']}",
                     },
                     {
                         "type": 2,
                         "style": 5,
                         "label": "RETAL!!",
-                        "url": f"https://www.torn.com/loader.php?sid=attack&user2ID={opponent.tid}",
+                        "url": f"https://www.torn.com/page.php?sid=attack&user2ID={opponent.tid}",
                     },
                 ],
             },
@@ -1100,7 +787,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                 )
                 .returning(Retaliation.channel_id, Retaliation.message_id)
             ):
-                discordpatch.delay(
+                discordpatch.s(
                     f"channels/{retal.channel_id}/messages/{retal.message_id}",
                     {
                         "embeds": [
@@ -1114,7 +801,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                         ],
                         "components": [],
                     },
-                ).forget()
+                ).apply_async(ignore_result=True)
         elif (
             ALERT_RETALS
             and validate_attack_available_retaliation(attack, faction)
@@ -1157,7 +844,7 @@ def check_attacks(faction_data: dict, last_attacks: int):
                                 "type": 2,
                                 "style": 5,
                                 "label": "Attack Log",
-                                "url": f"https://www.torn.com/loader.php?sid=attackLog&ID={attack['code']}",
+                                "url": f"https://www.torn.com/page.php?sid=attackLog&ID={attack['code']}",
                             },
                         ],
                     }
@@ -1180,10 +867,10 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
                 payload["content"] += f"<@&{role}>"
 
-            discordpost.delay(
+            discordpost.s(
                 f"channels/{attack_config.chain_bonus_channel}/messages",
                 payload=payload,
-            ).forget()
+            ).apply_async(ignore_result=True)
 
     if (
         latest_outgoing_attack is not None
@@ -1210,7 +897,9 @@ def check_attacks(faction_data: dict, last_attacks: int):
 
             payload["content"] += f"<@&{role}>"
 
-        discordpost.delay(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).forget()
+        discordpost.s(f"channels/{attack_config.chain_alert_channel}/messages", payload=payload).apply_async(
+            ignore_result=True
+        )
 
     for retal in possible_retals.values():
         retal["task"]: typing.Optional[celery.result.AsyncResult]
@@ -1337,7 +1026,7 @@ def auto_cancel_requests():
             logger.exception(e)
             continue
 
-        discordpost.delay(
+        discordpost.s(
             f"channels/{dm_channel['id']}/messages",
             payload={
                 "embeds": [
@@ -1351,14 +1040,14 @@ def auto_cancel_requests():
                     }
                 ]
             },
-        ).forget()
+        ).apply_async(ignore_result=True)
 
 
 @celery.shared_task(
     name="tasks.faction.verify_faction_withdrawals",
     routing_key="quick.verify_faction_withdrawals",
     queue="quick",
-    time_limit=5,
+    time_limit=15,
 )
 @with_db_connection
 def verify_faction_withdrawals(funds_news: dict, withdrawals):
@@ -1659,11 +1348,11 @@ def armory_check_subtask(_armory_data, faction_id: int):
             )
 
             if len(payload["embeds"]) == 10:
-                discordpost.delay(
+                discordpost.s(
                     f"channels/{faction_config['channel']}/messages",
                     payload=payload,
                     channel=faction_config["channel"],
-                ).forget()
+                ).apply_async(ignore_result=True)
                 payload["embeds"].clear()
 
     out_of_stock_item: int
@@ -1694,16 +1383,16 @@ def armory_check_subtask(_armory_data, faction_id: int):
         )
 
         if len(payload["embeds"]) == 10:
-            discordpost.delay(
+            discordpost.s(
                 f"channels/{faction_config['channel']}/messages",
                 payload=payload,
                 channel=faction_config["channel"],
-            ).forget()
+            ).apply_async(ignore_result=True)
             payload["embeds"].clear()
 
     if len(payload["embeds"]) != 0:
-        discordpost.delay(
+        discordpost.s(
             f"channels/{faction_config['channel']}/messages",
             payload=payload,
             channel=faction_config["channel"],
-        ).forget()
+        ).apply_async(ignore_result=True)

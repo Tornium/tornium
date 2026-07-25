@@ -109,10 +109,10 @@ Tornium - Faction Bot Dashboard
                     <label for="ts-stats" class="form-label">Collect TS Stats:</label>
                     <p><small>Collect the stats of your faction's members from <a href="https://tornstats.com" target="_blank" rel="noopener noreferrer">TornStats</a>.</small></p>
 
-                    <input type="radio" class="btn-check" name="ts-stats" id="ts-stats-enable" autocomplete="off" {% if faction.config and faction.config.ts_stats_enabled %} checked {% endif %}>
+                    <input type="radio" class="btn-check" name="ts-stats" id="ts-stats-enable" autocomplete="off" {% if faction.config.ts_stats_enabled %} checked {% endif %}>
                     <label class="btn" for="ts-stats-enable">Enable</label>
 
-                    <input type="radio" class="btn-check" name="ts-stats" id="ts-stats-disable" autocomplete="off" {% if faction.config is none or not faction.config.ts_stats_enabled %} checked {% endif %}>
+                    <input type="radio" class="btn-check" name="ts-stats" id="ts-stats-disable" autocomplete="off" {% if not faction.config.ts_stats_enabled %} checked {% endif %}>
                     <label class="btn" for="ts-stats-disable">Disable</label>
                 </li>
             </div>

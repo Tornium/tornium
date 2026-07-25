@@ -16,6 +16,7 @@
 from .armory_usage import ArmoryAction, ArmoryUsage
 from .auth_log import AuthAction, AuthLog
 from .faction import Faction
+from .faction_config import FactionConfig
 from .faction_position import FactionPosition
 from .item import Item
 from .notification import Notification
@@ -54,6 +55,7 @@ __all__ = [
     "ArmoryUsage",
     "AuthLog",
     "Faction",
+    "FactionConfig",
     "FactionPosition",
     "Item",
     "Notification",

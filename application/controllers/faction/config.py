@@ -15,7 +15,8 @@
 
 from flask import render_template, request
 from flask_login import current_user, login_required
-from tornium_commons.models import Faction, Server
+from peewee import DoesNotExist
+from tornium_commons.models import Faction, FactionConfig, Server
 
 from controllers.faction.decorators import aa_required, fac_required
 
@@ -51,5 +52,10 @@ def config(*args, **kwargs):
 
         Faction.update(guild=guild_id).where(Faction.tid == current_user.faction_id).execute()
         faction.guild_id = guild_id
+
+    try:
+        faction.config = faction.config.get()
+    except DoesNotExist:
+        faction.config = FactionConfig.create_or_update(faction.tid)
 
     return render_template("faction/config.html", faction=faction)

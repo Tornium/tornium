@@ -31,6 +31,7 @@ defmodule Tornium.Schema.Faction do
           guild: Tornium.Schema.Server.t(),
           stats_db_enabled: boolean(),
           stats_db_global: boolean(),
+          config: Tornium.Schema.FactionConfig.t(),
           od_channel: integer(),
           od_data: map(),
           last_members: DateTime.t(),
@@ -51,6 +52,7 @@ defmodule Tornium.Schema.Faction do
 
     field(:stats_db_enabled, :boolean)
     field(:stats_db_global, :boolean)
+    has_one(:config, Tornium.Schema.FactionConfig, foreign_key: :faction_id, references: :tid)
 
     field(:od_channel, :integer)
     field(:od_data, :map)

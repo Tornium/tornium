@@ -6,6 +6,9 @@ Tornium offers toggles on the [user settings](https://tornium.com/settings) page
 - [Share overdosed drug](#user-logs): When enabled, this will collect the drug you overdosed upon from your user logs and share that data with your faction.
 - [Share public data](#general-torn-data): When enabled, this will collect public data on other Torn users, factions, stocks, etc. and share that data with all users of Tornium.
 
+Additionally, Tornium offers toggles on the [faction config](https://tornium.com/faction/config) page for you to enable/disable the usage of your faction's AA API keys for certain features. You can toggle the following usage of your faction's AA keys:
+- Collect TS Stats: When enabled, this will use the API keys of the faction's leader/co-leader to pull the battle stats of all members of the faction from [TornStats](https://tornstats.com) and share that data with members of their faction who have AA permissions.
+
 If you have any questions or concerns regarding how Tornium stores your data, please create a ticket in Tornium's support server. If you would like your data in Tornium to be deleted, send an in-game mail to [tiksan [2383326]](https://www.torn.com/profiles.php?XID=2383326).
 
 ## API Keys

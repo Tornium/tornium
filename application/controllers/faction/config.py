@@ -23,12 +23,12 @@ from controllers.faction.decorators import aa_required, fac_required
 @login_required
 @fac_required
 @aa_required
-def bot(*args, **kwargs):
-    guild_id = current_user.faction.guild_id
+def config(*args, **kwargs):
+    faction: Faction = current_user.faction
 
     if request.method == "POST" and request.form.get("guildid") == "":
         Faction.update(guild=None).where(Faction.tid == current_user.faction_id).execute()
-        guild_id = None
+        faction.guild_id = None
     elif request.method == "POST" and request.form.get("guildid") is not None:
         try:
             guild_id = int(request.form["guildid"])
@@ -46,12 +46,10 @@ def bot(*args, **kwargs):
             return render_template(
                 "errors/error.html",
                 title="Unknown Guild",
-                error=f"The Discord server with ID {request.form.get('guildid')} could not be found.",
+                error=f"The Discord server with ID {request.form.get('guildid')} could not be found in the database.",
             )
 
         Faction.update(guild=guild_id).where(Faction.tid == current_user.faction_id).execute()
+        faction.guild_id = guild_id
 
-    return render_template(
-        "faction/bot.html",
-        guildid=guild_id,
-    )
+    return render_template("faction/config.html", faction=faction)

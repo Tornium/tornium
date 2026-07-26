@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.6
+// @version      0.5.7
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   var DEBUG = false;
   var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.6";
+  var VERSION = "0.5.7";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
@@ -74,20 +74,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     return null;
   }
   async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const headers = parseHeaders(response.responseHeaders);
-    headers["cache-expiry"] = String(Date.now() + ttl);
+    const cloneResponse = response.clone();
+    const newHeaders = new Headers(cloneResponse.headers);
+    newHeaders.set("cache-expiry", String(Date.now() + ttl));
     const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(response.responseText, { headers }));
-  }
-  function parseHeaders(headerString) {
-    let headers = {};
-    headerString.split("\r\n").forEach((line) => {
-      const [key, value] = line.split(": ").map((item) => item.trim());
-      if (key && value) {
-        headers[key] = value;
-      }
-    });
-    return headers;
+    await cache.put(url, new Response(await cloneResponse.text(), { status: response.status, headers: newHeaders }));
   }
 
   // oauth.js

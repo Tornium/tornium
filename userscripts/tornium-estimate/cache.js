@@ -36,11 +36,12 @@ export async function getCache(url) {
 }
 
 export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const headers = parseHeaders(response.responseHeaders);
-    headers["cache-expiry"] = String(Date.now() + ttl);
+    const cloneResponse = response.clone();
+    const newHeaders = new Headers(cloneResponse.headers);
+    newHeaders.set("cache-expiry", String(Date.now() + ttl));
 
     const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(response.responseText, { headers: headers }));
+    await cache.put(url, new Response(await cloneResponse.text(), { status: response.status, headers: newHeaders }));
 }
 
 function parseHeaders(headerString) {

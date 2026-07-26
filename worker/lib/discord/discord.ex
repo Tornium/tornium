@@ -15,7 +15,7 @@
 
 defmodule Tornium.Discord do
   @moduledoc """
-  Functinality related to Discord built on top of Nostrum.
+  Functionality related to Discord built on top of Nostrum.
   """
 
   @typedoc """

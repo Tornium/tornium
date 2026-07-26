@@ -21,13 +21,11 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
   API calls across the entire hour.
   """
 
-  require Logger
-  alias Tornium.Schema.ServerAttackConfig
   alias Tornium.Repo
   import Ecto.Query
 
   use Oban.Worker,
-    max_attempts: 5,
+    max_attempts: 3,
     priority: 0,
     queue: :scheduler,
     tags: ["scheduler", "guild"],
@@ -37,16 +35,27 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
       states: :incomplete
     ]
 
+  @chunk_size 5
+
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
-    guilds = Tornium.Discord.fetch_all_guilds([], with_counts: true)
+    guilds = Tornium.Discord.fetch_all_guilds(with_counts: true)
     guild_ids = Enum.map(guilds, & &1.id)
 
-    # TODO: Refreshing found servers
+    guilds
+    |> Enum.map(fn %Nostrum.Struct.Guild{} = guild ->
+      # TODO: Create a new oban job
+      nil
+    end)
+    |> Enum.chunk_every(@chunk_size)
+    |> Enum.with_index()
+    |> Enum.each(fn {guilds, index} when is_list(guilds) and is_integer(index) ->
+      # TODO: Insert the created Oban jobs with an increasing delay to stagger their executions
+      nil
+    end)
 
-    with {count, servers_pending_deletion} when count > 0 <- get_servers_pending_deletion(guild_ids) do
-      Tornium.Schema.Server.delete_servers(servers_pending_deletion)
-    end
+    {_count, servers_pending_deletion} = get_servers_pending_deletion(guild_ids)
+    Tornium.Schema.Server.delete_servers(servers_pending_deletion)
 
     :ok
   end
@@ -56,7 +65,6 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
     Tornium.Schema.Server
     |> select([s], s.sid)
     |> where([s], s.sid not in ^found_server_ids)
-    |> update([s], set: [notifications_config_id: nil])
-    |> Repo.update_all([])
+    |> Repo.all()
   end
 end

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+Tornium - Faction Calendar
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/calendar">Calendar</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+{% include "faction/subnav.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Calendar</h5>
+            <p class="card-text">
+                {# TODO: Add a docs page #}
+                This calendar lists faction events, steadfast changes, Torn events/competitions, RWs, etc.
+                For more information, see the <a href="https://docs.tornium.com/" target="_blank" rel="noopener noreferrer">documentation</a>.
+                Members with AA permissions will be able to add events to the faction calendar. This faction calendar can then be loaded as an
+                image to be used outside of Tornium or viewed on Tornium as a calendar or as a timeline.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

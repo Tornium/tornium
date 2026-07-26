@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, DateTimeField, TextField, CharField
+from peewee import BooleanField, CharField, DateTimeField, TextField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel

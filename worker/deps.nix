@@ -186,7 +186,7 @@ let
 
       bandit =
         let
-          version = "1.12.0";
+          version = "1.12.4";
           drv = buildMix {
             inherit version;
             name = "bandit";
@@ -195,7 +195,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "bandit";
-              sha256 = "45dac82dc86f45cf4a196dee9cc5a8b791d9c9469d996055f055e6ee36c66e20";
+              sha256 = "84513318c5752a2a8017664450f889b47fae5d53d64698ddf1e4fb09a7449e8d";
             };
 
             beamDeps = [
@@ -265,7 +265,7 @@ let
 
       cowboy =
         let
-          version = "2.17.0";
+          version = "2.18.0";
           drv = buildRebar3 {
             inherit version;
             name = "cowboy";
@@ -273,7 +273,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "cowboy";
-              sha256 = "84f0e4c9d5820342cd506472052b79336d0d9d3624e46303f6d0af9dc94e8d5f";
+              sha256 = "62d0b26abcf455054972b0da242389c69d5982ce5914afb8c344517f667b9600";
             };
 
             beamDeps = [
@@ -307,7 +307,7 @@ let
 
       cowlib =
         let
-          version = "2.18.0";
+          version = "2.19.0";
           drv = buildRebar3 {
             inherit version;
             name = "cowlib";
@@ -315,7 +315,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "cowlib";
-              sha256 = "c4f89d33a61162d4cfdcb5a1af7e562d80a700b2573cc71020ce6521b152dc1a";
+              sha256 = "6dc66e3135b229193ea4dcb14294e79520c923d391315c9c962ef0b4bea72356";
             };
           };
         in
@@ -1126,7 +1126,7 @@ let
 
       plug_crypto =
         let
-          version = "2.1.1";
+          version = "2.2.0";
           drv = buildMix {
             inherit version;
             name = "plug_crypto";
@@ -1135,7 +1135,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "plug_crypto";
-              sha256 = "6470bce6ffe41c8bd497612ffde1a7e4af67f36a15eea5f921af71cf3e11247c";
+              sha256 = "83a95744ab1c75876542b6fab135fcc176280e0f301a111c1f757fddcec95d2c";
             };
           };
         in
@@ -1200,7 +1200,7 @@ let
 
       ranch =
         let
-          version = "2.2.0";
+          version = "2.2.1";
           drv = buildRebar3 {
             inherit version;
             name = "ranch";
@@ -1208,7 +1208,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "ranch";
-              sha256 = "fa0b99a1780c80218a4197a59ea8d3bdae32fbff7e88527d7d8a4787eff4f8e7";
+              sha256 = "55f05cce20ec2da1d90de5d5981afb93dbfc01325fc7e933189aa5c62f037c24";
             };
           };
         in

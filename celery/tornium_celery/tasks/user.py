@@ -62,76 +62,47 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     elif tid != 0 and discordid != 0:
         raise Exception("No valid user ID passed")
 
-    update_self = False
-    update_personal_stats = False
-    user_exists = None
     user: typing.Optional[User] = None
 
     if tid != 0:
-        user = User.select(User.last_refresh).where(User.tid == tid).first()
-        user_exists = user is not None
-
-        if (
-            user is not None
-            and user.last_refresh is not None
-            and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
-        ):
-            return
-
         user_id = tid
-    elif discordid == tid == 0:
+        user = User.select().where(User.tid == tid).first()
+    elif discordid != 0:
+        user_id = discordid
+        user = User.select().where(User.tid == tid).first()
+    elif tid == 0 and discordid == 0:
+        user_id = 0
         try:
-            user = TornKey.select(TornKey.user).where(TornKey.api_key == key).get().user
+            user = TornKey.select().where(TornKey.api_key == key).get().user
         except DoesNotExist:
             pass
-        else:
-            if user.last_refresh is not None and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE:
-                return
 
-        user_id = 0
-        update_self = True
-    else:
-        user = User.select(User.last_refresh).where(User.tid == tid).first()
-        user_exists = user is not None
+    update_self = tid == 0 and discordid == 0
+    update_personal_stats = False
 
-        if (
-            user is not None
-            and user.last_refresh is not None
-            and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
-        ):
-            return
-
-        user_id = discordid
-
-    if user_exists and not refresh_existing:
+    if (
+        user is not None
+        and user.last_refresh is not None
+        and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
+    ):
         return
     elif user is not None and not refresh_existing:
+        # If the user is already in the database, we can skip the update if the `refresh_existing` flag
+        # is set to false.
         return
 
     personal_stats: typing.Optional[PersonalStats] = None
     if user is not None:
-        personal_stats = (
-            PersonalStats.select(PersonalStats.timestamp)
-            .where(PersonalStats.user == user.tid)
-            .order_by(-PersonalStats.timestamp)
-            .first()
-        )
+        personal_stats = user.personal_stats
 
-    if (
-        user is not None
-        and update_self
-        and personal_stats is not None
-        and personal_stats.timestamp != datetime.date.today()
-    ):
+    today = datetime.date.today()
+    if update_self and personal_stats is not None and personal_stats.timestamp != today:
         update_personal_stats = True
     elif (
-        user is not None
-        and not update_self
+        not update_self
         and personal_stats is not None
-        and personal_stats.timestamp != datetime.date.today() - datetime.timedelta(days=1)
+        and personal_stats.timestamp != today - datetime.timedelta(days=1)
     ):
-        update_personal_stats = True
-    else:
         update_personal_stats = True
 
     result_sig: celery.canvas.Signature
@@ -152,7 +123,8 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
             queue="api",
         )
 
-    if self.request.id is None:  # Run in same process
+    if self.request.id is None:
+        # Run in same process
         api_result = result_sig()
 
         if update_self:
@@ -161,7 +133,8 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
             result = update_user_other(api_result)
 
         return result
-    else:  # Run in a Celery worker
+    else:
+        # Run in a Celery worker
         if update_self:
             result = result_sig.apply_async(expires=300, link=update_user_self.signature(kwargs={"key": key}))
         else:
@@ -196,7 +169,7 @@ def update_user_self(user_data: dict, key: typing.Optional[str] = None):
 
         if key is not None and len(faction.aa_keys) == 0:
             try:
-                tornget("faction/?selections=basic,positions", key)
+                tornget("faction/?selections=positions", key)
             except TornError as e:
                 if e.code == 7:
                     user_data_kwargs["faction_aa"] = False

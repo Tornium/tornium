@@ -102,6 +102,29 @@ def _increment_ratelimit(ratelimit_key):
     redis_client.expire(ratelimit_key, max(1, 2 ** (failed_attempt_count - 5)))
 
 
+@mod.route("/login", methods=["GET"])
+@disable_cache
+def login_page(*args, **kwargs):
+    redis_client = rds()
+    ip_addr = request.headers.get("CF-Connecting-IP") or request.remote_addr
+    ratelimit_key = f"tornium:login-ratelimit:{ip_addr}"
+
+    if redis_client.exists(ratelimit_key) and int(redis_client.get(ratelimit_key)) > 5:
+        ratelimit_ttl = redis_client.ttl(ratelimit_key)
+
+        return (
+            render_template(
+                "errors/error.html",
+                title="Too Many Requests",
+                error=f"Security error. Too many requests. Try again in {rel_time(int(time.time()) + ratelimit_ttl)}.",
+            ),
+            429,
+        )
+
+    session["oauth_state"] = secrets.token_urlsafe()
+    return render_template("login.html")
+
+
 @mod.route("/login", methods=["GET", "POST"])
 @disable_cache
 def login(*args, **kwargs):
@@ -120,10 +143,6 @@ def login(*args, **kwargs):
             ),
             429,
         )
-
-    if request.method == "GET":
-        session["oauth_state"] = secrets.token_urlsafe()
-        return render_template("login.html")
 
     session_oauth_state = session.pop("oauth_state", None)
     oauth_state = request.args.get("state")
@@ -193,7 +212,7 @@ def login(*args, **kwargs):
 
     if user is None:
         try:
-            key_info = tornget(endpoint="key/?selections=info", key=request.form["key"])
+            key_info = tornget(endpoint="key/?selections=info", key=request.form["key"], version=2)
         except TornError as e:
             _log_auth(
                 user=None,
@@ -223,7 +242,7 @@ def login(*args, **kwargs):
                 500,
             )
 
-        if key_info["access_level"] < 3:
+        if key_info["info"]["access"]["level"] < 3:
             # TODO: Allow all API keys but determine how they're marked as default
             _log_auth(
                 user=None,
@@ -244,7 +263,7 @@ def login(*args, **kwargs):
             )
 
     try:
-        update_user(key=request.form["key"], tid=0, refresh_existing=False)
+        update_user(key=request.form["key"], tid=0, discordid=0, refresh_existing=False)
     except NetworkingError as e:
         _log_auth(
             user=None,

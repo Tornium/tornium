@@ -14,7 +14,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Guild.Verify.Config do
+  @moduledoc """
+  Verification configuration for a faction in a Discord server.
+  """
+
   alias Tornium.Repo
+
+  @typedoc """
+  Verification configuration for a specific faction.
+
+  The values of the map are only the following with the following types:
+  `"roles"` - `[Tornium.Discord.role()]`
+  `"positions"` - `%{Ecto.UUID.t() => [Tornium.Discord.role()]}`
+  `"enabled"` - `boolean()`
+  where the LHS is the key and the RHS is the type of the value.
+  """
+  @type faction_verify_config() :: %{
+          String.t() => [Tornium.Discord.role()] | %{Ecto.UUID.t() => [Tornium.Discord.role()]} | boolean()
+        }
 
   @type t :: %__MODULE__{
           verify_enabled: boolean(),
@@ -24,7 +41,7 @@ defmodule Tornium.Guild.Verify.Config do
           verified_roles: [Tornium.Discord.role()],
           unverified_roles: [Tornium.Discord.role()],
           exclusion_roles: [Tornium.Discord.role()],
-          faction_verify: map(),
+          faction_verify: %{String.t() => faction_verify_config()},
           verify_log_channel: integer(),
           verify_jail_channel: integer()
         }
@@ -86,9 +103,48 @@ defmodule Tornium.Guild.Verify.Config do
       verified_roles: guild.verified_roles,
       unverified_roles: guild.unverified_roles,
       exclusion_roles: guild.exclusion_roles,
-      faction_verify: guild.faction_verify,
+      faction_verify: guild.faction_verify |> normalize_faction_verify_roles(),
       verify_log_channel: guild.verify_log_channel,
       verify_jail_channel: guild.verify_jail_channel
     }
+  end
+
+  defp normalize_faction_verify_roles(faction_verify) when is_map(faction_verify) do
+    # As the database is storing the faction verify incorrectly with strings for the role
+    # IDs for faction positions' verification roles, we need to convert them to integers.
+
+    Map.new(faction_verify, fn {faction_id, faction_config} ->
+      updated_positions =
+        faction_config
+        |> Map.get("positions", %{})
+        |> Enum.map(fn {position_id, roles} ->
+          {position_id, Enum.map(roles, &string_to_integer/1)}
+        end)
+        |> Map.new()
+
+      updated_faction_roles =
+        faction_config
+        |> Map.get("roles")
+        |> List.wrap()
+        |> Enum.map(&string_to_integer/1)
+
+      updated_config =
+        faction_config
+        |> Map.put("positions", updated_positions)
+        |> Map.put("roles", updated_faction_roles)
+
+      {faction_id, updated_config}
+    end)
+  end
+
+  # The Tornium.Utils.string_to_integer/1 returns nil if the value is not a string, so
+  # that can not be used for this.
+  @spec string_to_integer(value :: String.t() | integer()) :: integer()
+  defp string_to_integer(value) when is_binary(value) do
+    String.to_integer(value)
+  end
+
+  defp string_to_integer(value) when is_integer(value) do
+    value
   end
 end

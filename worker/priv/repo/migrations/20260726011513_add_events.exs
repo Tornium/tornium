@@ -17,6 +17,7 @@ defmodule Tornium.Repo.Migrations.AddEvents do
       add :configurable, :boolean, default: false, null: false
     end
     create_if_not_exists index("torn_event", [:start_timestamp, :end_timestamp])
+    create_if_not_exists unique_index("torn_event", [:title, Tornium.Schema.TornEvent.unique_fragment()])
 
     # --- Steadfast Event ---
     create_if_not_exists table("steadfast_event", primary_key: false) do

@@ -297,6 +297,9 @@ mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/armory/cumulative", view_func=faction.armory.get_cumulative, methods=["GET"]
 )
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/armory/logs", view_func=faction.armory.get_logs, methods=["GET"])
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/calendar", view_func=faction.calendar.get_calendar_events, methods=["GET"]
+)
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/overdose", view_func=faction.overdose.get_events, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(

@@ -16,6 +16,8 @@
 from peewee import BooleanField, CharField, DateTimeField, TextField
 from playhouse.postgres_ext import UUIDField
 
+from tornium_commons.formatters import timestamp
+
 from .base_model import BaseModel
 
 
@@ -34,3 +36,15 @@ class TornEvent(BaseModel):
     start_timestamp = DateTimeField(null=False)
     end_timestamp = DateTimeField(null=False)
     configurable = BooleanField(default=False, null=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "guid": self.guid,
+            "category": "torn_event",
+            "title": self.title,
+            "description": self.description,
+            "type": self.type,
+            "starts_at": timestamp(self.start_timestamp),
+            "ends_at": timestamp(self.end_timestamp),
+            "configurable": self.configurable,
+        }

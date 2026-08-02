@@ -22,11 +22,65 @@ Tornium - Faction Calendar
 {% include "faction/subnav.html" %}
 {% endblock %}
 
+{% block styles %}
+<style>
+#view-type-card {
+    width: fit-content;
+}
+
+calendar-viewport {
+    height: 100vh;
+}
+
+calendar-timeline {
+    display: grid;
+    overflow-y: hidden;
+    grid-template-columns: 1fr 4px 1fr;
+
+    position: relative;
+    height: 100%;
+    min-height: 0;
+
+    color: var(--text-color);
+
+    touch-action: none;
+}
+
+calendar-timeline calendar-timeline-axis {
+    grid-column: 2;
+    height: 100%;
+
+    background-color: var(--text-alternate-color);
+}
+
+calendar-timeline calendar-timeline-track {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+}
+
+calendar-timeline calendar-timeline-track .timeline-event-period {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 80%;
+    left: 10%;
+    border: 2px solid #ffffff40;
+    border-radius: 12px;
+    box-sizing: border-box;
+    padding: 10px;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="py-3 px-3">
+<div class="p-3 h-100">
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Calendar</h5>
+            <h5 class="card-title">Faction Calendar</h5>
             <p class="card-text">
                 {# TODO: Add a docs page #}
                 This calendar lists faction events, steadfast changes, Torn events/competitions, RWs, etc.
@@ -36,6 +90,49 @@ Tornium - Faction Calendar
             </p>
         </div>
     </div>
+
+    <calendar-viewport class="d-flex flex-column">
+        <div class="row d-flex justify-content-between">
+            <div class="col-sm-12 col-lg-4">
+                <div class="card my-3" id="view-type-card">
+                    <div class="card-header">Calendar View</div>
+                    <ul class="list-group list-group-flush" id="view-type-list">
+                        <li class="list-group-item">
+                            <label class="d-flex">
+                                <input type="radio" name="view-type-selector" autocomplete="off" value="timeline">
+                                <p class="card-text px-3 w-100">Timeline</p>
+                            </label>
+                        </li>
+
+                        <li class="list-group-item">
+                            <label class="d-flex">
+                                <input type="radio" name="view-type-selector" autocomplete="off" value="calendar">
+                                <p class="card-text px-3 w-100">Calendar</p>
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-lg-4 mt-lg-auto mb-3 d-flex justify-content-end">
+                <calendar-timeline-controls hidden>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-zoom-in">Zoom In</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-zoom-out">Zoom Out</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-pan-past">Pan Past</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-pan-future">Pan Future</button>
+                </calendar-timeline-controls>
+            </div>
+        </div>
+
+        <calendar-timeline class="border rounded mt-3 flex-grow-1" hidden></calendar-timeline>
+        <calendar-grid class="border rounded flex-grow-1" hidden></calendar-grid>
+    </div>
 </div>
 {% endblock %}
 
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@js-temporal/polyfill@0.5.1/dist/index.umd.min.js"></script>
+<script src="/static/faction/calendar.js" data-faction-id="{{ current_user.faction_id }}"></script>
+<script src="/static/faction/calendar-timeline.js" data-faction-id="{{ current_user.faction_id }}"></script>
+<script src="/static/faction/calendar-grid.js" data-faction-id="{{ current_user.faction_id }}"></script>
+{% endblock %}

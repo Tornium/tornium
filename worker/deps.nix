@@ -511,7 +511,7 @@ let
 
       gun =
         let
-          version = "2.4.1";
+          version = "2.5.0";
           drv = buildRebar3 {
             inherit version;
             name = "gun";
@@ -519,7 +519,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "gun";
-              sha256 = "1450575b4d393aa0811322727b90ad1dd94b5c10026f54a1641785bcbd250384";
+              sha256 = "3839576181456f5553fc1be006fd95681576b916cc9ad68d422a287ed4a770dd";
             };
 
             beamDeps = [

@@ -423,6 +423,31 @@ defmodule Tornium.Guild.Verify do
   end
 
   def log(
+        {:error, %Tornium.API.Error{code: 6} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+          verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    # When the error code is 6, this is the same thing as the user not being verified,
+    # but something didn't handle it as such.
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :unverified,
+      error_code: nil,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
         {:error, %Tornium.API.Error{code: error_code} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
           verification_result,
         %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member

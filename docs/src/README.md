@@ -15,7 +15,7 @@ For a more comprehensive list of features, see the navigation in the sidebar.
 - [Developer @ Torn](https://torn.com/profiles.php?XID=2383326)
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. For more information, see the [contributing guide](https://github.com/Tornium/tornium/blob/master/CONTRIBUTING.md) on GitHub.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. For more information, see the [contributing guide](https://github.com/Tornium/tornium/blob/master/CONTRIBUTING.md) on GitHub. Documentation changes should use the [Diátaxis](https://diataxis.fr/) format.
 
 ## License
 The Tornium documentation (and the majority of the source code) are released under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html). For the source code, be sure to read the license headers and license files as different sections of the codebase may be licensed differently.

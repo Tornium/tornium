@@ -17,6 +17,7 @@
 - [Install Tornium Estimate Userscript](tutorial/tornium-estimate.md)
 
 # User Guide
+- [How to make a vault request?](guide/vault-request.md)
 - [How to setup 2FA?](guide/2fa.md)
 - [How to use the API?](guide/api.md)
 

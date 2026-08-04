@@ -29,7 +29,7 @@ Tornium - Faction Calendar
 }
 
 calendar-viewport {
-    height: 100vh;
+    height: min(100vh, fit-content);
 }
 
 calendar-timeline {
@@ -72,6 +72,44 @@ calendar-timeline calendar-timeline-track .timeline-event-period {
     box-sizing: border-box;
     padding: 10px;
     text-align: center;
+}
+
+calendar-grid .calendar-grid-month-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    height: fit-content;
+}
+
+calendar-grid .calendar-grid-month-label {
+    width: 100%;
+
+    text-align: center;
+    color: var(--text-color);
+}
+
+calendar-grid calendar-grid-month {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(100px, auto);
+    gap: 1px;
+}
+
+calendar-grid calendar-grid-month calendar-grid-day {
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+    padding: 0.5rem;
+    min-height: 100px;
+}
+
+calendar-grid calendar-grid-month calendar-grid-day .calendar-grid-day-label {
+    font-size: 0.75em;
+    color: var(--text-color);
 }
 </style>
 {% endblock %}
@@ -121,11 +159,16 @@ calendar-timeline calendar-timeline-track .timeline-event-period {
                     <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-pan-past">Pan Past</button>
                     <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-pan-future">Pan Future</button>
                 </calendar-timeline-controls>
+
+                <calendar-grid-controls hidden>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-grid-previous">Previous Month</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="calendar-grid-next">Next Month</button>
+                </calendar-grid-controls>
             </div>
         </div>
 
         <calendar-timeline class="border rounded mt-3 flex-grow-1" hidden></calendar-timeline>
-        <calendar-grid class="border rounded flex-grow-1" hidden></calendar-grid>
+        <calendar-grid class="row border rounded flex-grow-1" hidden></calendar-grid>
     </div>
 </div>
 {% endblock %}

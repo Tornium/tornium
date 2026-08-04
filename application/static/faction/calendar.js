@@ -17,10 +17,12 @@ const factionID = document.currentScript.getAttribute("data-faction-id");
 let calendarViewSelector = null;
 let calendarTimelineControls = null;
 let calendarTimeline = null;
+let calendarGridControls = null;
 let calendarGrid = null;
 
 (async () => {
     // We need to polyfill Temporal as it's not yet available on Safari and on iOS
+    // FIXME: This polyfill doesn't work (kaneki can test it)
     if (typeof window.Temporal === "undefined") {
         console.log("polyfilling Temporal");
         await import("https://cdn.jsdelivr.net/npm/@js-temporal/polyfill@0.5.1/dist/index.umd.min.js");
@@ -43,11 +45,13 @@ function toggleCalendarView(event) {
         calendarTimeline.removeAttribute("hidden");
         calendarTimelineControls.removeAttribute("hidden");
         calendarGrid.setAttribute("hidden", "");
+        calendarGridControls.setAttribute("hidden", "");
         return;
     } else if (selectedView == "calendar") {
         calendarTimeline.setAttribute("hidden", "");
         calendarTimelineControls.setAttribute("hidden", "");
         calendarGrid.removeAttribute("hidden");
+        calendarGridControls.removeAttribute("hidden");
         return;
     }
 
@@ -59,6 +63,7 @@ ready(() => {
     calendarTimeline = document.querySelector("calendar-timeline");
     calendarTimelineControls = document.querySelector("calendar-timeline-controls");
     calendarGrid = document.querySelector("calendar-grid");
+    calendarGridControls = document.querySelector("calendar-grid-controls");
 
     calendarViewSelector.addEventListener("change", toggleCalendarView);
 });

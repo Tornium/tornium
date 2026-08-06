@@ -15,6 +15,7 @@
 
 defmodule Tornium.Schema.Server do
   use Ecto.Schema
+  import Ecto.Query
   alias Tornium.Repo
 
   @type t :: %__MODULE__{
@@ -80,5 +81,22 @@ defmodule Tornium.Schema.Server do
     |> Ecto.Changeset.put_change(:name, guild_name)
     |> Ecto.Changeset.change(opts)
     |> Repo.insert(on_conflict: {:replace_all_except, [:sid]}, conflict_target: :sid)
+  end
+
+  @doc """
+  Delete the server IDs listed and all associated records.
+
+  The linked server ID for the faction will be set to `nil` to avoid deleting faction data.
+  """
+  @spec delete_servers(server_ids :: [pos_integer()]) :: {non_neg_integer(), nil | [term()]}
+  def delete_servers([] = _server_ids) do
+    {0, nil}
+  end
+
+  def delete_servers(server_ids) when is_list(server_ids) do
+    # TEST: Add tests to ensure the correct data is deleted and nothing else is
+    Tornium.Schema.Server
+    |> where([s], s.sid in ^server_ids)
+    |> Repo.delete_all()
   end
 end

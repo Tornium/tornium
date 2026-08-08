@@ -13,13 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import (
-    armory,
-    attacks,
-    banking,
-    calendar,
-    crimes,
-    faction,
-    overdose,
-    positions,
-)
+from peewee import DateTimeField, SmallIntegerField
+from playhouse.postgres_ext import UUIDField
+
+from .base_model import BaseModel
+
+
+class SteadfastEvent(BaseModel):
+    class Meta:
+        table_name = "steadfast_event"
+
+    guid = UUIDField(primary_key=True)
+
+    strength = SmallIntegerField(null=False)
+    defense = SmallIntegerField(null=False)
+    speed = SmallIntegerField(null=False)
+    dexterity = SmallIntegerField(null=False)
+
+    start_timestamp = DateTimeField(null=False)
+    end_timestamp = DateTimeField(null=False)

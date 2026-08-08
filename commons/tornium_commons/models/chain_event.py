@@ -13,13 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from controllers.api.v1.faction import (
-    armory,
-    attacks,
-    banking,
-    calendar,
-    crimes,
-    faction,
-    overdose,
-    positions,
-)
+from peewee import DateTimeField, ForeignKeyField, IntegerField
+from playhouse.postgres_ext import UUIDField
+
+from .base_model import BaseModel
+from .faction import Faction
+
+
+class ChainEvent(BaseModel):
+    class Meta:
+        table_name = "chain_event"
+
+    guid = UUIDField(primary_key=True)
+
+    faction = ForeignKeyField(Faction, null=False)
+
+    # chain = ForeignKeyField(Chain, null=False, unique=True)
+    expected_chain_length = IntegerField(null=False)
+
+    start_timestamp = DateTimeField(null=False)
+    end_timestamp = DateTimeField(null=False)

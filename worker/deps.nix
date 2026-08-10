@@ -1016,7 +1016,7 @@ let
 
       phoenix_live_view =
         let
-          version = "1.2.7";
+          version = "1.2.9";
           drv = buildMix {
             inherit version;
             name = "phoenix_live_view";
@@ -1025,7 +1025,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "phoenix_live_view";
-              sha256 = "61e97938a4fcca6d6f2c836925623abf2f52a572cc8c6085e4074f3f6337e0eb";
+              sha256 = "2f9528c3d7046edabbb30a91710ca33988f8d8bc20a964a1fc48b32134572afa";
             };
 
             beamDeps = [
@@ -1143,7 +1143,7 @@ let
 
       postgrex =
         let
-          version = "0.22.3";
+          version = "0.22.4";
           drv = buildMix {
             inherit version;
             name = "postgrex";
@@ -1152,7 +1152,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "postgrex";
-              sha256 = "f018c13752b2b46e8d35d7e2d84c3276557cbfd880769109021a1d0ee36c1cfe";
+              sha256 = "4aae45a2d60e35b04eea2602440be152fae332901f1fc7a60fc7cb7f0f9a9c5a";
             };
 
             beamDeps = [
@@ -1437,7 +1437,7 @@ let
 
       torngen_elixir_client =
         let
-          version = "6.1.1";
+          version = "6.6.1";
           drv = buildMix {
             inherit version;
             name = "torngen_elixir_client";
@@ -1446,7 +1446,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "torngen_elixir_client";
-              sha256 = "b7aa5bdfb886df63e223adaa9f1ad774c4415e1c81024828e6260cfd65c9daf5";
+              sha256 = "cd276c29fdb477a91bd76bad1c07200c68383a64756bbe0f6b80adc86d11ef33";
             };
 
             beamDeps = [

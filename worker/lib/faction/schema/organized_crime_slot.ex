@@ -21,7 +21,7 @@ defmodule Tornium.Schema.OrganizedCrimeSlot do
   Each slot is indexed through three fields:
     * `:crime_position` - The name of the slot
     * `:slot_index` - The zero-indexed posotion of the slot for this OC type
-    * `:crime_position_index` - The one-indexed numberof the member for the slot name
+    * `:crime_position_index` - The one-indexed number of the member for the slot name
 
   For example, `Thief #2` in Break The Bank can be reprsented as
   ```elixir

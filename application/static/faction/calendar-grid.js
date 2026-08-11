@@ -155,16 +155,109 @@ class CalendarGrid extends HTMLElement {
     }
 
     renderTornEvent(eventData) {
-        const start = Temporal.Instant.fromEpochSeconds(eventData.starts_at).toZonedDateTimeISO("UTC");
-        const end = Temporal.Instant.fromEpochSeconds(eventData.ends_at).toZonedDateTimeISO("UTC");
+        const start = Temporal.Instant.fromEpochMilliseconds(eventData.starts_at * 1000).toZonedDateTimeISO("UTC");
+        const end = Temporal.Instant.fromEpochMilliseconds(eventData.ends_at * 1000).toZonedDateTimeISO("UTC");
         const durationDays = start.until(end, { largestUnit: "days" }).days;
+
+        if (durationDays <= 1) {
+            const startDay = start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+            this.renderSingleDayEvent(startDay, eventData);
+        } else if (durationDays <= 8) {
+            this.renderMultiDayEvent(start, end, eventData);
+        } else {
+            // TODO: Implement rendering of a multiweek event
+        }
     }
 
-    renderSingleDayEvent(normalizedEventData) {}
+    renderSingleDayEvent(day, eventData) {
+        const dateKey = day.toPlainDate().toString();
+        const cell = this.querySelector(`[data-date="${dateKey}"]`);
 
-    renderMultiDayEvent(normalizedEventData) {}
+        if (cell) {
+            const evEl = document.createElement("calendar-event");
+            evEl.classList.add("calendar-event-short");
+            evEl.textContent = eventData.title || eventData.category;
+            evEl.title = `${eventData.title || eventData.category}\nStarts: ${day.toPlainDate().toString()}`;
+            evEl.style.backgroundColor = this.eventColor(eventData);
 
-    renderMultiWeekEvent(normalizedEventData) {}
+            cell.appendChild(evEl);
+        }
+    }
+
+    renderMultiDayEvent(startTimestamp, endTimestamp, eventData) {
+        this.segmentAndRender(startTimestamp, endTimestamp, eventData, "calendar-multi-day-event");
+    }
+
+    renderMultiWeekEvent(startTimestamp, endTimestamp, eventData) {
+        this.segmentAndRender(startTimestamp, endTimestamp, eventData, "calendar-multi-week-event");
+    }
+
+    segmentAndRender(start, end, eventData, cssClass) {
+        let currentStart = start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+        const finalEnd = end.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+
+        const getStandardDay = (t) => (t.dayOfWeek === 7 ? 0 : t.dayOfWeek);
+
+        while (Temporal.ZonedDateTime.compare(currentStart, finalEnd) <= 0) {
+            const currentDayOfWeek = getStandardDay(currentStart);
+            const daysUntilSaturday = 6 - currentDayOfWeek;
+
+            // The segment ends either on Saturday of the current week, or the actual end date
+            let segmentEnd = currentStart.add({ days: daysUntilSaturday });
+            if (Temporal.ZonedDateTime.compare(segmentEnd, finalEnd) > 0) {
+                segmentEnd = finalEnd;
+            }
+
+            // Find the starting cell in the DOM to grab its row position
+            const dateKey = currentStart.toPlainDate().toString();
+            const startCell = this.querySelector(`[data-date="${dateKey}"]`);
+
+            if (startCell) {
+                const monthGrid = startCell.parentElement;
+                const weekRow = startCell.style.gridRow;
+                const spanDuration = currentStart.until(segmentEnd, { largestUnit: "days" }).days + 1;
+
+                const evEl = document.createElement("calendar-event");
+                evEl.classList.add(cssClass);
+                evEl.textContent = eventData.title || eventData.category;
+
+                // Position via CSS Grid coordinates
+                evEl.style.gridRow = weekRow;
+                evEl.style.gridColumn = `${currentDayOfWeek + 1} / span ${spanDuration}`;
+                evEl.style.backgroundColor = this.eventColor(eventData);
+
+                // Add styling classes for rounded corners based on where the segment is
+                if (
+                    currentStart.equals(start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 })) &&
+                    !segmentEnd.equals(finalEnd)
+                ) {
+                    evEl.classList.add("event-segment-start");
+                } else if (
+                    !currentStart.equals(start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 })) &&
+                    !segmentEnd.equals(finalEnd)
+                ) {
+                    evEl.classList.add("event-segment-middle");
+                } else if (
+                    !currentStart.equals(start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 })) &&
+                    segmentEnd.equals(finalEnd)
+                ) {
+                    evEl.classList.add("event-segment-end");
+                }
+
+                // Append directly to the month grid, floating OVER the individual day cells
+                monthGrid.appendChild(evEl);
+            }
+
+            // Jump to the next Sunday
+            currentStart = segmentEnd.add({ days: 1 });
+        }
+    }
+
+    eventColor(event) {
+        const hex = parseInt(event.guid.substring(0, 6), 16);
+        const hue = hex % 360;
+        return `hsla(${hue}, 65%, 45%, 0.4)`;
+    }
 }
 
 customElements.define("calendar-grid", CalendarGrid);

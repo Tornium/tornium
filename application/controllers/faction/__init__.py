@@ -39,6 +39,8 @@ mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 
 # Calendar Routes
 mod.add_url_rule("/faction/calendar", view_func=calendar.faction_calendar, methods=["GET"])
+mod.add_url_rule("/faction/calendar/new", view_func=calendar.create_calendar_event, methods=["GET"])
+mod.add_url_rule("/faction/calendar/new/<event_type>", view_func=calendar.create_specific_event, methods=["GET"])
 
 # Crime Routes
 # mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])

@@ -94,7 +94,8 @@ calendar-grid calendar-grid-month {
 
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(100px, auto);
+    /* grid-auto-rows: minmax(100px, auto); */
+    grid-auto-rows: 100px;
     gap: 1px;
 }
 
@@ -105,11 +106,44 @@ calendar-grid calendar-grid-month calendar-grid-day {
     gap: 2px;
     padding: 0.5rem;
     min-height: 100px;
+
+    overflow: hidden;
 }
 
 calendar-grid calendar-grid-month calendar-grid-day .calendar-grid-day-label {
     font-size: 0.75em;
     color: var(--text-color);
+}
+
+calendar-grid calendar-event {
+    color: var(--text-color);
+    font-size: 0.75em;
+
+    margin-top: 1.75rem;
+    padding: 2px 4px;
+    border-radius: 3px;
+    align-self: start;
+
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+calendar-grid calendar-event:nth-of-type(n+2) {
+    margin-top: 3.25rem;
+}
+
+calendar-grid calendar-event.event-segment-start {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+calendar-grid calendar-event.event-segment-middle {
+    border-radius: 0;
+}
+
+calendar-grid calendar-event.event-segment-end {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 </style>
 {% endblock %}
@@ -152,7 +186,11 @@ calendar-grid calendar-grid-month calendar-grid-day .calendar-grid-day-label {
                 </div>
             </div>
 
-            <div class="col-sm-12 col-lg-4 mt-lg-auto mb-3 d-flex justify-content-end">
+            <div class="col-sm-12 col-lg-4 mt-lg-auto mb-3 d-flex flex-column align-items-end align-content-between">
+                {% if current_user.faction_aa %}
+                <a class="btn btn-outline-secondary mb-3" style="width: fit-content;" href="/faction/calendar/new">Create Event</a>
+                {% endif %}
+
                 <calendar-timeline-controls hidden>
                     <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-zoom-in">Zoom In</button>
                     <button class="btn btn-outline-secondary btn-sm" id="calendar-timeline-zoom-out">Zoom Out</button>

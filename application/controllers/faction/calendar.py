@@ -13,13 +13,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import render_template
+from flask import abort, render_template
 from flask_login import login_required
 
-from controllers.faction.decorators import fac_required
+from controllers.faction.decorators import aa_required, fac_required
 
 
 @login_required
 @fac_required
 def faction_calendar(*args, **kwargs):
-    return render_template("faction/calendar.html")
+    return render_template("faction/calendar/calendar.html")
+
+
+@login_required
+@fac_required
+@aa_required
+def create_calendar_event(*args, **kwargs):
+    return render_template("faction/calendar/new-event.html")
+
+
+@login_required
+@fac_required
+@aa_required
+def create_specific_event(event_type: str, *args, **kwargs):
+    if event_type not in ("steadfast"):
+        abort(404)
+
+    return render_template(f"faction/calendar/new-{event_type}-event.html")

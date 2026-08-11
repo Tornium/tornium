@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import json
 
 from flask import jsonify, request
 from tornium_commons.models import Faction, TornEvent
@@ -22,7 +23,7 @@ from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@require_oauth("faction")
+@require_oauth("faction:calendar", "faction")
 @ratelimit
 def get_calendar_events(faction_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -53,3 +54,38 @@ def get_calendar_events(faction_id: int, *args, **kwargs):
     events = [event.to_dict() for category_events in (torn_events,) for event in category_events]
     sorted_events = sorted(events, key=lambda event: event["starts_at"])
     return jsonify(sorted_events), 200, api_ratelimit_response(key)
+
+
+@require_oauth("faction:calendar", "faction")
+@ratelimit
+def create_steadfast_event(faction_id: int, *args, **kwargs):
+    data = json.loads(request.get_data().decode("utf-8"))
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+
+    if kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+    elif not kwargs["user"].faction_aa:
+        return make_exception_response("4005", key)
+
+    try:
+        steadfast_data = data["steadfast"]
+        from_value = int(data["from"])
+        to_value = int(data["to"])
+    except KeyError:
+        return make_exception_response(
+            "1000", key, details={"message": "The from and to timestamps and the steadfast data must be provided."}
+        )
+    except ValueError:
+        return make_exception_response("1000", key, details={"message": "The from/to timestamps must be integers."})
+
+    if from_value > to_value:
+        return make_exception_response(
+            "1000", key, details={"message": "The from timestamp must be before the to timestamp."}
+        )
+
+    from_timestamp = datetime.datetime.fromtimestamp(from_value, tz=datetime.timezone.utc)
+    to_timestamp = datetime.datetime.fromtimestamp(to_value, tz=datetime.timezone.utc)
+
+    # TODO: Validate steadfast values

@@ -86,7 +86,7 @@ function createEvent() {
         return;
     }
 
-    tfetch("POST", `/faction/${factionID}/calendar/steadfast`, {
+    tfetch("POST", `faction/${factionID}/calendar/steadfast`, {
         body: {
             steadfast: statsSteadfast,
             from: timestamps.from,
@@ -94,7 +94,7 @@ function createEvent() {
         },
         errorTitle: "Steadfast Event Creation Failed",
     }).then((response) => {
-        console.log(response);
+        window.location.href = "/faction/calendar";
     });
 }
 

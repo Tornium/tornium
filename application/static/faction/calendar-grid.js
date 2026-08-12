@@ -50,7 +50,7 @@ class CalendarGrid extends HTMLElement {
     buildContainer() {
         for (let monthIndex = 0; monthIndex < CALENDAR_GRID_MONTHS_RENDER; monthIndex++) {
             const monthContainer = document.createElement("div");
-            monthContainer.classList.add("calendar-grid-month-container", "col-sm-12", "col-lg-4", "p-2");
+            monthContainer.classList.add("calendar-grid-month-container", "col-sm-12", "col-lg-4", "p-2", "border-end");
             this.monthsContainers.push(monthContainer);
             this.append(monthContainer);
 

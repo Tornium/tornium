@@ -300,6 +300,11 @@ mod.add_url_rule("/api/v1/faction/<int:faction_id>/armory/logs", view_func=facti
 mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/calendar", view_func=faction.calendar.get_calendar_events, methods=["GET"]
 )
+mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/calendar/steadfast",
+    view_func=faction.calendar.create_steadfast_event,
+    methods=["POST"],
+)
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/overdose", view_func=faction.overdose.get_events, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(

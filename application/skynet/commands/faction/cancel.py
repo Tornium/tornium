@@ -19,11 +19,12 @@ from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from skynet.decorators import invoker_required
+from skynet.decorators import invoker_required, with_deferred_response
 from skynet.skyutils import get_admin_keys
 
 
 @invoker_required
+@with_deferred_response
 def cancel_command(interaction, *args, **kwargs):
     user: User = kwargs["invoker"]
     admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))

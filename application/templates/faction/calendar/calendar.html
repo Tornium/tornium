@@ -128,6 +128,17 @@ calendar-grid calendar-event {
     overflow: hidden;
 }
 
+calendar-grid calendar-event.calendar-steadfast-event {
+    width: 100%;
+    align-self: stretch;
+
+    position: relative;
+    z-index: 2;
+
+    border-radius: 4px;
+    margin-top: 0px !important;
+}
+
 calendar-grid calendar-event:nth-of-type(n+2) {
     margin-top: 3.25rem;
 }

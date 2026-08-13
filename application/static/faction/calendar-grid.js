@@ -21,6 +21,9 @@ class CalendarGrid extends HTMLElement {
     constructor() {
         super();
 
+        this.previousMonthButton = null;
+        this.nextMonthButton = null;
+
         // Current page: by default, this is from the start of the current month to ~3 months in the future
         this.fromTimestamp = Temporal.Now.instant().toZonedDateTimeISO("UTC").startOfDay().with({ day: 1 });
         this.toTimestamp = this.fromTimestamp.add({ months: 3 });
@@ -29,7 +32,7 @@ class CalendarGrid extends HTMLElement {
         this.monthsLabels = [];
         this.months = [];
 
-        this.renderers = { torn_event: this.renderTornEvent };
+        this.renderers = { torn_event: this.renderTornEvent, steadfast_event: this.renderSteadfastEvent };
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -67,6 +70,32 @@ class CalendarGrid extends HTMLElement {
         }
 
         this.renderEmptyMonths();
+    }
+
+    attachControls() {
+        this.previousMonthButton = document.getElementById("calendar-grid-previous");
+        this.nextMonthButton = document.getElementById("calendar-grid-next");
+
+        this.previousMonthButton.addEventListener("click", () => {
+            this.previousMonthButton.setAttribute("disabled", "");
+            this.nextMonthButton.setAttribute("disabled", "");
+
+            this.fromTimestamp = this.fromTimestamp.add({ months: -1 });
+            this.toTimestamp = this.toTimestamp.add({ months: -1 });
+
+            this.renderEmptyMonths();
+            this.startRender();
+        });
+        this.nextMonthButton.addEventListener("click", () => {
+            this.previousMonthButton.setAttribute("disabled", "");
+            this.nextMonthButton.setAttribute("disabled", "");
+
+            this.fromTimestamp = this.fromTimestamp.add({ months: 1 });
+            this.toTimestamp = this.toTimestamp.add({ months: 1 });
+
+            this.renderEmptyMonths();
+            this.startRender();
+        });
     }
 
     renderEmptyMonths() {
@@ -114,24 +143,6 @@ class CalendarGrid extends HTMLElement {
         dayCell.append(dayCellLabel);
     }
 
-    attachControls() {
-        const previousMonthButton = document.getElementById("calendar-grid-previous");
-        const nextMonthButton = document.getElementById("calendar-grid-next");
-
-        previousMonthButton.addEventListener("click", () => {
-            this.fromTimestamp = this.fromTimestamp.add({ months: -1 });
-            this.toTimestamp = this.toTimestamp.add({ months: -1 });
-
-            this.startRender();
-        });
-        nextMonthButton.addEventListener("click", () => {
-            this.fromTimestamp = this.fromTimestamp.add({ months: 1 });
-            this.toTimestamp = this.toTimestamp.add({ months: 1 });
-
-            this.startRender();
-        });
-    }
-
     startRender() {
         tfetch(
             "GET",
@@ -139,7 +150,12 @@ class CalendarGrid extends HTMLElement {
             {
                 errorTitle: "Failed to Load Calendar",
             },
-        ).then(this.render.bind(this));
+        )
+            .then(this.render.bind(this))
+            .then(() => {
+                this.previousMonthButton.removeAttribute("disabled");
+                this.nextMonthButton.removeAttribute("disabled");
+            });
     }
 
     render(eventsData) {
@@ -162,37 +178,41 @@ class CalendarGrid extends HTMLElement {
         if (durationDays <= 1) {
             const startDay = start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
             this.renderSingleDayEvent(startDay, eventData);
-        } else if (durationDays <= 8) {
-            this.renderMultiDayEvent(start, end, eventData);
         } else {
-            // TODO: Implement rendering of a multiweek event
+            this.renderMultiDayEvent(start, end, eventData);
         }
+    }
+
+    renderSteadfastEvent(eventData) {
+        const start = Temporal.Instant.fromEpochMilliseconds(eventData.starts_at * 1000).toZonedDateTimeISO("UTC");
+        const end = Temporal.Instant.fromEpochMilliseconds(eventData.ends_at * 1000).toZonedDateTimeISO("UTC");
+
+        this.segmentAndRender(start, end, eventData, "calendar-steadfast-event");
     }
 
     renderSingleDayEvent(day, eventData) {
         const dateKey = day.toPlainDate().toString();
         const cell = this.querySelector(`[data-date="${dateKey}"]`);
 
-        if (cell) {
-            const evEl = document.createElement("calendar-event");
-            evEl.classList.add("calendar-event-short");
-            evEl.textContent = eventData.title || eventData.category;
-            evEl.title = `${eventData.title || eventData.category}\nStarts: ${day.toPlainDate().toString()}`;
-            evEl.style.backgroundColor = this.eventColor(eventData);
-
-            cell.appendChild(evEl);
+        if (cell == null) {
+            console.error(`Unable to find date cell for ${dateKey}`);
+            return;
         }
+
+        const evEl = document.createElement("calendar-event");
+        evEl.classList.add("calendar-event-short");
+        evEl.textContent = eventData.title || eventData.category;
+        evEl.title = `${eventData.title || eventData.category}\nStarts: ${day.toPlainDate().toString()}`;
+        evEl.style.backgroundColor = this.eventColor(eventData);
+
+        cell.appendChild(evEl);
     }
 
     renderMultiDayEvent(startTimestamp, endTimestamp, eventData) {
         this.segmentAndRender(startTimestamp, endTimestamp, eventData, "calendar-multi-day-event");
     }
 
-    renderMultiWeekEvent(startTimestamp, endTimestamp, eventData) {
-        this.segmentAndRender(startTimestamp, endTimestamp, eventData, "calendar-multi-week-event");
-    }
-
-    segmentAndRender(start, end, eventData, cssClass) {
+    segmentAndRender(start, end, eventData, cssClass, forcedColor = null) {
         let currentStart = start.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
         const finalEnd = end.with({ hour: 0, minute: 0, second: 0, millisecond: 0 });
 
@@ -218,8 +238,11 @@ class CalendarGrid extends HTMLElement {
                 const spanDuration = currentStart.until(segmentEnd, { largestUnit: "days" }).days + 1;
 
                 const evEl = document.createElement("calendar-event");
+
                 evEl.classList.add(cssClass);
-                evEl.textContent = eventData.title || eventData.category;
+                if (cssClass !== "calendar-steadfast-event") {
+                    evEl.textContent = eventData.title || eventData.category;
+                }
 
                 // Position via CSS Grid coordinates
                 evEl.style.gridRow = weekRow;

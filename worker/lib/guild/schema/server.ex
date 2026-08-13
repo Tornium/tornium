@@ -21,9 +21,9 @@ defmodule Tornium.Schema.Server do
   @type t :: %__MODULE__{
           sid: non_neg_integer(),
           name: String.t(),
-          admins: [non_neg_integer()],
+          admins: [pos_integer()],
           icon: String.t(),
-          factions: [non_neg_integer()],
+          factions: [pos_integer()],
           verify_enabled: boolean(),
           auto_verify_enabled: boolean(),
           gateway_verify_enabled: boolean(),

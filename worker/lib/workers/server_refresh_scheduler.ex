@@ -35,36 +35,42 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
       states: :incomplete
     ]
 
-  @chunk_size 5
+  @chunk_size 25
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
-    guilds = Tornium.Discord.fetch_all_guilds(with_counts: true)
+    guilds = Tornium.Discord.fetch_all_guilds(limit: 1000, with_counts: true)
     guild_ids = Enum.map(guilds, & &1.id)
 
-    guilds
-    |> Enum.map(fn %Nostrum.Struct.Guild{} = guild ->
-      # TODO: Create a new oban job
-      nil
-    end)
+    guild_ids
     |> Enum.chunk_every(@chunk_size)
     |> Enum.with_index()
-    |> Enum.each(fn {guilds, index} when is_list(guilds) and is_integer(index) ->
-      # TODO: Insert the created Oban jobs with an increasing delay to stagger their executions
-      nil
+    |> Enum.each(fn {guild_id_chunk, index} when is_list(guild_id_chunk) and is_integer(index) ->
+      # We want to refresh each server with increasing delay to stagger their executions and not
+      # use too much of the Discord ratelimit at a time.
+      guild_id_chunk
+      |> Enum.map(fn guild_id ->
+        Tornium.Workers.ServerRefresh.new(%{guild_id: guild_id}, schedule_in: _seconds = index * 60)
+      end)
+      |> Oban.insert_all()
     end)
 
-    {_count, servers_pending_deletion} = get_servers_pending_deletion(guild_ids)
-    Tornium.Schema.Server.delete_servers(servers_pending_deletion)
+    guild_ids
+    |> get_servers_pending_deletion()
+    |> Tornium.Schema.Server.delete_servers()
 
     :ok
   end
 
-  @spec get_servers_pending_deletion(found_server_ids :: [pos_integer()]) :: {non_neg_integer(), [pos_integer()]}
+  @spec get_servers_pending_deletion(found_server_ids :: [pos_integer()]) :: [pos_integer()]
   defp get_servers_pending_deletion(found_server_ids) when is_list(found_server_ids) and found_server_ids != [] do
     Tornium.Schema.Server
     |> select([s], s.sid)
     |> where([s], s.sid not in ^found_server_ids)
     |> Repo.all()
+  end
+
+  defp get_servers_pending_deletion([] = _found_server_ids) do
+    []
   end
 end

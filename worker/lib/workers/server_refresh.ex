@@ -18,6 +18,9 @@ defmodule Tornium.Workers.ServerRefresh do
   Update a specfic server's data.
   """
 
+  import Ecto.Query
+  alias Tornium.Repo
+
   use Oban.Worker,
     max_attempts: 3,
     priority: 0,
@@ -31,8 +34,28 @@ defmodule Tornium.Workers.ServerRefresh do
     ]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"guild_id" => _guild_id} = _args} = _job) do
-    # TODO: Implement this
+  def perform(%Oban.Job{args: %{"guild_id" => guild_id} = _args} = _job) do
+    %Nostrum.Struct.Guild{name: guild_name, owner_id: guild_owner_id, roles: guild_roles} =
+      Nostrum.Api.Guild.get(guild_id)
+
+    Tornium.Schema.Server.new(guild_id, guild_name)
+
+    guild_admins_discord_ids =
+      guild_id
+      |> Tornium.Guild.fetch_admins(guild_roles)
+      |> List.insert_at(0, guild_owner_id)
+      |> Enum.uniq()
+
+    guild_admins =
+      Tornium.Schema.User
+      |> where([u], u.discord_id in ^guild_admins_discord_ids)
+      |> select([u], u.tid)
+      |> Repo.all()
+
+    Tornium.Schema.Server
+    |> update([s], set: [admins: ^guild_admins])
+    |> where([s], s.sid == ^guild_id)
+    |> Repo.update_all([])
 
     :ok
   end

@@ -165,7 +165,7 @@ defmodule Tornium.Discord do
   ## Options
     * `:before` - Get servers before this server ID
     * `:after` - Get servers after this server ID
-    * `:limit` - Maximum number of servers to include in each API call
+    * `:limit` - Maximum number of servers to include in each API call (default: 200)
     * `:with_counts` - Include the approximate number of members in the server
   """
   @spec fetch_all_guilds(guilds :: [Nostrum.Struct.Guild.t()], opts :: keyword()) :: [Nostrum.Struct.Guild.t()]
@@ -183,7 +183,7 @@ defmodule Tornium.Discord do
         # There are as many guilds in the response as requested, so we need to get the next set of guilds to ensure we have all of them.
         largest_guild_id = Enum.max_by(new_guilds, & &1.id)
 
-        fetch_all_guilds(new_guilds ++ guilds, opts)
+        fetch_all_guilds(new_guilds ++ guilds, Keyword.put(opts, :after, largest_guild_id))
 
       true ->
         # We know that there aren't the maximum number of guilds in this API response

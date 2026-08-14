@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}
 Tornium - Faction Banking
@@ -19,63 +19,7 @@ Tornium - Faction Banking
 {% endblock %}
 
 {% block subnav %}
-<div class="row pt-3 border-top">
-    <div class="container-fluid px-md-3">
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/members">
-                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
-            </a>
-        </div>
-
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/banking">
-                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
-            </a>
-        </div>
-
-        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/armory">
-                <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
-            </a>
-        </div>
-
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/crimes/cpr">
-                <i class="col-1 col-sm-2 fa-solid fa-star-half-stroke"></i> <span class="col">Organized Crimes CPR</span>
-            </a>
-        </div>
-
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/overdose">
-                <i class="col-1 col-sm-2 fa-solid fa-capsules"></i> <span class="col">Overdoses</span>
-            </a>
-        </div>
-
-        {% if current_user.can_manage_crimes() %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/crimes">
-                <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
-            </a>
-        </div>
-        {% endif %}
-
-        {% if current_user.faction_aa %}
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/bankingaa">
-                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
-            </a>
-        </div>
-
-        <div class="row mb-3">
-            <a class="nav-link" href="/faction/bot">
-                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
-            </a>
-        </div>
-        {% endif %}
-        {% endif %}
-    </div>
-</div>
+{% include "faction/subnav.html" %}
 {% endblock %}
 
 {% block content %}

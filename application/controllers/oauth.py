@@ -30,6 +30,7 @@ valid_scopes = (
     "faction",
     "faction:attacks",
     "faction:banking",
+    "faction:calendar",
     "faction:crimes",
     # API key scopes
     "torn_key:usage",

@@ -181,7 +181,7 @@ defmodule Tornium.Discord do
 
       length(new_guilds) == Keyword.get(opts, :limit) ->
         # There are as many guilds in the response as requested, so we need to get the next set of guilds to ensure we have all of them.
-        largest_guild_id = Enum.max_by(new_guilds, & &1.id)
+        %Nostrum.Struct.Guild{id: largest_guild_id} = Enum.max_by(new_guilds, & &1.id)
 
         fetch_all_guilds(new_guilds ++ guilds, Keyword.put(opts, :after, largest_guild_id))
 

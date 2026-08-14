@@ -95,6 +95,11 @@ defmodule Tornium.Schema.Server do
 
   def delete_servers(server_ids) when is_list(server_ids) do
     # TEST: Add tests to ensure the correct data is deleted and nothing else is
+    Tornium.Schema.Faction
+    |> where([f], f.guild_id in ^server_ids)
+    |> update([f], set: [guild_id: nil])
+    |> Repo.update_all([])
+
     Tornium.Schema.Server
     |> where([s], s.sid in ^server_ids)
     |> Repo.delete_all()

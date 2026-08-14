@@ -15,7 +15,7 @@
 
 defmodule Tornium.Workers.ServerRefresh do
   @moduledoc """
-  Update a specfic server's data.
+  Update a specific server's data.
   """
 
   import Ecto.Query

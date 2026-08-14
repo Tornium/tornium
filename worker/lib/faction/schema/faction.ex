@@ -61,7 +61,7 @@ defmodule Tornium.Schema.Faction do
   end
 
   @doc """
-  Map the faction data for a specfic faction to a `Tornium.Schema.Faction`.
+  Map the faction data for a specific faction to a `Tornium.Schema.Faction`.
   """
   @spec map(faction_data :: Torngen.Client.Schema.FactionBasic.t()) :: t()
   def map(

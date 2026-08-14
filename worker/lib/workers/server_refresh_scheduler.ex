@@ -15,10 +15,11 @@
 
 defmodule Tornium.Workers.ServerRefreshScheduler do
   @moduledoc """
-  Scheduler for updating all servers and deleting server that don't have the Tornium bot on it anymore.
+  Scheduler for updating all servers.
 
-  This will chunk the servers by the number of pages of users it has (with a limit of 1000) to spread the Discord
-  API calls across the entire hour.
+  If the server has the Tornium bot on it, its list of admins will be updated. Otherwise,
+  the servers that don't have the Tornium bot on it anymore will be deleted from the
+  database.
   """
 
   alias Tornium.Repo

@@ -43,17 +43,11 @@ dev = [
     "isort",
     "pre-commit",
 ]
-test = [
-    "pytest",
-    "pytest-sugar"
-]
 ci = [
     "bandit",
     "black",
     "flake8",
-    "isort",
-    "pytest",
-    "pytest-sugar",
+    "isort"
 ]
 extra = [
     "orjson"

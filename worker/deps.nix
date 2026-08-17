@@ -86,6 +86,7 @@ let
             then
               dest="''${dest%.dylib}.so"
             fi
+            dest="''${dest#lib}"
             ln -s "$lib" "priv/native/$dest"
           done
         '';
@@ -233,7 +234,7 @@ let
 
       castore =
         let
-          version = "1.0.20";
+          version = "1.0.21";
           drv = buildMix {
             inherit version;
             name = "castore";
@@ -242,7 +243,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "castore";
-              sha256 = "940eafbfd8b14bee649f083bc11b3b54ec555b54c3e4ea8213351ff6fee39c10";
+              sha256 = "e42e22723e25dbd46876d056a03f685513d6e98f6b5e555dc551321decd76c5c";
             };
           };
         in
@@ -405,7 +406,7 @@ let
 
       ecto =
         let
-          version = "3.14.1";
+          version = "3.14.2";
           drv = buildMix {
             inherit version;
             name = "ecto";
@@ -414,7 +415,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "ecto";
-              sha256 = "24b991956796700f467d0a3ef3d303138a3ef9ddddf8b98f43758ee067b20a30";
+              sha256 = "25d60b8c816a07d19d85b80bdf60978bd8b102209dda198d768cd7c6745339a6";
             };
 
             beamDeps = [
@@ -853,7 +854,7 @@ let
 
       oban =
         let
-          version = "2.23.0";
+          version = "2.23.1";
           drv = buildMix {
             inherit version;
             name = "oban";
@@ -862,7 +863,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "oban";
-              sha256 = "8e5f0cec5abecce78dd08cb14dc5438db90ec3884987b44773ce76fe60dd3f81";
+              sha256 = "a9855b9f5d87e31de3e2f46731b163f372e329613892a56c5b2aacceb50ed508";
             };
 
             beamDeps = [
@@ -1438,7 +1439,7 @@ let
 
       torngen_elixir_client =
         let
-          version = "6.6.1";
+          version = "6.10.1";
           drv = buildMix {
             inherit version;
             name = "torngen_elixir_client";
@@ -1447,7 +1448,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "torngen_elixir_client";
-              sha256 = "cd276c29fdb477a91bd76bad1c07200c68383a64756bbe0f6b80adc86d11ef33";
+              sha256 = "b25a85fc5515046a9a019684920c48597f4cff4cf6c76eb5b1661bcd4a0bd393";
             };
 
             beamDeps = [

@@ -278,6 +278,7 @@ def members_switchboard(interaction, *args, **kwargs):
         {
             "title": "",
             "description": "",
+            "fields": [],
             "color": SKYNET_INFO,
         }
     ]
@@ -363,39 +364,116 @@ def members_switchboard(interaction, *args, **kwargs):
         }
 
     def flying():
+        def get_destination(description):
+            if not description:
+                return "Unknown"
+
+            parts = description.split()
+
+            # "Traveling from Torn to Mexico" -> Mexico
+            if description.startswith("Traveling from Torn to"):
+                return " ".join(parts[4:])
+
+            # "Traveling from Mexico to Torn" -> Torn
+            elif description.startswith("Traveling from ") and description.endswith(" to Torn"):
+                return "Torn"
+
+            # "In Mexico" or "In a hospital in Mexico"
+            elif description.startswith("In "):
+                if "hospital" in description.lower():
+                    # "In a hospital in Mexico" -> Mexico
+                    try:
+                        in_idx = [i for i, x in enumerate(parts) if x.lower() == "in"]
+                        if len(in_idx) > 1:
+                            return " ".join(parts[in_idx[-1] + 1 :])
+                    except IndexError:
+                        pass
+                    return "Unknown"
+                else:
+                    # "In Mexico" -> Mexico
+                    return " ".join(parts[1:])
+
+            return "Unknown"
+
         payload[0]["title"] = f"Abroad Members of {member_data['name']}"
         indices = sorted(
             member_data["members"],
             key=lambda d: member_data["members"][d]["last_action"]["timestamp"],
             reverse=True,
         )
-        member_data["members"] = {n: member_data["members"][n] for n in indices}
+        sorted_members = {n: member_data["members"][n] for n in indices}
+        grouped_members = {}
         abroad_hospital_regex = re.compile("^In a .* hospital.*$")
 
-        for tid, member in member_data["members"].items():
+        for tid, member in sorted_members.items():
             tid = int(tid)
+            destination = None
+            line_payload = None
 
             if member["status"]["state"] in ("Traveling", "Abroad"):
-                line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
+                destination = get_destination(member["status"]["description"])
+                line_payload = f"{member['name']} [{tid}] - {member['status']['description']}"
             elif member["status"]["state"] == "Hospital" and abroad_hospital_regex.match(
                 member["status"]["description"]
             ):
-                line_payload = f"{member['name']} [{tid}] - {member['status']['description']} - {member['last_action']['relative']}"
-            else:
+                destination = get_destination(member["status"]["description"])
+                line_payload = f"{member['name']} [{tid}] - {member['status']['description']}"
+
+            if destination is None or line_payload is None:
                 continue
 
-            if (len(payload[-1]["description"]) + 1 + len(line_payload)) > 4096:
-                payload.append(
-                    {
-                        "title": f"Abroad Members of {member_data['name']}",
-                        "description": "",
-                        "color": SKYNET_INFO,
-                    }
-                )
-            else:
-                line_payload = "\n" + line_payload
+            if destination not in grouped_members:
+                grouped_members[destination] = []
+            grouped_members[destination].append(line_payload)
 
-            payload[-1]["description"] += line_payload
+        if len(grouped_members) == 0:
+            payload[0]["description"] = "No members are currently abroad or are Traveling."
+            return payload
+
+        for destination, line_payloads in grouped_members.items():
+            full_destination_text = "\n".join(line_payloads)
+            field_name = f"{destination} ({len(line_payloads)})"
+
+            # If the whole list fits in one field
+            if len(full_destination_text) <= 1024:
+                # Check if adding this field exceeds 25 fields limit
+                if len(payload[-1]["fields"]) >= 25:
+                    payload.append(
+                        {
+                            "title": f"Abroad Members of {member_data['name']}",
+                            "description": "",
+                            "color": SKYNET_INFO,
+                        }
+                    )
+
+                payload[-1]["fields"].append({"name": field_name, "value": full_destination_text, "inline": False})
+            else:
+                # Split into multiple fields if > 1024 chars
+                chunks = []
+                current_chunk = ""
+
+                for line in line_payloads:
+                    if len(current_chunk) + len(line) + 1 > 1024:
+                        chunks.append(current_chunk)
+                        current_chunk = line
+                    else:
+                        current_chunk += ("\n" if current_chunk else "") + line
+
+                if current_chunk:
+                    chunks.append(current_chunk)
+
+                for chunk_index, chunk in enumerate(chunks):
+                    if len(payload[-1]["fields"]) >= 25:
+                        payload.append(
+                            {
+                                "title": f"Abroad Members of {member_data['name']}",
+                                "description": "",
+                                "color": SKYNET_INFO,
+                            }
+                        )
+
+                    suffix = f" ({chunk_index + 1}/{len(chunks)})" if len(chunks) > 1 else ""
+                    payload[-1]["fields"].append({"name": f"{field_name}{suffix}", "value": chunk, "inline": False})
 
         return {
             "type": 4,

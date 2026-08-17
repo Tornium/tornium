@@ -1390,27 +1390,26 @@ let
 
       tornex =
         let
-          version = "0.6.1-dev";
+          version = "0.6.1";
           drv = buildMix {
             inherit version;
             name = "tornex";
             appConfigPath = ./config;
 
-            src = fetchFromGitHub {
-              owner = "Tornium";
-              repo = "Tornex";
-              rev = "6f56a185d6bdbcdc923c2285b10b55060254177f";
-              hash = "sha256-1V+5kKFn8+QrtKTDX4DUUCPxEozPdk0nH/Y5/S8LDnc=";
+            src = fetchHex {
+              inherit version;
+              pkg = "tornex";
+              sha256 = "da03c1434f4d69a9b50ffd76ca44603c5d0166acfe8161a9cf379cadd54445b2";
             };
 
             beamDeps = [
-              horde
               finch
-              telemetry
-              prom_ex
+              horde
               plug_cowboy
-              torngen_elixir_client
+              prom_ex
+              telemetry
               torngen
+              torngen_elixir_client
             ];
           };
         in

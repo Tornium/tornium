@@ -54,9 +54,7 @@ defmodule Tornium.MixProject do
       {:lua, "~> 0.4"},
       {:solid, "~> 0.18"},
       {:logger_json, "~> 7.0"},
-      # {:tornex, "~> 0.6"},
-      # {:tornex, path: "~/tornium/tornex/"},
-      {:tornex, github: "Tornium/Tornex", ref: "6f56a185d6bdbcdc923c2285b10b55060254177f"},
+      {:tornex, "~> 0.6"},
       {:torngen_elixir_client, ">= 6.0.0"},
       # Required to be overriden as deps_nix uses an older version of mint
       {:mint, "~> 1.8", override: true},

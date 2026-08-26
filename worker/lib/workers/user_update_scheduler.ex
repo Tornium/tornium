@@ -18,8 +18,11 @@ defmodule Tornium.Workers.UserUpdateScheduler do
   A scheduler to spawn `Tornium.Workers.UserUpdate` for the `@max_chunk` least recently updated
   users.
 
-  If a user, that is signed in with an API key, has not been updated for more than an hour, we should
-  update that user. If all signed in users have been recently updated, we should update users that
+  If a user, that is signed in with an API key, has not been updated for more than an hour,
+  we should update that user. If a user, that is signed in with an API key, has not had
+  their stats updated for more than a day, we should update that user to ensure that their
+  stats are up to date for the chain list generator and when storing stat scores for the
+  stat DB. If all signed in users have been recently updated, we should update users that
   are not signed in that are the least recently updated.
   """
 
@@ -39,15 +42,23 @@ defmodule Tornium.Workers.UserUpdateScheduler do
   def perform(%Oban.Job{} = _job) do
     # TODO: Change f.last_members to the more traditional f.updated_at
     one_hour_ago = DateTime.utc_now() |> DateTime.add(-1, :hour)
+    one_day_ago = DateTime.utc_now() |> DateTime.add(-1, :day)
 
+    # We want to explicitely update users whose stat scores haven't been updated recently
+    # to ensure that the chain list generator provides accurate results and to ensure that
+    # stats stored in the stats DB are accurate. Otherwise, the `FactionUpdateScheduler`
+    # will cause users' `:last_refresh` to become recent without their stats being updated.
     high_priority_users =
       Tornium.Schema.TornKey
       |> where([k], k.default == true and k.disabled == false and k.paused == false and k.access_level >= :limited)
       |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
-      |> where([k, u], is_nil(u.last_refresh) or u.last_refresh < ^one_hour_ago)
+      |> where(
+        [k, u],
+        is_nil(u.last_refresh) or u.last_refresh < ^one_hour_ago or u.battlescore_update < ^one_day_ago
+      )
       |> select([k, u], k)
       |> order_by([k, u], asc_nulls_first: u.last_refresh)
-      |> limit(@max_chunk)
+      |> limit([k, u], @max_chunk)
       |> Repo.all()
 
     remaining_limit = @max_chunk - length(high_priority_users)

@@ -288,6 +288,7 @@ class Withdrawal(BaseModel):
             .where(
                 (Withdrawal.guid == self.guid)
                 & (Withdrawal.status == 0)
+                & (Faction.tid == Withdrawal.faction_id)
                 & (Faction.guild.is_null(False))
                 & (Faction.tid == fn.ANY(Server.factions))
                 & (Server.banking_config[Faction.tid.cast("text")]["channel"] != "0")

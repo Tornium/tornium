@@ -245,13 +245,14 @@ def fulfill(guid: str):
             fulfiller_id, fulfiller_string, discordpatch, send_dm
         )
 
-        send_link = f"https://tcy.sh/s/{'bg' if updated_withdrawal.cash_request else 'pg'}?u={updated_withdrawal.requester}&a={updated_withdrawal.amount}"
+        send_link = f"https://tcy.sh/s/{'bg' if updated_withdrawal.cash_request else 'pg'}?u={updated_withdrawal.requester_id}&a={updated_withdrawal.amount}"
         return redirect(send_link)
     except (DoesNotExist, IndexError):
         # If the updated withdrawal does not exist, some condition in the where clause failed.
         # We can just continue and expect a proper updated withdrawal to be handled inside of
-        # the try clause
-        pass
+        # the try clause, but we will want to re-fetch the withdrawal in case it's stale due to
+        # another fulfillment in parallel.
+        original_withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.guid == guid).get()
 
     if original_withdrawal.status == 1:
         return (

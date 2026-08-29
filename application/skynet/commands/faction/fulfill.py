@@ -197,8 +197,9 @@ def fulfill_command(interaction, *args, **kwargs):
     except (DoesNotExist, IndexError):
         # If the updated withdrawal does not exist, some condition in the where clause failed.
         # We can just continue and expect a proper updated withdrawal to be handled inside of
-        # the try clause
-        pass
+        # the try clause, but we will want to re-fetch the withdrawal in case it's stale due to
+        # another fulfillment in parallel.
+        withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.wid == withdrawal_id).get()
 
     if withdrawal.status == 1:
         return {
@@ -409,8 +410,11 @@ def fulfill_button(interaction, *args, **kwargs):
     except (DoesNotExist, IndexError):
         # If the updated withdrawal does not exist, some condition in the where clause failed.
         # We can just continue and expect a proper updated withdrawal to be handled inside of
-        # the try clause
-        pass
+        # the try clause, but we will want to re-fetch the withdrawal in case it's stale due to
+        # another fulfillment in parallel.
+        withdrawal: Withdrawal = (
+            Withdrawal.select().where(Withdrawal.withdrawal_message == interaction["message"]["id"]).get()
+        )
 
     if withdrawal.status == 1:
         return {

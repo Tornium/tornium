@@ -21,9 +21,8 @@ from flask_login import current_user, login_required
 from peewee import JOIN, DataError, DoesNotExist
 from tornium_celery.tasks.api import discordpatch
 from tornium_celery.tasks.misc import send_dm
-from tornium_commons.formatters import commas, torn_timestamp
+from tornium_commons.formatters import torn_timestamp
 from tornium_commons.models import Faction, FactionPosition, Server, User, Withdrawal
-from tornium_commons.skyutils import SKYNET_GOOD
 
 import utils
 from controllers.faction.decorators import aa_required, fac_required
@@ -217,9 +216,11 @@ def user_banking_data():
 
 
 def fulfill(guid: str):
+    fulfiller_id = current_user.tid if current_user.is_authenticated else -1
+    fulfiller_string = current_user.user_str_self() if current_user.is_authenticated else "someone"
+
     try:
-        # TODO: Select necessary fields
-        withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.guid == guid).get()
+        original_withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.guid == guid).get()
     except DoesNotExist:
         return (
             render_template(
@@ -239,52 +240,48 @@ def fulfill(guid: str):
             400,
         )
 
-    if withdrawal.cash_request:
-        send_link = f"https://tcy.sh/s/bg?u={withdrawal.requester}&a={withdrawal.amount}"
-    else:
-        send_link = f"https://tcy.sh/s/pg?u={withdrawal.requester}&a={withdrawal.amount}"
-
-    if withdrawal.status == 1:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Can't Fulfill Request",
-                error=f"This request has already been fulfilled at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
-            ),
-            400,
-        )
-    elif withdrawal.status == 2:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Can't Fulfill Request",
-                error=f"This request has already been cancelled at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
-            ),
-            400,
-        )
-    elif withdrawal.status == 3:
-        return (
-            render_template(
-                "errors/error.html",
-                title="Can't Fulfill Request",
-                error=f"This request has already been cancelled by the system at {torn_timestamp(withdrawal.time_fulfilled.timestamp())}.",
-            ),
-            400,
-        )
-
     try:
-        # TODO: Select necessary fields
-        faction: Faction = Faction.select().where(Faction.tid == withdrawal.faction_tid).get()
-    except DoesNotExist:
+        updated_withdrawal: Withdrawal = original_withdrawal.fulfill(
+            fulfiller_id, fulfiller_string, discordpatch, send_dm
+        )
+
+        send_link = f"https://tcy.sh/s/{'bg' if updated_withdrawal.cash_request else 'pg'}?u={updated_withdrawal.requester}&a={updated_withdrawal.amount}"
+        return redirect(send_link)
+    except (DoesNotExist, IndexError):
+        # If the updated withdrawal does not exist, some condition in the where clause failed.
+        # We can just continue and expect a proper updated withdrawal to be handled inside of
+        # the try clause
+        pass
+
+    if original_withdrawal.status == 1:
         return (
             render_template(
                 "errors/error.html",
-                title="Faction Not Found",
-                error="The requester's faction could not be located in the database.",
+                title="Can't Fulfill Request",
+                error=f"This request has already been fulfilled at {torn_timestamp(original_withdrawal.time_fulfilled.timestamp())}.",
+            ),
+            400,
+        )
+    elif original_withdrawal.status == 2:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Can't Fulfill Request",
+                error=f"This request has already been cancelled at {torn_timestamp(original_withdrawal.time_fulfilled.timestamp())}.",
+            ),
+            400,
+        )
+    elif original_withdrawal.status == 3:
+        return (
+            render_template(
+                "errors/error.html",
+                title="Can't Fulfill Request",
+                error=f"This request has already been cancelled by the system at {torn_timestamp(original_withdrawal.time_fulfilled.timestamp())}.",
             ),
             400,
         )
 
+    faction: Faction = original_withdrawal.faction
     if faction.guild is None:
         return (
             render_template(
@@ -315,58 +312,12 @@ def fulfill(guid: str):
             400,
         )
 
-    requester: typing.Optional[User] = (
-        User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).first()
+    return (
+        render_template(
+            "errors/error.html",
+            title="Unable to Fulfill",
+            error="For some unhandled reason, Tornium is unable to allow you to fulfill the vault request. "
+            "Please create a ticket on the support Discord server.",
+        ),
+        500,
     )
-    fulfiller_str = f"{current_user.name} [{current_user.tid}]" if current_user.is_authenticated else "someone"
-
-    discordpatch.delay(
-        f"channels/{faction.guild.banking_config[str(faction.tid)]['channel']}/messages/{withdrawal.withdrawal_message}",
-        payload={
-            "content": "",
-            "embeds": [
-                {
-                    "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
-                    "description": f"This request has been fulfilled by {fulfiller_str}",
-                    "fields": [
-                        {
-                            "name": "Original Request Amount",
-                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                        },
-                        {
-                            "name": "Original Requester",
-                            "value": (
-                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                            ),
-                        },
-                    ],
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "color": SKYNET_GOOD,
-                }
-            ],
-            "components": [],
-        },
-    )
-
-    Withdrawal.update(
-        fulfiller=current_user.tid if current_user.is_authenticated else -1,
-        time_fulfilled=datetime.datetime.utcnow(),
-        status=1,
-    ).where(Withdrawal.wid == withdrawal.wid).execute()
-
-    if requester.discord_id not in (None, "", 0):
-        send_dm.delay(
-            requester.discord_id,
-            payload={
-                "embeds": [
-                    {
-                        "title": "Vault Request Fulfilled",
-                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by someone.",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ]
-            },
-        )
-
-    return redirect(send_link)

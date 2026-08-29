@@ -22,31 +22,31 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     DateTimeField,
-    DoesNotExist,
+    ForeignKeyField,
     IntegerField,
-    IntegrityError,
     SmallIntegerField,
     UUIDField,
+    fn,
 )
 
-from tornium_commons.db_connection import db
-from tornium_commons.formatters import commas, discord_escaper
-from tornium_commons.models import User
-
+from ..db_connection import db
 from ..errors import MissingKeyError
+from ..formatters import commas, discord_escaper
 from ..skyutils import SKYNET_ERROR, SKYNET_GOOD
 from .base_model import BaseModel
 from .faction import Faction
+from .server import Server
+from .user import User
 
 
 class Withdrawal(BaseModel):
     wid = IntegerField(primary_key=True)
     guid = UUIDField(index=True)
-    faction_tid = IntegerField(null=False)
+    faction = ForeignKeyField(Faction, null=False)
     amount = BigIntegerField(null=False)
     cash_request = BooleanField(default=True)
 
-    requester = IntegerField(null=False)
+    requester = ForeignKeyField(User, null=False)
     time_requested = DateTimeField(null=False)
     expires_at = DateTimeField(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(hours=1), null=True)
 
@@ -66,8 +66,8 @@ class Withdrawal(BaseModel):
         return {
             "id": self.wid,
             "guid": str(self.guid),
-            "user_id": self.requester,
-            "faction_id": self.faction_tid,
+            "user_id": self.requester_id,
+            "faction_id": self.faction_id,
             "amount": self.amount,
             "type": "money_balance" if self.cash_request else "points_balance",
             "expires_at": None if self.expires_at is None else self.expires_at.timestamp(),
@@ -108,8 +108,8 @@ class Withdrawal(BaseModel):
             raise ValueError("You do not have sufficient balance in your faction.")
 
         pending_user_withdrawals = Withdrawal.select(Withdrawal.amount).where(
-            (Withdrawal.requester == user_id)
-            & (Withdrawal.faction_tid == faction_id)
+            (Withdrawal.requester_id == user_id)
+            & (Withdrawal.faction_id == faction_id)
             & (Withdrawal.cash_request == (request_type == "money_balance"))
             & (Withdrawal.status == 0)
         )
@@ -194,10 +194,10 @@ class Withdrawal(BaseModel):
         withdrawal = Withdrawal.create(
             wid=request_id,
             guid=guid,
-            faction_tid=user.faction_id,
+            faction_id=user.faction_id,
             amount=amount,
             cash_request=request_type == "money_balance",
-            requester=user.tid,
+            requester_id=user.tid,
             time_requested=datetime.datetime.utcnow(),
             expires_at=timeout,
             status=0,
@@ -209,7 +209,7 @@ class Withdrawal(BaseModel):
         return withdrawal
 
     def cancel(self, canceller: User, discordpatch, discordpost):
-        requester: typing.Optional[User] = User.select().where(User.tid == self.requester).first()
+        requester: typing.Optional[User] = self.requester
 
         discordpatch(
             f"channels/{requester.faction.guild.banking_config[str(requester.faction_id)]['channel']}/messages/{self.withdrawal_message}",
@@ -274,3 +274,67 @@ class Withdrawal(BaseModel):
                     ]
                 },
             ).apply_async(ignore_result=True)
+
+    def fulfill(self, fulfiller_id, fulfiller_string, discordpatch, send_dm):
+        now = datetime.datetime.utcnow()
+
+        updated_withdrawal: Withdrawal = (
+            Withdrawal.update(
+                fulfiller=fulfiller_id,
+                time_fulfilled=now,
+                status=1,
+            )
+            .from_(Faction, Server)
+            .where(
+                (Withdrawal.guid == self.guid)
+                & (Withdrawal.status == 0)
+                & (Faction.guild.is_null(False))
+                & (Faction.tid == fn.ANY(Server.factions))
+                & (Server.banking_config[Faction.tid.cast("text")]["channel"] != "0")
+            )
+            .returning(Withdrawal)
+            .execute()
+        )[0]
+
+        discordpatch.delay(
+            f"channels/{updated_withdrawal.faction.guild.banking_config[str(updated_withdrawal.faction_id)]['channel']}/messages/{updated_withdrawal.withdrawal_message}",
+            payload={
+                "content": "",
+                "embeds": [
+                    {
+                        "title": f"Fulfilled - Vault Request #{updated_withdrawal.wid}",
+                        "description": f"This request has been fulfilled by {fulfiller_string}",
+                        "fields": [
+                            {
+                                "name": "Original Request Amount",
+                                "value": f"{commas(updated_withdrawal.amount)} {'Cash' if updated_withdrawal.cash_request else 'Points'}",
+                            },
+                            {
+                                "name": "Original Requester",
+                                "value": updated_withdrawal.requester.user_str_self(),
+                            },
+                        ],
+                        "timestamp": now.isoformat(),
+                        "color": SKYNET_GOOD,
+                    }
+                ],
+                "components": [],
+            },
+        )
+
+        if updated_withdrawal.requester.discord_id not in (None, "", 0):
+            send_dm.delay(
+                updated_withdrawal.requester.discord_id,
+                payload={
+                    "embeds": [
+                        {
+                            "title": "Vault Request Fulfilled",
+                            "description": f"Your vault request #{updated_withdrawal.wid} has been fulfilled by someone.",
+                            "timestamp": now.isoformat(),
+                            "color": SKYNET_GOOD,
+                        }
+                    ]
+                },
+            )
+
+        return updated_withdrawal

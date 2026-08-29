@@ -13,18 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
-import typing
-
 from peewee import DoesNotExist
-from tornium_celery.tasks.api import discordpatch, discordpost
-from tornium_commons.errors import DiscordError, NetworkingError
-from tornium_commons.formatters import commas, discord_escaper, find_list
+from tornium_celery.tasks.api import discordpatch
+from tornium_celery.tasks.misc import send_dm
+from tornium_commons.formatters import discord_escaper, find_list
 from tornium_commons.models import Server, User, Withdrawal
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
 from skynet.decorators import invoker_required
-from skynet.skyutils import get_admin_keys
 
 
 @invoker_required
@@ -62,24 +58,6 @@ def fulfill_command(interaction, *args, **kwargs):
         }
 
     user: User = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
-
-    if len(admin_keys) == 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Keys",
-                        "description": "No API keys were found to be run for this command. Please sign into "
-                        "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
     if user.faction is None:
         return {
             "type": 4,
@@ -200,6 +178,29 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
+    try:
+        updated_withdrawal: Withdrawal = withdrawal.fulfill(user.tid, user.user_str_self(), discordpatch, send_dm)
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Banking Request Fulfilled",
+                        "description": f"You have fulfilled banking request #{updated_withdrawal.wid}.",
+                        "color": SKYNET_GOOD,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    except (DoesNotExist, IndexError):
+        # If the updated withdrawal does not exist, some condition in the where clause failed.
+        # We can just continue and expect a proper updated withdrawal to be handled inside of
+        # the try clause, but we will want to re-fetch the withdrawal in case it's stale due to
+        # another fulfillment in parallel.
+        withdrawal: Withdrawal = Withdrawal.select().where(Withdrawal.wid == withdrawal_id).get()
+
     if withdrawal.status == 1:
         return {
             "type": 4,
@@ -246,114 +247,15 @@ def fulfill_command(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[User]
-    try:
-        requester = User.get_by_id(withdrawal.requester)
-    except DoesNotExist:
-        requester = None
-
-    discordpatch(
-        f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
-        {
-            "content": "",
-            "embeds": [
-                {
-                    "title": f"Fulfill - Vault Request #{withdrawal_id}",
-                    "description": f"This request has been fulfilled by {discord_escaper(user.name)} [{user.tid}].",
-                    "fields": [
-                        {
-                            "name": "Original Request Amount",
-                            "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                        },
-                        {
-                            "name": "Original Requester",
-                            "value": (
-                                f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                            ),
-                        },
-                    ],
-                    "timestamp": datetime.datetime.utcnow().isoformat(),
-                    "color": SKYNET_GOOD,
-                }
-            ],
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Faction Vault",
-                            "url": "https://www.torn.com/factions.php?step=your#/tab=controls&option=give-to-user",
-                        },
-                        {
-                            "type": 2,
-                            "style": 5,
-                            "label": "Fulfill",
-                            "url": f"https://tornium.com/faction/banking/fulfill/{withdrawal.guid}",
-                        },
-                        {
-                            "type": 2,
-                            "style": 3,
-                            "label": "Fulfill Manually",
-                            "custom_id": "faction:vault:fulfill",
-                        },
-                        {
-                            "type": 2,
-                            "style": 4,
-                            "label": "Cancel",
-                            "custom_id": "faction:vault:cancel",
-                        },
-                    ],
-                }
-            ],
-        },
-    )
-
-    Withdrawal.update(status=1, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
-        Withdrawal.wid == withdrawal.wid
-    ).execute()
-
-    if requester.discord_id not in (None, 0):
-        try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except Exception:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Banking Request Fulfilled",
-                            "description": f"You have fulfilled banking request #{withdrawal.wid}.",
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
-        discordpost.s(
-            f"channels/{dm_channel['id']}/messages",
-            payload={
-                "embeds": [
-                    {
-                        "title": "Vault Request Fulfilled",
-                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {discord_escaper(user.name)} [{user.tid}]",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ]
-            },
-        ).apply_async(ignore_result=True)
-
     return {
         "type": 4,
         "data": {
             "embeds": [
                 {
-                    "title": "Banking Request Fulfilled",
-                    "description": f"You have fulfilled banking request #{withdrawal.wid}.",
-                    "color": SKYNET_GOOD,
+                    "title": "Unable to Fulfill Request",
+                    "description": f"Vault Request #{withdrawal.wid} could not be fulfilled due to an unhandled error. "
+                    "Please create a ticket on Tornium's Discord server.",
+                    "color": SKYNET_ERROR,
                 }
             ],
             "flags": 64,
@@ -409,24 +311,6 @@ def fulfill_button(interaction, *args, **kwargs):
         }
 
     user: User = kwargs["invoker"]
-    admin_keys = kwargs.get("admin_keys", get_admin_keys(interaction))
-
-    if len(admin_keys) == 0:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "No API Keys",
-                        "description": "No API keys were found to be run for this command. Please sign into "
-                        "Tornium or run this command in a server with signed-in admins.",
-                        "color": SKYNET_ERROR,
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
     if user.faction is None:
         return {
             "type": 4,
@@ -508,6 +392,31 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
+    try:
+        updated_withdrawal: Withdrawal = withdrawal.fulfill(user.tid, user.user_str_self(), discordpatch, send_dm)
+
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Banking Request Fulfilled",
+                        "description": f"You have fulfilled banking request #{updated_withdrawal.wid}.",
+                        "color": SKYNET_GOOD,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
+    except (DoesNotExist, IndexError):
+        # If the updated withdrawal does not exist, some condition in the where clause failed.
+        # We can just continue and expect a proper updated withdrawal to be handled inside of
+        # the try clause, but we will want to re-fetch the withdrawal in case it's stale due to
+        # another fulfillment in parallel.
+        withdrawal: Withdrawal = (
+            Withdrawal.select().where(Withdrawal.withdrawal_message == interaction["message"]["id"]).get()
+        )
+
     if withdrawal.status == 1:
         return {
             "type": 4,
@@ -554,119 +463,15 @@ def fulfill_button(interaction, *args, **kwargs):
             },
         }
 
-    requester: typing.Optional[User]
-    try:
-        requester = User.get_by_id(withdrawal.requester)
-    except DoesNotExist:
-        requester = None
-
-    try:
-        discordpatch(
-            f"channels/{guild.banking_config[str(user.faction_id)]['channel']}/messages/{withdrawal.withdrawal_message}",
-            {
-                "content": "",
-                "embeds": [
-                    {
-                        "title": f"Fulfilled - Vault Request #{withdrawal.wid}",
-                        "description": f"This request has been fulfilled by {discord_escaper(user.name)} [{user.tid}].",
-                        "fields": [
-                            {
-                                "name": "Original Request Amount",
-                                "value": f"{commas(withdrawal.amount)} {'Cash' if withdrawal.cash_request else 'Points'}",
-                            },
-                            {
-                                "name": "Original Requester",
-                                "value": (
-                                    f"N/A [{withdrawal.requester}]" if requester is None else requester.user_str_self()
-                                ),
-                            },
-                        ],
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ],
-                "components": [],
-            },
-        )
-    except DiscordError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord API Error",
-                        "description": "The Discord API has returned an error.",
-                        "fields": [
-                            {"name": "Error Code", "value": e.code},
-                            {"name": "Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-    except NetworkingError as e:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Discord Networking Error",
-                        "description": "The Discord API has returned an HTTP error.",
-                        "fields": [
-                            {"name": "HTTP Error Code", "value": e.code},
-                            {"name": "HTTP Error Message", "value": e.message},
-                        ],
-                    }
-                ],
-                "flags": 64,
-            },
-        }
-
-    Withdrawal.update(status=1, fulfiller=user.tid, time_fulfilled=datetime.datetime.utcnow()).where(
-        Withdrawal.wid == withdrawal.wid
-    ).execute()
-
-    if requester.discord_id not in (None, "", 0):
-        try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
-        except Exception:
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Banking Request Fulfilled",
-                            "description": f"You have fulfilled banking request #{withdrawal.wid}.",
-                            "color": SKYNET_GOOD,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-
-        discordpost.s(
-            f"channels/{dm_channel['id']}/messages",
-            payload={
-                "embeds": [
-                    {
-                        "title": "Vault Request Fulfilled",
-                        "description": f"Your vault request #{withdrawal.wid} has been fulfilled by {discord_escaper(user.name)} [{user.tid}]",
-                        "timestamp": datetime.datetime.utcnow().isoformat(),
-                        "color": SKYNET_GOOD,
-                    }
-                ]
-            },
-        ).apply_async(ignore_result=True)
-
     return {
         "type": 4,
         "data": {
             "embeds": [
                 {
-                    "title": "Banking Request Fulfilled",
-                    "description": f"You have fulfilled banking request #{withdrawal.wid}.",
-                    "color": SKYNET_GOOD,
+                    "title": "Unable to Fulfill Request",
+                    "description": f"Vault Request #{withdrawal.wid} could not be fulfilled due to an unhandled error. "
+                    "Please create a ticket on Tornium's Discord server.",
+                    "color": SKYNET_ERROR,
                 }
             ],
             "flags": 64,

@@ -257,7 +257,8 @@ def fulfill_command(interaction, *args, **kwargs):
                     "Please create a ticket on Tornium's Discord server.",
                     "color": SKYNET_ERROR,
                 }
-            ]
+            ],
+            "flags": 64,
         },
     }
 
@@ -472,6 +473,7 @@ def fulfill_button(interaction, *args, **kwargs):
                     "Please create a ticket on Tornium's Discord server.",
                     "color": SKYNET_ERROR,
                 }
-            ]
+            ],
+            "flags": 64,
         },
     }

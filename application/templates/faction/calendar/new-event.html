@@ -1,0 +1,52 @@
+{% extends 'base-center.html' %}
+
+{% block title %}
+Tornium - New Calendar Event
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Create a new faction event</h5>
+
+                <p class="card-text mt-2">
+                    {# TODO: Add docs #}
+                    This page allows you to select the type of the faction event (<b>WARNING:</b> This can NOT be changed later). For more information, see the <a href="#">documentation</a>.
+                </p>
+
+                <div class="card w-100 mt-3">
+                    <div class="card-header">Event Type</div>
+                    <ul class="list-group list-group-flush" id="event-type-list">
+                        <a class="list-group-item list-group-item-action" href="/faction/calendar/new/steadfast">
+                            <p class="card-text px-3" style="width: 100%;">
+                                <b>Steadfast:</b><br />
+                                A change in the faction's steadfast percentages.
+                            </p>
+                        </a>
+
+                        <a class="list-group-item list-group-item-action" href="/faction/calendar/new/ranked-war">
+                            <p class="card-text px-3" style="width: 100%;">
+                                <b>Ranked War:</b><br />
+                                The enlistment date and corresponding start of a ranked war for the faction.
+                            </p>
+                        </a>
+
+                        <a class="list-group-item list-group-item-action" href="/faction/calendar/new/chain">
+                            <p class="card-text px-3" style="width: 100%;">
+                                <b>Chain:</b><br />
+                                A chain of an expected length for the faction.
+                            </p>
+                        </a>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/developers/new-client.js"></script>
+{% endblock %}

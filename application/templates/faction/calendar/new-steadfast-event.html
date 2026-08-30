@@ -1,0 +1,65 @@
+{% extends 'base-center.html' %}
+
+{% block title %}
+Tornium - New Steadfast Event
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Create a new steadfast event</h5>
+
+                <p class="card-text mt-2">
+                    A steadfast event shows the period for which the faction has a specific steadfast rotation set up. Each stat can have a steadfast set up between 0% and 20% for any period of time. For more information, see the <a href="#">documentation</a>.
+                </p>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <label for="steadfast-strength">Strength: </label>
+                        <input type="number" class="form-control steadfast-input" inputmode="numeric" auto-complete="off" data-stat="strength" id="steadfast-strength" required>
+                        <div class="invalid-feedback">
+                            The steadfast for the strength stat must be between 0 and 20.
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <label for="steadfast-defense">Defense: </label>
+                        <input type="number" class="form-control steadfast-input" inputmode="numeric" auto-complete="off" data-stat="defense" id="steadfast-defense" required>
+                        <div class="invalid-feedback">
+                            The steadfast for the defense stat must be between 0 and 20.
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <label for="steadfast-speed">Speed: </label>
+                        <input type="number" class="form-control steadfast-input" inputmode="numeric" auto-complete="off" data-stat="speed" id="steadfast-speed" required>
+                        <div class="invalid-feedback">
+                            The steadfast for the speed stat must be between 0 and 20.
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <label for="steadfast-dexterity">Dexterity: </label>
+                        <input type="number" class="form-control steadfast-input" inputmode="numeric" auto-complete="off" data-stat="dexterity" id="steadfast-dexterity" required>
+                        <div class="invalid-feedback">
+                            The steadfast for the dexterity stat must be between 0 and 20.
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="row mt-3">
+                    <datetime-input data-legend="From (YYYY-MM-DD HH:MM TCT)" id="steadfast-from-timestamp"></datetime-input>
+                    <datetime-input data-legend="To (YYYY-MM-DD HH:MM TCT)" id="steadfast-to-timestamp" class="mt-2"></datetime-input>
+                    <div class="invalid-feedback" id="steadfast-timestamp-error"></div>
+                </div>
+
+                <button type="button" id="create-event" class="btn btn-outline-success w-100 mt-3">Create Steadfast Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/components/datetime-input.js"></script>
+<script src="/static/faction/new-steadfast-event.js" data-faction-id="{{ current_user.faction_id }}"></script>
+{% endblock %}

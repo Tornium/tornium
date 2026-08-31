@@ -95,7 +95,7 @@ config :tornium, Oban,
         {"0 */12 * * *", Tornium.Workers.OCTypeUpdate}
       ]
     },
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},
+    {Oban.Plugins.Pruner, max_age: 60 * 60},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 

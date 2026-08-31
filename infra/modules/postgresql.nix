@@ -17,6 +17,7 @@
     wal_keep_size = "1GB";
     min_wal_size = "80MB";
     max_wal_size = "1GB";
+
     max_connections = "150";
 
     listen_addresses = pkgs.lib.mkForce "*";

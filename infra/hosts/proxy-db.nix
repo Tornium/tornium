@@ -6,6 +6,7 @@
     ../modules/nginx.nix
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql-replica.nix
+    ../modules/postgresql-replica-service.nix
     # ../modules/postgresql-pgbackrest.nix
     ../modules/prometheus.nix
     ../modules/tornium-worker.nix

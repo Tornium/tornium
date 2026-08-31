@@ -101,9 +101,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        # FIXME: Disable before pushing
-        # ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
-        ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --log-level debug --capture-output --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
+        ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --capture-output --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
 
         NoNewPrivileges = true;
         PrivateTmp = true;

@@ -45,7 +45,7 @@ def banking_data():
     ordering_direction = request.args.get("order[0][dir]")
     withdrawals = []
 
-    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction_id)
+    withdrawals_db = Withdrawal.select().where(Withdrawal.faction_id == current_user.faction_id)
 
     if ordering == 0:
         withdrawals_db = withdrawals_db.order_by(utils.table_order(ordering_direction, Withdrawal.wid))
@@ -95,7 +95,7 @@ def banking_data():
     data = {
         "draw": request.args.get("draw"),
         "recordsTotal": Withdrawal.select().count(),
-        "recordsFiltered": Withdrawal.select().where(Withdrawal.faction_tid == current_user.faction_id).count(),
+        "recordsFiltered": Withdrawal.select().where(Withdrawal.faction_id == current_user.faction_id).count(),
         "data": withdrawals,
     }
     return data

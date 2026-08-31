@@ -138,7 +138,7 @@ def cancel_command(interaction, *args, **kwargs):
             },
         }
 
-    if withdrawal.faction_tid != user.faction_id:
+    if withdrawal.faction_id != user.faction_id:
         return {
             "type": 4,
             "data": {
@@ -362,7 +362,7 @@ def cancel_button(interaction, *args, **kwargs):
             },
         }
 
-    if withdrawal.faction_tid != user.faction_id:
+    if withdrawal.faction_id != user.faction_id:
         return {
             "type": 4,
             "data": {

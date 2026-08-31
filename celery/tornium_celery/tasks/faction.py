@@ -938,7 +938,7 @@ def auto_cancel_requests():
         & (Withdrawal.time_fulfilled <= datetime.datetime.utcnow() - datetime.timedelta(minutes=1))
     ):
         # Fulfilled requests that were fulfilled between 1 and 11 minutes before now
-        faction_withdrawals.setdefault(withdrawal.faction_tid, []).append(withdrawal.wid)
+        faction_withdrawals.setdefault(withdrawal.faction_id, []).append(withdrawal.wid)
 
     for faction_tid, withdrawals in faction_withdrawals.items():
         try:
@@ -982,7 +982,7 @@ def auto_cancel_requests():
             faction: Faction = (
                 Faction.select(Faction.tid, Faction.guild)
                 .join(Server, JOIN.LEFT_OUTER)
-                .where(Faction.tid == withdrawal.faction_tid)
+                .where(Faction.tid == withdrawal.faction_id)
                 .first()
             )
         except DoesNotExist:

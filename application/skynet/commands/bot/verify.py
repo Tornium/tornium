@@ -89,10 +89,11 @@ def verify(interaction: dict, *args, **kwargs):
 
     try:
         member_discord_id = int(find_list(interaction["data"]["options"], "name", "member")["value"])
+        member_roles = interaction["data"]["resolved"]["members"][str(member_discord_id)]["roles"]
     except Exception:
         member_discord_id = int(interaction["member"]["user"]["id"])
+        member_roles = interaction["member"]["roles"]
 
-    member_roles = interaction["data"]["resolved"]["members"][str(member_discord_id)]["roles"]
     if set(member_roles) & set(map(str, guild.exclusion_roles)):  # Exclusion role in member's roles
         return {
             "type": 4,

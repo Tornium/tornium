@@ -18,7 +18,7 @@ defmodule Tornium.Repo do
     otp_app: :tornium,
     adapter: Ecto.Adapters.Postgres
 
-  def oban_repo do
+  def oban_repo() do
     # See https://oban.hexdocs.pm/scaling.html#pooling
     if in_transaction?() do
       Tornium.Repo

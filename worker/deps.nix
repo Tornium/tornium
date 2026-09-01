@@ -854,7 +854,7 @@ let
 
       oban =
         let
-          version = "2.23.1";
+          version = "2.24.0";
           drv = buildMix {
             inherit version;
             name = "oban";
@@ -863,7 +863,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "oban";
-              sha256 = "a9855b9f5d87e31de3e2f46731b163f372e329613892a56c5b2aacceb50ed508";
+              sha256 = "ab497b2be51191a2d9d7a1b267714463891be711b20487b7b65b5c2269e4b312";
             };
 
             beamDeps = [

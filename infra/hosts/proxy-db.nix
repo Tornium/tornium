@@ -7,7 +7,7 @@
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql-replica.nix
     ../modules/postgresql-replica-service.nix
-    # ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-pgbackrest.nix
     ../modules/prometheus.nix
     ../modules/tornium-worker.nix
     ../common/default.nix
@@ -16,6 +16,9 @@
 
   services.nginx.enable = true;
   services.tornium-nginx.enable-proxy = true;
+
+  services.postgresql-pgbackrest.enable = true;
+  services.postgresql-pgbackrest.replicaHost = null;
 
   services.prometheus.enable = true;
 

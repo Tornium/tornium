@@ -58,7 +58,10 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP56l+rwxRYqgo50JP920oiI8syFJw9k+nSfe608JjBa webmaster@deek.sh"
+  ];
+  users.users.postgres.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBhqfFOoJQcayzpvR26r5meBtq4N5nezHPgy+9T2tANi pgbackrest-key"
   ];
 
   # This is added to the server by colmena in ../hosts/common.nix
@@ -73,6 +76,12 @@
   sops.secrets."pgbackrest/aes_encryption_key" = { owner = "postgres"; };
   sops.secrets."pgbackrest/backblaze_key_id" = { owner = "postgres"; };
   sops.secrets."pgbackrest/backblaze_key" = { owner = "postgres"; };
+  sops.secrets."pgbackrest/ssh_private_key" = {
+    owner = "postgres";
+    group = "postgres";
+    mode = "0400";
+    path = "/etc/ssh/pgbackrest_ed25519";
+  };
   sops.secrets."tornium/discord/bot_token" = { owner = "tornium"; };
   sops.secrets."tornium/discord/bot_application_id" = { owner = "tornium"; };
   sops.secrets."tornium/discord/bot_application_public" = { owner = "tornium"; };

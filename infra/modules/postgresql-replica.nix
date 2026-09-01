@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
@@ -53,8 +53,8 @@
     host all all ::/0 reject
   '';
 
-  # systemd.services.postgresql.serviceConfig = {
-  #     EnvironmentFile = config.sops.templates."pgbackrest.env".path;
-  #     ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
-  # };
+  systemd.services.postgresql.serviceConfig = {
+      EnvironmentFile = config.sops.templates."pgbackrest.env".path;
+      ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
+  };
 }

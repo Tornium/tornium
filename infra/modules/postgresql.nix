@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # See https://www.percona.com/blog/guide-to-postgresql-replication-with-both-asynchronous-and-synchronous-standbys/
@@ -22,9 +22,8 @@
 
     listen_addresses = pkgs.lib.mkForce "*";
 
-    # archive_mode = "on";
-    # archive_command = "${pkgs.pgbackrest}/bin/pgbackrest --stanza=tornium archive-push %p";
-    # archive_timeout = "300";
+    archive_mode = lib.mkForce "on";
+    archive_command = lib.mkForce "/run/current-system/sw/bin/pgbackrest --stanza=tornium archive-push %p";
   };
   services.postgresql.ensureDatabases = [ "Tornium" ];
   services.postgresql.ensureUsers = [
@@ -64,8 +63,8 @@
     iptables -I INPUT 3 -p tcp --dport 5432 -j DROP
   '';
 
-  # systemd.services.postgresql.serviceConfig = {
-  #     EnvironmentFile = config.sops.templates."pgbackrest.env".path;
-  #     ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
-  # };
+  systemd.services.postgresql.serviceConfig = {
+      EnvironmentFile = config.sops.templates."pgbackrest.env".path;
+      ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
+  };
 }

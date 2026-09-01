@@ -6,7 +6,7 @@
     ../modules/nginx.nix
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql.nix
-    # ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-pgbackrest.nix
     ../modules/redis.nix
     ../modules/tornium-web.nix
     ../modules/tornium-celery.nix
@@ -28,6 +28,9 @@
   services.tornium-nginx.enable-proxy = true;
   services.tornium-nginx.enable-proxy-gateway = true;
   services.tornium-nginx.enable-status = true;
+
+  services.postgresql-pgbackrest.enable = true;
+  services.postgresql-pgbackrest.primaryHost = null;
 
   services.prometheus.enable = true;
 

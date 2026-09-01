@@ -7,6 +7,7 @@
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql.nix
     ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-pgbackrest-exporter.nix
     ../modules/redis.nix
     ../modules/tornium-web.nix
     ../modules/tornium-celery.nix
@@ -31,6 +32,9 @@
 
   services.postgresql-pgbackrest.enable = true;
   services.postgresql-pgbackrest.primaryHost = null;
+
+  services.prometheus.exporters.pgbackrest.enable = true;
+  services.prometheus.exporters.pgbackrest.logLevel = "debug";
 
   services.prometheus.enable = true;
 

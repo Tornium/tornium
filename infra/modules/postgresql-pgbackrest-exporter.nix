@@ -1,5 +1,7 @@
 { config, pkgs, lib, ... }:
 
+# Based upon https://github.com/taalbubbl/nix-files/blob/b4a403bcc7b9474ce201a97e3e67d9a2cbee7e7f/modules/pgbackrest-exporter.nix
+
 let 
   cfg = config.services.prometheus.exporters.pgbackrest;
 

@@ -940,9 +940,9 @@ def auto_cancel_requests():
         # Fulfilled requests that were fulfilled between 1 and 11 minutes before now
         faction_withdrawals.setdefault(withdrawal.faction_id, []).append(withdrawal.wid)
 
-    for faction_tid, withdrawals in faction_withdrawals.items():
+    for faction_id, withdrawals in faction_withdrawals.items():
         try:
-            faction: Faction = Faction.select().where(Faction.tid == faction_tid).get()
+            faction: Faction = Faction.select().where(Faction.tid == faction_id).get()
         except DoesNotExist:
             continue
 
@@ -971,11 +971,7 @@ def auto_cancel_requests():
             Withdrawal.wid == withdrawal.wid
         ).execute()
 
-        requester: typing.Optional[User] = (
-            User.select(User.name, User.tid, User.discord_id).where(User.tid == withdrawal.requester).first()
-        )
-
-        if requester is None or requester.discord_id in (0, None):
+        if withdrawal.requester is None or withdrawal.requester.discord_id in (0, None):
             continue
 
         try:
@@ -1005,7 +1001,7 @@ def auto_cancel_requests():
                                     },
                                     {
                                         "name": "Original Requester",
-                                        "value": f"{requester.name} [{requester.tid}]",
+                                        "value": withdrawal.requester.user_str_self(),
                                     },
                                 ],
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -1019,7 +1015,7 @@ def auto_cancel_requests():
             logger.exception(e)
 
         try:
-            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": requester.discord_id})
+            dm_channel = discordpost("users/@me/channels", payload={"recipient_id": withdrawal.requester.discord_id})
         except (DiscordError, NetworkingError):
             continue
         except Exception as e:
@@ -1057,10 +1053,10 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
     ]
 
     if "error" in funds_news:
+        withdrawal: Withdrawal
         for withdrawal in missing_fulfillments:
-            try:
-                requester_discord_id = User.user_discord_id(withdrawal.requester)
-            except DoesNotExist:
+            requester_discord_id = withdrawal.requester.discord_id
+            if requester_discord_id in (None, 0):
                 continue
 
             send_dm(
@@ -1096,12 +1092,9 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
         fulfiller_parser.feed(fulfiller_html)
 
         try:
-            requester = urllib.parse.parse_qs(urllib.parse.urlparse(requester_parser.href).query).get("XID")[0]
-            fulfiller = urllib.parse.parse_qs(urllib.parse.urlparse(fulfiller_parser.href).query).get("XID")[0]
-        except IndexError:
-            continue
-
-        if requester is None or fulfiller is None:
+            requester = int(urllib.parse.parse_qs(urllib.parse.urlparse(requester_parser.href).query).get("XID")[0])
+            fulfiller = int(urllib.parse.parse_qs(urllib.parse.urlparse(fulfiller_parser.href).query).get("XID")[0])
+        except (IndexError, TypeError):
             continue
 
         value = re.search(
@@ -1118,7 +1111,7 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
         for withdrawal in missing_fulfillments:
             update_kwargs = {}
 
-            if withdrawal.requester != int(requester):
+            if withdrawal.requester_id != requester:
                 continue
             elif withdrawal.cash_request != money_sent:
                 continue
@@ -1128,8 +1121,8 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
                 fund_action["timestamp"], tz=datetime.timezone.utc
             ):
                 continue
-            elif withdrawal.fulfiller != int(fulfiller):
-                update_kwargs["fulfiller"] = int(fulfiller)
+            elif withdrawal.fulfiller != fulfiller:
+                update_kwargs["fulfiller"] = fulfiller
 
             update_kwargs["time_fulfilled"] = datetime.datetime.fromtimestamp(
                 fund_action["timestamp"], tz=datetime.timezone.utc
@@ -1164,7 +1157,7 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
                                     },
                                     {
                                         "name": "Original Requester",
-                                        "value": User.user_str(withdrawal.requester),
+                                        "value": withdrawal.requester.user_str_self(),
                                     },
                                 ],
                                 "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -1177,9 +1170,8 @@ def verify_faction_withdrawals(funds_news: dict, withdrawals):
         except Exception as e:
             logger.exception(e)
 
-        try:
-            requester_discord_id = User.user_discord_id(withdrawal.requester)
-        except DoesNotExist:
+        requester_discord_id = withdrawal.requester.discord_id
+        if requester_discord_id in (None, 0):
             continue
 
         send_dm(

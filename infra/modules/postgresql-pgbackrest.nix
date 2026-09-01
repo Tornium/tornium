@@ -53,7 +53,7 @@ in {
         cipher-type = "aes-256-cbc";
 
         path = "/";
-        retention-full = 2;
+        retention-full = 3;
       };
     };
     services.pgbackrest.stanzas = {
@@ -61,6 +61,7 @@ in {
         settings = {
           recovery-option = "primary_conninfo=host=${pgbackrestDefaults.primaryHost} user=replicator";
         };
+
         instances = {
           primary.host = cfg.primaryHost;
           primary.host-cmd = "pgbackrest";
@@ -71,6 +72,10 @@ in {
           replica.host-cmd = "pgbackrest";
           replica.user = "postgres";
           replica.path = "/var/lib/postgresql/16/replica";
+        };
+
+        jobs = {
+          daily-full = { schedule = "*-*-* 03:30:00"; type = "full"; };
         };
       };
     };
@@ -90,42 +95,6 @@ in {
         IdentityFile /etc/ssh/pgbackrest_ed25519
         IdentitiesOnly yes
     '';
-
-    # systemd.services."postgresql-pgbackrest-backup" = {
-    #   path = [ pkgs.pgbackrest ];
-
-    #   description = "Backup the PostgreSQL database using pgbackrest";
-    #   after = [ "postgresql.service" "network-online.target" ];
-    #   wants = [ "network-online.target" ];
-    #   # reloadTriggers = [ config.sops.templates."pgbackrest.env".path ];
-
-    #   serviceConfig = {
-    #     Type = "oneshot";
-    #     User = "postgres";
-    #     Group = "postgres";
-    #     EnvironmentFile = config.sops.templates."pgbackrest.env".path;
-    #     ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
-    #   };
-
-    #   script = ''
-    #     set -e
-    #     
-    #     chown pgbackrest:pgbackrest /var/lib/pgbackrest
-    #     chmod 770 /var/lib/pgbackrest
-
-    #     pgbackrest --stanza=tornium stanza-create
-    #     pgbackrest --stanza=tornium --type=full --backup-standby backup
-    #   '';
-    # };
-
-    # systemd.timers."postgresql-pgbackrest-backup" = {
-    #   description = "Timer to start the postgresql backup";
-    #   wantedBy = [ "timers.target" ];
-    #   timerConfig = {
-    #     OnCalendar = "daily";
-    #     Persistent = true;
-    #   };
-    # };
 
     environment.systemPackages = [
       (pkgs.writeShellScriptBin "pgbackrest" ''

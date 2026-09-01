@@ -19,6 +19,7 @@ defmodule Tornium.Repo do
     adapter: Ecto.Adapters.Postgres
 
   def oban_repo do
+    # See https://oban.hexdocs.pm/scaling.html#pooling
     if in_transaction?() do
       Tornium.Repo
     else

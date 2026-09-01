@@ -72,7 +72,7 @@ config :tornium, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
   queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
-  repo: Tornium.ObanRepo,
+  repo: {Tornium.ObanRepo, dynamic_repo: {Tornium.Repo, :oban_repo, []}},
   get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
   shutdown_grace_period: :timer.seconds(30),
   plugins: [

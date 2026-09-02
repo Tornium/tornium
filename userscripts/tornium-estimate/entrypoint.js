@@ -22,7 +22,12 @@ import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { injectAttackLoaderStats } from "./pages/attack-loader.js";
 import { checkRankedWarToggleState } from "./pages/faction-rw.js";
 import { startAbroadUserListObserver } from "./pages/people-abroad.js";
-import { createProfileContainer, updateProfileStatsSpan, updateProfileEstimateSpan } from "./pages/profile.js";
+import {
+    createProfileContainer,
+    createProfileLoginMessage,
+    updateProfileStatsSpan,
+    updateProfileEstimateSpan,
+} from "./pages/profile.js";
 import { startSearchUserListObserver } from "./pages/search.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 import { getUserEstimate, getUserStats } from "./stats.js";
@@ -91,6 +96,7 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     //  - estimates not being enabled on the profile page
     //  - the OAuth token being expired
     createSettingsButton();
+    createProfileLoginMessage();
 } else if (window.location.pathname.startsWith("/gym.php")) {
     // We're waiting for dexterity as we're assuming it's the last node to be injected into the DOM.
     waitForElement(`li[class^="dexterity_"]`).then((parent) => {

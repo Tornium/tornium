@@ -60,7 +60,8 @@ export function createProfileLoginMessage() {
     parentContainer.append(container);
 
     const loginMessage = document.createElement("p");
-    loginMessage.innerText = "You need to log into Tornium again to utilize the userscript. For more information, see the "
+    loginMessage.innerText =
+        "You need to log into Tornium again to utilize the userscript. For more information, see the ";
     container.append(loginMessage);
 
     const loginMessageDocs = document.createElement("a");

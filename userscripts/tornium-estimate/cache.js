@@ -61,7 +61,7 @@ export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
     const modifiedResponse = new Response(response.responseText, {
         status: response.status,
         statusText: response.statusText || "",
-        headers: newHeaders
+        headers: newHeaders,
     });
 
     const cache = await caches.open(CACHE_NAME);

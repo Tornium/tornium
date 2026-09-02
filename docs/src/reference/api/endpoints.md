@@ -194,6 +194,29 @@ Content-Type: application/json
 | `after`  | Integer | Maximum OC ID for pagination |         | False    |
 | `limit`  | Integer | Maximum number of delays     | 100     | False    |
 
+### Get Organized Crime CPRs
+Get a list of known CPRs for every member in the faction for each position in the OC for a given OC.
+
+NOTE: The OC name may need to be URL encoded. For example, `Guardian Ángels` would be `Guardian%20%C3%81ngels`.
+
+**Scopes Required:** `faction:crimes` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/crime/cpr/<str:oc_name>
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "position": [
+        {
+            "cpr": 80,
+            "id": 2383326,
+            "name": "tiksan",
+            "updated_at": 1788377416
+        }
+    ]
+}
+```
 
 ### Get Faction Members
 Get a list of members of a specific faction.

@@ -174,7 +174,7 @@ def get_members_cpr_slot(faction_id: int, oc_name: str, oc_position_name: str, *
     )
 
 
-@session_required
+@require_oauth("faction:crimes", "faction")
 @ratelimit
 def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

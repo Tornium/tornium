@@ -167,13 +167,9 @@ Get a list of members of the authenticated user's faction who have delayed organ
 **Scopes Required:** `faction:crimes` (or `faction`)
 
 ```http
-GET /api/v1/faction/<int:faction_id>/crime/delays HTTP/1.1
+GET /api/v1/faction/<int:faction_id>/crime/delays?limit=50 HTTP/1.1
 Authorization: Bearer {{ access_token }}
 Content-Type: application/json
-
-{
-    "limit": 50
-}
 
 [
     {

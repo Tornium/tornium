@@ -13,12 +13,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+import { log } from "./logging.js";
 import { CACHE_ENABLED } from "./constants.js";
 
 const CACHE_NAME = "tornium-estimate-cache";
 export const CACHE_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
 
 export async function getCache(url) {
+    if (!CACHE_ENABLED) {
+        return null;
+    }
+
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(url);
 
@@ -36,12 +41,31 @@ export async function getCache(url) {
 }
 
 export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const cloneResponse = response.clone();
-    const newHeaders = new Headers(cloneResponse.headers);
+    const newHeaders = new Headers();
+    if (response.responseHeaders) {
+        response.responseHeaders
+            .trim()
+            .split(/[\r\n]+/)
+            .forEach((line) => {
+                const parts = line.split(": ");
+                const key = parts.shift();
+                const value = parts.join(": ");
+                if (key) {
+                    newHeaders.append(key, value);
+                }
+            });
+    }
+
     newHeaders.set("cache-expiry", String(Date.now() + ttl));
 
+    const modifiedResponse = new Response(response.responseText, {
+        status: response.status,
+        statusText: response.statusText || "",
+        headers: newHeaders
+    });
+
     const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(await cloneResponse.text(), { status: response.status, headers: newHeaders }));
+    await cache.put(url, modifiedResponse);
 }
 
 function parseHeaders(headerString) {

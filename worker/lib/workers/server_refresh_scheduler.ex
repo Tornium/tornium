@@ -22,8 +22,9 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
   database.
   """
 
-  alias Tornium.Repo
   import Ecto.Query
+  require Logger
+  alias Tornium.Repo
 
   use Oban.Worker,
     max_attempts: 3,
@@ -58,7 +59,9 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
 
     guild_ids
     |> get_servers_pending_deletion()
-    |> Tornium.Schema.Server.delete_servers()
+    |> inspect(label: "pending deletion")
+    |> Logger.info()
+    # |> Tornium.Schema.Server.delete_servers()
 
     :ok
   end

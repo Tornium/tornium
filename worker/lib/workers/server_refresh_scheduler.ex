@@ -61,6 +61,7 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
     |> get_servers_pending_deletion()
     |> inspect(label: "pending deletion")
     |> Logger.info()
+
     # |> Tornium.Schema.Server.delete_servers()
 
     :ok

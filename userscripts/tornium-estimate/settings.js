@@ -110,6 +110,27 @@ export function injectSettingsPage(container) {
     configLegend.innerText = "Configuration";
     configSection.append(configLegend);
 
+    // === Config: Show data from the stat DB up to a certain maximum age (in days) after
+    // which show data from estimates
+    const configMaximumStatDaysLabel = document.createElement("label");
+    configMaximumStatDaysLabel.for = "tornium-estimate-settings-maximum-stat-days";
+    configMaximumStatDaysLabel.innerText = "Maximum age (in days) of stat data before showing estimates: ";
+    configMaximumStatDaysLabel.style.display = "inline";
+    configSection.append(configMaximumStatDaysLabel);
+
+    const configMaximumStatDaysInput = document.createElement("input");
+    configMaximumStatDaysInput.id = "tornium-estimate-settings-maximum-stat-days";
+    configMaximumStatDaysInput.type = "number";
+    configMaximumStatDaysInput.value = Config.maximumStatDays;
+    configMaximumStatDaysInput.autocomplete = "off";
+    configMaximumStatDaysInput.minimum = 0;
+    configMaximumStatDaysInput.addEventListener("change", (event) => {
+        Config.maximumStatDays = configMaximumStatDaysInput.value;
+    });
+    configSection.append(configMaximumStatDaysInput);
+
+    configSection.append(document.createElement("br"));
+
     // === Config: Show exact stat instead of showing a shortened form of the stat (3.2B)
     const configExactStatLabel = document.createElement("label");
     configExactStatLabel.for = "tornium-estimate-settings-exact-stat";
@@ -125,6 +146,8 @@ export function injectSettingsPage(container) {
         Config.exactStat = configExactStatCheckbox.checked;
     });
     configSection.append(configExactStatCheckbox);
+
+    configSection.append(document.createElement("br"));
 
     // === Config: Select the pages for the stat estimates to be shown on
     const configPagesLabel = document.createElement("label");

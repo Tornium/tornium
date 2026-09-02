@@ -73,10 +73,33 @@ in {
           replica.user = "postgres";
           replica.path = "/var/lib/postgresql/16/replica";
         };
+      };
+    };
 
-        jobs = {
-          daily-full = { schedule = "*-*-* 03:30:00"; type = "full"; };
-        };
+    systemd.services."postgresql-pgbackrest-daily-full" = {
+      description = "Service to perform full backups with pgbackrest";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      requires = [ "postgresql.service" ];
+      path = [ pkgs.pgbackrest ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        EnvironmentFile = config.sops.templates."pgbackrest.env".path;
+
+        User = "postgres";
+        Group = "postgres";
+
+        ExecStart = "${pkgs.pgbackrest}/bin/pgbackrest --type=full --stanza=tornium backup";
+      };
+    };
+    systemd.timers."postgresql-pgbackrest-daily-full" = {
+      description = "Timer to start the daily full backup with pgbackrest";
+      wantedBy = [ "timers.target" ];
+
+      timerConfig = {
+        OnCalendar = "*-*-* 03:30:00";
+        Persistent = true;
       };
     };
 

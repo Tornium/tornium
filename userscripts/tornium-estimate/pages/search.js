@@ -59,9 +59,7 @@ function injectStats(addedNode) {
     statSpan.innerText = "...";
     userContainer.append(statSpan);
 
-    concurrencyLimiter(() => {
-        return getUserStats(userID);
-    }).then((statsData) => {
+    getUserStats(userID, concurrencyLimiter).then((statsData) => {
         if (statsData.error != undefined) {
             log(`OAuth Error: ${statsData.error_description}`);
             statSpan.innerText = `ERR`;
@@ -81,9 +79,7 @@ function injectStats(addedNode) {
 }
 
 function injectEstimate(statSpan, userID) {
-    concurrencyLimiter(() => {
-        return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
             statSpan.innerText = `ERR`;

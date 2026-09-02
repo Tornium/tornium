@@ -15,10 +15,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { torniumFetch } from "./api.js";
 
-export function getUserStats(userID) {
-    return torniumFetch(`user/${userID}/stat`, {});
+export function getUserStats(userID, limiter = null) {
+    return torniumFetch(`user/${userID}/stat`, { limiter: limiter });
 }
 
-export function getUserEstimate(userID) {
-    return torniumFetch(`user/estimate/${userID}`, {});
+export function getUserEstimate(userID, limiter = null) {
+    return torniumFetch(`user/estimate/${userID}`, { limiter: limiter });
 }

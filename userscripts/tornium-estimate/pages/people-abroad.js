@@ -90,9 +90,7 @@ function injectStats(addedNode) {
 }
 
 function injectEstimate(statSpan, userID) {
-    concurrencyLimiter(() => {
-        return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
             statSpan.innerText = `ERR`;

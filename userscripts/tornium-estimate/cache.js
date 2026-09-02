@@ -19,27 +19,36 @@ import { CACHE_ENABLED } from "./constants.js";
 const CACHE_NAME = "tornium-estimate-cache";
 export const CACHE_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
 
+let cacheInstance = null;
+async function getCacheInstance() {
+    if (cacheInstance == null) {
+        cacheInstance = await caches.open(CACHE_NAME);
+    }
+
+    return cacheInstance;
+}
+
 export async function getCache(url) {
     if (!CACHE_ENABLED) {
         return null;
     }
 
-    const cache = await caches.open(CACHE_NAME);
+    const cache = await getCacheInstance();
     const cachedResponse = await cache.match(url);
 
     if (cachedResponse) {
         const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
 
         if (Date.now() < expirationTime) {
-            log (`HIT ${url}`);
+            log(`HIT ${url}`);
             return await cachedResponse.json();
         }
 
-        log (`EXPIRE ${url}`);
+        log(`EXPIRE ${url}`);
         await cache.delete(url);
     }
 
-    log (`MISS ${url}`);
+    log(`MISS ${url}`);
     return null;
 }
 
@@ -67,7 +76,7 @@ export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
         headers: newHeaders,
     });
 
-    const cache = await caches.open(CACHE_NAME);
+    const cache = await getCacheInstance();
     await cache.put(url, modifiedResponse);
 }
 

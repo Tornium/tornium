@@ -59,9 +59,7 @@ function transformRankedWarLevelNode(node) {
 
     node.innerText = "...";
 
-    concurrencyLimiter(() => {
-        return getUserStats(userID);
-    }).then((statsData) => {
+    getUserStats(userID, concurrencyLimiter).then((statsData) => {
         if (statsData.error != undefined) {
             log(`OAuth Error: ${statsData.error_description}`);
             node.innerText = `ERR`;
@@ -81,9 +79,7 @@ function transformRankedWarLevelNode(node) {
 }
 
 function transformRankedWarLevelNodeEstimate(node, userID) {
-    concurrencyLimiter(() => {
-        return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
             node.innerText = `ERR`;

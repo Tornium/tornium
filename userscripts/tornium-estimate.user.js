@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.7
+// @version      0.5.8
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -41,12 +41,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
   // constants.js
   var DEBUG = false;
-  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+  var BASE_URL = "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.7";
+  var VERSION = "0.5.8";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
+  var CONCURRENCY_LIMIT = 20;
   GM_setValue("tornium-estimate:test", "1");
   var localGMValue = localStorage.getItem("tornium-estimate:test");
   var clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
@@ -58,27 +59,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     return check;
   })();
 
+  // logging.js
+  function log(string, debug_log = false) {
+    if (debug_log && !DEBUG) {
+      return;
+    }
+    if (ENABLE_LOGGING || DEBUG) {
+      console.log("[Tornium Estimate] " + window.location.pathname + " - " + string);
+    }
+  }
+
   // cache.js
   var CACHE_NAME = "tornium-estimate-cache";
   var CACHE_EXPIRATION = 1e3 * 60 * 60 * 24;
+  var cacheInstance = null;
+  async function getCacheInstance() {
+    if (cacheInstance == null) {
+      cacheInstance = await caches.open(CACHE_NAME);
+    }
+    return cacheInstance;
+  }
   async function getCache(url) {
-    const cache = await caches.open(CACHE_NAME);
+    if (!CACHE_ENABLED) {
+      return null;
+    }
+    const cache = await getCacheInstance();
     const cachedResponse = await cache.match(url);
     if (cachedResponse) {
       const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
       if (Date.now() < expirationTime) {
+        log(`HIT ${url}`);
         return await cachedResponse.json();
       }
+      log(`EXPIRE ${url}`);
       await cache.delete(url);
     }
+    log(`MISS ${url}`);
     return null;
   }
   async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const cloneResponse = response.clone();
-    const newHeaders = new Headers(cloneResponse.headers);
+    const newHeaders = new Headers();
+    if (response.responseHeaders) {
+      response.responseHeaders.trim().split(/[\r\n]+/).forEach((line) => {
+        const parts = line.split(": ");
+        const key = parts.shift();
+        const value = parts.join(": ");
+        if (key) {
+          newHeaders.append(key, value);
+        }
+      });
+    }
     newHeaders.set("cache-expiry", String(Date.now() + ttl));
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(await cloneResponse.text(), { status: response.status, headers: newHeaders }));
+    const modifiedResponse = new Response(response.responseText, {
+      status: response.status,
+      statusText: response.statusText || "",
+      headers: newHeaders
+    });
+    const cache = await getCacheInstance();
+    await cache.put(url, modifiedResponse);
   }
 
   // oauth.js
@@ -138,51 +176,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // api.js
-  function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION }) {
-    return new Promise(async (resolve, reject) => {
-      const cachedResponse = await getCache(endpoint);
+  function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION, limiter: null }) {
+    return getCache(endpoint).then((cachedResponse) => {
       if (cachedResponse != null && cachedResponse != void 0) {
-        resolve(cachedResponse);
         return cachedResponse;
       }
-      return GM_xmlhttpRequest({
-        method: options.method,
-        url: `${BASE_URL}/api/v1/${endpoint}`,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`
-        },
-        responseType: "json",
-        onload: async (response) => {
-          let responseJSON = response.response;
-          if (response.responseType === void 0) {
-            try {
-              responseJSON = JSON.parse(response.responseText);
-              response.responseType = "json";
-            } catch (err) {
-              console.log(response.responseText);
-              console.log(err);
-              reject(err);
+      const makeRequest = () => new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+          method: options.method,
+          url: `${BASE_URL}/api/v1/${endpoint}`,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+          },
+          responseType: "json",
+          onload: async (response) => {
+            let responseJSON = response.response;
+            if (response.responseType === void 0) {
+              try {
+                responseJSON = JSON.parse(response.responseText);
+                response.responseType = "json";
+              } catch (err) {
+                log(response.responseText, true);
+                log(err, true);
+                reject(err);
+                return;
+              }
+            }
+            if (responseJSON.error !== void 0) {
+              GM_deleteValue("tornium-estimate:access-token");
+              GM_deleteValue("tornium-estimate:access-token-expires");
+              resolve(responseJSON);
               return;
             }
-          }
-          if (responseJSON.error !== void 0) {
-            GM_deleteValue("tornium-estimate:access-token");
-            GM_deleteValue("tornium-estimate:access-token-expires");
+            if (!("code" in responseJSON)) {
+              await putCache(endpoint, response, options.ttl);
+            }
             resolve(responseJSON);
-            return responseJSON;
+            return;
+          },
+          onerror: (error) => {
+            reject(error);
+            return;
           }
-          if (!("code" in responseJSON)) {
-            putCache(endpoint, response, options.ttl);
-          }
-          resolve(responseJSON);
-          return responseJSON;
-        },
-        onerror: (error) => {
-          reject(error);
-          return;
-        }
+        });
       });
+      if (options.limiter == null) {
+        return makeRequest();
+      }
+      return options.limiter(makeRequest);
     });
   }
   function limitConcurrency(limit) {
@@ -213,13 +255,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     };
   }
 
-  // logging.js
-  function log(string) {
-    if (ENABLE_LOGGING || DEBUG) {
-      console.log("[Tornium Estimate] " + window.location.pathname + " - " + string);
-    }
-  }
-
   // config.js
   var PAGE_OPTIONS = [
     { id: "profile", label: "Profile Page" },
@@ -233,7 +268,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       static defaults = {
         exactStat: false,
         pages: [],
-        statScore: null
+        statScore: null,
+        maximumStatDays: 90
       };
     },
     {
@@ -356,6 +392,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     estimateElement.append(estimateSpan);
     return [statsSpan, estimateSpan];
   }
+  function createProfileLoginMessage() {
+    const parentContainer = document.querySelector("div.content-title");
+    const container = document.createElement("div");
+    container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
+    parentContainer.append(container);
+    const loginMessage = document.createElement("p");
+    loginMessage.innerText = "You need to log into Tornium again to utilize the userscript. For more information, see the ";
+    container.append(loginMessage);
+    const loginMessageDocs = document.createElement("a");
+    loginMessageDocs.href = "https://docs.tornium.com/en/latest/tutorial/tornium-estimate.html";
+    loginMessageDocs.innerText = "Tornium documentation";
+    loginMessage.append(loginMessageDocs);
+  }
   function updateProfileStatsSpan(statsData, statsSpan) {
     if (statsData.error != void 0) {
       statsSpan.innerText = formatOAuthError(statsData);
@@ -376,11 +426,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // stats.js
-  function getUserStats(userID) {
-    return torniumFetch(`user/${userID}/stat`, {});
+  function getUserStats(userID, limiter = null) {
+    return torniumFetch(`user/${userID}/stat`, { limiter });
   }
-  function getUserEstimate(userID) {
-    return torniumFetch(`user/estimate/${userID}`, {});
+  function getUserEstimate(userID, limiter = null) {
+    return torniumFetch(`user/estimate/${userID}`, { limiter });
   }
 
   // pages/attack-loader.js
@@ -397,7 +447,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     getUserStats(userID).then((statsData) => {
       if (statsData.code === 1100) {
         injectEstimate(statsSpan, userID);
-      } else if (new Date(statsData.timestamp * 1e3) <= Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+      } else if (new Date(statsData.timestamp * 1e3) <= Date.now() - 1e3 * 60 * 60 * 24 * Config.maximumStatDays) {
         injectEstimate(statsSpan, userID);
       } else {
         updateProfileStatsSpan(statsData, statsSpan);
@@ -421,7 +471,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       }
     );
   }
-  var concurrencyLimiter = limitConcurrency(10);
+  var concurrencyLimiter = limitConcurrency(CONCURRENCY_LIMIT);
   function transformRankedWarLevelNode(node) {
     if (node.innerText == "Level") {
       node.innerText = "FF";
@@ -438,9 +488,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       return;
     }
     node.innerText = "...";
-    concurrencyLimiter(() => {
-      return getUserStats(userID);
-    }).then((statsData) => {
+    getUserStats(userID, concurrencyLimiter).then((statsData) => {
       if (statsData.error != void 0) {
         log(`OAuth Error: ${statsData.error_description}`);
         node.innerText = `ERR`;
@@ -449,7 +497,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       } else if (statsData.code != void 0) {
         log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
         node.innerText = `ERR`;
-      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * Config.maximumStatDays) {
         node.innerText = fairFight(statsData.stat_score);
       } else {
         transformRankedWarLevelNodeEstimate(node, userID);
@@ -457,9 +505,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function transformRankedWarLevelNodeEstimate(node, userID) {
-    concurrencyLimiter(() => {
-      return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
       if (estimateData.error != void 0) {
         log(`OAuth Error: ${estimateData.error_description}`);
         node.innerText = `ERR`;
@@ -493,7 +539,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       });
     });
   }
-  var concurrencyLimiter2 = limitConcurrency(10);
+  var concurrencyLimiter2 = limitConcurrency(CONCURRENCY_LIMIT);
   function injectStats2(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {
       return;
@@ -520,7 +566,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       } else if (statsData.code != void 0) {
         log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
         statSpan.innerText = `ERR`;
-      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * Config.maximumStatDays) {
         statSpan.innerText = fairFight(statsData.stat_score);
       } else {
         injectEstimate2(statSpan, userID);
@@ -528,9 +574,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function injectEstimate2(statSpan, userID) {
-    concurrencyLimiter2(() => {
-      return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter2).then((estimateData) => {
       if (estimateData.error != void 0) {
         log(`OAuth Error: ${estimateData.error_description}`);
         statSpan.innerText = `ERR`;
@@ -571,7 +615,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       Array.from(userNodes).forEach(injectStats3);
     });
   }
-  var concurrencyLimiter3 = limitConcurrency(10);
+  var concurrencyLimiter3 = limitConcurrency(CONCURRENCY_LIMIT);
   function injectStats3(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {
       return;
@@ -590,9 +634,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     statSpan.id = `tornium-estimate-search-user-stat-${userID}`;
     statSpan.innerText = "...";
     userContainer.append(statSpan);
-    concurrencyLimiter3(() => {
-      return getUserStats(userID);
-    }).then((statsData) => {
+    getUserStats(userID, concurrencyLimiter3).then((statsData) => {
       if (statsData.error != void 0) {
         log(`OAuth Error: ${statsData.error_description}`);
         statSpan.innerText = `ERR`;
@@ -601,7 +643,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       } else if (statsData.code != void 0) {
         log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
         statSpan.innerText = `ERR`;
-      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * 30) {
+      } else if (new Date(statsData.timestamp * 1e3) > Date.now() - 1e3 * 60 * 60 * 24 * Config.maximumStatDays) {
         statSpan.innerText = fairFight(statsData.stat_score);
       } else {
         injectEstimate3(statSpan, userID);
@@ -609,9 +651,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     });
   }
   function injectEstimate3(statSpan, userID) {
-    concurrencyLimiter3(() => {
-      return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter3).then((estimateData) => {
       if (estimateData.error != void 0) {
         log(`OAuth Error: ${estimateData.error_description}`);
         statSpan.innerText = `ERR`;
@@ -708,6 +748,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     const configLegend = document.createElement("legend");
     configLegend.innerText = "Configuration";
     configSection.append(configLegend);
+    const configMaximumStatDaysLabel = document.createElement("label");
+    configMaximumStatDaysLabel.for = "tornium-estimate-settings-maximum-stat-days";
+    configMaximumStatDaysLabel.innerText = "Maximum age (in days) of stat data before showing estimates: ";
+    configMaximumStatDaysLabel.style.display = "inline";
+    configSection.append(configMaximumStatDaysLabel);
+    const configMaximumStatDaysInput = document.createElement("input");
+    configMaximumStatDaysInput.id = "tornium-estimate-settings-maximum-stat-days";
+    configMaximumStatDaysInput.type = "number";
+    configMaximumStatDaysInput.value = Config.maximumStatDays;
+    configMaximumStatDaysInput.autocomplete = "off";
+    configMaximumStatDaysInput.minimum = 0;
+    configMaximumStatDaysInput.addEventListener("change", (event) => {
+      Config.maximumStatDays = configMaximumStatDaysInput.value;
+    });
+    configSection.append(configMaximumStatDaysInput);
+    configSection.append(document.createElement("br"));
     const configExactStatLabel = document.createElement("label");
     configExactStatLabel.for = "tornium-estimate-settings-exact-stat";
     configExactStatLabel.innerText = "Show exact values instead of shortened: ";
@@ -721,6 +777,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       Config.exactStat = configExactStatCheckbox.checked;
     });
     configSection.append(configExactStatCheckbox);
+    configSection.append(document.createElement("br"));
     const configPagesLabel = document.createElement("label");
     configPagesLabel.for = "tornium-estimate-settings-pages";
     configPagesLabel.innerText = "Enable stats/estimated stats on the following pages: ";
@@ -867,6 +924,7 @@ margin: 8px 6px 0 0;
     });
   } else if (window.location.pathname.startsWith("/profiles.php")) {
     createSettingsButton();
+    createProfileLoginMessage();
   } else if (window.location.pathname.startsWith("/gym.php")) {
     waitForElement(`li[class^="dexterity_"]`).then((parent) => {
       const strengthNode = document.querySelector(`li[class^="strength_"] span[class^="propertyValue_"]`);

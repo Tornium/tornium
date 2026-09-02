@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { limitConcurrency } from "../api.js";
 import { fairFight } from "./common.js";
 import { Config } from "../config.js";
+import { CONCURRENCY_LIMIT } from "../constants.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { getUserEstimate, getUserStats } from "../stats.js";
@@ -45,7 +46,7 @@ function hashChangeCallback(event) {
     });
 }
 
-const concurrencyLimiter = limitConcurrency(10);
+const concurrencyLimiter = limitConcurrency(CONCURRENCY_LIMIT);
 
 function injectStats(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {

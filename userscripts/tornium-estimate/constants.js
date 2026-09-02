@@ -20,6 +20,7 @@ export const VERSION = "0.5.8-dev";
 export const APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 export const APP_SCOPE = "torn_key:usage";
 export const CACHE_ENABLED = "caches" in window;
+export const CONCURRENCY_LIMIT = 20;
 
 // Tampermonkey will store data from GM_setValue separately in its userscript storage,
 // however TPDA, violentmonkey, and others will store data from GM_setValue in localStorage.

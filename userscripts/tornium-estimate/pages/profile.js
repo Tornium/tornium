@@ -51,6 +51,25 @@ export function createProfileContainer() {
     return [statsSpan, estimateSpan];
 }
 
+export function createProfileLoginMessage() {
+    const parentContainer = document.querySelector("div.content-title");
+
+    const container = document.createElement("div");
+    container.classList.add("tornium-estimate-profile-container");
+    container.style.marginTop = "10px";
+    parentContainer.append(container);
+
+    const loginMessage = document.createElement("p");
+    loginMessage.innerText =
+        "You need to log into Tornium again to utilize the userscript. For more information, see the ";
+    container.append(loginMessage);
+
+    const loginMessageDocs = document.createElement("a");
+    loginMessageDocs.href = "https://docs.tornium.com/en/latest/tutorial/tornium-estimate.html";
+    loginMessageDocs.innerText = "Tornium documentation";
+    loginMessage.append(loginMessageDocs);
+}
+
 export function updateProfileStatsSpan(statsData, statsSpan) {
     if (statsData.error != undefined) {
         statsSpan.innerText = formatOAuthError(statsData);

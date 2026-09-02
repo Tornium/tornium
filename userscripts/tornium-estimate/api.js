@@ -15,62 +15,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { CACHE_EXPIRATION, getCache, putCache } from "./cache.js";
 import { BASE_URL } from "./constants.js";
+import { log } from "./logging.js";
 import { accessToken } from "./oauth.js";
 
-export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION }) {
-    return new Promise(async (resolve, reject) => {
-        const cachedResponse = await getCache(endpoint);
-
+export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION, limiter: null }) {
+    return getCache(endpoint).then((cachedResponse) => {
         if (cachedResponse != null && cachedResponse != undefined) {
-            resolve(cachedResponse);
             return cachedResponse;
         }
 
-        return GM_xmlhttpRequest({
-            method: options.method,
-            url: `${BASE_URL}/api/v1/${endpoint}`,
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-            },
-            responseType: "json",
-            onload: async (response) => {
-                let responseJSON = response.response;
+        const makeRequest = () =>
+            new Promise((resolve, reject) => {
+                GM_xmlhttpRequest({
+                    method: options.method,
+                    url: `${BASE_URL}/api/v1/${endpoint}`,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    responseType: "json",
+                    onload: async (response) => {
+                        let responseJSON = response.response;
 
-                if (response.responseType === undefined) {
-                    try {
-                        responseJSON = JSON.parse(response.responseText);
-                        response.responseType = "json";
-                    } catch (err) {
-                        console.log(response.responseText);
-                        console.log(err);
-                        reject(err);
+                        if (response.responseType === undefined) {
+                            try {
+                                responseJSON = JSON.parse(response.responseText);
+                                response.responseType = "json";
+                            } catch (err) {
+                                log(response.responseText, true);
+                                log(err, true);
+                                reject(err);
+                                return;
+                            }
+                        }
+
+                        if (responseJSON.error !== undefined) {
+                            // TODO: Replace check with WWW-Authenticate header
+                            GM_deleteValue("tornium-estimate:access-token");
+                            GM_deleteValue("tornium-estimate:access-token-expires");
+
+                            // TODO: Determine how this could use .reject but still have the response processed normally
+                            resolve(responseJSON);
+                            return;
+                        }
+
+                        if (!("code" in responseJSON)) {
+                            await putCache(endpoint, response, options.ttl);
+                        }
+
+                        resolve(responseJSON);
                         return;
-                    }
-                }
+                    },
+                    onerror: (error) => {
+                        reject(error);
+                        return;
+                    },
+                });
+            });
 
-                if (responseJSON.error !== undefined) {
-                    // TODO: Replace check with WWW-Authenticate header
-                    GM_deleteValue("tornium-estimate:access-token");
-                    GM_deleteValue("tornium-estimate:access-token-expires");
+        if (options.limiter == null) {
+            return makeRequest();
+        }
 
-                    // TODO: Determine how this could use .reject but still have the response processed normally
-                    resolve(responseJSON);
-                    return responseJSON;
-                }
-
-                if (!("code" in responseJSON)) {
-                    putCache(endpoint, response, options.ttl);
-                }
-
-                resolve(responseJSON);
-                return responseJSON;
-            },
-            onerror: (error) => {
-                reject(error);
-                return;
-            },
-        });
+        return options.limiter(makeRequest);
     });
 }
 

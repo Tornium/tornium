@@ -15,6 +15,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { limitConcurrency } from "../api.js";
 import { fairFight } from "./common.js";
+import { Config } from "../config.js";
+import { CONCURRENCY_LIMIT } from "../constants.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { getUserEstimate, getUserStats } from "../stats.js";
@@ -34,7 +36,7 @@ export function checkRankedWarToggleState(event) {
     );
 }
 
-const concurrencyLimiter = limitConcurrency(10);
+const concurrencyLimiter = limitConcurrency(CONCURRENCY_LIMIT);
 
 function transformRankedWarLevelNode(node) {
     if (node.innerText == "Level") {
@@ -57,9 +59,7 @@ function transformRankedWarLevelNode(node) {
 
     node.innerText = "...";
 
-    concurrencyLimiter(() => {
-        return getUserStats(userID);
-    }).then((statsData) => {
+    getUserStats(userID, concurrencyLimiter).then((statsData) => {
         if (statsData.error != undefined) {
             log(`OAuth Error: ${statsData.error_description}`);
             node.innerText = `ERR`;
@@ -69,7 +69,7 @@ function transformRankedWarLevelNode(node) {
         } else if (statsData.code != undefined) {
             log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
             node.innerText = `ERR`;
-        } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * 30) {
+        } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * Config.maximumStatDays) {
             node.innerText = fairFight(statsData.stat_score);
         } else {
             // The data is too old. We want to use an estimate instead
@@ -79,9 +79,7 @@ function transformRankedWarLevelNode(node) {
 }
 
 function transformRankedWarLevelNodeEstimate(node, userID) {
-    concurrencyLimiter(() => {
-        return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
             node.innerText = `ERR`;

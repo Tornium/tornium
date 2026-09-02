@@ -15,7 +15,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { DEBUG, ENABLE_LOGGING } from "./constants.js";
 
-export function log(string) {
+export function log(string, debug_log = false) {
+    if (debug_log && !DEBUG) {
+        return;
+    }
+
     if (ENABLE_LOGGING || DEBUG) {
         console.log("[Tornium Estimate] " + window.location.pathname + " - " + string);
     }

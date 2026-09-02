@@ -13,35 +13,71 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+import { log } from "./logging.js";
 import { CACHE_ENABLED } from "./constants.js";
 
 const CACHE_NAME = "tornium-estimate-cache";
 export const CACHE_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
 
+let cacheInstance = null;
+async function getCacheInstance() {
+    if (cacheInstance == null) {
+        cacheInstance = await caches.open(CACHE_NAME);
+    }
+
+    return cacheInstance;
+}
+
 export async function getCache(url) {
-    const cache = await caches.open(CACHE_NAME);
+    if (!CACHE_ENABLED) {
+        return null;
+    }
+
+    const cache = await getCacheInstance();
     const cachedResponse = await cache.match(url);
 
     if (cachedResponse) {
         const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
 
         if (Date.now() < expirationTime) {
+            log(`HIT ${url}`);
             return await cachedResponse.json();
         }
 
+        log(`EXPIRE ${url}`);
         await cache.delete(url);
     }
 
+    log(`MISS ${url}`);
     return null;
 }
 
 export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const cloneResponse = response.clone();
-    const newHeaders = new Headers(cloneResponse.headers);
+    const newHeaders = new Headers();
+    if (response.responseHeaders) {
+        response.responseHeaders
+            .trim()
+            .split(/[\r\n]+/)
+            .forEach((line) => {
+                const parts = line.split(": ");
+                const key = parts.shift();
+                const value = parts.join(": ");
+                if (key) {
+                    newHeaders.append(key, value);
+                }
+            });
+    }
+
     newHeaders.set("cache-expiry", String(Date.now() + ttl));
 
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(await cloneResponse.text(), { status: response.status, headers: newHeaders }));
+    const modifiedResponse = new Response(response.responseText, {
+        status: response.status,
+        statusText: response.statusText || "",
+        headers: newHeaders,
+    });
+
+    const cache = await getCacheInstance();
+    await cache.put(url, modifiedResponse);
 }
 
 function parseHeaders(headerString) {
